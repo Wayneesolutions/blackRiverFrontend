@@ -25,6 +25,16 @@ export const FleetMaintainSidebarlinks: FleetMaintainSidebarlinks[] = [
         label: "Fleets",
     },
     {
+        key: "/admin/fleetmaintenance/trucks",
+        icon: <FaTruck />,
+        label: "Trucks",
+    },
+    {
+        key: "/admin/fleetmaintenance/trailers",
+        icon: <FaTrailer />,
+        label: "Trailers",
+    },
+    {
         key: "/admin/fleetmaintenance/scheduled-services-log",
         icon: <FaWrench />,
         label: "Scheduled Services Log",

@@ -1,807 +1,591 @@
-import React, { useState } from 'react';
-import { Plus, Edit, Trash2, Search, Truck, AlertTriangle, CheckCircle } from 'lucide-react';
-import { FaExclamationCircle, FaTimes } from 'react-icons/fa';
-
-type TruckType = 'Semi-Truck' | 'Straight Truck' | 'Box Truck' | 'Flatbed' | 'Refrigerated Truck' | 'Dump Truck' | 'Tow Truck';
+import React, { useState, useEffect } from 'react';
+import { useParams, useNavigate } from 'react-router-dom';
+import { Plus, Upload, FileText, Filter, Settings, Users, ChevronUp, ChevronDown, Clock } from 'lucide-react';
 
 interface Truck {
-  _id: string;
-  internalId: string;
-  plateNumber: string;
-  vinNumber: string;
-  make: string;
-  model: string;
-  year: number;
-  truckType: TruckType;
-  odometer: number;
-  status: string;
-  // Safety compliance fields
-  safetyExpiryDate?: string;
-  safetyDecalNumber?: string;
-  safetyPaperNumber?: string;
-  lastInspectionShop?: string;
-  lastInspectionInvoice?: string;
+    id: string;
+    unitNumber: string;
+    plateNumber: string;
+    ownership: string;
+    notes: string;
+    operatingStatus: 'IN SERVICE' | 'OUT OF SERVICE' | 'MAINTENANCE';
+    dispatchStatus: 'LOADED' | 'DELIVERED' | 'UNASSIGNED' | 'IN TRANSIT' | 'ASSIGNED';
+    dispatchInfo: string;
+    compliance: 'COMPLIANT' | 'NON-COMPLIANT' | 'EXPIRING SOON';
+    category?: 'MB' | 'AB' | 'TX' | 'External' | 'Unassigned';
 }
 
-// Static data for trucks
+// Static truck data based on the image
 const staticTrucks: Truck[] = [
-  {
-    _id: '1',
-    internalId: '1001',
-    plateNumber: 'BRV-1001',
-    vinNumber: '1XKDB0X5XKJ123456',
-    make: 'Kenworth',
-    model: 'T680',
-    year: 2022,
-    truckType: 'Semi-Truck',
-    odometer: 125000,
-    status: 'available',
-    safetyExpiryDate: '2024-12-15',
-    safetyDecalNumber: 'SD-2024-1001',
-    safetyPaperNumber: 'SP-2024-1001',
-    lastInspectionShop: 'Provincial Safety Inspection',
-    lastInspectionInvoice: 'INV-SAF-2024-001'
-  },
-  {
-    _id: '2',
-    internalId: '1002',
-    plateNumber: 'BRV-1002',
-    vinNumber: '1NP5DB0X9NW234567',
-    make: 'Peterbilt',
-    model: '579',
-    year: 2023,
-    truckType: 'Semi-Truck',
-    odometer: 98000,
-    status: 'in-use',
-    safetyExpiryDate: '2024-11-20',
-    safetyDecalNumber: 'SD-2024-1002',
-    safetyPaperNumber: 'SP-2024-1002',
-    lastInspectionShop: 'Fleet Safety Services',
-    lastInspectionInvoice: 'INV-SAF-2024-002'
-  },
-  {
-    _id: '3',
-    internalId: '1003',
-    plateNumber: 'BRV-1003',
-    vinNumber: '1FUJGHDV5DS345678',
-    make: 'Freightliner',
-    model: 'Cascadia',
-    year: 2021,
-    truckType: 'Semi-Truck',
-    odometer: 156000,
-    status: 'maintenance',
-    safetyExpiryDate: '2024-09-30',
-    safetyDecalNumber: 'SD-2024-1003',
-    safetyPaperNumber: 'SP-2024-1003',
-    lastInspectionShop: 'Commercial Vehicle Inspections',
-    lastInspectionInvoice: 'INV-SAF-2024-004'
-  },
-  {
-    _id: '4',
-    internalId: '1004',
-    plateNumber: 'BRV-1004',
-    vinNumber: '4V4NC9EH5NN456789',
-    make: 'Volvo',
-    model: 'VNL',
-    year: 2020,
-    truckType: 'Semi-Truck',
-    odometer: 180000,
-    status: 'available',
-    safetyExpiryDate: '2024-08-15',
-    safetyDecalNumber: 'SD-2024-1004',
-    safetyPaperNumber: 'SP-2024-1004',
-    lastInspectionShop: 'Fleet Safety Services',
-    lastInspectionInvoice: 'INV-SAF-2024-005'
-  },
-  {
-    _id: '5',
-    internalId: '1005',
-    plateNumber: 'BRV-1005',
-    vinNumber: '1HTMMAMN5MH567890',
-    make: 'International',
-    model: 'LT Series',
-    year: 2023,
-    truckType: 'Box Truck',
-    odometer: 45000,
-    status: 'available',
-    safetyExpiryDate: '2024-10-10',
-    safetyDecalNumber: 'SD-2024-1005',
-    safetyPaperNumber: 'SP-2024-1005',
-    lastInspectionShop: 'Provincial Safety Inspection',
-    lastInspectionInvoice: 'INV-SAF-2024-006'
-  }
+    {
+        id: '1',
+        unitNumber: '1304',
+        plateNumber: 'CRS410',
+        ownership: 'OWNER OPERATOR',
+        notes: 'Has notes',
+        operatingStatus: 'IN SERVICE',
+        dispatchStatus: 'LOADED',
+        dispatchInfo: '12/31 TACOMA, WA',
+        compliance: 'EXPIRING SOON',
+        category: 'MB'
+    },
+    {
+        id: '2',
+        unitNumber: '1315',
+        plateNumber: 'CRZ813',
+        ownership: 'COMPANY ASSET',
+        notes: '',
+        operatingStatus: 'IN SERVICE',
+        dispatchStatus: 'DELIVERED',
+        dispatchInfo: '12/28 TORONTO, ON',
+        compliance: 'COMPLIANT',
+        category: 'MB'
+    },
+    {
+        id: '3',
+        unitNumber: '1319',
+        plateNumber: 'CRZ782',
+        ownership: 'COMPANY ASSET',
+        notes: '',
+        operatingStatus: 'IN SERVICE',
+        dispatchStatus: 'UNASSIGNED',
+        dispatchInfo: '12/31 N/A',
+        compliance: 'COMPLIANT',
+        category: 'AB'
+    },
+    {
+        id: '4',
+        unitNumber: '1320',
+        plateNumber: 'CRZ783',
+        ownership: 'OWNER OPERATOR',
+        notes: '',
+        operatingStatus: 'IN SERVICE',
+        dispatchStatus: 'IN TRANSIT',
+        dispatchInfo: '12/30 CHICAGO, IL',
+        compliance: 'COMPLIANT',
+        category: 'TX'
+    },
+    {
+        id: '5',
+        unitNumber: '1321',
+        plateNumber: 'CRZ784',
+        ownership: 'COMPANY ASSET',
+        notes: 'Has notes',
+        operatingStatus: 'IN SERVICE',
+        dispatchStatus: 'ASSIGNED',
+        dispatchInfo: '12/31 DALLAS, TX',
+        compliance: 'EXPIRING SOON',
+        category: 'External'
+    },
+    {
+        id: '6',
+        unitNumber: '1322',
+        plateNumber: 'CRZ785',
+        ownership: 'COMPANY ASSET',
+        notes: '',
+        operatingStatus: 'IN SERVICE',
+        dispatchStatus: 'LOADED',
+        dispatchInfo: '12/31 WINNIPEG, MB',
+        compliance: 'COMPLIANT',
+        category: 'Unassigned'
+    }
 ];
 
 const Trucks: React.FC = () => {
-  const [searchTerm, setSearchTerm] = useState('');
-  const [showAddModal, setShowAddModal] = useState(false);
-  const [showEditModal, setShowEditModal] = useState(false);
-  const [showSafetyModal, setShowSafetyModal] = useState(false);
-  const [showDeleteModal, setShowDeleteModal] = useState(false);
-  const [selectedTruck, setSelectedTruck] = useState<Truck | null>(null);
-  const [trucks, setTrucks] = useState<Truck[]>(staticTrucks);
-  const [formData, setFormData] = useState({
-    internalId: '',
-    plateNumber: '',
-    vinNumber: '',
-    make: '',
-    model: '',
-    year: new Date().getFullYear().toString(),
-    truckType: 'Semi-Truck' as TruckType,
-    odometer: '',
-    status: 'available'
-  });
-  const [safetyForm, setSafetyForm] = useState({
-    safetyExpiryDate: '',
-    safetyDecalNumber: '',
-    safetyPaperNumber: '',
-    lastInspectionShop: '',
-    lastInspectionInvoice: ''
-  });
-
-  const filteredTrucks = trucks.filter(truck => {
-    return !searchTerm || 
-      truck.internalId.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      truck.plateNumber.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      truck.make.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      truck.model.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      truck.vinNumber.toLowerCase().includes(searchTerm.toLowerCase());
-  });
-
-  const getComplianceStatus = (expiryDate?: string) => {
-    if (!expiryDate) return { status: 'unknown', color: 'gray', text: 'Not Set' };
+    const { category: routeCategory } = useParams<{ category?: string }>();
+    const navigate = useNavigate();
     
-    const expiry = new Date(expiryDate);
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-    expiry.setHours(0, 0, 0, 0);
+    // Initialize activeTab from route params, default to 'All'
+    const getInitialTab = (cat?: string): 'All' | 'MB' | 'AB' | 'TX' | 'External' | 'Unassigned' => {
+        if (cat && ['MB', 'AB', 'TX', 'External', 'Unassigned'].includes(cat)) {
+            return cat as 'All' | 'MB' | 'AB' | 'TX' | 'External' | 'Unassigned';
+        }
+        return 'All';
+    };
     
-    const daysUntilExpiry = Math.ceil((expiry.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
-    
-    if (daysUntilExpiry < 0) {
-      return { status: 'expired', color: 'red', text: 'Expired' };
-    } else if (daysUntilExpiry <= 30) {
-      return { status: 'expiring-soon', color: 'yellow', text: `Expiring in ${daysUntilExpiry} days` };
-    } else {
-      return { status: 'valid', color: 'green', text: 'Valid' };
-    }
-  };
+    const [activeTab, setActiveTab] = useState<'All' | 'MB' | 'AB' | 'TX' | 'External' | 'Unassigned'>(getInitialTab(routeCategory));
+    const [searchTerm, setSearchTerm] = useState('');
+    const [sortBy, setSortBy] = useState('');
+    const [complianceStatus, setComplianceStatus] = useState('All');
+    const [category, setCategory] = useState('In Service Only');
 
-  const formatDate = (dateString?: string) => {
-    if (!dateString) return 'N/A';
-    try {
-      return new Date(dateString).toLocaleDateString('en-US', { 
-        month: '2-digit', 
-        day: '2-digit', 
-        year: 'numeric' 
-      });
-    } catch {
-      return 'N/A';
-    }
-  };
+    // Update activeTab when route changes
+    useEffect(() => {
+        const newTab = getInitialTab(routeCategory);
+        setActiveTab(newTab);
+    }, [routeCategory]);
 
-  const handleAddTruck = () => {
-    setFormData({
-      internalId: '',
-      plateNumber: '',
-      vinNumber: '',
-      make: '',
-      model: '',
-      year: new Date().getFullYear().toString(),
-      truckType: 'Semi-Truck',
-      odometer: '',
-      status: 'available'
+    // Column filters
+    const [filters, setFilters] = useState({
+        unitNumber: '',
+        plateNumber: '',
+        ownership: 'All',
+        notes: '',
+        operatingStatus: 'All',
+        dispatchStatus: 'All',
+        dispatchInfo: '',
+        compliance: 'All'
     });
-    setShowAddModal(true);
-  };
 
-  const handleEditTruck = (truck: Truck) => {
-    setSelectedTruck(truck);
-    setFormData({
-      internalId: truck.internalId,
-      plateNumber: truck.plateNumber,
-      vinNumber: truck.vinNumber,
-      make: truck.make,
-      model: truck.model,
-      year: truck.year.toString(),
-      truckType: truck.truckType,
-      odometer: truck.odometer.toString(),
-      status: truck.status
+    // Sort configuration
+    const [sortConfig, setSortConfig] = useState<{ key: keyof Truck | null; direction: 'asc' | 'desc' }>({
+        key: null,
+        direction: 'asc'
     });
-    setShowEditModal(true);
-  };
 
-  const handleSafetyRecord = (truck: Truck) => {
-    setSelectedTruck(truck);
-    setSafetyForm({
-      safetyExpiryDate: truck.safetyExpiryDate ? new Date(truck.safetyExpiryDate).toISOString().split('T')[0] : '',
-      safetyDecalNumber: truck.safetyDecalNumber || '',
-      safetyPaperNumber: truck.safetyPaperNumber || '',
-      lastInspectionShop: truck.lastInspectionShop || '',
-      lastInspectionInvoice: truck.lastInspectionInvoice || ''
-    });
-    setShowSafetyModal(true);
-  };
+    // Get filtered trucks
+    const getFilteredTrucks = () => {
+        let filtered = [...staticTrucks];
 
-  const handleDeleteTruck = (truck: Truck) => {
-    setSelectedTruck(truck);
-    setShowDeleteModal(true);
-  };
+        // Filter by active tab
+        if (activeTab !== 'All') {
+            filtered = filtered.filter(truck => truck.category === activeTab);
+        }
 
-  const handleSaveTruck = () => {
-    if (!formData.internalId || !formData.plateNumber || !formData.vinNumber || !formData.make || !formData.model) {
-      alert('Please fill in all required fields');
-      return;
-    }
+        // Filter by search term (Unit #, Plate #, Make, VIN)
+        if (searchTerm) {
+            filtered = filtered.filter(truck =>
+                truck.unitNumber.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                truck.plateNumber.toLowerCase().includes(searchTerm.toLowerCase())
+            );
+        }
 
-    if (showAddModal) {
-      const newTruck: Truck = {
-        _id: Date.now().toString(),
-        internalId: formData.internalId,
-        plateNumber: formData.plateNumber,
-        vinNumber: formData.vinNumber,
-        make: formData.make,
-        model: formData.model,
-        year: parseInt(formData.year),
-        truckType: formData.truckType,
-        odometer: parseInt(formData.odometer) || 0,
-        status: formData.status
-      };
-      setTrucks([...trucks, newTruck]);
-    } else if (showEditModal && selectedTruck) {
-      setTrucks(trucks.map(truck => 
-        truck._id === selectedTruck._id 
-          ? { 
-              ...truck, 
-              internalId: formData.internalId,
-              plateNumber: formData.plateNumber,
-              vinNumber: formData.vinNumber,
-              make: formData.make,
-              model: formData.model,
-              year: parseInt(formData.year),
-              truckType: formData.truckType,
-              odometer: parseInt(formData.odometer) || truck.odometer,
-              status: formData.status
-            }
-          : truck
-      ));
-    }
+        // Filter by compliance status
+        if (complianceStatus !== 'All') {
+            filtered = filtered.filter(truck => {
+                if (complianceStatus === 'Compliant') return truck.compliance === 'COMPLIANT';
+                if (complianceStatus === 'Non-Compliant') return truck.compliance === 'NON-COMPLIANT';
+                if (complianceStatus === 'Expiring Soon') return truck.compliance === 'EXPIRING SOON';
+                return true;
+            });
+        }
 
-    setShowAddModal(false);
-    setShowEditModal(false);
-    setSelectedTruck(null);
-  };
+        // Filter by category
+        if (category === 'In Service Only') {
+            filtered = filtered.filter(truck => truck.operatingStatus === 'IN SERVICE');
+        }
 
-  const handleSaveSafety = () => {
-    if (!selectedTruck || !safetyForm.safetyExpiryDate) {
-      alert('Please fill in the safety expiry date');
-      return;
-    }
+        // Apply column filters
+        if (filters.unitNumber) {
+            filtered = filtered.filter(t => t.unitNumber.toLowerCase().includes(filters.unitNumber.toLowerCase()));
+        }
+        if (filters.plateNumber) {
+            filtered = filtered.filter(t => t.plateNumber.toLowerCase().includes(filters.plateNumber.toLowerCase()));
+        }
+        if (filters.ownership !== 'All') {
+            filtered = filtered.filter(t => t.ownership === filters.ownership);
+        }
+        if (filters.notes) {
+            filtered = filtered.filter(t => t.notes.toLowerCase().includes(filters.notes.toLowerCase()));
+        }
+        if (filters.operatingStatus !== 'All') {
+            filtered = filtered.filter(t => t.operatingStatus === filters.operatingStatus);
+        }
+        if (filters.dispatchStatus !== 'All') {
+            filtered = filtered.filter(t => t.dispatchStatus === filters.dispatchStatus);
+        }
+        if (filters.dispatchInfo) {
+            filtered = filtered.filter(t => t.dispatchInfo.toLowerCase().includes(filters.dispatchInfo.toLowerCase()));
+        }
+        if (filters.compliance !== 'All') {
+            filtered = filtered.filter(t => t.compliance === filters.compliance);
+        }
 
-    setTrucks(trucks.map(truck => 
-      truck._id === selectedTruck._id 
-        ? { 
-            ...truck, 
-            safetyExpiryDate: safetyForm.safetyExpiryDate,
-            safetyDecalNumber: safetyForm.safetyDecalNumber,
-            safetyPaperNumber: safetyForm.safetyPaperNumber,
-            lastInspectionShop: safetyForm.lastInspectionShop,
-            lastInspectionInvoice: safetyForm.lastInspectionInvoice
-          }
-        : truck
-    ));
-    setShowSafetyModal(false);
-    setSelectedTruck(null);
-  };
+        // Sort
+        if (sortConfig.key) {
+            filtered = [...filtered].sort((a, b) => {
+                const aValue = a[sortConfig.key!] ?? '';
+                const bValue = b[sortConfig.key!] ?? '';
 
-  const handleConfirmDelete = () => {
-    if (selectedTruck) {
-      setTrucks(trucks.filter(truck => truck._id !== selectedTruck._id));
-      setShowDeleteModal(false);
-      setSelectedTruck(null);
-    }
-  };
+                if (aValue < bValue) {
+                    return sortConfig.direction === 'asc' ? -1 : 1;
+                }
+                if (aValue > bValue) {
+                    return sortConfig.direction === 'asc' ? 1 : -1;
+                }
+                return 0;
+            });
+        }
 
-  const truckTypes: TruckType[] = [
-    'Semi-Truck',
-    'Straight Truck',
-    'Box Truck',
-    'Flatbed',
-    'Refrigerated Truck',
-    'Dump Truck',
-    'Tow Truck'
-  ];
+        return filtered;
+    };
 
-  return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 via-blue-50/30 to-blue-50/30 p-6">
-      <div className="max-w-7xl mx-auto">
-        {/* Header */}
-        <div className="mb-8">
-          <div className="flex items-center justify-between mb-4">
-            <div className="flex items-center gap-4">
-              <div className="p-3 rounded-2xl shadow-lg" style={{ background: 'linear-gradient(to bottom right, #016ab2, #063f6f)' }}>
-                <Truck className="w-8 h-8 text-white" />
-              </div>
-              <div>
-                <h1 className="text-4xl font-bold bg-clip-text text-transparent" style={{ backgroundImage: 'linear-gradient(to right, #016ab2, #063f6f)' }}>
-                  Trucks
-                </h1>
-                <p className="text-gray-600 mt-1 flex items-center gap-2">
-                  <CheckCircle className="w-4 h-4" />
-                  Manage truck fleet and safety compliance records
-                </p>
-              </div>
-            </div>
-            <button
-              onClick={handleAddTruck}
-              className="flex items-center gap-2 px-6 py-3 text-white rounded-lg shadow-lg transition-all duration-200 font-medium hover:opacity-90"
-              style={{ background: 'linear-gradient(to right, #016ab2, #063f6f)' }}
-            >
-              <Plus className="w-5 h-5" />
-              Add Truck
-            </button>
-          </div>
-        </div>
+    const filteredTrucks = getFilteredTrucks();
 
-        {/* Search */}
-        <div className="bg-white rounded-xl shadow-lg border border-gray-200 p-6 mb-6">
-          <div className="relative">
-            <Search className="w-5 h-5 absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
-            <input
-              type="text"
-              placeholder="Search by unit number, plate, make, model, or VIN..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="pl-10 pr-4 py-2 w-full border border-gray-300 rounded-lg focus:ring-2 focus:border-transparent"
-              style={{ '--tw-ring-color': '#016ab2' } as React.CSSProperties & { '--tw-ring-color': string }}
-              onFocus={(e) => { e.target.style.borderColor = '#016ab2'; e.target.style.boxShadow = '0 0 0 2px rgba(1, 106, 178, 0.2)'; }}
-              onBlur={(e) => { e.target.style.borderColor = ''; e.target.style.boxShadow = ''; }}
-            />
-          </div>
-        </div>
+    // Count trucks by category
+    const getCountByCategory = (category: string) => {
+        if (category === 'All') return staticTrucks.length;
+        return staticTrucks.filter(t => t.category === category).length;
+    };
 
-        {/* Table */}
-        <div className="bg-white rounded-xl shadow-lg border border-gray-200 overflow-hidden">
-          <div className="overflow-x-auto">
-            <table className="w-full">
-              <thead className="text-white" style={{ background: 'linear-gradient(to right, #016ab2, #063f6f)' }}>
-                <tr>
-                  <th className="px-6 py-4 text-left text-sm font-semibold">Unit No.</th>
-                  <th className="px-6 py-4 text-left text-sm font-semibold">Plate Number</th>
-                  <th className="px-6 py-4 text-left text-sm font-semibold">VIN Number</th>
-                  <th className="px-6 py-4 text-left text-sm font-semibold">Make/Model</th>
-                  <th className="px-6 py-4 text-left text-sm font-semibold">Type</th>
-                  <th className="px-6 py-4 text-left text-sm font-semibold">Year</th>
-                  <th className="px-6 py-4 text-left text-sm font-semibold">Odometer</th>
-                  <th className="px-6 py-4 text-left text-sm font-semibold min-w-[180px]">Safety Expiry</th>
-                  <th className="px-6 py-4 text-left text-sm font-semibold">Status</th>
-                  <th className="px-6 py-4 text-left text-sm font-semibold">Actions</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-gray-200">
-                {filteredTrucks.length === 0 ? (
-                  <tr>
-                    <td colSpan={10} className="px-6 py-12 text-center text-gray-500">
-                      No trucks found
-                    </td>
-                  </tr>
-                ) : (
-                  filteredTrucks.map((truck) => {
-                    const compliance = getComplianceStatus(truck.safetyExpiryDate);
-                    return (
-                      <tr key={truck._id} className={`hover:bg-gray-50 transition-colors ${
-                        compliance.status === 'expired' ? 'bg-red-50' : 
-                        compliance.status === 'expiring-soon' ? 'bg-yellow-50' : ''
-                      }`}>
-                        <td className="px-6 py-4 font-medium text-gray-900">{truck.internalId}</td>
-                        <td className="px-6 py-4 text-gray-900">{truck.plateNumber}</td>
-                        <td className="px-6 py-4 text-gray-600 font-mono text-sm">{truck.vinNumber}</td>
-                        <td className="px-6 py-4 text-gray-900">{truck.make} {truck.model}</td>
-                        <td className="px-6 py-4">
-                          <span className="inline-flex px-3 py-1 text-xs font-semibold rounded-full bg-blue-100 text-blue-800">
-                            {truck.truckType}
-                          </span>
-                        </td>
-                        <td className="px-6 py-4 text-gray-900">{truck.year}</td>
-                        <td className="px-6 py-4 text-gray-900">{truck.odometer.toLocaleString()} km</td>
-                        <td className="px-6 py-4 min-w-[180px]">
-                          {truck.safetyExpiryDate ? (
-                            <div className="flex flex-col gap-2">
-                              <span className="text-sm font-semibold text-gray-900 whitespace-nowrap">
-                                {formatDate(truck.safetyExpiryDate)}
-                              </span>
-                              <span className={`px-4 py-1.5 rounded-full text-xs font-semibold inline-block whitespace-nowrap ${
-                                compliance.status === 'expired'
-                                  ? "bg-red-100 text-red-700 border border-red-200"
-                                  : compliance.status === 'expiring-soon'
-                                    ? "bg-yellow-100 text-yellow-700 border border-yellow-200"
-                                    : "bg-green-100 text-green-700 border border-green-200"
-                              }`}>
-                                {compliance.text}
-                              </span>
-                            </div>
-                          ) : (
-                            <span className="text-sm text-gray-400">Not Set</span>
-                          )}
-                        </td>
-                        <td className="px-6 py-4">
-                          <span className={`inline-flex px-3 py-1 text-xs font-semibold rounded-full ${
-                            truck.status === 'available' ? 'bg-green-100 text-green-800' :
-                            truck.status === 'in-use' ? 'bg-blue-100 text-blue-800' :
-                            truck.status === 'maintenance' ? 'bg-red-100 text-red-800' :
-                            'bg-gray-100 text-gray-800'
-                          }`}>
-                            {truck.status}
-                          </span>
-                        </td>
-                        <td className="px-6 py-4">
-                          <div className="flex items-center gap-2">
-                            <button
-                              onClick={() => handleEditTruck(truck)}
-                              className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
-                              title="Edit"
-                            >
-                              <Edit className="w-4 h-4" />
+    const handleSort = (key: keyof Truck) => {
+        setSortConfig(current => ({
+            key,
+            direction: current.key === key && current.direction === 'asc' ? 'desc' : 'asc'
+        }));
+    };
+
+    const getSortIcon = (key: keyof Truck) => {
+        if (sortConfig.key !== key) {
+            return (
+                <div className="flex flex-col">
+                    <ChevronUp className="w-3 h-3 text-gray-400" />
+                    <ChevronDown className="w-3 h-3 text-gray-400 -mt-1" />
+                </div>
+            );
+        }
+        return sortConfig.direction === 'asc' ? (
+            <ChevronUp className="w-3 h-3 text-gray-700" />
+        ) : (
+            <ChevronDown className="w-3 h-3 text-gray-700" />
+        );
+    };
+
+    const getStatusBadgeColor = (status: string, type: 'operating' | 'dispatch' | 'compliance') => {
+        if (type === 'operating') {
+            if (status === 'IN SERVICE') return 'bg-green-500 text-white';
+            if (status === 'OUT OF SERVICE') return 'bg-red-500 text-white';
+            if (status === 'MAINTENANCE') return 'bg-yellow-500 text-white';
+        }
+        if (type === 'dispatch') {
+            if (status === 'LOADED') return 'bg-green-500 text-white';
+            if (status === 'DELIVERED') return 'bg-green-500 text-white';
+            if (status === 'UNASSIGNED') return 'bg-gray-500 text-white';
+            if (status === 'IN TRANSIT') return 'bg-gray-500 text-white';
+            if (status === 'ASSIGNED') return 'bg-orange-500 text-white';
+        }
+        if (type === 'compliance') {
+            if (status === 'COMPLIANT') return 'bg-green-500 text-white';
+            if (status === 'NON-COMPLIANT') return 'bg-red-500 text-white';
+            if (status === 'EXPIRING SOON') return 'bg-orange-500 text-white';
+        }
+        return 'bg-gray-500 text-white';
+    };
+
+    const formatStatusText = (status: string, type: 'operating' | 'compliance') => {
+        if (type === 'operating' && status === 'IN SERVICE') {
+            return (
+                <span className="block leading-tight">
+                    <span className="block">IN</span>
+                    <span className="block">SERVICE</span>
+                </span>
+            );
+        }
+        if (type === 'compliance' && status === 'EXPIRING SOON') {
+            return (
+                <span className="block leading-tight">
+                    <span className="block">EXPIRING</span>
+                    <span className="block">SOON</span>
+                </span>
+            );
+        }
+        return status;
+    };
+
+    return (
+        <div className="min-h-screen bg-[#EDF8FF] p-6">
+            <div className="max-w-full mx-auto">
+                {/* Header Section */}
+                <div className="mb-6">
+                    <div className="flex items-center justify-between mb-4">
+                        <h1 className="text-3xl font-bold text-gray-900">Trucks</h1>
+                        <div className="flex items-center gap-3">
+                            <span className="text-2xl font-bold text-gray-700">({filteredTrucks.length})</span>
+                            <button className="text-gray-600 hover:text-gray-900 transition-colors">
+                                <Upload className="w-6 h-6" />
                             </button>
                             <button
-                              onClick={() => handleSafetyRecord(truck)}
-                              className="p-2 rounded-lg transition-colors"
-                            style={{ color: '#016ab2' }}
-                            onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'rgba(1, 106, 178, 0.1)'}
-                            onMouseLeave={(e) => e.currentTarget.style.backgroundColor = ''}
-                              title="Safety Record"
+                                className="w-10 h-10 bg-[#42aeec] !text-white rounded-lg flex items-center justify-center hover:bg-[#1db5f5] transition-colors shadow-md"
                             >
-                              <AlertTriangle className="w-4 h-4" />
+                                <Plus className="w-5 h-5" />
                             </button>
-                            <button
-                              onClick={() => handleDeleteTruck(truck)}
-                              className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
-                              title="Delete"
-                            >
-                              <Trash2 className="w-4 h-4" />
-                            </button>
-                          </div>
-                        </td>
-                      </tr>
-                    );
-                  })
-                )}
-              </tbody>
-            </table>
-          </div>
-        </div>
-
-        {/* Add/Edit Sidebar */}
-        {(showAddModal || showEditModal) && (
-          <>
-            <div className="fixed inset-0 bg-gray-900/50 backdrop-blur-sm z-[100] transition-all duration-500" onClick={() => {
-              setShowAddModal(false);
-              setShowEditModal(false);
-              setSelectedTruck(null);
-            }} />
-            <div className="fixed top-0 right-0 h-full w-full sm:w-[90vw] lg:w-[80vw] xl:w-[70vw] bg-white shadow-2xl transform transition-transform duration-500 ease-out z-[101] border-l border-gray-200">
-              <div className="h-full flex flex-col">
-                <div className="flex-shrink-0 px-6 py-4 flex items-center justify-between text-white" style={{ background: 'linear-gradient(to right, #016ab2, #063f6f)' }}>
-                  <h2 className="text-2xl font-bold">{showAddModal ? 'Add New Truck' : 'Edit Truck'}</h2>
-                  <button
-                    onClick={() => {
-                      setShowAddModal(false);
-                      setShowEditModal(false);
-                      setSelectedTruck(null);
-                    }}
-                    className="p-2 hover:bg-white/20 rounded-lg transition-colors"
-                  >
-                    <FaTimes className="w-5 h-5" />
-                  </button>
-                </div>
-                <div className="flex-1 overflow-y-auto p-6 space-y-4">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">Unit No. (Internal ID) *</label>
-                    <input
-                      type="text"
-                      value={formData.internalId}
-                      onChange={(e) => setFormData({ ...formData, internalId: e.target.value })}
-                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:border-transparent"
-                      style={{ '--tw-ring-color': '#016ab2' } as React.CSSProperties & { '--tw-ring-color': string }}
-                      onFocus={(e) => { e.target.style.borderColor = '#016ab2'; e.target.style.boxShadow = '0 0 0 2px rgba(1, 106, 178, 0.2)'; }}
-                      onBlur={(e) => { e.target.style.borderColor = ''; e.target.style.boxShadow = ''; }}
-                      placeholder="e.g., 1001"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">Plate Number *</label>
-                    <input
-                      type="text"
-                      value={formData.plateNumber}
-                      onChange={(e) => setFormData({ ...formData, plateNumber: e.target.value })}
-                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:border-transparent"
-                      style={{ '--tw-ring-color': '#016ab2' } as React.CSSProperties & { '--tw-ring-color': string }}
-                      onFocus={(e) => { e.target.style.borderColor = '#016ab2'; e.target.style.boxShadow = '0 0 0 2px rgba(1, 106, 178, 0.2)'; }}
-                      onBlur={(e) => { e.target.style.borderColor = ''; e.target.style.boxShadow = ''; }}
-                      placeholder="e.g., BRV-1001"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">VIN Number *</label>
-                    <input
-                      type="text"
-                      value={formData.vinNumber}
-                      onChange={(e) => setFormData({ ...formData, vinNumber: e.target.value })}
-                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:border-transparent font-mono"
-                      style={{ '--tw-ring-color': '#016ab2' } as React.CSSProperties & { '--tw-ring-color': string }}
-                      onFocus={(e) => { e.target.style.borderColor = '#016ab2'; e.target.style.boxShadow = '0 0 0 2px rgba(1, 106, 178, 0.2)'; }}
-                      onBlur={(e) => { e.target.style.borderColor = ''; e.target.style.boxShadow = ''; }}
-                      placeholder="17-character VIN"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">Truck Type *</label>
-                    <select
-                      value={formData.truckType}
-                      onChange={(e) => setFormData({ ...formData, truckType: e.target.value as TruckType })}
-                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:border-transparent"
-                      style={{ '--tw-ring-color': '#016ab2' } as React.CSSProperties & { '--tw-ring-color': string }}
-                      onFocus={(e) => { e.target.style.borderColor = '#016ab2'; e.target.style.boxShadow = '0 0 0 2px rgba(1, 106, 178, 0.2)'; }}
-                      onBlur={(e) => { e.target.style.borderColor = ''; e.target.style.boxShadow = ''; }}
-                    >
-                      {truckTypes.map(type => (
-                        <option key={type} value={type}>{type}</option>
-                      ))}
-                    </select>
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">Make *</label>
-                    <input
-                      type="text"
-                      value={formData.make}
-                      onChange={(e) => setFormData({ ...formData, make: e.target.value })}
-                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:border-transparent"
-                      style={{ '--tw-ring-color': '#016ab2' } as React.CSSProperties & { '--tw-ring-color': string }}
-                      onFocus={(e) => { e.target.style.borderColor = '#016ab2'; e.target.style.boxShadow = '0 0 0 2px rgba(1, 106, 178, 0.2)'; }}
-                      onBlur={(e) => { e.target.style.borderColor = ''; e.target.style.boxShadow = ''; }}
-                      placeholder="e.g., Kenworth"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">Model *</label>
-                    <input
-                      type="text"
-                      value={formData.model}
-                      onChange={(e) => setFormData({ ...formData, model: e.target.value })}
-                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:border-transparent"
-                      style={{ '--tw-ring-color': '#016ab2' } as React.CSSProperties & { '--tw-ring-color': string }}
-                      onFocus={(e) => { e.target.style.borderColor = '#016ab2'; e.target.style.boxShadow = '0 0 0 2px rgba(1, 106, 178, 0.2)'; }}
-                      onBlur={(e) => { e.target.style.borderColor = ''; e.target.style.boxShadow = ''; }}
-                      placeholder="e.g., T680"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">Year *</label>
-                    <input
-                      type="number"
-                      value={formData.year || ''}
-                      onChange={(e) => setFormData({ ...formData, year: e.target.value })}
-                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:border-transparent"
-                      style={{ '--tw-ring-color': '#016ab2' } as React.CSSProperties & { '--tw-ring-color': string }}
-                      onFocus={(e) => { e.target.style.borderColor = '#016ab2'; e.target.style.boxShadow = '0 0 0 2px rgba(1, 106, 178, 0.2)'; }}
-                      onBlur={(e) => { e.target.style.borderColor = ''; e.target.style.boxShadow = ''; }}
-                      min="1900"
-                      max={new Date().getFullYear() + 1}
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">Odometer (km)</label>
-                    <input
-                      type="number"
-                      value={formData.odometer}
-                      onChange={(e) => setFormData({ ...formData, odometer: e.target.value })}
-                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:border-transparent"
-                      style={{ '--tw-ring-color': '#016ab2' } as React.CSSProperties & { '--tw-ring-color': string }}
-                      onFocus={(e) => { e.target.style.borderColor = '#016ab2'; e.target.style.boxShadow = '0 0 0 2px rgba(1, 106, 178, 0.2)'; }}
-                      onBlur={(e) => { e.target.style.borderColor = ''; e.target.style.boxShadow = ''; }}
-                      placeholder="0"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">Status</label>
-                    <select
-                      value={formData.status}
-                      onChange={(e) => setFormData({ ...formData, status: e.target.value })}
-                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:border-transparent"
-                      style={{ '--tw-ring-color': '#016ab2' } as React.CSSProperties & { '--tw-ring-color': string }}
-                      onFocus={(e) => { e.target.style.borderColor = '#016ab2'; e.target.style.boxShadow = '0 0 0 2px rgba(1, 106, 178, 0.2)'; }}
-                      onBlur={(e) => { e.target.style.borderColor = ''; e.target.style.boxShadow = ''; }}
-                    >
-                      <option value="available">Available</option>
-                      <option value="in-use">In Use</option>
-                      <option value="maintenance">Maintenance</option>
-                      <option value="idle">Idle</option>
-                    </select>
-                  </div>
-                </div>
-              </div>
-              <div className="flex-shrink-0 bg-gray-50 px-6 py-4 flex justify-end gap-3 border-t">
-                <button
-                  onClick={() => {
-                    setShowAddModal(false);
-                    setShowEditModal(false);
-                    setSelectedTruck(null);
-                  }}
-                  className="px-6 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors"
-                >
-                  Cancel
-                </button>
-                <button
-                  onClick={handleSaveTruck}
-                  className="px-6 py-2 text-white rounded-lg transition-colors hover:opacity-90"
-                  style={{ background: 'linear-gradient(to right, #016ab2, #063f6f)' }}
-                >
-                  {showAddModal ? 'Add Truck' : 'Save Changes'}
-                </button>
-              </div>
-            </div>
-          </div>
-          </>
-        )}
-
-        {/* Safety Record Sidebar */}
-        {showSafetyModal && selectedTruck && (
-          <>
-            <div className="fixed inset-0 bg-gray-900/50 backdrop-blur-sm z-[100] transition-all duration-500" onClick={() => {
-              setShowSafetyModal(false);
-              setSelectedTruck(null);
-            }} />
-            <div className="fixed top-0 right-0 h-full w-full sm:w-[90vw] lg:w-[80vw] xl:w-[70vw] bg-white shadow-2xl transform transition-transform duration-500 ease-out z-[101] border-l border-gray-200">
-              <div className="h-full flex flex-col">
-                <div className="flex-shrink-0 px-6 py-4 flex items-center justify-between text-white" style={{ background: 'linear-gradient(to right, #016ab2, #063f6f)' }}>
-                  <div>
-                    <h2 className="text-2xl font-bold">Safety Compliance Record</h2>
-                    <p className="text-sm mt-1 opacity-90">
-                      {selectedTruck.internalId} - {selectedTruck.make} {selectedTruck.model} ({selectedTruck.truckType})
-                    </p>
-                  </div>
-                  <button
-                    onClick={() => {
-                      setShowSafetyModal(false);
-                      setSelectedTruck(null);
-                    }}
-                    className="p-2 hover:bg-white/20 rounded-lg transition-colors"
-                  >
-                    <FaTimes className="w-5 h-5" />
-                  </button>
-                </div>
-                <div className="flex-1 overflow-y-auto p-6 space-y-4">
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">Safety Expiry Date *</label>
-                    <input
-                      type="date"
-                      value={safetyForm.safetyExpiryDate}
-                      onChange={(e) => setSafetyForm({ ...safetyForm, safetyExpiryDate: e.target.value })}
-                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:border-transparent"
-                      style={{ '--tw-ring-color': '#016ab2' } as React.CSSProperties & { '--tw-ring-color': string }}
-                      onFocus={(e) => { e.target.style.borderColor = '#016ab2'; e.target.style.boxShadow = '0 0 0 2px rgba(1, 106, 178, 0.2)'; }}
-                      onBlur={(e) => { e.target.style.borderColor = ''; e.target.style.boxShadow = ''; }}
-                      required
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">Safety Decal Number</label>
-                    <input
-                      type="text"
-                      value={safetyForm.safetyDecalNumber}
-                      onChange={(e) => setSafetyForm({ ...safetyForm, safetyDecalNumber: e.target.value })}
-                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:border-transparent"
-                      style={{ '--tw-ring-color': '#016ab2' } as React.CSSProperties & { '--tw-ring-color': string }}
-                      onFocus={(e) => { e.target.style.borderColor = '#016ab2'; e.target.style.boxShadow = '0 0 0 2px rgba(1, 106, 178, 0.2)'; }}
-                      onBlur={(e) => { e.target.style.borderColor = ''; e.target.style.boxShadow = ''; }}
-                      placeholder="SD-2024-1001"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">Safety Paper Number</label>
-                    <input
-                      type="text"
-                      value={safetyForm.safetyPaperNumber}
-                      onChange={(e) => setSafetyForm({ ...safetyForm, safetyPaperNumber: e.target.value })}
-                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:border-transparent"
-                      style={{ '--tw-ring-color': '#016ab2' } as React.CSSProperties & { '--tw-ring-color': string }}
-                      onFocus={(e) => { e.target.style.borderColor = '#016ab2'; e.target.style.boxShadow = '0 0 0 2px rgba(1, 106, 178, 0.2)'; }}
-                      onBlur={(e) => { e.target.style.borderColor = ''; e.target.style.boxShadow = ''; }}
-                      placeholder="SP-2024-1001"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">Shop Name</label>
-                    <input
-                      type="text"
-                      value={safetyForm.lastInspectionShop}
-                      onChange={(e) => setSafetyForm({ ...safetyForm, lastInspectionShop: e.target.value })}
-                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:border-transparent"
-                      style={{ '--tw-ring-color': '#016ab2' } as React.CSSProperties & { '--tw-ring-color': string }}
-                      onFocus={(e) => { e.target.style.borderColor = '#016ab2'; e.target.style.boxShadow = '0 0 0 2px rgba(1, 106, 178, 0.2)'; }}
-                      onBlur={(e) => { e.target.style.borderColor = ''; e.target.style.boxShadow = ''; }}
-                      placeholder="Name of inspection shop"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">Invoice Number</label>
-                    <input
-                      type="text"
-                      value={safetyForm.lastInspectionInvoice}
-                      onChange={(e) => setSafetyForm({ ...safetyForm, lastInspectionInvoice: e.target.value })}
-                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:border-transparent"
-                      style={{ '--tw-ring-color': '#016ab2' } as React.CSSProperties & { '--tw-ring-color': string }}
-                      onFocus={(e) => { e.target.style.borderColor = '#016ab2'; e.target.style.boxShadow = '0 0 0 2px rgba(1, 106, 178, 0.2)'; }}
-                      onBlur={(e) => { e.target.style.borderColor = ''; e.target.style.boxShadow = ''; }}
-                      placeholder="INV-SAF-2024-001"
-                    />
+                        </div>
                     </div>
-                  </div>
-                  <div className="sticky bottom-0 bg-gray-50 px-6 py-4 flex justify-end gap-3 border-t mt-6">
-                    <button
-                      onClick={() => {
-                        setShowSafetyModal(false);
-                        setSelectedTruck(null);
-                      }}
-                      className="px-6 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors"
-                    >
-                      Cancel
-                    </button>
-                    <button
-                      onClick={handleSaveSafety}
-                      className="px-6 py-2 text-white rounded-lg transition-colors hover:opacity-90"
-                      style={{ background: 'linear-gradient(to right, #016ab2, #063f6f)' }}
-                    >
-                      Save Safety Record
-                    </button>
-                  </div>
                 </div>
-              </div>
-            </div>
-          </>
-        )}
 
-        {/* Delete Confirmation Modal */}
-        {showDeleteModal && selectedTruck && (
-          <>
-            <div className="fixed inset-0 bg-gray-900/50 backdrop-blur-sm z-[9998]" onClick={() => setShowDeleteModal(false)} />
-            <div className="fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-white rounded-xl shadow-2xl z-[9999] w-full max-w-md">
-              <div className="p-6">
-                <div className="flex items-center gap-4 mb-4">
-                  <div className="w-12 h-12 rounded-full bg-red-100 flex items-center justify-center">
-                    <FaExclamationCircle className="text-red-600" size={24} />
-                  </div>
-                  <div>
-                    <h3 className="text-lg font-bold text-gray-900">Delete Truck</h3>
-                    <p className="text-sm text-gray-500">This action cannot be undone</p>
-                  </div>
+                {/* Navigation Tabs */}
+                <div className="mb-6 bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
+                    <div className="flex border-b border-gray-200">
+                        {(['All', 'MB', 'AB', 'TX', 'External', 'Unassigned'] as const).map((tab) => (
+                            <button
+                                key={tab}
+                                onClick={() => {
+                                    setActiveTab(tab);
+                                    const basePath = '/admin/fleetmaintenance/trucks';
+                                    if (tab === 'All') {
+                                        navigate(basePath);
+                                    } else {
+                                        navigate(`${basePath}/${tab}`);
+                                    }
+                                }}
+                                className={`flex-1 px-6 py-4 text-center font-medium transition-colors relative ${activeTab === tab
+                                        ? 'text-[#42aeec] border-b-2 border-[#42aeec]'
+                                        : 'text-gray-600 hover:bg-gray-50'
+                                    }`}
+                            >
+                                <div>
+                                    <div className="font-semibold">
+                                        {tab} ({getCountByCategory(tab)})
+                                    </div>
+                                    {tab === 'MB' && <div className="text-xs text-gray-500 mt-1">Home to Winnipeg Yard</div>}
+                                    {tab === 'AB' && <div className="text-xs text-gray-500 mt-1">Home to Calgary Yard / Ocean, Impact freight services - Acheson</div>}
+                                    {tab === 'TX' && <div className="text-xs text-gray-500 mt-1">Home to Laredo Yard - Santos</div>}
+                                </div>
+                            </button>
+                        ))}
+                    </div>
                 </div>
-                <p className="text-gray-700 mb-6">
-                  Are you sure you want to delete truck <strong>{selectedTruck.internalId}</strong> ({selectedTruck.make} {selectedTruck.model})?
-                </p>
-                <div className="flex justify-end gap-3">
-                  <button
-                    onClick={() => setShowDeleteModal(false)}
-                    className="px-6 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors"
-                  >
-                    Cancel
-                  </button>
-                  <button
-                    onClick={handleConfirmDelete}
-                    className="px-6 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors"
-                  >
-                    Delete
-                  </button>
+
+                {/* Search and Filter Bar */}
+                <div className="mb-6 bg-white rounded-lg shadow-sm border border-gray-200 p-4">
+                    <div className="flex flex-wrap items-center gap-4">
+                        {/* Search Input */}
+                        <div className="flex items-center gap-2 flex-1 min-w-[300px]">
+                            <label className="text-sm font-medium text-gray-700 whitespace-nowrap">Unit #, Plate #, Make, VIN:</label>
+                            <input
+                                type="text"
+                                placeholder="Search..."
+                                value={searchTerm}
+                                onChange={(e) => setSearchTerm(e.target.value)}
+                                className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#42aeec] focus:border-transparent bg-white"
+                            />
+                           
+                        </div>
+
+                        {/* Global Filters */}
+                        <div className="flex items-center gap-2">
+                            <label className="text-sm font-medium text-gray-700">Category:</label>
+                            <select
+                                value={category}
+                                onChange={(e) => setCategory(e.target.value)}
+                                className="px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#42aeec] focus:border-transparent bg-white"
+                            >
+                                <option value="In Service Only">In Service Only</option>
+                                <option value="All">All</option>
+                            </select>
+                        </div>
+
+                        <div className="flex items-center gap-2">
+                            <label className="text-sm font-medium text-gray-700">Compliance Status:</label>
+                            <select
+                                value={complianceStatus}
+                                onChange={(e) => setComplianceStatus(e.target.value)}
+                                className="px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#42aeec] focus:border-transparent bg-white"
+                            >
+                                <option value="All">All</option>
+                                <option value="Compliant">Compliant</option>
+                                <option value="Non-Compliant">Non-Compliant</option>
+                                <option value="Expiring Soon">Expiring Soon</option>
+                            </select>
+                        </div>
+
+                        <div className="flex items-center gap-2">
+                            <label className="text-sm font-medium text-gray-700">Sort By:</label>
+                            <select
+                                value={sortBy}
+                                onChange={(e) => setSortBy(e.target.value)}
+                                className="px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#42aeec] focus:border-transparent bg-white"
+                            >
+                                <option value="">Select</option>
+                                <option value="unitNumber">Unit #</option>
+                                <option value="plateNumber">Plate #</option>
+                                <option value="dispatchInfo">Dispatch Info</option>
+                            </select>
+                        </div>
+
+                    </div>
                 </div>
-              </div>
+
+                {/* Data Table */}
+                <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
+                    <div className="overflow-x-auto">
+                        <table className="w-full">
+                            <thead className="bg-gray-50 border-b border-gray-200">
+                                <tr>
+                                    {/* Unit # */}
+                                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase">
+                                        <div className="flex items-center gap-2">
+                                            <span>Unit #</span>
+                                            <button onClick={() => handleSort('unitNumber')} className="flex flex-col">
+                                                {getSortIcon('unitNumber')}
+                                            </button>
+                                        </div>
+                                        <input
+                                            type="text"
+                                            placeholder="Filter..."
+                                            value={filters.unitNumber}
+                                            onChange={(e) => setFilters({ ...filters, unitNumber: e.target.value })}
+                                            className="mt-2 w-full px-2 py-1 text-xs border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-[#42aeec] bg-white"
+                                        />
+                                    </th>
+
+                                    {/* Plate # */}
+                                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase">
+                                        <div className="flex items-center gap-2">
+                                            <span>Plate #</span>
+                                            <button onClick={() => handleSort('plateNumber')} className="flex flex-col">
+                                                {getSortIcon('plateNumber')}
+                                            </button>
+                                        </div>
+                                        <input
+                                            type="text"
+                                            placeholder="Filter..."
+                                            value={filters.plateNumber}
+                                            onChange={(e) => setFilters({ ...filters, plateNumber: e.target.value })}
+                                            className="mt-2 w-full px-2 py-1 text-xs border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-[#42aeec] bg-white"
+                                        />
+                                    </th>
+
+                                    {/* Ownership */}
+                                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase">
+                                        <div className="flex items-center gap-2">
+                                            <span>Ownership</span>
+                                            <button onClick={() => handleSort('ownership')} className="flex flex-col">
+                                                {getSortIcon('ownership')}
+                                            </button>
+                                        </div>
+                                        <select
+                                            value={filters.ownership}
+                                            onChange={(e) => setFilters({ ...filters, ownership: e.target.value })}
+                                            className="mt-2 w-full px-2 py-1 text-xs border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-[#42aeec] bg-white"
+                                        >
+                                            <option value="All">All</option>
+                                            <option value="COMPANY ASSET">Company Asset</option>
+                                            <option value="OWNER OPERATOR">Owner Operator</option>
+                                        </select>
+                                    </th>
+
+                                    {/* Notes */}
+                                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase">
+                                        <div className="flex items-center gap-2">
+                                            <span>Notes</span>
+                                        </div>
+                                        <input
+                                            type="text"
+                                            placeholder="Filter..."
+                                            value={filters.notes}
+                                            onChange={(e) => setFilters({ ...filters, notes: e.target.value })}
+                                            className="mt-2 w-full px-2 py-1 text-xs border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-[#42aeec] bg-white"
+                                        />
+                                    </th>
+
+                                    {/* Operating Status */}
+                                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase">
+                                        <div className="flex items-center gap-2">
+                                            <span>Operating Status</span>
+                                        </div>
+                                        <select
+                                            value={filters.operatingStatus}
+                                            onChange={(e) => setFilters({ ...filters, operatingStatus: e.target.value })}
+                                            className="mt-2 w-full px-2 py-1 text-xs border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-[#42aeec] bg-white"
+                                        >
+                                            <option value="All">All</option>
+                                            <option value="IN SERVICE">In Service</option>
+                                            <option value="OUT OF SERVICE">Out of Service</option>
+                                            <option value="MAINTENANCE">Maintenance</option>
+                                        </select>
+                                    </th>
+
+                                    {/* Dispatch Status */}
+                                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase">
+                                        <div className="flex items-center gap-2">
+                                            <span>Dispatch Status</span>
+                                        </div>
+                                        <select
+                                            value={filters.dispatchStatus}
+                                            onChange={(e) => setFilters({ ...filters, dispatchStatus: e.target.value })}
+                                            className="mt-2 w-full px-2 py-1 text-xs border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-[#42aeec] bg-white"
+                                        >
+                                            <option value="All">All</option>
+                                            <option value="LOADED">Loaded</option>
+                                            <option value="DELIVERED">Delivered</option>
+                                            <option value="UNASSIGNED">Unassigned</option>
+                                            <option value="IN TRANSIT">In Transit</option>
+                                            <option value="ASSIGNED">Assigned</option>
+                                        </select>
+                                    </th>
+
+                                    {/* Dispatch Info */}
+                                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase">
+                                        <div className="flex items-center gap-2">
+                                            <span>Dispatch Info</span>
+                                        </div>
+                                        <input
+                                            type="text"
+                                            placeholder="Filter..."
+                                            value={filters.dispatchInfo}
+                                            onChange={(e) => setFilters({ ...filters, dispatchInfo: e.target.value })}
+                                            className="mt-2 w-full px-2 py-1 text-xs border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-[#42aeec] bg-white"
+                                        />
+                                    </th>
+
+                                    {/* Compliance */}
+                                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase">
+                                        <div className="flex items-center gap-2">
+                                            <span>Compliance</span>
+                                        </div>
+                                        <select
+                                            value={filters.compliance}
+                                            onChange={(e) => setFilters({ ...filters, compliance: e.target.value })}
+                                            className="mt-2 w-full px-2 py-1 text-xs border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-[#42aeec] bg-white"
+                                        >
+                                            <option value="All">All</option>
+                                            <option value="COMPLIANT">Compliant</option>
+                                            <option value="NON-COMPLIANT">Non-Compliant</option>
+                                            <option value="EXPIRING SOON">Expiring Soon</option>
+                                        </select>
+                                    </th>
+                                </tr>
+                            </thead>
+                            <tbody className="bg-white divide-y divide-gray-200">
+                                {filteredTrucks.length === 0 ? (
+                                    <tr>
+                                        <td colSpan={8} className="px-4 py-8 text-center text-gray-500">
+                                            No trucks found
+                                        </td>
+                                    </tr>
+                                ) : (
+                                    filteredTrucks.map((truck) => (
+                                        <tr key={truck.id} className="hover:bg-gray-50 transition-colors">
+                                            <td className="px-4 py-3 text-sm text-gray-900">{truck.unitNumber}</td>
+                                            <td className="px-4 py-3 text-sm text-gray-900">{truck.plateNumber}</td>
+                                            <td className="px-4 py-3 text-sm text-gray-900">{truck.ownership}</td>
+                                            <td className="px-4 py-3 text-sm text-gray-900">
+                                                {truck.notes ? (
+                                                    <div className="w-6 h-6 rounded-full bg-gray-300 flex items-center justify-center">
+                                                        <span className="text-xs">!</span>
+                                                    </div>
+                                                ) : (
+                                                    ''
+                                                )}
+                                            </td>
+                                            <td className="px-4 py-3">
+                                                <span className={`inline-block px-2.5 py-1.5 text-xs font-semibold rounded text-center min-w-[60px] ${getStatusBadgeColor(truck.operatingStatus, 'operating')}`}>
+                                                    {formatStatusText(truck.operatingStatus, 'operating')}
+                                                </span>
+                                            </td>
+                                            <td className="px-4 py-3">
+                                                <span className={`px-3 py-1 text-xs font-semibold rounded-full flex items-center gap-1 ${getStatusBadgeColor(truck.dispatchStatus, 'dispatch')}`}>
+                                                    {truck.dispatchStatus === 'LOADED' && <Clock className="w-3 h-3" />}
+                                                    {truck.dispatchStatus}
+                                                </span>
+                                            </td>
+                                            <td className="px-4 py-3 text-sm text-gray-900">{truck.dispatchInfo}</td>
+                                            <td className="px-4 py-3">
+                                                <span className={`inline-block px-2.5 py-1.5 text-xs font-semibold rounded text-center min-w-[70px] ${getStatusBadgeColor(truck.compliance, 'compliance')}`}>
+                                                    {formatStatusText(truck.compliance, 'compliance')}
+                                                </span>
+                                            </td>
+                                        </tr>
+                                    ))
+                                )}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
             </div>
-          </>
-        )}
-      </div>
-    </div>
-  );
+        </div>
+    );
 };
 
 export default Trucks;

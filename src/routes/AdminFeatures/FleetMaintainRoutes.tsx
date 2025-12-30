@@ -9,6 +9,8 @@ const VehicleEldMonitor = lazy(() => import("../../pages/admin/fleetMaintenance/
 const SpareParts = lazy(() => import("../../pages/admin/fleetMaintenance/sparePart/index"))
 const CostReports = lazy(() => import("../../pages/admin/fleetMaintenance/costReport/index"))
 const FleetUnits = lazy(() => import("../../pages/admin/fleetMaintenance/fleetUnits/index"))
+const Trucks = lazy(() => import("../../pages/admin/fleetMaintenance/trucks/Trucks"))
+const Trailers = lazy(() => import("../../pages/admin/fleetMaintenance/trailers/index"))
 const ComplianceDashboard = lazy(() => import("../../pages/admin/fleetMaintenance/Dashboard/index"))
 const ScheduledServicesLog = lazy(() => import("../../pages/admin/fleetMaintenance/scheduledServicesLog/index"))
 const GeneralRepairsLog = lazy(() => import("../../pages/admin/fleetMaintenance/generalRepairsLog/index"))
@@ -33,6 +35,9 @@ function FleetMaintainRoutes() {
                     <Route path="/vehicle-documents" element={<VehicleDocuments />} />
                     <Route path="/cost-reports" element={<CostReports />} />
                     <Route path="/fleet-units" element={<FleetUnits />} />
+                    <Route path="/trucks" element={<Trucks />} />
+                    <Route path="/trucks/:category" element={<Trucks />} />
+                    <Route path="/trailers" element={<Trailers />} />
                     <Route path="/compliance-dashboard" element={<ComplianceDashboard />} />
                     <Route path="/scheduled-services-log" element={<ScheduledServicesLog />} />
                     <Route path="/general-repairs-log" element={<GeneralRepairsLog />} />
