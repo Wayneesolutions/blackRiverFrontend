@@ -520,37 +520,39 @@ const CustomersPage = () => {
             className="bg-white rounded-lg shadow-2xl w-full max-w-6xl h-[90vh] flex flex-col overflow-hidden"
             onClick={(e) => e.stopPropagation()}
           >
-            {/* Header */}
-            <div className="flex items-center justify-between p-6 border-b border-gray-200 bg-white">
-              <h2 className="text-2xl font-bold text-gray-900">
-                {editingId 
-                  ? (customerType === 'CUSTOMER' ? 'Edit Customer' : 'Edit Shipper Receiver')
-                  : (customerType === 'CUSTOMER' ? 'New Customer' : 'New Shipper Receiver')
-                }
-              </h2>
-              <button
-                onClick={() => {
-                  setShowNewCustomerModal(false);
-                  resetForm();
-                }}
-                className="text-gray-400 hover:text-gray-600 transition-colors"
-              >
-                <X className="w-6 h-6" />
-              </button>
-            </div>
+            {/* Scrollable Container - Everything scrolls together */}
+            <div className="flex-1 overflow-y-auto">
+              {/* Header */}
+              <div className="flex items-center justify-between p-6 border-b border-gray-200 bg-white">
+                <h2 className="text-2xl font-bold text-gray-900">
+                  {editingId 
+                    ? (customerType === 'CUSTOMER' ? 'Edit Customer' : 'Edit Shipper Receiver')
+                    : (customerType === 'CUSTOMER' ? 'New Customer' : 'New Shipper Receiver')
+                  }
+                </h2>
+                <button
+                  onClick={() => {
+                    setShowNewCustomerModal(false);
+                    resetForm();
+                  }}
+                  className="text-gray-400 hover:text-gray-600 transition-colors"
+                >
+                  <X className="w-6 h-6" />
+                </button>
+              </div>
 
-            {/* Basic Tab Bar */}
-            <div className="bg-[#0ea3d8] px-6 py-3">
-              <span className="text-white font-medium">Basic</span>
-            </div>
+              {/* Basic Tab Bar */}
+              <div className="bg-[#42aeec] px-6 py-3 border-b border-[#42aeec]/20">
+                <span className="text-white font-medium text-sm">Basic</span>
+              </div>
 
-            {/* Form Content */}
-            <div className="flex-1 overflow-y-auto p-6 bg-white">
+              {/* Form Content */}
+              <div className="p-6 bg-white">
               <div className="grid grid-cols-2 gap-8">
                 {/* Left Column - Basic Information */}
                 <div className="space-y-6">
                   <div>
-                    <h3 className="text-lg font-bold text-gray-900 mb-4">Basic Information</h3>
+                    <h3 className="text-lg font-semibold text-gray-700 mb-4">Basic Information</h3>
                     
                     {/* Customer Type Toggle */}
                     <div className="mb-4">
@@ -561,8 +563,8 @@ const CustomersPage = () => {
                           onClick={() => setCustomerType('CUSTOMER')}
                           className={`flex-1 px-4 py-2 rounded-lg font-medium transition-colors ${
                             customerType === 'CUSTOMER'
-                              ? 'bg-gray-200 text-gray-700'
-                              : 'bg-[#0ea3d8] !text-white hover:bg-[#1db5f5]'
+                              ? 'bg-[#42aeec] !text-white shadow-sm'
+                              : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
                           }`}
                         >
                           CUSTOMER
@@ -572,8 +574,8 @@ const CustomersPage = () => {
                           onClick={() => setCustomerType('SHIPPER AND RECEIVER')}
                           className={`flex-1 px-4 py-2 rounded-lg font-medium transition-colors ${
                             customerType === 'SHIPPER AND RECEIVER'
-                              ? 'bg-gray-200 text-gray-700'
-                              : 'bg-[#0ea3d8] !text-white hover:bg-[#1db5f5]'
+                              ? 'bg-[#42aeec] !text-white shadow-sm'
+                              : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
                           }`}
                         >
                           SHIPPER AND RECEIVER
@@ -595,10 +597,10 @@ const CustomersPage = () => {
                           <button
                             type="button"
                             onClick={() => setBillingType('DEFAULT / LOAD')}
-                            className={`flex-1 px-4 py-2 rounded-lg font-medium transition-colors ${
+                            className={`flex-1 px-4 py-2 rounded-lg font-medium transition-colors text-sm ${
                               billingType === 'DEFAULT / LOAD'
-                                ? 'bg-gray-200 text-gray-700'
-                                : 'bg-[#0ea3d8] !text-white hover:bg-[#1db5f5]'
+                                ? 'bg-[#42aeec] !text-white shadow-sm'
+                                : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
                             }`}
                           >
                             DEFAULT / LOAD
@@ -606,10 +608,10 @@ const CustomersPage = () => {
                           <button
                             type="button"
                             onClick={() => setBillingType('BATCH WEEKLY')}
-                            className={`flex-1 px-4 py-2 rounded-lg font-medium transition-colors ${
+                            className={`flex-1 px-4 py-2 rounded-lg font-medium transition-colors text-sm ${
                               billingType === 'BATCH WEEKLY'
-                                ? 'bg-gray-200 text-gray-700'
-                                : 'bg-[#0ea3d8] !text-white hover:bg-[#1db5f5]'
+                                ? 'bg-[#42aeec] !text-white shadow-sm'
+                                : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
                             }`}
                           >
                             BATCH WEEKLY
@@ -617,10 +619,10 @@ const CustomersPage = () => {
                           <button
                             type="button"
                             onClick={() => setBillingType('BATCH MONTHLY')}
-                            className={`flex-1 px-4 py-2 rounded-lg font-medium transition-colors ${
+                            className={`flex-1 px-4 py-2 rounded-lg font-medium transition-colors text-sm ${
                               billingType === 'BATCH MONTHLY'
-                                ? 'bg-gray-200 text-gray-700'
-                                : 'bg-[#0ea3d8] !text-white hover:bg-[#1db5f5]'
+                                ? 'bg-[#42aeec] !text-white shadow-sm'
+                                : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
                             }`}
                           >
                             BATCH MONTHLY
@@ -767,7 +769,7 @@ const CustomersPage = () => {
                 <div className="space-y-6">
                   {/* Address Section */}
                   <div>
-                    <h3 className="text-lg font-bold text-gray-900 mb-4">Address</h3>
+                    <h3 className="text-lg font-semibold text-gray-700 mb-4">Address</h3>
                     
                     <div className="mb-4">
                       <label className="block text-sm font-medium text-gray-700 mb-1">Search Address</label>
@@ -863,7 +865,7 @@ const CustomersPage = () => {
                   {/* Finance Section - Only for CUSTOMER type */}
                   {customerType === 'CUSTOMER' && (
                     <div>
-                      <h3 className="text-lg font-bold text-gray-900 mb-4">Finance</h3>
+                      <h3 className="text-lg font-semibold text-gray-700 mb-4">Finance</h3>
                       
                       <div className="mb-4">
                         <label className="block text-sm font-medium text-gray-700 mb-1">Credit Limit</label>
@@ -901,7 +903,7 @@ const CustomersPage = () => {
 
                   {/* Additional Settings Section */}
                   <div>
-                    <h3 className="text-lg font-bold text-gray-900 mb-4">
+                    <h3 className="text-lg font-semibold text-gray-700 mb-4">
                       {customerType === 'CUSTOMER' ? 'Additional Settings' : 'Additional Settings'}
                     </h3>
                     
@@ -997,6 +999,7 @@ const CustomersPage = () => {
                     </div>
                   </div>
                 </div>
+              </div>
               </div>
             </div>
 
