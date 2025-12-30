@@ -31,7 +31,7 @@ type Trailer = Omit<FleetUnitDto, 'status' | 'currentLocation'> & {
         latitude: string | number;
         updatedAt: string | Date;
     };
-    internalId?: string; // For Geotab integration
+    internalId?: string; // For Termoking integration
 };
 
 declare global {

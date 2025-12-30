@@ -1560,7 +1560,7 @@ const FleetUnits: React.FC = () => {
                       onBlur={(e) => { e.target.style.borderColor = ''; e.target.style.boxShadow = ''; }}
                       placeholder="e.g., INT-001, GEO-123"
                     />
-                    <p className="text-xs text-gray-500 mt-1">Optional: For Geotab or other tracking system integration</p>
+                    <p className="text-xs text-gray-500 mt-1">Optional: For Termoking (trailers), Geotab/Samsara (trucks) or other tracking system integration</p>
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">Unit Type *</label>
