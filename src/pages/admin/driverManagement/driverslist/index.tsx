@@ -166,6 +166,77 @@ const staticDrivers: Driver[] = [
   }
 ];
 
+// US States
+const US_STATES = [
+  { value: 'AL', label: 'Alabama' },
+  { value: 'AK', label: 'Alaska' },
+  { value: 'AZ', label: 'Arizona' },
+  { value: 'AR', label: 'Arkansas' },
+  { value: 'CA', label: 'California' },
+  { value: 'CO', label: 'Colorado' },
+  { value: 'CT', label: 'Connecticut' },
+  { value: 'DE', label: 'Delaware' },
+  { value: 'FL', label: 'Florida' },
+  { value: 'GA', label: 'Georgia' },
+  { value: 'HI', label: 'Hawaii' },
+  { value: 'ID', label: 'Idaho' },
+  { value: 'IL', label: 'Illinois' },
+  { value: 'IN', label: 'Indiana' },
+  { value: 'IA', label: 'Iowa' },
+  { value: 'KS', label: 'Kansas' },
+  { value: 'KY', label: 'Kentucky' },
+  { value: 'LA', label: 'Louisiana' },
+  { value: 'ME', label: 'Maine' },
+  { value: 'MD', label: 'Maryland' },
+  { value: 'MA', label: 'Massachusetts' },
+  { value: 'MI', label: 'Michigan' },
+  { value: 'MN', label: 'Minnesota' },
+  { value: 'MS', label: 'Mississippi' },
+  { value: 'MO', label: 'Missouri' },
+  { value: 'MT', label: 'Montana' },
+  { value: 'NE', label: 'Nebraska' },
+  { value: 'NV', label: 'Nevada' },
+  { value: 'NH', label: 'New Hampshire' },
+  { value: 'NJ', label: 'New Jersey' },
+  { value: 'NM', label: 'New Mexico' },
+  { value: 'NY', label: 'New York' },
+  { value: 'NC', label: 'North Carolina' },
+  { value: 'ND', label: 'North Dakota' },
+  { value: 'OH', label: 'Ohio' },
+  { value: 'OK', label: 'Oklahoma' },
+  { value: 'OR', label: 'Oregon' },
+  { value: 'PA', label: 'Pennsylvania' },
+  { value: 'RI', label: 'Rhode Island' },
+  { value: 'SC', label: 'South Carolina' },
+  { value: 'SD', label: 'South Dakota' },
+  { value: 'TN', label: 'Tennessee' },
+  { value: 'TX', label: 'Texas' },
+  { value: 'UT', label: 'Utah' },
+  { value: 'VT', label: 'Vermont' },
+  { value: 'VA', label: 'Virginia' },
+  { value: 'WA', label: 'Washington' },
+  { value: 'WV', label: 'West Virginia' },
+  { value: 'WI', label: 'Wisconsin' },
+  { value: 'WY', label: 'Wyoming' }
+];
+
+// Canadian Provinces
+const CANADIAN_PROVINCES = [
+  { value: 'AB', label: 'Alberta' },
+  { value: 'BC', label: 'British Columbia' },
+  { value: 'MB', label: 'Manitoba' },
+  { value: 'NB', label: 'New Brunswick' },
+  { value: 'NL', label: 'Newfoundland and Labrador' },
+  { value: 'NS', label: 'Nova Scotia' },
+  { value: 'NT', label: 'Northwest Territories' },
+  { value: 'NU', label: 'Nunavut' },
+  { value: 'ON', label: 'Ontario' },
+  { value: 'PE', label: 'Prince Edward Island' },
+  { value: 'QC', label: 'Quebec' },
+  { value: 'SK', label: 'Saskatchewan' },
+  { value: 'YT', label: 'Yukon' }
+];
+
 const DriverManagement = () => {
   const [activeTab, setActiveTab] = useState<'all' | 'external' | 'unassigned'>('all');
   const [searchTerm, setSearchTerm] = useState('');
@@ -182,7 +253,7 @@ const DriverManagement = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [selectedDriver, setSelectedDriver] = useState<Driver | null>(null);
   const [showDriverDetails, setShowDriverDetails] = useState(false);
-  
+
   const [filterBy, setFilterBy] = useState('Active');
   const [category, setCategory] = useState('');
   const [complianceStatus, setComplianceStatus] = useState('All');
@@ -192,8 +263,12 @@ const DriverManagement = () => {
     direction: 'asc'
   });
   const [showNewDriverModal, setShowNewDriverModal] = useState(false);
+  const [editingDriver, setEditingDriver] = useState<Driver | null>(null);
   const [activeFormTab, setActiveFormTab] = useState<'basic' | 'personal' | 'travel' | 'documents' | 'certifications' | 'violations' | 'notes' | 'deductions' | 'additions'>('basic');
-  
+  const tableScrollRef = useRef<HTMLDivElement>(null);
+  const topScrollRef = useRef<HTMLDivElement>(null);
+  const topScrollContentRef = useRef<HTMLDivElement>(null);
+
   // Form state for Basic Information
   const [formData, setFormData] = useState({
     driverId: '',
@@ -242,6 +317,12 @@ const DriverManagement = () => {
     bonusLayover: '0',
     // Percent Rate (for PAID PERCENT)
     percentRate: '0',
+    // Per Trip Amount (for PAID BY TRIP)
+    perTripAmount: '0',
+    // Hourly Rate (for PAID PER HOUR)
+    hourlyRate: '0',
+    // Daily Rate (for PAID PER DAY)
+    dailyRate: '0',
     // Driver Type
     driverTypeSolo: true, // true = SOLO, false = TEAM
     // Exemptions
@@ -418,7 +499,7 @@ const DriverManagement = () => {
       filtered = [...filtered].sort((a, b) => {
         const aValue = a[sortConfig.key!];
         const bValue = b[sortConfig.key!];
-        
+
         if (aValue < bValue) {
           return sortConfig.direction === 'asc' ? -1 : 1;
         }
@@ -433,6 +514,24 @@ const DriverManagement = () => {
   };
 
   const filteredDrivers = getFilteredDrivers();
+
+  // Sync scrollbar widths
+  useEffect(() => {
+    const syncScrollbarWidth = () => {
+      if (tableScrollRef.current && topScrollContentRef.current) {
+        const scrollWidth = tableScrollRef.current.scrollWidth;
+        topScrollContentRef.current.style.width = `${scrollWidth}px`;
+      }
+    };
+
+    // Use setTimeout to ensure table is rendered
+    const timeoutId = setTimeout(syncScrollbarWidth, 0);
+    window.addEventListener('resize', syncScrollbarWidth);
+    return () => {
+      clearTimeout(timeoutId);
+      window.removeEventListener('resize', syncScrollbarWidth);
+    };
+  }, [filteredDrivers]);
 
   const handleSort = (key: keyof Driver) => {
     setSortConfig(current => ({
@@ -471,7 +570,7 @@ const DriverManagement = () => {
   };
 
   const getTabCount = (tab: 'all' | 'external' | 'unassigned') => {
-    
+
     switch (tab) {
       case 'all':
         return 49;
@@ -547,8 +646,33 @@ const DriverManagement = () => {
             <h1 className="text-3xl font-bold text-gray-900">Drivers</h1>
             <div className="flex items-center gap-2">
               <span className="text-2xl font-bold text-gray-700">({getTabCount(activeTab)})</span>
-              <button 
-                onClick={() => setShowNewDriverModal(true)}
+              <button
+                onClick={() => {
+                  setEditingDriver(null);
+                  // Reset form data for new driver
+                  setFormData({
+                    driverId: '',
+                    firstName: '',
+                    middle: '',
+                    lastName: '',
+                    emailAddress: '',
+                    dateOfBirth: '',
+                    mobileApp: false,
+                    pin: '',
+                    primaryPhone: '+1',
+                    secondaryPhone: '+1',
+                    searchAddress: '',
+                    address: '',
+                    unit: '',
+                    city: '',
+                    postalCode: '',
+                    country: '',
+                    stateProvince: '',
+                    profileImage: null
+                  });
+                  setActiveFormTab('basic');
+                  setShowNewDriverModal(true);
+                }}
                 className="w-10 h-10 bg-[#42aeec] !text-white rounded-lg flex items-center justify-center hover:bg-[#1db5f5] transition-colors shadow-md"
               >
                 <Plus className="w-5 h-5" />
@@ -561,31 +685,28 @@ const DriverManagement = () => {
           <div className="flex gap-6 border-b-2 border-gray-200">
             <button
               onClick={() => setActiveTab('all')}
-              className={`pb-3 px-1 font-medium transition-colors ${
-                activeTab === 'all'
+              className={`pb-3 px-1 font-medium transition-colors ${activeTab === 'all'
                   ? 'text-[#42aeec] border-b-2 border-[#42aeec] -mb-[2px]'
                   : 'text-gray-600 hover:text-gray-900'
-              }`}
+                }`}
             >
               All ({getTabCount('all')})
             </button>
             <button
               onClick={() => setActiveTab('external')}
-              className={`pb-3 px-1 font-medium transition-colors ${
-                activeTab === 'external'
+              className={`pb-3 px-1 font-medium transition-colors ${activeTab === 'external'
                   ? 'text-[#42aeec] border-b-2 border-[#42aeec] -mb-[2px]'
                   : 'text-gray-600 hover:text-gray-900'
-              }`}
+                }`}
             >
               External ({getTabCount('external')})
             </button>
             <button
               onClick={() => setActiveTab('unassigned')}
-              className={`pb-3 px-1 font-medium transition-colors ${
-                activeTab === 'unassigned'
+              className={`pb-3 px-1 font-medium transition-colors ${activeTab === 'unassigned'
                   ? 'text-[#42aeec] border-b-2 border-[#42aeec] -mb-[2px]'
                   : 'text-gray-600 hover:text-gray-900'
-              }`}
+                }`}
             >
               Unassigned ({getTabCount('unassigned')})
             </button>
@@ -609,7 +730,7 @@ const DriverManagement = () => {
               </div>
             </div>
 
-       
+
 
             {/* Filter By */}
             <div className="flex flex-col">
@@ -670,13 +791,38 @@ const DriverManagement = () => {
               </select>
             </div>
 
-         
+
           </div>
         </div>
 
         {/* Table */}
         <div className="bg-white rounded-lg shadow-sm overflow-hidden">
-          <div className="overflow-x-auto">
+          {/* Top Horizontal Scrollbar */}
+          <div 
+            ref={topScrollRef}
+            className="overflow-x-auto overflow-y-hidden border-b border-gray-200"
+            style={{ 
+              height: '17px'
+            }}
+            onScroll={(e) => {
+              if (tableScrollRef.current) {
+                const target = e.target as HTMLDivElement;
+                tableScrollRef.current.scrollLeft = target.scrollLeft;
+              }
+            }}
+          >
+            <div ref={topScrollContentRef} style={{ height: '1px' }}></div>
+          </div>
+          <div 
+            ref={tableScrollRef}
+            className="overflow-x-auto"
+            onScroll={(e) => {
+              if (topScrollRef.current) {
+                const target = e.target as HTMLDivElement;
+                topScrollRef.current.scrollLeft = target.scrollLeft;
+              }
+            }}
+          >
             <table className="w-full min-w-[1200px]">
               <thead className="bg-gray-50 border-b border-gray-200">
                 <tr>
@@ -691,11 +837,7 @@ const DriverManagement = () => {
                         {getSortIcon('driverId')}
                       </button>
                     </div>
-                    <input
-                      type="text"
-                      placeholder="Filter..."
-                      className="mt-2 w-full px-2 py-1 text-xs border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-[#42aeec]"
-                    />
+                  
                   </th>
 
                   {/* First Name */}
@@ -709,11 +851,7 @@ const DriverManagement = () => {
                         {getSortIcon('firstName')}
                       </button>
                     </div>
-                    <input
-                      type="text"
-                      placeholder="Filter..."
-                      className="mt-2 w-full px-2 py-1 text-xs border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-[#42aeec]"
-                    />
+               
                   </th>
 
                   {/* Last Name */}
@@ -727,11 +865,7 @@ const DriverManagement = () => {
                         {getSortIcon('lastName')}
                       </button>
                     </div>
-                    <input
-                      type="text"
-                      placeholder="Filter..."
-                      className="mt-2 w-full px-2 py-1 text-xs border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-[#42aeec]"
-                    />
+             
                   </th>
 
                   {/* Drivers Licence */}
@@ -745,11 +879,7 @@ const DriverManagement = () => {
                         {getSortIcon('driversLicence')}
                       </button>
                     </div>
-                    <input
-                      type="text"
-                      placeholder="Filter..."
-                      className="mt-2 w-full px-2 py-1 text-xs border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-[#42aeec]"
-                    />
+                
                   </th>
 
                   {/* Passport */}
@@ -763,11 +893,7 @@ const DriverManagement = () => {
                         {getSortIcon('passport')}
                       </button>
                     </div>
-                    <input
-                      type="text"
-                      placeholder="Filter..."
-                      className="mt-2 w-full px-2 py-1 text-xs border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-[#42aeec]"
-                    />
+              
                   </th>
 
                   {/* Date Of Birth */}
@@ -781,11 +907,7 @@ const DriverManagement = () => {
                         {getSortIcon('dateOfBirth')}
                       </button>
                     </div>
-                    <input
-                      type="text"
-                      placeholder="Filter..."
-                      className="mt-2 w-full px-2 py-1 text-xs border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-[#42aeec]"
-                    />
+                
                   </th>
 
                   {/* Notes */}
@@ -793,11 +915,7 @@ const DriverManagement = () => {
                     <div className="flex items-center gap-2">
                       <span className="font-medium text-xs text-gray-700 uppercase">Notes</span>
                     </div>
-                    <input
-                      type="text"
-                      placeholder="Filter..."
-                      className="mt-2 w-full px-2 py-1 text-xs border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-[#42aeec]"
-                    />
+                  
                   </th>
 
                   {/* Ticket (YTD) */}
@@ -811,11 +929,7 @@ const DriverManagement = () => {
                         {getSortIcon('ticketYTD')}
                       </button>
                     </div>
-                    <input
-                      type="text"
-                      placeholder="Filter..."
-                      className="mt-2 w-full px-2 py-1 text-xs border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-[#42aeec]"
-                    />
+                
                   </th>
 
                   {/* Status */}
@@ -829,11 +943,7 @@ const DriverManagement = () => {
                         {getSortIcon('status')}
                       </button>
                     </div>
-                    <input
-                      type="text"
-                      placeholder="Filter..."
-                      className="mt-2 w-full px-2 py-1 text-xs border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-[#42aeec]"
-                    />
+              
                   </th>
 
                   {/* Compliance */}
@@ -852,11 +962,46 @@ const DriverManagement = () => {
                       <option>Non-Compliant</option>
                     </select>
                   </th>
+                  {/* Actions */}
+                  <th className="px-4 py-3 text-left">
+                    <div className="flex items-center gap-2">
+                      <span className="font-medium text-xs text-gray-700 uppercase">Actions</span>
+                    </div>
+                  </th>
                 </tr>
               </thead>
               <tbody className="bg-white divide-y divide-gray-200">
                 {filteredDrivers.map((driver, index) => (
-                  <tr key={index} className="hover:bg-gray-50 transition-colors">
+                  <tr 
+                    key={index} 
+                    className="hover:bg-gray-50 transition-colors cursor-pointer"
+                    onClick={() => {
+                      setEditingDriver(driver);
+                      // Populate form data with driver data
+                      setFormData({
+                        driverId: driver.driverId,
+                        firstName: driver.firstName,
+                        middle: '',
+                        lastName: driver.lastName,
+                        emailAddress: '',
+                        dateOfBirth: driver.dateOfBirth,
+                        mobileApp: false,
+                        pin: '',
+                        primaryPhone: '+1',
+                        secondaryPhone: '+1',
+                        searchAddress: '',
+                        address: '',
+                        unit: '',
+                        city: '',
+                        postalCode: '',
+                        country: '',
+                        stateProvince: '',
+                        profileImage: null
+                      });
+                      setActiveFormTab('basic');
+                      setShowNewDriverModal(true);
+                    }}
+                  >
                     <td className="px-4 py-3 text-sm text-gray-900">{driver.driverId}</td>
                     <td className="px-4 py-3 text-sm text-gray-900">{driver.firstName}</td>
                     <td className="px-4 py-3 text-sm text-gray-900">{driver.lastName}</td>
@@ -868,9 +1013,22 @@ const DriverManagement = () => {
                     <td className="px-4 py-3 text-sm text-gray-900">{driver.status}</td>
                     <td className="px-4 py-3">
                       <button
-                        className={`px-3 py-1 rounded text-xs font-medium ${getComplianceButtonClass(driver.compliance)}`}
+                        className={`px-3 py-1 rounded text-xs !text-white font-medium ${getComplianceButtonClass(driver.compliance)}`}
+                        onClick={(e) => e.stopPropagation()}
                       >
                         {driver.compliance}
+                      </button>
+                    </td>
+                    <td className="px-4 py-3">
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleDelete(driver.driverId);
+                        }}
+                        className="p-2 text-red-600 hover:bg-red-50 rounded transition-colors"
+                        title="Delete Driver"
+                      >
+                        <Trash2 className="w-4 h-4" />
                       </button>
                     </td>
                   </tr>
@@ -883,7 +1041,7 @@ const DriverManagement = () => {
 
       {/* New Driver Modal */}
       {showNewDriverModal && (
-        <div 
+        <div
           className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4"
           onClick={(e) => {
             if (e.target === e.currentTarget) {
@@ -891,98 +1049,122 @@ const DriverManagement = () => {
             }
           }}
         >
-          <div 
-            className="bg-white rounded-lg shadow-2xl w-full max-w-6xl max-h-[90vh] flex overflow-hidden"
+          <div
+            className="bg-white rounded-lg shadow-2xl w-full max-w-5xl max-h-[90vh] flex overflow-hidden"
             onClick={(e) => e.stopPropagation()}
           >
             {/* Left Sidebar */}
-            <div className="w-64 bg-gray-50 border-r border-gray-200 flex flex-col">
+            <div className="w-48 bg-gray-50 border-r border-gray-200 flex flex-col">
               {/* Image Upload Area */}
-              <div className="p-4 border-b border-gray-200">
-                <div className="border-2 border-dashed border-gray-300  p-8 text-center mb-3">
-                  <Upload className="w-8 h-8 text-gray-400 mx-auto mb-2" />
-                  <p className="text-sm text-gray-600">Select Image</p>
+              <div className="p-3 border-b border-gray-200">
+                <div className="border-2 border-dashed border-gray-300 p-4 text-center mb-2">
+                  <Upload className="w-6 h-6 text-gray-400 mx-auto mb-1" />
+                  <p className="text-xs text-gray-600">Select Image</p>
                 </div>
-                <button className="w-full bg-black !text-white py-2  font-medium hover:bg-gray-800 transition-colors">
+                <button className="w-full bg-black !text-white py-1.5 text-xs font-medium hover:bg-gray-800 transition-colors">
                   UPLOAD
                 </button>
               </div>
 
               {/* Navigation Tabs */}
-              <div className="flex-1 overflow-y-auto p-4">
-  <nav className="flex flex-col gap-2">
-    {[
-      { id: 'basic', label: 'Basic', icon: User },
-      { id: 'personal', label: 'Personal', icon: User },
-      { id: 'travel', label: 'Travel', icon: MapPin },
-      { id: 'documents', label: 'Documents', icon: FileTextIcon },
-      { id: 'certifications', label: 'Certifications', icon: Award },
-      { id: 'violations', label: 'Violations', icon: AlertTriangle },
-      { id: 'notes', label: 'Notes', icon: FileTextIcon },
-      { id: 'deductions', label: 'Deductions', icon: DollarSign },
-      { id: 'additions', label: 'Additions', icon: PlusCircle }
-    ].map((tab) => {
-      const Icon = tab.icon;
-      const isActive = activeFormTab === tab.id;
+              <div className="flex-1 overflow-y-auto p-3">
+                <nav className="flex flex-col gap-2">
+                  {[
+                    { id: 'basic', label: 'Basic', icon: User },
+                    { id: 'personal', label: 'Personal', icon: User },
+                    { id: 'travel', label: 'Travel', icon: MapPin },
+                    { id: 'documents', label: 'Documents', icon: FileTextIcon },
+                    { id: 'certifications', label: 'Certifications', icon: Award },
+                    { id: 'violations', label: 'Violations', icon: AlertTriangle },
+                    { id: 'notes', label: 'Notes', icon: FileTextIcon },
+                    { id: 'deductions', label: 'Deductions', icon: DollarSign },
+                    { id: 'additions', label: 'Additions', icon: PlusCircle }
+                  ].map((tab) => {
+                    const Icon = tab.icon;
+                    const isActive = activeFormTab === tab.id;
 
-      return (
-        <button
-          key={tab.id}
-          onClick={() => setActiveFormTab(tab.id as any)}
-          className={`w-full flex items-center gap-2 px-3 py-2 transition-colors text-left ${
-            isActive
-              ? 'bg-[#0ea3d8] !text-white shadow-md'
-              : 'bg-gray-700 !text-white hover:bg-gray-600'
-          }`}
-        >
-          <Icon className="w-4 h-4" />
-          <span className="font-medium text-center">{tab.label}</span>
-        </button>
-      );
-    })}
-  </nav>
-</div>
+                    return (
+                      <button
+                        key={tab.id}
+                        onClick={() => setActiveFormTab(tab.id as any)}
+                        className={`w-full flex items-center gap-1.5 px-2 py-1.5 transition-colors text-left ${isActive
+                            ? 'bg-[#0ea3d8] !text-white shadow-md'
+                            : 'bg-gray-700 !text-white hover:bg-gray-600'
+                          }`}
+                      >
+                        <Icon className="w-3.5 h-3.5" />
+                        <span className="text-xs font-medium text-center">{tab.label}</span>
+                      </button>
+                    );
+                  })}
+                </nav>
+              </div>
 
             </div>
 
             {/* Right Content Area */}
             <div className={`flex-1 flex flex-col overflow-hidden transition-all ${selectedCertificate ? 'mr-96' : ''}`}>
               {/* Header */}
-              <div className="flex items-center justify-between p-6 border-b border-gray-200 bg-white">
-                <h2 className="text-2xl font-bold text-gray-900">New Driver</h2>
-                <div className="flex items-center gap-3">
-                  <button className="px-6 py-2 bg-gray-600 !text-white rounded-lg hover:bg-gray-700 transition-colors font-medium">
+              <div className="flex items-center justify-between p-3 border-b border-gray-200 bg-white">
+                <h2 className="text-lg font-bold text-gray-900">{editingDriver ? 'Edit Driver' : 'New Driver'}</h2>
+                <div className="flex items-center gap-2">
+                  <button className="px-3 py-1 text-xs bg-gray-600 !text-white rounded-lg hover:bg-gray-700 transition-colors font-medium">
                     SAVE
                   </button>
                   <button
-                    onClick={() => setShowNewDriverModal(false)}
+                    onClick={() => {
+                      setShowNewDriverModal(false);
+                      setEditingDriver(null);
+                      // Reset form data
+                      setFormData({
+                        driverId: '',
+                        firstName: '',
+                        middle: '',
+                        lastName: '',
+                        emailAddress: '',
+                        dateOfBirth: '',
+                        mobileApp: false,
+                        pin: '',
+                        primaryPhone: '+1',
+                        secondaryPhone: '+1',
+                        searchAddress: '',
+                        address: '',
+                        unit: '',
+                        city: '',
+                        postalCode: '',
+                        country: '',
+                        stateProvince: '',
+                        profileImage: null
+                      });
+                      setActiveFormTab('basic');
+                    }}
                     className="text-gray-400 hover:text-gray-600 transition-colors"
                   >
-                    <X className="w-6 h-6" />
+                    <X className="w-4 h-4" />
                   </button>
                 </div>
               </div>
 
               {/* Form Content */}
-              <div className="flex-1 overflow-y-auto p-6 bg-white">
+              <div className="flex-1 overflow-y-auto p-3 bg-white">
                 {activeFormTab === 'basic' && (
-                  <div className="space-y-6">
-                    <h3 className="text-lg font-bold text-gray-900 mb-4">Basic Information</h3>
-                    
+                  <div className="space-y-3">
+                    <h3 className="text-sm font-bold text-gray-900 mb-2">Basic Information</h3>
+
                     {/* First Row */}
-                    <div className="grid grid-cols-4 gap-4">
+                    <div className="grid grid-cols-4 gap-2">
                       <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">Driver ID</label>
+                        <label className="block text-xs font-medium text-gray-700 mb-0.5">Driver ID</label>
                         <input
                           type="text"
                           placeholder="Driver ID"
                           value={formData.driverId}
                           onChange={(e) => setFormData({ ...formData, driverId: e.target.value })}
-                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#42aeec] focus:border-transparent"
+                          className="w-full px-2 py-1 text-xs border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-[#42aeec] focus:border-transparent"
                         />
                       </div>
                       <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                        <label className="block text-xs font-medium text-gray-700 mb-0.5">
                           First Name<span className="text-red-500">*</span>
                         </label>
                         <input
@@ -990,21 +1172,21 @@ const DriverManagement = () => {
                           placeholder="First Name"
                           value={formData.firstName}
                           onChange={(e) => setFormData({ ...formData, firstName: e.target.value })}
-                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#42aeec] focus:border-transparent"
+                          className="w-full px-2 py-1 text-xs border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-[#42aeec] focus:border-transparent"
                         />
                       </div>
                       <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">Middle</label>
+                        <label className="block text-xs font-medium text-gray-700 mb-0.5">Middle</label>
                         <input
                           type="text"
                           placeholder="Middle"
                           value={formData.middle}
                           onChange={(e) => setFormData({ ...formData, middle: e.target.value })}
-                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#42aeec] focus:border-transparent"
+                          className="w-full px-2 py-1 text-xs border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-[#42aeec] focus:border-transparent"
                         />
                       </div>
                       <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                        <label className="block text-xs font-medium text-gray-700 mb-0.5">
                           Last Name<span className="text-red-500">*</span>
                         </label>
                         <input
@@ -1012,98 +1194,99 @@ const DriverManagement = () => {
                           placeholder="Last Name"
                           value={formData.lastName}
                           onChange={(e) => setFormData({ ...formData, lastName: e.target.value })}
-                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#42aeec] focus:border-transparent"
+                          className="w-full px-2 py-1 text-xs border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-[#42aeec] focus:border-transparent"
                         />
                       </div>
                     </div>
 
                     {/* Second Row */}
-                    <div className="grid grid-cols-4 gap-4">
+                    <div className="grid grid-cols-4 gap-2">
                       <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">Email Address</label>
+                        <label className="block text-xs font-medium text-gray-700 mb-0.5">Email Address</label>
                         <input
                           type="email"
                           placeholder="Email Address"
                           value={formData.emailAddress}
                           onChange={(e) => setFormData({ ...formData, emailAddress: e.target.value })}
-                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#42aeec] focus:border-transparent"
+                          className="w-full px-2 py-1 text-xs border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-[#42aeec] focus:border-transparent"
                         />
                       </div>
                       <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                        <label className="block text-xs font-medium text-gray-700 mb-0.5">
                           Date Of Birth<span className="text-red-500">*</span>
                         </label>
-                        <select
-                          value={formData.dateOfBirth}
-                          onChange={(e) => setFormData({ ...formData, dateOfBirth: e.target.value })}
-                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#42aeec] focus:border-transparent"
-                        >
-                          <option value="">Select</option>
-                        </select>
+                        <div className="relative">
+                          <Calendar className="absolute left-2 top-1/2 transform -translate-y-1/2 w-3 h-3 text-gray-400 pointer-events-none" />
+                          <input
+                            type="date"
+                            value={formData.dateOfBirth}
+                            onChange={(e) => setFormData({ ...formData, dateOfBirth: e.target.value })}
+                            className="w-full pl-7 pr-2 py-1 text-xs border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-[#42aeec] focus:border-transparent"
+                            placeholder="Select"
+                          />
+                        </div>
                       </div>
                       <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">Mobile App</label>
-                        <div className="flex items-center gap-2 mt-2">
+                        <label className="block text-xs font-medium text-gray-700 mb-0.5">Mobile App</label>
+                        <div className="flex items-center gap-2 mt-1">
                           <button
                             type="button"
                             onClick={() => setFormData({ ...formData, mobileApp: !formData.mobileApp })}
-                            className={`relative w-12 h-6 rounded-full transition-colors ${
-                              formData.mobileApp ? 'bg-[#42aeec]' : 'bg-gray-300'
-                            }`}
+                            className={`relative w-9 h-5 rounded-full transition-colors ${formData.mobileApp ? 'bg-[#42aeec]' : 'bg-gray-300'
+                              }`}
                           >
                             <span
-                              className={`absolute top-1 left-1 w-4 h-4 bg-white rounded-full transition-transform ${
-                                formData.mobileApp ? 'translate-x-6' : 'translate-x-0'
-                              }`}
+                              className={`absolute top-0.5 left-0.5 w-3.5 h-3.5 bg-white rounded-full transition-transform ${formData.mobileApp ? 'translate-x-4' : 'translate-x-0'
+                                }`}
                             />
                           </button>
                         </div>
                       </div>
                       <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">PIN</label>
+                        <label className="block text-xs font-medium text-gray-700 mb-0.5">PIN</label>
                         <input
                           type="text"
                           placeholder="Pin"
                           value={formData.pin}
                           onChange={(e) => setFormData({ ...formData, pin: e.target.value })}
-                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#42aeec] focus:border-transparent"
+                          className="w-full px-2 py-1 text-xs border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-[#42aeec] focus:border-transparent"
                         />
                       </div>
                     </div>
 
                     {/* Third Row */}
-                    <div className="grid grid-cols-2 gap-4">
+                    <div className="grid grid-cols-2 gap-2">
                       <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                        <label className="block text-xs font-medium text-gray-700 mb-0.5">
                           Primary Phone #<span className="text-red-500">*</span>
                         </label>
                         <div className="relative">
-                          <div className="absolute left-3 top-1/2 transform -translate-y-1/2 flex items-center gap-2">
-                            <span className="text-sm">🇺🇸</span>
-                            <span className="text-sm text-gray-600">+1</span>
+                          <div className="absolute left-2 top-1/2 transform -translate-y-1/2 flex items-center gap-1">
+                            <span className="text-xs">🇺🇸</span>
+                            <span className="text-xs text-gray-600">+1</span>
                           </div>
                           <input
                             type="tel"
                             placeholder=""
                             value={formData.primaryPhone}
                             onChange={(e) => setFormData({ ...formData, primaryPhone: e.target.value })}
-                            className="w-full pl-16 pr-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#42aeec] focus:border-transparent"
+                            className="w-full pl-11 pr-2 py-1 text-xs border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-[#42aeec] focus:border-transparent"
                           />
                         </div>
                       </div>
                       <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">Secondary Phone #</label>
+                        <label className="block text-xs font-medium text-gray-700 mb-0.5">Secondary Phone #</label>
                         <div className="relative">
-                          <div className="absolute left-3 top-1/2 transform -translate-y-1/2 flex items-center gap-2">
-                            <span className="text-sm">🇺🇸</span>
-                            <span className="text-sm text-gray-600">+1</span>
+                          <div className="absolute left-2 top-1/2 transform -translate-y-1/2 flex items-center gap-1">
+                            <span className="text-xs">🇺🇸</span>
+                            <span className="text-xs text-gray-600">+1</span>
                           </div>
                           <input
                             type="tel"
                             placeholder=""
                             value={formData.secondaryPhone}
                             onChange={(e) => setFormData({ ...formData, secondaryPhone: e.target.value })}
-                            className="w-full pl-16 pr-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#42aeec] focus:border-transparent"
+                            className="w-full pl-11 pr-2 py-1 text-xs border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-[#42aeec] focus:border-transparent"
                           />
                         </div>
                       </div>
@@ -1111,82 +1294,97 @@ const DriverManagement = () => {
 
                     {/* Fourth Row */}
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">Search Address</label>
+                      <label className="block text-xs font-medium text-gray-700 mb-0.5">Search Address</label>
                       <input
                         type="text"
                         placeholder="Search For An Address..."
                         value={formData.searchAddress}
                         onChange={(e) => setFormData({ ...formData, searchAddress: e.target.value })}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#42aeec] focus:border-transparent"
+                        className="w-full px-2 py-1 text-xs border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-[#42aeec] focus:border-transparent"
                       />
                     </div>
 
                     {/* Fifth Row */}
-                    <div className="grid grid-cols-4 gap-4">
+                    <div className="grid grid-cols-4 gap-2">
                       <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">Address</label>
+                        <label className="block text-xs font-medium text-gray-700 mb-0.5">Address</label>
                         <input
                           type="text"
                           placeholder="Address"
                           value={formData.address}
                           onChange={(e) => setFormData({ ...formData, address: e.target.value })}
-                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#42aeec] focus:border-transparent"
+                          className="w-full px-2 py-1 text-xs border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-[#42aeec] focus:border-transparent"
                         />
                       </div>
                       <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">Unit</label>
+                        <label className="block text-xs font-medium text-gray-700 mb-0.5">Unit</label>
                         <input
                           type="text"
                           placeholder="Unit"
                           value={formData.unit}
                           onChange={(e) => setFormData({ ...formData, unit: e.target.value })}
-                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#42aeec] focus:border-transparent"
+                          className="w-full px-2 py-1 text-xs border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-[#42aeec] focus:border-transparent"
                         />
                       </div>
                       <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">City</label>
+                        <label className="block text-xs font-medium text-gray-700 mb-0.5">City</label>
                         <input
                           type="text"
                           placeholder="City"
                           value={formData.city}
                           onChange={(e) => setFormData({ ...formData, city: e.target.value })}
-                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#42aeec] focus:border-transparent"
+                          className="w-full px-2 py-1 text-xs border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-[#42aeec] focus:border-transparent"
                         />
                       </div>
                       <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">Postal Code</label>
+                        <label className="block text-xs font-medium text-gray-700 mb-0.5">Postal Code</label>
                         <input
                           type="text"
                           placeholder="Postal Code"
                           value={formData.postalCode}
                           onChange={(e) => setFormData({ ...formData, postalCode: e.target.value })}
-                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#42aeec] focus:border-transparent"
+                          className="w-full px-2 py-1 text-xs border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-[#42aeec] focus:border-transparent"
                         />
                       </div>
                     </div>
 
                     {/* Sixth Row */}
-                    <div className="grid grid-cols-2 gap-4">
+                    <div className="grid grid-cols-2 gap-2">
                       <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">Country</label>
+                        <label className="block text-xs font-medium text-gray-700 mb-0.5">
+                          Country<span className="text-red-500">*</span>
+                        </label>
                         <select
                           value={formData.country}
-                          onChange={(e) => setFormData({ ...formData, country: e.target.value })}
-                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#42aeec] focus:border-transparent"
+                          onChange={(e) => setFormData({ ...formData, country: e.target.value, stateProvince: '' })}
+                          className="w-full px-2 py-1 text-xs border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-[#42aeec] focus:border-transparent"
                         >
                           <option value="">Country</option>
-                          <option value="US">United States</option>
                           <option value="CA">Canada</option>
+                          <option value="US">United States</option>
                         </select>
                       </div>
                       <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">State/Province</label>
+                        <label className="block text-xs font-medium text-gray-700 mb-0.5">
+                          State/Province<span className="text-red-500">*</span>
+                        </label>
                         <select
                           value={formData.stateProvince}
                           onChange={(e) => setFormData({ ...formData, stateProvince: e.target.value })}
-                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#42aeec] focus:border-transparent"
+                          disabled={!formData.country}
+                          className="w-full px-2 py-1 text-xs border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-[#42aeec] focus:border-transparent disabled:bg-gray-100 disabled:cursor-not-allowed"
                         >
-                          <option value="">Select State/</option>
+                          <option value="">Select {formData.country === 'CA' ? 'Province' : formData.country === 'US' ? 'State' : 'State/Province'}</option>
+                          {formData.country === 'CA' && CANADIAN_PROVINCES.map((province) => (
+                            <option key={province.value} value={province.value}>
+                              {province.label}
+                            </option>
+                          ))}
+                          {formData.country === 'US' && US_STATES.map((state) => (
+                            <option key={state.value} value={state.value}>
+                              {state.label}
+                            </option>
+                          ))}
                         </select>
                       </div>
                     </div>
@@ -1207,7 +1405,7 @@ const DriverManagement = () => {
                 {activeFormTab === 'personal' && (
                   <div className="space-y-6">
                     <h3 className="text-lg font-bold text-gray-900 mb-4">Personal Information</h3>
-                    
+
                     {/* Personal Information Section */}
                     <div className="grid grid-cols-5 gap-4">
                       <div>
@@ -1222,23 +1420,29 @@ const DriverManagement = () => {
                       </div>
                       <div>
                         <label className="block text-sm font-medium text-gray-700 mb-1">Hire Date</label>
-                        <input
-                          type="text"
-                          placeholder="Select"
-                          value={personalData.hireDate}
-                          onChange={(e) => setPersonalData({ ...personalData, hireDate: e.target.value })}
-                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#42aeec] focus:border-transparent"
-                        />
+                        <div className="relative">
+                          <Calendar className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
+                          <input
+                            type="date"
+                            value={personalData.hireDate}
+                            onChange={(e) => setPersonalData({ ...personalData, hireDate: e.target.value })}
+                            className="w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#42aeec] focus:border-transparent"
+                            placeholder="Select"
+                          />
+                        </div>
                       </div>
                       <div>
                         <label className="block text-sm font-medium text-gray-700 mb-1">Termination Date</label>
-                        <input
-                          type="text"
-                          placeholder="Select"
-                          value={personalData.terminationDate}
-                          onChange={(e) => setPersonalData({ ...personalData, terminationDate: e.target.value })}
-                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#42aeec] focus:border-transparent"
-                        />
+                        <div className="relative">
+                          <Calendar className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
+                          <input
+                            type="date"
+                            value={personalData.terminationDate}
+                            onChange={(e) => setPersonalData({ ...personalData, terminationDate: e.target.value })}
+                            className="w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#42aeec] focus:border-transparent"
+                            placeholder="Select"
+                          />
+                        </div>
                       </div>
                       <div>
                         <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -1324,65 +1528,71 @@ const DriverManagement = () => {
                     </div>
 
                     {/* Pay Type Section */}
-                    <div className="mt-6">
-                      <h4 className="text-md font-bold text-gray-900 mb-4">Pay Type</h4>
-                      
+                    <div className="mt-4">
+                      <label className="block text-xs font-medium text-gray-900 mb-1.5">Pay Type</label>
+
                       {/* Driver Type Toggle */}
-                      <div className="mb-4">
-                        <div className="flex gap-2">
+                      <div className="mb-1.5">
+                        <div className="flex gap-0">
                           <button
                             type="button"
                             onClick={() => setPersonalData({ ...personalData, driverType: 'COMPANY DRIVER' })}
-                            className={`px-6 py-2 rounded-sm font-medium transition-colors ${
-                              personalData.driverType === 'COMPANY DRIVER'
+                            className={`px-4 py-1.5 text-xs font-medium transition-colors rounded-l ${personalData.driverType === 'COMPANY DRIVER'
                                 ? 'bg-gray-700 !text-white'
-                                : 'bg-gray-300 text-gray-700 hover:bg-gray-400'
-                            }`}
+                                : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+                              }`}
                           >
                             COMPANY DRIVER
                           </button>
                           <button
                             type="button"
                             onClick={() => setPersonalData({ ...personalData, driverType: 'OWNER OPERATOR' })}
-                            className={`px-6 py-2 rounded-sm font-medium transition-colors ${
-                              personalData.driverType === 'OWNER OPERATOR'
+                            className={`px-4 py-1.5 text-xs font-medium transition-colors rounded-r ${personalData.driverType === 'OWNER OPERATOR'
                                 ? 'bg-gray-700 !text-white'
-                                : 'bg-gray-300 text-gray-700 hover:bg-gray-400'
-                            }`}
+                                : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+                              }`}
                           >
                             OWNER OPERATOR
                           </button>
                         </div>
                       </div>
 
-                      {/* Payment Method Tabs */}
-                      <div className="mb-4">
-                        <div className="flex gap-2 flex-wrap">
-                          {[
-                            'PAID PER MILE',
-                            'PAID PERCENT',
-                            'PAID BY TRIP',
-                            'PAID PER HOUR',
-                            'PAID PER DAY'
-                          ].map((method) => (
-                            <button
-                              key={method}
-                              type="button"
-                              onClick={() => setPersonalData({ ...personalData, paymentMethod: method as any })}
-                              className={`px-4 py-2 rounded-sm font-medium text-sm transition-colors ${
-                                personalData.paymentMethod === method
-                                  ? 'bg-gray-700 !text-white'
-                                  : 'bg-gray-300 text-gray-700 hover:bg-gray-400'
-                              }`}
-                            >
-                              {method}
-                            </button>
-                          ))}
-                        </div>
-                      </div>
+                      {/* Configure Payroll Text - shown when OWNER OPERATOR is selected */}
+                      {personalData.driverType === 'OWNER OPERATOR' && (
+                        <p className="text-xs font-medium text-gray-900 mt-1.5">
+                          CONFIGURE PAYROLL IN TRUCK
+                        </p>
+                      )}
 
-                      {/* $/Mile Details (shown when PAID PER MILE is selected) */}
-                      {personalData.paymentMethod === 'PAID PER MILE' && (
+                      {/* Payment Method Tabs - Only show when COMPANY DRIVER is selected */}
+                      {personalData.driverType === 'COMPANY DRIVER' && (
+                        <div className="mb-3">
+                          <div className="flex gap-1.5 flex-wrap">
+                            {[
+                              'PAID PER MILE',
+                              'PAID PERCENT',
+                              'PAID BY TRIP',
+                              'PAID PER HOUR',
+                              'PAID PER DAY'
+                            ].map((method) => (
+                              <button
+                                key={method}
+                                type="button"
+                                onClick={() => setPersonalData({ ...personalData, paymentMethod: method as any })}
+                                className={`px-3 py-1.5 rounded text-xs font-medium transition-colors ${personalData.paymentMethod === method
+                                    ? 'bg-gray-700 !text-white'
+                                    : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+                                  }`}
+                              >
+                                {method}
+                              </button>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+
+                      {/* $/Mile Details (shown when PAID PER MILE is selected and COMPANY DRIVER) */}
+                      {personalData.driverType === 'COMPANY DRIVER' && personalData.paymentMethod === 'PAID PER MILE' && (
                         <div className="grid grid-cols-4 gap-4 mt-4">
                           <div>
                             <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -1458,8 +1668,8 @@ const DriverManagement = () => {
                         </div>
                       )}
 
-                      {/* Percent Rate (shown when PAID PERCENT is selected) */}
-                      {personalData.paymentMethod === 'PAID PERCENT' && (
+                      {/* Percent Rate (shown when PAID PERCENT is selected and COMPANY DRIVER) */}
+                      {personalData.driverType === 'COMPANY DRIVER' && personalData.paymentMethod === 'PAID PERCENT' && (
                         <div className="mt-4">
                           <h4 className="text-md font-bold text-gray-900 mb-4">Percent Rate</h4>
                           <div>
@@ -1475,6 +1685,60 @@ const DriverManagement = () => {
                           </div>
                         </div>
                       )}
+
+                      {/* Per Trip Amount (shown when PAID BY TRIP is selected and COMPANY DRIVER) */}
+                      {personalData.driverType === 'COMPANY DRIVER' && personalData.paymentMethod === 'PAID BY TRIP' && (
+                        <div className="mt-4">
+                          <div>
+                            <label className="block text-xs font-medium text-gray-700 mb-0.5">
+                              Per Trip Amount<span className="text-red-500">*</span>
+                            </label>
+                            <input
+                              type="text"
+                              value={personalData.perTripAmount}
+                              onChange={(e) => setPersonalData({ ...personalData, perTripAmount: e.target.value })}
+                              className="w-full px-2 py-1 text-xs border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-[#42aeec] focus:border-transparent"
+                              placeholder="0"
+                            />
+                          </div>
+                        </div>
+                      )}
+
+                      {/* Hourly Rate (shown when PAID PER HOUR is selected and COMPANY DRIVER) */}
+                      {personalData.driverType === 'COMPANY DRIVER' && personalData.paymentMethod === 'PAID PER HOUR' && (
+                        <div className="mt-4">
+                          <div>
+                            <label className="block text-xs font-medium text-gray-700 mb-0.5">
+                              PER HOUR<span className="text-red-500">*</span>
+                            </label>
+                            <input
+                              type="text"
+                              value={personalData.hourlyRate}
+                              onChange={(e) => setPersonalData({ ...personalData, hourlyRate: e.target.value })}
+                              className="w-full px-2 py-1 text-xs border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-[#42aeec] focus:border-transparent"
+                              placeholder="0"
+                            />
+                          </div>
+                        </div>
+                      )}
+
+                      {/* Daily Rate (shown when PAID PER DAY is selected and COMPANY DRIVER) */}
+                      {personalData.driverType === 'COMPANY DRIVER' && personalData.paymentMethod === 'PAID PER DAY' && (
+                        <div className="mt-4">
+                          <div>
+                            <label className="block text-xs font-medium text-gray-700 mb-0.5">
+                              PER DAY<span className="text-red-500">*</span>
+                            </label>
+                            <input
+                              type="text"
+                              value={personalData.dailyRate}
+                              onChange={(e) => setPersonalData({ ...personalData, dailyRate: e.target.value })}
+                              className="w-full px-2 py-1 text-xs border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-[#42aeec] focus:border-transparent"
+                              placeholder="0"
+                            />
+                          </div>
+                        </div>
+                      )}
                     </div>
 
                     {/* Driver Type Section */}
@@ -1484,22 +1748,20 @@ const DriverManagement = () => {
                         <button
                           type="button"
                           onClick={() => setPersonalData({ ...personalData, driverTypeSolo: true })}
-                          className={`px-6 py-2 rounded-sm font-medium transition-colors ${
-                            personalData.driverTypeSolo
+                          className={`px-6 py-2 rounded-sm font-medium transition-colors ${personalData.driverTypeSolo
                               ? 'bg-gray-700 !text-white'
                               : 'bg-gray-300 text-gray-700 hover:bg-gray-400'
-                          }`}
+                            }`}
                         >
                           SOLO
                         </button>
                         <button
                           type="button"
                           onClick={() => setPersonalData({ ...personalData, driverTypeSolo: false })}
-                          className={`px-6 py-2 rounded-sm font-medium transition-colors ${
-                            !personalData.driverTypeSolo
-                              ? 'bg-gray-700 text-white'
+                          className={`px-6 py-2 rounded-sm font-medium transition-colors ${!personalData.driverTypeSolo
+                              ? 'bg-gray-700 !text-white'
                               : 'bg-gray-300 text-gray-700 hover:bg-gray-400'
-                          }`}
+                            }`}
                         >
                           TEAM
                         </button>
@@ -1564,7 +1826,7 @@ const DriverManagement = () => {
                 {activeFormTab === 'travel' && (
                   <div className="space-y-6">
                     <h3 className="text-lg font-bold text-gray-900 mb-4">Travel Information</h3>
-                    
+
                     {/* Travel Information Section */}
                     <div className="grid grid-cols-4 gap-4">
                       <div>
@@ -1583,13 +1845,16 @@ const DriverManagement = () => {
                         <label className="block text-sm font-medium text-gray-700 mb-1">
                           Date Of Expiry<span className="text-red-500">*</span>
                         </label>
-                        <select
-                          value={travelData.driversLicenseExpiry}
-                          onChange={(e) => setTravelData({ ...travelData, driversLicenseExpiry: e.target.value })}
-                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#42aeec] focus:border-transparent"
-                        >
-                          <option value="">Select</option>
-                        </select>
+                        <div className="relative">
+                          <Calendar className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
+                          <input
+                            type="date"
+                            value={travelData.driversLicenseExpiry}
+                            onChange={(e) => setTravelData({ ...travelData, driversLicenseExpiry: e.target.value })}
+                            className="w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#42aeec] focus:border-transparent"
+                            placeholder="Select"
+                          />
+                        </div>
                       </div>
                       <div>
                         <label className="block text-sm font-medium text-gray-700 mb-1">License State/Province</label>
@@ -1599,6 +1864,20 @@ const DriverManagement = () => {
                           className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#42aeec] focus:border-transparent"
                         >
                           <option value="">Select</option>
+                          <optgroup label="Canada">
+                            {CANADIAN_PROVINCES.map((province) => (
+                              <option key={province.value} value={province.value}>
+                                {province.label}
+                              </option>
+                            ))}
+                          </optgroup>
+                          <optgroup label="United States">
+                            {US_STATES.map((state) => (
+                              <option key={state.value} value={state.value}>
+                                {state.label}
+                              </option>
+                            ))}
+                          </optgroup>
                         </select>
                       </div>
                       <div>
@@ -1631,13 +1910,16 @@ const DriverManagement = () => {
                         <label className="block text-sm font-medium text-gray-700 mb-1">
                           Date Of Expiry<span className="text-red-500">*</span>
                         </label>
-                        <select
-                          value={travelData.passportExpiry}
-                          onChange={(e) => setTravelData({ ...travelData, passportExpiry: e.target.value })}
-                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#42aeec] focus:border-transparent"
-                        >
-                          <option value="">Select</option>
-                        </select>
+                        <div className="relative">
+                          <Calendar className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
+                          <input
+                            type="date"
+                            value={travelData.passportExpiry}
+                            onChange={(e) => setTravelData({ ...travelData, passportExpiry: e.target.value })}
+                            className="w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#42aeec] focus:border-transparent"
+                            placeholder="Select"
+                          />
+                        </div>
                       </div>
                       <div>
                         <label className="block text-sm font-medium text-gray-700 mb-1">Fast Card #</label>
@@ -1651,13 +1933,16 @@ const DriverManagement = () => {
                       </div>
                       <div>
                         <label className="block text-sm font-medium text-gray-700 mb-1">Date Of Expiry</label>
-                        <select
-                          value={travelData.fastCardExpiry}
-                          onChange={(e) => setTravelData({ ...travelData, fastCardExpiry: e.target.value })}
-                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#42aeec] focus:border-transparent"
-                        >
-                          <option value="">Select</option>
-                        </select>
+                        <div className="relative">
+                          <Calendar className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
+                          <input
+                            type="date"
+                            value={travelData.fastCardExpiry}
+                            onChange={(e) => setTravelData({ ...travelData, fastCardExpiry: e.target.value })}
+                            className="w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#42aeec] focus:border-transparent"
+                            placeholder="Select"
+                          />
+                        </div>
                       </div>
                     </div>
 
@@ -1681,33 +1966,30 @@ const DriverManagement = () => {
                         <button
                           type="button"
                           onClick={() => setTravelData({ ...travelData, canadianWorkerStatus: 'CANADIAN CITIZEN' })}
-                          className={`px-6 py-2 rounded-sm font-medium transition-colors ${
-                            travelData.canadianWorkerStatus === 'CANADIAN CITIZEN'
+                          className={`px-6 py-2 rounded-sm font-medium transition-colors ${travelData.canadianWorkerStatus === 'CANADIAN CITIZEN'
                               ? 'bg-gray-700 !text-white'
                               : 'bg-gray-300 text-gray-700 hover:bg-gray-400'
-                          }`}
+                            }`}
                         >
                           CANADIAN CITIZEN
                         </button>
                         <button
                           type="button"
                           onClick={() => setTravelData({ ...travelData, canadianWorkerStatus: 'PERMANENT RESIDENT' })}
-                          className={`px-6 py-2 rounded-sm font-medium transition-colors ${
-                            travelData.canadianWorkerStatus === 'PERMANENT RESIDENT'
+                          className={`px-6 py-2 rounded-sm font-medium transition-colors ${travelData.canadianWorkerStatus === 'PERMANENT RESIDENT'
                               ? 'bg-gray-700 !text-white'
                               : 'bg-gray-300 text-gray-700 hover:bg-gray-400'
-                          }`}
+                            }`}
                         >
                           PERMANENT RESIDENT
                         </button>
                         <button
                           type="button"
                           onClick={() => setTravelData({ ...travelData, canadianWorkerStatus: 'WORK PERMIT' })}
-                          className={`px-6 py-2 rounded-sm font-medium transition-colors ${
-                            travelData.canadianWorkerStatus === 'WORK PERMIT'
+                          className={`px-6 py-2 rounded-sm font-medium transition-colors ${travelData.canadianWorkerStatus === 'WORK PERMIT'
                               ? 'bg-gray-700 !text-white'
                               : 'bg-gray-300 text-gray-700 hover:bg-gray-400'
-                          }`}
+                            }`}
                         >
                           WORK PERMIT
                         </button>
@@ -1718,13 +2000,16 @@ const DriverManagement = () => {
                     {travelData.canadianWorkerStatus === 'PERMANENT RESIDENT' && (
                       <div className="mt-6">
                         <label className="block text-sm font-medium text-gray-700 mb-1">Permanent Residence Expiry</label>
-                        <select
-                          value={travelData.permanentResidenceExpiry}
-                          onChange={(e) => setTravelData({ ...travelData, permanentResidenceExpiry: e.target.value })}
-                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#42aeec] focus:border-transparent max-w-md"
-                        >
-                          <option value="">Select</option>
-                        </select>
+                        <div className="relative max-w-md">
+                          <Calendar className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
+                          <input
+                            type="date"
+                            value={travelData.permanentResidenceExpiry}
+                            onChange={(e) => setTravelData({ ...travelData, permanentResidenceExpiry: e.target.value })}
+                            className="w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#42aeec] focus:border-transparent"
+                            placeholder="Select"
+                          />
+                        </div>
                       </div>
                     )}
 
@@ -1732,12 +2017,16 @@ const DriverManagement = () => {
                     {travelData.canadianWorkerStatus === 'WORK PERMIT' && (
                       <div className="mt-6">
                         <label className="block text-sm font-medium text-gray-700 mb-1">Work Permit Expiry</label>
-                        <input
-                          type="date"
-                          value={travelData.workPermitExpiry}
-                          onChange={(e) => setTravelData({ ...travelData, workPermitExpiry: e.target.value })}
-                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#42aeec] focus:border-transparent max-w-md"
-                        />
+                        <div className="relative max-w-md">
+                          <Calendar className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
+                          <input
+                            type="date"
+                            value={travelData.workPermitExpiry}
+                            onChange={(e) => setTravelData({ ...travelData, workPermitExpiry: e.target.value })}
+                            className="w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#42aeec] focus:border-transparent"
+                            placeholder="Select"
+                          />
+                        </div>
                       </div>
                     )}
 
@@ -1774,7 +2063,7 @@ const DriverManagement = () => {
                 {activeFormTab === 'documents' && (
                   <div className="space-y-6">
                     <h3 className="text-lg font-bold text-gray-900 mb-4">Documents</h3>
-                    
+
                     {/* Documents Sub-tabs */}
                     <div className="flex gap-2 border-b border-gray-200">
                       {[
@@ -1787,11 +2076,10 @@ const DriverManagement = () => {
                         <button
                           key={tab.id}
                           onClick={() => setDocumentsTab(tab.id as any)}
-                          className={`px-4 py-2 font-medium text-sm transition-colors border-b-2 -mb-[1px] ${
-                            documentsTab === tab.id
+                          className={`px-4 py-2 font-medium text-sm transition-colors border-b-2 -mb-[1px] ${documentsTab === tab.id
                               ? 'border-gray-900 text-gray-900 bg-white'
                               : 'border-transparent text-gray-600 hover:text-gray-900'
-                          }`}
+                            }`}
                         >
                           {tab.label}
                         </button>
@@ -1974,7 +2262,7 @@ const DriverManagement = () => {
                 {activeFormTab === 'certifications' && (
                   <div className="space-y-6">
                     <h3 className="text-lg font-bold text-gray-900 mb-4">Safety Certifications</h3>
-                    
+
                     {/* Certifications Table with Input Row */}
                     <div className="border border-gray-200 rounded-lg overflow-hidden">
                       <table className="w-full">
@@ -2018,8 +2306,8 @@ const DriverManagement = () => {
                                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#42aeec] focus:border-transparent"
                               >
                                 <option value="">Sub Category</option>
-                                <option value="category1">Category 1</option>
-                                <option value="category2">Category 2</option>
+                                <option value="Drug Test">Drug Test</option>
+                                <option value="Road Test">Road Test</option>
                               </select>
                             </td>
                             <td className="px-4 py-3">
@@ -2097,8 +2385,8 @@ const DriverManagement = () => {
                             </tr>
                           ) : (
                             certifications.map((cert) => (
-                              <tr 
-                                key={cert.id} 
+                              <tr
+                                key={cert.id}
                                 className={`hover:bg-gray-50 cursor-pointer ${selectedCertificate?.id === cert.id ? 'bg-blue-50' : ''}`}
                                 onClick={() => setSelectedCertificate(cert)}
                               >
@@ -2214,7 +2502,7 @@ const DriverManagement = () => {
                 {activeFormTab === 'violations' && (
                   <div className="space-y-6">
                     <h3 className="text-lg font-bold text-gray-900 mb-4">Tickets / Violations</h3>
-                    
+
                     {/* Violations Input Row */}
                     <div className="flex items-center gap-3 p-4 bg-gray-50 rounded-lg">
                       <div className="flex-1">
@@ -2356,7 +2644,7 @@ const DriverManagement = () => {
                 {activeFormTab === 'notes' && (
                   <div className="space-y-6">
                     <h3 className="text-lg font-bold text-gray-900 mb-4">Notes</h3>
-                    
+
                     {/* Notes Input Row */}
                     <div className="flex items-center gap-3 p-4 bg-gray-50 rounded-lg">
                       <div className="flex-1">
@@ -2375,7 +2663,11 @@ const DriverManagement = () => {
                           className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#42aeec] focus:border-transparent"
                         >
                           <option value="">Category</option>
-                          <option value="Standby">Standby</option>
+                          <option value="Safety">Safety</option>
+                          <option value="Attitude">Attitude</option>
+                          <option value="Ops">Ops</option>
+                          <option value="General">General</option>
+                          <option value="Maintenance">Maintenance</option>
                         </select>
                       </div>
                       <div>
@@ -2451,7 +2743,7 @@ const DriverManagement = () => {
                 {activeFormTab === 'deductions' && (
                   <div className="space-y-6">
                     <h3 className="text-lg font-bold text-gray-900 mb-4">Payroll Deductions</h3>
-                    
+
                     {/* Deductions Input Row */}
                     <div className="flex items-center gap-3 p-4 bg-gray-50 rounded-lg">
                       <div className="flex-1">
@@ -2592,7 +2884,7 @@ const DriverManagement = () => {
                 {activeFormTab === 'additions' && (
                   <div className="space-y-6">
                     <h3 className="text-lg font-bold text-gray-900 mb-4">Payroll Additions</h3>
-                    
+
                     {/* Additions Input Row */}
                     <div className="flex items-center gap-3 p-4 bg-gray-50 rounded-lg">
                       <div className="flex-1">
@@ -2731,6 +3023,42 @@ const DriverManagement = () => {
                     </p>
                   </div>
                 )}
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Delete Confirmation Modal */}
+      {deleteConfirm.show && (
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-xl shadow-xl max-w-md w-full">
+            <div className="p-6">
+              <div className="flex items-center gap-4 mb-4">
+                <div className="flex-shrink-0 w-12 h-12 bg-red-100 rounded-full flex items-center justify-center">
+                  <Trash2 className="w-6 h-6 text-red-600" />
+                </div>
+                <div>
+                  <h3 className="text-lg font-semibold text-gray-900">Delete Driver</h3>
+                  <p className="text-sm text-gray-500">This action cannot be undone</p>
+                </div>
+              </div>
+              <p className="text-gray-700 mb-6">
+                Are you sure you want to delete this driver? This will permanently remove the driver and all associated data.
+              </p>
+              <div className="flex items-center justify-end gap-3">
+                <button
+                  onClick={() => setDeleteConfirm({ show: false, driverId: null })}
+                  className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={confirmDeleteDriver}
+                  className="px-4 py-2 bg-red-600 !text-white rounded-lg hover:bg-red-700 transition-colors"
+                >
+                  Delete
+                </button>
               </div>
             </div>
           </div>
