@@ -1,48 +1,41 @@
-import { useState } from 'react';
-import { Plus, Download, Trash2, ChevronUp, ChevronDown, X, HelpCircle } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { Plus, Download, Trash2, ChevronUp, ChevronDown, X, HelpCircle, Edit } from 'lucide-react';
+import * as customerApi from '../../../../axios/api/customer';
 
 interface Customer {
+  _id?: string;
   name: string;
   type: 'Customer' | 'Shipper-Receiver';
   address: string;
   city: string;
   lastLoadDate?: string;
+  status?: string;
+  customerDetails?: {
+    customerType?: string;
+    customerId?: string;
+    address?: string;
+    emailPrimary?: string;
+    phonePrimary?: string;
+  };
 }
 
-// Static customer data
-const staticCustomers: Customer[] = [
-  { name: 'Sunrise Produce', type: 'Shipper-Receiver', address: '5125 HONDURAS AVE', city: 'LLEN', lastLoadDate: '12/17/2025' },
-  { name: 'Sun Processing Ltd.', type: 'Shipper-Receiver', address: '19068 36 AVENUE', city: 'REY', lastLoadDate: '12/18/2025' },
-  { name: 'Fresh Ver S.A.P.I. De C.V.', type: 'Shipper-Receiver', address: '901 E. PRODUCE RD.', city: 'HIDALGO', lastLoadDate: '12/23/2025' },
-  { name: 'Star Produce Ltd.', type: 'Customer', address: '2941 PORTAGE AVE', city: 'SASKATOON' },
-  { name: 'EV PRODUCE INTERNATIONAL INC', type: 'Shipper-Receiver', address: '4409 WANDA AVENUE SUITE K', city: 'MCALLEN', lastLoadDate: '12/11/2025' },
-  { name: 'Star Produce Ltd.', type: 'Customer', address: '2941 PORTAGE AVE.', city: 'SASKATOON' },
-  { name: 'Galaxy Processing Ltd.', type: 'Shipper-Receiver', address: '123 MAIN ST', city: 'TORONTO', lastLoadDate: '12/20/2025' },
-  { name: 'RIO BRAVO', type: 'Shipper-Receiver', address: '456 OAK AVE', city: 'MONTREAL', lastLoadDate: '12/15/2025' },
-  { name: 'SOBEYS CAMPBELL 52', type: 'Customer', address: '789 ELM ST', city: 'VANCOUVER' },
-  { name: 'TMG Logistics Inc.', type: 'Shipper-Receiver', address: '321 PINE RD', city: 'CALGARY', lastLoadDate: '12/22/2025' },
-  { name: 'Winnipeg Crossdock & Logistics', type: 'Shipper-Receiver', address: '654 MAPLE DR', city: 'WINNIPEG', lastLoadDate: '12/19/2025' },
-  { name: 'Sandhu Farms', type: 'Customer', address: '987 CEDAR LN', city: 'EDMONTON' },
-  { name: 'KEYSTONE COLD STORAGE', type: 'Shipper-Receiver', address: '147 BIRCH WAY', city: 'OTTAWA', lastLoadDate: '12/21/2025' },
-  { name: 'BES COGRAIN', type: 'Shipper-Receiver', address: '258 SPRUCE ST', city: 'QUEBEC', lastLoadDate: '12/16/2025' },
-  { name: 'PRIMAK INTL C/O', type: 'Shipper-Receiver', address: '369 FIR AVE', city: 'HALIFAX', lastLoadDate: '12/14/2025' },
-  { name: 'Shoreline Transfer', type: 'Customer', address: '741 WILLOW BLVD', city: 'VICTORIA' }
-];
-
 const CustomersPage = () => {
+  const [customers, setCustomers] = useState<Customer[]>([]);
+  const [loading, setLoading] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const [customerIdSearch, setCustomerIdSearch] = useState('');
-  const [statusFilter, setStatusFilter] = useState('Active');
+  const [statusFilter, setStatusFilter] = useState('All');
   const [typeFilter, setTypeFilter] = useState('All');
   const [sortBy, setSortBy] = useState('');
+  const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('asc');
   const [sortConfig, setSortConfig] = useState<{ key: keyof Customer | null; direction: 'asc' | 'desc' }>({
     key: null,
     direction: 'asc'
   });
-  const [deletedCustomers, setDeletedCustomers] = useState<Set<string>>(new Set());
 
   // Modal state
   const [showNewCustomerModal, setShowNewCustomerModal] = useState(false);
+  const [editingId, setEditingId] = useState<string | null>(null);
   const [customerType, setCustomerType] = useState<'CUSTOMER' | 'SHIPPER AND RECEIVER'>('CUSTOMER');
   const [showBatchBilling, setShowBatchBilling] = useState(false);
   const [billingType, setBillingType] = useState<'DEFAULT / LOAD' | 'BATCH WEEKLY' | 'BATCH MONTHLY'>('DEFAULT / LOAD');
@@ -77,58 +70,56 @@ const CustomersPage = () => {
     defaultDropType: ''
   });
 
-  // Filter customers based on search and filters
-  const getFilteredCustomers = () => {
-    let filtered = [...staticCustomers].filter(customer => !deletedCustomers.has(customer.name));
+  // Fetch customers from API
+  useEffect(() => {
+    fetchCustomers();
+  }, [searchTerm, statusFilter, typeFilter, sortBy, sortOrder]);
 
-    // Filter by general search (Customer, Phone #, Email, Address)
-    if (searchTerm) {
-      filtered = filtered.filter(customer => 
-        customer.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        customer.address.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        customer.city.toLowerCase().includes(searchTerm.toLowerCase())
-      );
+  const fetchCustomers = async () => {
+    try {
+      setLoading(true);
+      const search = searchTerm || customerIdSearch || undefined;
+      const status = statusFilter !== 'All' ? statusFilter : undefined;
+      const type = typeFilter !== 'All' ? typeFilter : undefined;
+      
+      const response = await customerApi.getAllCustomers(1, 1000, search, status, type, sortBy || undefined, sortOrder);
+      
+      if (response?.success && response.data) {
+        const mappedCustomers = response.data.map((cust: any) => ({
+          _id: cust._id,
+          name: cust.name || '',
+          type: (cust.customerDetails?.customerType || 'Customer') as 'Customer' | 'Shipper-Receiver',
+          address: cust.customerDetails?.address || cust.location?.address || '',
+          city: cust.city || '',
+          status: cust.status || 'active',
+          lastLoadDate: cust.updatedAt ? new Date(cust.updatedAt).toLocaleDateString() : undefined,
+          customerDetails: cust.customerDetails
+        }));
+        setCustomers(mappedCustomers);
+      }
+    } catch (error) {
+      console.error('Error fetching customers:', error);
+    } finally {
+      setLoading(false);
     }
-
-    // Filter by customer ID search
-    if (customerIdSearch) {
-      // For now, just filter by name as we don't have customer IDs
-      filtered = filtered.filter(customer => 
-        customer.name.toLowerCase().includes(customerIdSearch.toLowerCase())
-      );
-    }
-
-    // Filter by type
-    if (typeFilter !== 'All') {
-      filtered = filtered.filter(customer => customer.type === typeFilter);
-    }
-
-    // Sort
-    if (sortConfig.key) {
-      filtered = [...filtered].sort((a, b) => {
-        const aValue = a[sortConfig.key!] ?? '';
-        const bValue = b[sortConfig.key!] ?? '';
-        
-        if (aValue < bValue) {
-          return sortConfig.direction === 'asc' ? -1 : 1;
-        }
-        if (aValue > bValue) {
-          return sortConfig.direction === 'asc' ? 1 : -1;
-        }
-        return 0;
-      });
-    }
-
-    return filtered;
   };
 
-  const filteredCustomers = getFilteredCustomers();
+  const filteredCustomers = customers;
 
   const handleSort = (key: keyof Customer) => {
-    setSortConfig(current => ({
-      key,
-      direction: current.key === key && current.direction === 'asc' ? 'desc' : 'asc'
-    }));
+    const newDirection = sortConfig.key === key && sortConfig.direction === 'asc' ? 'desc' : 'asc';
+    setSortConfig({ key, direction: newDirection });
+    setSortOrder(newDirection);
+    
+    // Map frontend keys to backend sort keys
+    let backendSortKey = '';
+    if (key === 'name') backendSortKey = 'name';
+    else if (key === 'type') backendSortKey = 'type';
+    else if (key === 'address') backendSortKey = 'address';
+    else if (key === 'city') backendSortKey = 'city';
+    else if (key === 'lastLoadDate') backendSortKey = 'lastLoadDate';
+    
+    setSortBy(backendSortKey);
   };
 
   const getSortIcon = (key: keyof Customer) => {
@@ -147,8 +138,154 @@ const CustomersPage = () => {
     );
   };
 
-  const handleDelete = (customerName: string) => {
-    setDeletedCustomers(prev => new Set(prev).add(customerName));
+  const handleDelete = async (customerId: string) => {
+    if (window.confirm('Are you sure you want to delete this customer?')) {
+      try {
+        const response = await customerApi.deleteCustomer(customerId);
+        if (response?.success) {
+          await fetchCustomers();
+          alert('Customer deleted successfully!');
+        } else {
+          alert(response?.message || 'Failed to delete customer');
+        }
+      } catch (error: any) {
+        console.error('Error deleting customer:', error);
+        alert(error.response?.data?.message || 'Failed to delete customer');
+      }
+    }
+  };
+
+  const handleSaveCustomer = async () => {
+    try {
+      const customerData = {
+        customer: formData.customer,
+        customerId: formData.customerId,
+        customerType: customerType === 'CUSTOMER' ? 'Customer' : 'Shipper-Receiver',
+        emailPrimary: formData.emailAddress,
+        emailSecondary: formData.secondaryEmail,
+        trackingEmail: formData.trackingEmail,
+        taxId: formData.taxId,
+        assignedSalesperson: formData.assignedSalesperson,
+        phonePrimary: formData.primaryPhone,
+        phoneSecondary: formData.secondaryPhone,
+        contact: formData.contact,
+        address: formData.address,
+        unit: formData.unit,
+        city: formData.city,
+        stateProvince: formData.stateProvince,
+        country: formData.country,
+        zipCode: formData.zipCode,
+        creditLimit: formData.creditLimit,
+        invoiceNet: formData.invoiceNet,
+        defaultQuickPayDiscount: formData.defaultQuickPayDiscount,
+        useFactoringCompany: formData.useFactoringCompany,
+        csaFastApproved: formData.csaFastApproved,
+        softBlock: formData.softBlock,
+        hardBlock: formData.hardBlock,
+        billingType: billingType,
+        presetNotes: formData.presetNotes,
+        defaultDropType: formData.defaultDropType
+      };
+
+      let response;
+      if (editingId) {
+        response = await customerApi.updateCustomer(editingId, customerData);
+      } else {
+        response = await customerApi.createCustomer(customerData);
+      }
+
+      if (response?.success) {
+        await fetchCustomers();
+        setShowNewCustomerModal(false);
+        resetForm();
+        alert(editingId ? 'Customer updated successfully!' : 'Customer created successfully!');
+      } else {
+        alert(response?.message || 'Failed to save customer');
+      }
+    } catch (error: any) {
+      console.error('Error saving customer:', error);
+      alert(error.response?.data?.message || 'Failed to save customer');
+    }
+  };
+
+  const loadCustomerForEdit = async (customerId: string) => {
+    try {
+      const response = await customerApi.getAllCustomers(1, 1);
+      if (response?.success && response.data) {
+        const customer = response.data.find((c: any) => c._id === customerId);
+        if (customer) {
+          setEditingId(customerId);
+          setCustomerType(customer.customerDetails?.customerType === 'Shipper-Receiver' ? 'SHIPPER AND RECEIVER' : 'CUSTOMER');
+          setBillingType(customer.customerDetails?.billingType || 'DEFAULT / LOAD');
+          setFormData({
+            customer: customer.name || '',
+            customerId: customer.customerDetails?.customerId || customer.internalId || '',
+            emailAddress: customer.customerDetails?.emailPrimary || customer.email || '',
+            secondaryEmail: customer.customerDetails?.emailSecondary || '',
+            trackingEmail: customer.customerDetails?.trackingEmail || '',
+            taxId: customer.customerDetails?.taxId || '',
+            assignedSalesperson: customer.customerDetails?.assignedSalesperson || '',
+            primaryPhone: customer.customerDetails?.phonePrimary || customer.phone || '+1',
+            secondaryPhone: customer.customerDetails?.phoneSecondary || '+1',
+            contact: customer.customerDetails?.contact || '',
+            searchAddress: '',
+            address: customer.customerDetails?.address || customer.location?.address || '',
+            city: customer.city || '',
+            unit: customer.customerDetails?.unit || '',
+            stateProvince: customer.customerDetails?.stateProvince || customer.state || '',
+            country: customer.country || '',
+            zipCode: customer.customerDetails?.zipCode || '',
+            creditLimit: customer.customerDetails?.creditLimit || '',
+            invoiceNet: customer.customerDetails?.invoiceNet || '30',
+            defaultQuickPayDiscount: customer.customerDetails?.defaultQuickPayDiscount || '',
+            useFactoringCompany: customer.customerDetails?.useFactoringCompany || false,
+            csaFastApproved: customer.customerDetails?.csaFastApproved || false,
+            softBlock: customer.customerDetails?.softBlock || false,
+            hardBlock: customer.customerDetails?.hardBlock || false,
+            presetNotes: customer.customerDetails?.presetNotes || '',
+            defaultDropType: customer.customerDetails?.defaultDropType || ''
+          });
+          setShowNewCustomerModal(true);
+        }
+      }
+    } catch (error) {
+      console.error('Error loading customer:', error);
+    }
+  };
+
+  const resetForm = () => {
+    setFormData({
+      customer: '',
+      customerId: '',
+      emailAddress: '',
+      secondaryEmail: '',
+      trackingEmail: '',
+      taxId: '',
+      assignedSalesperson: '',
+      primaryPhone: '+1',
+      secondaryPhone: '+1',
+      contact: '',
+      searchAddress: '',
+      address: '',
+      city: '',
+      unit: '',
+      stateProvince: '',
+      country: '',
+      zipCode: '',
+      creditLimit: '',
+      invoiceNet: '30',
+      defaultQuickPayDiscount: '',
+      useFactoringCompany: false,
+      csaFastApproved: false,
+      softBlock: false,
+      hardBlock: false,
+      presetNotes: '',
+      defaultDropType: ''
+    });
+    setEditingId(null);
+    setCustomerType('CUSTOMER');
+    setBillingType('DEFAULT / LOAD');
+    setShowBatchBilling(false);
   };
 
   return (
@@ -164,7 +301,10 @@ const CustomersPage = () => {
                 <Download className="w-6 h-6" />
               </button>
               <button 
-                onClick={() => setShowNewCustomerModal(true)}
+                onClick={() => {
+                  resetForm();
+                  setShowNewCustomerModal(true);
+                }}
                 className="w-10 h-10 bg-[#42aeec] !text-white rounded-lg flex items-center justify-center hover:bg-[#1db5f5] transition-colors shadow-md"
               >
                 <Plus className="w-5 h-5" />
@@ -308,21 +448,23 @@ const CustomersPage = () => {
                 </tr>
               </thead>
               <tbody className="bg-white divide-y divide-gray-200">
-                {filteredCustomers.length === 0 ? (
+                {loading ? (
+                  <tr>
+                    <td colSpan={6} className="px-4 py-8 text-center text-gray-500">
+                      Loading...
+                    </td>
+                  </tr>
+                ) : filteredCustomers.length === 0 ? (
                   <tr>
                     <td colSpan={6} className="px-4 py-8 text-center text-gray-500">
                       No customers found
                     </td>
                   </tr>
                 ) : (
-                  filteredCustomers.map((customer, index) => {
-                    const isDeleted = deletedCustomers.has(customer.name);
-                    return (
+                  filteredCustomers.map((customer, index) => (
                     <tr 
-                      key={index} 
-                      className={`hover:bg-gray-50 transition-colors ${
-                        isDeleted ? 'bg-red-100' : ''
-                      }`}
+                      key={customer._id || index} 
+                      className="hover:bg-gray-50 transition-colors"
                     >
                       <td className="px-4 py-3 text-sm text-gray-900">{customer.name}</td>
                       <td className="px-4 py-3 text-sm text-gray-900">{customer.type}</td>
@@ -330,25 +472,33 @@ const CustomersPage = () => {
                       <td className="px-4 py-3 text-sm text-gray-900">{customer.city}</td>
                       <td className="px-4 py-3 text-sm text-gray-900">{customer.lastLoadDate || '-'}</td>
                       <td className="px-4 py-3">
-                        {isDeleted ? (
+                        <div className="flex items-center gap-2">
                           <button
-                            onClick={() => handleDelete(customer.name)}
-                            className="text-red-500 hover:text-red-700 transition-colors"
+                            onClick={() => {
+                              if (customer._id) {
+                                loadCustomerForEdit(customer._id);
+                              }
+                            }}
+                            className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
+                            title="Edit Customer"
+                          >
+                            <Edit className="w-4 h-4" />
+                          </button>
+                          <button
+                            onClick={() => {
+                              if (customer._id) {
+                                handleDelete(customer._id);
+                              }
+                            }}
+                            className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                            title="Delete Customer"
                           >
                             <Trash2 className="w-4 h-4" />
                           </button>
-                        ) : (
-                          <button
-                            onClick={() => handleDelete(customer.name)}
-                            className="text-gray-400 hover:text-red-500 transition-colors"
-                          >
-                            <Trash2 className="w-4 h-4" />
-                          </button>
-                        )}
+                        </div>
                       </td>
                     </tr>
-                    );
-                  })
+                  ))
                 )}
               </tbody>
             </table>
@@ -373,10 +523,16 @@ const CustomersPage = () => {
             {/* Header */}
             <div className="flex items-center justify-between p-6 border-b border-gray-200 bg-white">
               <h2 className="text-2xl font-bold text-gray-900">
-                {customerType === 'CUSTOMER' ? 'New Customer' : 'New Shipper Receiver'}
+                {editingId 
+                  ? (customerType === 'CUSTOMER' ? 'Edit Customer' : 'Edit Shipper Receiver')
+                  : (customerType === 'CUSTOMER' ? 'New Customer' : 'New Shipper Receiver')
+                }
               </h2>
               <button
-                onClick={() => setShowNewCustomerModal(false)}
+                onClick={() => {
+                  setShowNewCustomerModal(false);
+                  resetForm();
+                }}
                 className="text-gray-400 hover:text-gray-600 transition-colors"
               >
                 <X className="w-6 h-6" />
@@ -484,11 +640,6 @@ const CustomersPage = () => {
                         value={formData.customer}
                         onChange={(e) => setFormData({ ...formData, customer: e.target.value })}
                         className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#42aeec] focus:border-transparent"
-                      />
-                      <input
-                        type="text"
-                        placeholder=""
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg mt-2 focus:outline-none focus:ring-2 focus:ring-[#42aeec] focus:border-transparent"
                       />
                     </div>
 
@@ -851,8 +1002,11 @@ const CustomersPage = () => {
 
             {/* Footer with Save Button */}
             <div className="bg-[#0ea3d8] px-6 py-4 flex justify-center">
-              <button className="px-8 py-2 bg-[#42aeec] !text-white rounded-lg hover:bg-[#1db5f5] transition-colors font-medium">
-                Save
+              <button 
+                onClick={handleSaveCustomer}
+                className="px-8 py-2 bg-[#42aeec] !text-white rounded-lg hover:bg-[#1db5f5] transition-colors font-medium"
+              >
+                {editingId ? 'Update' : 'Save'}
               </button>
             </div>
           </div>
