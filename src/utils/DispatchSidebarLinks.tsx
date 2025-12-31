@@ -13,6 +13,7 @@ import {
   FaShippingFast,
   FaBoxOpen,
   FaUserClock,
+  FaHistory,
 } from "react-icons/fa";
 
 type DispatchSidebarLinks = {
@@ -87,6 +88,11 @@ export const DispatchSidebarLinks: DispatchSidebarLinks[] = [
     key: "/admin/dispatch/drivers-on-leave",
     icon: <FaUserClock />,
     label: "Drivers on Leave",
+  },
+  {
+    key: "/admin/dispatch/audit",
+    icon: <FaHistory />,
+    label: "Audit Trail",
   },
 
 ];

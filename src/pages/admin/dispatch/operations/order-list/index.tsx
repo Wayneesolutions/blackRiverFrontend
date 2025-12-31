@@ -338,7 +338,11 @@ const OrderList = () => {
     }
   };
 
-  // Filter states
+  // Load Board filter states
+  const [loadBoard, setLoadBoard] = useState("LOAD BOARD");
+  const [dispatcher, setDispatcher] = useState("");
+
+  // Filter states (keeping for backward compatibility)
   const [orderType, setOrderType] = useState("");
   const [createdDate, setCreatedDate] = useState("");
   const [byDays, setByDays] = useState("");
@@ -495,6 +499,8 @@ const OrderList = () => {
     setOrderStatus("");
     setAccounting("");
     setSortBy("");
+    setLoadBoard("LOAD BOARD");
+    setDispatcher("");
   };
 
   const getStatusColor = (status: string) => {
@@ -519,6 +525,50 @@ const OrderList = () => {
     return {};
   };
 
+  // Helper to extract city and state from location string
+  const extractCityState = (location: string): { city: string; state: string } => {
+    if (!location) return { city: '', state: '' };
+    const parts = location.split(',').map(p => p.trim());
+    if (parts.length >= 2) {
+      return { city: parts[0], state: parts[parts.length - 1] };
+    }
+    return { city: location, state: '' };
+  };
+
+  // Helper to format date and time
+  const formatDateAndTime = (dateString: string): { date: string; time: string; isFuture: boolean } => {
+    if (!dateString) return { date: '', time: '', isFuture: false };
+    try {
+      const date = new Date(dateString);
+      const now = new Date();
+      const dateStr = date.toLocaleDateString('en-US', { month: '2-digit', day: '2-digit', year: 'numeric' });
+      const timeStr = date.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: true });
+      const isFuture = date > now;
+      return { date: dateStr, time: timeStr, isFuture };
+    } catch {
+      return { date: dateString, time: '', isFuture: false };
+    }
+  };
+
+  // Helper to truncate text with ellipsis
+  const truncateText = (text: string, maxLength: number = 15): string => {
+    if (!text) return '-';
+    if (text.length <= maxLength) return text;
+    return text.substring(0, maxLength) + '...';
+  };
+
+  // Helper to generate Load # from order
+  const getLoadNumber = (order: Order): string => {
+    // Try to extract number from orderNo, or use a hash of the ID
+    if (order.orderNo) {
+      const match = order.orderNo.match(/\d+/);
+      if (match) return match[0];
+    }
+    // Use last 4 digits of ID as fallback
+    return order.id.slice(-4);
+  };
+
+
   return (
     <div className="p-6 bg-[#EDF8FF] min-h-screen">
       <div className="mb-6 flex items-center justify-between">
@@ -533,17 +583,34 @@ const OrderList = () => {
         </button>
       </div>
 
+      {/* Load Board Style Filters */}
+      <div className="mb-4 flex items-center gap-4">
+        <select
+          value={loadBoard}
+          onChange={(e) => setLoadBoard(e.target.value)}
+          className="px-4 py-2 border border-gray-300 rounded text-sm bg-white font-medium text-gray-800"
+        >
+          <option value="LOAD BOARD">LOAD BOARD</option>
+          <option value="CITY LOAD BOARD">CITY LOAD BOARD</option>
+          <option value="TO/FROM YARD">TO/FROM YARD</option>
+          <option value="HISTORICAL LOAD BOARD">HISTORICAL LOAD BOARD</option>
+          <option value="INBOUND">INBOUND</option>
+          <option value="OUTBOUND">OUTBOUND</option>
+        </select>
+        <select
+          value={dispatcher}
+          onChange={(e) => setDispatcher(e.target.value)}
+          className="px-4 py-2 border border-gray-300 rounded text-sm bg-white font-medium text-gray-800"
+        >
+          <option value="">DISPATCHER</option>
+          <option value="all">All Dispatchers</option>
+          {/* Add dispatcher options here */}
+        </select>
+      </div>
+
       {/* Top Filter Bar */}
       <div style={{ backgroundColor: PRIMARY_LIGHT_BG }} className="p-3 rounded-lg mb-4 flex flex-wrap gap-3">
-        <select
-          value={orderType}
-          onChange={(e) => setOrderType(e.target.value)}
-          className="px-3 py-1.5 border border-gray-300 rounded text-sm bg-white"
-        >
-          <option value="">Order Type</option>
-          <option value="Regular">Regular</option>
-          <option value="Express">Express</option>
-        </select>
+       
         <select
           value={createdDate}
           onChange={(e) => setCreatedDate(e.target.value)}
@@ -575,15 +642,7 @@ const OrderList = () => {
           <option value="IN_PROGRESS">In Progress</option>
           <option value="COMPLETED">Completed</option>
         </select>
-        <select
-          value={accounting}
-          onChange={(e) => setAccounting(e.target.value)}
-          className="px-3 py-1.5 border border-gray-300 rounded text-sm bg-white"
-        >
-          <option value="">By Accounting</option>
-          <option value="paid">Paid</option>
-          <option value="unpaid">Unpaid</option>
-        </select>
+   
         <select
           value={sortBy}
           onChange={(e) => setSortBy(e.target.value)}
@@ -597,208 +656,7 @@ const OrderList = () => {
         </select>
       </div>
 
-      {/* Search Panel */}
-      <div className="bg-white p-4 rounded-lg shadow-md mb-4">
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-4">
-          <div>
-            <label className="block text-xs font-medium text-gray-700 mb-1">Order#</label>
-            <input
-              type="text"
-              value={orderNo}
-              onChange={(e) => setOrderNo(e.target.value)}
-              placeholder="Order No"
-              className="w-full p-2 border border-gray-300 rounded text-sm"
-            />
-          </div>
-          <div>
-            <label className="block text-xs font-medium text-gray-700 mb-1">Cust. Order#</label>
-            <input
-              type="text"
-              value={custOrderNo}
-              onChange={(e) => setCustOrderNo(e.target.value)}
-              placeholder="Customer Order No"
-              className="w-full p-2 border border-gray-300 rounded text-sm"
-            />
-          </div>
-          <div>
-            <label className="block text-xs font-medium text-gray-700 mb-1">Trip#</label>
-            <input
-              type="text"
-              value={tripNo}
-              onChange={(e) => setTripNo(e.target.value)}
-              placeholder="Trip No"
-              className="w-full p-2 border border-gray-300 rounded text-sm"
-            />
-          </div>
-          <div>
-            <label className="block text-xs font-medium text-gray-700 mb-1">Pickup/Delivery Ref#</label>
-            <input
-              type="text"
-              value={pickupDeliveryRef}
-              onChange={(e) => setPickupDeliveryRef(e.target.value)}
-              placeholder="Pickup/Delivery Ref No"
-              className="w-full p-2 border border-gray-300 rounded text-sm"
-            />
-          </div>
-        </div>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
-          <div>
-            <label className="block text-xs font-medium text-gray-700 mb-1">Cust Name</label>
-            <select
-              value={custName}
-              onChange={(e) => setCustName(e.target.value)}
-              className="w-full p-2 border border-gray-300 rounded text-sm bg-white"
-            >
-              <option value="">Select</option>
-              <option value="3 Rivers Logistics Inc">3 Rivers Logistics Inc</option>
-              <option value="3909973 MANITOBA INC D">3909973 MANITOBA INC D</option>
-            </select>
-          </div>
-          <div className="relative" ref={pickupLocationDropdownRef}>
-            <label className="block text-xs font-medium text-gray-700 mb-1">Pickup Location</label>
-            <div className="relative">
-              <input
-                type="text"
-                value={pickupLocationSearch || pickupLocation}
-                onChange={(e) => {
-                  setPickupLocationSearch(e.target.value);
-                  setPickupLocation(e.target.value);
-                  setPickupLocationDropdownOpen(true);
-                }}
-                onFocus={(e) => {
-                  setPickupLocationDropdownOpen(true);
-                  e.target.style.boxShadow = `0 0 0 2px ${FOCUS_RING}`;
-                  e.target.style.borderColor = PRIMARY_COLOR;
-                }}
-                onBlur={(e) => {
-                  e.target.style.boxShadow = '';
-                  e.target.style.borderColor = '';
-                }}
-                placeholder="Search pickup location..."
-                className="w-full p-2 border border-gray-300 rounded text-sm bg-white focus:outline-none"
-              />
-              <button
-                type="button"
-                onClick={() => setPickupLocationDropdownOpen(!pickupLocationDropdownOpen)}
-                className="absolute right-2 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
-              >
-                {pickupLocationDropdownOpen ? (
-                  <ChevronUp className="w-4 h-4" />
-                ) : (
-                  <ChevronDown className="w-4 h-4" />
-                )}
-              </button>
-            </div>
-            {pickupLocationDropdownOpen && (
-              <div className="absolute z-50 w-full mt-1 bg-white border border-gray-300 rounded-md shadow-lg max-h-60 overflow-auto">
-                {filteredPickupPlaces.length > 0 ? (
-                  filteredPickupPlaces.map((place) => {
-                    const locationString = place.currentLocation?.address || place.name || '';
-                    return (
-                      <div
-                        key={place._id}
-                        onClick={() => handlePickupLocationSelect(place)}
-                        className="p-2 hover:bg-gray-100 cursor-pointer text-sm border-b border-gray-100 last:border-b-0"
-                      >
-                        <div className="font-medium text-gray-900">{place.name || 'Unnamed Place'}</div>
-                        {locationString && (
-                          <div className="text-xs text-gray-500">{locationString}</div>
-                        )}
-                        {(place.city || place.state) && (
-                          <div className="text-xs text-gray-400">
-                            {[place.city, place.state].filter(Boolean).join(', ')}
-                          </div>
-                        )}
-                      </div>
-                    );
-                  })
-                ) : (
-                  <div className="p-2 text-sm text-gray-500 text-center">No places found</div>
-                )}
-              </div>
-            )}
-          </div>
-          <div className="relative" ref={deliveryLocationDropdownRef}>
-            <label className="block text-xs font-medium text-gray-700 mb-1">Delivery Location</label>
-            <div className="relative">
-              <input
-                type="text"
-                value={deliveryLocationSearch || deliveryLocation}
-                onChange={(e) => {
-                  setDeliveryLocationSearch(e.target.value);
-                  setDeliveryLocation(e.target.value);
-                  setDeliveryLocationDropdownOpen(true);
-                }}
-                onFocus={(e) => {
-                  setDeliveryLocationDropdownOpen(true);
-                  e.target.style.boxShadow = `0 0 0 2px ${FOCUS_RING}`;
-                  e.target.style.borderColor = PRIMARY_COLOR;
-                }}
-                onBlur={(e) => {
-                  e.target.style.boxShadow = '';
-                  e.target.style.borderColor = '';
-                }}
-                placeholder="Search delivery location..."
-                className="w-full p-2 border border-gray-300 rounded text-sm bg-white focus:outline-none"
-              />
-              <button
-                type="button"
-                onClick={() => setDeliveryLocationDropdownOpen(!deliveryLocationDropdownOpen)}
-                className="absolute right-2 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
-              >
-                {deliveryLocationDropdownOpen ? (
-                  <ChevronUp className="w-4 h-4" />
-                ) : (
-                  <ChevronDown className="w-4 h-4" />
-                )}
-              </button>
-            </div>
-            {deliveryLocationDropdownOpen && (
-              <div className="absolute z-50 w-full mt-1 bg-white border border-gray-300 rounded-md shadow-lg max-h-60 overflow-auto">
-                {filteredDeliveryPlaces.length > 0 ? (
-                  filteredDeliveryPlaces.map((place) => {
-                    const locationString = place.currentLocation?.address || place.name || '';
-                    return (
-                      <div
-                        key={place._id}
-                        onClick={() => handleDeliveryLocationSelect(place)}
-                        className="p-2 hover:bg-gray-100 cursor-pointer text-sm border-b border-gray-100 last:border-b-0"
-                      >
-                        <div className="font-medium text-gray-900">{place.name || 'Unnamed Place'}</div>
-                        {locationString && (
-                          <div className="text-xs text-gray-500">{locationString}</div>
-                        )}
-                        {(place.city || place.state) && (
-                          <div className="text-xs text-gray-400">
-                            {[place.city, place.state].filter(Boolean).join(', ')}
-                          </div>
-                        )}
-                      </div>
-                    );
-                  })
-                ) : (
-                  <div className="p-2 text-sm text-gray-500 text-center">No places found</div>
-                )}
-              </div>
-            )}
-          </div>
-        </div>
-        <div className="flex justify-end gap-2">
-          <button
-            onClick={handleReset}
-            className="px-4 py-2 bg-gray-200 text-gray-700 rounded hover:bg-gray-300 transition-colors"
-          >
-            Reset
-          </button>
-          <button
-            onClick={() => fetchOrders()}
-            style={{ background: PRIMARY_GRADIENT }}
-            className="px-4 py-2 !text-white rounded hover:opacity-90 transition-opacity shadow-md"
-          >
-            Search
-          </button>
-        </div>
-      </div>
+    
 
       {/* Orders Table */}
       <div className="bg-white rounded-lg shadow-md overflow-hidden">
@@ -845,180 +703,239 @@ const OrderList = () => {
           <table className="w-full">
             <thead className="bg-gray-50 border-b border-gray-200">
               <tr>
-                <th className="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
-                  Action
+               
+                <th className="px-4 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                  Load #
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
-                  Order#/Cust. Order#
+                <th className="px-4 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                  Order #
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
-                  Trip#
+                <th className="px-4 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                  Rate
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
-                  Order Date
+                <th className="px-4 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                  Status
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
-                  Company Name
+                <th className="px-4 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                  Customer
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
-                  Customer Name
+                <th className="px-4 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                  Shipper City
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
-                  Pickup Date/Location/Ref No
+                <th className="px-4 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                  Shipper State
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
-                  Delivery Date/Location/Ref No
+                <th className="px-4 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                  Ship Date
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
-                  Total Amount
+                <th className="px-4 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                  Time
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                <th className="px-4 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                  Receiver City
+                </th>
+                <th className="px-4 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                  Receiver State
+                </th>
+                <th className="px-4 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                  Receive Date
+                </th>
+                <th className="px-4 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                  Time
+                </th>
+                <th className="px-4 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                  Truck
+                </th>
+                <th className="px-4 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                  Trailer
+                </th>
+                <th className="px-4 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                  Driver/Carrier
+                </th>
+                <th className="px-4 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                  Booked
+                </th>
+                <th className="px-4 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                  Entry
+                </th>
+                <th className="px-4 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                  Temp.
+                </th>
+                <th className="px-4 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                  Hazmat
+                </th>
+                <th className="px-4 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                  Dispatcher
+                </th>
+                <th className="px-4 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
                   Driver
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
-                  Truck#/Trailer#
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
-                  Status
+                <th className="px-4 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                  Carrier
                 </th>
               </tr>
             </thead>
             <tbody className="bg-white divide-y divide-gray-200">
               {loading ? (
                 <tr>
-                  <td colSpan={11} className="px-6 py-12 text-center text-gray-500">
+                  <td colSpan={23} className="px-6 py-12 text-center text-gray-500">
                     <div className="animate-spin rounded-full h-8 w-8 border-b-2 mx-auto" style={{ borderBottomColor: PRIMARY_COLOR }}></div>
                     <p className="mt-2">Loading orders...</p>
                   </td>
                 </tr>
               ) : paginatedOrders.length === 0 ? (
                 <tr>
-                  <td colSpan={11} className="px-6 py-12 text-center text-gray-500">
+                  <td colSpan={23} className="px-6 py-12 text-center text-gray-500">
                     <p className="text-lg font-medium">No orders found</p>
                     <p className="text-sm">Create a new order to get started</p>
                   </td>
                 </tr>
               ) : (
-                paginatedOrders.map((order) => (
-                  <tr 
-                    key={order.id} 
-                    className="hover:bg-gray-50 cursor-pointer transition-colors"
-                    onClick={() => {
-                      setSelectedOrder(order);
-                      setShowOrderDetails(true);
-                    }}
-                  >
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="relative">
-                        <button
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            setActionMenuOpen(actionMenuOpen === order.id ? null : order.id);
-                          }}
-                          className="p-2 bg-green-100 rounded-full hover:bg-green-200 transition-colors"
-                        >
-                          <MoreVertical className="w-4 h-4 text-green-700" />
-                        </button>
-                        {actionMenuOpen === order.id && (
-                          <div className="absolute left-0 mt-2 w-48 bg-white rounded-lg shadow-lg border border-gray-200 z-10">
-                            <button
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                handleEditOrder(order);
-                              }}
-                              className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 flex items-center gap-2"
-                            >
-                              <Edit className="w-4 h-4" />
-                              Edit
-                            </button>
-                            <button
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                handleDeleteOrder(order.id);
-                              }}
-                              className="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-gray-100 flex items-center gap-2"
-                            >
-                              <Trash2 className="w-4 h-4" />
-                              Delete
-                            </button>
-                          </div>
-                        )}
-                      </div>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="text-sm font-medium text-gray-900">{order.orderNo}</div>
-                      <div className="text-xs text-gray-500">{order.orderType}</div>
-                      {order.custOrderNo && (
-                        <div className="text-xs text-gray-500">{order.custOrderNo}</div>
-                      )}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                      {order.tripNo || "-"}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="text-sm text-gray-900">{order.orderDate}</div>
-                      <div className="text-xs text-gray-500">Total Item: {order.totalItems}</div>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                      {order.companyName}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                      {order.customerName}
-                    </td>
-                    <td className="px-6 py-4">
-                      {(() => {
-                        const pickupLoc = extractLocationString(order.pickupLocation);
-                        return pickupLoc ? (
-                          <div className="text-sm">
-                            <div className="text-gray-900">{pickupLoc}</div>
-                            {order.pickupRefNo && <div className="text-gray-600">Ref: {order.pickupRefNo}</div>}
-                            {order.pickupDate && <div className="text-red-600">{order.pickupDate}</div>}
-                          </div>
-                        ) : (
-                          <span className="text-sm text-gray-400">-</span>
-                        );
-                      })()}
-                    </td>
-                    <td className="px-6 py-4">
-                      {(() => {
-                        const deliveryLoc = extractLocationString(order.deliveryLocation);
-                        return deliveryLoc ? (
-                          <div className="text-sm">
-                            <div className="text-gray-900">{deliveryLoc}</div>
-                            {order.deliveryRefNo && <div className="text-gray-600">Ref: {order.deliveryRefNo}</div>}
-                            {order.deliveryDate && <div className="text-red-600">{order.deliveryDate}</div>}
-                          </div>
-                        ) : (
-                          <span className="text-sm text-gray-400">-</span>
-                        );
-                      })()}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="text-sm font-medium text-gray-900">
-                        {order.currency} {order.totalAmount}
-                      </div>
+                paginatedOrders.map((order) => {
+                  const pickupLoc = extractLocationString(order.pickupLocation);
+                  const deliveryLoc = extractLocationString(order.deliveryLocation);
+                  const pickupCityState = extractCityState(pickupLoc);
+                  const deliveryCityState = extractCityState(deliveryLoc);
+                  const shipDateTime = formatDateAndTime(order.pickupDate || '');
+                  const receiveDateTime = formatDateAndTime(order.deliveryDate || '');
+                  
+                  // Determine if status should be UNASSIGNED
+                  const displayStatus = (!order.driver && !order.truckNo) ? 'UNASSIGNED' : (order.status || 'UNASSIGNED');
+                  const isUnassigned = displayStatus === 'UNASSIGNED';
+                  
+                  // Get load number
+                  const loadNumber = getLoadNumber(order);
+                  
+                  // Get order number (prefer customer order number)
+                  const orderNumber = order.custOrderNo || order.orderNo || '-';
+                  
+                  // Get rate (just the number, no currency)
+                  const rate = order.totalAmount ? parseFloat(order.totalAmount).toFixed(0) : '0';
 
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                      {order.driver || "-"}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                      {order.truckNo || order.trailerNo ? (
-                        <div>
-                          {order.truckNo && <div>Truck: {order.truckNo}</div>}
-                          {order.trailerNo && <div>Trailer: {order.trailerNo}</div>}
+                  // Static data for additional columns - varies based on order
+                  // Generate static data based on order index for variety
+                  const orderIndex = paginatedOrders.indexOf(order);
+                  const staticDrivers = [
+                    'Kuldeep Gill, Jaskaran Singh',
+                    '',
+                    '',
+                    '',
+                    ''
+                  ];
+                  const staticTrucks = ['1308', '', '', '', ''];
+                  const staticTrailers = ['BR2901', '', '', 'BR2919', ''];
+                  const staticTemps = ['', '28.0', '28.0', '30', ''];
+                  const staticDispatchers = ['Rashmeen Kaur', 'Rashmeen Kaur', 'Rashmeen Kaur', 'Ramandeep', 'Rashmeen Kaur'];
+                  
+                  const staticTruck = order.truckNo || staticTrucks[orderIndex % staticTrucks.length] || '';
+                  const staticTrailer = order.trailerNo || staticTrailers[orderIndex % staticTrailers.length] || '';
+                  const staticDriverCarrier = order.driver || staticDrivers[orderIndex % staticDrivers.length] || '';
+                  const staticBooked = ''; // Empty
+                  const staticEntry = ''; // Empty
+                  const staticTemp = staticTemps[orderIndex % staticTemps.length] || '';
+                  const staticHazmat = 'N/A'; // Always N/A
+                  const staticDispatcher = staticDispatchers[orderIndex % staticDispatchers.length] || 'Rashmeen Kaur';
+                  const staticDriver = order.driver || staticDrivers[orderIndex % staticDrivers.length] || '';
+                  const staticCarrier = ''; // Empty
+
+                  return (
+                    <tr 
+                      key={order.id} 
+                      className="hover:bg-gray-50 cursor-pointer transition-colors"
+                      onClick={async () => {
+                        // Open sidebar in edit mode
+                        try {
+                          const response = await getOrderById(order.id);
+                          if (response?.success && response?.data) {
+                            setEditingOrder(response.data);
+                            setSidebarOpen(true);
+                          } else {
+                            addNotification('error', response?.message || "Failed to load order details");
+                          }
+                        } catch (error) {
+                          console.error('Error fetching order details:', error);
+                          addNotification('error', "Failed to load order details. Please try again.");
+                        }
+                      }}
+                    >
+                      <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-900">
+                        {loadNumber}
+                      </td>
+                      <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-900">
+                        {orderNumber}
+                      </td>
+                      <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-900">
+                        {rate}
+                      </td>
+                      <td className="px-4 py-4 whitespace-nowrap">
+                        <div className={`inline-flex items-center rounded-full px-3 py-1 text-xs font-medium ${
+                          isUnassigned 
+                            ? 'bg-gray-200 text-gray-700' 
+                            : getStatusColor(displayStatus)
+                        }`} style={!isUnassigned ? getStatusStyle(displayStatus) : {}}>
+                          {displayStatus}
                         </div>
-                      ) : (
-                        "-"
-                      )}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                      <div className={`inline-flex font-semibold rounded-full px-2 py-1 text-xs ${getStatusColor(order.status)}`} style={getStatusStyle(order.status)}>
-                        {order.status}
-                      </div>
-                    </td>
-                  </tr>
-                ))
+                      </td>
+                      <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-900">
+                        {truncateText(order.customerName || '-', 15)}
+                      </td>
+                      <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-900">
+                        {pickupCityState.city || '-'}
+                      </td>
+                      <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-900">
+                        {pickupCityState.state || '-'}
+                      </td>
+                      <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-900">
+                        {shipDateTime.date || '-'}
+                      </td>
+                      <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-900">
+                        {shipDateTime.time || '-'}
+                      </td>
+                      <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-900">
+                        {deliveryCityState.city || '-'}
+                      </td>
+                      <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-900">
+                        {deliveryCityState.state || '-'}
+                      </td>
+                      <td className={`px-4 py-4 whitespace-nowrap text-sm ${receiveDateTime.isFuture ? 'text-green-600' : 'text-gray-900'}`}>
+                        {receiveDateTime.date || '-'}
+                      </td>
+                      <td className={`px-4 py-4 whitespace-nowrap text-sm ${receiveDateTime.isFuture ? 'text-green-600' : 'text-gray-900'}`}>
+                        {receiveDateTime.time || '-'}
+                      </td>
+                      <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-900">
+                        {staticTruck || '-'}
+                      </td>
+                      <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-900">
+                        {staticTrailer || '-'}
+                      </td>
+                      <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-900">
+                        {staticDriverCarrier || '-'}
+                      </td>
+                      <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-900">
+                        {staticBooked || '-'}
+                      </td>
+                      <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-900">
+                        {staticEntry || '-'}
+                      </td>
+                      <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-900">
+                        {staticTemp || '-'}
+                      </td>
+                      <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-900">
+                        {staticHazmat}
+                      </td>
+                      <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-900">
+                        {staticDispatcher}
+                      </td>
+                      <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-900">
+                        {staticDriver || '-'}
+                      </td>
+                      <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-900">
+                        {staticCarrier || '-'}
+                      </td>
+                    </tr>
+                  );
+                })
               )}
             </tbody>
           </table>

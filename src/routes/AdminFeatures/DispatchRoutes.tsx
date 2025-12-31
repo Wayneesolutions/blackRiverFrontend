@@ -24,6 +24,7 @@ const RevenuePerMile = lazy(() => import("../../pages/admin/dispatch/operations/
 const Deliveries = lazy(() => import("../../pages/admin/dispatch/operations/deliveries/index"))
 const Pickups = lazy(() => import("../../pages/admin/dispatch/operations/pickups/index"))
 const DriversOnLeave = lazy(() => import("../../pages/admin/dispatch/operations/drivers-on-leave/index"))
+const AuditTrail = lazy(() => import("../../pages/admin/dispatch/operations/audit/index"))
 
 
 function DispatchRoutes() {
@@ -54,6 +55,7 @@ function DispatchRoutes() {
           <Route path="/deliveries" element={<Deliveries />} />
           <Route path="/pickups" element={<Pickups />} />
           <Route path="/drivers-on-leave" element={<DriversOnLeave />} />
+          <Route path="/audit" element={<AuditTrail />} />
        
 
 
