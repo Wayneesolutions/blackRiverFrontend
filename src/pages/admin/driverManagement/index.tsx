@@ -53,10 +53,15 @@ interface HRDashboardStats {
     inactive: number;
   };
   pendingDocumentRenewals: number;
+  totalDrivers: number;
   totalEmployees: number;
+  totalOfficeEmployees: number;
   activeDrivers: number;
+  soloDrivers: number;
+  teamDrivers: number;
   totalLoads: number;
   newJoinersThisMonth: number;
+  newEmployeesThisMonth: number;
   documents: {
     pending: number;
   };
@@ -114,10 +119,15 @@ const Index = () => {
       setDashboardStats({
         recentDriverActivity: { active: 45, inactive: 4 },
         pendingDocumentRenewals: 12,
+        totalDrivers: 49,
         totalEmployees: 15,
+        totalOfficeEmployees: 15,
         activeDrivers: 45,
+        soloDrivers: 32,
+        teamDrivers: 17,
         totalLoads: 1250,
         newJoinersThisMonth: 3,
+        newEmployeesThisMonth: 3,
         documents: { pending: 8 },
         companyDocuments: { total: 25, expiringSoon: 3 },
         attendance: { presentToday: 42 },
@@ -145,8 +155,8 @@ const Index = () => {
     {
       id: 'total-drivers',
       title: 'Total Drivers',
-      value: staticStats.totalDrivers,
-      subtitle: `${dashboardStats?.recentDriverActivity?.active ?? 45} active, ${dashboardStats?.recentDriverActivity?.inactive ?? 4} inactive`,
+      value: dashboardStats?.totalDrivers ?? 0,
+      subtitle: `${dashboardStats?.recentDriverActivity?.active ?? 0} active, ${dashboardStats?.recentDriverActivity?.inactive ?? 0} inactive`,
       icon: Truck,
       bgColor: 'bg-blue-100',
       iconColor: 'text-blue-700',
@@ -156,7 +166,7 @@ const Index = () => {
     {
       id: 'office-employees',
       title: 'Total Office Employees',
-      value: staticStats.totalOfficeEmployees,
+      value: dashboardStats?.totalOfficeEmployees ?? 0,
       subtitle: 'Office workforce',
       icon: Users,
       bgColor: 'bg-purple-100',
@@ -167,7 +177,7 @@ const Index = () => {
     {
       id: 'employees',
       title: 'Total Employees',
-      value: dashboardStats?.totalEmployees ?? staticStats.totalOfficeEmployees,
+      value: dashboardStats?.totalEmployees ?? 0,
       subtitle: 'Active workforce',
       icon: Users,
       bgColor: 'bg-purple-100',
@@ -178,7 +188,7 @@ const Index = () => {
     {
       id: 'us-drivers',
       title: 'US-based Drivers',
-      value: dashboardStats?.usBasedDrivers ?? staticStats.totalDrivers - staticStats.teamDrivers,
+      value: dashboardStats?.usBasedDrivers ?? 0,
       subtitle: 'United States based',
       icon: MapPin,
       bgColor: 'bg-red-100',
@@ -189,7 +199,7 @@ const Index = () => {
     {
       id: 'canada-drivers',
       title: 'Canada-based Drivers',
-      value: dashboardStats?.canadaBasedDrivers ?? staticStats.teamDrivers,
+      value: dashboardStats?.canadaBasedDrivers ?? 0,
       subtitle: 'Canada based',
       icon: MapPin,
       bgColor: 'bg-cyan-100',
@@ -200,7 +210,7 @@ const Index = () => {
     {
       id: 'solo-drivers',
       title: 'Solo Drivers',
-      value: staticStats.soloDrivers,
+      value: dashboardStats?.soloDrivers ?? 0,
       subtitle: 'Individual drivers',
       icon: UserCheck,
       bgColor: 'bg-green-100',
@@ -211,7 +221,7 @@ const Index = () => {
     {
       id: 'team-drivers',
       title: 'Team Drivers',
-      value: staticStats.teamDrivers,
+      value: dashboardStats?.teamDrivers ?? 0,
       subtitle: 'Team-based drivers',
       icon: UsersRound,
       bgColor: 'bg-teal-100',
@@ -222,8 +232,8 @@ const Index = () => {
     {
       id: 'active-drivers',
       title: 'Active Drivers',
-      value: dashboardStats?.activeDrivers ?? staticStats.totalDrivers - 4,
-      subtitle: `${dashboardStats?.recentDriverActivity?.active ?? 45} active, ${dashboardStats?.recentDriverActivity?.inactive ?? 4} inactive`,
+      value: dashboardStats?.activeDrivers ?? 0,
+      subtitle: `${dashboardStats?.recentDriverActivity?.active ?? 0} active, ${dashboardStats?.recentDriverActivity?.inactive ?? 0} inactive`,
       icon: Truck,
       bgColor: 'bg-blue-100',
       iconColor: 'text-blue-700',
@@ -244,7 +254,7 @@ const Index = () => {
     {
       id: 'joiners',
       title: 'New Joiners',
-      value: dashboardStats?.newJoinersThisMonth ?? staticStats.newEmployees,
+      value: dashboardStats?.newJoinersThisMonth ?? 0,
       subtitle: 'Added this month',
       icon: UserPlus,
       bgColor: 'bg-pink-100',
@@ -255,7 +265,7 @@ const Index = () => {
     {
       id: 'new-employee',
       title: 'New Employee',
-      value: staticStats.newEmployees,
+      value: dashboardStats?.newEmployeesThisMonth ?? 0,
       subtitle: 'Recently added',
       icon: UserPlus,
       bgColor: 'bg-rose-100',
@@ -510,20 +520,26 @@ const Index = () => {
           {/* Additional Information Sections */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
             {/* Upcoming Birthdays */}
-            {(dashboardStats?.upcomingBirthdays && dashboardStats.upcomingBirthdays.length > 0) ? (
-              <div className="bg-white rounded-lg shadow-sm border border-gray-100 overflow-hidden p-6">
-                <div className="flex items-center gap-2 mb-4">
-                  <Gift className="h-5 w-5 text-pink-600" />
-                  <h2 className="text-lg font-bold text-gray-900">Upcoming Birthdays</h2>
-                </div>
-                <div className="space-y-3">
-                  {dashboardStats.upcomingBirthdays.slice(0, 5).map((birthday, index) => {
-                    const birthdayDate = birthday.birthday ? new Date(birthday.birthday) : null;
+            <div className="bg-white rounded-lg shadow-sm border border-gray-100 overflow-hidden p-6">
+              <div className="flex items-center gap-2 mb-4">
+                <Gift className="h-5 w-5 text-pink-600" />
+                <h2 className="text-lg font-bold text-gray-900">Upcoming Birthdays</h2>
+              </div>
+              <div className="space-y-3">
+                {dashboardStats?.upcomingBirthdays && dashboardStats.upcomingBirthdays.length > 0 ? (
+                  dashboardStats.upcomingBirthdays.slice(0, 5).map((birthday, index) => {
+                    const birthdayDate = birthday.birthday ? new Date(birthday.birthday + 'T00:00:00') : null;
                     const today = new Date();
                     today.setHours(0, 0, 0, 0);
-                    const daysUntil = birthdayDate && !isNaN(birthdayDate.getTime()) 
-                      ? Math.ceil((birthdayDate.getTime() - today.getTime()) / (1000 * 60 * 60 * 24)) 
-                      : null;
+                    today.setMinutes(0, 0);
+                    today.setSeconds(0, 0);
+                    today.setMilliseconds(0);
+                    
+                    // Use daysUntil from backend if available, otherwise calculate
+                    let daysUntil = birthday.daysUntil;
+                    if (daysUntil === undefined && birthdayDate && !isNaN(birthdayDate.getTime())) {
+                      daysUntil = Math.ceil((birthdayDate.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
+                    }
                     
                     return (
                       <div key={index} className="flex items-center justify-between p-3 bg-pink-50 rounded-lg border border-pink-100">
@@ -532,54 +548,26 @@ const Index = () => {
                           <p className="text-xs text-gray-600">
                             {birthdayDate && !isNaN(birthdayDate.getTime()) 
                               ? birthdayDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
-                              : 'Date not available'}
+                              : birthday.birthday 
+                                ? new Date(birthday.birthday).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
+                                : 'Date not available'}
                           </p>
                         </div>
                         <span className="text-xs font-medium text-pink-700 bg-pink-100 px-2 py-1 rounded-full">
-                          {daysUntil !== null 
+                          {daysUntil !== null && daysUntil !== undefined
                             ? (daysUntil === 0 ? 'Today' : daysUntil < 0 ? 'Past' : `${daysUntil} days`)
                             : 'N/A'}
                         </span>
                       </div>
                     );
-                  })}
-                </div>
+                  })
+                ) : (
+                  <div className="text-center py-8 text-gray-500">
+                    <p className="text-sm">No upcoming birthdays in the next 30 days</p>
+                  </div>
+                )}
               </div>
-            ) : (
-              <div className="bg-white rounded-lg shadow-sm border border-gray-100 overflow-hidden p-6">
-                <div className="flex items-center gap-2 mb-4">
-                  <Gift className="h-5 w-5 text-pink-600" />
-                  <h2 className="text-lg font-bold text-gray-900">Upcoming Birthdays</h2>
-                </div>
-                <div className="space-y-3">
-                  {[
-                    { name: 'John Smith', birthday: new Date(Date.now() + 5 * 24 * 60 * 60 * 1000), role: 'Driver' },
-                    { name: 'Sarah Johnson', birthday: new Date(Date.now() + 12 * 24 * 60 * 60 * 1000), role: 'Employee' },
-                    { name: 'Mike Davis', birthday: new Date(Date.now() + 18 * 24 * 60 * 60 * 1000), role: 'Driver' },
-                    { name: 'Emily Brown', birthday: new Date(Date.now() + 25 * 24 * 60 * 60 * 1000), role: 'Employee' },
-                    { name: 'David Wilson', birthday: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000), role: 'Driver' }
-                  ].map((birthday, index) => {
-                    const today = new Date();
-                    today.setHours(0, 0, 0, 0);
-                    const daysUntil = Math.ceil((birthday.birthday.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
-                    
-                    return (
-                      <div key={index} className="flex items-center justify-between p-3 bg-pink-50 rounded-lg border border-pink-100">
-                        <div>
-                          <p className="text-sm font-semibold text-gray-900">{birthday.name}</p>
-                          <p className="text-xs text-gray-600">
-                            {birthday.birthday.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
-                          </p>
-                        </div>
-                        <span className="text-xs font-medium text-pink-700 bg-pink-100 px-2 py-1 rounded-full">
-                          {daysUntil === 0 ? 'Today' : daysUntil < 0 ? 'Past' : `${daysUntil} days`}
-                        </span>
-                      </div>
-                    );
-                  })}
-                </div>
-              </div>
-            )}
+            </div>
 
             {/* Upcoming Work Anniversaries */}
             {(dashboardStats?.upcomingWorkAnniversaries && dashboardStats.upcomingWorkAnniversaries.length > 0) ? (

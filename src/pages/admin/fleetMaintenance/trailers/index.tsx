@@ -1,130 +1,37 @@
-import React, { useState } from 'react';
-import { Plus, Upload, FileText, Filter, Settings, Users, ChevronUp, ChevronDown, HelpCircle, Clock, X, Calendar, Image as ImageIcon, Search, ChevronLeft, ChevronRight } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { Plus, Upload, ChevronUp, ChevronDown, HelpCircle, Clock, X, Image as ImageIcon, Edit, Trash2, Calendar, ChevronLeft, ChevronRight, FileText } from 'lucide-react';
+import { getAllTrailers, createTrailer, updateTrailer, deleteTrailer, getTrailerById } from '../../../../axios/api/trailer';
+import { getAllDrivers, type Driver } from '../../../../axios/api/driver';
+import { createVehicleDocument, updateVehicleDocument } from '../../../../axios/api/compilance.vehicledoc';
 
 interface Trailer {
-    id: string;
-    trailerNumber: string;
+    _id?: string;
+    id?: string;
+    trailerNumber?: string;
+    trailer?: string;
+    unitNumber?: string;
     plateNumber: string;
     type: string;
     ownership: string;
-    lastDispatch: string;
-    lastDispatchDate: string;
-    lastDropLocation: string;
-    notes: string;
-    operatingStatus: 'IN SERVICE' | 'OUT OF SERVICE' | 'MAINTENANCE';
-    loadedStatus: 'LOADED' | 'IDLE' | 'SCHEDULED';
-    compliance: 'COMPLIANT' | 'NON-COMPLIANT' | 'EXPIRING SOON';
+    lastDispatch?: string;
+    lastDispatchDate?: string | Date;
+    lastDropLocation?: string;
+    notes?: string;
+    note?: string;
+    operatingStatus?: 'IN SERVICE' | 'OUT OF SERVICE' | 'MAINTENANCE';
+    loadedStatus?: 'LOADED' | 'IDLE' | 'SCHEDULED';
+    compliance?: 'COMPLIANT' | 'NON-COMPLIANT' | 'EXPIRING SOON';
     category?: 'MB' | 'AB' | 'TX' | 'External' | 'Unassigned';
+    imageUrl?: string;
+    trailerImageUrl?: string;
+    make?: string;
+    model?: string;
+    year?: string;
+    vinNumber?: string;
+    status?: string;
 }
 
-// Static trailer data based on the image
-const staticTrailers: Trailer[] = [
-    {
-        id: '1',
-        trailerNumber: 'BR2921',
-        plateNumber: 'TJ1496',
-        type: 'RF',
-        ownership: 'COMPANY ASSET',
-        lastDispatch: '7638',
-        lastDispatchDate: '12/26/2025',
-        lastDropLocation: 'FORT WORTH, TX',
-        notes: '',
-        operatingStatus: 'IN SERVICE',
-        loadedStatus: 'LOADED',
-        compliance: 'COMPLIANT',
-        category: 'TX'
-    },
-    {
-        id: '2',
-        trailerNumber: 'BRXM01',
-        plateNumber: 'TK4468',
-        type: 'RF',
-        ownership: 'COMPANY ASSET',
-        lastDispatch: '7625',
-        lastDispatchDate: '12/24/2025',
-        lastDropLocation: 'WINNIPEG, MB',
-        notes: 'Has notes',
-        operatingStatus: 'IN SERVICE',
-        loadedStatus: 'LOADED',
-        compliance: 'COMPLIANT',
-        category: 'MB'
-    },
-    {
-        id: '3',
-        trailerNumber: 'BR2907',
-        plateNumber: 'TG9127',
-        type: 'RF',
-        ownership: 'COMPANY ASSET',
-        lastDispatch: '7635',
-        lastDispatchDate: '12/26/2025',
-        lastDropLocation: 'TACOMA, WA',
-        notes: '',
-        operatingStatus: 'IN SERVICE',
-        loadedStatus: 'SCHEDULED',
-        compliance: 'COMPLIANT',
-        category: 'AB'
-    },
-    {
-        id: '4',
-        trailerNumber: 'BR2909',
-        plateNumber: 'TG9128',
-        type: 'RF',
-        ownership: 'COMPANY ASSET',
-        lastDispatch: '7636',
-        lastDispatchDate: '12/26/2025',
-        lastDropLocation: 'TORONTO, ON',
-        notes: '',
-        operatingStatus: 'IN SERVICE',
-        loadedStatus: 'LOADED',
-        compliance: 'COMPLIANT',
-        category: 'MB'
-    },
-    {
-        id: '5',
-        trailerNumber: 'BR2908',
-        plateNumber: 'TG9203',
-        type: 'RF',
-        ownership: 'COMPANY ASSET',
-        lastDispatch: '7631',
-        lastDispatchDate: '12/26/2025',
-        lastDropLocation: 'WINNIPEG, MB',
-        notes: '',
-        operatingStatus: 'IN SERVICE',
-        loadedStatus: 'IDLE',
-        compliance: 'COMPLIANT',
-        category: 'MB'
-    },
-    {
-        id: '6',
-        trailerNumber: 'BRX005',
-        plateNumber: 'TG9126',
-        type: 'RF',
-        ownership: 'COMPANY ASSET',
-        lastDispatch: '7567',
-        lastDispatchDate: '12/16/2025',
-        lastDropLocation: 'WINNIPEG, MB',
-        notes: '',
-        operatingStatus: 'IN SERVICE',
-        loadedStatus: 'IDLE',
-        compliance: 'COMPLIANT',
-        category: 'MB'
-    },
-    {
-        id: '7',
-        trailerNumber: 'BR2915',
-        plateNumber: 'TH1949',
-        type: 'RF',
-        ownership: 'COMPANY ASSET',
-        lastDispatch: '7614',
-        lastDispatchDate: '12/23/2025',
-        lastDropLocation: 'CALGARY, AB',
-        notes: '',
-        operatingStatus: 'IN SERVICE',
-        loadedStatus: 'IDLE',
-        compliance: 'COMPLIANT',
-        category: 'AB'
-    }
-];
+// Trailer data will be fetched from API
 
 const TrailersPage: React.FC = () => {
     const [activeTab, setActiveTab] = useState<'All' | 'MB' | 'AB' | 'TX' | 'External' | 'Unassigned'>('All');
@@ -132,6 +39,13 @@ const TrailersPage: React.FC = () => {
     const [sortBy, setSortBy] = useState('');
     const [complianceStatus, setComplianceStatus] = useState('All');
     const [operatingStatus, setOperatingStatus] = useState('Active');
+    
+    // API state
+    const [trailers, setTrailers] = useState<Trailer[]>([]);
+    const [loading, setLoading] = useState(false);
+    const [editingId, setEditingId] = useState<string | null>(null);
+    const [selectedImageFile, setSelectedImageFile] = useState<File | null>(null);
+    const [drivers, setDrivers] = useState<Driver[]>([]);
 
     // Sidebar modal state
     const [showSidebar, setShowSidebar] = useState(false);
@@ -157,6 +71,9 @@ const TrailersPage: React.FC = () => {
         ownership: 'COMPANY ASSET' as 'COMPANY ASSET' | 'THIRD PARTY ASSET',
         subType: '' as '' | 'HIGHWAY USE' | 'CITY USE' | 'STORAGE USE' | 'RENTAL' | 'OTHER'
     });
+
+    // Store original trailer data for partial updates
+    const [originalTrailerData, setOriginalTrailerData] = useState<any>(null);
 
     // Inspections data
     const [oneTimeInspections, setOneTimeInspections] = useState<Array<{
@@ -187,10 +104,14 @@ const TrailersPage: React.FC = () => {
     // Documents data
     const [documents, setDocuments] = useState<Record<string, Array<{
         id: string;
+        _id?: string;
         expiryDate: string;
         description: string;
         file: File | null;
+        fileUrl?: string | null;
+        fileName?: string;
         ignoreExpiration: boolean;
+        isExisting?: boolean;
     }>>>({
         General: [],
         Ownership: [],
@@ -269,9 +190,478 @@ const TrailersPage: React.FC = () => {
         direction: 'asc'
     });
 
+    // Fetch trailers from API
+    useEffect(() => {
+        const fetchTrailers = async () => {
+            setLoading(true);
+            try {
+                const response = await getAllTrailers(1, 1000);
+                if (response?.success && response?.data) {
+                    // Transform backend data to match frontend interface
+                    const transformedTrailers = response.data.map((trailer: any) => ({
+                        _id: trailer._id,
+                        id: trailer._id,
+                        trailerNumber: trailer.trailer || trailer.unitNumber || trailer.trailerNumber || '',
+                        trailer: trailer.trailer || trailer.unitNumber || '',
+                        unitNumber: trailer.unitNumber || trailer.trailer || '',
+                        plateNumber: trailer.plateNumber || '',
+                        type: trailer.type || '',
+                        ownership: trailer.ownership || trailer.ownerShip || 'COMPANY ASSET',
+                        lastDispatch: trailer.lastDispatch || '',
+                        lastDispatchDate: trailer.lastDispatchDate ? new Date(trailer.lastDispatchDate).toLocaleDateString() : '',
+                        lastDropLocation: trailer.lastDropLocation || '',
+                        notes: trailer.notes || trailer.note || '',
+                        note: trailer.note || trailer.notes || '',
+                        operatingStatus: (trailer.operationStatus || trailer.operatingStatus || 'IN SERVICE') as 'IN SERVICE' | 'OUT OF SERVICE' | 'MAINTENANCE',
+                        loadedStatus: (trailer.loadedStatus || 'IDLE') as 'LOADED' | 'IDLE' | 'SCHEDULED',
+                        compliance: (trailer.compliance || 'COMPLIANT') as 'COMPLIANT' | 'NON-COMPLIANT' | 'EXPIRING SOON',
+                        category: trailer.category,
+                        imageUrl: trailer.imageUrl || trailer.trailerImageUrl,
+                        make: trailer.make,
+                        model: trailer.model,
+                        year: trailer.year,
+                        vinNumber: trailer.vinNumber,
+                        status: trailer.status
+                    }));
+                    setTrailers(transformedTrailers);
+                }
+            } catch (error) {
+                console.error('Error fetching trailers:', error);
+                alert('Failed to fetch trailers. Please try again.');
+            } finally {
+                setLoading(false);
+            }
+        };
+        fetchTrailers();
+    }, []);
+
+    // Fetch drivers from API
+    useEffect(() => {
+        const fetchDrivers = async () => {
+            try {
+                const response = await getAllDrivers(1, 1000, '', 'active');
+                if (response?.success && response?.data) {
+                    setDrivers(response.data);
+                } else if (response?.data && Array.isArray(response.data)) {
+                    setDrivers(response.data);
+                }
+            } catch (error) {
+                console.error('Error fetching drivers:', error);
+            }
+        };
+        fetchDrivers();
+    }, []);
+
+    // Handle create/update trailer
+    const handleSaveTrailer = async () => {
+        if (!formData.unitNumber || !formData.plateNumber || !formData.vinNumber) {
+            alert('Please fill in all required fields (Unit #, Plate #, VIN #)');
+            return;
+        }
+
+        setLoading(true);
+        try {
+            const formDataToSend = new FormData();
+            
+            if (editingId && originalTrailerData) {
+                // Partial update - only send changed fields
+                if (formData.unitNumber !== originalTrailerData.unitNumber) {
+                    formDataToSend.append('unitNumber', formData.unitNumber);
+                    formDataToSend.append('trailer', formData.unitNumber);
+                }
+                if (formData.vinNumber !== originalTrailerData.vinNumber) {
+                    formDataToSend.append('vinNumber', formData.vinNumber);
+                }
+                if (formData.plateNumber !== originalTrailerData.plateNumber) {
+                    formDataToSend.append('plateNumber', formData.plateNumber);
+                }
+                if (formData.make !== originalTrailerData.make) {
+                    formDataToSend.append('make', formData.make || '');
+                }
+                if (formData.model !== originalTrailerData.model) {
+                    formDataToSend.append('model', formData.model || '');
+                }
+                if (formData.year !== originalTrailerData.year) {
+                    formDataToSend.append('year', formData.year || '');
+                }
+                if (formData.weight !== originalTrailerData.weight) {
+                    formDataToSend.append('weight', formData.weight || '0');
+                }
+                if (formData.uom !== originalTrailerData.uom) {
+                    formDataToSend.append('uom', formData.uom || 'Kg');
+                }
+                if (formData.registrationCountry !== originalTrailerData.registrationCountry) {
+                    formDataToSend.append('registrationCountry', formData.registrationCountry || '');
+                }
+                if (formData.registrationProvince !== originalTrailerData.registrationProvince) {
+                    formDataToSend.append('registrationProvince', formData.registrationProvince || '');
+                }
+                if (formData.type !== originalTrailerData.type) {
+                    formDataToSend.append('type', formData.type || '');
+                }
+                if (formData.status !== originalTrailerData.status) {
+                    formDataToSend.append('status', formData.status || 'In Service');
+                    formDataToSend.append('operationStatus', formData.status === 'In Service' ? 'IN SERVICE' : formData.status === 'Out of Service' ? 'OUT OF SERVICE' : 'MAINTENANCE');
+                }
+                if (formData.ownership !== originalTrailerData.ownership) {
+                    formDataToSend.append('ownership', formData.ownership || 'COMPANY ASSET');
+                }
+                if (formData.subType !== originalTrailerData.subType) {
+                    formDataToSend.append('subType', formData.subType || '');
+                }
+                
+                if (selectedImageFile) {
+                    formDataToSend.append('image', selectedImageFile);
+                }
+            } else {
+                // Create new trailer - send all fields
+                formDataToSend.append('unitNumber', formData.unitNumber);
+                formDataToSend.append('trailer', formData.unitNumber);
+                formDataToSend.append('vinNumber', formData.vinNumber);
+                formDataToSend.append('plateNumber', formData.plateNumber);
+                formDataToSend.append('make', formData.make || '');
+                formDataToSend.append('model', formData.model || '');
+                formDataToSend.append('year', formData.year || '');
+                formDataToSend.append('weight', formData.weight || '0');
+                formDataToSend.append('uom', formData.uom || 'Kg');
+                formDataToSend.append('registrationCountry', formData.registrationCountry || '');
+                formDataToSend.append('registrationProvince', formData.registrationProvince || '');
+                formDataToSend.append('type', formData.type || '');
+                formDataToSend.append('status', formData.status || 'In Service');
+                formDataToSend.append('ownership', formData.ownership || 'COMPANY ASSET');
+                formDataToSend.append('subType', formData.subType || '');
+                formDataToSend.append('operationStatus', formData.status === 'In Service' ? 'IN SERVICE' : formData.status === 'Out of Service' ? 'OUT OF SERVICE' : 'MAINTENANCE');
+                
+                if (selectedImageFile) {
+                    formDataToSend.append('image', selectedImageFile);
+                }
+            }
+
+            let response;
+            if (editingId) {
+                response = await updateTrailer(editingId, formDataToSend);
+            } else {
+                response = await createTrailer(formDataToSend);
+            }
+
+            if (response?.success) {
+                // Get trailer ID - handle both create and update scenarios
+                let trailerId = editingId;
+                if (!trailerId) {
+                    // For new trailers, get ID from response
+                    trailerId = response.data?._id || response.data?._id || response.data?.id;
+                }
+                
+                console.log('💾 Saving trailer, ID:', trailerId);
+                
+                // Save documents if trailer was created/updated successfully
+                if (trailerId) {
+                    // Separate new documents and existing documents that need updates
+                    const newDocuments: Array<{ type: string; doc: any }> = [];
+                    const updatedDocuments: Array<{ type: string; doc: any }> = [];
+                    
+                    Object.keys(documents).forEach((docType) => {
+                        documents[docType].forEach((doc) => {
+                            if (!doc.isExisting) {
+                                // New documents - create them
+                                newDocuments.push({ type: docType, doc });
+                            } else if (doc._id) {
+                                // Existing documents - update them if they have changes
+                                updatedDocuments.push({ type: docType, doc });
+                            }
+                        });
+                    });
+
+                    console.log('📄 New documents to create:', newDocuments.length);
+                    console.log('📄 Existing documents to update:', updatedDocuments.length);
+
+                    // Create new documents
+                    if (newDocuments.length > 0) {
+                        try {
+                            await Promise.all(newDocuments.map(async ({ type, doc }) => {
+                                const docFormData = new FormData();
+                                docFormData.append('trailerId', trailerId.toString());
+                                docFormData.append('assetType', 'trailer');
+                                docFormData.append('documentType', type);
+                                docFormData.append('documentNumber', doc.description || '');
+                                if (doc.expiryDate) {
+                                    docFormData.append('expiryDate', doc.expiryDate);
+                                }
+                                if (doc.file) {
+                                    docFormData.append('file', doc.file);
+                                }
+                                
+                                console.log('📤 Creating document:', { type, description: doc.description, hasFile: !!doc.file });
+                                const docResponse = await createVehicleDocument(docFormData);
+                                if (!docResponse?.success) {
+                                    console.error('❌ Error creating document:', docResponse);
+                                } else {
+                                    console.log('✅ Document created successfully');
+                                }
+                            }));
+                        } catch (docError) {
+                            console.error('❌ Error creating documents:', docError);
+                        }
+                    }
+
+                    // Update existing documents
+                    if (updatedDocuments.length > 0) {
+                        try {
+                            await Promise.all(updatedDocuments.map(async ({ type, doc }) => {
+                                const docFormData = new FormData();
+                                // Always include required fields for update
+                                docFormData.append('trailerId', trailerId.toString());
+                                docFormData.append('assetType', 'trailer');
+                                docFormData.append('documentType', type);
+                                docFormData.append('documentNumber', doc.description || '');
+                                
+                                // Include expiryDate if it exists
+                                if (doc.expiryDate) {
+                                    docFormData.append('expiryDate', doc.expiryDate);
+                                } else {
+                                    // If no expiry date, send empty string to clear it
+                                    docFormData.append('expiryDate', '');
+                                }
+                                
+                                // Only append file if a new file was selected (doc.file is a File object)
+                                if (doc.file && doc.file instanceof File) {
+                                    docFormData.append('file', doc.file);
+                                    console.log('📎 Including new file in update:', doc.file.name);
+                                }
+                                
+                                // Log FormData contents for debugging
+                                const formDataEntries: string[] = [];
+                                for (const [key, value] of docFormData.entries()) {
+                                    if (value instanceof File) {
+                                        formDataEntries.push(`${key}: File(${value.name}, ${value.size} bytes)`);
+                                    } else {
+                                        formDataEntries.push(`${key}: ${value}`);
+                                    }
+                                }
+                                console.log('📤 Updating document payload:', { id: doc._id, type, entries: formDataEntries });
+                                
+                                const docResponse = await updateVehicleDocument(doc._id!, docFormData);
+                                if (!docResponse?.success) {
+                                    console.error('❌ Error updating document:', docResponse);
+                                } else {
+                                    console.log('✅ Document updated successfully');
+                                }
+                            }));
+                        } catch (docError) {
+                            console.error('❌ Error updating documents:', docError);
+                        }
+                    }
+                }
+                
+                alert(editingId ? 'Trailer updated successfully!' : 'Trailer created successfully!');
+                setShowSidebar(false);
+                setEditingId(null);
+                setFormData({
+                    unitNumber: '',
+                    vinNumber: '',
+                    plateNumber: '',
+                    make: '',
+                    model: '',
+                    year: '',
+                    weight: '0',
+                    registrationCountry: '',
+                    registrationProvince: '',
+                    type: '',
+                    uom: 'Kg',
+                    status: 'In Service',
+                    ownership: 'COMPANY ASSET',
+                    subType: ''
+                });
+                setSelectedImage(null);
+                setSelectedImageFile(null);
+                setOriginalTrailerData(null);
+                setDocuments({
+                    General: [],
+                    Ownership: [],
+                    Plate: [],
+                    Safety: [],
+                    Insurance: []
+                });
+                // Refresh trailers list
+                const trailersResponse = await getAllTrailers(1, 1000);
+                if (trailersResponse?.success && trailersResponse?.data) {
+                    const transformedTrailers = trailersResponse.data.map((trailer: any) => ({
+                        _id: trailer._id,
+                        id: trailer._id,
+                        trailerNumber: trailer.trailer || trailer.unitNumber || '',
+                        trailer: trailer.trailer || trailer.unitNumber || '',
+                        unitNumber: trailer.unitNumber || trailer.trailer || '',
+                        plateNumber: trailer.plateNumber || '',
+                        type: trailer.type || '',
+                        ownership: trailer.ownership || trailer.ownerShip || 'COMPANY ASSET',
+                        lastDispatch: trailer.lastDispatch || '',
+                        lastDispatchDate: trailer.lastDispatchDate ? new Date(trailer.lastDispatchDate).toLocaleDateString() : '',
+                        lastDropLocation: trailer.lastDropLocation || '',
+                        notes: trailer.notes || trailer.note || '',
+                        operatingStatus: trailer.operationStatus || 'IN SERVICE',
+                        loadedStatus: trailer.loadedStatus || 'IDLE',
+                        compliance: trailer.compliance || 'COMPLIANT',
+                        category: trailer.category,
+                        imageUrl: trailer.imageUrl || trailer.trailerImageUrl
+                    }));
+                    setTrailers(transformedTrailers);
+                }
+            } else {
+                alert(response?.message || 'Failed to save trailer. Please try again.');
+            }
+        } catch (error) {
+            console.error('Error saving trailer:', error);
+            alert('Failed to save trailer. Please try again.');
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    // Handle delete trailer
+    const handleDeleteTrailer = async (id: string) => {
+        if (!window.confirm('Are you sure you want to delete this trailer?')) {
+            return;
+        }
+
+        setLoading(true);
+        try {
+            const response = await deleteTrailer(id);
+            if (response?.success) {
+                alert('Trailer deleted successfully!');
+                setTrailers(trailers.filter(t => (t._id || t.id) !== id));
+            } else {
+                alert(response?.message || 'Failed to delete trailer. Please try again.');
+            }
+        } catch (error) {
+            console.error('Error deleting trailer:', error);
+            alert('Failed to delete trailer. Please try again.');
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    // Handle edit trailer
+    const handleEditTrailer = async (id: string) => {
+        setLoading(true);
+        try {
+            const response = await getTrailerById(id);
+            if (response?.success && response?.data) {
+                const trailer = response.data;
+                const trailerFormData = {
+                    unitNumber: trailer.unitNumber || trailer.trailer || '',
+                    vinNumber: trailer.vinNumber || '',
+                    plateNumber: trailer.plateNumber || '',
+                    make: trailer.make || '',
+                    model: trailer.model || '',
+                    year: trailer.year || '',
+                    weight: trailer.weight || '0',
+                    registrationCountry: trailer.registrationCountry || '',
+                    registrationProvince: trailer.registrationProvince || '',
+                    type: trailer.type || '',
+                    uom: trailer.uom || 'Kg',
+                    status: trailer.status || 'In Service',
+                    ownership: trailer.ownership || trailer.ownerShip || 'COMPANY ASSET',
+                    subType: trailer.subType || ''
+                };
+                
+                setFormData(trailerFormData);
+                // Store original data for partial updates
+                setOriginalTrailerData(trailerFormData);
+                // Use signed URL from backend
+                setSelectedImage(trailer.imageUrl || trailer.trailerImageUrl || null);
+                // Reset selectedImageFile when loading existing trailer (so we only upload if user selects new image)
+                setSelectedImageFile(null);
+                setEditingId(id);
+                
+                // Load documents from trailer response (documents are now included in getTrailerById)
+                try {
+                    const trailerDocuments = trailer.documents || [];
+                    console.log('📥 Documents from trailer response:', trailerDocuments.length);
+                    
+                    if (Array.isArray(trailerDocuments) && trailerDocuments.length > 0) {
+                        const docsByType: Record<string, Array<any>> = {
+                            General: [],
+                            Ownership: [],
+                            Plate: [],
+                            Safety: [],
+                            Insurance: []
+                        };
+                        
+                        // Process documents with signed URLs (already signed by backend)
+                        for (const doc of trailerDocuments) {
+                            const docType = doc.documentType || 'General';
+                            // Map document types to match frontend categories
+                            const mappedType = docType === 'General' || docType === 'Ownership' || docType === 'Plate' || docType === 'Safety' || docType === 'Insurance' 
+                                ? docType 
+                                : 'General';
+                            
+                            if (mappedType in docsByType) {
+                                // Get file URL - use signed URL from backend (already signed)
+                                let fileUrl = doc.files?.[0]?.fileUrl || doc.documentLocation || null;
+                                let fileName = doc.files?.[0]?.fileName || 'Document';
+                                
+                                docsByType[mappedType].push({
+                                    id: doc._id || `existing-${doc._id}`,
+                                    _id: doc._id,
+                                    expiryDate: doc.expiryDate ? new Date(doc.expiryDate).toISOString().split('T')[0] : '',
+                                    description: doc.documentNumber || doc.documentType || doc.description || '',
+                                    file: null, // No file object for existing documents
+                                    fileUrl: fileUrl,
+                                    fileName: fileName,
+                                    ignoreExpiration: false,
+                                    isExisting: true
+                                });
+                            }
+                        }
+                        
+                        console.log('📋 Loaded documents by type:', docsByType);
+                        console.log('📊 Document counts:', {
+                            General: docsByType.General.length,
+                            Ownership: docsByType.Ownership.length,
+                            Plate: docsByType.Plate.length,
+                            Safety: docsByType.Safety.length,
+                            Insurance: docsByType.Insurance.length
+                        });
+                        setDocuments(docsByType);
+                    } else {
+                        console.log('⚠️ No documents found in trailer response');
+                        // Reset documents if none found
+                        setDocuments({
+                            General: [],
+                            Ownership: [],
+                            Plate: [],
+                            Safety: [],
+                            Insurance: []
+                        });
+                    }
+                } catch (docError) {
+                    console.error('❌ Error loading documents:', docError);
+                    // Reset documents on error
+                    setDocuments({
+                        General: [],
+                        Ownership: [],
+                        Plate: [],
+                        Safety: [],
+                        Insurance: []
+                    });
+                }
+                
+                setShowSidebar(true);
+                setActiveStep('Details');
+            } else {
+                alert('Failed to load trailer data. Please try again.');
+            }
+        } catch (error) {
+            console.error('Error loading trailer:', error);
+            alert('Failed to load trailer data. Please try again.');
+        } finally {
+            setLoading(false);
+        }
+    };
+
     // Get filtered trailers
     const getFilteredTrailers = () => {
-        let filtered = [...staticTrailers];
+        let filtered = [...trailers];
 
         // Filter by active tab
         if (activeTab !== 'All') {
@@ -281,8 +671,8 @@ const TrailersPage: React.FC = () => {
         // Filter by search term (Unit #, Plate #, Make, VIN)
         if (searchTerm) {
             filtered = filtered.filter(trailer =>
-                trailer.trailerNumber.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                trailer.plateNumber.toLowerCase().includes(searchTerm.toLowerCase())
+                (trailer.trailerNumber || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+                (trailer.plateNumber || '').toLowerCase().includes(searchTerm.toLowerCase())
             );
         }
 
@@ -310,28 +700,31 @@ const TrailersPage: React.FC = () => {
 
         // Apply column filters
         if (filters.trailerNumber) {
-            filtered = filtered.filter(t => t.trailerNumber.toLowerCase().includes(filters.trailerNumber.toLowerCase()));
+            filtered = filtered.filter(t => (t.trailerNumber || '').toLowerCase().includes(filters.trailerNumber.toLowerCase()));
         }
         if (filters.plateNumber) {
-            filtered = filtered.filter(t => t.plateNumber.toLowerCase().includes(filters.plateNumber.toLowerCase()));
+            filtered = filtered.filter(t => (t.plateNumber || '').toLowerCase().includes(filters.plateNumber.toLowerCase()));
         }
         if (filters.type) {
-            filtered = filtered.filter(t => t.type.toLowerCase().includes(filters.type.toLowerCase()));
+            filtered = filtered.filter(t => (t.type || '').toLowerCase().includes(filters.type.toLowerCase()));
         }
         if (filters.ownership !== 'All') {
             filtered = filtered.filter(t => t.ownership === filters.ownership);
         }
         if (filters.lastDispatch) {
-            filtered = filtered.filter(t => t.lastDispatch.includes(filters.lastDispatch));
+            filtered = filtered.filter(t => (t.lastDispatch || '').toLowerCase().includes(filters.lastDispatch.toLowerCase()));
         }
         if (filters.lastDispatchDate) {
-            filtered = filtered.filter(t => t.lastDispatchDate.includes(filters.lastDispatchDate));
+            filtered = filtered.filter(t => {
+                const dateStr = typeof t.lastDispatchDate === 'string' ? t.lastDispatchDate : (t.lastDispatchDate ? t.lastDispatchDate.toString() : '');
+                return dateStr.toLowerCase().includes(filters.lastDispatchDate.toLowerCase());
+            });
         }
         if (filters.lastDropLocation) {
-            filtered = filtered.filter(t => t.lastDropLocation.toLowerCase().includes(filters.lastDropLocation.toLowerCase()));
+            filtered = filtered.filter(t => (t.lastDropLocation || '').toLowerCase().includes(filters.lastDropLocation.toLowerCase()));
         }
         if (filters.notes) {
-            filtered = filtered.filter(t => t.notes.toLowerCase().includes(filters.notes.toLowerCase()));
+            filtered = filtered.filter(t => (t.notes || '').toLowerCase().includes(filters.notes.toLowerCase()));
         }
         if (filters.operatingStatus !== 'All') {
             filtered = filtered.filter(t => t.operatingStatus === filters.operatingStatus);
@@ -366,8 +759,8 @@ const TrailersPage: React.FC = () => {
 
     // Count trailers by category
     const getCountByCategory = (category: string) => {
-        if (category === 'All') return staticTrailers.length;
-        return staticTrailers.filter(t => t.category === category).length;
+        if (category === 'All') return trailers.length;
+        return trailers.filter(t => t.category === category).length;
     };
 
     const handleSort = (key: keyof Trailer) => {
@@ -458,7 +851,29 @@ const TrailersPage: React.FC = () => {
                                 <Upload className="w-6 h-6" />
                             </button>
                             <button
-                                onClick={() => setShowSidebar(true)}
+                                onClick={() => {
+                                    setEditingId(null);
+                                    setFormData({
+                                        unitNumber: '',
+                                        vinNumber: '',
+                                        plateNumber: '',
+                                        make: '',
+                                        model: '',
+                                        year: '',
+                                        weight: '0',
+                                        registrationCountry: '',
+                                        registrationProvince: '',
+                                        type: '',
+                                        uom: 'Kg',
+                                        status: 'In Service',
+                                        ownership: 'COMPANY ASSET',
+                                        subType: ''
+                                    });
+                                    setSelectedImage(null);
+                                    setSelectedImageFile(null);
+                                    setShowSidebar(true);
+                                    setActiveStep('Details');
+                                }}
                                 className="w-10 h-10 bg-[#42aeec] !text-white rounded-lg flex items-center justify-center hover:bg-[#1db5f5] transition-colors shadow-md"
                             >
                                 <Plus className="w-5 h-5" />
@@ -751,25 +1166,29 @@ const TrailersPage: React.FC = () => {
                                             <option value="EXPIRING SOON">Expiring Soon</option>
                                         </select>
                                     </th>
+                                    {/* Actions */}
+                                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase">
+                                        <span>Actions</span>
+                                    </th>
                                 </tr>
                             </thead>
                             <tbody className="bg-white divide-y divide-gray-200">
                                 {filteredTrailers.length === 0 ? (
                                     <tr>
-                                        <td colSpan={11} className="px-4 py-8 text-center text-gray-500">
+                                        <td colSpan={12} className="px-4 py-8 text-center text-gray-500">
                                             No trailers found
                                         </td>
                                     </tr>
                                 ) : (
                                     filteredTrailers.map((trailer) => (
-                                        <tr key={trailer.id} className="hover:bg-gray-50 transition-colors">
-                                            <td className="px-4 py-3 text-sm text-gray-900">{trailer.trailerNumber}</td>
+                                        <tr key={trailer._id || trailer.id} className="hover:bg-gray-50 transition-colors">
+                                            <td className="px-4 py-3 text-sm text-gray-900">{trailer.trailerNumber || trailer.trailer || trailer.unitNumber}</td>
                                             <td className="px-4 py-3 text-sm text-gray-900">{trailer.plateNumber}</td>
                                             <td className="px-4 py-3 text-sm text-gray-900">{trailer.type}</td>
                                             <td className="px-4 py-3 text-sm text-gray-900">{trailer.ownership}</td>
-                                            <td className="px-4 py-3 text-sm text-gray-900">{trailer.lastDispatch}</td>
-                                            <td className="px-4 py-3 text-sm text-gray-900">{trailer.lastDispatchDate}</td>
-                                            <td className="px-4 py-3 text-sm text-gray-900">{trailer.lastDropLocation}</td>
+                                            <td className="px-4 py-3 text-sm text-gray-900">{trailer.lastDispatch || ''}</td>
+                                            <td className="px-4 py-3 text-sm text-gray-900">{typeof trailer.lastDispatchDate === 'string' ? trailer.lastDispatchDate : (trailer.lastDispatchDate ? trailer.lastDispatchDate.toString() : '')}</td>
+                                            <td className="px-4 py-3 text-sm text-gray-900">{trailer.lastDropLocation || ''}</td>
                                             <td className="px-4 py-3 text-sm text-gray-900">
                                                 {trailer.notes ? (
                                                     <div className="w-6 h-6 rounded-full bg-gray-300 flex items-center justify-center">
@@ -786,21 +1205,39 @@ const TrailersPage: React.FC = () => {
                                                         <span className="text-xs font-semibold text-white leading-tight">SERVICE</span>
                                                     </div>
                                                 ) : (
-                                                    <span className={`px-3 py-1 text-xs font-semibold rounded-full ${getStatusBadgeColor(trailer.operatingStatus, 'operating')}`}>
+                                                    <span className={`px-3 py-1 text-xs font-semibold rounded-full ${getStatusBadgeColor(trailer.operatingStatus || '', 'operating')}`}>
                                                         {trailer.operatingStatus}
                                                     </span>
                                                 )}
                                             </td>
                                             <td className="px-4 py-3">
-                                                <span className={`px-3 py-1 text-xs font-semibold rounded-full flex items-center gap-1 ${getStatusBadgeColor(trailer.loadedStatus, 'loaded')}`}>
+                                                <span className={`px-3 py-1 text-xs font-semibold rounded-full flex items-center gap-1 ${getStatusBadgeColor(trailer.loadedStatus || '', 'loaded')}`}>
                                                     {trailer.loadedStatus === 'SCHEDULED' && <Clock className="w-3 h-3" />}
                                                     {trailer.loadedStatus}
                                                 </span>
                                             </td>
                                             <td className="px-4 py-3">
-                                                <span className={`px-3 py-1 text-xs font-semibold rounded-full ${getStatusBadgeColor(trailer.compliance, 'compliance')}`}>
+                                                <span className={`px-3 py-1 text-xs font-semibold rounded-full ${getStatusBadgeColor(trailer.compliance || '', 'compliance')}`}>
                                                     {trailer.compliance}
                                                 </span>
+                                            </td>
+                                            <td className="px-4 py-3">
+                                                <div className="flex items-center gap-2">
+                                                    <button
+                                                        onClick={() => handleEditTrailer(trailer._id || trailer.id || '')}
+                                                        className="p-1.5 text-blue-600 hover:bg-blue-50 rounded transition-colors"
+                                                        title="Edit"
+                                                    >
+                                                        <Edit className="w-4 h-4" />
+                                                    </button>
+                                                    <button
+                                                        onClick={() => handleDeleteTrailer(trailer._id || trailer.id || '')}
+                                                        className="p-1.5 text-red-600 hover:bg-red-50 rounded transition-colors"
+                                                        title="Delete"
+                                                    >
+                                                        <Trash2 className="w-4 h-4" />
+                                                    </button>
+                                                </div>
                                             </td>
                                         </tr>
                                     ))
@@ -831,6 +1268,7 @@ const TrailersPage: React.FC = () => {
                                         input.onchange = (e: any) => {
                                             const file = e.target.files[0];
                                             if (file) {
+                                                setSelectedImageFile(file); // Store the file for upload
                                                 const reader = new FileReader();
                                                 reader.onload = (event) => {
                                                     setSelectedImage(event.target?.result as string);
@@ -883,13 +1321,11 @@ const TrailersPage: React.FC = () => {
                                 <h2 className="text-xl font-bold text-gray-900">New Trailer</h2>
                                 <div className="flex items-center gap-2">
                                     <button
-                                        onClick={() => {
-                                            // Handle save logic here
-                                            setShowSidebar(false);
-                                        }}
-                                        className="px-4 py-1.5 bg-gray-700 !text-white rounded-lg hover:bg-gray-800 transition-colors text-sm font-medium"
+                                        onClick={handleSaveTrailer}
+                                        disabled={loading}
+                                        className="px-4 py-1.5 bg-gray-700 !text-white rounded-lg hover:bg-gray-800 transition-colors text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed"
                                     >
-                                        SAVE
+                                        {loading ? 'SAVING...' : 'SAVE'}
                                     </button>
                                     <button
                                         onClick={() => setShowSidebar(false)}
@@ -1448,6 +1884,7 @@ const TrailersPage: React.FC = () => {
                                                 <label className="text-sm text-gray-700">Ignore Expiration</label>
                                             </div>
                                             <button
+                                                type="button"
                                                 onClick={() => {
                                                     if (documentForm.expiryDate && documentForm.description) {
                                                         const newDoc = {
@@ -1455,7 +1892,10 @@ const TrailersPage: React.FC = () => {
                                                             expiryDate: documentForm.expiryDate,
                                                             description: documentForm.description,
                                                             file: documentForm.file,
-                                                            ignoreExpiration: documentForm.ignoreExpiration
+                                                            fileName: documentForm.file?.name || 'Document',
+                                                            fileUrl: documentForm.file ? URL.createObjectURL(documentForm.file) : null,
+                                                            ignoreExpiration: documentForm.ignoreExpiration,
+                                                            isExisting: false
                                                         };
                                                         setDocuments({
                                                             ...documents,
@@ -1477,19 +1917,40 @@ const TrailersPage: React.FC = () => {
                                                     <tr>
                                                         <th className="px-4 py-2 text-left text-xs font-medium text-gray-700">Expiry Date</th>
                                                         <th className="px-4 py-2 text-left text-xs font-medium text-gray-700">Description</th>
+                                                        <th className="px-4 py-2 text-left text-xs font-medium text-gray-700">File</th>
                                                         <th className="px-4 py-2 text-left text-xs font-medium text-gray-700">Ignore Expiration</th>
                                                     </tr>
                                                 </thead>
                                                 <tbody>
                                                     {documents[documentType].length === 0 ? (
                                                         <tr>
-                                                            <td colSpan={3} className="px-4 py-8 text-center text-gray-500">No Data</td>
+                                                            <td colSpan={4} className="px-4 py-8 text-center text-gray-500">No Data</td>
                                                         </tr>
                                                     ) : (
                                                         documents[documentType].map((doc) => (
                                                             <tr key={doc.id} className="border-t border-gray-200 hover:bg-gray-50">
                                                                 <td className="px-4 py-2 text-sm text-gray-900">{doc.expiryDate}</td>
                                                                 <td className="px-4 py-2 text-sm text-gray-900">{doc.description}</td>
+                                                                <td className="px-4 py-2 text-sm text-gray-900">
+                                                                    {doc.fileUrl ? (
+                                                                        <a
+                                                                            href={doc.fileUrl}
+                                                                            target="_blank"
+                                                                            rel="noopener noreferrer"
+                                                                            className="flex items-center gap-2 text-blue-600 hover:text-blue-800"
+                                                                        >
+                                                                            <FileText className="w-4 h-4" />
+                                                                            <span>{doc.fileName || 'View File'}</span>
+                                                                        </a>
+                                                                    ) : doc.file ? (
+                                                                        <span className="flex items-center gap-2 text-gray-700">
+                                                                            <FileText className="w-4 h-4" />
+                                                                            <span>{doc.file.name}</span>
+                                                                        </span>
+                                                                    ) : (
+                                                                        <span className="text-gray-400">No file</span>
+                                                                    )}
+                                                                </td>
                                                                 <td className="px-4 py-2 text-sm text-gray-900">{doc.ignoreExpiration ? 'Yes' : 'No'}</td>
                                                             </tr>
                                                         ))
@@ -1520,29 +1981,33 @@ const TrailersPage: React.FC = () => {
                                                 </div>
                                                 <div>
                                                     <label className="block text-sm font-medium text-gray-700 mb-1">Driver</label>
-                                                    <div className="relative">
-                                                        <input
-                                                            type="text"
-                                                            placeholder="Driver"
-                                                            value={incidentForm.driver}
-                                                            onChange={(e) => setIncidentForm({ ...incidentForm, driver: e.target.value })}
-                                                            className="w-full px-3 py-2 pr-10 bg-white border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#42aeec] text-sm"
-                                                        />
-                                                        <Search className="absolute right-3 top-2.5 w-4 h-4 text-gray-400 pointer-events-none" />
-                                                    </div>
+                                                    <select
+                                                        value={incidentForm.driver}
+                                                        onChange={(e) => setIncidentForm({ ...incidentForm, driver: e.target.value })}
+                                                        className="w-full px-3 py-2 bg-white border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#42aeec] text-sm appearance-none pr-8"
+                                                    >
+                                                        <option value="">Select Driver</option>
+                                                        {drivers.map((driver) => (
+                                                            <option key={driver._id} value={driver._id}>
+                                                                {driver.name} {driver.internalId ? `(${driver.internalId})` : ''}
+                                                            </option>
+                                                        ))}
+                                                    </select>
                                                 </div>
                                                 <div>
                                                     <label className="block text-sm font-medium text-gray-700 mb-1">Co-Driver</label>
-                                                    <div className="relative">
-                                                        <input
-                                                            type="text"
-                                                            placeholder="Co-Driver"
-                                                            value={incidentForm.coDriver}
-                                                            onChange={(e) => setIncidentForm({ ...incidentForm, coDriver: e.target.value })}
-                                                            className="w-full px-3 py-2 pr-10 bg-white border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#42aeec] text-sm"
-                                                        />
-                                                        <Search className="absolute right-3 top-2.5 w-4 h-4 text-gray-400 pointer-events-none" />
-                                                    </div>
+                                                    <select
+                                                        value={incidentForm.coDriver}
+                                                        onChange={(e) => setIncidentForm({ ...incidentForm, coDriver: e.target.value })}
+                                                        className="w-full px-3 py-2 bg-white border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#42aeec] text-sm appearance-none pr-8"
+                                                    >
+                                                        <option value="">Select Co-Driver</option>
+                                                        {drivers.map((driver) => (
+                                                            <option key={driver._id} value={driver._id}>
+                                                                {driver.name} {driver.internalId ? `(${driver.internalId})` : ''}
+                                                            </option>
+                                                        ))}
+                                                    </select>
                                                 </div>
                                                 <div>
                                                     <label className="block text-sm font-medium text-gray-700 mb-1">Location</label>

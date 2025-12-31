@@ -24,7 +24,8 @@ const roleBadges = [
   'COMPLIANCE MANAGER',
   'SAFETY OFFICER',
   'REPORTER',
-  'MAINTENANCE CREW (MECHANICS)'
+  'MAINTENANCE CREW (MECHANICS)',
+  'OPERATOR'
 ];
 
 const EmployeesPage = () => {
@@ -129,7 +130,7 @@ const EmployeesPage = () => {
     'Compliance Manager',
     'Maintenance Crew (Mechanics)',
     'safety officer',
-
+    'operator'
   ];
 
   // Fetch employees from API

@@ -280,6 +280,13 @@ const DriverManagement = () => {
   const tableScrollRef = useRef<HTMLDivElement>(null);
   const topScrollRef = useRef<HTMLDivElement>(null);
   const topScrollContentRef = useRef<HTMLDivElement>(null);
+  
+  // Store original driver data for comparison (to detect changes)
+  const [originalDriverData, setOriginalDriverData] = useState<{
+    formData: typeof formData;
+    personalData: typeof personalData;
+    travelData: typeof travelData;
+  } | null>(null);
 
   // Form state for Basic Information
   const [formData, setFormData] = useState({
@@ -377,6 +384,8 @@ const DriverManagement = () => {
     description: string;
     ignoreExpiration: boolean;
     file?: File | null;
+    isExisting?: boolean;
+    documentId?: string;
   }>>([]);
   const [newDocument, setNewDocument] = useState({
     expiryDate: '',
@@ -484,17 +493,17 @@ const DriverManagement = () => {
           driverId: driver.driverId || driver.internalId || driver._id?.slice(-6).toUpperCase() || 'N/A',
           firstName: driver.firstName || (driver.name ? driver.name.split(' ')[0] : ''),
           lastName: driver.lastName || (driver.name ? driver.name.split(' ').slice(1).join(' ') : ''),
-          driversLicence: driver.driversLicence || '',
-          passport: driver.passport || '',
-          dateOfBirth: driver.dateOfBirth || '',
-          notes: driver.notes || '',
-          ticketYTD: driver.ticketYTD || 0,
+          driversLicence: driver.driversLicence || driver.details?.licenceNumber || driver.details?.driversLicence || '',
+          passport: driver.passport || driver.details?.passport || driver.details?.passportNumber || '',
+          dateOfBirth: driver.dateOfBirth || (driver.details?.dateOfBirth ? new Date(driver.details.dateOfBirth).toISOString().split('T')[0] : '') || (driver.dob ? new Date(driver.dob).toISOString().split('T')[0] : ''),
+          notes: driver.notes || driver.details?.notes || '',
+          ticketYTD: driver.ticketYTD || driver.details?.ticketYTD || 0,
           status: driver.status || 'ACTIVE',
           compliance: driver.compliance || 'NON-COMPLIANT',
           complianceDetails: driver.complianceDetails,
           email: driver.email,
           phone: driver.phone,
-          mobile: driver.mobile,
+          mobile: driver.mobile || driver.details?.cell1,
           company: driver.company
         }));
         
@@ -521,9 +530,42 @@ const DriverManagement = () => {
     const loadDriverForEdit = async () => {
       if (editingId) {
         try {
+          console.log('🔄 Loading driver for edit, ID:', editingId);
           const response = await driverApi.getDriverById(editingId);
-          if (response?.success && response.data) {
-            const driver = response.data;
+          console.log('📥 Driver API response:', response);
+          console.log('📥 Response success:', response?.success);
+          console.log('📥 Response data:', response?.data);
+          console.log('📥 Full response keys:', Object.keys(response || {}));
+          
+          // Handle different response structures
+          // The API might return { success: true, data: {...} } or just the driver object directly
+          let driver = null;
+          
+          // Check if response has success: false
+          if (response?.success === false) {
+            console.error('❌ API returned success: false', response);
+            throw new Error(response?.message || 'Failed to load driver data');
+          }
+          
+          // Try to extract driver data from different possible structures
+          if (response?.success === true && response?.data) {
+            // Standard structure: { success: true, data: {...} }
+            driver = response.data;
+          } else if (response?.data) {
+            // Has data property but success might be undefined
+            driver = response.data;
+          } else if (response && typeof response === 'object' && (response._id || response.name || response.email || response.internalId)) {
+            // Response is the driver object directly (no wrapper)
+            driver = response;
+          }
+          
+          console.log('🔍 Extracted driver:', driver);
+          console.log('🔍 Driver has _id:', driver?._id);
+          console.log('🔍 Driver has name:', driver?.name);
+          console.log('🔍 Driver has email:', driver?.email);
+          
+          if (driver && (driver._id || driver.name || driver.email || driver.internalId)) {
+            console.log('✅ Driver data loaded:', driver);
             // Parse name into parts
             const nameParts = (driver.name || '').split(' ');
             const firstName = nameParts[0] || '';
@@ -533,12 +575,33 @@ const DriverManagement = () => {
             // Format date of birth
             let dateOfBirthFormatted = '';
             if (driver.details?.dateOfBirth) {
-              const dob = new Date(driver.details.dateOfBirth);
-              dateOfBirthFormatted = dob.toISOString().split('T')[0];
+              try {
+                const dob = new Date(driver.details.dateOfBirth);
+                if (!isNaN(dob.getTime())) {
+                  dateOfBirthFormatted = dob.toISOString().split('T')[0];
+                }
+              } catch (e) {
+                console.error('Error parsing dateOfBirth:', e);
+              }
             } else if (driver.dob) {
-              const dob = new Date(driver.dob);
-              dateOfBirthFormatted = dob.toISOString().split('T')[0];
+              try {
+                const dob = new Date(driver.dob);
+                if (!isNaN(dob.getTime())) {
+                  dateOfBirthFormatted = dob.toISOString().split('T')[0];
+                }
+              } catch (e) {
+                console.error('Error parsing dob:', e);
+              }
             }
+
+            console.log('📝 Setting form data with:', {
+              driverId: driver.internalId,
+              firstName,
+              lastName,
+              email: driver.email,
+              phone: driver.phone,
+              address: driver.location?.address || driver.address
+            });
 
             setFormData({
               driverId: driver.internalId || '',
@@ -547,23 +610,25 @@ const DriverManagement = () => {
               lastName: lastName,
               emailAddress: driver.email || '',
               dateOfBirth: dateOfBirthFormatted,
-              mobileApp: false,
+              mobileApp: driver.mobileApp || false,
               pin: '',
               primaryPhone: driver.phone || '+1',
-              secondaryPhone: driver.details?.cell2 || '+1',
+              secondaryPhone: driver.details?.cell1 || driver.details?.cell2 || driver.mobile || '+1',
               searchAddress: '',
-              address: driver.location?.address || '',
-              unit: '',
-              city: driver.city || '',
-              postalCode: driver.details?.postalCode || '',
+              address: driver.location?.address || driver.address || '',
+              unit: driver.location?.unit || driver.unit || '',
+              city: driver.city || driver.location?.city || '',
+              postalCode: driver.postalCode || driver.location?.postalCode || driver.details?.postalCode || '',
               country: driver.country || '',
-              stateProvince: driver.state || '',
+              stateProvince: driver.state || driver.location?.state || '',
               profileImage: null
             });
 
             // Set profile image preview if exists
             if (driver.profileImageUrl) {
               setProfileImagePreview(driver.profileImageUrl);
+            } else {
+              setProfileImagePreview(null);
             }
 
              // Set personal data
@@ -571,7 +636,7 @@ const DriverManagement = () => {
                socialInsuranceNumber: driver.details?.sinNo || '',
                hireDate: driver.joinDate ? new Date(driver.joinDate).toISOString().split('T')[0] : '',
                terminationDate: driver.details?.termDate ? new Date(driver.details.termDate).toISOString().split('T')[0] : '',
-               status: driver.status === 'active' ? 'Active' : 'Inactive',
+               status: driver.status === 'active' || driver.status === 'ACTIVE' ? 'Active' : 'Inactive',
                vacationPercent: '',
                paySearchAddress: '',
                corporationName: '',
@@ -595,32 +660,231 @@ const DriverManagement = () => {
                cppExempt: false,
                payrollTaxExempt: false,
                customHst: '',
-               gender: driver.details?.gender || '',
-               citizenship: driver.details?.citizenship || ''
+               gender: driver.details?.gender || driver.gender || '',
+               citizenship: driver.details?.citizenship || driver.citizenship || ''
              });
 
-            // Set travel data
+            // Set travel data with all fields
             setTravelData({
               driversLicenseNumber: driver.details?.licenceNumber || driver.details?.driversLicence || '',
-              driversLicenseExpiry: '',
-              licenseStateProvince: '',
+              driversLicenseExpiry: driver.details?.licenceExpiry ? new Date(driver.details.licenceExpiry).toISOString().split('T')[0] : '',
+              licenseStateProvince: driver.details?.licenceState || '',
               passportNumber: driver.details?.passport || driver.details?.passportNumber || '',
               passportCountry: driver.details?.passportCountry || '',
               passportExpiry: driver.details?.passportExpiry ? new Date(driver.details.passportExpiry).toISOString().split('T')[0] : '',
               fastCardNumber: driver.details?.fastCardNo || '',
               fastCardExpiry: driver.details?.fastCardExpiry ? new Date(driver.details.fastCardExpiry).toISOString().split('T')[0] : '',
-              fastCardValid: false,
-              canadianWorkerStatus: 'PERMANENT RESIDENT',
-              permanentResidenceExpiry: '',
-              workPermitExpiry: '',
+              fastCardValid: driver.details?.fastCardValid || false,
+              canadianWorkerStatus: (driver.details?.canadianWorkerStatus as any) || 'PERMANENT RESIDENT',
+              permanentResidenceExpiry: driver.details?.permanentResidenceExpiry ? new Date(driver.details.permanentResidenceExpiry).toISOString().split('T')[0] : '',
+              workPermitExpiry: driver.details?.workPermitExpiry ? new Date(driver.details.workPermitExpiry).toISOString().split('T')[0] : '',
               wcbNumber: driver.details?.wsibAccountNo || ''
             });
 
-            setShowNewDriverModal(true);
+            // Load documents for this driver
+            try {
+              const documentsResponse = await getDocumentsByEmployee(editingId);
+              if (documentsResponse?.success && documentsResponse.data) {
+                const existingDocuments = documentsResponse.data.map((doc: EmployeeDocument) => ({
+                  id: `existing-${doc._id}`,
+                  expiryDate: doc.expiryDate ? new Date(doc.expiryDate).toISOString().split('T')[0] : '',
+                  description: doc.description || doc.documentType || '',
+                  ignoreExpiration: false,
+                  file: null,
+                  isExisting: true,
+                  documentId: doc._id
+                }));
+                setDocuments(existingDocuments);
+              }
+            } catch (docError) {
+              console.error('Error loading documents:', docError);
+              setDocuments([]);
+            }
+
+            // Load notes
+            if (driver.details?.notes || driver.notes) {
+              let notesArray: Array<{ id: string; note: string; category: string }> = [];
+              if (Array.isArray(driver.details?.notes)) {
+                notesArray = driver.details.notes.map((note: any, index: number) => ({
+                  id: note.id || `note-${index}`,
+                  note: typeof note === 'string' ? note : (note.note || note.text || ''),
+                  category: note.category || ''
+                }));
+              } else if (driver.details?.notes || driver.notes) {
+                const noteText = driver.details?.notes || driver.notes || '';
+                notesArray = [{ id: '1', note: noteText, category: '' }];
+              }
+              setNotes(notesArray);
+            } else {
+              setNotes([]);
+            }
+
+            // Store original data for comparison (after state updates)
+            setTimeout(() => {
+              // Store original data snapshot
+              setOriginalDriverData({
+                formData: {
+                  driverId: driver.internalId || '',
+                  firstName: firstName,
+                  middle: middle,
+                  lastName: lastName,
+                  emailAddress: driver.email || '',
+                  dateOfBirth: dateOfBirthFormatted,
+                  mobileApp: driver.mobileApp || false,
+                  pin: '',
+                  primaryPhone: driver.phone || '+1',
+                  secondaryPhone: driver.details?.cell1 || driver.details?.cell2 || driver.mobile || '+1',
+                  searchAddress: '',
+                  address: driver.location?.address || driver.address || '',
+                  unit: driver.location?.unit || driver.unit || '',
+                  city: driver.city || driver.location?.city || '',
+                  postalCode: driver.postalCode || driver.location?.postalCode || driver.details?.postalCode || '',
+                  country: driver.country || '',
+                  stateProvince: driver.state || driver.location?.state || '',
+                  profileImage: null
+                },
+                personalData: {
+                  socialInsuranceNumber: driver.details?.sinNo || '',
+                  hireDate: driver.joinDate ? new Date(driver.joinDate).toISOString().split('T')[0] : '',
+                  terminationDate: driver.details?.termDate ? new Date(driver.details.termDate).toISOString().split('T')[0] : '',
+                  status: driver.status === 'active' || driver.status === 'ACTIVE' ? 'Active' : 'Inactive',
+                  vacationPercent: '',
+                  paySearchAddress: '',
+                  corporationName: '',
+                  driverName: '',
+                  paymentAddress: '',
+                  gstNo: driver.details?.gstNo || '',
+                  driverType: 'COMPANY DRIVER',
+                  paymentMethod: 'PAID PER MILE',
+                  alone: '0',
+                  empty: '0',
+                  bonusDrop: '0',
+                  team: '0',
+                  emptyTeam: '0',
+                  bonusPick: '0',
+                  bonusLayover: '0',
+                  percentRate: '0',
+                  perTripAmount: '0',
+                  hourlyRate: '0',
+                  dailyRate: '0',
+                  driverTypeSolo: true,
+                  cppExempt: false,
+                  payrollTaxExempt: false,
+                  customHst: '',
+                  gender: driver.details?.gender || driver.gender || '',
+                  citizenship: driver.details?.citizenship || driver.citizenship || ''
+                },
+                travelData: {
+                  driversLicenseNumber: driver.details?.licenceNumber || driver.details?.driversLicence || '',
+                  driversLicenseExpiry: driver.details?.licenceExpiry ? new Date(driver.details.licenceExpiry).toISOString().split('T')[0] : '',
+                  licenseStateProvince: driver.details?.licenceState || '',
+                  passportNumber: driver.details?.passport || driver.details?.passportNumber || '',
+                  passportCountry: driver.details?.passportCountry || '',
+                  passportExpiry: driver.details?.passportExpiry ? new Date(driver.details.passportExpiry).toISOString().split('T')[0] : '',
+                  fastCardNumber: driver.details?.fastCardNo || '',
+                  fastCardExpiry: driver.details?.fastCardExpiry ? new Date(driver.details.fastCardExpiry).toISOString().split('T')[0] : '',
+                  fastCardValid: driver.details?.fastCardValid || false,
+                  canadianWorkerStatus: (driver.details?.canadianWorkerStatus as any) || 'PERMANENT RESIDENT',
+                  permanentResidenceExpiry: driver.details?.permanentResidenceExpiry ? new Date(driver.details.permanentResidenceExpiry).toISOString().split('T')[0] : '',
+                  workPermitExpiry: driver.details?.workPermitExpiry ? new Date(driver.details.workPermitExpiry).toISOString().split('T')[0] : '',
+                  wcbNumber: driver.details?.wsibAccountNo || ''
+                }
+              });
+              console.log('✅ Form data populated, opening modal');
+              setShowNewDriverModal(true);
+              setActiveFormTab('basic');
+            }, 100);
+          } else {
+            console.error('❌ Failed to load driver - invalid driver data');
+            console.error('Response:', JSON.stringify(response, null, 2));
+            console.error('Driver object:', driver);
+            console.error('Response type:', typeof response);
+            console.error('Has success:', 'success' in (response || {}));
+            console.error('Has data:', 'data' in (response || {}));
+            alert('Failed to load driver data. The response structure may be incorrect. Please check console for details.');
+            setEditingId(null);
           }
-        } catch (error) {
-          console.error('Error loading driver for edit:', error);
+        } catch (error: any) {
+          console.error('❌ Error loading driver for edit:', error);
+          console.error('Error details:', {
+            message: error?.message,
+            response: error?.response,
+            data: error?.response?.data
+          });
+          alert('Error loading driver data: ' + (error?.message || error?.response?.data?.message || 'Unknown error'));
+          setEditingId(null);
         }
+      } else {
+        // Reset form when not editing
+        setFormData({
+          driverId: '',
+          firstName: '',
+          middle: '',
+          lastName: '',
+          emailAddress: '',
+          dateOfBirth: '',
+          mobileApp: false,
+          pin: '',
+          primaryPhone: '+1',
+          secondaryPhone: '+1',
+          searchAddress: '',
+          address: '',
+          unit: '',
+          city: '',
+          postalCode: '',
+          country: '',
+          stateProvince: '',
+          profileImage: null
+        });
+        setPersonalData({
+          socialInsuranceNumber: '',
+          hireDate: '',
+          terminationDate: '',
+          status: 'Active',
+          vacationPercent: '',
+          paySearchAddress: '',
+          corporationName: '',
+          driverName: '',
+          paymentAddress: '',
+          gstNo: '',
+          driverType: 'COMPANY DRIVER',
+          paymentMethod: 'PAID PER MILE',
+          alone: '0',
+          empty: '0',
+          bonusDrop: '0',
+          team: '0',
+          emptyTeam: '0',
+          bonusPick: '0',
+          bonusLayover: '0',
+          percentRate: '0',
+          perTripAmount: '0',
+          hourlyRate: '0',
+          dailyRate: '0',
+          driverTypeSolo: true,
+          cppExempt: false,
+          payrollTaxExempt: false,
+          customHst: '',
+          gender: '',
+          citizenship: ''
+        });
+        setTravelData({
+          driversLicenseNumber: '',
+          driversLicenseExpiry: '',
+          licenseStateProvince: '',
+          passportNumber: '',
+          passportCountry: '',
+          passportExpiry: '',
+          fastCardNumber: '',
+          fastCardExpiry: '',
+          fastCardValid: false,
+          canadianWorkerStatus: 'PERMANENT RESIDENT',
+          permanentResidenceExpiry: '',
+          workPermitExpiry: '',
+          wcbNumber: ''
+        });
+        setDocuments([]);
+        setNotes([]);
+        setProfileImagePreview(null);
       }
     };
 
@@ -807,11 +1071,73 @@ const DriverManagement = () => {
     setFormData(prev => ({ ...prev, file }));
   };
 
+  // Helper function to map documentsTab to documentType
+  const getDocumentTypeFromTab = (tab: string): string => {
+    const mapping: Record<string, string> = {
+      'general': 'Other',
+      'driving-violations': 'Other',
+      'other-violations': 'Other',
+      'other': 'Other',
+      'warning-letters': 'Company Policy'
+    };
+    return mapping[tab] || 'Other';
+  };
+
+  // Helper function to upload documents for a driver
+  const uploadDriverDocuments = async (driverId: string, documentsToUpload: typeof documents) => {
+    if (!documentsToUpload || documentsToUpload.length === 0) {
+      return;
+    }
+
+    const uploadPromises = documentsToUpload
+      .filter(doc => doc.file) // Only upload documents with files
+      .map(async (doc) => {
+        try {
+          const documentFormData = new FormData();
+          documentFormData.append('employee', driverId);
+          documentFormData.append('documentType', getDocumentTypeFromTab(documentsTab));
+          documentFormData.append('description', doc.description || '');
+          if (doc.expiryDate) {
+            documentFormData.append('expiryDate', doc.expiryDate);
+          }
+          documentFormData.append('status', 'valid');
+          if (doc.file) {
+            documentFormData.append('documentFile', doc.file);
+          }
+
+          const docResponse = await createEmployeeDocument(documentFormData);
+          if (docResponse?.success) {
+            console.log('✅ Document uploaded successfully:', doc.description);
+            return { success: true, doc };
+          } else {
+            console.error('❌ Failed to upload document:', docResponse?.message);
+            return { success: false, doc, error: docResponse?.message };
+          }
+        } catch (error: any) {
+          console.error('❌ Error uploading document:', error);
+          return { success: false, doc, error: error.message };
+        }
+      });
+
+    const results = await Promise.all(uploadPromises);
+    const failed = results.filter(r => !r.success);
+    
+    if (failed.length > 0) {
+      console.warn('⚠️ Some documents failed to upload:', failed);
+      // Don't throw error, just log - driver was created successfully
+    }
+    
+    return results;
+  };
+
   const handleSaveDriver = async () => {
     try {
+      setIsSubmitting(true);
+      
       // Validate required fields
       if (!formData.firstName || !formData.lastName) {
         alert('Please fill in all required fields (First Name, Last Name)');
+        setIsSubmitting(false);
         return;
       }
 
@@ -845,6 +1171,11 @@ const DriverManagement = () => {
       if (personalData.gender) driverFormData.append('gender', personalData.gender);
       if (personalData.citizenship) driverFormData.append('citizenship', personalData.citizenship);
       
+      // Mobile/Secondary Phone
+      if (formData.secondaryPhone && formData.secondaryPhone !== '+1') {
+        driverFormData.append('mobile', formData.secondaryPhone);
+      }
+      
       // Travel Information
       if (travelData.driversLicenseNumber) driverFormData.append('licenceNumber', travelData.driversLicenseNumber);
       if (travelData.passportNumber) driverFormData.append('passport', travelData.passportNumber);
@@ -855,10 +1186,21 @@ const DriverManagement = () => {
         driverFormData.append('file', formData.profileImage);
       }
 
+      console.log('📤 Creating driver with data...');
       const response = await driverApi.createDriver(driverFormData);
       
-      if (response?.success) {
+      if (response?.success && response?.data?._id) {
+        const driverId = response.data._id;
+        console.log('✅ Driver created successfully with ID:', driverId);
+        
+        // Upload documents if any
+        if (documents && documents.length > 0) {
+          console.log('📄 Uploading documents for driver...');
+          await uploadDriverDocuments(driverId, documents);
+        }
+        
         alert('Driver created successfully!');
+        
         // Reset form
         setFormData({
           driverId: '',
@@ -880,8 +1222,57 @@ const DriverManagement = () => {
           stateProvince: '',
           profileImage: null
         });
+        setPersonalData({
+          socialInsuranceNumber: '',
+          hireDate: '',
+          terminationDate: '',
+          status: 'Active',
+          vacationPercent: '',
+          paySearchAddress: '',
+          corporationName: '',
+          driverName: '',
+          paymentAddress: '',
+          gstNo: '',
+          driverType: 'COMPANY DRIVER',
+          paymentMethod: 'PAID PER MILE',
+          alone: '0',
+          empty: '0',
+          bonusDrop: '0',
+          team: '0',
+          emptyTeam: '0',
+          bonusPick: '0',
+          bonusLayover: '0',
+          percentRate: '0',
+          perTripAmount: '0',
+          hourlyRate: '0',
+          dailyRate: '0',
+          driverTypeSolo: true,
+          cppExempt: false,
+          payrollTaxExempt: false,
+          customHst: '',
+          gender: '',
+          citizenship: ''
+        });
+        setTravelData({
+          driversLicenseNumber: '',
+          driversLicenseExpiry: '',
+          licenseStateProvince: '',
+          passportNumber: '',
+          passportCountry: '',
+          passportExpiry: '',
+          fastCardNumber: '',
+          fastCardExpiry: '',
+          fastCardValid: false,
+          canadianWorkerStatus: 'PERMANENT RESIDENT',
+          permanentResidenceExpiry: '',
+          workPermitExpiry: '',
+          wcbNumber: ''
+        });
+        setDocuments([]);
         setProfileImagePreview(null);
         setShowNewDriverModal(false);
+        setActiveFormTab('basic');
+        
         // Refresh drivers list
         await fetchDrivers();
       } else {
@@ -890,12 +1281,15 @@ const DriverManagement = () => {
     } catch (error: any) {
       console.error('Error creating driver:', error);
       alert(error.response?.data?.message || error.message || 'Failed to create driver');
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
   const handleCloseModal = () => {
     setShowNewDriverModal(false);
     setEditingId(null);
+    setOriginalDriverData(null); // Clear original data when closing
     // Reset form when closing
     setFormData({
       driverId: '',
@@ -921,57 +1315,194 @@ const DriverManagement = () => {
     setActiveFormTab('basic');
   };
 
+  // Helper function to check if a value has changed
+  const hasValueChanged = (current: any, original: any): boolean => {
+    // Handle null/undefined
+    if (current === null || current === undefined) {
+      return original !== null && original !== undefined && original !== '';
+    }
+    if (original === null || original === undefined) {
+      return current !== null && current !== undefined && current !== '';
+    }
+    
+    // Convert to string for comparison (handles dates, numbers, etc.)
+    const currentStr = String(current).trim();
+    const originalStr = String(original).trim();
+    
+    return currentStr !== originalStr;
+  };
+
   const handleUpdateDriver = async () => {
-    if (!editingId) return;
+    if (!editingId || !originalDriverData) return;
     
     try {
+      setIsSubmitting(true);
+      
       // Validate required fields
       if (!formData.firstName || !formData.lastName) {
         alert('Please fill in all required fields (First Name, Last Name)');
+        setIsSubmitting(false);
         return;
       }
 
-      // Create FormData
+      // Create FormData - only include changed fields
       const driverFormData = new FormData();
       
-      // Basic Information
-      driverFormData.append('name', `${formData.firstName} ${formData.middle ? formData.middle + ' ' : ''}${formData.lastName}`.trim());
-      driverFormData.append('email', formData.emailAddress);
-      driverFormData.append('phone', formData.primaryPhone);
-      driverFormData.append('country', formData.country);
-      driverFormData.append('internalId', formData.driverId);
-      if (formData.pin) driverFormData.append('password', formData.pin);
+      const original = originalDriverData;
+      
+      // Basic Information - only append if changed
+      const fullName = `${formData.firstName} ${formData.middle ? formData.middle + ' ' : ''}${formData.lastName}`.trim();
+      const originalName = `${original.formData.firstName} ${original.formData.middle ? original.formData.middle + ' ' : ''}${original.formData.lastName}`.trim();
+      if (hasValueChanged(fullName, originalName)) {
+        driverFormData.append('name', fullName);
+      }
+      
+      if (hasValueChanged(formData.emailAddress, original.formData.emailAddress)) {
+        driverFormData.append('email', formData.emailAddress);
+      }
+      
+      if (hasValueChanged(formData.primaryPhone, original.formData.primaryPhone)) {
+        driverFormData.append('phone', formData.primaryPhone);
+      }
+      
+      if (hasValueChanged(formData.country, original.formData.country)) {
+        driverFormData.append('country', formData.country);
+      }
+      
+      if (hasValueChanged(formData.driverId, original.formData.driverId)) {
+        driverFormData.append('internalId', formData.driverId);
+      }
+      
+      // PIN - only send if changed and not empty
+      if (formData.pin && hasValueChanged(formData.pin, original.formData.pin)) {
+        driverFormData.append('password', formData.pin);
+      }
+      
+      // Mobile App Access
+      if (hasValueChanged(formData.mobileApp, original.formData.mobileApp)) {
+        driverFormData.append('mobileApp', String(formData.mobileApp));
+      }
       
       // Date of Birth
-      if (formData.dateOfBirth) {
+      if (hasValueChanged(formData.dateOfBirth, original.formData.dateOfBirth)) {
         driverFormData.append('dob', formData.dateOfBirth);
       }
       
       // Address Information
-      if (formData.address) driverFormData.append('address', formData.address);
-      if (formData.city) driverFormData.append('city', formData.city);
-      if (formData.stateProvince) driverFormData.append('state', formData.stateProvince);
-      if (formData.postalCode) driverFormData.append('postalCode', formData.postalCode);
+      if (hasValueChanged(formData.address, original.formData.address)) {
+        driverFormData.append('address', formData.address);
+      }
+      if (hasValueChanged(formData.unit, original.formData.unit)) {
+        driverFormData.append('unit', formData.unit);
+      }
+      if (hasValueChanged(formData.city, original.formData.city)) {
+        driverFormData.append('city', formData.city);
+      }
+      if (hasValueChanged(formData.stateProvince, original.formData.stateProvince)) {
+        driverFormData.append('state', formData.stateProvince);
+      }
+      if (hasValueChanged(formData.postalCode, original.formData.postalCode)) {
+        driverFormData.append('postalCode', formData.postalCode);
+      }
       
       // Personal Information
-      if (personalData.socialInsuranceNumber) driverFormData.append('sinNo', personalData.socialInsuranceNumber);
-      if (personalData.hireDate) driverFormData.append('joinDate', personalData.hireDate);
-      if (personalData.gender) driverFormData.append('gender', personalData.gender);
-      if (personalData.citizenship) driverFormData.append('citizenship', personalData.citizenship);
+      if (hasValueChanged(personalData.socialInsuranceNumber, original.personalData.socialInsuranceNumber)) {
+        driverFormData.append('sinNo', personalData.socialInsuranceNumber);
+      }
+      if (hasValueChanged(personalData.hireDate, original.personalData.hireDate)) {
+        driverFormData.append('joinDate', personalData.hireDate);
+      }
+      if (hasValueChanged(personalData.gender, original.personalData.gender)) {
+        driverFormData.append('gender', personalData.gender);
+      }
+      if (hasValueChanged(personalData.citizenship, original.personalData.citizenship)) {
+        driverFormData.append('citizenship', personalData.citizenship);
+      }
       
-      // Travel Information
-      if (travelData.driversLicenseNumber) driverFormData.append('licenceNumber', travelData.driversLicenseNumber);
-      if (travelData.passportNumber) driverFormData.append('passport', travelData.passportNumber);
-      if (travelData.passportCountry) driverFormData.append('passportCountry', travelData.passportCountry);
+      // Mobile/Secondary Phone
+      const currentMobile = formData.secondaryPhone && formData.secondaryPhone !== '+1' ? formData.secondaryPhone : '';
+      const originalMobile = original.formData.secondaryPhone && original.formData.secondaryPhone !== '+1' ? original.formData.secondaryPhone : '';
+      if (hasValueChanged(currentMobile, originalMobile)) {
+        driverFormData.append('mobile', currentMobile);
+      }
       
-      // Profile Image - backend expects 'file' field name
+      // Travel Information - Drivers License
+      if (hasValueChanged(travelData.driversLicenseNumber, original.travelData.driversLicenseNumber)) {
+        driverFormData.append('licenceNumber', travelData.driversLicenseNumber);
+      }
+      if (hasValueChanged(travelData.driversLicenseExpiry, original.travelData.driversLicenseExpiry)) {
+        driverFormData.append('licenceExpiry', travelData.driversLicenseExpiry);
+      }
+      if (hasValueChanged(travelData.licenseStateProvince, original.travelData.licenseStateProvince)) {
+        driverFormData.append('licenceState', travelData.licenseStateProvince);
+      }
+      
+      // Travel Information - Passport
+      if (hasValueChanged(travelData.passportNumber, original.travelData.passportNumber)) {
+        driverFormData.append('passport', travelData.passportNumber);
+      }
+      if (hasValueChanged(travelData.passportCountry, original.travelData.passportCountry)) {
+        driverFormData.append('passportCountry', travelData.passportCountry);
+      }
+      if (hasValueChanged(travelData.passportExpiry, original.travelData.passportExpiry)) {
+        driverFormData.append('passportExpiry', travelData.passportExpiry);
+      }
+      
+      // Travel Information - Fast Card
+      if (hasValueChanged(travelData.fastCardNumber, original.travelData.fastCardNumber)) {
+        driverFormData.append('fastCard', travelData.fastCardNumber);
+      }
+      if (hasValueChanged(travelData.fastCardExpiry, original.travelData.fastCardExpiry)) {
+        driverFormData.append('fastCardExpiry', travelData.fastCardExpiry);
+      }
+      if (hasValueChanged(travelData.fastCardValid, original.travelData.fastCardValid)) {
+        driverFormData.append('fastCardValid', String(travelData.fastCardValid));
+      }
+      
+      // Travel Information - Canadian Worker Status
+      if (hasValueChanged(travelData.canadianWorkerStatus, original.travelData.canadianWorkerStatus)) {
+        driverFormData.append('canadianWorkerStatus', travelData.canadianWorkerStatus);
+      }
+      if (hasValueChanged(travelData.permanentResidenceExpiry, original.travelData.permanentResidenceExpiry)) {
+        driverFormData.append('permanentResidenceExpiry', travelData.permanentResidenceExpiry);
+      }
+      if (hasValueChanged(travelData.workPermitExpiry, original.travelData.workPermitExpiry)) {
+        driverFormData.append('workPermitExpiry', travelData.workPermitExpiry);
+      }
+      if (hasValueChanged(travelData.wcbNumber, original.travelData.wcbNumber)) {
+        driverFormData.append('wsibAccountNo', travelData.wcbNumber);
+      }
+      
+      // Profile Image - always send if a new file is selected
       if (formData.profileImage) {
         driverFormData.append('file', formData.profileImage);
+      }
+
+      // Log what's being sent
+      console.log('📤 Updating driver with ID:', editingId);
+      const changedFields = Array.from(driverFormData.keys());
+      console.log('📋 Changed fields:', changedFields);
+      
+      // Only proceed if there are changes (or a new profile image)
+      if (changedFields.length === 0 && !formData.profileImage) {
+        alert('No changes detected. Please modify at least one field before updating.');
+        setIsSubmitting(false);
+        return;
       }
 
       const response = await driverApi.updateDriver(editingId, driverFormData);
       
       if (response?.success) {
+        console.log('✅ Driver updated successfully');
+        
+        // Upload new documents (only those with files that haven't been uploaded yet)
+        // Filter documents that have files and are new (not existing documents)
+        const newDocuments = documents.filter(doc => doc.file && !doc.id?.startsWith('existing-'));
+        if (newDocuments.length > 0) {
+          console.log('📄 Uploading new documents for driver...');
+          await uploadDriverDocuments(editingId, newDocuments);
+        }
+        
         alert('Driver updated successfully!');
         handleCloseModal();
         // Refresh drivers list
@@ -982,6 +1513,8 @@ const DriverManagement = () => {
     } catch (error: any) {
       console.error('Error updating driver:', error);
       alert(error.response?.data?.message || error.message || 'Failed to update driver');
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -1385,6 +1918,7 @@ const DriverManagement = () => {
                           onClick={(e) => {
                             e.stopPropagation();
                             if (driver._id) {
+                              console.log('✏️ Edit button clicked for driver:', driver._id);
                               setEditingId(driver._id);
                             } else {
                               setEditingDriver(driver);

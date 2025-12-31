@@ -1,95 +1,43 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { Plus, Upload, ChevronUp, ChevronDown, Clock, X, Image as ImageIcon, Search, Calendar, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Plus, Upload, ChevronUp, ChevronDown, Clock, X, Image as ImageIcon, Calendar, ChevronLeft, ChevronRight, Edit, Trash2 } from 'lucide-react';
+import { getAllVehicles, createVehicle, updateVehicle, deleteVehicle, getVehicleById } from '../../../../axios/api/vehicle';
+import { getAllDrivers, type Driver } from '../../../../axios/api/driver';
+import { createVehicleDocument, updateVehicleDocument } from '../../../../axios/api/compilance.vehicledoc';
+import { getAllTrailers } from '../../../../axios/api/trailer';
+import { getAllEmployees } from '../../../../axios/api/employee';
 
 interface Truck {
-    id: string;
+    _id?: string;
+    id?: string;
     unitNumber: string;
     plateNumber: string;
     ownership: string;
     notes: string;
     operatingStatus: 'IN SERVICE' | 'OUT OF SERVICE' | 'MAINTENANCE';
-    dispatchStatus: 'LOADED' | 'DELIVERED' | 'UNASSIGNED' | 'IN TRANSIT' | 'ASSIGNED';
-    dispatchInfo: string;
+    dispatchStatus?: 'LOADED' | 'DELIVERED' | 'UNASSIGNED' | 'IN TRANSIT' | 'ASSIGNED';
+    dispatchInfo?: string;
     compliance: 'COMPLIANT' | 'NON-COMPLIANT' | 'EXPIRING SOON';
     category?: 'MB' | 'AB' | 'TX' | 'External' | 'Unassigned';
+    imageUrl?: string;
+    make?: string;
+    model?: string;
+    year?: string;
+    vinNumber?: string;
+    status?: string;
+    internalId?: string;
+    type?: string;
+    weight?: string;
+    uom?: string;
+    registrationCountry?: string;
+    registrationProvince?: string;
+    subType?: string;
+    lastDispatch?: string;
+    lastDispatchDate?: string | Date;
+    lastDropLocation?: string;
 }
 
-// Static truck data based on the image
-const staticTrucks: Truck[] = [
-    {
-        id: '1',
-        unitNumber: '1304',
-        plateNumber: 'CRS410',
-        ownership: 'OWNER OPERATOR',
-        notes: 'Has notes',
-        operatingStatus: 'IN SERVICE',
-        dispatchStatus: 'LOADED',
-        dispatchInfo: '12/31 TACOMA, WA',
-        compliance: 'EXPIRING SOON',
-        category: 'MB'
-    },
-    {
-        id: '2',
-        unitNumber: '1315',
-        plateNumber: 'CRZ813',
-        ownership: 'COMPANY ASSET',
-        notes: '',
-        operatingStatus: 'IN SERVICE',
-        dispatchStatus: 'DELIVERED',
-        dispatchInfo: '12/28 TORONTO, ON',
-        compliance: 'COMPLIANT',
-        category: 'MB'
-    },
-    {
-        id: '3',
-        unitNumber: '1319',
-        plateNumber: 'CRZ782',
-        ownership: 'COMPANY ASSET',
-        notes: '',
-        operatingStatus: 'IN SERVICE',
-        dispatchStatus: 'UNASSIGNED',
-        dispatchInfo: '12/31 N/A',
-        compliance: 'COMPLIANT',
-        category: 'AB'
-    },
-    {
-        id: '4',
-        unitNumber: '1320',
-        plateNumber: 'CRZ783',
-        ownership: 'OWNER OPERATOR',
-        notes: '',
-        operatingStatus: 'IN SERVICE',
-        dispatchStatus: 'IN TRANSIT',
-        dispatchInfo: '12/30 CHICAGO, IL',
-        compliance: 'COMPLIANT',
-        category: 'TX'
-    },
-    {
-        id: '5',
-        unitNumber: '1321',
-        plateNumber: 'CRZ784',
-        ownership: 'COMPANY ASSET',
-        notes: 'Has notes',
-        operatingStatus: 'IN SERVICE',
-        dispatchStatus: 'ASSIGNED',
-        dispatchInfo: '12/31 DALLAS, TX',
-        compliance: 'EXPIRING SOON',
-        category: 'External'
-    },
-    {
-        id: '6',
-        unitNumber: '1322',
-        plateNumber: 'CRZ785',
-        ownership: 'COMPANY ASSET',
-        notes: '',
-        operatingStatus: 'IN SERVICE',
-        dispatchStatus: 'LOADED',
-        dispatchInfo: '12/31 WINNIPEG, MB',
-        compliance: 'COMPLIANT',
-        category: 'Unassigned'
-    }
-];
+// Static truck data - removed, now using API
 
 const Trucks: React.FC = () => {
     const { category: routeCategory } = useParams<{ category?: string }>();
@@ -108,6 +56,16 @@ const Trucks: React.FC = () => {
     const [sortBy, setSortBy] = useState('');
     const [complianceStatus, setComplianceStatus] = useState('All');
     const [category, setCategory] = useState('In Service Only');
+
+    // API state
+    const [trucks, setTrucks] = useState<Truck[]>([]);
+    const [loading, setLoading] = useState(false);
+    const [editingId, setEditingId] = useState<string | null>(null);
+    const [selectedImageFile, setSelectedImageFile] = useState<File | null>(null);
+    const [drivers, setDrivers] = useState<Driver[]>([]);
+    const [operators, setOperators] = useState<Array<{ _id: string; name: string; email: string }>>([]);
+    const [trailers, setTrailers] = useState<Array<{ _id: string; unitNumber: string; trailer?: string }>>([]);
+    const [originalTruckData, setOriginalTruckData] = useState<any>(null);
 
     // Sidebar modal state
     const [showSidebar, setShowSidebar] = useState(false);
@@ -145,10 +103,14 @@ const Trucks: React.FC = () => {
     const [documentType, setDocumentType] = useState<'General' | 'Ownership' | 'Cab Card' | 'Plate' | 'Safety' | 'Insurance'>('General');
     const [documents, setDocuments] = useState<Record<string, Array<{
         id: string;
+        _id?: string;
         expiryDate: string;
         description: string;
         file: File | null;
+        fileUrl?: string | null;
+        fileName?: string;
         ignoreExpiration: boolean;
+        isExisting?: boolean;
     }>>>({
         General: [],
         Ownership: [],
@@ -278,7 +240,8 @@ const Trucks: React.FC = () => {
         ownership: 'COMPANY ASSET' as 'COMPANY ASSET' | 'OWNER OPERATOR',
         operator: '',
         coOperator: '',
-        fleet: ''
+        fleet: '',
+        subType: '' as '' | 'HIGHWAY USE' | 'CITY USE' | 'STORAGE USE' | 'RENTAL' | 'OTHER'
     });
 
     // Update activeTab when route changes
@@ -305,9 +268,286 @@ const Trucks: React.FC = () => {
         direction: 'asc'
     });
 
+    // Country and State data
+    const countriesWithStates: Record<string, string[]> = {
+        'United States': ['Alabama', 'Alaska', 'Arizona', 'Arkansas', 'California', 'Colorado', 'Connecticut', 'Delaware', 'Florida', 'Georgia', 'Hawaii', 'Idaho', 'Illinois', 'Indiana', 'Iowa', 'Kansas', 'Kentucky', 'Louisiana', 'Maine', 'Maryland', 'Massachusetts', 'Michigan', 'Minnesota', 'Mississippi', 'Missouri', 'Montana', 'Nebraska', 'Nevada', 'New Hampshire', 'New Jersey', 'New Mexico', 'New York', 'North Carolina', 'North Dakota', 'Ohio', 'Oklahoma', 'Oregon', 'Pennsylvania', 'Rhode Island', 'South Carolina', 'South Dakota', 'Tennessee', 'Texas', 'Utah', 'Vermont', 'Virginia', 'Washington', 'West Virginia', 'Wisconsin', 'Wyoming'],
+        'Canada': ['Alberta', 'British Columbia', 'Manitoba', 'New Brunswick', 'Newfoundland and Labrador', 'Northwest Territories', 'Nova Scotia', 'Nunavut', 'Ontario', 'Prince Edward Island', 'Quebec', 'Saskatchewan', 'Yukon'],
+        'Mexico': ['Aguascalientes', 'Baja California', 'Baja California Sur', 'Campeche', 'Chiapas', 'Chihuahua', 'Coahuila', 'Colima', 'Durango', 'Guanajuato', 'Guerrero', 'Hidalgo', 'Jalisco', 'México', 'Michoacán', 'Morelos', 'Nayarit', 'Nuevo León', 'Oaxaca', 'Puebla', 'Querétaro', 'Quintana Roo', 'San Luis Potosí', 'Sinaloa', 'Sonora', 'Tabasco', 'Tamaulipas', 'Tlaxcala', 'Veracruz', 'Yucatán', 'Zacatecas']
+    };
+
+    const fleetOptions = [
+        'Winnipeg Yard',
+        'Surrey Yard / TMG',
+        'Calgary Yard / Ocean',
+        'Impact Freight Services - Acheson',
+        'Laredo Yard - Santos'
+    ];
+
+    // Fetch trucks from API
+    useEffect(() => {
+        const fetchTrucks = async () => {
+            setLoading(true);
+            try {
+                const response = await getAllVehicles(1, 1000);
+                if (response?.success && response?.data) {
+                    // Transform backend data to match frontend interface
+                    const transformedTrucks = response.data.map((truck: any) => ({
+                        _id: truck._id,
+                        id: truck._id,
+                        unitNumber: truck.unitNumber || truck.internalId || '',
+                        plateNumber: truck.plateNumber || '',
+                        ownership: truck.ownership || truck.ownerShip || 'COMPANY ASSET',
+                        notes: truck.notes || truck.note || '',
+                        operatingStatus: (truck.operationStatus || truck.operatingStatus || 'IN SERVICE') as 'IN SERVICE' | 'OUT OF SERVICE' | 'MAINTENANCE',
+                        compliance: (truck.compliance || 'COMPLIANT') as 'COMPLIANT' | 'NON-COMPLIANT' | 'EXPIRING SOON',
+                        category: truck.category,
+                        imageUrl: truck.imageUrl,
+                        make: truck.make,
+                        model: truck.model,
+                        year: truck.year,
+                        vinNumber: truck.vinNumber,
+                        status: truck.status,
+                        internalId: truck.internalId,
+                        type: truck.type,
+                        weight: truck.weight,
+                        uom: truck.uom,
+                        registrationCountry: truck.registrationCountry,
+                        registrationProvince: truck.registrationProvince,
+                        subType: truck.subType,
+                        lastDispatch: truck.lastDispatch,
+                        lastDispatchDate: truck.lastDispatchDate,
+                        lastDropLocation: truck.lastDropLocation
+                    }));
+                    setTrucks(transformedTrucks);
+                }
+            } catch (error) {
+                console.error('Error fetching trucks:', error);
+                alert('Failed to fetch trucks. Please try again.');
+            } finally {
+                setLoading(false);
+            }
+        };
+        fetchTrucks();
+    }, []);
+
+    // Fetch operators (employees with role 'operator')
+    useEffect(() => {
+        const fetchOperators = async () => {
+            try {
+                console.log('🔄 Fetching operators...');
+                const response = await getAllEmployees(1, 1000, undefined, 'operator', 'active');
+                console.log('📥 Operators API response:', response);
+                
+                if (response?.success && response?.data && Array.isArray(response.data)) {
+                    const operatorList = response.data.map((emp: any) => ({
+                        _id: emp._id,
+                        name: emp.name || `${emp.firstName || ''} ${emp.lastName || ''}`.trim() || emp.email,
+                        email: emp.email
+                    }));
+                    console.log('✅ Operators list:', operatorList);
+                    console.log(`✅ Found ${operatorList.length} operators`);
+                    setOperators(operatorList);
+                } else {
+                    console.warn('⚠️ No operators found or invalid response:', response);
+                    setOperators([]);
+                }
+            } catch (error) {
+                console.error('❌ Error fetching operators:', error);
+                setOperators([]);
+            }
+        };
+        fetchOperators();
+    }, []);
+
+    // Fetch trailers
+    useEffect(() => {
+        const fetchTrailers = async () => {
+            try {
+                const response = await getAllTrailers(1, 1000);
+                if (response?.success && response?.data) {
+                    const trailerList = response.data.map((trailer: any) => ({
+                        _id: trailer._id,
+                        unitNumber: trailer.unitNumber || trailer.trailer || '',
+                        trailer: trailer.trailer || trailer.unitNumber || ''
+                    }));
+                    setTrailers(trailerList);
+                }
+            } catch (error) {
+                console.error('Error fetching trailers:', error);
+            }
+        };
+        fetchTrailers();
+    }, []);
+
+    // Fetch drivers from API
+    useEffect(() => {
+        const fetchDrivers = async () => {
+            try {
+                console.log('🔄 Fetching drivers for operator dropdown...');
+                const response = await getAllDrivers(1, 1000, '', 'active');
+                console.log('📥 Drivers API response:', response);
+                if (response?.success && response?.data && Array.isArray(response.data)) {
+                    console.log('✅ Drivers fetched:', response.data.length);
+                    setDrivers(response.data);
+                } else if (response?.data && Array.isArray(response.data)) {
+                    console.log('✅ Drivers fetched (alternative format):', response.data.length);
+                    setDrivers(response.data);
+                } else {
+                    console.warn('⚠️ No drivers found or invalid response:', response);
+                    setDrivers([]);
+                }
+            } catch (error) {
+                console.error('❌ Error fetching drivers:', error);
+                setDrivers([]);
+            }
+        };
+        fetchDrivers();
+    }, []);
+
+    // Load truck for edit
+    useEffect(() => {
+        const loadTruckForEdit = async () => {
+            if (!editingId) return;
+            
+            setLoading(true);
+            try {
+                const response = await getVehicleById(editingId);
+                console.log('📥 Truck data for edit:', response?.data);
+                if (response?.success && response?.data) {
+                    const truck = response.data;
+                    const truckFormData = {
+                        unitNumber: truck.unitNumber || truck.internalId || '',
+                        vinNumber: truck.vinNumber || '',
+                        plateNumber: truck.plateNumber || '',
+                        make: truck.make || '',
+                        model: truck.model || '',
+                        year: truck.year || '',
+                        weight: truck.weight || '0',
+                        registrationCountry: truck.registrationCountry || '',
+                        registrationProvince: truck.registrationProvince || '',
+                        type: truck.type || 'Truck',
+                        uom: truck.uom || 'Kg',
+                        status: truck.status || 'In Service',
+                        ownership: (truck.ownership || truck.ownerShip || 'COMPANY ASSET') as 'COMPANY ASSET' | 'OWNER OPERATOR',
+                        subType: (truck.subType || '') as '' | 'HIGHWAY USE' | 'CITY USE' | 'STORAGE USE' | 'RENTAL' | 'OTHER',
+                        assetValue: truck.assetValue?.toString() || '0',
+                        odometer: truck.odometer?.toString() || '',
+                        trackingKey: truck.trackingKey || '',
+                        trailer: truck.trailer?._id?.toString() || truck.trailer?.toString() || '',
+                        operator: truck.operator?._id?.toString() || truck.operator?.toString() || '',
+                        coOperator: truck.coOperator?._id?.toString() || truck.coOperator?.toString() || '',
+                        fleet: truck.fleet || ''
+                    };
+                    console.log('📝 Form data populated:', truckFormData);
+                    
+                    setFormData(truckFormData);
+                    setOriginalTruckData(truckFormData);
+                    setSelectedImage(truck.imageUrl || null);
+                    setSelectedImageFile(null);
+                    
+                    // Load documents
+                    if (truck.documents && Array.isArray(truck.documents)) {
+                        const docsByType: Record<string, Array<any>> = {
+                            General: [],
+                            Ownership: [],
+                            'Cab Card': [],
+                            Plate: [],
+                            Safety: [],
+                            Insurance: []
+                        };
+                        
+                        truck.documents.forEach((doc: any) => {
+                            const type = doc.documentType || 'General';
+                            if (docsByType[type]) {
+                                docsByType[type].push({
+                                    id: doc._id,
+                                    _id: doc._id,
+                                    expiryDate: doc.expiryDate || '',
+                                    description: doc.documentNumber || doc.description || '',
+                                    file: null,
+                                    fileUrl: doc.files?.[0]?.fileUrl || doc.documentLocation,
+                                    fileName: doc.files?.[0]?.fileName,
+                                    ignoreExpiration: false,
+                                    isExisting: true
+                                });
+                            }
+                        });
+                        
+                        setDocuments(docsByType);
+                    }
+                    
+                    // Load inspections
+                    if (truck.oneTimeInspections && Array.isArray(truck.oneTimeInspections) && truck.oneTimeInspections.length > 0) {
+                        setOneTimeInspections(truck.oneTimeInspections.map((insp: any, index: number) => ({
+                            id: insp._id || `one-time-${index}`,
+                            expiryDate: insp.expiryDate ? new Date(insp.expiryDate).toISOString().split('T')[0] : '',
+                            description: insp.description || '',
+                            ignoreExpiration: insp.ignoreExpiration || false
+                        })));
+                    } else {
+                        setOneTimeInspections([]);
+                    }
+                    if (truck.recurringInspections && Array.isArray(truck.recurringInspections) && truck.recurringInspections.length > 0) {
+                        setRecurringInspections(truck.recurringInspections.map((insp: any, index: number) => ({
+                            id: insp._id || `recurring-${index}`,
+                            scheduledOn: insp.scheduledOn || '',
+                            after: insp.after || '',
+                            unit: insp.unit || '',
+                            description: insp.description || '',
+                            ignoreExpiration: insp.ignoreExpiration || false
+                        })));
+                    } else {
+                        setRecurringInspections([]);
+                    }
+                    
+                    // Load incidents
+                    if (truck.incidents && Array.isArray(truck.incidents) && truck.incidents.length > 0) {
+                        setIncidents(truck.incidents.map((inc: any, index: number) => ({
+                            id: inc._id || `incident-${index}`,
+                            accidentNumber: inc.accidentNumber || '',
+                            driver: inc.driver?._id?.toString() || inc.driver?.toString() || '',
+                            coDriver: inc.coDriver?._id?.toString() || inc.coDriver?.toString() || '',
+                            location: inc.location || '',
+                            date: inc.date ? new Date(inc.date).toISOString().split('T')[0] : '',
+                            time: inc.time || '',
+                            weather: inc.weather || '',
+                            policeReport: inc.policeReport || '',
+                            accidentReport: inc.accidentReport || '',
+                            thirdPartyInfo: inc.thirdPartyInfo || '',
+                            files: inc.files || []
+                        })));
+                    } else {
+                        setIncidents([]);
+                    }
+                    
+                    // Load notes
+                    if (truck.notesArray && Array.isArray(truck.notesArray) && truck.notesArray.length > 0) {
+                        setNotes(truck.notesArray.map((note: any, index: number) => ({
+                            id: note._id || `note-${index}`,
+                            note: note.note || '',
+                            category: note.category || ''
+                        })));
+                    } else {
+                        setNotes([]);
+                    }
+                    
+                    setShowSidebar(true);
+                    setActiveStep('Details');
+                }
+            } catch (error) {
+                console.error('Error loading truck for edit:', error);
+                alert('Failed to load truck data. Please try again.');
+            } finally {
+                setLoading(false);
+            }
+        };
+        
+        loadTruckForEdit();
+    }, [editingId]);
+
     // Get filtered trucks
     const getFilteredTrucks = () => {
-        let filtered = [...staticTrucks];
+        let filtered = [...trucks];
 
         // Filter by active tab
         if (activeTab !== 'All') {
@@ -357,7 +597,7 @@ const Trucks: React.FC = () => {
             filtered = filtered.filter(t => t.dispatchStatus === filters.dispatchStatus);
         }
         if (filters.dispatchInfo) {
-            filtered = filtered.filter(t => t.dispatchInfo.toLowerCase().includes(filters.dispatchInfo.toLowerCase()));
+            filtered = filtered.filter(t => (t.dispatchInfo || '').toLowerCase().includes(filters.dispatchInfo.toLowerCase()));
         }
         if (filters.compliance !== 'All') {
             filtered = filtered.filter(t => t.compliance === filters.compliance);
@@ -386,8 +626,436 @@ const Trucks: React.FC = () => {
 
     // Count trucks by category
     const getCountByCategory = (category: string) => {
-        if (category === 'All') return staticTrucks.length;
-        return staticTrucks.filter(t => t.category === category).length;
+        if (category === 'All') return trucks.length;
+        return trucks.filter(t => t.category === category).length;
+    };
+
+    // Handle create/update truck
+    const handleSaveTruck = async () => {
+        if (!formData.unitNumber || !formData.plateNumber || !formData.vinNumber) {
+            alert('Please fill in all required fields (Unit #, Plate #, VIN #)');
+            return;
+        }
+
+        setLoading(true);
+        try {
+            const formDataToSend = new FormData();
+            
+            if (editingId && originalTruckData) {
+                // Partial update - only send changed fields
+                if (formData.unitNumber !== originalTruckData.unitNumber) {
+                    formDataToSend.append('unitNumber', formData.unitNumber);
+                    formDataToSend.append('internalId', formData.unitNumber);
+                }
+                if (formData.vinNumber !== originalTruckData.vinNumber) {
+                    formDataToSend.append('vinNumber', formData.vinNumber);
+                }
+                if (formData.plateNumber !== originalTruckData.plateNumber) {
+                    formDataToSend.append('plateNumber', formData.plateNumber);
+                }
+                if (formData.make !== originalTruckData.make) {
+                    formDataToSend.append('make', formData.make || '');
+                }
+                if (formData.model !== originalTruckData.model) {
+                    formDataToSend.append('model', formData.model || '');
+                }
+                if (formData.year !== originalTruckData.year) {
+                    formDataToSend.append('year', formData.year || '');
+                }
+                if (formData.weight !== originalTruckData.weight) {
+                    formDataToSend.append('weight', formData.weight || '0');
+                }
+                if (formData.uom !== originalTruckData.uom) {
+                    formDataToSend.append('uom', formData.uom || 'Kg');
+                }
+                if (formData.registrationCountry !== originalTruckData.registrationCountry) {
+                    formDataToSend.append('registrationCountry', formData.registrationCountry || '');
+                }
+                if (formData.registrationProvince !== originalTruckData.registrationProvince) {
+                    formDataToSend.append('registrationProvince', formData.registrationProvince || '');
+                }
+                if (formData.type !== originalTruckData.type) {
+                    formDataToSend.append('type', formData.type || 'Truck');
+                }
+                if (formData.status !== originalTruckData.status) {
+                    formDataToSend.append('status', formData.status || 'In Service');
+                    formDataToSend.append('operationStatus', formData.status === 'In Service' ? 'IN SERVICE' : formData.status === 'Out of Service' ? 'OUT OF SERVICE' : 'MAINTENANCE');
+                }
+                if (formData.ownership !== originalTruckData.ownership) {
+                    formDataToSend.append('ownership', formData.ownership || 'COMPANY ASSET');
+                }
+                if (formData.subType !== originalTruckData.subType) {
+                    formDataToSend.append('subType', formData.subType || '');
+                }
+                
+                if (selectedImageFile) {
+                    formDataToSend.append('image', selectedImageFile);
+                }
+                
+                // Add inspections, incidents, and notes
+                formDataToSend.append('oneTimeInspections', JSON.stringify(oneTimeInspections.map(insp => ({
+                    expiryDate: insp.expiryDate ? new Date(insp.expiryDate).toISOString() : null,
+                    description: insp.description,
+                    ignoreExpiration: insp.ignoreExpiration
+                }))));
+                formDataToSend.append('recurringInspections', JSON.stringify(recurringInspections.map(insp => ({
+                    scheduledOn: insp.scheduledOn,
+                    after: insp.after,
+                    unit: insp.unit,
+                    description: insp.description,
+                    ignoreExpiration: insp.ignoreExpiration
+                }))));
+                formDataToSend.append('incidents', JSON.stringify(incidents.map(inc => ({
+                    accidentNumber: inc.accidentNumber,
+                    driver: inc.driver,
+                    coDriver: inc.coDriver,
+                    location: inc.location,
+                    date: inc.date ? new Date(inc.date).toISOString() : null,
+                    time: inc.time,
+                    weather: inc.weather,
+                    policeReport: inc.policeReport,
+                    accidentReport: inc.accidentReport,
+                    thirdPartyInfo: inc.thirdPartyInfo,
+                    files: inc.files || []
+                }))));
+                formDataToSend.append('notesArray', JSON.stringify(notes.map(note => ({
+                    note: note.note,
+                    category: note.category
+                }))));
+                
+                const response = await updateVehicle(editingId, formDataToSend);
+                if (response?.success) {
+                    alert('Truck updated successfully!');
+                    // Refresh trucks list
+                    const refreshResponse = await getAllVehicles(1, 1000);
+                    if (refreshResponse?.success && refreshResponse?.data) {
+                        const transformedTrucks = refreshResponse.data.map((truck: any) => ({
+                            _id: truck._id,
+                            id: truck._id,
+                            unitNumber: truck.unitNumber || truck.internalId || '',
+                            plateNumber: truck.plateNumber || '',
+                            ownership: truck.ownership || truck.ownerShip || 'COMPANY ASSET',
+                            notes: truck.notes || truck.note || '',
+                            operatingStatus: (truck.operationStatus || truck.operatingStatus || 'IN SERVICE') as 'IN SERVICE' | 'OUT OF SERVICE' | 'MAINTENANCE',
+                            compliance: (truck.compliance || 'COMPLIANT') as 'COMPLIANT' | 'NON-COMPLIANT' | 'EXPIRING SOON',
+                            category: truck.category,
+                            imageUrl: truck.imageUrl,
+                            make: truck.make,
+                            model: truck.model,
+                            year: truck.year,
+                            vinNumber: truck.vinNumber,
+                            status: truck.status,
+                            internalId: truck.internalId,
+                            type: truck.type,
+                            weight: truck.weight,
+                            uom: truck.uom,
+                            registrationCountry: truck.registrationCountry,
+                            registrationProvince: truck.registrationProvince,
+                            subType: truck.subType,
+                            lastDispatch: truck.lastDispatch,
+                            lastDispatchDate: truck.lastDispatchDate,
+                            lastDropLocation: truck.lastDropLocation
+                        }));
+                        setTrucks(transformedTrucks);
+                    }
+                } else {
+                    alert(response?.message || 'Failed to update truck. Please try again.');
+                }
+            } else {
+                // Create new truck - send all fields
+                formDataToSend.append('unitNumber', formData.unitNumber);
+                formDataToSend.append('internalId', formData.unitNumber);
+                formDataToSend.append('vinNumber', formData.vinNumber);
+                formDataToSend.append('plateNumber', formData.plateNumber);
+                formDataToSend.append('make', formData.make || '');
+                formDataToSend.append('model', formData.model || '');
+                formDataToSend.append('year', formData.year || '');
+                formDataToSend.append('weight', formData.weight || '0');
+                formDataToSend.append('uom', formData.uom || 'Kg');
+                formDataToSend.append('registrationCountry', formData.registrationCountry || '');
+                formDataToSend.append('registrationProvince', formData.registrationProvince || '');
+                formDataToSend.append('type', formData.type || 'Truck');
+                formDataToSend.append('status', formData.status || 'In Service');
+                formDataToSend.append('ownership', formData.ownership || 'COMPANY ASSET');
+                formDataToSend.append('subType', formData.subType || '');
+                formDataToSend.append('operationStatus', formData.status === 'In Service' ? 'IN SERVICE' : formData.status === 'Out of Service' ? 'OUT OF SERVICE' : 'MAINTENANCE');
+                
+                // Add optional fields
+                if (formData.trailer) {
+                    formDataToSend.append('trailer', formData.trailer);
+                }
+                if (formData.operator) {
+                    formDataToSend.append('operator', formData.operator);
+                }
+                if (formData.coOperator) {
+                    formDataToSend.append('coOperator', formData.coOperator);
+                }
+                if (formData.fleet) {
+                    formDataToSend.append('fleet', formData.fleet);
+                }
+                if (formData.odometer) {
+                    formDataToSend.append('odometer', formData.odometer);
+                }
+                if (formData.trackingKey) {
+                    formDataToSend.append('trackingKey', formData.trackingKey);
+                }
+                if (formData.assetValue) {
+                    formDataToSend.append('assetValue', formData.assetValue);
+                }
+                
+                if (selectedImageFile) {
+                    formDataToSend.append('image', selectedImageFile);
+                }
+                
+                // Add inspections, incidents, and notes
+                formDataToSend.append('oneTimeInspections', JSON.stringify(oneTimeInspections.map(insp => ({
+                    expiryDate: insp.expiryDate ? new Date(insp.expiryDate).toISOString() : null,
+                    description: insp.description,
+                    ignoreExpiration: insp.ignoreExpiration
+                }))));
+                formDataToSend.append('recurringInspections', JSON.stringify(recurringInspections.map(insp => ({
+                    scheduledOn: insp.scheduledOn,
+                    after: insp.after,
+                    unit: insp.unit,
+                    description: insp.description,
+                    ignoreExpiration: insp.ignoreExpiration
+                }))));
+                formDataToSend.append('incidents', JSON.stringify(incidents.map(inc => ({
+                    accidentNumber: inc.accidentNumber,
+                    driver: inc.driver,
+                    coDriver: inc.coDriver,
+                    location: inc.location,
+                    date: inc.date ? new Date(inc.date).toISOString() : null,
+                    time: inc.time,
+                    weather: inc.weather,
+                    policeReport: inc.policeReport,
+                    accidentReport: inc.accidentReport,
+                    thirdPartyInfo: inc.thirdPartyInfo,
+                    files: inc.files || []
+                }))));
+                formDataToSend.append('notesArray', JSON.stringify(notes.map(note => ({
+                    note: note.note,
+                    category: note.category
+                }))));
+                
+                const response = await createVehicle(formDataToSend);
+                if (response?.success) {
+                    const newTruckId = response?.data?._id || response?.data?.id;
+                    alert('Truck created successfully!');
+                    
+                    // Handle documents for newly created truck
+                    if (newTruckId) {
+                        const newDocuments: Array<{ type: string; doc: any }> = [];
+                        
+                        Object.entries(documents).forEach(([type, docs]) => {
+                            docs.forEach((doc) => {
+                                if (!doc.isExisting && (doc.file || doc.description)) {
+                                    newDocuments.push({ type, doc });
+                                }
+                            });
+                        });
+                        
+                        // Create new documents
+                        if (newDocuments.length > 0) {
+                            try {
+                                await Promise.all(newDocuments.map(async ({ type, doc }) => {
+                                    const docFormData = new FormData();
+                                    docFormData.append('vehicleId', newTruckId);
+                                    docFormData.append('assetType', 'vehicle');
+                                    docFormData.append('documentType', type);
+                                    docFormData.append('documentNumber', doc.description || '');
+                                    if (doc.expiryDate) {
+                                        docFormData.append('expiryDate', doc.expiryDate);
+                                    }
+                                    if (doc.file) {
+                                        docFormData.append('file', doc.file);
+                                    }
+                                    
+                                    await createVehicleDocument(docFormData);
+                                }));
+                            } catch (docError) {
+                                console.error('❌ Error creating documents:', docError);
+                            }
+                        }
+                    }
+                    
+                    // Refresh trucks list
+                    const refreshResponse = await getAllVehicles(1, 1000);
+                    if (refreshResponse?.success && refreshResponse?.data) {
+                        const transformedTrucks = refreshResponse.data.map((truck: any) => ({
+                            _id: truck._id,
+                            id: truck._id,
+                            unitNumber: truck.unitNumber || truck.internalId || '',
+                            plateNumber: truck.plateNumber || '',
+                            ownership: truck.ownership || truck.ownerShip || 'COMPANY ASSET',
+                            notes: truck.notes || truck.note || '',
+                            operatingStatus: (truck.operationStatus || truck.operatingStatus || 'IN SERVICE') as 'IN SERVICE' | 'OUT OF SERVICE' | 'MAINTENANCE',
+                            compliance: (truck.compliance || 'COMPLIANT') as 'COMPLIANT' | 'NON-COMPLIANT' | 'EXPIRING SOON',
+                            category: truck.category,
+                            imageUrl: truck.imageUrl,
+                            make: truck.make,
+                            model: truck.model,
+                            year: truck.year,
+                            vinNumber: truck.vinNumber,
+                            status: truck.status,
+                            internalId: truck.internalId,
+                            type: truck.type,
+                            weight: truck.weight,
+                            uom: truck.uom,
+                            registrationCountry: truck.registrationCountry,
+                            registrationProvince: truck.registrationProvince,
+                            subType: truck.subType,
+                            lastDispatch: truck.lastDispatch,
+                            lastDispatchDate: truck.lastDispatchDate,
+                            lastDropLocation: truck.lastDropLocation
+                        }));
+                        setTrucks(transformedTrucks);
+                    }
+                } else {
+                    alert(response?.message || 'Failed to create truck. Please try again.');
+                }
+            }
+            
+            // Handle documents for updates
+            if (editingId) {
+                const trailerId = editingId;
+                const newDocuments: Array<{ type: string; doc: any }> = [];
+                const updatedDocuments: Array<{ type: string; doc: any }> = [];
+                
+                Object.entries(documents).forEach(([type, docs]) => {
+                    docs.forEach((doc) => {
+                        if (doc.isExisting && doc._id) {
+                            updatedDocuments.push({ type, doc });
+                        } else if (!doc.isExisting && (doc.file || doc.description)) {
+                            newDocuments.push({ type, doc });
+                        }
+                    });
+                });
+                
+                // Create new documents
+                if (newDocuments.length > 0) {
+                    try {
+                        await Promise.all(newDocuments.map(async ({ type, doc }) => {
+                            const docFormData = new FormData();
+                            docFormData.append('vehicleId', trailerId);
+                            docFormData.append('assetType', 'vehicle');
+                            docFormData.append('documentType', type);
+                            docFormData.append('documentNumber', doc.description || '');
+                            if (doc.expiryDate) {
+                                docFormData.append('expiryDate', doc.expiryDate);
+                            }
+                            if (doc.file) {
+                                docFormData.append('file', doc.file);
+                            }
+                            
+                            await createVehicleDocument(docFormData);
+                        }));
+                    } catch (docError) {
+                        console.error('❌ Error creating documents:', docError);
+                    }
+                }
+                
+                // Update existing documents
+                if (updatedDocuments.length > 0) {
+                    try {
+                        await Promise.all(updatedDocuments.map(async ({ type, doc }) => {
+                            const docFormData = new FormData();
+                            docFormData.append('vehicleId', trailerId);
+                            docFormData.append('assetType', 'vehicle');
+                            docFormData.append('documentType', type);
+                            docFormData.append('documentNumber', doc.description || '');
+                            if (doc.expiryDate) {
+                                docFormData.append('expiryDate', doc.expiryDate);
+                            } else {
+                                docFormData.append('expiryDate', '');
+                            }
+                            if (doc.file && doc.file instanceof File) {
+                                docFormData.append('file', doc.file);
+                            }
+                            
+                            await updateVehicleDocument(doc._id!, docFormData);
+                        }));
+                    } catch (docError) {
+                        console.error('❌ Error updating documents:', docError);
+                    }
+                }
+            }
+            
+            // Reset form
+            setFormData({
+                unitNumber: '',
+                vinNumber: '',
+                plateNumber: '',
+                registrationCountry: '',
+                registrationProvince: '',
+                make: '',
+                model: '',
+                year: '',
+                type: 'Truck',
+                weight: '0',
+                uom: 'Kg',
+                assetValue: '0',
+                status: 'In Service',
+                odometer: '',
+                trackingKey: '',
+                trailer: '',
+                ownership: 'COMPANY ASSET',
+                operator: '',
+                coOperator: '',
+                fleet: '',
+                subType: ''
+            });
+            setSelectedImage(null);
+            setSelectedImageFile(null);
+            setEditingId(null);
+            setOriginalTruckData(null);
+            setDocuments({
+                General: [],
+                Ownership: [],
+                'Cab Card': [],
+                Plate: [],
+                Safety: [],
+                Insurance: []
+            });
+            setOneTimeInspections([]);
+            setRecurringInspections([]);
+            setIncidents([]);
+            setNotes([]);
+            setShowSidebar(false);
+        } catch (error) {
+            console.error('Error saving truck:', error);
+            alert('Failed to save truck. Please try again.');
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    // Handle delete truck
+    const handleDeleteTruck = async (id: string) => {
+        if (!window.confirm('Are you sure you want to delete this truck?')) {
+            return;
+        }
+
+        setLoading(true);
+        try {
+            const response = await deleteVehicle(id);
+            if (response?.success) {
+                alert('Truck deleted successfully!');
+                setTrucks(trucks.filter(t => (t._id || t.id) !== id));
+            } else {
+                alert(response?.message || 'Failed to delete truck. Please try again.');
+            }
+        } catch (error) {
+            console.error('Error deleting truck:', error);
+            alert('Failed to delete truck. Please try again.');
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    // Handle edit truck
+    const handleEditTruck = (id: string) => {
+        setEditingId(id);
     };
 
     const handleSort = (key: keyof Truck) => {
@@ -462,7 +1130,7 @@ const Trucks: React.FC = () => {
         if (['Payroll', 'Deductions', 'Additions'].includes(activeStep)) {
             return null;
         }
-        const currentIndex = steps.indexOf(activeStep);
+        const currentIndex = steps.indexOf(activeStep as typeof steps[number]);
         if (currentIndex < steps.length - 1) {
             return steps[currentIndex + 1];
         }
@@ -472,9 +1140,9 @@ const Trucks: React.FC = () => {
     const getPreviousStep = () => {
         // If on a conditional step (Payroll, Deductions, Additions), navigate back to Notes
         if (['Payroll', 'Deductions', 'Additions'].includes(activeStep)) {
-            return 'Notes';
+            return 'Notes' as const;
         }
-        const currentIndex = steps.indexOf(activeStep);
+        const currentIndex = steps.indexOf(activeStep as typeof steps[number]);
         if (currentIndex > 0) {
             return steps[currentIndex - 1];
         }
@@ -508,7 +1176,53 @@ const Trucks: React.FC = () => {
                                 <Upload className="w-6 h-6" />
                             </button>
                             <button
-                                onClick={() => setShowSidebar(true)}
+                                onClick={() => {
+                                    setFormData({
+                                        unitNumber: '',
+                                        vinNumber: '',
+                                        plateNumber: '',
+                                        registrationCountry: '',
+                                        registrationProvince: '',
+                                        make: '',
+                                        model: '',
+                                        year: '',
+                                        type: 'Truck',
+                                        weight: '0',
+                                        uom: 'Kg',
+                                        assetValue: '0',
+                                        status: 'In Service',
+                                        odometer: '',
+                                        trackingKey: '',
+                                        trailer: '',
+                                        ownership: 'COMPANY ASSET',
+                                        operator: '',
+                                        coOperator: '',
+                                        fleet: '',
+                                        subType: ''
+                                    });
+                                    setSelectedImage(null);
+                                    setSelectedImageFile(null);
+                                    setEditingId(null);
+                                    setOriginalTruckData(null);
+                                    setDocuments({
+                                        General: [],
+                                        Ownership: [],
+                                        'Cab Card': [],
+                                        Plate: [],
+                                        Safety: [],
+                                        Insurance: []
+                                    });
+                                    setOneTimeInspections([]);
+                                    setRecurringInspections([]);
+                                    setIncidents([]);
+                                    setNotes([]);
+                                    setEditingId(null);
+                                    setOriginalTruckData(null);
+                                    setSelectedImage(null);
+                                    setSelectedImageFile(null);
+                                    setShowSidebar(true);
+                                    setActiveStep('Details');
+                                }}
                                 className="w-10 h-10 bg-[#42aeec] !text-white rounded-lg flex items-center justify-center hover:bg-[#1db5f5] transition-colors shadow-md"
                             >
                                 <Plus className="w-5 h-5" />
@@ -749,12 +1463,17 @@ const Trucks: React.FC = () => {
                                             <option value="EXPIRING SOON">Expiring Soon</option>
                                         </select>
                                     </th>
+
+                                    {/* Actions */}
+                                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase">
+                                        <span>Actions</span>
+                                    </th>
                                 </tr>
                             </thead>
                             <tbody className="bg-white divide-y divide-gray-200">
                                 {filteredTrucks.length === 0 ? (
                                     <tr>
-                                        <td colSpan={8} className="px-4 py-8 text-center text-gray-500">
+                                        <td colSpan={9} className="px-4 py-8 text-center text-gray-500">
                                             No trucks found
                                         </td>
                                     </tr>
@@ -779,16 +1498,34 @@ const Trucks: React.FC = () => {
                                                 </span>
                                             </td>
                                             <td className="px-4 py-3">
-                                                <span className={`px-3 py-1 text-xs font-semibold rounded-full flex items-center gap-1 ${getStatusBadgeColor(truck.dispatchStatus, 'dispatch')}`}>
+                                                <span className={`px-3 py-1 text-xs font-semibold rounded-full flex items-center gap-1 ${getStatusBadgeColor(truck.dispatchStatus || 'UNASSIGNED', 'dispatch')}`}>
                                                     {truck.dispatchStatus === 'LOADED' && <Clock className="w-3 h-3" />}
                                                     {truck.dispatchStatus}
                                                 </span>
                                             </td>
-                                            <td className="px-4 py-3 text-sm text-gray-900">{truck.dispatchInfo}</td>
+                                            <td className="px-4 py-3 text-sm text-gray-900">{truck.dispatchInfo || ''}</td>
                                             <td className="px-4 py-3">
                                                 <span className={`inline-block px-2.5 py-1.5 text-xs font-semibold rounded text-center min-w-[70px] ${getStatusBadgeColor(truck.compliance, 'compliance')}`}>
                                                     {formatStatusText(truck.compliance, 'compliance')}
                                                 </span>
+                                            </td>
+                                            <td className="px-4 py-3">
+                                                <div className="flex items-center gap-2">
+                                                    <button
+                                                        onClick={() => handleEditTruck((truck._id || truck.id) ?? '')}
+                                                        className="p-1.5 text-blue-600 hover:bg-blue-50 rounded transition-colors"
+                                                        title="Edit"
+                                                    >
+                                                        <Edit className="w-4 h-4" />
+                                                    </button>
+                                                    <button
+                                                        onClick={() => handleDeleteTruck((truck._id || truck.id) ?? '')}
+                                                        className="p-1.5 text-red-600 hover:bg-red-50 rounded transition-colors"
+                                                        title="Delete"
+                                                    >
+                                                        <Trash2 className="w-4 h-4" />
+                                                    </button>
+                                                </div>
                                             </td>
                                         </tr>
                                     ))
@@ -819,6 +1556,7 @@ const Trucks: React.FC = () => {
                                         input.onchange = (e: any) => {
                                             const file = e.target.files[0];
                                             if (file) {
+                                                setSelectedImageFile(file); // Store the file for upload
                                                 const reader = new FileReader();
                                                 reader.onload = (event) => {
                                                     setSelectedImage(event.target?.result as string);
@@ -883,16 +1621,14 @@ const Trucks: React.FC = () => {
                         <div className="flex-1 flex flex-col overflow-hidden">
                             {/* Header */}
                             <div className="flex items-center justify-between p-4 border-b border-gray-200 bg-white">
-                                <h2 className="text-xl font-bold text-gray-900">New Truck</h2>
+                                <h2 className="text-xl font-bold text-gray-900">{editingId ? 'Edit Truck' : 'New Truck'}</h2>
                                 <div className="flex items-center gap-2">
                                     <button
-                                        onClick={() => {
-                                            // Handle save logic here
-                                            setShowSidebar(false);
-                                        }}
-                                        className="px-4 py-1.5 bg-gray-700 !text-white rounded-lg hover:bg-gray-800 transition-colors text-sm font-medium"
+                                        onClick={handleSaveTruck}
+                                        disabled={loading}
+                                        className="px-4 py-1.5 bg-gray-700 !text-white rounded-lg hover:bg-gray-800 transition-colors text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed"
                                     >
-                                        SAVE
+                                        {loading ? 'SAVING...' : 'SAVE'}
                                     </button>
                                     <button
                                         onClick={() => setShowSidebar(false)}
@@ -952,10 +1688,13 @@ const Trucks: React.FC = () => {
                                                 </label>
                                                 <select
                                                     value={formData.registrationCountry}
-                                                    onChange={(e) => setFormData({ ...formData, registrationCountry: e.target.value })}
+                                                    onChange={(e) => setFormData({ ...formData, registrationCountry: e.target.value, registrationProvince: '' })}
                                                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#42aeec]"
                                                 >
                                                     <option value="">Select Registration Country</option>
+                                                    {Object.keys(countriesWithStates).map((country) => (
+                                                        <option key={country} value={country}>{country}</option>
+                                                    ))}
                                                 </select>
                                             </div>
                                             <div>
@@ -966,8 +1705,12 @@ const Trucks: React.FC = () => {
                                                     value={formData.registrationProvince}
                                                     onChange={(e) => setFormData({ ...formData, registrationProvince: e.target.value })}
                                                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#42aeec]"
+                                                    disabled={!formData.registrationCountry}
                                                 >
                                                     <option value="">Select Registration Province/State</option>
+                                                    {formData.registrationCountry && countriesWithStates[formData.registrationCountry]?.map((state) => (
+                                                        <option key={state} value={state}>{state}</option>
+                                                    ))}
                                                 </select>
                                             </div>
                                             <div>
@@ -1100,6 +1843,11 @@ const Trucks: React.FC = () => {
                                                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#42aeec]"
                                                 >
                                                     <option value="">Select Trailer</option>
+                                                    {trailers.map((trailer) => (
+                                                        <option key={trailer._id} value={trailer._id}>
+                                                            {trailer.unitNumber || trailer.trailer || `Trailer ${trailer._id}`}
+                                                        </option>
+                                                    ))}
                                                 </select>
                                             </div>
                                         </div>
@@ -1137,31 +1885,39 @@ const Trucks: React.FC = () => {
                                                     <label className="block text-sm font-medium text-gray-700 mb-1">
                                                         Operator
                                                     </label>
-                                                    <div className="relative">
-                                                        <input
-                                                            type="text"
-                                                            placeholder="Operator"
-                                                            value={formData.operator}
-                                                            onChange={(e) => setFormData({ ...formData, operator: e.target.value })}
-                                                            className="w-full px-3 py-2 pr-10 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#42aeec]"
-                                                        />
-                                                        <Search className="absolute right-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
-                                                    </div>
+                                                    <select
+                                                        value={formData.operator}
+                                                        onChange={(e) => setFormData({ ...formData, operator: e.target.value })}
+                                                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#42aeec]"
+                                                    >
+                                                        <option value="">Select Operator</option>
+                                                        {operators.length > 0 ? operators.map((operator) => (
+                                                            <option key={operator._id} value={operator._id}>
+                                                                {operator.name} {operator.email ? `(${operator.email})` : ''}
+                                                            </option>
+                                                        )) : (
+                                                            <option value="" disabled>No operators available</option>
+                                                        )}
+                                                    </select>
                                                 </div>
                                                 <div>
                                                     <label className="block text-sm font-medium text-gray-700 mb-1">
                                                         Co-Operator
                                                     </label>
-                                                    <div className="relative">
-                                                        <input
-                                                            type="text"
-                                                            placeholder="Co-Operator"
-                                                            value={formData.coOperator}
-                                                            onChange={(e) => setFormData({ ...formData, coOperator: e.target.value })}
-                                                            className="w-full px-3 py-2 pr-10 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#42aeec]"
-                                                        />
-                                                        <Search className="absolute right-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
-                                                    </div>
+                                                    <select
+                                                        value={formData.coOperator}
+                                                        onChange={(e) => setFormData({ ...formData, coOperator: e.target.value })}
+                                                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#42aeec]"
+                                                    >
+                                                        <option value="">Select Co-Operator</option>
+                                                        {operators.length > 0 ? operators.map((operator) => (
+                                                            <option key={operator._id} value={operator._id}>
+                                                                {operator.name} {operator.email ? `(${operator.email})` : ''}
+                                                            </option>
+                                                        )) : (
+                                                            <option value="" disabled>No operators available</option>
+                                                        )}
+                                                    </select>
                                                 </div>
                                                 <div>
                                                     <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -1173,6 +1929,9 @@ const Trucks: React.FC = () => {
                                                         className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#42aeec]"
                                                     >
                                                         <option value="">Select</option>
+                                                        {fleetOptions.map((fleet) => (
+                                                            <option key={fleet} value={fleet}>{fleet}</option>
+                                                        ))}
                                                     </select>
                                                 </div>
                                             </div>
@@ -1546,29 +2305,33 @@ const Trucks: React.FC = () => {
                                                 </div>
                                                 <div>
                                                     <label className="block text-sm font-medium text-gray-700 mb-1">Driver</label>
-                                                    <div className="relative">
-                                                        <input
-                                                            type="text"
-                                                            placeholder="Driver"
-                                                            value={incidentForm.driver}
-                                                            onChange={(e) => setIncidentForm({ ...incidentForm, driver: e.target.value })}
-                                                            className="w-full px-3 py-2 pr-10 bg-white border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#42aeec] text-sm"
-                                                        />
-                                                        <Search className="absolute right-3 top-2.5 w-4 h-4 text-gray-400 pointer-events-none" />
-                                                    </div>
+                                                    <select
+                                                        value={incidentForm.driver}
+                                                        onChange={(e) => setIncidentForm({ ...incidentForm, driver: e.target.value })}
+                                                        className="w-full px-3 py-2 bg-white border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#42aeec] text-sm"
+                                                    >
+                                                        <option value="">Select Driver</option>
+                                                        {drivers.map((driver) => (
+                                                            <option key={driver._id} value={driver._id}>
+                                                                {driver.name || driver.email} {driver.email && driver.name !== driver.email ? `(${driver.email})` : ''}
+                                                            </option>
+                                                        ))}
+                                                    </select>
                                                 </div>
                                                 <div>
                                                     <label className="block text-sm font-medium text-gray-700 mb-1">Co-Driver</label>
-                                                    <div className="relative">
-                                                        <input
-                                                            type="text"
-                                                            placeholder="Co-Driver"
-                                                            value={incidentForm.coDriver}
-                                                            onChange={(e) => setIncidentForm({ ...incidentForm, coDriver: e.target.value })}
-                                                            className="w-full px-3 py-2 pr-10 bg-white border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#42aeec] text-sm"
-                                                        />
-                                                        <Search className="absolute right-3 top-2.5 w-4 h-4 text-gray-400 pointer-events-none" />
-                                                    </div>
+                                                    <select
+                                                        value={incidentForm.coDriver}
+                                                        onChange={(e) => setIncidentForm({ ...incidentForm, coDriver: e.target.value })}
+                                                        className="w-full px-3 py-2 bg-white border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#42aeec] text-sm"
+                                                    >
+                                                        <option value="">Select Co-Driver</option>
+                                                        {drivers.map((driver) => (
+                                                            <option key={driver._id} value={driver._id}>
+                                                                {driver.name || driver.email} {driver.email && driver.name !== driver.email ? `(${driver.email})` : ''}
+                                                            </option>
+                                                        ))}
+                                                    </select>
                                                 </div>
                                                 <div>
                                                     <label className="block text-sm font-medium text-gray-700 mb-1">Location</label>

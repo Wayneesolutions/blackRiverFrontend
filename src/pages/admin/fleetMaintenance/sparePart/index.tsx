@@ -30,7 +30,8 @@ import {
     createSupplier
 } from '../../../../axios/api/fleet.spareparts';
 import { useNavigate } from 'react-router-dom';
-import { listFleetUnits, type FleetUnitDto } from '../../../../axios/api/fleet.units';
+import { getAllVehicles } from '../../../../axios/api/vehicle';
+import { getAllTrailers } from '../../../../axios/api/trailer';
 import { FLEET_COLORS } from '../colorUtils';
 
 const ACCENT_PRIMARY = FLEET_COLORS.primary;
@@ -58,14 +59,24 @@ interface WorkOrderId {
     issue: string;
     vehicleId?: VehicleId;
     unitNumber?: string;
-    fleetUnit?: {
+    vehicle?: {
         _id: string;
-        unitNo: string;
-        licensePlate: string;
-        makeModel: string;
+        unitNumber?: string;
+        internalId?: string;
+        plateNumber?: string;
         make?: string;
         model?: string;
-        vinNo?: string;
+        vinNumber?: string;
+    } | null;
+    trailer?: {
+        _id: string;
+        unitNumber?: string;
+        trailer?: string;
+        internalId?: string;
+        plateNumber?: string;
+        make?: string;
+        model?: string;
+        vinNumber?: string;
     } | null;
 }
 
@@ -200,10 +211,19 @@ const SparePartsInventory = () => {
     const [selectedInvoice, setSelectedInvoice] = useState<Invoice | null>(null);
     const [qtyUsedInput, setQtyUsedInput] = useState<string>('');
     const [spareParts, setSpareParts] = useState<SparePart[]>([]);
-    const [trucks, setTrucks] = useState<FleetUnitDto[]>([]);
+    const [units, setUnits] = useState<Array<{
+        _id: string;
+        unitNo: string;
+        unitType: 'Truck' | 'Trailer';
+        plateNumber?: string;
+        makeModel?: string;
+        make?: string;
+        model?: string;
+        vinNumber?: string;
+    }>>([]);
     const [suppliers, setSuppliers] = useState<Supplier[]>([]);
     const [loading, setLoading] = useState<boolean>(true);
-    const [loadingTrucks, setLoadingTrucks] = useState<boolean>(false);
+    const [loadingUnits, setLoadingUnits] = useState<boolean>(false);
     const [submitting, setSubmitting] = useState<boolean>(false);
     const [notifications, setNotifications] = useState<Notification[]>([]);
     const [emptyStateMessage, setEmptyStateMessage] = useState<string | null>(null);
@@ -287,7 +307,7 @@ const SparePartsInventory = () => {
         if (!isSuperadmin && !hasCompany && !isFleetManager) {
             setSpareParts([]);
             setSuppliers([]);
-            setTrucks([]);
+            setUnits([]);
             setEmptyStateMessage(null);
             setLoading(false);
             return;
@@ -305,7 +325,7 @@ const SparePartsInventory = () => {
         }
     }, [showAddModal, showEditModal]);
 
-    // Fetch trucks when usage modal opens
+    // Fetch units when usage modal opens
     useEffect(() => {
         if (showUsageModal) {
             fetchTrucks();
@@ -337,27 +357,67 @@ const SparePartsInventory = () => {
     };
 
     const fetchTrucks = async () => {
-        setLoadingTrucks(true);
+        setLoadingUnits(true);
         try {
-            const res = await listFleetUnits({ category: 'trucks' });
-            if (res?.success && res?.data) {
-                const data = res.data || [];
-                setTrucks(data);
-                if (data.length === 0) {
-                    pushBannerMessage('No trucks available');
-                }
-            } else {
-                addNotification('error', res?.message || 'Failed to fetch trucks');
-                setTrucks([]);
-                pushBannerMessage(res?.message || 'Failed to fetch trucks');
+            // Fetch vehicles (trucks)
+            const vehiclesResponse = await getAllVehicles(1, 1000);
+            const vehicles = vehiclesResponse?.success && vehiclesResponse?.data ? vehiclesResponse.data : [];
+            
+            // Fetch trailers
+            const trailersResponse = await getAllTrailers(1, 1000);
+            const trailers = trailersResponse?.success && trailersResponse?.data ? trailersResponse.data : [];
+            
+            // Combine vehicles and trailers
+            const allUnits: Array<{
+                _id: string;
+                unitNo: string;
+                unitType: 'Truck' | 'Trailer';
+                plateNumber?: string;
+                makeModel?: string;
+                make?: string;
+                model?: string;
+                vinNumber?: string;
+            }> = [];
+            
+            // Map vehicles
+            vehicles.forEach((vehicle: any) => {
+                allUnits.push({
+                    _id: vehicle._id,
+                    unitNo: vehicle.unitNumber || vehicle.internalId || vehicle.plateNumber || '',
+                    unitType: 'Truck' as const,
+                    plateNumber: vehicle.plateNumber,
+                    makeModel: [vehicle.make, vehicle.model].filter(Boolean).join(' ').trim() || undefined,
+                    make: vehicle.make,
+                    model: vehicle.model,
+                    vinNumber: vehicle.vinNumber
+                });
+            });
+            
+            // Map trailers
+            trailers.forEach((trailer: any) => {
+                allUnits.push({
+                    _id: trailer._id,
+                    unitNo: trailer.unitNumber || trailer.trailer || trailer.internalId || '',
+                    unitType: 'Trailer' as const,
+                    plateNumber: trailer.plateNumber,
+                    makeModel: [trailer.make, trailer.model].filter(Boolean).join(' ').trim() || undefined,
+                    make: trailer.make,
+                    model: trailer.model,
+                    vinNumber: trailer.vinNumber
+                });
+            });
+            
+            setUnits(allUnits);
+            if (allUnits.length === 0) {
+                pushBannerMessage('No vehicles or trailers available');
             }
         } catch (err: any) {
-            console.error("Error fetching trucks:", err);
-            addNotification('error', err?.message || 'Failed to fetch trucks');
-            setTrucks([]);
-            pushBannerMessage(err?.message || 'Failed to fetch trucks');
+            console.error("Error fetching units:", err);
+            addNotification('error', err?.message || 'Failed to fetch units');
+            setUnits([]);
+            pushBannerMessage(err?.message || 'Failed to fetch units');
         }
-        setLoadingTrucks(false);
+        setLoadingUnits(false);
     };
 
     const addNotification = (type: NotificationType, message: string) => {
@@ -2051,21 +2111,21 @@ const SparePartsInventory = () => {
                         <form onSubmit={handleUsePart} className="space-y-4">
                             <div>
                                 <label className="block text-sm font-semibold text-gray-700 mb-2">
-                                    Truck <span className="text-red-500">*</span>
+                                    Unit (Truck/Trailer) <span className="text-red-500">*</span>
                                 </label>
-                                {loadingTrucks ? (
+                                {loadingUnits ? (
                                     <div className="flex items-center justify-center py-8 bg-gray-50 rounded-lg">
                                         <div
                                             className="animate-spin rounded-full h-8 w-8 border-b-2"
                                             style={{ borderColor: 'rgba(1, 106, 178, 0.2)', borderBottomColor: ACCENT_PRIMARY }}
                                         ></div>
-                                        <span className="ml-3 text-sm text-gray-500">Loading trucks...</span>
+                                        <span className="ml-3 text-sm text-gray-500">Loading units...</span>
                                     </div>
-                                ) : trucks.length === 0 ? (
+                                ) : units.length === 0 ? (
                                     <div className="py-8 bg-yellow-50 border border-yellow-200 rounded-lg text-center">
                                         <FaExclamationCircle className="text-yellow-600 mx-auto mb-2" size={24} />
-                                        <p className="text-sm text-yellow-800">No trucks available</p>
-                                        <p className="text-xs text-yellow-600 mt-1">Add trucks to your fleet first</p>
+                                        <p className="text-sm text-yellow-800">No vehicles or trailers available</p>
+                                        <p className="text-xs text-yellow-600 mt-1">Add vehicles or trailers to your fleet first</p>
                                     </div>
                                 ) : (
                                     <select
@@ -2075,10 +2135,10 @@ const SparePartsInventory = () => {
                                         style={focusRingStyle}
                                         required
                                     >
-                                        <option value="">Select Truck</option>
-                                        {trucks.map(truck => (
-                                            <option key={truck._id} value={truck.unitNo}>
-                                                {truck.unitNo} - {truck.makeModel} ({truck.licensePlate})
+                                        <option value="">Select Unit</option>
+                                        {units.map(unit => (
+                                            <option key={unit._id} value={unit.unitNo}>
+                                                {unit.unitNo} - {unit.makeModel || 'N/A'} ({unit.plateNumber || 'N/A'}) [{unit.unitType}]
                                             </option>
                                         ))}
                                     </select>
@@ -2124,7 +2184,7 @@ const SparePartsInventory = () => {
                                     type="submit"
                                     className="px-5 py-2.5 !text-white !ml-3 rounded-lg font-medium transition-colors shadow-md hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed"
                                     style={{ background: ACCENT_GRADIENT }}
-                                    disabled={submitting || loadingTrucks || trucks.length === 0}
+                                    disabled={submitting || loadingUnits || units.length === 0}
                                 >
                                     {submitting ? 'Processing...' : 'Use Part'}
                                 </button>

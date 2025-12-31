@@ -14,7 +14,7 @@ import {
   type VehicleServiceType,
   type ServiceFilters
 } from '../../../../axios/api/vehicleService';
-import { listFleetUnits, type FleetUnitDto } from '../../../../axios/api/fleet.units';
+import { getAllVehicles } from '../../../../axios/api/vehicle';
 import { FLEET_COLORS } from '../colorUtils';
 
 const ACCENT_PRIMARY = FLEET_COLORS.primary;
@@ -176,23 +176,22 @@ const ScheduledServicesLog: React.FC = () => {
 
   const fetchUnits = useCallback(async () => {
     try {
-      const response = await listFleetUnits({ category: 'all' });
-      if (response?.success) {
-        const unitOptions =
-          (response.data as FleetUnitDto[] | undefined)?.map((unit) => ({
-            unitNo: unit.unitNo,
-            unitType: unit.unitType,
-            makeModel: unit.makeModel,
-            referenceType: unit.referenceType,
-            referenceId: unit.referenceId,
-            currentOdometer: unit.currentOdometer,
-            serviceIntervalDays: unit.serviceIntervalDays,
-            serviceIntervalMileage: unit.serviceIntervalMileage
-          })) || [];
+      const response = await getAllVehicles(1, 1000);
+      if (response?.success && response?.data) {
+        const unitOptions = (response.data as any[]).map((vehicle) => ({
+          unitNo: vehicle.unitNumber || vehicle.internalId || vehicle.plateNumber || '',
+          unitType: vehicle.type || 'Truck',
+          makeModel: [vehicle.make, vehicle.model].filter(Boolean).join(' ').trim() || undefined,
+          referenceType: 'vehicle',
+          referenceId: vehicle._id,
+          currentOdometer: vehicle.odometer || 0,
+          serviceIntervalDays: undefined, // Vehicles don't have service interval days in the model
+          serviceIntervalMileage: undefined // Vehicles don't have service interval mileage in the model
+        }));
         setUnits(unitOptions);
       }
     } catch (err) {
-      console.error('Failed to load units', err);
+      console.error('Failed to load vehicles', err);
     }
   }, []);
 
@@ -303,7 +302,7 @@ const ScheduledServicesLog: React.FC = () => {
 
   // Helper function to check if a service is incoming maintenance
   // This must match the logic in summaryStats exactly
-  const isIncomingService = useCallback((service: ScheduledService, fleetUnitsMap: Map<string, UnitOption>): boolean => {
+  const isIncomingService = useCallback((service: ScheduledService, vehiclesMap: Map<string, UnitOption>): boolean => {
     if (service.status === 'completed') return false;
 
     const today = new Date();
@@ -325,9 +324,9 @@ const ScheduledServicesLog: React.FC = () => {
     }
 
     // Check if service is due based on mileage (within 7,500 km)
-    // Use service odometer, or try to get from fleet unit
-    const fleetUnit = service.unitNo ? fleetUnitsMap.get(service.unitNo) : null;
-    const serviceOdometer = service.odometer ?? (fleetUnit?.currentOdometer ?? null);
+    // Use service odometer, or try to get from vehicle
+    const vehicle = service.unitNo ? vehiclesMap.get(service.unitNo) : null;
+    const serviceOdometer = service.odometer ?? (vehicle?.currentOdometer ?? null);
     
     if (service.dueMileage && serviceOdometer !== null && serviceOdometer !== undefined) {
       const remainingKm = service.dueMileage - serviceOdometer;
@@ -340,16 +339,16 @@ const ScheduledServicesLog: React.FC = () => {
       }
     }
 
-    // Check using fleet unit service intervals if available
-    if (fleetUnit) {
-      // Check mileage interval from fleet unit
-      if (fleetUnit.serviceIntervalMileage && fleetUnit.currentOdometer !== undefined && fleetUnit.currentOdometer !== null) {
+    // Check using vehicle service intervals if available
+    if (vehicle) {
+      // Check mileage interval from vehicle (if available in future)
+      if (vehicle.serviceIntervalMileage && vehicle.currentOdometer !== undefined && vehicle.currentOdometer !== null) {
         // Calculate next service mileage based on interval
         const lastServiceMileage = service.dueMileage 
-          ? service.dueMileage - fleetUnit.serviceIntervalMileage 
-          : fleetUnit.currentOdometer;
-        const nextServiceMileage = lastServiceMileage + fleetUnit.serviceIntervalMileage;
-        const remainingKm = nextServiceMileage - fleetUnit.currentOdometer;
+          ? service.dueMileage - vehicle.serviceIntervalMileage 
+          : vehicle.currentOdometer;
+        const nextServiceMileage = lastServiceMileage + vehicle.serviceIntervalMileage;
+        const remainingKm = nextServiceMileage - vehicle.currentOdometer;
         
         if (remainingKm >= 0 && remainingKm <= 7500) {
           isIncoming = true;
@@ -359,11 +358,11 @@ const ScheduledServicesLog: React.FC = () => {
         }
       }
 
-      // Check days interval from fleet unit
-      if (fleetUnit.serviceIntervalDays && service.serviceDate) {
+      // Check days interval from vehicle (if available in future)
+      if (vehicle.serviceIntervalDays && service.serviceDate) {
         const lastServiceDate = new Date(service.serviceDate);
         const nextServiceDate = new Date(lastServiceDate);
-        nextServiceDate.setDate(nextServiceDate.getDate() + fleetUnit.serviceIntervalDays);
+        nextServiceDate.setDate(nextServiceDate.getDate() + vehicle.serviceIntervalDays);
         const daysUntilDue = Math.ceil((nextServiceDate.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
         
         if (daysUntilDue >= 0 && daysUntilDue <= 30) {
@@ -384,8 +383,8 @@ const ScheduledServicesLog: React.FC = () => {
   }, []);
 
   const filteredServices = useMemo(() => {
-    // Create a map of fleet units by unitNo for quick lookup
-    const fleetUnitsMap = new Map(
+    // Create a map of vehicles by unitNo for quick lookup
+    const vehiclesMap = new Map(
       units.map(unit => [unit.unitNo, unit])
     );
 
@@ -400,7 +399,7 @@ const ScheduledServicesLog: React.FC = () => {
       // Apply incoming filter if active
       let matchesIncoming = true;
       if (filterIncoming) {
-        matchesIncoming = isIncomingService(service, fleetUnitsMap);
+        matchesIncoming = isIncomingService(service, vehiclesMap);
       }
       
       return matchesSearch && matchesType && matchesIncoming;
@@ -424,13 +423,13 @@ const ScheduledServicesLog: React.FC = () => {
     thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
     thirtyDaysAgo.setHours(0, 0, 0, 0);
 
-    // Create a map of fleet units by unitNo for quick lookup
-    const fleetUnitsMap = new Map(
+    // Create a map of vehicles by unitNo for quick lookup
+    const vehiclesMap = new Map(
       units.map(unit => [unit.unitNo, unit])
     );
 
     // Calculate incoming maintenance (services due within next 7,500 km or 30 days)
-    // Also considers fleet unit service intervals (days and mileage)
+    // Also considers vehicle service intervals (days and mileage)
     const incomingServices = services.filter((service) => {
       if (service.status === 'completed') return false;
 
@@ -451,9 +450,9 @@ const ScheduledServicesLog: React.FC = () => {
       }
 
       // Check if service is due based on mileage (within 7,500 km)
-      // Use service odometer, or try to get from fleet unit
-      const fleetUnit = service.unitNo ? fleetUnitsMap.get(service.unitNo) : null;
-      const serviceOdometer = service.odometer ?? (fleetUnit?.currentOdometer ?? null);
+      // Use service odometer, or try to get from vehicle
+      const vehicle = service.unitNo ? vehiclesMap.get(service.unitNo) : null;
+      const serviceOdometer = service.odometer ?? (vehicle?.currentOdometer ?? null);
       
       if (service.dueMileage && serviceOdometer !== null && serviceOdometer !== undefined) {
         const remainingKm = service.dueMileage - serviceOdometer;
@@ -466,16 +465,16 @@ const ScheduledServicesLog: React.FC = () => {
         }
       }
 
-      // Check using fleet unit service intervals if available
-      if (fleetUnit) {
-        // Check mileage interval from fleet unit
-        if (fleetUnit.serviceIntervalMileage && fleetUnit.currentOdometer !== undefined && fleetUnit.currentOdometer !== null) {
+      // Check using vehicle service intervals if available
+      if (vehicle) {
+        // Check mileage interval from vehicle (if available)
+        if (vehicle.serviceIntervalMileage && vehicle.currentOdometer !== undefined && vehicle.currentOdometer !== null) {
           // Calculate next service mileage based on interval
           const lastServiceMileage = service.dueMileage 
-            ? service.dueMileage - fleetUnit.serviceIntervalMileage 
-            : fleetUnit.currentOdometer;
-          const nextServiceMileage = lastServiceMileage + fleetUnit.serviceIntervalMileage;
-          const remainingKm = nextServiceMileage - fleetUnit.currentOdometer;
+            ? service.dueMileage - vehicle.serviceIntervalMileage 
+            : vehicle.currentOdometer;
+          const nextServiceMileage = lastServiceMileage + vehicle.serviceIntervalMileage;
+          const remainingKm = nextServiceMileage - vehicle.currentOdometer;
           
           if (remainingKm >= 0 && remainingKm <= 7500) {
             isIncoming = true;
@@ -485,11 +484,11 @@ const ScheduledServicesLog: React.FC = () => {
           }
         }
 
-        // Check days interval from fleet unit
-        if (fleetUnit.serviceIntervalDays && service.serviceDate) {
+        // Check days interval from vehicle (if available)
+        if (vehicle.serviceIntervalDays && service.serviceDate) {
           const lastServiceDate = new Date(service.serviceDate);
           const nextServiceDate = new Date(lastServiceDate);
-          nextServiceDate.setDate(nextServiceDate.getDate() + fleetUnit.serviceIntervalDays);
+          nextServiceDate.setDate(nextServiceDate.getDate() + vehicle.serviceIntervalDays);
           const daysUntilDue = Math.ceil((nextServiceDate.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
           
           if (daysUntilDue >= 0 && daysUntilDue <= 30) {

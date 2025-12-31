@@ -32,7 +32,8 @@ import {
   updateTicket,
   deleteTicket
 } from '../../../../axios/api/admin';
-import { listFleetUnits, type FleetUnitDto } from '../../../../axios/api/fleet.units';
+import { getAllVehicles } from '../../../../axios/api/vehicle';
+import { getAllTrailers } from '../../../../axios/api/trailer';
 import { listDriver } from '../../../../axios/api/distapcher';
 import { FLEET_COLORS } from '../../fleetMaintenance/colorUtils';
 
@@ -265,55 +266,35 @@ const Tickets: React.FC = () => {
   const [notifications, setNotifications] = useState<ToastNotification[]>([]);
   const notificationIdRef = useRef(0);
 
-  // Fetch vehicles, drivers, and trailers (using FleetUnit)
+  // Fetch vehicles, drivers, and trailers (using Vehicle and Trailer models)
   useEffect(() => {
     const fetchVehicles = async () => {
       try {
-        const res = await listFleetUnits({ category: "trucks" });
+        const res = await getAllVehicles(1, 1000);
         if (res?.success && res?.data) {
-          // Map FleetUnit to Vehicle interface format - filter to trucks only
-          const trucks = res.data.filter((unit: FleetUnitDto) =>
-            unit.unitType === "Truck" || unit.unitType === "Bus/Van"
-          );
-
-          const mappedVehicles: Vehicle[] = trucks.map((unit: FleetUnitDto) => {
+          // Map Vehicle to Vehicle interface format
+          const mappedVehicles: Vehicle[] = res.data.map((vehicle: any) => {
             // Extract make and model
-            let make = unit.make || '';
-            let model = unit.model || '';
+            const make = vehicle.make || '';
+            const model = vehicle.model || '';
+            const makeModel = [make, model].filter(Boolean).join(' ').trim();
 
-            // If makeModel exists but make/model don't, parse makeModel
-            if ((!make || !model) && unit.makeModel) {
-              const makeModelParts = unit.makeModel.trim().split(/\s+/);
-              if (makeModelParts.length > 0) {
-                make = make || makeModelParts[0];
-                model = model || makeModelParts.slice(1).join(' ');
-              }
-            }
+            // Use unitNumber, internalId, or plateNumber as identifier
+            const identifier = vehicle.plateNumber || vehicle.unitNumber || vehicle.internalId || vehicle._id;
 
-            // Use unitNo or internalId as fallback
-            const identifier = unit.licensePlate || unit.unitNo || unit.internalId || unit._id;
-
-            // Ensure we don't show "Unknown Unknown"
-            if (!make && !model) {
-              if (unit.makeModel) {
-                const parts = unit.makeModel.trim().split(/\s+/);
-                make = parts[0] || identifier;
-                model = parts.slice(1).join(' ') || '';
-              } else {
-                make = unit.unitNo || identifier;
-                model = '';
-              }
-            }
+            // Ensure we don't show empty values
+            const displayMake = make || identifier;
+            const displayModel = model || '';
 
             return {
-              _id: unit._id,
-              internalId: unit.internalId || unit.unitNo,
-              plateNumber: unit.licensePlate || unit.unitNo || unit.internalId || 'N/A',
-              licensePlate: unit.licensePlate,
-              make: make || identifier,
-              model: model || '',
-              makeModel: unit.makeModel,
-              year: unit.year
+              _id: vehicle._id,
+              internalId: vehicle.internalId || vehicle.unitNumber,
+              plateNumber: vehicle.plateNumber || vehicle.unitNumber || vehicle.internalId || 'N/A',
+              licensePlate: vehicle.plateNumber,
+              make: displayMake,
+              model: displayModel,
+              makeModel: makeModel,
+              year: vehicle.year
             };
           });
           setVehicles(mappedVehicles);
@@ -339,16 +320,16 @@ const Tickets: React.FC = () => {
 
     const fetchTrailers = async () => {
       try {
-        const res = await listFleetUnits({ category: "trailers" });
+        const res = await getAllTrailers(1, 1000);
         if (res?.success && res?.data) {
-          // Map FleetUnit to Trailer interface format
-          const mappedTrailers: Trailer[] = res.data.map((unit: FleetUnitDto) => ({
-            _id: unit._id,
-            unitNo: unit.unitNo,
-            trailer: unit.unitNo || unit.licensePlate || 'N/A',
-            internalId: unit.internalId || unit.unitNo,
-            plateNumber: unit.licensePlate || 'N/A',
-            licensePlate: unit.licensePlate
+          // Map Trailer to Trailer interface format
+          const mappedTrailers: Trailer[] = res.data.map((trailer: any) => ({
+            _id: trailer._id,
+            unitNo: trailer.unitNumber || trailer.trailer || trailer.internalId,
+            trailer: trailer.unitNumber || trailer.trailer || trailer.internalId || 'N/A',
+            internalId: trailer.internalId || trailer.unitNumber || trailer.trailer,
+            plateNumber: trailer.plateNumber || 'N/A',
+            licensePlate: trailer.plateNumber
           }));
           setTrailers(mappedTrailers);
         }

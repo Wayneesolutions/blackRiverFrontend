@@ -26,7 +26,8 @@ import {
   deleteIncident
 } from '../../../../axios/api/admin';
 import { createIssue } from '../../../../axios/api/distapcher';
-import { listFleetUnits, type FleetUnitDto } from '../../../../axios/api/fleet.units';
+import { getAllVehicles } from '../../../../axios/api/vehicle';
+import { getAllTrailers } from '../../../../axios/api/trailer';
 import { listDriver } from '../../../../axios/api/distapcher';
 import { FLEET_COLORS } from '../../fleetMaintenance/colorUtils';
 
@@ -406,22 +407,25 @@ const Incidents: React.FC = () => {
 
   const loadVehicles = async () => {
     try {
-      const res = await listFleetUnits({ category: 'trucks' });
+      const res = await getAllVehicles(1, 1000);
       if (res && res.success && res.data) {
-        // Map FleetUnit to Vehicle format for compatibility
-        const mappedVehicles: Vehicle[] = res.data.map((unit: FleetUnitDto) => ({
-          _id: unit._id,
-          unitNo: unit.unitNo,
-          internalId: unit.internalId,
-          licensePlate: unit.licensePlate,
-          plateNumber: unit.licensePlate,
-          makeModel: unit.makeModel,
-          make: unit.make,
-          model: unit.model,
-          year: unit.year,
-          vinNo: unit.vinNo,
-          vin: unit.vinNo
-        }));
+        // Map Vehicle to Vehicle format for compatibility
+        const mappedVehicles: Vehicle[] = res.data.map((vehicle: any) => {
+          const makeModel = [vehicle.make, vehicle.model].filter(Boolean).join(' ').trim();
+          return {
+            _id: vehicle._id,
+            unitNo: vehicle.unitNumber || vehicle.internalId || vehicle.plateNumber || '',
+            internalId: vehicle.internalId || vehicle.unitNumber,
+            licensePlate: vehicle.plateNumber || '',
+            plateNumber: vehicle.plateNumber || vehicle.unitNumber || '',
+            makeModel: makeModel,
+            make: vehicle.make || '',
+            model: vehicle.model || '',
+            year: vehicle.year,
+            vinNo: vehicle.vinNumber || '',
+            vin: vehicle.vinNumber || ''
+          };
+        });
         setVehicles(mappedVehicles);
       }
     } catch (error) {
@@ -431,17 +435,15 @@ const Incidents: React.FC = () => {
 
   const loadTrailers = async () => {
     try {
-      const res = await listFleetUnits({ category: 'trailers' });
+      const res = await getAllTrailers(1, 1000);
       if (res && res.success && res.data) {
-        // Map FleetUnit to Trailer format for compatibility
-        const mappedTrailers: Trailer[] = res.data
-          .filter((unit: FleetUnitDto) => unit.unitType !== 'Truck' && unit.unitType !== 'Bus/Van')
-          .map((unit: FleetUnitDto) => ({
-            _id: unit._id,
-            trailer: unit.unitNo || unit.licensePlate || unit.internalId || 'Trailer',
-            internalId: unit.internalId || unit.unitNo,
-            plateNumber: unit.licensePlate || unit.unitNo || unit.internalId || 'N/A'
-          }));
+        // Map Trailer to Trailer format for compatibility
+        const mappedTrailers: Trailer[] = res.data.map((trailer: any) => ({
+          _id: trailer._id,
+          trailer: trailer.unitNumber || trailer.trailer || trailer.internalId || 'Trailer',
+          internalId: trailer.internalId || trailer.unitNumber || trailer.trailer,
+          plateNumber: trailer.plateNumber || trailer.unitNumber || trailer.trailer || 'N/A'
+        }));
         setTrailers(mappedTrailers);
       }
     } catch (error) {
@@ -629,16 +631,19 @@ const Incidents: React.FC = () => {
         // If "Also create as accident" is checked, create an Issue with issueType='accident'
         if (incidentForm.alsoCreateAsAccident) {
           try {
-            // Find the vehicle (FleetUnit) by unitNumber
+            // Find the vehicle (Vehicle) by unitNumber
             let vehicleId = null;
             if (incidentForm.unitNumber) {
-              const fleetUnitsResponse = await listFleetUnits({ category: 'trucks' });
-              if (fleetUnitsResponse?.success && fleetUnitsResponse?.data) {
-                const matchingUnit = fleetUnitsResponse.data.find(
-                  (unit: FleetUnitDto) => unit.unitNo === incidentForm.unitNumber
+              const vehiclesResponse = await getAllVehicles(1, 1000);
+              if (vehiclesResponse?.success && vehiclesResponse?.data) {
+                const matchingVehicle = vehiclesResponse.data.find(
+                  (vehicle: any) => 
+                    vehicle.unitNumber === incidentForm.unitNumber ||
+                    vehicle.internalId === incidentForm.unitNumber ||
+                    vehicle.plateNumber === incidentForm.unitNumber
                 );
-                if (matchingUnit) {
-                  vehicleId = matchingUnit._id;
+                if (matchingVehicle) {
+                  vehicleId = matchingVehicle._id;
                 }
               }
             }

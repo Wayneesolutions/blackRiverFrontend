@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { createIssue, updateIssue } from '../../../../../axios/api/distapcher';
-import { listFleetUnits, type FleetUnitDto } from '../../../../../axios/api/fleet.units';
+import { getAllVehicles } from '../../../../../axios/api/vehicle';
+import { getAllTrailers } from '../../../../../axios/api/trailer';
 import { MdClose, MdSave } from 'react-icons/md';
 
 interface Issue {
@@ -29,7 +30,16 @@ interface Issue {
   updatedAt?: string;
 }
 
-// Using FleetUnitDto directly - no need for separate Vehicle interface
+interface UnitOption {
+  _id: string;
+  unitNo: string;
+  unitType: 'Truck' | 'Trailer';
+  plateNumber?: string;
+  makeModel?: string;
+  make?: string;
+  model?: string;
+  vinNumber?: string;
+}
 
 interface NewIssueSidebarProps {
   issue?: Issue | null;
@@ -51,26 +61,57 @@ const NewIssueSidebar: React.FC<NewIssueSidebarProps> = ({ issue, onClose, onSav
     address: ''
   });
 
-  const [fleetUnits, setFleetUnits] = useState<FleetUnitDto[]>([]);
+  const [units, setUnits] = useState<UnitOption[]>([]);
   const [loading, setLoading] = useState(false);
   const [tagInput, setTagInput] = useState('');
 
-  // Fetch trucks from FleetUnit
+  // Fetch vehicles and trailers
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const vehiclesResponse = await listFleetUnits({ category: "trucks" });
-
-        if (vehiclesResponse.success && vehiclesResponse.data) {
-          // Filter to only trucks and set directly
-          const trucks = vehiclesResponse.data.filter((unit: FleetUnitDto) =>
-            unit.unitType === "Truck" || unit.unitType === "Bus/Van"
-          );
-          setFleetUnits(trucks);
-          console.log('Fetched FleetUnits for issues:', trucks.length);
-        }
+        // Fetch vehicles (trucks)
+        const vehiclesResponse = await getAllVehicles(1, 1000);
+        const vehicles = vehiclesResponse?.success && vehiclesResponse?.data ? vehiclesResponse.data : [];
+        
+        // Fetch trailers
+        const trailersResponse = await getAllTrailers(1, 1000);
+        const trailers = trailersResponse?.success && trailersResponse?.data ? trailersResponse.data : [];
+        
+        // Combine vehicles and trailers
+        const allUnits: UnitOption[] = [];
+        
+        // Map vehicles
+        vehicles.forEach((vehicle: any) => {
+          allUnits.push({
+            _id: vehicle._id,
+            unitNo: vehicle.unitNumber || vehicle.internalId || vehicle.plateNumber || '',
+            unitType: 'Truck' as const,
+            plateNumber: vehicle.plateNumber,
+            makeModel: [vehicle.make, vehicle.model].filter(Boolean).join(' ').trim() || undefined,
+            make: vehicle.make,
+            model: vehicle.model,
+            vinNumber: vehicle.vinNumber
+          });
+        });
+        
+        // Map trailers
+        trailers.forEach((trailer: any) => {
+          allUnits.push({
+            _id: trailer._id,
+            unitNo: trailer.unitNumber || trailer.trailer || trailer.internalId || '',
+            unitType: 'Trailer' as const,
+            plateNumber: trailer.plateNumber,
+            makeModel: [trailer.make, trailer.model].filter(Boolean).join(' ').trim() || undefined,
+            make: trailer.make,
+            model: trailer.model,
+            vinNumber: trailer.vinNumber
+          });
+        });
+        
+        setUnits(allUnits);
+        console.log('Fetched units for issues:', allUnits.length);
       } catch (error) {
-        console.error('Error fetching fleet units:', error);
+        console.error('Error fetching units:', error);
       }
     };
 
@@ -215,8 +256,8 @@ const NewIssueSidebar: React.FC<NewIssueSidebarProps> = ({ issue, onClose, onSav
               onChange={handleInputChange}
               className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
             >
-              <option value="">Select Vehicle</option>
-              {fleetUnits.map((unit) => {
+              <option value="">Select Vehicle/Trailer</option>
+              {units.map((unit) => {
                 // Extract make and model
                 let make = unit.make || '';
                 let model = unit.model || '';
@@ -231,12 +272,12 @@ const NewIssueSidebar: React.FC<NewIssueSidebarProps> = ({ issue, onClose, onSav
                 }
 
                 // Build display name
-                const vehicleName = [make, model].filter(Boolean).join(' ').trim() || unit.makeModel || 'Vehicle';
-                const identifier = unit.licensePlate || unit.unitNo || unit.internalId || unit._id;
+                const vehicleName = [make, model].filter(Boolean).join(' ').trim() || unit.makeModel || unit.unitType;
+                const identifier = unit.plateNumber || unit.unitNo || unit._id;
 
                 return (
                   <option key={unit._id} value={unit._id}>
-                    {vehicleName} ({identifier})
+                    {vehicleName} ({identifier}) [{unit.unitType}]
                   </option>
                 );
               })}

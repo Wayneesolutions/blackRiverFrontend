@@ -11,7 +11,8 @@ import {
   type RegulatorySafetyDto,
   type RegulatorySafetyPayload
 } from '../../../../axios/api/regulatorySafety';
-import { listFleetUnits } from '../../../../axios/api/fleet.units';
+import { getAllVehicles } from '../../../../axios/api/vehicle';
+import { getAllTrailers } from '../../../../axios/api/trailer';
 import { FLEET_COLORS } from '../colorUtils';
 
 const ACCENT_PRIMARY = FLEET_COLORS.primary;
@@ -37,8 +38,6 @@ type UnitStatus = 'Active' | 'Inactive';
 type TruckType = 'Semi-Truck' | 'Straight Truck' | 'Box Truck' | 'Flatbed' | 'Refrigerated Truck' | 'Dump Truck' | 'Tow Truck';
 type TrailerType = 'Reefer Trailer' | 'Tri-Axle Trailer' | 'Dry Van' | 'Flatbed' | 'Step Deck' | 'Lowboy' | 'Tank Trailer' | 'Dump Trailer';
 
-type UnitFilterKey = 'all' | 'truck' | 'trailer' | 'tri-axle trailer' | 'reefer trailer' | 'dry van';
-
 interface UnitOption {
   unitNo: string;
   unitType?: string;
@@ -49,15 +48,6 @@ interface UnitOption {
   referenceType?: string;
   referenceId?: string;
 }
-
-const UNIT_FILTERS: { key: UnitFilterKey; label: string }[] = [
-  { key: 'all', label: 'All Units' },
-  { key: 'truck', label: 'Trucks' },
-  { key: 'trailer', label: 'Trailers' },
-  { key: 'tri-axle trailer', label: 'Tri-Axle Trailer' },
-  { key: 'reefer trailer', label: 'Reefer Trailer' },
-  { key: 'dry van', label: 'Dry Van' }
-];
 
 interface NotificationState {
   type: 'success' | 'error';
@@ -123,7 +113,6 @@ const RegulatorySafety: React.FC = () => {
   const [debouncedSearch, setDebouncedSearch] = useState('');
   const [records, setRecords] = useState<RegulatorySafetyDto[]>([]);
   const [units, setUnits] = useState<UnitOption[]>([]);
-  const [unitFilter, setUnitFilter] = useState<UnitFilterKey>('all');
   const [showAddModal, setShowAddModal] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
@@ -164,29 +153,44 @@ const RegulatorySafety: React.FC = () => {
 
   const loadUnits = useCallback(async () => {
     try {
-      const response = await listFleetUnits({ category: 'all' });
-      if (response?.success) {
-        const rawData = (response as any)?.data;
-        const payload = Array.isArray(rawData)
-          ? rawData
-          : Array.isArray(rawData?.data)
-            ? rawData.data
-            : Array.isArray(rawData?.units)
-              ? rawData.units
-              : [];
-        setUnits(
-          payload.map((unit: any) => ({
-            unitNo: unit.unitNo,
-            unitType: unit.unitType,
-            truckType: unit.truckType,
-            trailerType: unit.trailerType,
-            status: unit.status,
-            makeModel: unit.makeModel,
-            referenceType: unit.referenceType,
-            referenceId: unit.referenceId
-          }))
-        );
-      }
+      // Fetch vehicles (trucks)
+      const vehiclesResponse = await getAllVehicles(1, 1000);
+      const vehicles = vehiclesResponse?.success && vehiclesResponse?.data ? vehiclesResponse.data : [];
+      
+      // Fetch trailers
+      const trailersResponse = await getAllTrailers(1, 1000);
+      const trailers = trailersResponse?.success && trailersResponse?.data ? trailersResponse.data : [];
+      
+      // Combine vehicles and trailers
+      const allUnits: UnitOption[] = [];
+      
+      // Map vehicles
+      vehicles.forEach((vehicle: any) => {
+        allUnits.push({
+          unitNo: vehicle.unitNumber || vehicle.internalId || vehicle.plateNumber || '',
+          unitType: 'Truck',
+          truckType: vehicle.type || 'Truck',
+          status: vehicle.status || 'Active',
+          makeModel: [vehicle.make, vehicle.model].filter(Boolean).join(' ').trim() || undefined,
+          referenceType: 'vehicle',
+          referenceId: vehicle._id
+        });
+      });
+      
+      // Map trailers
+      trailers.forEach((trailer: any) => {
+        allUnits.push({
+          unitNo: trailer.unitNumber || trailer.trailer || trailer.internalId || '',
+          unitType: 'Trailer',
+          trailerType: trailer.type || 'Trailer',
+          status: trailer.status || 'Active',
+          makeModel: [trailer.make, trailer.model].filter(Boolean).join(' ').trim() || undefined,
+          referenceType: 'trailer',
+          referenceId: trailer._id
+        });
+      });
+      
+      setUnits(allUnits);
     } catch (err) {
       console.error('Failed to load units', err);
     }
@@ -291,54 +295,14 @@ const RegulatorySafety: React.FC = () => {
       bottomScroll.removeEventListener('scroll', handleBottomScroll);
       window.removeEventListener('resize', syncScrollWidths);
     };
-  }, [records, searchTerm, unitFilter]);
+    }, [records, searchTerm]);
 
-  const unitMap = useMemo(() => {
-    const map = new Map<string, UnitOption>();
-    units.forEach((unit) => map.set(unit.unitNo, unit));
-    return map;
-  }, [units]);
-
-  const normalize = (value?: string | null) => (value || '').trim().toLowerCase();
-
-  const isTrailerFamily = (value: string) =>
-    ['trailer', 'reefer trailer', 'tri-axle trailer', 'dry van', 'flatbed', 'step deck', 'lowboy', 'tank trailer', 'dump trailer'].includes(
-      value
-    );
-
-  const matchesUnitFilter = (unitData: { unitType?: string; truckType?: string; trailerType?: string }, filter: UnitFilterKey) => {
-    if (filter === 'all') return true;
-    const unitType = normalize(unitData.unitType);
-    const truckType = normalize(unitData.truckType);
-    const trailerType = normalize(unitData.trailerType);
-
-    if (filter === 'truck') {
-      return unitType === 'truck' || (!!truckType && truckType.length > 0 && truckType !== 'truck');
-    }
-
-    if (filter === 'trailer') {
-      return unitType === 'trailer' || isTrailerFamily(unitType) || isTrailerFamily(trailerType);
-    }
-
-    const filterValue = normalize(filter);
-    return trailerType === filterValue || unitType === filterValue;
-  };
 
   const filteredRecords = useMemo(() => {
-    return records.filter((record) => {
-      const meta = unitMap.get(record.unitNo);
-      return matchesUnitFilter(
-        {
-          unitType: record.unitType || meta?.unitType,
-          truckType: (record as any)?.truckType || meta?.truckType,
-          trailerType: (record as any)?.trailerType || meta?.trailerType
-        },
-        unitFilter
-      );
-    });
-  }, [records, unitMap, unitFilter]);
+    return records;
+  }, [records]);
 
-  const filteredUnitOptions = useMemo(() => units.filter((unit) => matchesUnitFilter(unit, unitFilter)), [units, unitFilter]);
+  const filteredUnitOptions = useMemo(() => units, [units]);
 
   const unitSelectOptions = useMemo(() => {
     if (!formData.unitNo) return filteredUnitOptions;
@@ -599,26 +563,10 @@ const RegulatorySafety: React.FC = () => {
             </div>
           </div>
 
-          {/* Filters */}
+          {/* Record Count */}
           <div className="flex flex-wrap items-center gap-3 mb-4">
-            {UNIT_FILTERS.map((filter) => (
-              <button
-                key={filter.key}
-                type="button"
-                onClick={() => setUnitFilter(filter.key)}
-                className={`rounded-full border px-4 py-2 text-sm font-semibold transition-all ${unitFilter === filter.key ? '!text-white shadow-md' : 'text-gray-600 bg-white hover:text-gray-900'
-                  }`}
-                style={
-                  unitFilter === filter.key
-                    ? { background: 'linear-gradient(to right, #016ab2, #063f6f)', borderColor: 'transparent' }
-                    : { borderColor: 'rgba(0,0,0,0.08)' }
-                }
-              >
-                {filter.label}
-              </button>
-            ))}
             <span className="text-sm text-gray-500">
-              Showing {filteredRecords.length} of {records.length} safety record{records.length === 1 ? '' : 's'}
+              Showing {filteredRecords.length} safety record{filteredRecords.length === 1 ? '' : 's'}
             </span>
           </div>
 
@@ -689,7 +637,7 @@ const RegulatorySafety: React.FC = () => {
                   ) : filteredRecords.length === 0 ? (
                     <tr>
                       <td colSpan={10} className="px-6 py-12 text-center text-gray-500">
-                        {unitFilter === 'all' ? 'No safety records found' : 'No records match the selected filter'}
+                        No safety records found
                       </td>
                     </tr>
                   ) : (

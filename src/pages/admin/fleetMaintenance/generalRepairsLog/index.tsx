@@ -11,7 +11,7 @@ import {
   type GeneralRepairDto,
   type GeneralRepairPayload
 } from '../../../../axios/api/generalRepairs';
-import { listFleetUnits } from '../../../../axios/api/fleet.units';
+import { getAllVehicles } from '../../../../axios/api/vehicle';
 import { getAllEmployees } from '../../../../axios/api/employee';
 import { FLEET_COLORS } from '../colorUtils';
 
@@ -147,21 +147,21 @@ const GeneralRepairsLog: React.FC = () => {
 
   const loadUnits = useCallback(async () => {
     try {
-      const response = await listFleetUnits({ category: 'all' });
-      if (response?.success) {
+      const response = await getAllVehicles(1, 1000);
+      if (response?.success && response?.data) {
         setUnits(
-          response.data?.map((unit) => ({
-            _id: unit._id,
-            unitNo: unit.unitNo,
-            makeModel: unit.makeModel,
-            vin: unit.vinNo || unit.licensePlate,
-            referenceType: unit.referenceType,
-            referenceId: unit.referenceId
+          response.data.map((vehicle: any) => ({
+            _id: vehicle._id,
+            unitNo: vehicle.unitNumber || vehicle.internalId || vehicle.plateNumber || '',
+            makeModel: [vehicle.make, vehicle.model].filter(Boolean).join(' ').trim() || undefined,
+            vin: vehicle.vinNumber || vehicle.plateNumber || undefined,
+            referenceType: 'vehicle',
+            referenceId: vehicle._id
           })) || []
         );
       }
     } catch (err) {
-      console.error('Failed to load units', err);
+      console.error('Failed to load vehicles', err);
     }
   }, []);
 
@@ -550,7 +550,7 @@ const GeneralRepairsLog: React.FC = () => {
       serviceProvider: formData.serviceProvider,
       invoiceNumber: formData.invoiceNumber,
       unitSource: selectedUnit?.referenceType,
-      unitReference: selectedUnit?._id || selectedUnit?.referenceId // Use FleetUnit _id if available, fallback to referenceId
+      unitReference: selectedUnit?._id || selectedUnit?.referenceId // Use Vehicle _id if available, fallback to referenceId
     };
   };
 
