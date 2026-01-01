@@ -320,11 +320,27 @@ const OrderList = () => {
           deliveryLocation: extractLocationString(order.deliveryLocation) || '',
           deliveryRefNo: order.deliveryRefNo || '',
           totalAmount: order.totalAmount?.toFixed(2) || '0.00',
-          currency: order.currency || 'CAD',
+          rate: order.rate || order.totalAmount || 0,
+          currency: order.currency || order.rateCurrency || 'CAD',
           status: order.status || 'QUOTED',
           driver: order.driver?.name || '',
           truckNo: order.truck?.licensePlate || order.truck?.unitNo || order.truck?.internalId || '',
-          trailerNo: order.trailer?.licensePlate || order.trailer?.unitNo || ''
+          trailerNo: order.trailer?.licensePlate || order.trailer?.unitNo || '',
+          // Additional fields for table display
+          shipperCity: order.shipper?.city || '',
+          shipperState: order.shipper?.province || order.shipper?.state || '',
+          receiverCity: order.receiver?.city || '',
+          receiverState: order.receiver?.province || order.receiver?.state || '',
+          receiverAddress: order.receiver?.address || '',
+          temperature: order.temperature || '',
+          temperatureUnit: order.temperatureUnit || '',
+          hazmat: order.additionalInfo?.HAZMAT || false,
+          bookedForCarrier: order.bookedForCarrier || false,
+          dispatcher: order.dispatcher || '',
+          carrier: order.carrier || '',
+          borderInfo: order.borderInfo || null,
+          // Keep full order object for reference
+          _fullOrder: order
         }));
         setOrders(formattedOrders);
       } else {
@@ -525,14 +541,49 @@ const OrderList = () => {
     return {};
   };
 
-  // Helper to extract city and state from location string
-  const extractCityState = (location: string): { city: string; state: string } => {
-    if (!location) return { city: '', state: '' };
-    const parts = location.split(',').map(p => p.trim());
-    if (parts.length >= 2) {
-      return { city: parts[0], state: parts[parts.length - 1] };
+  // Helper to extract city and state from location string or order object
+  const extractCityState = (location: string | any, order?: any, type: 'shipper' | 'receiver' = 'shipper'): { city: string; state: string } => {
+    // First try to get from order.shipper or order.receiver directly
+    if (order) {
+      if (type === 'shipper' && order.shipper) {
+        return {
+          city: order.shipper.city || '',
+          state: order.shipper.province || order.shipper.state || ''
+        };
+      }
+      if (type === 'receiver' && order.receiver) {
+        // Receiver might have city/province in address, try to parse
+        if (order.receiver.address) {
+          const parts = order.receiver.address.split(',').map((p: string) => p.trim());
+          if (parts.length >= 2) {
+            // Try to extract city and state from address
+            // Usually format: "City, State" or "Address, City, State"
+            const lastTwo = parts.slice(-2);
+            return {
+              city: lastTwo[0] || '',
+              state: lastTwo[1] || ''
+            };
+          }
+        }
+        // Check if receiver has city/province fields directly
+        return {
+          city: order.receiver.city || '',
+          state: order.receiver.province || order.receiver.state || ''
+        };
+      }
     }
-    return { city: location, state: '' };
+    
+    // Fallback to parsing location string
+    if (typeof location === 'string' && location) {
+      const parts = location.split(',').map(p => p.trim());
+      if (parts.length >= 2) {
+        // Try to get last two parts as city and state
+        const lastTwo = parts.slice(-2);
+        return { city: lastTwo[0] || '', state: lastTwo[1] || '' };
+      }
+      return { city: location, state: '' };
+    }
+    return { city: '', state: '' };
   };
 
   // Helper to format date and time
@@ -794,8 +845,9 @@ const OrderList = () => {
                 paginatedOrders.map((order) => {
                   const pickupLoc = extractLocationString(order.pickupLocation);
                   const deliveryLoc = extractLocationString(order.deliveryLocation);
-                  const pickupCityState = extractCityState(pickupLoc);
-                  const deliveryCityState = extractCityState(deliveryLoc);
+                  // Use order data directly for city/state extraction
+                  const pickupCityState = extractCityState(pickupLoc, (order as any)._fullOrder || order, 'shipper');
+                  const deliveryCityState = extractCityState(deliveryLoc, (order as any)._fullOrder || order, 'receiver');
                   const shipDateTime = formatDateAndTime(order.pickupDate || '');
                   const receiveDateTime = formatDateAndTime(order.deliveryDate || '');
                   
@@ -809,34 +861,57 @@ const OrderList = () => {
                   // Get order number (prefer customer order number)
                   const orderNumber = order.custOrderNo || order.orderNo || '-';
                   
-                  // Get rate (just the number, no currency)
-                  const rate = order.totalAmount ? parseFloat(order.totalAmount).toFixed(0) : '0';
+                  // Get rate - prefer rate field, fallback to totalAmount
+                  const rateValue = (order as any).rate !== undefined && (order as any).rate !== null && (order as any).rate !== 0 
+                    ? (order as any).rate 
+                    : (order.totalAmount ? parseFloat(order.totalAmount) : 0);
+                  const rate = rateValue ? rateValue.toFixed(0) : '0';
 
-                  // Static data for additional columns - varies based on order
-                  // Generate static data based on order index for variety
-                  const orderIndex = paginatedOrders.indexOf(order);
-                  const staticDrivers = [
-                    'Kuldeep Gill, Jaskaran Singh',
-                    '',
-                    '',
-                    '',
-                    ''
-                  ];
-                  const staticTrucks = ['1308', '', '', '', ''];
-                  const staticTrailers = ['BR2901', '', '', 'BR2919', ''];
-                  const staticTemps = ['', '28.0', '28.0', '30', ''];
-                  const staticDispatchers = ['Rashmeen Kaur', 'Rashmeen Kaur', 'Rashmeen Kaur', 'Ramandeep', 'Rashmeen Kaur'];
+                  // Extract actual data from order
+                  const fullOrder = (order as any)._fullOrder || order;
                   
-                  const staticTruck = order.truckNo || staticTrucks[orderIndex % staticTrucks.length] || '';
-                  const staticTrailer = order.trailerNo || staticTrailers[orderIndex % staticTrailers.length] || '';
-                  const staticDriverCarrier = order.driver || staticDrivers[orderIndex % staticDrivers.length] || '';
-                  const staticBooked = ''; // Empty
-                  const staticEntry = ''; // Empty
-                  const staticTemp = staticTemps[orderIndex % staticTemps.length] || '';
-                  const staticHazmat = 'N/A'; // Always N/A
-                  const staticDispatcher = staticDispatchers[orderIndex % staticDispatchers.length] || 'Rashmeen Kaur';
-                  const staticDriver = order.driver || staticDrivers[orderIndex % staticDrivers.length] || '';
-                  const staticCarrier = ''; // Empty
+                  // Shipper city/state - use from order data
+                  const shipperCity = (order as any).shipperCity || pickupCityState.city || '-';
+                  const shipperState = (order as any).shipperState || pickupCityState.state || '-';
+                  
+                  // Receiver city/state - try to parse from address if not directly available
+                  let receiverCity = (order as any).receiverCity || deliveryCityState.city || '-';
+                  let receiverState = (order as any).receiverState || deliveryCityState.state || '-';
+                  
+                  // If receiver city/state are empty, try parsing from receiver address
+                  if ((receiverCity === '-' || !receiverCity) && (order as any).receiverAddress) {
+                    const parsed = extractCityState((order as any).receiverAddress, null, 'receiver');
+                    receiverCity = parsed.city || receiverCity;
+                    receiverState = parsed.state || receiverState;
+                  }
+                  
+                  // Temperature
+                  const tempValue = (order as any).temperature || fullOrder.temperature || '';
+                  const tempUnit = (order as any).temperatureUnit || fullOrder.temperatureUnit || '';
+                  const displayTemp = tempValue ? `${tempValue}${tempUnit ? ' ' + tempUnit : ''}` : '-';
+                  
+                  // Hazmat
+                  const hazmatValue = (order as any).hazmat !== undefined ? (order as any).hazmat : (fullOrder.additionalInfo?.HAZMAT || false);
+                  const displayHazmat = hazmatValue ? 'Yes' : 'No';
+                  
+                  // Booked
+                  const bookedValue = (order as any).bookedForCarrier !== undefined ? (order as any).bookedForCarrier : (fullOrder.bookedForCarrier || false);
+                  const displayBooked = bookedValue ? 'Yes' : '-';
+                  
+                  // Entry (could be border entry or customs entry)
+                  const borderInfo = (order as any).borderInfo || fullOrder.borderInfo;
+                  const displayEntry = borderInfo?.portOfEntry || borderInfo?.detailsRequired ? (borderInfo.portOfEntry || 'Yes') : '-';
+                  
+                  // Dispatcher
+                  const dispatcherName = (order as any).dispatcher || fullOrder.dispatcher || fullOrder.dispatcherName || '-';
+                  
+                  // Carrier (could be from driver assignment or separate field)
+                  const carrierName = (order as any).carrier || fullOrder.carrier || fullOrder.carrierName || '-';
+                  
+                  // Truck, Trailer, Driver
+                  const truckDisplay = order.truckNo || '-';
+                  const trailerDisplay = order.trailerNo || '-';
+                  const driverDisplay = order.driver || '-';
 
                   return (
                     <tr 
@@ -880,10 +955,10 @@ const OrderList = () => {
                         {truncateText(order.customerName || '-', 15)}
                       </td>
                       <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-900">
-                        {pickupCityState.city || '-'}
+                        {shipperCity || '-'}
                       </td>
                       <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-900">
-                        {pickupCityState.state || '-'}
+                        {shipperState || '-'}
                       </td>
                       <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-900">
                         {shipDateTime.date || '-'}
@@ -892,10 +967,10 @@ const OrderList = () => {
                         {shipDateTime.time || '-'}
                       </td>
                       <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-900">
-                        {deliveryCityState.city || '-'}
+                        {receiverCity || '-'}
                       </td>
                       <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-900">
-                        {deliveryCityState.state || '-'}
+                        {receiverState || '-'}
                       </td>
                       <td className={`px-4 py-4 whitespace-nowrap text-sm ${receiveDateTime.isFuture ? 'text-green-600' : 'text-gray-900'}`}>
                         {receiveDateTime.date || '-'}
@@ -904,34 +979,34 @@ const OrderList = () => {
                         {receiveDateTime.time || '-'}
                       </td>
                       <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-900">
-                        {staticTruck || '-'}
+                        {truckDisplay}
                       </td>
                       <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-900">
-                        {staticTrailer || '-'}
+                        {trailerDisplay}
                       </td>
                       <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-900">
-                        {staticDriverCarrier || '-'}
+                        {driverDisplay}
                       </td>
                       <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-900">
-                        {staticBooked || '-'}
+                        {displayBooked}
                       </td>
                       <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-900">
-                        {staticEntry || '-'}
+                        {displayEntry}
                       </td>
                       <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-900">
-                        {staticTemp || '-'}
+                        {displayTemp}
                       </td>
                       <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-900">
-                        {staticHazmat}
+                        {displayHazmat}
                       </td>
                       <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-900">
-                        {staticDispatcher}
+                        {dispatcherName}
                       </td>
                       <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-900">
-                        {staticDriver || '-'}
+                        {driverDisplay}
                       </td>
                       <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-900">
-                        {staticCarrier || '-'}
+                        {carrierName}
                       </td>
                     </tr>
                   );

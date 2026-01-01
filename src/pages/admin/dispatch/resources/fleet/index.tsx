@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo, useCallback, useRef } from "react";
 import { listFleetUnits } from "../../../../../axios/api/fleet.units";
-import { listTrip, listOrder } from "../../../../../axios/api/distapcher";
+import { listOrder } from "../../../../../axios/api/distapcher";
 import { Search, X, CheckCircle, AlertCircle, Truck, MapPin } from "lucide-react";
 
 
@@ -22,18 +22,20 @@ interface FleetUnit {
 }
 
 interface UnitAssignmentSummary {
-  tripId: string;
-  tripNumber?: string;
+  orderId: string;
+  orderNumber?: string;
+  customerOrderNo?: string;
+  tripNo?: string;
   driverName?: string;
   status?: string;
   route?: string;
-  orders: number;
-  plannedStartDate?: string;
+  pickupDate?: string;
+  deliveryDate?: string;
 }
 
 interface UnitAssignmentInsight {
-  activeTrips: UnitAssignmentSummary[];
-  pastTrips: UnitAssignmentSummary[];
+  activeOrders: UnitAssignmentSummary[];
+  pastOrders: UnitAssignmentSummary[];
   pairedUnits: string[];
 }
 
@@ -84,8 +86,7 @@ const truncateText = (value: string, max: number = 40) => {
   return value.length > max ? `${value.slice(0, max - 1)}…` : value;
 };
 
-const formatTripRoute = (trip: any) => {
-  const order = Array.isArray(trip?.orders) && trip.orders.length > 0 ? trip.orders[0] : null;
+const formatOrderRoute = (order: any) => {
   if (!order) return "Route pending";
   const pickup = normalizeAddress(extractLocationString(order.pickupLocation) || "Origin");
   const dropoff = normalizeAddress(extractLocationString(order.deliveryLocation) || "Destination");
@@ -97,48 +98,60 @@ const normalizeKey = (type: "truck" | "trailer", value?: string | number | null)
   return `${type}:${String(value).trim().toLowerCase()}`;
 };
 
-const buildUnitAssignments = (trips: any[]) => {
+const buildUnitAssignments = (orders: any[]) => {
   const map: Record<string, UnitAssignmentInsight> = {};
   const ensure = (key: string) => {
     if (!map[key]) {
-      map[key] = { activeTrips: [], pastTrips: [], pairedUnits: [] };
+      map[key] = { activeOrders: [], pastOrders: [], pairedUnits: [] };
     }
     return map[key];
   };
 
-  trips.forEach((trip) => {
+  orders.forEach((order) => {
     const summary: UnitAssignmentSummary = {
-      tripId: trip._id,
-      tripNumber: trip.tripNumber,
-      driverName: trip.driver?.name,
-      status: trip.status,
-      route: formatTripRoute(trip),
-      orders: Array.isArray(trip.orders) ? trip.orders.length : 0,
-      plannedStartDate: trip.plannedStartDate
+      orderId: order._id,
+      orderNumber: order.orderNumber,
+      customerOrderNo: order.customerOrderNo,
+      tripNo: order.tripNo,
+      driverName: order.driver?.name,
+      status: order.status,
+      route: formatOrderRoute(order),
+      pickupDate: order.pickupDate,
+      deliveryDate: order.deliveryDate
     };
 
+    // Get truck identifiers - check various possible fields
+    const truckObj = order.truck;
     const truckIdentifiers = [
-      normalizeKey("truck", trip.truck?._id),
-      normalizeKey("truck", trip.truck?.unitNo),
-      normalizeKey("truck", trip.truck?.internalId),
-      normalizeKey("truck", trip.truck?.licensePlate)
+      normalizeKey("truck", truckObj?._id),
+      normalizeKey("truck", truckObj?.unitNo),
+      normalizeKey("truck", truckObj?.internalId),
+      normalizeKey("truck", truckObj?.licensePlate),
+      normalizeKey("truck", truckObj?.plateNumber),
+      normalizeKey("truck", truckObj?.unitNumber)
     ].filter(Boolean) as string[];
 
+    // Get trailer identifiers - check various possible fields
+    const trailerObj = order.trailer;
     const trailerIdentifiers = [
-      normalizeKey("trailer", trip.trailer?._id),
-      normalizeKey("trailer", trip.trailer?.unitNo),
-      normalizeKey("trailer", trip.trailer?.licensePlate)
+      normalizeKey("trailer", trailerObj?._id),
+      normalizeKey("trailer", trailerObj?.unitNo),
+      normalizeKey("trailer", trailerObj?.licensePlate),
+      normalizeKey("trailer", trailerObj?.plateNumber),
+      normalizeKey("trailer", trailerObj?.trailerNumber),
+      normalizeKey("trailer", trailerObj?.unitNumber)
     ].filter(Boolean) as string[];
 
-    const trailerLabel = trip.trailer?.unitNo || trip.trailer?.licensePlate || trip.trailer?.makeModel;
-    const truckLabel = trip.truck?.unitNo || trip.truck?.licensePlate || trip.truck?.internalId || trip.truck?.makeModel;
+    const trailerLabel = trailerObj?.unitNo || trailerObj?.licensePlate || trailerObj?.plateNumber || trailerObj?.trailerNumber || trailerObj?.makeModel;
+    const truckLabel = truckObj?.unitNo || truckObj?.licensePlate || truckObj?.plateNumber || truckObj?.internalId || truckObj?.makeModel;
 
     truckIdentifiers.forEach((key) => {
       const store = ensure(key);
-      if (trip.status === "completed" || trip.status === "cancelled") {
-        store.pastTrips.push(summary);
+      const isCompleted = (order.status || "").toUpperCase() === "COMPLETED" || (order.status || "").toLowerCase() === "completed";
+      if (isCompleted) {
+        store.pastOrders.push(summary);
       } else {
-        store.activeTrips.push(summary);
+        store.activeOrders.push(summary);
       }
       if (trailerLabel && !store.pairedUnits.includes(trailerLabel)) {
         store.pairedUnits.push(trailerLabel);
@@ -147,10 +160,11 @@ const buildUnitAssignments = (trips: any[]) => {
 
     trailerIdentifiers.forEach((key) => {
       const store = ensure(key);
-      if (trip.status === "completed" || trip.status === "cancelled") {
-        store.pastTrips.push(summary);
+      const isCompleted = (order.status || "").toUpperCase() === "COMPLETED" || (order.status || "").toLowerCase() === "completed";
+      if (isCompleted) {
+        store.pastOrders.push(summary);
       } else {
-        store.activeTrips.push(summary);
+        store.activeOrders.push(summary);
       }
       if (truckLabel && !store.pairedUnits.includes(truckLabel)) {
         store.pairedUnits.push(truckLabel);
@@ -164,13 +178,32 @@ const buildUnitAssignments = (trips: any[]) => {
 const buildUnitLoadStats = (orders: any[]) => {
   const map: Record<string, UnitLoadStats> = {};
   orders.forEach((order) => {
-    const loadStatus = (order?.status || "").toLowerCase();
+    const loadStatus = (order?.status || "").toUpperCase();
+    const isCompleted = loadStatus === "COMPLETED";
+    
+    // Get truck identifiers from order.truck object
+    const truckObj = order?.truck;
     const truckKeys = [
+      normalizeKey("truck", truckObj?._id),
+      normalizeKey("truck", truckObj?.unitNo),
+      normalizeKey("truck", truckObj?.internalId),
+      normalizeKey("truck", truckObj?.licensePlate),
+      normalizeKey("truck", truckObj?.plateNumber),
+      normalizeKey("truck", truckObj?.unitNumber),
       normalizeKey("truck", order?.truckNo),
       normalizeKey("truck", order?.truckNumber),
       normalizeKey("truck", order?.truckId)
     ].filter(Boolean) as string[];
+    
+    // Get trailer identifiers from order.trailer object
+    const trailerObj = order?.trailer;
     const trailerKeys = [
+      normalizeKey("trailer", trailerObj?._id),
+      normalizeKey("trailer", trailerObj?.unitNo),
+      normalizeKey("trailer", trailerObj?.licensePlate),
+      normalizeKey("trailer", trailerObj?.plateNumber),
+      normalizeKey("trailer", trailerObj?.trailerNumber),
+      normalizeKey("trailer", trailerObj?.unitNumber),
       normalizeKey("trailer", order?.trailerNo),
       normalizeKey("trailer", order?.trailerNumber),
       normalizeKey("trailer", order?.trailerId)
@@ -182,7 +215,7 @@ const buildUnitLoadStats = (orders: any[]) => {
         map[key] = { totalLoads: 0, pendingLoads: 0 };
       }
       map[key].totalLoads += 1;
-      if (loadStatus !== "completed") {
+      if (!isCompleted) {
         map[key].pendingLoads += 1;
       }
     });
@@ -256,23 +289,17 @@ const Index = () => {
 
   const fetchFleetInsights = useCallback(async () => {
     try {
-      const [tripRes, orderRes] = await Promise.all([
-        listTrip({ page: 1, limit: 500 }),
-        listOrder({ page: 1, limit: 500 })
-      ]);
-      if (tripRes?.success && Array.isArray(tripRes.data)) {
-        setUnitAssignments(buildUnitAssignments(tripRes.data));
-      } else {
-        setUnitAssignments({});
-      }
+      const orderRes = await listOrder({ page: 1, limit: 500 });
       const orderPayload = Array.isArray(orderRes?.data)
         ? orderRes.data
         : Array.isArray(orderRes?.data?.data)
           ? orderRes.data.data
           : [];
       if (orderRes?.success && Array.isArray(orderPayload)) {
+        setUnitAssignments(buildUnitAssignments(orderPayload));
         setUnitLoadStats(buildUnitLoadStats(orderPayload));
       } else {
+        setUnitAssignments({});
         setUnitLoadStats({});
       }
     } catch (error) {
@@ -412,7 +439,7 @@ const Index = () => {
   }, [visibleFleetUnits]);
 
   const assignmentSnapshot = useMemo(() => {
-    let unitsWithActiveTrips = 0;
+    let unitsWithActiveOrders = 0;
     let availableUnits = 0;
     visibleFleetUnits.forEach((unit) => {
       const type = fleetTab === "trucks" ? "truck" : "trailer";
@@ -420,13 +447,13 @@ const Index = () => {
       const assignment = identifiers
         .map((id) => unitAssignments[id])
         .find(Boolean);
-      if (assignment?.activeTrips.length) {
-        unitsWithActiveTrips += 1;
+      if (assignment?.activeOrders.length) {
+        unitsWithActiveOrders += 1;
       } else {
         availableUnits += 1;
       }
     });
-    return { unitsWithActiveTrips, availableUnits };
+    return { unitsWithActiveOrders, availableUnits };
   }, [visibleFleetUnits, fleetTab, unitAssignments]);
 
   return (
@@ -492,7 +519,7 @@ const Index = () => {
               Currently Dispatched
             </p>
             <p className="text-xl font-semibold mt-0.5 text-purple-700">
-              {assignmentSnapshot.unitsWithActiveTrips}
+              {assignmentSnapshot.unitsWithActiveOrders}
             </p>
             <p className="text-[11px] text-purple-500">
               {assignmentSnapshot.availableUnits} available in pool
@@ -645,7 +672,7 @@ const Index = () => {
                             {(() => {
                               const assignment = getAssignmentForUnit(unit);
                               const loadStats = getLoadStatsForUnit(unit);
-                              const activeTrip = assignment?.activeTrips[0];
+                              const activeOrder = assignment?.activeOrders[0];
                               return (
                                 <div
                                   className="relative flex items-start gap-2"
@@ -653,9 +680,9 @@ const Index = () => {
                                 >
                                   <button
                                     type="button"
-                                    className={`mt-1 rounded-full border p-2 text-xs font-semibold uppercase ${activeTrip ? "text-blue-600 border-blue-200" : "text-gray-400 border-gray-200"
+                                    className={`mt-1 rounded-full border p-2 text-xs font-semibold uppercase ${activeOrder ? "text-blue-600 border-blue-200" : "text-gray-400 border-gray-200"
                                       }`}
-                                    title={activeTrip ? "View assignment details" : "No active assignment"}
+                                    title={activeOrder ? "View assignment details" : "No active assignment"}
                                     onMouseEnter={() => setPreviewUnitId(previewKey)}
                                     onFocus={() => setPreviewUnitId(previewKey)}
                                     onClick={() => setPreviewUnitId((prev) => (prev === previewKey ? null : previewKey))}
@@ -682,12 +709,12 @@ const Index = () => {
                                   </button>
                                   <div className="space-y-1">
                                     <div className="font-semibold text-gray-900">
-                                      {activeTrip?.route ? truncateText(activeTrip.route, 32) : "Available"}
+                                      {activeOrder?.route ? truncateText(activeOrder.route, 32) : "Available"}
                                     </div>
-                                    {activeTrip ? (
+                                    {activeOrder ? (
                                       <div className="text-xs text-gray-500">
-                                        #{activeTrip.tripNumber || "Trip"} · {activeTrip.orders} load{activeTrip.orders === 1 ? "" : "s"} · Driver{" "}
-                                        {activeTrip.driverName || "TBD"}
+                                        Order #{activeOrder.customerOrderNo || activeOrder.orderNumber || "—"} · Driver{" "}
+                                        {activeOrder.driverName || "TBD"}
                                       </div>
                                     ) : (
                                       <div className="text-xs text-gray-400">No active assignment</div>
@@ -714,13 +741,18 @@ const Index = () => {
                                     <div className="absolute left-12 top-0 z-20 w-64 rounded-xl border border-gray-200 bg-white p-4 shadow-lg">
                                       <p className="text-xs font-semibold text-gray-500">Dispatch preview</p>
                                       <p className="mt-1 text-sm font-semibold text-gray-900">
-                                        {activeTrip?.route || "No active assignment"}
+                                        {activeOrder?.route || "No active assignment"}
                                       </p>
                                       <p className="text-xs text-gray-500">
-                                        Trip #{activeTrip?.tripNumber || "—"} • Loads {activeTrip?.orders ?? 0}
+                                        Order #{activeOrder?.customerOrderNo || activeOrder?.orderNumber || "—"}
                                       </p>
+                                      {activeOrder?.tripNo && (
+                                        <p className="text-xs text-gray-500">
+                                          Trip #{activeOrder.tripNo}
+                                        </p>
+                                      )}
                                       <p className="text-xs text-gray-500">
-                                        Driver {activeTrip?.driverName || "Not assigned"}
+                                        Driver {activeOrder?.driverName || "Not assigned"}
                                       </p>
                                       {assignment?.pairedUnits?.length ? (
                                         <p className="text-xs text-gray-500 mt-1">
@@ -885,7 +917,7 @@ const Index = () => {
                   {(() => {
                     const assignment = getAssignmentForUnit(selectedUnit);
                     const loadStats = getLoadStatsForUnit(selectedUnit);
-                    const activeTrip = assignment?.activeTrips[0];
+                    const activeOrder = assignment?.activeOrders[0];
                     
                     if (!assignment && !loadStats) return null;
                     
@@ -896,30 +928,48 @@ const Index = () => {
                           Dispatch Snapshot
                         </h4>
                         <div className="space-y-4">
-                          {activeTrip ? (
+                          {activeOrder ? (
                             <>
                               <div>
                                 <p className="text-sm text-gray-600 mb-1">Current Assignment</p>
-                                <p className="font-medium text-gray-900">{activeTrip.route || "Available"}</p>
+                                <p className="font-medium text-gray-900">{activeOrder.route || "Available"}</p>
                               </div>
                               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                 <div>
-                                  <p className="text-sm text-gray-600 mb-1">Trip Number</p>
-                                  <p className="font-medium text-gray-900">#{activeTrip.tripNumber || "—"}</p>
+                                  <p className="text-sm text-gray-600 mb-1">Order Number</p>
+                                  <p className="font-medium text-gray-900">#{activeOrder.customerOrderNo || activeOrder.orderNumber || "—"}</p>
                                 </div>
+                                {activeOrder.tripNo && (
+                                  <div>
+                                    <p className="text-sm text-gray-600 mb-1">Trip Number</p>
+                                    <p className="font-medium text-gray-900">#{activeOrder.tripNo}</p>
+                                  </div>
+                                )}
                                 <div>
                                   <p className="text-sm text-gray-600 mb-1">Driver</p>
-                                  <p className="font-medium text-gray-900">{activeTrip.driverName || "TBD"}</p>
+                                  <p className="font-medium text-gray-900">{activeOrder.driverName || "TBD"}</p>
                                 </div>
                                 <div>
-                                  <p className="text-sm text-gray-600 mb-1">Orders</p>
-                                  <p className="font-medium text-gray-900">{activeTrip.orders} load{activeTrip.orders === 1 ? "" : "s"}</p>
+                                  <p className="text-sm text-gray-600 mb-1">Status</p>
+                                  <p className="font-medium text-gray-900">{activeOrder.status?.replace('_', ' ') || "—"}</p>
                                 </div>
-                                {activeTrip.plannedStartDate && (
+                                {activeOrder.pickupDate && (
                                   <div>
-                                    <p className="text-sm text-gray-600 mb-1">Planned Start Date</p>
+                                    <p className="text-sm text-gray-600 mb-1">Pickup Date</p>
                                     <p className="font-medium text-gray-900">
-                                      {new Date(activeTrip.plannedStartDate).toLocaleDateString('en-US', {
+                                      {new Date(activeOrder.pickupDate).toLocaleDateString('en-US', {
+                                        year: 'numeric',
+                                        month: 'long',
+                                        day: 'numeric'
+                                      })}
+                                    </p>
+                                  </div>
+                                )}
+                                {activeOrder.deliveryDate && (
+                                  <div>
+                                    <p className="text-sm text-gray-600 mb-1">Delivery Date</p>
+                                    <p className="font-medium text-gray-900">
+                                      {new Date(activeOrder.deliveryDate).toLocaleDateString('en-US', {
                                         year: 'numeric',
                                         month: 'long',
                                         day: 'numeric'
@@ -1014,3 +1064,5 @@ const Index = () => {
 };
 
 export default Index;
+
+

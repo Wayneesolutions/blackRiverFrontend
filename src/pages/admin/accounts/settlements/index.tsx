@@ -14,8 +14,8 @@ import {
   createMilesTracking,
   updateMilesTracking
 } from '../../../../axios/api/account.settlement';
-import { getEmployees } from '../../../../axios/api/account.payroll';
-import { listFleetUnits } from '../../../../axios/api/fleet.units';
+import { getAllVehicles } from '../../../../axios/api/vehicle';
+import { getAllDrivers } from '../../../../axios/api/driver';
 
 interface Settlement {
   _id: string;
@@ -59,6 +59,7 @@ interface MilesTracking {
   vehicle: {
     _id: string;
     plateNumber?: string;
+    unitNumber?: string;
     internalId?: string;
     make?: string;
     model?: string;
@@ -157,37 +158,61 @@ export default function SettlementSystem() {
   // Fetch drivers and vehicles
   const fetchDrivers = async () => {
     try {
-      const response = await getEmployees();
+      // Backend getAllDrivers doesn't support status filter, so we filter on frontend
+      const response = await getAllDrivers(1, 1000);
+      console.log('🔍 Drivers API response:', response);
       if (response?.success) {
-        const driverList = (response.data || []).filter((emp: any) =>
-          emp.role?.toLowerCase() === 'driver'
+        const allDrivers = response.data || [];
+        console.log('📊 All drivers from API:', allDrivers.length);
+        console.log('📋 Driver statuses:', allDrivers.map((d: any) => ({ 
+          name: d.name, 
+          status: d.status, 
+          _id: d._id 
+        })));
+        
+        // Show all drivers except explicitly inactive ones
+        const driverList = allDrivers.filter((driver: any) => 
+          driver.status !== 'inactive'
         );
+        console.log('✅ Filtered drivers:', driverList.length, 'out of', allDrivers.length);
+        console.log('📋 Final driver list:', driverList.map((d: any) => ({ 
+          name: d.name, 
+          status: d.status, 
+          _id: d._id 
+        })));
         setDrivers(driverList);
+      } else {
+        console.warn('⚠️ Drivers API returned success: false', response);
+        setDrivers([]);
       }
     } catch (error) {
-      console.error('Error fetching drivers:', error);
+      console.error('❌ Error fetching drivers:', error);
+      setDrivers([]);
     }
   };
 
   const fetchVehicles = async () => {
     try {
-      const response = await listFleetUnits({
-        category: 'trucks',
-        status: 'active'
-      });
+      // Vehicle status values: 'In Service', 'Out of Service', 'Maintenance', etc.
+      // Fetch all vehicles and filter on frontend if needed
+      const response = await getAllVehicles(1, 1000);
+      console.log('🔍 Vehicles API response:', response);
       if (response?.success && Array.isArray(response.data)) {
-        // Filter only trucks
-        const trucks = response.data.filter((unit: any) =>
-          unit.unitType === 'Truck' || unit.unitType?.toLowerCase().includes('truck')
+        // Filter to show only active/in-service vehicles
+        const activeVehicles = response.data.filter((vehicle: any) => 
+          !vehicle.status || 
+          vehicle.status === 'In Service' || 
+          vehicle.status === 'IN SERVICE' ||
+          vehicle.operationStatus === 'IN SERVICE'
         );
-        console.log('Fetched fleet units (trucks):', trucks.length, trucks);
-        setVehicles(trucks);
+        console.log('✅ Fetched vehicles:', activeVehicles.length, 'out of', response.data.length, activeVehicles);
+        setVehicles(activeVehicles);
       } else {
-        console.log('No vehicles found or invalid response:', response);
+        console.warn('⚠️ No vehicles found or invalid response:', response);
         setVehicles([]);
       }
     } catch (error) {
-      console.error('Error fetching vehicles:', error);
+      console.error('❌ Error fetching vehicles:', error);
       setVehicles([]);
     }
   };
@@ -494,6 +519,7 @@ export default function SettlementSystem() {
   const filteredMilesTracking = milesTracking.filter(m =>
     m.driver?.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
     m.vehicle?.plateNumber?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    m.vehicle?.unitNumber?.toLowerCase().includes(searchTerm.toLowerCase()) ||
     m.vehicle?.internalId?.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
@@ -888,7 +914,7 @@ export default function SettlementSystem() {
                           {new Date(record.date).toLocaleDateString()}
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-blue-600">
-                          {record.vehicle?.plateNumber || record.vehicle?.internalId || 'N/A'}
+                          {record.vehicle?.plateNumber || record.vehicle?.unitNumber || record.vehicle?.internalId || 'N/A'}
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{record.driver?.name || 'Unknown'}</td>
                         <td className="px-6 py-4 whitespace-nowrap text-sm">
@@ -933,9 +959,15 @@ export default function SettlementSystem() {
                     required
                   >
                     <option value="">Select Driver</option>
-                    {drivers.map(driver => (
-                      <option key={driver._id} value={driver._id}>{driver.name}</option>
-                    ))}
+                    {Array.isArray(drivers) && drivers.length > 0 ? (
+                      drivers.map(driver => (
+                        <option key={driver._id} value={driver._id}>
+                          {driver.name || driver.email || `Driver ${driver._id}`}
+                        </option>
+                      ))
+                    ) : (
+                      <option value="" disabled>No drivers available</option>
+                    )}
                   </select>
                 </div>
                 <div className="grid grid-cols-2 gap-4">
@@ -1279,18 +1311,21 @@ export default function SettlementSystem() {
                       required
                     >
                       <option value="">Select Vehicle</option>
-                      {Array.isArray(vehicles) && vehicles.map(vehicle => {
-                        // Use referenceId if it exists and points to Vehicle, otherwise use fleet unit _id (which may be prefixed)
-                        const vehicleId = vehicle.referenceId && vehicle.referenceType === 'vehicle'
-                          ? vehicle.referenceId
-                          : vehicle._id; // Send _id as-is, backend will handle prefix extraction
-                        const displayName = vehicle.licensePlate || vehicle.internalId || vehicle.unitNo || vehicle._id;
-                        return (
-                          <option key={vehicle._id} value={vehicleId}>
-                            {displayName}
-                          </option>
-                        );
-                      })}
+                      {Array.isArray(vehicles) && vehicles.length > 0 ? (
+                        vehicles.map(vehicle => {
+                          const vehicleId = vehicle._id;
+                          const displayName = vehicle.plateNumber || vehicle.unitNumber || vehicle.internalId || vehicle._id;
+                          const makeModel = [vehicle.make, vehicle.model].filter(Boolean).join(' ').trim();
+                          const fullDisplayName = makeModel ? `${displayName} - ${makeModel}` : displayName;
+                          return (
+                            <option key={vehicle._id} value={vehicleId}>
+                              {fullDisplayName}
+                            </option>
+                          );
+                        })
+                      ) : (
+                        <option value="" disabled>No vehicles available</option>
+                      )}
                     </select>
                   </div>
                 </div>

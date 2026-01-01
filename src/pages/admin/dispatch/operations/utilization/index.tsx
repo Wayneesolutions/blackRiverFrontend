@@ -1,32 +1,95 @@
 import { useState, useEffect } from "react";
-import { Truck, Package, MapPin, CheckCircle, XCircle, AlertCircle, ArrowLeft } from "lucide-react";
-import { useNavigate } from "react-router-dom";
-import { getUserRole } from "../../../../../utils/auth";
+import { Truck, Package, MapPin, CheckCircle, XCircle } from "lucide-react";
 import { getUtilization } from "../../../../../axios/api/distapcher";
 
 interface Truck {
   id: string;
+  _id?: string;
+  unitNumber?: string;
+  internalId?: string;
   plateNumber: string;
+  vinNumber?: string;
   make: string;
   model: string;
+  year?: string;
+  type?: string;
+  weight?: string;
+  uom?: string;
+  registrationCountry?: string;
+  registrationProvince?: string;
+  status?: string;
+  operationStatus?: string;
+  ownership?: string;
+  subType?: string;
   currentLocation: string;
+  latitude?: string;
+  longitude?: string;
+  speed?: number;
+  fuelLevel?: number;
+  odometer?: number;
+  driver?: {
+    _id: string;
+    name?: string;
+    email?: string;
+    phone?: string;
+  } | null;
+  trailer?: {
+    _id: string;
+    unitNumber?: string;
+    trailer?: string;
+    plateNumber?: string;
+  } | null;
   serviceStatus: string;
+  capacity?: string;
+  serialNumber?: string;
+  compliance?: string;
+  category?: string;
 }
 
 interface Trailer {
   id: string;
-  plateNumber: string;
+  _id?: string;
+  unitNumber?: string;
+  internalId?: string;
+  trailer?: string;
   trailerNumber: string;
+  plateNumber: string;
+  vinNumber?: string;
+  make?: string;
+  model?: string;
+  year?: string;
+  type?: string;
+  weight?: string;
+  uom?: string;
+  registrationCountry?: string;
+  registrationProvince?: string;
+  status?: string;
+  operationStatus?: string;
+  loadedStatus?: string;
+  ownership?: string;
+  subType?: string;
   currentLocation: string;
+  latitude?: string;
+  longitude?: string;
+  speed?: number;
+  capacity?: string;
+  isAttached?: boolean;
+  attachedVehicle?: {
+    _id: string;
+    unitNumber?: string;
+    plateNumber?: string;
+    make?: string;
+    model?: string;
+  } | null;
+  cargoDetails?: any;
+  sensors?: any;
   trailerStatus: string;
   serviceStatus: string;
+  compliance?: string;
+  category?: string;
 }
 
 const UtilizationPage = () => {
-  const navigate = useNavigate();
-  const userRole = getUserRole();
-  const isDispatcher = userRole === 'dispatcher';
-  const basePath = isDispatcher ? '/dispatch' : '/admin/dispatch';
 
   const [activeTab, setActiveTab] = useState<"trucks" | "trailers">("trucks");
   const [searchTerm, setSearchTerm] = useState("");
@@ -54,18 +117,34 @@ const UtilizationPage = () => {
   };
 
   const filteredTrucks = trucks.filter(
-    (truck) =>
-      truck.plateNumber.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      truck.currentLocation.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      truck.make.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      truck.model.toLowerCase().includes(searchTerm.toLowerCase())
+    (truck) => {
+      const searchLower = searchTerm.toLowerCase();
+      return (
+        (truck.plateNumber || '').toLowerCase().includes(searchLower) ||
+        (truck.currentLocation || '').toLowerCase().includes(searchLower) ||
+        (truck.make || '').toLowerCase().includes(searchLower) ||
+        (truck.model || '').toLowerCase().includes(searchLower) ||
+        (truck.unitNumber || '').toLowerCase().includes(searchLower) ||
+        (truck.internalId || '').toLowerCase().includes(searchLower) ||
+        (truck.vinNumber || '').toLowerCase().includes(searchLower) ||
+        (truck.driver?.name || '').toLowerCase().includes(searchLower)
+      );
+    }
   );
 
   const filteredTrailers = trailers.filter(
-    (trailer) =>
-      trailer.plateNumber.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      trailer.trailerNumber.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      trailer.currentLocation.toLowerCase().includes(searchTerm.toLowerCase())
+    (trailer) => {
+      const searchLower = searchTerm.toLowerCase();
+      return (
+        (trailer.plateNumber || '').toLowerCase().includes(searchLower) ||
+        (trailer.trailerNumber || '').toLowerCase().includes(searchLower) ||
+        (trailer.trailer || '').toLowerCase().includes(searchLower) ||
+        (trailer.currentLocation || '').toLowerCase().includes(searchLower) ||
+        (trailer.unitNumber || '').toLowerCase().includes(searchLower) ||
+        (trailer.internalId || '').toLowerCase().includes(searchLower) ||
+        (trailer.vinNumber || '').toLowerCase().includes(searchLower)
+      );
+    }
   );
 
   const getServiceStatusBadge = (status: string) => {
@@ -172,31 +251,40 @@ const UtilizationPage = () => {
                     {activeTab === "trucks" ? (
                       <>
                         <th className="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
-                          Plate Number
+                          Unit/Plate
                         </th>
                         <th className="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
-                          Make/Model
+                          Make/Model/Year
                         </th>
                         <th className="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
-                          Current Location
+                          Driver
                         </th>
                         <th className="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
-                          Service Status
+                          Location
+                        </th>
+                        <th className="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                          Status
+                        </th>
+                        <th className="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                          Details
                         </th>
                       </>
                     ) : (
                       <>
                         <th className="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
-                          Plate Number
+                          Trailer/Plate
                         </th>
                         <th className="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
-                          Trailer Number
+                          Make/Model/Type
                         </th>
                         <th className="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
-                          Current Location
+                          Attached Vehicle
                         </th>
                         <th className="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
-                          Trailer Status
+                          Location
+                        </th>
+                        <th className="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                          Load Status
                         </th>
                         <th className="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
                           Service Status
@@ -208,36 +296,78 @@ const UtilizationPage = () => {
                 <tbody className="bg-white divide-y divide-gray-200">
                   {loading ? (
                     <tr>
-                      <td colSpan={activeTab === "trucks" ? 4 : 5} className="px-6 py-8 text-center text-gray-500">
+                      <td colSpan={activeTab === "trucks" ? 6 : 6} className="px-6 py-8 text-center text-gray-500">
                         Loading...
                       </td>
                     </tr>
                   ) : activeTab === "trucks" ? (
                     filteredTrucks.length === 0 ? (
                       <tr>
-                        <td colSpan={4} className="px-6 py-8 text-center text-gray-500">
+                        <td colSpan={6} className="px-6 py-8 text-center text-gray-500">
                           No trucks found
                         </td>
                       </tr>
                     ) : (
                       filteredTrucks.map((truck) => (
                         <tr key={truck.id} className="hover:bg-gray-50 transition-colors">
-                          <td className="px-6 py-4 whitespace-nowrap">
-                            <div className="text-sm font-medium text-gray-900">{truck.plateNumber}</div>
-                            <div className="text-xs text-gray-500">ID: {truck.id}</div>
-                          </td>
-                          <td className="px-6 py-4 whitespace-nowrap">
-                            <div className="text-sm text-gray-900">{truck.make}</div>
-                            <div className="text-xs text-gray-500">{truck.model}</div>
-                          </td>
-                          <td className="px-6 py-4 whitespace-nowrap">
-                            <div className="flex items-center text-sm text-gray-900">
-                              <MapPin className="w-4 h-4 mr-1 text-gray-400" />
-                              {truck.currentLocation}
+                          <td className="px-6 py-4">
+                            <div className="text-sm font-medium text-gray-900">{truck.plateNumber || 'N/A'}</div>
+                            <div className="text-xs text-gray-500">
+                              Unit: {truck.unitNumber || truck.internalId || 'N/A'}
                             </div>
+                            {truck.vinNumber && (
+                              <div className="text-xs text-gray-400">VIN: {truck.vinNumber}</div>
+                            )}
+                          </td>
+                          <td className="px-6 py-4">
+                            <div className="text-sm text-gray-900">{truck.make || 'N/A'} {truck.model || ''}</div>
+                            {truck.year && (
+                              <div className="text-xs text-gray-500">Year: {truck.year}</div>
+                            )}
+                            {truck.type && (
+                              <div className="text-xs text-gray-500">Type: {truck.type}</div>
+                            )}
+                          </td>
+                          <td className="px-6 py-4">
+                            {truck.driver ? (
+                              <>
+                                <div className="text-sm text-gray-900">{truck.driver.name || 'N/A'}</div>
+                                {truck.driver.phone && (
+                                  <div className="text-xs text-gray-500">{truck.driver.phone}</div>
+                                )}
+                              </>
+                            ) : (
+                              <div className="text-sm text-gray-400">No driver assigned</div>
+                            )}
+                          </td>
+                          <td className="px-6 py-4">
+                            <div className="flex items-center text-sm text-gray-900">
+                              <MapPin className="w-4 h-4 mr-1 text-gray-400 flex-shrink-0" />
+                              <span className="truncate max-w-xs">{truck.currentLocation || 'Unknown'}</span>
+                            </div>
+                            {truck.speed !== undefined && truck.speed > 0 && (
+                              <div className="text-xs text-gray-500">Speed: {truck.speed} km/h</div>
+                            )}
                           </td>
                           <td className="px-6 py-4 whitespace-nowrap">
                             {getServiceStatusBadge(truck.serviceStatus)}
+                            {truck.operationStatus && (
+                              <div className="text-xs text-gray-500 mt-1">{truck.operationStatus}</div>
+                            )}
+                          </td>
+                          <td className="px-6 py-4 text-sm text-gray-600">
+                            {truck.odometer !== undefined && (
+                              <div>Odometer: {truck.odometer.toLocaleString()} km</div>
+                            )}
+                            {truck.fuelLevel !== undefined && (
+                              <div>Fuel: {truck.fuelLevel}%</div>
+                            )}
+                            {truck.capacity && (
+                              <div>Capacity: {truck.capacity}</div>
+                            )}
+                            {truck.trailer && (
+                              <div className="text-xs text-blue-600">Trailer: {truck.trailer.unitNumber || truck.trailer.trailer || truck.trailer.plateNumber}</div>
+                            )}
                           </td>
                         </tr>
                       ))
@@ -245,31 +375,77 @@ const UtilizationPage = () => {
                   ) : (
                     filteredTrailers.length === 0 ? (
                       <tr>
-                        <td colSpan={5} className="px-6 py-8 text-center text-gray-500">
+                        <td colSpan={6} className="px-6 py-8 text-center text-gray-500">
                           No trailers found
                         </td>
                       </tr>
                     ) : (
                       filteredTrailers.map((trailer) => (
                         <tr key={trailer.id} className="hover:bg-gray-50 transition-colors">
-                          <td className="px-6 py-4 whitespace-nowrap">
-                            <div className="text-sm font-medium text-gray-900">{trailer.plateNumber}</div>
-                            <div className="text-xs text-gray-500">ID: {trailer.id}</div>
-                          </td>
-                          <td className="px-6 py-4 whitespace-nowrap">
-                            <div className="text-sm text-gray-900">{trailer.trailerNumber}</div>
-                          </td>
-                          <td className="px-6 py-4 whitespace-nowrap">
-                            <div className="flex items-center text-sm text-gray-900">
-                              <MapPin className="w-4 h-4 mr-1 text-gray-400" />
-                              {trailer.currentLocation}
+                          <td className="px-6 py-4">
+                            <div className="text-sm font-medium text-gray-900">{trailer.plateNumber || 'N/A'}</div>
+                            <div className="text-xs text-gray-500">
+                              Trailer: {trailer.trailerNumber || trailer.trailer || 'N/A'}
                             </div>
+                            {(trailer.unitNumber || trailer.internalId) && (
+                              <div className="text-xs text-gray-400">
+                                Unit: {trailer.unitNumber || trailer.internalId}
+                              </div>
+                            )}
+                          </td>
+                          <td className="px-6 py-4">
+                            {(trailer.make || trailer.model) && (
+                              <div className="text-sm text-gray-900">{trailer.make || ''} {trailer.model || ''}</div>
+                            )}
+                            {trailer.type && (
+                              <div className="text-xs text-gray-500">Type: {trailer.type}</div>
+                            )}
+                            {trailer.year && (
+                              <div className="text-xs text-gray-500">Year: {trailer.year}</div>
+                            )}
+                          </td>
+                          <td className="px-6 py-4">
+                            {trailer.attachedVehicle ? (
+                              <>
+                                <div className="text-sm text-gray-900">
+                                  {trailer.attachedVehicle.unitNumber || trailer.attachedVehicle.plateNumber || 'N/A'}
+                                </div>
+                                {(trailer.attachedVehicle.make || trailer.attachedVehicle.model) && (
+                                  <div className="text-xs text-gray-500">
+                                    {trailer.attachedVehicle.make} {trailer.attachedVehicle.model}
+                                  </div>
+                                )}
+                              </>
+                            ) : (
+                              <div className="text-sm text-gray-400">Not attached</div>
+                            )}
+                            {trailer.isAttached && (
+                              <div className="text-xs text-green-600">Attached</div>
+                            )}
+                          </td>
+                          <td className="px-6 py-4">
+                            <div className="flex items-center text-sm text-gray-900">
+                              <MapPin className="w-4 h-4 mr-1 text-gray-400 flex-shrink-0" />
+                              <span className="truncate max-w-xs">{trailer.currentLocation || 'Unknown'}</span>
+                            </div>
+                            {trailer.speed !== undefined && trailer.speed > 0 && (
+                              <div className="text-xs text-gray-500">Speed: {trailer.speed} km/h</div>
+                            )}
                           </td>
                           <td className="px-6 py-4 whitespace-nowrap">
                             {getTrailerStatusBadge(trailer.trailerStatus)}
+                            {trailer.loadedStatus && (
+                              <div className="text-xs text-gray-500 mt-1">{trailer.loadedStatus}</div>
+                            )}
                           </td>
                           <td className="px-6 py-4 whitespace-nowrap">
                             {getServiceStatusBadge(trailer.serviceStatus)}
+                            {trailer.operationStatus && (
+                              <div className="text-xs text-gray-500 mt-1">{trailer.operationStatus}</div>
+                            )}
+                            {trailer.capacity && (
+                              <div className="text-xs text-gray-500 mt-1">Cap: {trailer.capacity}</div>
+                            )}
                           </td>
                         </tr>
                       ))

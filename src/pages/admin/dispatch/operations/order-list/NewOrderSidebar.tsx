@@ -475,6 +475,8 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
         id: number;
         name: string;
         file: File | null;
+        url?: string;
+        fileSize?: number;
         payable: boolean;
         shareWithDriver: boolean;
     }>>([]);
@@ -600,6 +602,12 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
             setPickupAppointment(order.pickupAppointment ? 'Yes' : 'No');
             setPickupRefNo(order.pickupRefNo || '');
             setPickupNote(order.pickupNote || '');
+            // Map to Goods and Pick Up Details fields
+            setPickUpNotes(order.pickupNote || '');
+            setPickUpNumber(order.pickupRefNo || '');
+            setPickupSkids(order.pickupSkids || '');
+            setPickupCases(order.pickupCases || '');
+            setGoods(order.commodity || '');
 
             // Delivery location
             if (order.deliveryLocation) {
@@ -623,6 +631,12 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
             setDeliveryTime(order.deliveryTime || '12:00');
             setDeliveryAppointment(order.deliveryAppointment ? 'Yes' : 'No');
             setDeliveryRefNo(order.deliveryRefNo || '');
+            // Also set drop off number and notes from these fields
+            if (!dropOffNumber) setDropOffNumber(order.dropOffNumber || order.deliveryRefNo || '');
+            if (!dropOffNotes) setDropOffNotes(order.dropOffNotes || order.deliveryNote || '');
+            setDeliverySkids(order.deliverySkids || '');
+            setDeliveryCases(order.deliveryCases || '');
+            if (!deliveryGoods) setDeliveryGoods(order.commodity || '');
             setDeliveryNote(order.deliveryNote || '');
 
             // Shipper Information
@@ -630,6 +644,16 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
                 setShipperName(order.shipper.name || '');
                 setShipperPhone(order.shipper.phone || '');
                 setShipperEmail(order.shipper.email || '');
+                setShipperUnit(order.shipper.unit || '');
+                setShipperCountry(order.shipper.country || '');
+                setShipperProvince(order.shipper.province || '');
+                setShipperCity(order.shipper.city || '');
+                setShipperPostalCode(order.shipper.postalCode || '');
+                setShipperPrimaryPhone(order.shipper.primaryPhone || '');
+                setShipperSecondaryPhone(order.shipper.secondaryPhone || '');
+                setShipperContact(order.shipper.contact || '');
+                setShipperStore(order.shipper.store || '');
+                setShipperType(order.shipper.type || 'DELIVERY');
                 // Set shipper address from order data
                 if (order.shipper.address) {
                     setShipperAddress(order.shipper.address);
@@ -637,9 +661,9 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
                     const shipperAddrParts = [
                         order.shipper.address || '',
                         order.shipper.city || '',
-                        order.shipper.state || '',
+                        order.shipper.province || '',
                         order.shipper.country || '',
-                        order.shipper.zipCode || ''
+                        order.shipper.postalCode || ''
                     ].filter(Boolean);
                     if (shipperAddrParts.length > 0) {
                         setPickupLocationAddress(shipperAddrParts.join(' '));
@@ -751,6 +775,33 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
             // Documents and Notes
             setInternalNotes(order.internalNotes || '');
             setCustomerNotes(order.customerNotes || '');
+            
+            // Load notes array
+            console.log('📝 [FRONTEND] Loading notes from order:', {
+                hasNotes: !!order.notes,
+                isArray: Array.isArray(order.notes),
+                notesLength: order.notes?.length || 0,
+                notes: order.notes
+            });
+            if (order.notes && Array.isArray(order.notes) && order.notes.length > 0) {
+                console.log('📝 [FRONTEND] Setting notes:', order.notes);
+                setNotes(order.notes);
+            } else {
+                console.log('📝 [FRONTEND] No valid notes found, setting empty array');
+                setNotes([]);
+            }
+            
+            // Load attachments array
+            if (order.attachments && Array.isArray(order.attachments)) {
+                setAttachments(order.attachments.map((att: any) => ({
+                    id: att.id || Date.now() + Math.random(),
+                    name: att.name || '',
+                    file: null, // Files are loaded from URLs
+                    url: att.url || '',
+                    payable: att.payable || false,
+                    shareWithDriver: att.shareWithDriver || false
+                })));
+            }
 
             // Customer Information additional fields
             setCustomerUnit(order.customerUnit || '');
@@ -835,6 +886,84 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
             } else {
                 setExistingDocuments({});
             }
+
+            // Assignment Information - Load assignment data when order is opened
+            // First, fetch trucks, trailers, and drivers if not already loaded
+            const loadAssignmentData = async () => {
+                try {
+                    let trucksData = trucks;
+                    let trailersData = trailers;
+                    let driversData = drivers;
+                    
+                    // Fetch trucks
+                    if (trucks.length === 0) {
+                        const trucksResponse = await listTrucks({ page: 1, limit: 100 });
+                        trucksData = Array.isArray(trucksResponse.data) ? trucksResponse.data : trucksResponse.data.data || [];
+                        setTrucks(trucksData);
+                    }
+                    // Fetch trailers
+                    if (trailers.length === 0) {
+                        const trailersResponse = await listTrailers({ page: 1, limit: 100 });
+                        trailersData = Array.isArray(trailersResponse.data) ? trailersResponse.data : trailersResponse.data.data || [];
+                        setTrailers(trailersData);
+                    }
+                    // Fetch drivers
+                    if (drivers.length === 0) {
+                        const driversResponse = await getAllDrivers(1, 100);
+                        driversData = Array.isArray(driversResponse.data) ? driversResponse.data : driversResponse.data.data || [];
+                        setDrivers(driversData);
+                        setCoDrivers(driversData); // Co-drivers use the same list
+                    }
+                    
+                    // Now set selected items using the fetched data
+                    if (order.truck) {
+                        const truckId = order.truck._id || order.truck.id || order.truck;
+                        const matchingTruck = trucksData.find(t => (t._id || t.id) === truckId) || order.truck;
+                        setSelectedTruck(matchingTruck);
+                        setTruckSearch(matchingTruck.unitNumber || matchingTruck.plateNumber || matchingTruck.internalId || '');
+                    }
+                    if (order.trailer) {
+                        const trailerId = order.trailer._id || order.trailer.id || order.trailer;
+                        const matchingTrailer = trailersData.find(t => (t._id || t.id) === trailerId) || order.trailer;
+                        setSelectedTrailer(matchingTrailer);
+                        setTrailerSearch(matchingTrailer.unitNumber || matchingTrailer.plateNumber || matchingTrailer.internalId || '');
+                    }
+                    if (order.driver) {
+                        const driverId = order.driver._id || order.driver.id || order.driver;
+                        const matchingDriver = driversData.find(d => (d._id || d.id) === driverId) || order.driver;
+                        setSelectedDriver(matchingDriver);
+                        setDriverSearch(matchingDriver.name || matchingDriver.email || '');
+                    }
+                    if (order.coDriver) {
+                        const coDriverId = order.coDriver._id || order.coDriver.id || order.coDriver;
+                        const matchingCoDriver = driversData.find(d => (d._id || d.id) === coDriverId) || order.coDriver;
+                        setSelectedCoDriver(matchingCoDriver);
+                        setCoDriverSearch(matchingCoDriver.name || matchingCoDriver.email || '');
+                    }
+                } catch (error) {
+                    console.error('Error loading assignment data:', error);
+                    // Even if fetch fails, try to set from order data directly
+                    if (order.truck) {
+                        setSelectedTruck(order.truck);
+                        setTruckSearch(order.truck.unitNumber || order.truck.plateNumber || order.truck.internalId || '');
+                    }
+                    if (order.trailer) {
+                        setSelectedTrailer(order.trailer);
+                        setTrailerSearch(order.trailer.unitNumber || order.trailer.plateNumber || order.trailer.internalId || '');
+                    }
+                    if (order.driver) {
+                        setSelectedDriver(order.driver);
+                        setDriverSearch(order.driver.name || order.driver.email || '');
+                    }
+                    if (order.coDriver) {
+                        setSelectedCoDriver(order.coDriver);
+                        setCoDriverSearch(order.coDriver.name || order.coDriver.email || '');
+                    }
+                }
+            };
+            
+            // Load assignment data
+            loadAssignmentData();
         } else {
             // Reset all fields when creating new order
             setSelectedCustomer(null);
@@ -1699,6 +1828,17 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
                     formData.append('loadSecurement', file);
                 });
             }
+            // Append attachment files (from Notes/Audit section)
+            if (attachments && attachments.length > 0) {
+                attachments.forEach((attachment, index) => {
+                    if (attachment.file) {
+                        formData.append(`attachment`, attachment.file);
+                        formData.append(`attachmentName_${index}`, attachment.name);
+                        formData.append(`attachmentPayable_${index}`, String(attachment.payable));
+                        formData.append(`attachmentShareWithDriver_${index}`, String(attachment.shareWithDriver));
+                    }
+                });
+            }
 
             // Build order data as JSON string for FormData
             const orderData = {
@@ -1717,8 +1857,8 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
                 pickupDate: pickupDateTime,
                 pickupTime: pickupTime || '',
                 pickupAppointment: pickupAppointment === "Yes",
-                pickupRefNo: pickupRefNo || '',
-                pickupNote: pickupNote || '',
+                pickupRefNo: pickUpNumber || pickupRefNo || '',
+                pickupNote: pickUpNotes || pickupNote || '',
                 deliveryLocation: {
                     place: deliveryLocationAddress || receiverAddress || '',
                     latitude: '',
@@ -1727,18 +1867,26 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
                 deliveryDate: deliveryDateTime,
                 deliveryTime: deliveryTime || '',
                 deliveryAppointment: deliveryAppointment === "Yes",
-                deliveryRefNo: deliveryRefNo || '',
-                deliveryNote: deliveryNote || '',
-                commodity: commodity || '',
+                deliveryRefNo: dropOffNumber || deliveryRefNo || '',
+                deliveryNote: dropOffNotes || deliveryNote || '',
+                commodity: goods || commodity || '',
                 valueOfGoods: valueOfGoods ? parseFloat(valueOfGoods) : 0,
                 valueOfGoodsCurrency: valueOfGoodsCurrency || 'CAD',
                 equipment: selectedEquipment || [],
                 noOfPackages: noOfPackages ? parseInt(noOfPackages) : 0,
                 noOfPackagesType: noOfPackagesType || '',
                 weight: weight ? parseFloat(weight) : 0,
-                weightUnit: weightUnit || 'kg',
+                weightUnit: weightUnit || pickupUoM || 'kg',
                 temperature: temperature ? parseFloat(temperature) : null,
                 temperatureUnit: temperatureUnit || 'Celsius',
+                // Additional pickup fields for Goods and Pick Up Details
+                pickupSkids: pickupSkids || '',
+                pickupCases: pickupCases || '',
+                // Delivery goods and drop off details
+                deliverySkids: deliverySkids || '',
+                deliveryCases: deliveryCases || '',
+                dropOffNotes: dropOffNotes || '',
+                dropOffNumber: dropOffNumber || '',
                 weatherConditions: {
                     snow: weatherConditions.snow,
                     highTemperature: weatherConditions.highTemperature
@@ -1756,26 +1904,36 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
                 totalAmount: valueOfGoods ? parseFloat(valueOfGoods) : 0,
                 currency: valueOfGoodsCurrency || 'CAD',
 
-                // Border Information
-                borderInfo: borderRequired ? {
-                    detailsRequired: true,
-                    direction: borderDirection,
-                    portOfEntry: portOfEntry,
-                    cargoDescription: cargoDescription,
-                    hsCode: hsCode,
-                    brokerName: brokerName,
-                    brokerPhone: brokerPhone,
-                    brokerEmail: brokerEmail,
-                    commercialValue: commercialValue,
-                    countryOfOrigin: countryOfOrigin
+                // Border Information - Always send if borderRequired is true OR if any customs broker fields are filled
+                borderInfo: (borderRequired || brokerName || brokerPhone || brokerEmail) ? {
+                    detailsRequired: borderRequired || false,
+                    direction: borderDirection || 'CA_TO_US',
+                    portOfEntry: portOfEntry || '',
+                    cargoDescription: cargoDescription || '',
+                    hsCode: hsCode || '',
+                    brokerName: brokerName || '',
+                    brokerPhone: brokerPhone || '',
+                    brokerEmail: brokerEmail || '',
+                    commercialValue: commercialValue || '',
+                    countryOfOrigin: countryOfOrigin || ''
                 } : null,
 
-                // New fields
+                // New fields - Shipper with all fields
                 shipper: {
-                    name: shipperName,
-                    phone: shipperPhone,
-                    email: shipperEmail,
-                    address: pickupLocationAddress || shipperAddress || ''
+                    name: shipperName || '',
+                    phone: shipperPhone || '',
+                    email: shipperEmail || '',
+                    address: pickupLocationAddress || shipperAddress || '',
+                    unit: shipperUnit || '',
+                    country: shipperCountry || '',
+                    province: shipperProvince || '',
+                    city: shipperCity || '',
+                    postalCode: shipperPostalCode || '',
+                    primaryPhone: shipperPrimaryPhone || '',
+                    secondaryPhone: shipperSecondaryPhone || '',
+                    contact: shipperContact || '',
+                    store: shipperStore || '',
+                    type: shipperType || 'DELIVERY'
                 },
                 pickupAppointmentDetails: {
                     type: pickupAppointmentType,
@@ -1789,9 +1947,10 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
                     gatePass: pickupGatePass
                 },
                 receiver: {
-                    name: receiverName,
-                    phone: receiverPhone,
-                    address: deliveryLocationAddress || receiverAddress || ''
+                    name: receiverName || '',
+                    phone: receiverPhone || '',
+                    address: deliveryLocationAddress || receiverAddress || '',
+                    contact: receiverContact || ''
                 },
                 deliveryAppointmentDetails: {
                     type: deliveryAppointmentType,
@@ -1808,6 +1967,17 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
                 // Don't include documents object - files are sent separately via FormData
                 internalNotes: internalNotes,
                 customerNotes: customerNotes,
+                // Notes array (for Notes/Audit section)
+                notes: notes,
+                // Attachments (for Notes/Audit section - send existing attachments with URLs, new files will be uploaded separately)
+                attachments: attachments.map(att => ({
+                    id: att.id,
+                    name: att.name,
+                    url: att.url || '', // URL will be set by backend after file upload
+                    fileSize: att.file?.size || att.fileSize || 0,
+                    payable: att.payable || false,
+                    shareWithDriver: att.shareWithDriver || false
+                })),
 
                 // Customer Information additional fields
                 customerUnit: customerUnit,
@@ -1855,7 +2025,13 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
                 invoiceNotes: invoiceNotes,
 
                 // Stop Information
-                stops: stops
+                stops: stops,
+
+                // Assignment Information
+                truck: selectedTruck?._id || selectedTruck?.id || null,
+                trailer: selectedTrailer?._id || selectedTrailer?.id || null,
+                driver: selectedDriver?._id || selectedDriver?.id || null,
+                coDriver: selectedCoDriver?._id || selectedCoDriver?.id || null
             };
 
             // Append all order data fields to FormData

@@ -1,27 +1,70 @@
 import { useState, useEffect } from "react";
-import { Package, Calendar, MapPin, Search, ArrowLeft, Truck, User, Loader2 } from "lucide-react";
-import { useNavigate } from "react-router-dom";
-import { getUserRole } from "../../../../../utils/auth";
+import { Calendar, MapPin, Search, Truck, User, Loader2 } from "lucide-react";
 import { getTodayDeliveries } from "../../../../../axios/api/distapcher";
 
 interface Delivery {
   id: string;
+  _id?: string;
   orderNumber: string;
+  customerOrderNo?: string;
+  tripNo?: string;
   customerName: string;
+  customer?: {
+    _id: string;
+    name?: string;
+    email?: string;
+    phone?: string;
+  } | null;
   deliveryLocation: string;
   deliveryDate: string;
   deliveryTime: string;
+  deliveryDateFull?: string | Date;
   status: string;
+  orderStatus?: string;
   driverName: string;
+  driver?: {
+    _id: string;
+    name?: string;
+    email?: string;
+    phone?: string;
+  } | null;
+  coDriver?: {
+    _id: string;
+    name?: string;
+    email?: string;
+    phone?: string;
+  } | null;
   truckPlate: string;
+  truck?: {
+    _id: string;
+    licensePlate?: string;
+    internalId?: string;
+    unitNumber?: string;
+    make?: string;
+    model?: string;
+  } | null;
+  trailer?: {
+    _id: string;
+    licensePlate?: string;
+    trailerNumber?: string;
+    unitNumber?: string;
+  } | null;
   items: number;
+  pickupLocation?: string;
+  pickupDate?: string | Date;
+  pickupTime?: string;
+  receiver?: {
+    name?: string;
+    address?: string;
+    phone?: string;
+    contact?: string;
+  } | null;
+  distance?: number;
+  rate?: number;
+  currency?: string;
 }
 
 const DeliveriesPage = () => {
-  const navigate = useNavigate();
-  const userRole = getUserRole();
-  const isDispatcher = userRole === 'dispatcher';
-  const basePath = isDispatcher ? '/dispatch' : '/admin/dispatch';
 
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>("all");
@@ -47,11 +90,15 @@ const DeliveriesPage = () => {
   };
 
   const filteredDeliveries = deliveries.filter((delivery) => {
+    const searchLower = searchTerm.toLowerCase();
     const matchesSearch =
-      delivery.orderNumber.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      delivery.customerName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      delivery.deliveryLocation.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      delivery.driverName.toLowerCase().includes(searchTerm.toLowerCase());
+      (delivery.orderNumber || '').toLowerCase().includes(searchLower) ||
+      (delivery.customerOrderNo || '').toLowerCase().includes(searchLower) ||
+      (delivery.customerName || '').toLowerCase().includes(searchLower) ||
+      (delivery.deliveryLocation || '').toLowerCase().includes(searchLower) ||
+      (delivery.driverName || '').toLowerCase().includes(searchLower) ||
+      (delivery.truckPlate || '').toLowerCase().includes(searchLower) ||
+      (delivery.receiver?.name || '').toLowerCase().includes(searchLower);
 
     const matchesStatus = statusFilter === "all" || delivery.status === statusFilter;
 
@@ -130,6 +177,9 @@ const DeliveriesPage = () => {
                   <option value="in transit">In Transit</option>
                   <option value="completed">Completed</option>
                 </select>
+                <div className="text-xs text-gray-500 mt-1">
+                  Showing deliveries for today
+                </div>
               </div>
             </div>
           </div>
@@ -185,12 +235,20 @@ const DeliveriesPage = () => {
                   ) : (
                     filteredDeliveries.map((delivery) => (
                       <tr key={delivery.id} className="hover:bg-gray-50 transition-colors">
-                        <td className="px-6 py-4 whitespace-nowrap">
-                          <div className="text-sm font-medium text-gray-900">{delivery.orderNumber}</div>
-                          <div className="text-xs text-gray-500">ID: {delivery.id}</div>
+                        <td className="px-6 py-4">
+                          <div className="text-sm font-medium text-gray-900">{delivery.orderNumber || 'N/A'}</div>
+                          {delivery.customerOrderNo && (
+                            <div className="text-xs text-gray-500">Cust: {delivery.customerOrderNo}</div>
+                          )}
+                          {delivery.tripNo && (
+                            <div className="text-xs text-blue-600">Trip: {delivery.tripNo}</div>
+                          )}
                         </td>
-                        <td className="px-6 py-4 whitespace-nowrap">
-                          <div className="text-sm text-gray-900">{delivery.customerName}</div>
+                        <td className="px-6 py-4">
+                          <div className="text-sm text-gray-900">{delivery.customerName || 'N/A'}</div>
+                          {delivery.receiver?.name && delivery.receiver.name !== delivery.customerName && (
+                            <div className="text-xs text-gray-500">Receiver: {delivery.receiver.name}</div>
+                          )}
                         </td>
                         <td className="px-6 py-4">
                           <div className="flex items-center text-sm text-gray-900">
@@ -207,16 +265,26 @@ const DeliveriesPage = () => {
                             </div>
                           </div>
                         </td>
-                        <td className="px-6 py-4 whitespace-nowrap">
+                        <td className="px-6 py-4">
                           <div className="flex items-center text-sm text-gray-900">
-                            <User className="w-4 h-4 mr-1 text-gray-400" />
-                            {delivery.driverName}
+                            <User className="w-4 h-4 mr-1 text-gray-400 flex-shrink-0" />
+                            <div>
+                              <div>{delivery.driverName || 'Not assigned'}</div>
+                              {delivery.coDriver?.name && (
+                                <div className="text-xs text-gray-500">Co: {delivery.coDriver.name}</div>
+                              )}
+                            </div>
                           </div>
                         </td>
-                        <td className="px-6 py-4 whitespace-nowrap">
+                        <td className="px-6 py-4">
                           <div className="flex items-center text-sm text-gray-900">
-                            <Truck className="w-4 h-4 mr-1 text-gray-400" />
-                            {delivery.truckPlate}
+                            <Truck className="w-4 h-4 mr-1 text-gray-400 flex-shrink-0" />
+                            <div>
+                              <div>{delivery.truckPlate || 'Not assigned'}</div>
+                              {delivery.trailer?.licensePlate && (
+                                <div className="text-xs text-gray-500">Trailer: {delivery.trailer.licensePlate}</div>
+                              )}
+                            </div>
                           </div>
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap">

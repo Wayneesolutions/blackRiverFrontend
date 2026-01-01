@@ -1,7 +1,6 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import {
   FaHistory,
-  FaFilter,
   FaSearch,
   FaUser,
   FaTruck,
@@ -13,6 +12,8 @@ import {
   FaClock,
   FaFileAlt,
 } from "react-icons/fa";
+import { getAuditTrail } from "../../../../../axios/api/distapcher";
+import { Loader2 } from "lucide-react";
 
 interface AuditTrailEntry {
   id: string;
@@ -36,194 +37,59 @@ const AuditTrail = () => {
   const [filterEntityType, setFilterEntityType] = useState("all");
   const [filterAction, setFilterAction] = useState("all");
   const [dateFilter, setDateFilter] = useState("all");
+  const [auditTrail, setAuditTrail] = useState<AuditTrailEntry[]>([]);
+  const [loading, setLoading] = useState(true);
 
-  // Static audit trail data
-  const staticAuditTrail: AuditTrailEntry[] = [
-    {
-      id: "1",
-      timestamp: new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString(),
-      user: "John Smith",
-      action: "Updated",
-      entityType: "Order",
-      entityId: "ORD-2024-001",
-      entityName: "Order #ORD-2024-001",
-      changes: [
-        { field: "Status", oldValue: "Planned", newValue: "Dispatched" },
-        { field: "Delivery Date", oldValue: "2024-01-15", newValue: "2024-01-16" },
-      ],
-      details: "Order status changed and delivery date updated",
-    },
-    {
-      id: "2",
-      timestamp: new Date(Date.now() - 5 * 60 * 60 * 1000).toISOString(),
-      user: "Sarah Johnson",
-      action: "Assigned",
-      entityType: "Driver",
-      entityId: "DRV-123",
-      entityName: "Driver: Mike Wilson",
-      changes: [
-        { field: "Assigned To", oldValue: "Unassigned", newValue: "ORD-2024-001" },
-      ],
-      details: "Driver assigned to order ORD-2024-001",
-    },
-    {
-      id: "3",
-      timestamp: new Date(Date.now() - 8 * 60 * 60 * 1000).toISOString(),
-      user: "Michael Brown",
-      action: "Created",
-      entityType: "Order",
-      entityId: "ORD-2024-002",
-      entityName: "Order #ORD-2024-002",
-      changes: [
-        { field: "Order Created", oldValue: "N/A", newValue: "ORD-2024-002" },
-        { field: "Customer", oldValue: "N/A", newValue: "ABC Logistics" },
-        { field: "Rate", oldValue: "N/A", newValue: "$2,500.00" },
-      ],
-      details: "New order created with customer ABC Logistics",
-    },
-    {
-      id: "4",
-      timestamp: new Date(Date.now() - 12 * 60 * 60 * 1000).toISOString(),
-      user: "Emily Davis",
-      action: "Updated",
-      entityType: "Route",
-      entityId: "ROUTE-001",
-      entityName: "Route: Toronto to Montreal",
-      changes: [
-        { field: "Pickup Location", oldValue: "123 Main St, Toronto", newValue: "456 Queen St, Toronto" },
-        { field: "Estimated Time", oldValue: "5 hours", newValue: "6 hours" },
-      ],
-      details: "Route pickup location and estimated time updated",
-    },
-    {
-      id: "5",
-      timestamp: new Date(Date.now() - 15 * 60 * 60 * 1000).toISOString(),
-      user: "John Smith",
-      action: "Assigned",
-      entityType: "Vehicle",
-      entityId: "TRK-456",
-      entityName: "Truck: TRK-456",
-      changes: [
-        { field: "Assigned To", oldValue: "Unassigned", newValue: "ORD-2024-001" },
-      ],
-      details: "Truck TRK-456 assigned to order ORD-2024-001",
-    },
-    {
-      id: "6",
-      timestamp: new Date(Date.now() - 18 * 60 * 60 * 1000).toISOString(),
-      user: "Sarah Johnson",
-      action: "Updated",
-      entityType: "Order",
-      entityId: "ORD-2024-003",
-      entityName: "Order #ORD-2024-003",
-      changes: [
-        { field: "Customer", oldValue: "XYZ Corp", newValue: "XYZ Corporation" },
-        { field: "Rate", oldValue: "$3,000.00", newValue: "$3,200.00" },
-      ],
-      details: "Order customer name and rate updated",
-    },
-    {
-      id: "7",
-      timestamp: new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString(),
-      user: "Michael Brown",
-      action: "Deleted",
-      entityType: "Order",
-      entityId: "ORD-2024-004",
-      entityName: "Order #ORD-2024-004",
-      changes: [
-        { field: "Status", oldValue: "Planned", newValue: "Deleted" },
-      ],
-      details: "Order cancelled and deleted",
-    },
-    {
-      id: "8",
-      timestamp: new Date(Date.now() - 30 * 60 * 60 * 1000).toISOString(),
-      user: "Emily Davis",
-      action: "Updated",
-      entityType: "Trip",
-      entityId: "TRIP-789",
-      entityName: "Trip #TRIP-789",
-      changes: [
-        { field: "Status", oldValue: "In Delivery", newValue: "Delivered" },
-        { field: "Delivery Time", oldValue: "Pending", newValue: "2024-01-14 14:30" },
-      ],
-      details: "Trip marked as delivered with delivery time recorded",
-    },
-    {
-      id: "9",
-      timestamp: new Date(Date.now() - 36 * 60 * 60 * 1000).toISOString(),
-      user: "John Smith",
-      action: "Updated",
-      entityType: "Customer",
-      entityId: "CUST-101",
-      entityName: "Customer: ABC Logistics",
-      changes: [
-        { field: "Contact Email", oldValue: "old@abclogistics.com", newValue: "new@abclogistics.com" },
-        { field: "Phone", oldValue: "555-0100", newValue: "555-0200" },
-      ],
-      details: "Customer contact information updated",
-    },
-    {
-      id: "10",
-      timestamp: new Date(Date.now() - 42 * 60 * 60 * 1000).toISOString(),
-      user: "Sarah Johnson",
-      action: "Uploaded",
-      entityType: "Document",
-      entityId: "DOC-2024-001",
-      entityName: "BOL Document",
-      changes: [
-        { field: "Document", oldValue: "Not uploaded", newValue: "BOL-ORD-2024-001.pdf" },
-      ],
-      details: "Bill of Lading document uploaded for order ORD-2024-001",
-    },
-    {
-      id: "11",
-      timestamp: new Date(Date.now() - 48 * 60 * 60 * 1000).toISOString(),
-      user: "Michael Brown",
-      action: "Assigned",
-      entityType: "Driver",
-      entityId: "DRV-456",
-      entityName: "Driver: Lisa Anderson",
-      changes: [
-        { field: "Assigned To", oldValue: "ORD-2024-002", newValue: "ORD-2024-003" },
-      ],
-      details: "Driver reassigned from order ORD-2024-002 to ORD-2024-003",
-    },
-    {
-      id: "12",
-      timestamp: new Date(Date.now() - 54 * 60 * 60 * 1000).toISOString(),
-      user: "Emily Davis",
-      action: "Updated",
-      entityType: "Order",
-      entityId: "ORD-2024-005",
-      entityName: "Order #ORD-2024-005",
-      changes: [
-        { field: "Pickup Date", oldValue: "2024-01-20", newValue: "2024-01-21" },
-        { field: "Pickup Time", oldValue: "09:00", newValue: "10:00" },
-      ],
-      details: "Order pickup date and time rescheduled",
-    },
-  ];
+  useEffect(() => {
+    fetchAuditTrail();
+  }, []);
+
+  const fetchAuditTrail = async () => {
+    try {
+      setLoading(true);
+      const response = await getAuditTrail();
+      if (response.success && response.data) {
+        // Map backend data to frontend format
+        const mappedEntries: AuditTrailEntry[] = response.data.map((entry: any) => ({
+          id: entry.id || entry._id || Math.random().toString(),
+          timestamp: entry.timestamp,
+          user: entry.user || 'Unknown',
+          action: entry.action || 'Updated',
+          entityType: entry.entityType || 'Order',
+          entityId: entry.entityId || '',
+          entityName: entry.entityName || '',
+          changes: entry.changes || [],
+          details: entry.details || ''
+        }));
+        setAuditTrail(mappedEntries);
+      }
+    } catch (error) {
+      console.error("Error fetching audit trail:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
 
   // Get unique users, entity types, and actions for filters
   const uniqueUsers = useMemo(() => {
-    const users = new Set(staticAuditTrail.map((entry) => entry.user));
-    return Array.from(users);
-  }, []);
+    const users = new Set(auditTrail.map((entry) => entry.user));
+    return Array.from(users).sort();
+  }, [auditTrail]);
 
   const uniqueEntityTypes = useMemo(() => {
-    const types = new Set(staticAuditTrail.map((entry) => entry.entityType));
-    return Array.from(types);
-  }, []);
+    const types = new Set(auditTrail.map((entry) => entry.entityType));
+    return Array.from(types).sort();
+  }, [auditTrail]);
 
   const uniqueActions = useMemo(() => {
-    const actions = new Set(staticAuditTrail.map((entry) => entry.action));
-    return Array.from(actions);
-  }, []);
+    const actions = new Set(auditTrail.map((entry) => entry.action));
+    return Array.from(actions).sort();
+  }, [auditTrail]);
 
   // Filter audit trail
   const filteredAuditTrail = useMemo(() => {
-    return staticAuditTrail.filter((entry) => {
+    return auditTrail.filter((entry) => {
       const matchesSearch =
         entry.entityName.toLowerCase().includes(searchTerm.toLowerCase()) ||
         entry.entityId.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -255,7 +121,7 @@ const AuditTrail = () => {
 
       return matchesSearch && matchesUser && matchesEntityType && matchesAction && matchesDate;
     });
-  }, [searchTerm, filterUser, filterEntityType, filterAction, dateFilter]);
+  }, [auditTrail, searchTerm, filterUser, filterEntityType, filterAction, dateFilter]);
 
   const getActionIcon = (action: string) => {
     switch (action) {
@@ -295,8 +161,11 @@ const AuditTrail = () => {
     }
   };
 
-  const formatTimestamp = (timestamp: string) => {
-    const date = new Date(timestamp);
+  const formatTimestamp = (timestamp: string | Date) => {
+    const date = typeof timestamp === 'string' ? new Date(timestamp) : timestamp;
+    if (isNaN(date.getTime())) {
+      return 'Invalid date';
+    }
     const now = new Date();
     const diffMs = now.getTime() - date.getTime();
     const diffMins = Math.floor(diffMs / 60000);
@@ -445,12 +314,18 @@ const AuditTrail = () => {
         {/* Results Count */}
         <div className="mb-4 text-sm text-gray-600">
           Showing <span className="font-semibold">{filteredAuditTrail.length}</span> of{" "}
-          <span className="font-semibold">{staticAuditTrail.length}</span> audit trail entries
+          <span className="font-semibold">{auditTrail.length}</span> audit trail entries
         </div>
 
         {/* Audit Trail List */}
         <div className="space-y-4">
-          {filteredAuditTrail.length === 0 ? (
+          {loading ? (
+            <div className="bg-white rounded-lg shadow-sm p-12 text-center">
+              <Loader2 className="mx-auto w-8 h-8 animate-spin text-blue-500 mb-4" />
+              <h3 className="text-lg font-semibold text-gray-700 mb-2">Loading audit trail...</h3>
+              <p className="text-gray-500">Please wait while we fetch the audit trail entries.</p>
+            </div>
+          ) : filteredAuditTrail.length === 0 ? (
             <div className="bg-white rounded-lg shadow-sm p-12 text-center">
               <FaHistory className="mx-auto text-4xl text-gray-300 mb-4" />
               <h3 className="text-lg font-semibold text-gray-700 mb-2">No audit trail entries found</h3>

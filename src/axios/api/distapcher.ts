@@ -629,6 +629,26 @@ export const getTodayDeliveries = async () => {
   }
 }
 
+export const getTodayPickups = async () => {
+  try {
+    const res: AxiosResponse = await apiClient.get(`dispatcher/pickups`);
+    return res.data;
+  } catch (error) {
+    console.error('❌ getTodayPickups API error:', error);
+    return (error as Error).response?.data || { success: false, message: 'Failed to fetch today\'s pickups', data: [] };
+  }
+}
+
+export const getAuditTrail = async () => {
+  try {
+    const res: AxiosResponse = await apiClient.get(`dispatcher/audit`);
+    return res.data;
+  } catch (error) {
+    console.error('❌ getAuditTrail API error:', error);
+    return (error as Error).response?.data || { success: false, message: 'Failed to fetch audit trail', data: [] };
+  }
+}
+
 export const getDriversOnLeave = async () => {
   try {
     const res: AxiosResponse = await apiClient.get(`dispatcher/drivers-on-leave`);

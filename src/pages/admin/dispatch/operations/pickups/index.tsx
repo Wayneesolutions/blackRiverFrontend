@@ -1,99 +1,106 @@
-import { useState } from "react";
-import { Package, Calendar, MapPin, Search, ArrowLeft, Truck, User } from "lucide-react";
-import { useNavigate } from "react-router-dom";
-import { getUserRole } from "../../../../../utils/auth";
+import { useState, useEffect } from "react";
+import { Calendar, MapPin, Search, Truck, User, Loader2 } from "lucide-react";
+import { getTodayPickups } from "../../../../../axios/api/distapcher";
 
-// Static data for pickups
-const staticPickups = [
-  {
-    id: "PICK001",
-    orderNumber: "ORD-001",
-    customerName: "ABC Logistics",
-    pickupLocation: "Winnipeg, MB",
-    pickupDate: "2024-01-15",
-    pickupTime: "8:00 AM",
-    status: "completed",
-    driverName: "John Doe",
-    truckPlate: "ABC-123",
-    items: 12,
-  },
-  {
-    id: "PICK002",
-    orderNumber: "ORD-002",
-    customerName: "XYZ Transport",
-    pickupLocation: "Calgary, AB",
-    pickupDate: "2024-01-15",
-    pickupTime: "12:00 PM",
-    status: "in progress",
-    driverName: "Jane Smith",
-    truckPlate: "DEF-456",
-    items: 8,
-  },
-  {
-    id: "PICK003",
-    orderNumber: "ORD-003",
-    customerName: "Global Shipping",
-    pickupLocation: "Toronto, ON",
-    pickupDate: "2024-01-16",
-    pickupTime: "7:00 AM",
-    status: "scheduled",
-    driverName: "Bob Johnson",
-    truckPlate: "GHI-789",
-    items: 15,
-  },
-  {
-    id: "PICK004",
-    orderNumber: "ORD-004",
-    customerName: "Fast Delivery Co",
-    pickupLocation: "Edmonton, AB",
-    pickupDate: "2024-01-16",
-    pickupTime: "11:30 AM",
-    status: "scheduled",
-    driverName: "Alice Williams",
-    truckPlate: "JKL-012",
-    items: 6,
-  },
-  {
-    id: "PICK005",
-    orderNumber: "ORD-005",
-    customerName: "Premium Logistics",
-    pickupLocation: "Vancouver, BC",
-    pickupDate: "2024-01-17",
-    pickupTime: "9:00 AM",
-    status: "scheduled",
-    driverName: "Mike Brown",
-    truckPlate: "MNO-345",
-    items: 20,
-  },
-  {
-    id: "PICK006",
-    orderNumber: "ORD-006",
-    customerName: "Express Transport",
-    pickupLocation: "Montreal, QC",
-    pickupDate: "2024-01-17",
-    pickupTime: "1:00 PM",
-    status: "scheduled",
-    driverName: "Sarah Davis",
-    truckPlate: "PQR-678",
-    items: 10,
-  },
-];
+interface Pickup {
+  id: string;
+  _id?: string;
+  orderNumber: string;
+  customerOrderNo?: string;
+  tripNo?: string;
+  customerName: string;
+  customer?: {
+    _id: string;
+    name?: string;
+    email?: string;
+    phone?: string;
+  } | null;
+  pickupLocation: string;
+  deliveryLocation?: string;
+  pickupDate: string;
+  pickupTime: string;
+  pickupDateFull?: string | Date;
+  status: string;
+  orderStatus?: string;
+  driverName: string;
+  driver?: {
+    _id: string;
+    name?: string;
+    email?: string;
+    phone?: string;
+  } | null;
+  coDriver?: {
+    _id: string;
+    name?: string;
+    email?: string;
+    phone?: string;
+  } | null;
+  truckPlate: string;
+  truck?: {
+    _id: string;
+    licensePlate?: string;
+    internalId?: string;
+    unitNumber?: string;
+    make?: string;
+    model?: string;
+  } | null;
+  trailer?: {
+    _id: string;
+    licensePlate?: string;
+    trailerNumber?: string;
+    unitNumber?: string;
+  } | null;
+  items: number;
+  shipper?: {
+    name?: string;
+    address?: string;
+    phone?: string;
+    contact?: string;
+    city?: string;
+    province?: string;
+  } | null;
+  distance?: number;
+  rate?: number;
+  currency?: string;
+  pickupSkids?: string;
+  pickupCases?: string;
+  commodity?: string;
+}
 
 const PickupsPage = () => {
-  const navigate = useNavigate();
-  const userRole = getUserRole();
-  const isDispatcher = userRole === 'dispatcher';
-  const basePath = isDispatcher ? '/dispatch' : '/admin/dispatch';
-
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>("all");
+  const [pickups, setPickups] = useState<Pickup[]>([]);
+  const [loading, setLoading] = useState(true);
 
-  const filteredPickups = staticPickups.filter((pickup) => {
+  useEffect(() => {
+    fetchPickups();
+  }, []);
+
+  const fetchPickups = async () => {
+    try {
+      setLoading(true);
+      const response = await getTodayPickups();
+      if (response.success && response.data) {
+        setPickups(response.data || []);
+      }
+    } catch (error) {
+      console.error("Error fetching pickups:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const filteredPickups = pickups.filter((pickup) => {
+    const searchLower = searchTerm.toLowerCase();
     const matchesSearch =
-      pickup.orderNumber.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      pickup.customerName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      pickup.pickupLocation.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      pickup.driverName.toLowerCase().includes(searchTerm.toLowerCase());
+      (pickup.orderNumber || '').toLowerCase().includes(searchLower) ||
+      (pickup.customerOrderNo || '').toLowerCase().includes(searchLower) ||
+      (pickup.customerName || '').toLowerCase().includes(searchLower) ||
+      (pickup.pickupLocation || '').toLowerCase().includes(searchLower) ||
+      (pickup.driverName || '').toLowerCase().includes(searchLower) ||
+      (pickup.truckPlate || '').toLowerCase().includes(searchLower) ||
+      (pickup.shipper?.name || '').toLowerCase().includes(searchLower);
 
     const matchesStatus = statusFilter === "all" || pickup.status === statusFilter;
 
@@ -143,7 +150,7 @@ const PickupsPage = () => {
                 <h1 className="text-xl font-bold text-black">Pickups</h1>
               </div>
               <div className="text-black/90 text-sm">
-                Total: {staticPickups.length} pickups
+                Total: {pickups.length} pickups
               </div>
             </div>
           </div>
@@ -172,6 +179,9 @@ const PickupsPage = () => {
                   <option value="in progress">In Progress</option>
                   <option value="completed">Completed</option>
                 </select>
+                <div className="text-xs text-gray-500 mt-1">
+                  Showing pickups for today
+                </div>
               </div>
             </div>
           </div>
@@ -209,54 +219,98 @@ const PickupsPage = () => {
                   </tr>
                 </thead>
                 <tbody className="bg-white divide-y divide-gray-200">
-                  {filteredPickups.length === 0 ? (
+                  {loading ? (
+                    <tr>
+                      <td colSpan={8} className="px-6 py-8 text-center">
+                        <div className="flex items-center justify-center">
+                          <Loader2 className="w-6 h-6 animate-spin text-blue-500" />
+                          <span className="ml-2 text-gray-500">Loading pickups...</span>
+                        </div>
+                      </td>
+                    </tr>
+                  ) : filteredPickups.length === 0 ? (
                     <tr>
                       <td colSpan={8} className="px-6 py-8 text-center text-gray-500">
-                        No pickups found
+                        No pickups found for today
                       </td>
                     </tr>
                   ) : (
                     filteredPickups.map((pickup) => (
                       <tr key={pickup.id} className="hover:bg-gray-50 transition-colors">
-                        <td className="px-6 py-4 whitespace-nowrap">
-                          <div className="text-sm font-medium text-gray-900">{pickup.orderNumber}</div>
-                          <div className="text-xs text-gray-500">ID: {pickup.id}</div>
+                        <td className="px-6 py-4">
+                          <div className="text-sm font-medium text-gray-900">{pickup.orderNumber || 'N/A'}</div>
+                          {pickup.customerOrderNo && (
+                            <div className="text-xs text-gray-500">Cust: {pickup.customerOrderNo}</div>
+                          )}
+                          {pickup.tripNo && (
+                            <div className="text-xs text-blue-600">Trip: {pickup.tripNo}</div>
+                          )}
                         </td>
-                        <td className="px-6 py-4 whitespace-nowrap">
-                          <div className="text-sm text-gray-900">{pickup.customerName}</div>
+                        <td className="px-6 py-4">
+                          <div className="text-sm text-gray-900">{pickup.customerName || 'N/A'}</div>
+                          {pickup.shipper?.name && pickup.shipper.name !== pickup.customerName && (
+                            <div className="text-xs text-gray-500">Shipper: {pickup.shipper.name}</div>
+                          )}
                         </td>
                         <td className="px-6 py-4">
                           <div className="flex items-center text-sm text-gray-900">
-                            <MapPin className="w-4 h-4 mr-1 text-gray-400" />
-                            {pickup.pickupLocation}
+                            <MapPin className="w-4 h-4 mr-1 text-gray-400 flex-shrink-0" />
+                            <span className="truncate max-w-xs">{pickup.pickupLocation || 'Location not specified'}</span>
                           </div>
+                          {pickup.deliveryLocation && (
+                            <div className="text-xs text-gray-500 mt-1">
+                              To: {pickup.deliveryLocation.length > 30 ? `${pickup.deliveryLocation.substring(0, 30)}...` : pickup.deliveryLocation}
+                            </div>
+                          )}
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap">
                           <div className="flex items-center text-sm text-gray-900">
                             <Calendar className="w-4 h-4 mr-1 text-gray-400" />
                             <div>
                               <div>{formatDate(pickup.pickupDate)}</div>
-                              <div className="text-xs text-gray-500">{pickup.pickupTime}</div>
+                              <div className="text-xs text-gray-500">{pickup.pickupTime || 'Not specified'}</div>
+                            </div>
+                          </div>
+                        </td>
+                        <td className="px-6 py-4">
+                          <div className="flex items-center text-sm text-gray-900">
+                            <User className="w-4 h-4 mr-1 text-gray-400 flex-shrink-0" />
+                            <div>
+                              <div>{pickup.driverName || 'Not assigned'}</div>
+                              {pickup.coDriver?.name && (
+                                <div className="text-xs text-gray-500">Co: {pickup.coDriver.name}</div>
+                              )}
+                            </div>
+                          </div>
+                        </td>
+                        <td className="px-6 py-4">
+                          <div className="flex items-center text-sm text-gray-900">
+                            <Truck className="w-4 h-4 mr-1 text-gray-400 flex-shrink-0" />
+                            <div>
+                              <div>{pickup.truckPlate || 'Not assigned'}</div>
+                              {pickup.trailer?.licensePlate && (
+                                <div className="text-xs text-gray-500">Trailer: {pickup.trailer.licensePlate}</div>
+                              )}
                             </div>
                           </div>
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap">
-                          <div className="flex items-center text-sm text-gray-900">
-                            <User className="w-4 h-4 mr-1 text-gray-400" />
-                            {pickup.driverName}
-                          </div>
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap">
-                          <div className="flex items-center text-sm text-gray-900">
-                            <Truck className="w-4 h-4 mr-1 text-gray-400" />
-                            {pickup.truckPlate}
-                          </div>
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap">
-                          <div className="text-sm text-gray-900">{pickup.items}</div>
+                          <div className="text-sm text-gray-900">{pickup.items || 0}</div>
+                          {(pickup.pickupSkids || pickup.pickupCases) && (
+                            <div className="text-xs text-gray-500">
+                              {pickup.pickupSkids && `Skids: ${pickup.pickupSkids}`}
+                              {pickup.pickupSkids && pickup.pickupCases && ' • '}
+                              {pickup.pickupCases && `Cases: ${pickup.pickupCases}`}
+                            </div>
+                          )}
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap">
                           {getStatusBadge(pickup.status)}
+                          {pickup.commodity && (
+                            <div className="text-xs text-gray-500 mt-1 truncate max-w-xs" title={pickup.commodity}>
+                              {pickup.commodity.length > 20 ? `${pickup.commodity.substring(0, 20)}...` : pickup.commodity}
+                            </div>
+                          )}
                         </td>
                       </tr>
                     ))

@@ -20,13 +20,15 @@ interface Driver {
     country?: string;
     // Handle company as string or object to avoid render errors
     company?: string | { companyName?: string; _id?: string };
-    activeTrip?: {
+    activeOrder?: {
         _id: string;
-        tripNumber: string;
+        orderNumber?: string;
+        customerOrderNo?: string;
+        tripNo?: string;
         status: string;
         route: string;
-        ordersCount: number;
-        plannedStartDate: string;
+        pickupDate: string;
+        deliveryDate?: string;
         truck?: string;
         trailer?: string;
     } | null;
@@ -152,7 +154,7 @@ const DriversTable = () => {
     }, [userInfo, sanitizeMessage, filterType]);
 
     const fetchMilesInsights = useCallback(async () => {
-        // Only fetch order miles, active trip info is now in driver object
+        // Only fetch order miles, active order info is now in driver object
         setInsightsLoading(true);
         try {
             const orderRes = await listOrder({ page: 1, limit: 500 });
@@ -329,7 +331,7 @@ const DriversTable = () => {
             </div>
         );
     }
-    const StatRow = ({ label, value, color }) => (
+    const StatRow = ({ label, value, color }: { label: string; value: number | string; color: string }) => (
         <div className="flex justify-between items-center">
             <div className="flex items-center gap-2">
                 <span className={`w-2.5 h-2.5 rounded-full ${color}`} />
@@ -399,7 +401,6 @@ const DriversTable = () => {
                         <div className="space-y-2">
                             <StatRow label="Assigned" value={counts.assigned} color="bg-green-500" />
                             <StatRow label="Unassigned" value={counts.unassigned} color="bg-purple-500" />
-                            <StatRow label="Active" value={counts.active || 0} color="bg-blue-500" />
                         </div>
 
                         <div className="mt-3 pt-2 border-t text-[11px] text-gray-500">
@@ -589,8 +590,8 @@ const DriversTable = () => {
                                                 </td>
                                                 <td className="px-6 py-4 align-top">
                                                     {(() => {
-                                                        // Use driver.activeTrip from backend
-                                                        const activeTrip = driver.activeTrip;
+                                                        // Use driver.activeOrder from backend (or construct from orders)
+                                                        const activeOrder = driver.activeOrder;
                                                         return (
                                                             <div
                                                                 className="relative flex items-start gap-2"
@@ -598,9 +599,9 @@ const DriversTable = () => {
                                                             >
                                                                 <button
                                                                     type="button"
-                                                                    className={`mt-1 rounded-full border p-2 text-xs font-semibold uppercase ${activeTrip ? 'text-blue-600 border-blue-200' : 'text-gray-400 border-gray-200'
+                                                                    className={`mt-1 rounded-full border p-2 text-xs font-semibold uppercase ${activeOrder ? 'text-blue-600 border-blue-200' : 'text-gray-400 border-gray-200'
                                                                         }`}
-                                                                    title={activeTrip ? 'View assignment details' : 'No active assignment'}
+                                                                    title={activeOrder ? 'View assignment details' : 'No active assignment'}
                                                                     onMouseEnter={() => setPreviewDriverId(driver._id)}
                                                                     // onFocus handled by button focus
                                                                     onClick={() =>
@@ -629,32 +630,32 @@ const DriversTable = () => {
                                                                 </button>
                                                                 <div className="space-y-1">
                                                                     <div className="text-sm font-semibold text-gray-900">
-                                                                        {activeTrip?.route ? truncateText(activeTrip.route, 32) : 'No active load'}
+                                                                        {activeOrder?.route ? truncateText(activeOrder.route, 32) : 'No active load'}
                                                                     </div>
-                                                                    {activeTrip ? (
+                                                                    {activeOrder ? (
                                                                         <div className="text-xs text-gray-500">
-                                                                            {activeTrip.ordersCount} load{activeTrip.ordersCount === 1 ? '' : 's'} · #{activeTrip.tripNumber || 'Trip'} <br />
-                                                                            {activeTrip.plannedStartDate ? new Date(activeTrip.plannedStartDate).toLocaleDateString() : 'Date TBC'}
+                                                                            Order #{activeOrder.customerOrderNo || activeOrder.orderNumber || '—'} <br />
+                                                                            {activeOrder.pickupDate ? new Date(activeOrder.pickupDate).toLocaleDateString() : 'Date TBC'}
                                                                         </div>
                                                                     ) : (
                                                                         <div className="text-xs text-gray-400">
                                                                             Ready for assignment · {formatMiles(driverMiles[driver._id]?.openMiles)}
                                                                         </div>
                                                                     )}
-                                                                    {(activeTrip?.truck || activeTrip?.trailer) && (
+                                                                    {(activeOrder?.truck || activeOrder?.trailer) && (
                                                                         <div className="flex flex-wrap gap-1 pt-1">
-                                                                            {activeTrip?.truck && (
+                                                                            {activeOrder?.truck && (
                                                                                 <span
                                                                                     className="text-[11px] px-2 py-0.5 rounded-full border border-blue-100 text-blue-700 font-semibold uppercase"
                                                                                 >
-                                                                                    {activeTrip.truck}
+                                                                                    {activeOrder.truck}
                                                                                 </span>
                                                                             )}
-                                                                            {activeTrip?.trailer && (
+                                                                            {activeOrder?.trailer && (
                                                                                 <span
                                                                                     className="text-[11px] px-2 py-0.5 rounded-full border border-emerald-100 text-emerald-700 font-semibold uppercase"
                                                                                 >
-                                                                                    {activeTrip.trailer}
+                                                                                    {activeOrder.trailer}
                                                                                 </span>
                                                                             )}
                                                                         </div>
@@ -664,26 +665,26 @@ const DriversTable = () => {
                                                                     <div className="absolute left-12 top-0 z-20 w-64 rounded-xl border border-gray-200 bg-white p-4 shadow-lg">
                                                                         <p className="text-xs font-semibold text-gray-500">Assignment preview</p>
                                                                         <p className="mt-1 text-sm font-semibold text-gray-900">
-                                                                            {activeTrip?.route || 'No active assignment'}
+                                                                            {activeOrder?.route || 'No active assignment'}
                                                                         </p>
                                                                         <p className="text-xs text-gray-500">
-                                                                            Trip #{activeTrip?.tripNumber || '—'}
+                                                                            Order #{activeOrder?.customerOrderNo || activeOrder?.orderNumber || '—'}
                                                                         </p>
                                                                         <p className="text-xs text-gray-500">
-                                                                            {activeTrip?.plannedStartDate
-                                                                                ? new Date(activeTrip.plannedStartDate).toLocaleDateString()
+                                                                            {activeOrder?.pickupDate
+                                                                                ? new Date(activeOrder.pickupDate).toLocaleDateString()
                                                                                 : 'TBC'}
                                                                         </p>
-                                                                        {activeTrip && (
+                                                                        {activeOrder && (
                                                                             <div className="mt-2 space-y-1">
-                                                                                {activeTrip.truck && (
+                                                                                {activeOrder.truck && (
                                                                                     <p className="text-xs text-gray-600">
-                                                                                        Truck: {activeTrip.truck}
+                                                                                        Truck: {activeOrder.truck}
                                                                                     </p>
                                                                                 )}
-                                                                                {activeTrip.trailer && (
+                                                                                {activeOrder.trailer && (
                                                                                     <p className="text-xs text-gray-600">
-                                                                                        Trailer: {activeTrip.trailer}
+                                                                                        Trailer: {activeOrder.trailer}
                                                                                     </p>
                                                                                 )}
                                                                             </div>
@@ -696,18 +697,18 @@ const DriversTable = () => {
                                                 </td>
                                                 <td className="px-6 py-4">
                                                     {(() => {
-                                                        const activeTrip = driver.activeTrip;
-                                                        if (!activeTrip || !activeTrip.route) {
+                                                        const activeOrder = driver.activeOrder;
+                                                        if (!activeOrder || !activeOrder.route) {
                                                             return <span className="text-xs text-gray-400">No route</span>;
                                                         }
                                                         return (
                                                             <div className="max-w-xs">
-                                                                <div className="text-sm font-medium text-gray-900 truncate" title={activeTrip.route}>
-                                                                    {activeTrip.route}
+                                                                <div className="text-sm font-medium text-gray-900 truncate" title={activeOrder.route}>
+                                                                    {activeOrder.route}
                                                                 </div>
-                                                                {activeTrip.tripNumber && (
+                                                                {(activeOrder.customerOrderNo || activeOrder.orderNumber) && (
                                                                     <div className="text-xs text-gray-500 mt-1">
-                                                                        Trip #{activeTrip.tripNumber}
+                                                                        Order #{activeOrder.customerOrderNo || activeOrder.orderNumber}
                                                                     </div>
                                                                 )}
                                                             </div>
@@ -913,7 +914,7 @@ const DriversTable = () => {
                                     </div>
 
                                     {/* Current Assignment */}
-                                    {selectedDriver.activeTrip && (
+                                    {selectedDriver.activeOrder && (
                                         <div className="bg-gray-50 p-6 rounded-lg border border-gray-200">
                                             <h4 className="font-semibold text-gray-900 mb-4 text-lg flex items-center gap-2">
                                                 <MapPin size={20} className="text-blue-600" />
@@ -922,26 +923,40 @@ const DriversTable = () => {
                                             <div className="space-y-2">
                                                 <div>
                                                     <p className="text-sm text-gray-500 mb-1">Route</p>
-                                                    <p className="font-medium text-gray-900">{selectedDriver.activeTrip.route || "—"}</p>
+                                                    <p className="font-medium text-gray-900">{selectedDriver.activeOrder.route || "—"}</p>
                                                 </div>
                                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                                     <div>
-                                                        <p className="text-sm text-gray-500 mb-1">Trip Number</p>
-                                                        <p className="font-medium text-gray-900">#{selectedDriver.activeTrip.tripNumber || "—"}</p>
+                                                        <p className="text-sm text-gray-500 mb-1">Order Number</p>
+                                                        <p className="font-medium text-gray-900">#{selectedDriver.activeOrder.customerOrderNo || selectedDriver.activeOrder.orderNumber || "—"}</p>
                                                     </div>
                                                     <div>
                                                         <p className="text-sm text-gray-500 mb-1">Status</p>
-                                                        <p className="font-medium text-gray-900">{selectedDriver.activeTrip.status || "—"}</p>
+                                                        <p className="font-medium text-gray-900">{selectedDriver.activeOrder.status?.replace('_', ' ') || "—"}</p>
                                                     </div>
-                                                    <div>
-                                                        <p className="text-sm text-gray-500 mb-1">Orders Count</p>
-                                                        <p className="font-medium text-gray-900">{selectedDriver.activeTrip.ordersCount || 0}</p>
-                                                    </div>
-                                                    {selectedDriver.activeTrip.plannedStartDate && (
+                                                    {selectedDriver.activeOrder.tripNo && (
                                                         <div>
-                                                            <p className="text-sm text-gray-500 mb-1">Planned Start Date</p>
+                                                            <p className="text-sm text-gray-500 mb-1">Trip Number</p>
+                                                            <p className="font-medium text-gray-900">{selectedDriver.activeOrder.tripNo}</p>
+                                                        </div>
+                                                    )}
+                                                    {selectedDriver.activeOrder.pickupDate && (
+                                                        <div>
+                                                            <p className="text-sm text-gray-500 mb-1">Pickup Date</p>
                                                             <p className="font-medium text-gray-900">
-                                                                {new Date(selectedDriver.activeTrip.plannedStartDate).toLocaleDateString('en-US', {
+                                                                {new Date(selectedDriver.activeOrder.pickupDate).toLocaleDateString('en-US', {
+                                                                    year: 'numeric',
+                                                                    month: 'long',
+                                                                    day: 'numeric'
+                                                                })}
+                                                            </p>
+                                                        </div>
+                                                    )}
+                                                    {selectedDriver.activeOrder.deliveryDate && (
+                                                        <div>
+                                                            <p className="text-sm text-gray-500 mb-1">Delivery Date</p>
+                                                            <p className="font-medium text-gray-900">
+                                                                {new Date(selectedDriver.activeOrder.deliveryDate).toLocaleDateString('en-US', {
                                                                     year: 'numeric',
                                                                     month: 'long',
                                                                     day: 'numeric'
@@ -950,16 +965,16 @@ const DriversTable = () => {
                                                         </div>
                                                     )}
                                                 </div>
-                                                {(selectedDriver.activeTrip.truck || selectedDriver.activeTrip.trailer) && (
+                                                {(selectedDriver.activeOrder.truck || selectedDriver.activeOrder.trailer) && (
                                                     <div className="flex flex-wrap gap-2 pt-2">
-                                                        {selectedDriver.activeTrip.truck && (
+                                                        {selectedDriver.activeOrder.truck && (
                                                             <span className="text-xs px-3 py-1 rounded-full border border-blue-200 text-blue-700 font-semibold uppercase bg-blue-50">
-                                                                Truck: {selectedDriver.activeTrip.truck}
+                                                                Truck: {selectedDriver.activeOrder.truck}
                                                             </span>
                                                         )}
-                                                        {selectedDriver.activeTrip.trailer && (
+                                                        {selectedDriver.activeOrder.trailer && (
                                                             <span className="text-xs px-3 py-1 rounded-full border border-emerald-200 text-emerald-700 font-semibold uppercase bg-emerald-50">
-                                                                Trailer: {selectedDriver.activeTrip.trailer}
+                                                                Trailer: {selectedDriver.activeOrder.trailer}
                                                             </span>
                                                         )}
                                                     </div>
@@ -1039,7 +1054,10 @@ const summarizeDriverMiles = (orders: any[]): Record<string, DriverMilesInsight>
         }
         map[driverId].totalMiles += miles;
         map[driverId].totalOrders += 1;
-        if (!order?.status || order.status.toLowerCase() !== 'completed') {
+        // Check if order is not completed (orders use COMPLETED, trips use completed)
+        const status = order?.status || '';
+        const isCompleted = status.toUpperCase() === 'COMPLETED';
+        if (!isCompleted) {
             map[driverId].openMiles += miles;
             map[driverId].openOrders += 1;
         }

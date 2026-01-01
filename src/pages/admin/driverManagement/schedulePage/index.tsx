@@ -11,13 +11,15 @@ import {
   Phone,
   MapPin,
 } from 'lucide-react';
-import { listTrip, updateTrip } from '../../../../axios/api/distapcher';
+import { listOrder, updateOrder } from '../../../../axios/api/distapcher';
 
 // Type definitions
-interface Trip {
+interface Order {
   _id?: string;
   id?: string;
-  tripNumber?: string;
+  orderNumber?: string;
+  customerOrderNo?: string;
+  tripNo?: string;
   driver?: {
     _id: string;
     name: string;
@@ -45,60 +47,58 @@ interface Trip {
     makeModel?: string;
     internalId?: string;
   };
-  plannedStartDate: string | Date | null;
-  plannedEndDate: string | Date | null;
-  actualStartDate?: string | Date | null;
-  actualEndDate?: string | Date | null;
-  startLocation?: {
+  pickupDate: string | Date | null;
+  deliveryDate: string | Date | null;
+  pickupTime?: string;
+  deliveryTime?: string;
+  pickupLocation?: {
     place?: string;
+    placeId?: any;
     latitude?: string;
     longitude?: string;
   };
-  endLocation?: {
+  deliveryLocation?: {
     place?: string;
+    placeId?: any;
     latitude?: string;
     longitude?: string;
   };
-  status: 'planned' | 'in-progress' | 'completed' | 'cancelled' | string;
+  status: 'QUOTED' | 'CONFIRMED' | 'IN_PROGRESS' | 'COMPLETED' | string;
   notes?: string;
+  internalNotes?: string;
+  customerNotes?: string;
   driverPhone?: string;
   driverEmail?: string;
-  route?: {
-    totalDistance?: number;
-    estimatedDuration?: number;
-    waypoints?: any[];
+  customer?: {
+    _id?: string;
+    name?: string;
+    email?: string;
+    phone?: string;
   };
-  orders?: Array<{
-    _id: string;
-    orderNumber?: string;
-    customer?: {
-      name?: string;
-    };
-  }>;
   scheduledDate?: Date | null;
 }
 
 const DEFAULT_SCHEDULE_TIME = "09:00";
 
 const UnifiedSchedulingPage = () => {
-  // View mode: 'scheduling' (for scheduling trips) or 'calendar' (for viewing calendar)
+  // View mode: 'scheduling' (for scheduling orders) or 'calendar' (for viewing calendar)
   const [viewMode, setViewMode] = useState<'month' | 'week' | 'day'>('month');
   const [currentDate, setCurrentDate] = useState(new Date());
-  const [selectedTrip, setSelectedTrip] = useState<Trip | null>(null);
+  const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
   const [showFilters, setShowFilters] = useState(false);
   const [driverFilter, setDriverFilter] = useState('all');
   const [statusFilter, setStatusFilter] = useState('all');
-  const [trips, setTrips] = useState<Trip[]>([]);
+  const [orders, setOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState(false);
 
   const [showScheduleModal, setShowScheduleModal] = useState(false);
   const [selectedTime, setSelectedTime] = useState(DEFAULT_SCHEDULE_TIME);
-  const [draggedTrip, setDraggedTrip] = useState<Trip | null>(null);
+  const [draggedOrder, setDraggedOrder] = useState<Order | null>(null);
   const [emptyStateMessage, setEmptyStateMessage] = useState<string | null>(null);
   const userInfoRef = useRef<any>(null);
 
-  // Fetch trips from backend
-  const fetchTrips = useCallback(
+  // Fetch orders from backend
+  const fetchOrders = useCallback(
     async (options?: { suppressLoading?: boolean }) => {
       if (!options?.suppressLoading) {
         setLoading(true);
@@ -125,8 +125,8 @@ const UnifiedSchedulingPage = () => {
         const hasCompany = Boolean(userCompany);
 
         if (!isSuperadmin && !isDispatcher && !hasCompany) {
-          setTrips([]);
-          setEmptyStateMessage("No company assigned. Please complete company settings to view trips.");
+          setOrders([]);
+          setEmptyStateMessage("No company assigned. Please complete company settings to view orders.");
           return;
         }
 
@@ -136,51 +136,58 @@ const UnifiedSchedulingPage = () => {
           params.driver = driverFilter;
         }
 
-        const response = await listTrip(params);
+        if (statusFilter !== 'all') {
+          params.status = statusFilter;
+        }
+
+        const response = await listOrder(params);
         const message = response?.message || null;
         const data = response?.data;
 
         if (response?.success && Array.isArray(data)) {
           if (data.length === 0) {
-            setTrips([]);
-            setEmptyStateMessage(message || "No trips available.");
+            setOrders([]);
+            setEmptyStateMessage(message || "No orders available.");
             return;
           }
 
-          const mappedTrips: Trip[] = data.map((trip: any) => ({
-            _id: trip._id,
-            id: trip._id,
-            tripNumber: trip.tripNumber,
-            driverId: trip.driver?._id || trip.driver,
-            driverName: trip.driver?.name || 'Unknown Driver',
-            driverPhone: trip.driver?.phone,
-            driverEmail: trip.driver?.email,
-            driver: trip.driver,
-            truck: trip.truck,
-            trailer: trip.trailer,
-            plannedStartDate: trip.plannedStartDate || null,
-            plannedEndDate: trip.plannedEndDate || null,
-            actualStartDate: trip.actualStartDate || null,
-            actualEndDate: trip.actualEndDate || null,
-            startLocation: trip.startLocation,
-            endLocation: trip.endLocation,
-            status: trip.status || 'planned',
-            notes: trip.notes || '',
-            route: trip.route || {},
-            orders: trip.orders || [],
-            scheduledDate: trip.plannedStartDate ? new Date(trip.plannedStartDate) : null
+          const mappedOrders: Order[] = data.map((order: any) => ({
+            _id: order._id,
+            id: order._id,
+            orderNumber: order.orderNumber,
+            customerOrderNo: order.customerOrderNo,
+            tripNo: order.tripNo,
+            driverId: order.driver?._id || order.driver,
+            driverName: order.driver?.name || 'Unknown Driver',
+            driverPhone: order.driver?.phone,
+            driverEmail: order.driver?.email,
+            driver: order.driver,
+            truck: order.truck,
+            trailer: order.trailer,
+            pickupDate: order.pickupDate || null,
+            deliveryDate: order.deliveryDate || null,
+            pickupTime: order.pickupTime,
+            deliveryTime: order.deliveryTime,
+            pickupLocation: order.pickupLocation,
+            deliveryLocation: order.deliveryLocation,
+            status: order.status || 'QUOTED',
+            notes: order.internalNotes || order.customerNotes || '',
+            internalNotes: order.internalNotes,
+            customerNotes: order.customerNotes,
+            customer: order.customer,
+            scheduledDate: order.pickupDate ? new Date(order.pickupDate) : null
           }));
 
-          setTrips(mappedTrips);
+          setOrders(mappedOrders);
           setEmptyStateMessage(null);
         } else {
-          setTrips([]);
-          setEmptyStateMessage(message || "Failed to fetch trips.");
+          setOrders([]);
+          setEmptyStateMessage(message || "Failed to fetch orders.");
         }
       } catch (error: any) {
-        console.error("Error fetching trips:", error);
-        const fallbackMessage = error?.message || error?.data?.message || "Error fetching trips.";
-        setTrips([]);
+        console.error("Error fetching orders:", error);
+        const fallbackMessage = error?.message || error?.data?.message || "Error fetching orders.";
+        setOrders([]);
         setEmptyStateMessage(fallbackMessage);
       } finally {
         if (!options?.suppressLoading) {
@@ -204,43 +211,43 @@ const UnifiedSchedulingPage = () => {
     };
 
     syncUser();
-    fetchTrips();
+    fetchOrders();
 
     const handleStorage = (event: StorageEvent) => {
       if (event.key === "userInfo") {
         syncUser();
-        fetchTrips();
+        fetchOrders();
       }
     };
 
     window.addEventListener("storage", handleStorage);
     return () => window.removeEventListener("storage", handleStorage);
-  }, [fetchTrips]);
+  }, [fetchOrders]);
 
-  const scheduledTrips = trips.filter((trip) => trip.scheduledDate || trip.plannedStartDate);
+  const scheduledOrders = orders.filter((order) => order.scheduledDate || order.pickupDate);
 
-  // Filter trips based on selected filters
-  const filteredTrips = useMemo(() => {
-    return trips.filter(trip => {
-      const driverMatch = driverFilter === 'all' || trip.driverId === driverFilter || trip.driver?._id === driverFilter;
-      const statusMatch = statusFilter === 'all' || trip.status === statusFilter;
+  // Filter orders based on selected filters
+  const filteredOrders = useMemo(() => {
+    return orders.filter(order => {
+      const driverMatch = driverFilter === 'all' || order.driverId === driverFilter || order.driver?._id === driverFilter;
+      const statusMatch = statusFilter === 'all' || order.status === statusFilter;
       return driverMatch && statusMatch;
     });
-  }, [trips, driverFilter, statusFilter]);
+  }, [orders, driverFilter, statusFilter]);
 
-  // Get unique drivers from trips
+  // Get unique drivers from orders
   const uniqueDrivers = useMemo(() => {
     const driverMap = new Map();
-    trips.forEach(trip => {
-      if (trip.driver) {
-        driverMap.set(trip.driver._id, {
-          id: trip.driver._id,
-          name: trip.driver.name
+    orders.forEach(order => {
+      if (order.driver) {
+        driverMap.set(order.driver._id, {
+          id: order.driver._id,
+          name: order.driver.name
         });
       }
     });
     return Array.from(driverMap.values());
-  }, [trips]);
+  }, [orders]);
 
   
   const currentMonth = currentDate.getMonth();
@@ -279,41 +286,39 @@ const UnifiedSchedulingPage = () => {
     return combined;
   };
 
-  const scheduleTrip = async (trip: Trip, date: Date, time: string = DEFAULT_SCHEDULE_TIME) => {
-    if (!date || !trip._id) return;
+  const scheduleOrder = async (order: Order, date: Date, time: string = DEFAULT_SCHEDULE_TIME) => {
+    if (!date || !order._id) return;
 
     try {
       const scheduledDate = combineDateAndTime(date, time);
-      await updateTrip(trip._id, { plannedStartDate: scheduledDate.toISOString() });
-      await fetchTrips({ suppressLoading: true });
+      await updateOrder(order._id, { pickupDate: scheduledDate.toISOString() });
+      await fetchOrders({ suppressLoading: true });
     } catch (error) {
-      console.error("Error scheduling trip:", error);
+      console.error("Error scheduling order:", error);
     }
   };
 
  
 
   const handleDrop = (date: Date) => {
-    if (draggedTrip) {
-      scheduleTrip(draggedTrip, date, DEFAULT_SCHEDULE_TIME);
-      setDraggedTrip(null);
+    if (draggedOrder) {
+      scheduleOrder(draggedOrder, date, DEFAULT_SCHEDULE_TIME);
+      setDraggedOrder(null);
     }
   };
 
   // Calendar utility functions
-  const getTripsForDate = (date: Date) => {
+  const getOrdersForDate = (date: Date) => {
     const dateStr = date.toISOString().split('T')[0];
-    return filteredTrips.filter(trip => {
-      const tripDate = trip.plannedStartDate
-        ? new Date(trip.plannedStartDate).toISOString().split('T')[0]
-        : trip.actualStartDate
-          ? new Date(trip.actualStartDate).toISOString().split('T')[0]
-          : null;
-      return tripDate === dateStr;
+    return filteredOrders.filter(order => {
+      const orderDate = order.pickupDate
+        ? new Date(order.pickupDate).toISOString().split('T')[0]
+        : null;
+      return orderDate === dateStr;
     });
   };
 
-  const hasTripOnDate = (date: Date) => getTripsForDate(date).length > 0;
+  const hasOrderOnDate = (date: Date) => getOrdersForDate(date).length > 0;
 
   const generateCalendarDays = () => {
     const firstDay = new Date(currentYear, currentMonth, 1);
@@ -362,14 +367,14 @@ const UnifiedSchedulingPage = () => {
 
   const getStatusColor = (status: string) => {
     switch (status) {
-      case 'completed':
+      case 'COMPLETED':
         return 'bg-green-100 text-green-800 border-green-200';
-      case 'in-progress':
+      case 'IN_PROGRESS':
         return 'bg-blue-100 text-blue-800 border-blue-200';
-      case 'planned':
+      case 'CONFIRMED':
         return 'bg-purple-100 text-purple-800 border-purple-200';
-      case 'cancelled':
-        return 'bg-red-100 text-red-800 border-red-200';
+      case 'QUOTED':
+        return 'bg-yellow-100 text-yellow-800 border-yellow-200';
       default:
         return 'bg-gray-100 text-gray-800 border-gray-200';
     }
@@ -387,19 +392,19 @@ const UnifiedSchedulingPage = () => {
     return date.toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
   };
 
-  const getTripIdentifier = (trip: Trip) => trip.tripNumber || `Trip ${trip._id?.slice(-6) || ''}`;
-  const getCustomerName = (trip: Trip) => trip.orders?.[0]?.customer?.name || "No customer";
+  const getOrderIdentifier = (order: Order) => order.customerOrderNo || order.orderNumber || `Order ${order._id?.slice(-6) || ''}`;
+  const getCustomerName = (order: Order) => order.customer?.name || "No customer";
 
   const monthName = getMonthName(currentDate);
   const calendarDays = generateCalendarDays();
   const weekDays = generateWeekDays();
 
-  if (loading && trips.length === 0) {
+  if (loading && orders.length === 0) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
-          <p className="text-gray-600">Loading trips...</p>
+          <p className="text-gray-600">Loading orders...</p>
         </div>
       </div>
     );
@@ -412,18 +417,18 @@ const UnifiedSchedulingPage = () => {
         <div className="w-full mx-auto">
           <div className="flex items-center justify-between mb-3">
             <div>
-              <h1 className="text-2xl font-bold text-gray-900">Trip Scheduling</h1>
-              <p className="text-gray-600 mt-0.5 text-sm">Schedule trips, view calendar, and manage driver assignments</p>
+              <h1 className="text-2xl font-bold text-gray-900">Order Scheduling</h1>
+              <p className="text-gray-600 mt-0.5 text-sm">Schedule orders, view calendar, and manage driver assignments</p>
             </div>
             <div className="flex items-center space-x-3">
               <div className="flex items-center space-x-3 text-sm text-gray-600">
                 <div className="flex items-center space-x-1">
                   <Calendar className="w-3.5 h-3.5" />
-                  <span><strong>{scheduledTrips.length}</strong> Scheduled</span>
+                  <span><strong>{scheduledOrders.length}</strong> Scheduled</span>
                 </div>
                 <div className="flex items-center space-x-1">
                   <Truck className="w-3.5 h-3.5" />
-                  <span><strong>{trips.length}</strong> Total</span>
+                  <span><strong>{orders.length}</strong> Total</span>
                 </div>
               </div>
               <button
@@ -439,15 +444,15 @@ const UnifiedSchedulingPage = () => {
           {/* Quick Info Cards */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-3 mt-3">
             <div className="bg-gradient-to-br from-blue-50 to-blue-100 rounded-md p-3 border border-blue-200">
-              <div className="text-xl font-bold text-blue-700">{scheduledTrips.length}</div>
-              <div className="text-xs text-blue-600">Scheduled Trips</div>
+              <div className="text-xl font-bold text-blue-700">{scheduledOrders.length}</div>
+              <div className="text-xs text-blue-600">Scheduled Orders</div>
             </div>
             <div className="bg-gradient-to-br from-green-50 to-green-100 rounded-md p-3 border border-green-200">
-              <div className="text-xl font-bold text-green-700">{trips.filter(t => t.status === 'completed').length}</div>
+              <div className="text-xl font-bold text-green-700">{orders.filter(o => o.status === 'COMPLETED').length}</div>
               <div className="text-xs text-green-600">Completed</div>
             </div>
             <div className="bg-gradient-to-br from-purple-50 to-purple-100 rounded-md p-3 border border-purple-200">
-              <div className="text-xl font-bold text-purple-700">{trips.filter(t => t.status === 'in-progress').length}</div>
+              <div className="text-xl font-bold text-purple-700">{orders.filter(o => o.status === 'IN_PROGRESS').length}</div>
               <div className="text-xs text-purple-600">In Progress</div>
             </div>
           </div>
@@ -482,10 +487,10 @@ const UnifiedSchedulingPage = () => {
                   className="w-full px-2.5 py-1.5 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500"
                 >
                   <option value="all">All Status</option>
-                  <option value="planned">Planned</option>
-                  <option value="in-progress">In Progress</option>
-                  <option value="completed">Completed</option>
-                  <option value="cancelled">Cancelled</option>
+                  <option value="QUOTED">Quoted</option>
+                  <option value="CONFIRMED">Confirmed</option>
+                  <option value="IN_PROGRESS">In Progress</option>
+                  <option value="COMPLETED">Completed</option>
                 </select>
               </div>
               <div className="flex items-end">
@@ -504,7 +509,7 @@ const UnifiedSchedulingPage = () => {
         </div>
       )}
 
-      {emptyStateMessage && trips.length === 0 && (
+      {emptyStateMessage && orders.length === 0 && (
         <div className="w-full mx-auto p-5">
           <div className="bg-blue-50 border border-blue-100 text-blue-700 px-3.5 py-2.5 rounded-md flex items-center gap-2.5">
             <Calendar className="text-lg" />
@@ -515,51 +520,51 @@ const UnifiedSchedulingPage = () => {
 
       <div className="w-full mx-auto p-5">
         <div className="flex flex-col gap-5">
-          {/* Scheduled Trips List - Collapsible Sidebar */}
+          {/* Scheduled Orders List - Collapsible Sidebar */}
           <div className="bg-white rounded-lg shadow-sm border border-gray-200">
             <div className="p-3.5 border-b border-gray-200 bg-gray-50">
-              <h3 className="text-sm font-semibold text-gray-700">Scheduled Trips ({scheduledTrips.length})</h3>
+              <h3 className="text-sm font-semibold text-gray-700">Scheduled Orders ({scheduledOrders.length})</h3>
             </div>
 
             <div className="p-3.5 max-h-[200px] overflow-y-auto">
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-2.5">
-                {scheduledTrips.length > 0 ? (
-                  scheduledTrips.map((trip) => (
+                {scheduledOrders.length > 0 ? (
+                  scheduledOrders.map((order) => (
                     <div
-                      key={trip._id || trip.id}
+                      key={order._id || order.id}
                       className="p-2.5 rounded-md border bg-green-50 border-green-200 cursor-pointer transition-all hover:shadow-md"
                       onClick={() => {
-                        setSelectedTrip(trip);
+                        setSelectedOrder(order);
                       }}
                     >
                       <div className="flex-1 min-w-0">
                         <div className="font-medium text-gray-900 truncate">
-                          {getTripIdentifier(trip)}
+                          {getOrderIdentifier(order)}
                         </div>
                         <div className="text-sm text-gray-600 flex items-center mt-1">
                           <User className="w-3 h-3 mr-1 flex-shrink-0" />
-                          <span className="truncate">{trip.driverName || trip.driver?.name || 'No driver'}</span>
+                          <span className="truncate">{order.driverName || order.driver?.name || 'No driver'}</span>
                         </div>
-                        {getCustomerName(trip) !== "No customer" && (
+                        {getCustomerName(order) !== "No customer" && (
                           <div className="text-xs text-gray-500 mt-1 truncate">
-                            {getCustomerName(trip)}
+                            {getCustomerName(order)}
                           </div>
                         )}
                         <div className="text-xs text-gray-500 mt-2 flex items-center">
                           <Clock className="w-3 h-3 mr-1 flex-shrink-0" />
-                          <span className="capitalize">{trip.status}</span>
+                          <span className="capitalize">{order.status.replace('_', ' ')}</span>
                         </div>
-                        {trip.scheduledDate && (
+                        {order.scheduledDate && (
                           <div className="text-xs text-gray-500 mt-1">
-                            {typeof trip.scheduledDate === 'string'
-                              ? new Date(trip.scheduledDate).toLocaleDateString("en-GB")
-                              : trip.scheduledDate.toLocaleDateString("en-GB")
+                            {typeof order.scheduledDate === 'string'
+                              ? new Date(order.scheduledDate).toLocaleDateString("en-GB")
+                              : order.scheduledDate.toLocaleDateString("en-GB")
                             }
                           </div>
                         )}
-                        {trip.plannedStartDate && (
+                        {order.pickupDate && (
                           <div className="text-xs text-gray-500 mt-1">
-                            {formatTime(trip.plannedStartDate)}
+                            {formatTime(order.pickupDate)}
                           </div>
                         )}
                       </div>
@@ -568,7 +573,7 @@ const UnifiedSchedulingPage = () => {
                 ) : (
                   <div className="col-span-full text-center py-7">
                     <Truck className="mx-auto mb-2.5 text-gray-300" size={30} />
-                    <p className="text-gray-500 text-sm">No scheduled trips found</p>
+                    <p className="text-gray-500 text-sm">No scheduled orders found</p>
                     {emptyStateMessage && (
                       <p className="text-xs text-gray-400 mt-1">{emptyStateMessage}</p>
                     )}
@@ -639,9 +644,9 @@ const UnifiedSchedulingPage = () => {
 
                 <div className="grid grid-cols-7 border border-gray-200 border-t-0 rounded-b-md overflow-hidden">
                   {calendarDays.map((day, index) => {
-                    const dayTrips = getTripsForDate(day.date);
+                    const dayOrders = getOrdersForDate(day.date);
                     const isToday = day.date.toDateString() === new Date().toDateString();
-                    const hasTrip = hasTripOnDate(day.date);
+                    const hasOrder = hasOrderOnDate(day.date);
 
                     return (
                       <div
@@ -652,8 +657,8 @@ const UnifiedSchedulingPage = () => {
                         className={`min-h-[115px] p-1.5 border-r border-b last:border-r-0 cursor-pointer transition-colors
                           ${!day.isCurrentMonth ? 'bg-gray-50' : 'bg-white'}
                           ${isToday ? 'bg-blue-50' : ''}
-                          ${hasTrip && !isToday ? 'bg-green-50' : ''}
-                          ${draggedTrip ? 'bg-blue-100 border-2 border-dashed border-blue-300' : ''}
+                          ${hasOrder && !isToday ? 'bg-green-50' : ''}
+                          ${draggedOrder ? 'bg-blue-100 border-2 border-dashed border-blue-300' : ''}
                           hover:bg-gray-50
                         `}
                       >
@@ -663,27 +668,27 @@ const UnifiedSchedulingPage = () => {
                         </div>
 
                         <div className="space-y-1">
-                          {dayTrips.slice(0, 3).map((trip) => (
+                          {dayOrders.slice(0, 3).map((order) => (
                             <div
-                              key={trip.id || trip._id}
+                              key={order.id || order._id}
                               onClick={(e) => {
                                 e.stopPropagation();
-                                setSelectedTrip(trip);
+                                setSelectedOrder(order);
                               }}
-                              className={`p-1 rounded text-xs cursor-pointer hover:shadow-sm transition-all ${getStatusColor(trip.status)}`}
+                              className={`p-1 rounded text-xs cursor-pointer hover:shadow-sm transition-all ${getStatusColor(order.status)}`}
                             >
-                              <div className="font-medium truncate">{trip.driverName || trip.driver?.name || 'Unknown Driver'}</div>
-                              {trip.tripNumber && (
-                                <div className="text-xs opacity-75 truncate">{trip.tripNumber}</div>
+                              <div className="font-medium truncate">{order.driverName || order.driver?.name || 'Unknown Driver'}</div>
+                              {(order.customerOrderNo || order.orderNumber) && (
+                                <div className="text-xs opacity-75 truncate">{order.customerOrderNo || order.orderNumber}</div>
                               )}
-                              {trip.plannedStartDate && (
-                                <div className="text-xs opacity-75">{formatTime(trip.plannedStartDate)}</div>
+                              {order.pickupDate && (
+                                <div className="text-xs opacity-75">{formatTime(order.pickupDate)}</div>
                               )}
                             </div>
                           ))}
-                          {dayTrips.length > 3 && (
+                          {dayOrders.length > 3 && (
                             <div className="text-xs text-gray-500 text-center py-0.5">
-                              +{dayTrips.length - 3} more
+                              +{dayOrders.length - 3} more
                             </div>
                           )}
                         </div>
@@ -702,7 +707,7 @@ const UnifiedSchedulingPage = () => {
                     </div>
                     <div className="flex items-center">
                       <div className="w-3.5 h-3.5 bg-green-50 rounded mr-1.5"></div>
-                      <span>Has Trips</span>
+                      <span>Has Orders</span>
                     </div>
                     <div className="flex items-center">
                       <div className="w-3.5 h-3.5 bg-blue-100 border-2 border-dashed border-blue-300 rounded mr-1.5"></div>
@@ -714,7 +719,7 @@ const UnifiedSchedulingPage = () => {
                     </div>
                   </div>
                   <div className="mt-1.5 text-xs text-gray-500">
-                    💡 Click on calendar dates to view scheduled trips
+                    💡 Click on calendar dates to view scheduled orders
                   </div>
                 </div>
               </>
@@ -726,7 +731,7 @@ const UnifiedSchedulingPage = () => {
                   <div className="p-2.5 border-r"></div>
                   {weekDays.map((day) => {
                     const isToday = day.toDateString() === new Date().toDateString();
-                    const dayTrips = getTripsForDate(day);
+                    const dayOrders = getOrdersForDate(day);
 
                     return (
                       <div key={day.toISOString()} className={`p-2.5 text-center border-r last:border-r-0 ${isToday ? 'bg-blue-50' : ''}`}>
@@ -736,9 +741,9 @@ const UnifiedSchedulingPage = () => {
                         <div className={`text-base font-semibold ${isToday ? 'text-blue-600' : 'text-gray-900'}`}>
                           {day.getDate()}
                         </div>
-                        {dayTrips.length > 0 && (
+                        {dayOrders.length > 0 && (
                           <div className="text-xs text-gray-500 mt-1">
-                            {dayTrips.length} trips
+                            {dayOrders.length} orders
                           </div>
                         )}
                       </div>
@@ -749,24 +754,24 @@ const UnifiedSchedulingPage = () => {
                 <div className="p-3 border border-gray-200 border-t-0 rounded-b-md">
                   <div className="grid grid-cols-7 gap-3">
                     {weekDays.map((day) => {
-                      const dayTrips = getTripsForDate(day);
+                      const dayOrders = getOrdersForDate(day);
 
                       return (
                         <div key={day.toISOString()} className="space-y-1.5">
-                          {dayTrips.map((trip) => (
+                          {dayOrders.map((order) => (
                             <div
-                              key={trip.id || trip._id}
-                              onClick={() => setSelectedTrip(trip)}
-                              className={`p-2.5 rounded-md cursor-pointer hover:shadow-md transition-all ${getStatusColor(trip.status)}`}
+                              key={order.id || order._id}
+                              onClick={() => setSelectedOrder(order)}
+                              className={`p-2.5 rounded-md cursor-pointer hover:shadow-md transition-all ${getStatusColor(order.status)}`}
                             >
-                              <div className="font-medium text-sm truncate">{trip.driverName || trip.driver?.name || 'Unknown Driver'}</div>
-                              {trip.tripNumber && (
-                                <div className="text-xs text-gray-600 mt-1 truncate">{trip.tripNumber}</div>
+                              <div className="font-medium text-sm truncate">{order.driverName || order.driver?.name || 'Unknown Driver'}</div>
+                              {(order.customerOrderNo || order.orderNumber) && (
+                                <div className="text-xs text-gray-600 mt-1 truncate">{order.customerOrderNo || order.orderNumber}</div>
                               )}
-                              {trip.plannedStartDate && (
+                              {order.pickupDate && (
                                 <div className="text-xs text-gray-600 mt-1">
-                                  {formatTime(trip.plannedStartDate)}
-                                  {trip.plannedEndDate && ` - ${formatTime(trip.plannedEndDate)}`}
+                                  {formatTime(order.pickupDate)}
+                                  {order.deliveryDate && ` - ${formatTime(order.deliveryDate)}`}
                                 </div>
                               )}
                             </div>
@@ -782,66 +787,90 @@ const UnifiedSchedulingPage = () => {
             {viewMode === 'day' && (
               <div className="border border-gray-200 rounded-md p-5">
                 <div className="space-y-3">
-                  {getTripsForDate(currentDate).length === 0 ? (
+                  {getOrdersForDate(currentDate).length === 0 ? (
                     <div className="text-center py-10 text-gray-500">
                       <Calendar className="w-11 h-11 mx-auto mb-3 opacity-50" />
-                      <p>No trips scheduled for this day</p>
+                      <p>No orders scheduled for this day</p>
                     </div>
                   ) : (
-                    getTripsForDate(currentDate).map((trip) => (
+                    getOrdersForDate(currentDate).map((order) => (
                       <div
-                        key={trip.id || trip._id}
-                        onClick={() => setSelectedTrip(trip)}
-                        className={`p-5 rounded-md cursor-pointer hover:shadow-md transition-all ${getStatusColor(trip.status)}`}
+                        key={order.id || order._id}
+                        onClick={() => setSelectedOrder(order)}
+                        className={`p-5 rounded-md cursor-pointer hover:shadow-md transition-all ${getStatusColor(order.status)}`}
                       >
                         <div className="flex items-center justify-between mb-3">
                           <div className="flex items-center space-x-2.5">
                             <User className="w-7 h-7 text-gray-600" />
                             <div>
-                              <span className="font-medium text-base">{trip.driverName || trip.driver?.name || 'Unknown Driver'}</span>
-                              {trip.tripNumber && (
-                                <p className="text-sm text-gray-600">Trip: {trip.tripNumber}</p>
+                              <span className="font-medium text-base">{order.driverName || order.driver?.name || 'Unknown Driver'}</span>
+                              {(order.customerOrderNo || order.orderNumber) && (
+                                <p className="text-sm text-gray-600">Order: {order.customerOrderNo || order.orderNumber}</p>
                               )}
-                              {trip.truck && (
+                              {order.truck && (
                                 <p className="text-sm text-gray-600">
-                                  Truck: {trip.truck.licensePlate || trip.truck.plateNumber || trip.truck.unitNo || trip.truck.internalId || 'N/A'}
+                                  Truck: {order.truck.licensePlate || order.truck.plateNumber || order.truck.unitNo || order.truck.internalId || 'N/A'}
                                 </p>
                               )}
                             </div>
                           </div>
-                          <div className={`px-2.5 py-0.5 rounded-full text-sm font-medium ${getStatusColor(trip.status)}`}>
-                            {trip.status}
+                          <div className={`px-2.5 py-0.5 rounded-full text-sm font-medium ${getStatusColor(order.status)}`}>
+                            {order.status.replace('_', ' ')}
                           </div>
                         </div>
 
                         <div className="grid grid-cols-1 md:grid-cols-3 gap-3 mb-3">
-                          {trip.plannedStartDate && (
+                          {order.pickupDate && (
                             <div className="text-sm text-gray-600">
-                              <strong>Start:</strong> {new Date(trip.plannedStartDate).toLocaleString()}
+                              <strong>Pickup:</strong> {new Date(order.pickupDate).toLocaleString()}
                             </div>
                           )}
-                          {trip.plannedEndDate && (
+                          {order.deliveryDate && (
                             <div className="text-sm text-gray-600">
-                              <strong>End:</strong> {new Date(trip.plannedEndDate).toLocaleString()}
+                              <strong>Delivery:</strong> {new Date(order.deliveryDate).toLocaleString()}
                             </div>
                           )}
-                          {trip.truck && (
+                          {order.truck && (
                             <div className="text-sm text-gray-600">
-                              <strong>Truck:</strong> {trip.truck.licensePlate || trip.truck.plateNumber || trip.truck.unitNo || trip.truck.internalId || 'N/A'}
+                              <strong>Truck:</strong> {order.truck.licensePlate || order.truck.plateNumber || order.truck.unitNo || order.truck.internalId || 'N/A'}
                             </div>
                           )}
                         </div>
 
-                        {trip.startLocation?.place && (
-                          <div className="text-sm text-gray-600 mb-1.5">
-                            <strong>From:</strong> {trip.startLocation.place}
-                          </div>
-                        )}
-                        {trip.endLocation?.place && (
-                          <div className="text-sm text-gray-600 mb-1.5">
-                            <strong>To:</strong> {trip.endLocation.place}
-                          </div>
-                        )}
+                        {(() => {
+                          let pickupPlace = '';
+                          if (typeof order.pickupLocation === 'string') {
+                            pickupPlace = order.pickupLocation;
+                          } else if (order.pickupLocation?.place) {
+                            pickupPlace = order.pickupLocation.place;
+                          } else if (order.pickupLocation?.placeId?.currentLocation?.address) {
+                            pickupPlace = order.pickupLocation.placeId.currentLocation.address;
+                          } else if (order.pickupLocation?.placeId?.name) {
+                            pickupPlace = order.pickupLocation.placeId.name;
+                          }
+                          return pickupPlace ? (
+                            <div className="text-sm text-gray-600 mb-1.5">
+                              <strong>From:</strong> {pickupPlace}
+                            </div>
+                          ) : null;
+                        })()}
+                        {(() => {
+                          let deliveryPlace = '';
+                          if (typeof order.deliveryLocation === 'string') {
+                            deliveryPlace = order.deliveryLocation;
+                          } else if (order.deliveryLocation?.place) {
+                            deliveryPlace = order.deliveryLocation.place;
+                          } else if (order.deliveryLocation?.placeId?.currentLocation?.address) {
+                            deliveryPlace = order.deliveryLocation.placeId.currentLocation.address;
+                          } else if (order.deliveryLocation?.placeId?.name) {
+                            deliveryPlace = order.deliveryLocation.placeId.name;
+                          }
+                          return deliveryPlace ? (
+                            <div className="text-sm text-gray-600 mb-1.5">
+                              <strong>To:</strong> {deliveryPlace}
+                            </div>
+                          ) : null;
+                        })()}
                       </div>
                     ))
                   )}
@@ -853,28 +882,28 @@ const UnifiedSchedulingPage = () => {
       </div>
 
       {/* Schedule Modal */}
-      {showScheduleModal && selectedTrip && (
+      {showScheduleModal && selectedOrder && (
         <div className="fixed inset-0 bg-gray-900/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-lg p-6 w-96 max-w-full">
             <h3 className="text-lg font-semibold text-gray-900 mb-4">
-              Schedule Trip
+              Schedule Order
             </h3>
 
             <div className="mb-4">
               <div className="font-medium text-gray-900">
-                {getTripIdentifier(selectedTrip)}
+                {getOrderIdentifier(selectedOrder)}
               </div>
               <div className="text-sm text-gray-600">
-                Customer: {getCustomerName(selectedTrip)}
+                Customer: {getCustomerName(selectedOrder)}
               </div>
-              {selectedTrip.driver?.name && (
+              {selectedOrder.driver?.name && (
                 <div className="text-sm text-gray-600">
-                  Driver: {selectedTrip.driver.name}
+                  Driver: {selectedOrder.driver.name}
                 </div>
               )}
-              {selectedTrip.truck?.internalId && (
+              {selectedOrder.truck?.internalId && (
                 <div className="text-sm text-gray-600">
-                  Truck: {selectedTrip.truck.internalId}
+                  Truck: {selectedOrder.truck.internalId}
                 </div>
               )}
             </div>
@@ -911,7 +940,7 @@ const UnifiedSchedulingPage = () => {
               <button
                 onClick={() => {
                   setShowScheduleModal(false);
-                  setSelectedTrip(null);
+                  setSelectedOrder(null);
                   setSelectedTime(DEFAULT_SCHEDULE_TIME);
                 }}
                 className="px-4 py-2 text-sm !mr-3 font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50"
@@ -920,9 +949,9 @@ const UnifiedSchedulingPage = () => {
               </button>
               <button
                 onClick={() => {
-                  scheduleTrip(selectedTrip, currentDate, selectedTime);
+                  scheduleOrder(selectedOrder, currentDate, selectedTime);
                   setShowScheduleModal(false);
-                  setSelectedTrip(null);
+                  setSelectedOrder(null);
                   setSelectedTime(DEFAULT_SCHEDULE_TIME);
                 }}
                 className="px-4 py-2 text-sm font-medium !text-white bg-blue-600 rounded-md hover:bg-blue-700"
@@ -930,15 +959,15 @@ const UnifiedSchedulingPage = () => {
                   background: "linear-gradient(90deg, #42aeec 0%, #1db5f5 40%, #0ea3d8 100%)",
                 }}
               >
-                Schedule Trip
+                Schedule Order
               </button>
             </div>
           </div>
         </div>
       )}
 
-      {/* Trip Details Modal */}
-      {selectedTrip && !showScheduleModal && (
+      {/* Order Details Modal */}
+      {selectedOrder && !showScheduleModal && (
         <div className="fixed inset-0 bg-gray-900/50 backdrop-blur-sm flex items-center justify-center p-4 z-50">
           <div className="bg-white rounded-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
             <div className="p-6">
@@ -946,19 +975,19 @@ const UnifiedSchedulingPage = () => {
                 <div className="flex items-center space-x-3">
                   <User className="w-8 h-8 text-gray-600" />
                   <div>
-                    <h2 className="text-2xl font-bold text-gray-900">{selectedTrip.driverName || selectedTrip.driver?.name || 'Unknown Driver'}</h2>
-                    {selectedTrip.tripNumber && (
-                      <p className="text-gray-600">Trip: {selectedTrip.tripNumber}</p>
+                    <h2 className="text-2xl font-bold text-gray-900">{selectedOrder.driverName || selectedOrder.driver?.name || 'Unknown Driver'}</h2>
+                    {(selectedOrder.customerOrderNo || selectedOrder.orderNumber) && (
+                      <p className="text-gray-600">Order: {selectedOrder.customerOrderNo || selectedOrder.orderNumber}</p>
                     )}
-                    {selectedTrip.truck && (
+                    {selectedOrder.truck && (
                       <p className="text-gray-600">
-                        Truck: {selectedTrip.truck.licensePlate || selectedTrip.truck.plateNumber || selectedTrip.truck.unitNo || selectedTrip.truck.internalId || 'N/A'}
+                        Truck: {selectedOrder.truck.licensePlate || selectedOrder.truck.plateNumber || selectedOrder.truck.unitNo || selectedOrder.truck.internalId || 'N/A'}
                       </p>
                     )}
                   </div>
                 </div>
                 <button
-                  onClick={() => setSelectedTrip(null)}
+                  onClick={() => setSelectedOrder(null)}
                   className="text-gray-400 hover:text-gray-600 transition-colors"
                 >
                   <X className="w-6 h-6" />
@@ -968,43 +997,63 @@ const UnifiedSchedulingPage = () => {
               <div className="space-y-4">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div className="space-y-2">
-                    <h3 className="font-medium text-gray-900">Trip Details</h3>
+                    <h3 className="font-medium text-gray-900">Order Details</h3>
                     <div className="text-sm text-gray-600 space-y-1">
-                      {selectedTrip.plannedStartDate && (
-                        <div><strong>Planned Start:</strong> {new Date(selectedTrip.plannedStartDate).toLocaleString()}</div>
+                      {selectedOrder.pickupDate && (
+                        <div><strong>Pickup Date:</strong> {new Date(selectedOrder.pickupDate).toLocaleString()}</div>
                       )}
-                      {selectedTrip.plannedEndDate && (
-                        <div><strong>Planned End:</strong> {new Date(selectedTrip.plannedEndDate).toLocaleString()}</div>
+                      {selectedOrder.deliveryDate && (
+                        <div><strong>Delivery Date:</strong> {new Date(selectedOrder.deliveryDate).toLocaleString()}</div>
                       )}
-                      {selectedTrip.tripNumber && (
-                        <div><strong>Trip Number:</strong> {selectedTrip.tripNumber}</div>
+                      {(selectedOrder.customerOrderNo || selectedOrder.orderNumber) && (
+                        <div><strong>Order Number:</strong> {selectedOrder.customerOrderNo || selectedOrder.orderNumber}</div>
                       )}
-                      {selectedTrip.truck && (
-                        <div><strong>Truck:</strong> {selectedTrip.truck.licensePlate || selectedTrip.truck.plateNumber || selectedTrip.truck.unitNo || selectedTrip.truck.internalId || 'N/A'}</div>
+                      {selectedOrder.truck && (
+                        <div><strong>Truck:</strong> {selectedOrder.truck.licensePlate || selectedOrder.truck.plateNumber || selectedOrder.truck.unitNo || selectedOrder.truck.internalId || 'N/A'}</div>
                       )}
-                      {selectedTrip.trailer && (
-                        <div><strong>Trailer:</strong> {selectedTrip.trailer.licensePlate || selectedTrip.trailer.plateNumber || selectedTrip.trailer.trailerNumber || selectedTrip.trailer.unitNo || selectedTrip.trailer.internalId || 'N/A'}</div>
+                      {selectedOrder.trailer && (
+                        <div><strong>Trailer:</strong> {selectedOrder.trailer.licensePlate || selectedOrder.trailer.plateNumber || selectedOrder.trailer.trailerNumber || selectedOrder.trailer.unitNo || selectedOrder.trailer.internalId || 'N/A'}</div>
                       )}
                     </div>
                   </div>
 
                   <div className="space-y-2">
-                    <h3 className="font-medium text-gray-900">Status & Route</h3>
+                    <h3 className="font-medium text-gray-900">Status & Location</h3>
                     <div className="text-sm text-gray-600 space-y-1">
-                      {selectedTrip.plannedStartDate && selectedTrip.plannedEndDate && (
-                        <div><strong>Duration:</strong> {Math.round((new Date(selectedTrip.plannedEndDate).getTime() - new Date(selectedTrip.plannedStartDate).getTime()) / (1000 * 60 * 60) * 10) / 10} hours</div>
+                      {selectedOrder.pickupDate && selectedOrder.deliveryDate && (
+                        <div><strong>Duration:</strong> {Math.round((new Date(selectedOrder.deliveryDate).getTime() - new Date(selectedOrder.pickupDate).getTime()) / (1000 * 60 * 60) * 10) / 10} hours</div>
                       )}
                       <div><strong>Status:</strong>
-                        <span className={`ml-2 px-2 py-1 rounded text-xs font-medium ${getStatusColor(selectedTrip.status)}`}>
-                          {selectedTrip.status}
+                        <span className={`ml-2 px-2 py-1 rounded text-xs font-medium ${getStatusColor(selectedOrder.status)}`}>
+                          {selectedOrder.status.replace('_', ' ')}
                         </span>
                       </div>
-                      {selectedTrip.startLocation?.place && (
-                        <div><strong>From:</strong> {selectedTrip.startLocation.place}</div>
-                      )}
-                      {selectedTrip.endLocation?.place && (
-                        <div><strong>To:</strong> {selectedTrip.endLocation.place}</div>
-                      )}
+                      {(() => {
+                        let pickupPlace = '';
+                        if (typeof selectedOrder.pickupLocation === 'string') {
+                          pickupPlace = selectedOrder.pickupLocation;
+                        } else if (selectedOrder.pickupLocation?.place) {
+                          pickupPlace = selectedOrder.pickupLocation.place;
+                        } else if (selectedOrder.pickupLocation?.placeId?.currentLocation?.address) {
+                          pickupPlace = selectedOrder.pickupLocation.placeId.currentLocation.address;
+                        } else if (selectedOrder.pickupLocation?.placeId?.name) {
+                          pickupPlace = selectedOrder.pickupLocation.placeId.name;
+                        }
+                        return pickupPlace ? <div><strong>From:</strong> {pickupPlace}</div> : null;
+                      })()}
+                      {(() => {
+                        let deliveryPlace = '';
+                        if (typeof selectedOrder.deliveryLocation === 'string') {
+                          deliveryPlace = selectedOrder.deliveryLocation;
+                        } else if (selectedOrder.deliveryLocation?.place) {
+                          deliveryPlace = selectedOrder.deliveryLocation.place;
+                        } else if (selectedOrder.deliveryLocation?.placeId?.currentLocation?.address) {
+                          deliveryPlace = selectedOrder.deliveryLocation.placeId.currentLocation.address;
+                        } else if (selectedOrder.deliveryLocation?.placeId?.name) {
+                          deliveryPlace = selectedOrder.deliveryLocation.placeId.name;
+                        }
+                        return deliveryPlace ? <div><strong>To:</strong> {deliveryPlace}</div> : null;
+                      })()}
                     </div>
                   </div>
                 </div>
@@ -1014,27 +1063,27 @@ const UnifiedSchedulingPage = () => {
                   <div className="text-sm text-gray-600 space-y-1">
                     <div className="flex items-center gap-2">
                       <Phone className="w-4 h-4" />
-                      <span>{selectedTrip.driverPhone || selectedTrip.driver?.phone || 'N/A'}</span>
+                      <span>{selectedOrder.driverPhone || selectedOrder.driver?.phone || 'N/A'}</span>
                     </div>
                     <div className="flex items-center gap-2">
                       <MapPin className="w-4 h-4" />
-                      <span>{selectedTrip.driverEmail || selectedTrip.driver?.email || 'N/A'}</span>
+                      <span>{selectedOrder.driverEmail || selectedOrder.driver?.email || 'N/A'}</span>
                     </div>
                   </div>
                 </div>
 
-                {selectedTrip.notes && (
+                {(selectedOrder.notes || selectedOrder.internalNotes || selectedOrder.customerNotes) && (
                   <div className="space-y-2">
                     <h3 className="font-medium text-gray-900">Notes</h3>
                     <div className="p-3 bg-gray-50 rounded-lg text-sm text-gray-700">
-                      {selectedTrip.notes}
+                      {selectedOrder.notes || selectedOrder.internalNotes || selectedOrder.customerNotes}
                     </div>
                   </div>
                 )}
 
                 <div className="flex justify-end space-x-3 pt-4 border-t">
                   <button
-                    onClick={() => setSelectedTrip(null)}
+                    onClick={() => setSelectedOrder(null)}
                     className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 rounded-md hover:bg-gray-200"
                   >
                     Close
