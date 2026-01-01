@@ -7,15 +7,17 @@ import {
   Truck,
   Clock,
   FileText,
-  XCircle
+  XCircle,
+  Wrench,
+  Activity
 } from 'lucide-react';
 import { FaExclamationCircle, FaCheckCircle } from 'react-icons/fa';
 import { getUserRole } from '../../../../utils/auth';
 import {
-  fetchComplianceDashboard,
   type ComplianceDashboardResponse,
   type ComplianceSafetyAlert,
-  type CompliancePmUnit
+  type CompliancePmUnit,
+  type ComplianceDocument
 } from '../../../../axios/api/complianceDashboard';
 
 const formatDate = (value?: string) => {
@@ -45,35 +47,327 @@ const ComplianceDashboard: React.FC = () => {
     return role === 'Fleet Maintenance Manager' ? '/fleetmaintenance' : '/admin/fleetmaintenance';
   };
 
+  // Static data initialization
   useEffect(() => {
-    const loadData = async () => {
-      setLoading(true);
-      setError(null);
-      try {
-        const response = await fetchComplianceDashboard();
-        if (response.success) {
-          setData(response.data);
-          setRequiresCompanySetup(!!response.requiresCompanySetup);
-        } else {
-          setData(null);
-          setRequiresCompanySetup(!!response.requiresCompanySetup);
-          setError(response.message || 'Failed to load compliance data');
+    // Initialize with static data instead of API call
+    const staticData: ComplianceDashboardResponse['data'] = {
+      fleetOperational: {
+        activeTrucks: 45,
+        outOfServiceTrucks: 3,
+        vehiclesUnderRepair: 5,
+        vehiclesWithPendingService: 8
+      },
+      safetyAlerts: [
+        {
+          unitNo: 'TR-001',
+          makeModel: 'Freightliner Cascadia 2020',
+          safetyExpiry: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000).toISOString(),
+          daysUntilExpiry: -5,
+          status: 'expired'
+        },
+        {
+          unitNo: 'TR-015',
+          makeModel: 'Peterbilt 579 2021',
+          safetyExpiry: new Date(Date.now() + 15 * 24 * 60 * 60 * 1000).toISOString(),
+          daysUntilExpiry: 15,
+          status: 'warning'
+        },
+        {
+          unitNo: 'TR-028',
+          makeModel: 'Kenworth T680 2019',
+          safetyExpiry: new Date(Date.now() + 22 * 24 * 60 * 60 * 1000).toISOString(),
+          daysUntilExpiry: 22,
+          status: 'warning'
         }
-      } catch (err: any) {
-        setData(null);
-        setError(err?.response?.data?.message || err?.message || 'Failed to load compliance data');
-      } finally {
-        setLoading(false);
-      }
+      ],
+      pmStatus: [
+        {
+          unitNo: 'TR-005',
+          makeModel: 'Volvo VNL 2022',
+          currentOdometer: 145000,
+          overdueCount: 1,
+          dueCount: 2,
+          nextServices: [
+            {
+              type: 'Oil Change',
+              dueAt: 140000,
+              kmRemaining: -5000,
+              status: 'overdue'
+            },
+            {
+              type: 'Tire Rotation',
+              dueAt: 150000,
+              kmRemaining: 5000,
+              status: 'due'
+            }
+          ]
+        },
+        {
+          unitNo: 'TR-012',
+          makeModel: 'Mack Anthem 2021',
+          currentOdometer: 98000,
+          overdueCount: 0,
+          dueCount: 1,
+          nextServices: [
+            {
+              type: 'Brake Inspection',
+              dueAt: 100000,
+              kmRemaining: 2000,
+              status: 'due'
+            }
+          ]
+        },
+        {
+          unitNo: 'TR-020',
+          makeModel: 'International LT 2020',
+          currentOdometer: 125000,
+          overdueCount: 0,
+          dueCount: 0,
+          nextServices: [
+            {
+              type: 'Regular Service',
+              dueAt: 130000,
+              kmRemaining: 5000,
+              status: 'ok'
+            }
+          ]
+        }
+      ],
+      invoiceSummary: {
+        month: {
+          total: 45678.50,
+          byType: {
+            scheduled: 23456.00,
+            general: 15678.50,
+            safety: 6544.00
+          },
+          count: 28
+        },
+        ytd: {
+          total: 345678.90,
+          byType: {
+            scheduled: 187654.50,
+            general: 115678.40,
+            safety: 42346.00
+          },
+          count: 198
+        }
+      },
+      inactiveUnits: 7,
+      complianceDocuments: [
+        {
+          _id: 'doc-001',
+          documentType: 'safety_inspection',
+          documentNumber: 'SI-2024-001',
+          expiryDate: new Date(Date.now() - 10 * 24 * 60 * 60 * 1000).toISOString(),
+          status: 'expired',
+          daysUntilExpiry: -10,
+          assetType: 'vehicle',
+          unitNo: 'TR-003',
+          makeModel: 'Freightliner Cascadia 2019',
+          plateNumber: 'ABC-1234',
+          unitType: 'Truck'
+        },
+        {
+          _id: 'doc-002',
+          documentType: 'registration',
+          documentNumber: 'REG-2024-045',
+          expiryDate: new Date(Date.now() + 5 * 24 * 60 * 60 * 1000).toISOString(),
+          status: 'due',
+          daysUntilExpiry: 5,
+          assetType: 'vehicle',
+          unitNo: 'TR-007',
+          makeModel: 'Peterbilt 579 2020',
+          plateNumber: 'XYZ-5678',
+          unitType: 'Truck'
+        },
+        {
+          _id: 'doc-003',
+          documentType: 'insurance',
+          documentNumber: 'INS-2024-089',
+          expiryDate: new Date(Date.now() + 12 * 24 * 60 * 60 * 1000).toISOString(),
+          status: 'due',
+          daysUntilExpiry: 12,
+          assetType: 'vehicle',
+          unitNo: 'TR-011',
+          makeModel: 'Kenworth T680 2021',
+          plateNumber: 'DEF-9012',
+          unitType: 'Truck'
+        },
+        {
+          _id: 'doc-004',
+          documentType: 'cvor',
+          documentNumber: 'CVOR-2024-012',
+          expiryDate: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000).toISOString(),
+          status: 'expired',
+          daysUntilExpiry: -3,
+          assetType: 'vehicle',
+          unitNo: 'TR-018',
+          makeModel: 'Volvo VNL 2018',
+          plateNumber: 'GHI-3456',
+          unitType: 'Truck'
+        },
+        {
+          _id: 'doc-005',
+          documentType: 'annual_inspection',
+          documentNumber: 'AI-2024-023',
+          expiryDate: new Date(Date.now() + 18 * 24 * 60 * 60 * 1000).toISOString(),
+          status: 'due',
+          daysUntilExpiry: 18,
+          assetType: 'vehicle',
+          unitNo: 'TR-025',
+          makeModel: 'Mack Anthem 2022',
+          plateNumber: 'JKL-7890',
+          unitType: 'Truck'
+        },
+        {
+          _id: 'doc-006',
+          documentType: 'permit',
+          documentNumber: 'PER-2024-056',
+          expiryDate: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString(),
+          status: 'expired',
+          daysUntilExpiry: -7,
+          assetType: 'trailer',
+          unitNo: 'TL-002',
+          makeModel: 'Utility Trailer 53ft',
+          plateNumber: 'TL-2345',
+          unitType: 'Trailer'
+        },
+        {
+          _id: 'doc-007',
+          documentType: 'dot_number',
+          documentNumber: 'DOT-987654',
+          expiryDate: new Date(Date.now() + 25 * 24 * 60 * 60 * 1000).toISOString(),
+          status: 'due',
+          daysUntilExpiry: 25,
+          assetType: 'vehicle',
+          unitNo: 'TR-032',
+          makeModel: 'International LT 2021',
+          plateNumber: 'MNO-1357',
+          unitType: 'Truck'
+        },
+        {
+          _id: 'doc-008',
+          documentType: 'safety_inspection',
+          documentNumber: 'SI-2024-078',
+          expiryDate: new Date(Date.now() + 35 * 24 * 60 * 60 * 1000).toISOString(),
+          status: 'due',
+          daysUntilExpiry: 35,
+          assetType: 'vehicle',
+          unitNo: 'TR-014',
+          makeModel: 'Freightliner Cascadia 2021',
+          plateNumber: 'PQR-2468',
+          unitType: 'Truck'
+        },
+        {
+          _id: 'doc-009',
+          documentType: 'registration',
+          documentNumber: 'REG-2024-091',
+          expiryDate: new Date(Date.now() + 42 * 24 * 60 * 60 * 1000).toISOString(),
+          status: 'due',
+          daysUntilExpiry: 42,
+          assetType: 'trailer',
+          unitNo: 'TL-005',
+          makeModel: 'Great Dane Trailer 48ft',
+          plateNumber: 'TL-5678',
+          unitType: 'Trailer'
+        },
+        {
+          _id: 'doc-010',
+          documentType: 'insurance',
+          documentNumber: 'INS-2024-112',
+          expiryDate: new Date(Date.now() + 50 * 24 * 60 * 60 * 1000).toISOString(),
+          status: 'due',
+          daysUntilExpiry: 50,
+          assetType: 'vehicle',
+          unitNo: 'TR-019',
+          makeModel: 'Peterbilt 389 2020',
+          plateNumber: 'STU-3691',
+          unitType: 'Truck'
+        },
+        {
+          _id: 'doc-011',
+          documentType: 'cvor',
+          documentNumber: 'CVOR-2024-045',
+          expiryDate: new Date(Date.now() + 28 * 24 * 60 * 60 * 1000).toISOString(),
+          status: 'due',
+          daysUntilExpiry: 28,
+          assetType: 'vehicle',
+          unitNo: 'TR-023',
+          makeModel: 'Kenworth W900 2019',
+          plateNumber: 'VWX-4826',
+          unitType: 'Truck'
+        },
+        {
+          _id: 'doc-012',
+          documentType: 'annual_inspection',
+          documentNumber: 'AI-2024-067',
+          expiryDate: new Date(Date.now() + 38 * 24 * 60 * 60 * 1000).toISOString(),
+          status: 'due',
+          daysUntilExpiry: 38,
+          assetType: 'vehicle',
+          unitNo: 'TR-029',
+          makeModel: 'Volvo VNR 2022',
+          plateNumber: 'YZA-7043',
+          unitType: 'Truck'
+        },
+        {
+          _id: 'doc-013',
+          documentType: 'permit',
+          documentNumber: 'PER-2024-084',
+          expiryDate: new Date(Date.now() + 45 * 24 * 60 * 60 * 1000).toISOString(),
+          status: 'due',
+          daysUntilExpiry: 45,
+          assetType: 'trailer',
+          unitNo: 'TL-008',
+          makeModel: 'Wabash Trailer 45ft',
+          plateNumber: 'TL-8024',
+          unitType: 'Trailer'
+        },
+        {
+          _id: 'doc-014',
+          documentType: 'dot_number',
+          documentNumber: 'DOT-654321',
+          expiryDate: new Date(Date.now() + 55 * 24 * 60 * 60 * 1000).toISOString(),
+          status: 'due',
+          daysUntilExpiry: 55,
+          assetType: 'vehicle',
+          unitNo: 'TR-036',
+          makeModel: 'Mack Pinnacle 2021',
+          plateNumber: 'BCD-9157',
+          unitType: 'Truck'
+        },
+        {
+          _id: 'doc-015',
+          documentType: 'safety_inspection',
+          documentNumber: 'SI-2024-102',
+          expiryDate: new Date(Date.now() + 32 * 24 * 60 * 60 * 1000).toISOString(),
+          status: 'due',
+          daysUntilExpiry: 32,
+          assetType: 'trailer',
+          unitNo: 'TL-011',
+          makeModel: 'Timpte Trailer 53ft',
+          plateNumber: 'TL-1065',
+          unitType: 'Trailer'
+        }
+      ]
     };
 
-    loadData();
+    setData(staticData);
+    setLoading(false);
   }, []);
 
   const safetyAlerts = useMemo<ComplianceSafetyAlert[]>(() => data?.safetyAlerts || [], [data]);
   const pmStatus = useMemo<CompliancePmUnit[]>(() => data?.pmStatus || [], [data]);
   const invoiceSummary = useMemo(() => data?.invoiceSummary || null, [data]);
   const inactiveUnits = data?.inactiveUnits || 0;
+  const fleetOperational = data?.fleetOperational || {
+    activeTrucks: 0,
+    outOfServiceTrucks: 0,
+    vehiclesUnderRepair: 0,
+    vehiclesWithPendingService: 0
+  };
+  const complianceDocuments = useMemo<ComplianceDocument[]>(() => data?.complianceDocuments || [], [data]);
 
   const currentInvoices =
     selectedPeriod === 'month' ? invoiceSummary?.month : invoiceSummary?.ytd;
@@ -89,6 +383,50 @@ const ComplianceDashboard: React.FC = () => {
   }
 
   const features = [
+    {
+      id: 'active-trucks',
+      title: 'Active Trucks',
+      value: fleetOperational.activeTrucks,
+      subtitle: 'In service',
+      icon: Activity,
+      bgColor: 'bg-blue-100',
+      iconColor: 'text-blue-700',
+      cardBg: 'bg-gradient-to-br from-blue-50 to-blue-100',
+      onClick: () => navigate(`${getBasePath()}/fleet-units`)
+    },
+    {
+      id: 'out-of-service',
+      title: 'Out of Service',
+      value: fleetOperational.outOfServiceTrucks,
+      subtitle: 'Requires attention',
+      icon: XCircle,
+      bgColor: 'bg-red-100',
+      iconColor: 'text-red-700',
+      cardBg: 'bg-gradient-to-br from-red-50 to-red-100',
+      onClick: () => navigate(`${getBasePath()}/fleet-units`)
+    },
+    {
+      id: 'under-repair',
+      title: 'Under Repair',
+      value: fleetOperational.vehiclesUnderRepair,
+      subtitle: 'In maintenance',
+      icon: Wrench,
+      bgColor: 'bg-orange-100',
+      iconColor: 'text-orange-700',
+      cardBg: 'bg-gradient-to-br from-orange-50 to-orange-100',
+      onClick: () => navigate(`${getBasePath()}/general-repairs-log`)
+    },
+    {
+      id: 'pending-service',
+      title: 'Pending Service',
+      value: fleetOperational.vehiclesWithPendingService,
+      subtitle: 'Service due',
+      icon: Clock,
+      bgColor: 'bg-yellow-100',
+      iconColor: 'text-yellow-700',
+      cardBg: 'bg-gradient-to-br from-yellow-50 to-yellow-100',
+      onClick: () => navigate(`${getBasePath()}/scheduled-services-log`)
+    },
     {
       id: 'safety',
       title: 'Safety Alerts',
@@ -240,7 +578,37 @@ const ComplianceDashboard: React.FC = () => {
 
           {/* Stats Cards */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3 mb-4">
-            {features.map((feature) => {
+            {/* Fleet Operational Stats - First Row */}
+            {features.slice(0, 4).map((feature) => {
+              const Icon = feature.icon;
+              return (
+                <div
+                  key={feature.id}
+                  onClick={feature.onClick}
+                  className={`${feature.cardBg} rounded-lg p-3 shadow-sm hover:shadow-md transition-all cursor-pointer border border-transparent hover:border-[#42aeec]/20 hover:scale-[1.02] active:scale-[0.98]`}
+                >
+                  <div className="flex items-start justify-between mb-2">
+                    <div className="flex-1">
+                      <h3 className="text-sm font-bold text-gray-900 mb-1">
+                        {feature.title}
+                      </h3>
+                      <div className="flex items-baseline gap-2 mb-0.5">
+                        <span className="text-xl font-bold text-gray-900">{feature.value}</span>
+                      </div>
+                      <p className="text-xs text-gray-400">{feature.subtitle}</p>
+                    </div>
+                    <div className={`${feature.bgColor} rounded-lg p-2 shadow-sm`}>
+                      <Icon className={feature.iconColor} size={21} strokeWidth={2} />
+                    </div>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+
+          {/* Additional Stats Cards - Second Row */}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3 mb-4">
+            {features.slice(4).map((feature) => {
               const Icon = feature.icon;
               return (
                 <div
@@ -369,6 +737,122 @@ const ComplianceDashboard: React.FC = () => {
                         </td>
                       </tr>
                     ))
+                  )}
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          {/* Compliance Documents - Expired/Due Documents */}
+          <div className="bg-white rounded-lg shadow-sm border border-gray-100 overflow-hidden mb-6">
+            <div
+              onClick={() => navigate(`${getBasePath()}/vehicle-documents`)}
+              className="px-6 py-4 border-b border-gray-100 bg-gray-50/50 cursor-pointer hover:bg-gray-100 transition-colors"
+            >
+              <div className="flex items-center justify-between">
+                <h3 className="text-lg font-bold text-gray-800 flex items-center">
+                  <FileText className="h-5 w-5 mr-2 text-purple-600" />
+                  Compliance Documents (7 Mandatory Regulatory Requirements)
+                </h3>
+                <span className="text-sm text-gray-500">View All →</span>
+              </div>
+              <p className="text-xs text-gray-500 mt-1 ml-7">Expired, due, and documents going to expire for trucks and trailers</p>
+            </div>
+            <div className="overflow-x-auto">
+              <table className="w-full">
+                <thead className="bg-gray-50">
+                  <tr>
+                    <th className="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase">Unit No.</th>
+                    <th className="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase">Type</th>
+                    <th className="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase">Document Type</th>
+                    <th className="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase">Document Number</th>
+                    <th className="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase">Expiry Date</th>
+                    <th className="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase">Days Until Expiry</th>
+                    <th className="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase">Status</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-gray-200">
+                  {complianceDocuments.length === 0 ? (
+                    <tr>
+                      <td colSpan={7} className="px-6 py-12 text-center text-gray-500">
+                        <div className="flex flex-col items-center gap-2">
+                          <FaCheckCircle className="text-green-500" size={32} />
+                          <p>All compliance documents are up to date!</p>
+                        </div>
+                      </td>
+                    </tr>
+                  ) : (
+                    complianceDocuments.map((doc) => {
+                      const isExpired = doc.daysUntilExpiry !== null && doc.daysUntilExpiry < 0;
+                      const isDueSoon = doc.daysUntilExpiry !== null && doc.daysUntilExpiry >= 0 && doc.daysUntilExpiry <= 30;
+                      const isGoingToExpire = doc.daysUntilExpiry !== null && doc.daysUntilExpiry > 30 && doc.daysUntilExpiry <= 60;
+                      
+                      let rowBgColor = '';
+                      let statusBadgeColor = '';
+                      let statusText = '';
+                      let statusIcon = null;
+                      let daysTextColor = '';
+
+                      if (isExpired) {
+                        rowBgColor = 'bg-red-50';
+                        statusBadgeColor = 'bg-red-100 text-red-800';
+                        statusText = 'EXPIRED';
+                        statusIcon = <FaExclamationCircle className="mr-1" size={12} />;
+                        daysTextColor = 'text-red-600';
+                      } else if (isDueSoon) {
+                        rowBgColor = 'bg-yellow-50';
+                        statusBadgeColor = 'bg-yellow-100 text-yellow-800';
+                        statusText = 'DUE SOON';
+                        statusIcon = <AlertTriangle className="mr-1" size={12} />;
+                        daysTextColor = 'text-yellow-600';
+                      } else if (isGoingToExpire) {
+                        rowBgColor = 'bg-orange-50';
+                        statusBadgeColor = 'bg-orange-100 text-orange-800';
+                        statusText = 'GOING TO EXPIRE';
+                        statusIcon = <Clock className="mr-1" size={12} />;
+                        daysTextColor = 'text-orange-600';
+                      } else {
+                        rowBgColor = 'bg-yellow-50';
+                        statusBadgeColor = 'bg-yellow-100 text-yellow-800';
+                        statusText = 'DUE';
+                        statusIcon = <AlertTriangle className="mr-1" size={12} />;
+                        daysTextColor = 'text-yellow-600';
+                      }
+
+                      return (
+                        <tr
+                          key={doc._id}
+                          className={`hover:bg-gray-50 transition-colors ${rowBgColor}`}
+                        >
+                          <td className="px-6 py-4 font-medium text-gray-900">{doc.unitNo}</td>
+                          <td className="px-6 py-4 text-gray-900">
+                            <span className="inline-flex px-2 py-1 text-xs font-medium rounded bg-blue-100 text-blue-800">
+                              {doc.unitType}
+                            </span>
+                          </td>
+                          <td className="px-6 py-4 text-gray-900">
+                            <span className="capitalize">{doc.documentType.replace(/_/g, ' ')}</span>
+                          </td>
+                          <td className="px-6 py-4 text-gray-900">{doc.documentNumber}</td>
+                          <td className="px-6 py-4 text-gray-900">{formatDate(doc.expiryDate)}</td>
+                          <td className="px-6 py-4">
+                            <span className={`font-semibold ${daysTextColor}`}>
+                              {doc.daysUntilExpiry === null
+                                ? 'N/A'
+                                : doc.daysUntilExpiry < 0
+                                ? `Expired ${Math.abs(doc.daysUntilExpiry)} days ago`
+                                : `${doc.daysUntilExpiry} days remaining`}
+                            </span>
+                          </td>
+                          <td className="px-6 py-4">
+                            <span className={`inline-flex px-3 py-1 text-xs font-semibold rounded-full ${statusBadgeColor}`}>
+                              {statusIcon}
+                              {statusText}
+                            </span>
+                          </td>
+                        </tr>
+                      );
+                    })
                   )}
                 </tbody>
               </table>

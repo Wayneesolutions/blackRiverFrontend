@@ -2,6 +2,7 @@ import {
   MdDashboard,         
   MdAccessTime,           // Attendance
   MdPerson,               // Profile / Portfolio
+  MdSchool,               // Training Certificates
 } from "react-icons/md";
 
 import { FaUserTie } from "react-icons/fa";      // Employees
@@ -9,6 +10,7 @@ import { FaTruck } from "react-icons/fa";        // Drivers
 import { FaIdCard } from "react-icons/fa";       // Driver Portfolio
 import { FaFolderOpen } from "react-icons/fa";   // Company Documents
 import { FaUsers } from "react-icons/fa";        // Customers
+import { FaFlask } from "react-icons/fa";        // Drug Test
 
 
 type DriverSidebarLink = {
@@ -58,6 +60,16 @@ export const DriverSidebarLinks: DriverSidebarLink[] = [
     key: "/admin/Management/driver-profiles",
     icon: <FaIdCard />,
     label: "Driver Portfolio",
+  },
+  {
+    key: "/admin/Management/training-certificates",
+    icon: <MdSchool />,
+    label: "Training Certificates",
+  },
+  {
+    key: "/admin/Management/drug-test",
+    icon: <FaFlask />,
+    label: "Drug Test",
   },
 ];
 

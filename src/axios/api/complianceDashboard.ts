@@ -34,6 +34,28 @@ export interface ComplianceInvoiceSummary {
   count: number;
 }
 
+export interface FleetOperational {
+  activeTrucks: number;
+  outOfServiceTrucks: number;
+  vehiclesUnderRepair: number;
+  vehiclesWithPendingService: number;
+}
+
+export interface ComplianceDocument {
+  _id: string;
+  documentType: string;
+  documentNumber: string;
+  expiryDate: string;
+  issuedAt?: string;
+  status: 'expired' | 'due';
+  daysUntilExpiry: number | null;
+  assetType: 'vehicle' | 'trailer';
+  unitNo: string;
+  makeModel: string;
+  plateNumber: string;
+  unitType: string;
+}
+
 export interface ComplianceDashboardResponse {
   success: boolean;
   requiresCompanySetup?: boolean;
@@ -45,6 +67,8 @@ export interface ComplianceDashboardResponse {
       ytd: ComplianceInvoiceSummary;
     };
     inactiveUnits: number;
+    fleetOperational: FleetOperational;
+    complianceDocuments: ComplianceDocument[];
   };
   message?: string;
 }

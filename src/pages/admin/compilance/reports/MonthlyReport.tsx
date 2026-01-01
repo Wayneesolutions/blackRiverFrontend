@@ -1051,6 +1051,41 @@ const MonthlyReport: React.FC = () => {
             </div>
           </div>
 
+          {/* Country Tabs */}
+          <div className="mb-6 bg-white rounded-lg shadow-sm border border-gray-100 p-4">
+            <div className="flex gap-2 border-b border-gray-100 pb-4">
+              <button
+                onClick={() => setSelectedCountry('all')}
+                className={`px-4 py-2 rounded-lg font-medium text-sm transition-colors ${selectedCountry === 'all'
+                  ? 'bg-[#E0F2FE] text-[#0284C7]'
+                  : 'text-gray-600 hover:bg-gray-50'
+                  }`}
+              >
+                All
+              </button>
+              <button
+                onClick={() => setSelectedCountry('canada')}
+                className={`px-4 py-2 rounded-lg font-medium text-sm transition-colors flex items-center gap-2 ${selectedCountry === 'canada'
+                  ? 'bg-[#E0F2FE] text-[#0284C7]'
+                  : 'text-gray-600 hover:bg-gray-50'
+                  }`}
+              >
+                <FaFlag className="text-red-600" size={14} />
+                Canada
+              </button>
+              <button
+                onClick={() => setSelectedCountry('usa')}
+                className={`px-4 py-2 rounded-lg font-medium text-sm transition-colors flex items-center gap-2 ${selectedCountry === 'usa'
+                  ? 'bg-[#E0F2FE] text-[#0284C7]'
+                  : 'text-gray-600 hover:bg-gray-50'
+                  }`}
+              >
+                <FaFlagUsa className="text-blue-600" size={14} />
+                USA
+              </button>
+            </div>
+          </div>
+
           {/* Audit Compliance Score Card */}
           {complianceScore && (
             <div className="mb-6 bg-white rounded-lg shadow-sm border border-gray-100 p-6">
@@ -1447,40 +1482,6 @@ const MonthlyReport: React.FC = () => {
                         </option>
                       ))}
                     </select>
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">Country Filter</label>
-                    <div className="flex bg-gray-100 rounded-lg p-1">
-                      <button
-                        onClick={() => setSelectedCountry('all')}
-                        className={`flex items-center gap-2 px-3 py-1 rounded-md font-medium transition-all ${selectedCountry === 'all'
-                          ? 'bg-white text-[#9793E4] shadow-sm'
-                          : 'text-gray-600 hover:text-gray-800'
-                          }`}
-                      >
-                        All
-                      </button>
-                      <button
-                        onClick={() => setSelectedCountry('canada')}
-                        className={`flex items-center gap-2 px-3 py-1 rounded-md font-medium transition-all ${selectedCountry === 'canada'
-                          ? 'bg-white text-[#9793E4] shadow-sm'
-                          : 'text-gray-600 hover:text-gray-800'
-                          }`}
-                      >
-                        <FaFlag className="text-red-600" size={14} />
-                        Canada
-                      </button>
-                      <button
-                        onClick={() => setSelectedCountry('usa')}
-                        className={`flex items-center gap-2 px-3 py-1 rounded-md font-medium transition-all ${selectedCountry === 'usa'
-                          ? 'bg-white text-[#9793E4] shadow-sm'
-                          : 'text-gray-600 hover:text-gray-800'
-                          }`}
-                      >
-                        <FaFlagUsa className="text-blue-600" size={14} />
-                        USA
-                      </button>
-                    </div>
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">Chart Type</label>

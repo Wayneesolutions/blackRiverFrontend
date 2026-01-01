@@ -16,7 +16,9 @@ import {
   FaInfoCircle,
   FaTimes,
   FaChevronLeft,
-  FaChevronRight
+  FaChevronRight,
+  FaFlag,
+  FaFlagUsa
 } from 'react-icons/fa';
 import {
   getIncidents,
@@ -215,6 +217,7 @@ const Incidents: React.FC = () => {
   const [typeFilter, setTypeFilter] = useState<string>('all');
   const [locationFilter, setLocationFilter] = useState<string>('all');
   const [driverFilter, setDriverFilter] = useState<string>('all');
+  const [countryFilter, setCountryFilter] = useState<'all' | 'canada' | 'usa'>('all');
   const [currentPage, setCurrentPage] = useState(1);
   const [pageSize, setPageSize] = useState(50);
   const [total, setTotal] = useState(0);
@@ -266,7 +269,7 @@ const Incidents: React.FC = () => {
   // Reset to page 1 when filters change
   useEffect(() => {
     setCurrentPage(1);
-  }, [statusFilter, typeFilter, locationFilter, driverFilter]);
+  }, [statusFilter, typeFilter, locationFilter, driverFilter, countryFilter]);
 
   useEffect(() => {
     loadDrivers();
@@ -349,7 +352,7 @@ const Incidents: React.FC = () => {
 
   useEffect(() => {
     refreshData();
-  }, [statusFilter, typeFilter, locationFilter, driverFilter, debouncedSearch, currentPage, pageSize]);
+  }, [statusFilter, typeFilter, locationFilter, driverFilter, countryFilter, debouncedSearch, currentPage, pageSize]);
 
   const refreshData = async () => {
     setLoading(true);
@@ -365,6 +368,7 @@ const Incidents: React.FC = () => {
       if (typeFilter !== 'all') params.type = typeFilter;
       if (locationFilter !== 'all') params.location = locationFilter;
       if (driverFilter !== 'all') params.driver = driverFilter;
+      if (countryFilter !== 'all') params.country = countryFilter;
       if (debouncedSearch) params.search = debouncedSearch;
 
       const res = await getIncidents(params);
@@ -901,6 +905,41 @@ const Incidents: React.FC = () => {
       </div>
 
       <div className="w-full mx-auto px-4 -mt-4">
+        {/* Country Tabs */}
+        <div className="bg-white rounded-lg shadow-sm border border-gray-100 p-4 mb-6">
+          <div className="flex gap-2 border-b border-gray-100 pb-4">
+            <button
+              onClick={() => setCountryFilter('all')}
+              className={`px-4 py-2 rounded-lg font-medium text-sm transition-colors ${countryFilter === 'all'
+                ? 'bg-[#E0F2FE] text-[#0284C7]'
+                : 'text-gray-600 hover:bg-gray-50'
+                }`}
+            >
+              All ({incidents.length})
+            </button>
+            <button
+              onClick={() => setCountryFilter('canada')}
+              className={`px-4 py-2 rounded-lg font-medium text-sm transition-colors flex items-center gap-2 ${countryFilter === 'canada'
+                ? 'bg-[#E0F2FE] text-[#0284C7]'
+                : 'text-gray-600 hover:bg-gray-50'
+                }`}
+            >
+              <FaFlag className="text-red-600" size={14} />
+              Canada ({incidents.filter(i => i.location?.country === 'canada').length})
+            </button>
+            <button
+              onClick={() => setCountryFilter('usa')}
+              className={`px-4 py-2 rounded-lg font-medium text-sm transition-colors flex items-center gap-2 ${countryFilter === 'usa'
+                ? 'bg-[#E0F2FE] text-[#0284C7]'
+                : 'text-gray-600 hover:bg-gray-50'
+                }`}
+            >
+              <FaFlagUsa className="text-blue-600" size={14} />
+              USA ({incidents.filter(i => i.location?.country === 'usa').length})
+            </button>
+          </div>
+        </div>
+
         {/* Filters and Actions */}
         <div className="bg-white rounded-lg shadow-sm border border-gray-100 p-6 mb-6">
           <div className="grid grid-cols-1 md:grid-cols-6 gap-4 mb-4">

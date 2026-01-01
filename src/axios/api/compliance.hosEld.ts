@@ -69,3 +69,87 @@ export const getVehicleELDStatus = async (vehicleId: string) => {
     }
 };
 
+// Submit HOS Audit
+export const submitHOSAudit = async (auditData: {
+    driverId: string;
+    auditDate: string;
+    drivingHours: number;
+    onDutyHours: number;
+    offDutyHours: number;
+    violations: string[];
+    notes?: string;
+    auditorName?: string;
+}) => {
+    try {
+        const res: AxiosResponse = await apiClient.post(`compliance/hos-eld/audit`, auditData);
+        return res.data;
+    } catch (error: any) {
+        const err = error as Error;
+        return err.response?.data;
+    }
+};
+
+// Upload E-Log file
+export const uploadELogFile = async (formData: FormData) => {
+    try {
+        const res: AxiosResponse = await apiClient.post(`compliance/hos-eld/e-logs/upload`, formData, {
+            headers: {
+                'Content-Type': 'multipart/form-data',
+            },
+        });
+        return res.data;
+    } catch (error: any) {
+        const err = error as Error;
+        return err.response?.data;
+    }
+};
+
+// Get E-Logs list
+export const getELogs = async (params?: {
+    driverId?: string;
+    startDate?: string;
+    endDate?: string;
+    page?: number;
+    limit?: number;
+}) => {
+    try {
+        const queryParams = new URLSearchParams();
+        if (params?.driverId) queryParams.append('driverId', params.driverId);
+        if (params?.startDate) queryParams.append('startDate', params.startDate);
+        if (params?.endDate) queryParams.append('endDate', params.endDate);
+        if (params?.page) queryParams.append('page', params.page.toString());
+        if (params?.limit) queryParams.append('limit', params.limit.toString());
+        
+        const url = `compliance/hos-eld/e-logs${queryParams.toString() ? `?${queryParams.toString()}` : ''}`;
+        const res: AxiosResponse = await apiClient.get(url);
+        return res.data;
+    } catch (error: any) {
+        const err = error as Error;
+        return err.response?.data;
+    }
+};
+
+// Delete E-Log file
+export const deleteELog = async (logId: string) => {
+    try {
+        const res: AxiosResponse = await apiClient.delete(`compliance/hos-eld/e-logs/${logId}`);
+        return res.data;
+    } catch (error: any) {
+        const err = error as Error;
+        return err.response?.data;
+    }
+};
+
+// Download E-Log file
+export const downloadELog = async (logId: string) => {
+    try {
+        const res: AxiosResponse = await apiClient.get(`compliance/hos-eld/e-logs/${logId}/download`, {
+            responseType: 'blob',
+        });
+        return res.data;
+    } catch (error: any) {
+        const err = error as Error;
+        return err.response?.data;
+    }
+};
+
