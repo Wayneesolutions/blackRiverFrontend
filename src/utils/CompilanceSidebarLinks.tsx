@@ -3,6 +3,7 @@ import {
 } from "react-icons/md";
 import { RiBillLine } from "react-icons/ri";
 import { FaClipboardCheck, FaChartBar, FaTicketAlt, FaExclamationTriangle } from "react-icons/fa";
+import { HiLocationMarker } from "react-icons/hi";
 
 type CompilanceSidebarLink = {
     key: string;

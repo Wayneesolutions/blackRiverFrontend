@@ -12,6 +12,7 @@ const Vehicles = lazy(() => import("../../pages/admin/gpsvehicle/vehicles/index"
 const Drivers = lazy(() => import("../../pages/admin/gpsvehicle/drivers/index"))
 const LiveTrackingTrailer = lazy(() => import("../../pages/admin/gpsvehicle/livetracking/TrailerTracker"))
 const LiveTrackingTrip = lazy(() => import("../../pages/admin/gpsvehicle/livetracking/TripTracker"))
+const GpsTracking = lazy(() => import("../../pages/admin/gpsvehicle/gps/GpsSection"))
 
 
 function GpsVehicleRoutes() {
@@ -31,6 +32,7 @@ function GpsVehicleRoutes() {
           <Route path="livetracking/trailer" element={<LiveTrackingTrailer />} />
           <Route path="livetracking/trip" element={<LiveTrackingTrip />} />
           <Route path="triphistory" element={<TripHistory />} />
+          <Route path="gps-tracking" element={<GpsTracking />} />
         </Route>
       </Routes>
     </Suspense>

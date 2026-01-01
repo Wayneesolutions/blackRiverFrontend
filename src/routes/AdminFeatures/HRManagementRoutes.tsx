@@ -16,6 +16,8 @@ const VehicleDocuments = lazy(() => import("../../pages/admin/fleetMaintenance/v
 const UserProfilesPortfolio = lazy(() => import("../../pages/admin/driverManagement/userProfiles/index"))
 const DriverProfiles = lazy(() => import("../../pages/admin/driverManagement/driverportfolio/index"))
 const Profile = lazy(() => import("../../pages/admin/dashboard/Profile/index"));
+const TrainingCertificates = lazy(() => import("../../pages/admin/driverManagement/trainingCertificates/index"));
+const DrugTest = lazy(() => import("../../pages/admin/driverManagement/drugTest/index"));
 
 function DriverManagementRoutes() {
     return (
@@ -37,6 +39,8 @@ function DriverManagementRoutes() {
                     <Route path="/employee-profiles" element={<UserProfilesPortfolio />} />
 
                     <Route path="/driver-profiles" element={<DriverProfiles />} />
+                    <Route path="/training-certificates" element={<TrainingCertificates />} />
+                    <Route path="/drug-test" element={<DrugTest />} />
                 </Route>
             </Routes>
         </Suspense>

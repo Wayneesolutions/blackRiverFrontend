@@ -1,53 +1,42 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect } from 'react';
 import {
-    Truck, MapPin, Activity, Clock, Wifi, AlertTriangle, 
-    Wrench, Navigation, Search, RefreshCw, Zap, ShieldCheck, 
-    Download
+    RefreshCw, ShieldCheck, 
+    Download, Upload, FileText, X, FileCheck
 } from 'lucide-react';
-import {
-    BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, 
-    ResponsiveContainer, PieChart, Pie, Cell
-} from 'recharts';
-import { GoogleMap, useJsApiLoader, Marker } from '@react-google-maps/api';
-import type { Libraries } from '@react-google-maps/api';
-import { getHOSEldData, syncHOSFromGeotab } from '../../../../axios/api/compliance.hosEld';
-import { getSocket } from '../../../../socket/socketClient';
+import { 
+    getHOSEldData, 
+    syncHOSFromGeotab, 
+    submitHOSAudit,
+    uploadELogFile,
+    getELogs,
+    deleteELog,
+    downloadELog
+} from '../../../../axios/api/compliance.hosEld';
+import { getAllDrivers } from '../../../../axios/api/driver';
 
-const GOOGLE_MAPS_API_KEY = import.meta.env.VITE_GOOGLE_MAPS_API_KEY || "AIzaSyBE6Ii-ZxHsICvzD2Fp3m3iMPYX-Vie1N4";
-const GOOGLE_MAPS_LIBRARIES: Libraries = ["marker", "places"];
 
-declare global {
-  interface Window {
-    google: any;
-  }
+interface Driver {
+  _id: string;
+  name: string;
+  email?: string;
+  phone?: string;
 }
 
-interface VehicleLocation {
+interface ELogFile {
   _id: string;
-  unitNo: string;
-  internalId: string;
-  licensePlate: string;
-  makeModel: string;
-  status: string;
-  operationStatus: string;
-  location: {
-    latitude: number;
-    longitude: number;
-    address: string;
-    updatedAt: Date;
-  };
-  speed: number;
-  engineOn: boolean;
-  engineHours: number;
+  fileName: string;
+  fileUrl: string;
+  fileSize: number;
+  driverId?: string;
+  driverName?: string;
+  uploadedAt: string;
+  uploadedBy?: string;
 }
 
 const VehicleEldMonitor = () => {
-  // UPDATED: Added 'compliance' to tabs
-  const [activeTab, setActiveTab] = useState<'overview' | 'gps' | 'maintenance' | 'compliance'>('overview');
-  const [searchTerm, setSearchTerm] = useState('');
+  const [activeTab, setActiveTab] = useState<'tracker' | 'audit-form' | 'e-logs'>('tracker');
   const [loading, setLoading] = useState(false);
   const [syncing, setSyncing] = useState(false);
-  const [vehicles, setVehicles] = useState<any[]>([]);
   const [auditLogs, setAuditLogs] = useState<any[]>([]);
   const [summary, setSummary] = useState({
     totalVehicles: 0,
@@ -57,18 +46,27 @@ const VehicleEldMonitor = () => {
     activeViolations: 0,
     uncertifiedLogs: 0
   });
-  
-  // GPS Tab State
-  const { isLoaded, loadError } = useJsApiLoader({
-    id: 'google-maps-api',
-    googleMapsApiKey: GOOGLE_MAPS_API_KEY,
-    libraries: GOOGLE_MAPS_LIBRARIES,
+
+  // HOS Audit Form State
+  const [drivers, setDrivers] = useState<Driver[]>([]);
+  const [auditFormData, setAuditFormData] = useState({
+    driverId: '',
+    auditDate: new Date().toISOString().split('T')[0],
+    drivingHours: 0,
+    onDutyHours: 0,
+    offDutyHours: 0,
+    violations: [] as string[],
+    notes: '',
+    auditorName: ''
   });
-  const [map, setMap] = useState<google.maps.Map | null>(null);
-  const [vehicleLocations, setVehicleLocations] = useState<VehicleLocation[]>([]);
-  const [mapCenter, setMapCenter] = useState<{ lat: number; lng: number }>({ lat: 43.6532, lng: -79.3832 }); // Default to Toronto
-  const [mapZoom, setMapZoom] = useState<number>(6);
-  const socketRef = useRef<any>(null);
+  const [submittingAudit, setSubmittingAudit] = useState(false);
+
+  // E-Logs State
+  const [eLogs, setELogs] = useState<ELogFile[]>([]);
+  const [uploadingFile, setUploadingFile] = useState(false);
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [selectedDriverForLog, setSelectedDriverForLog] = useState('');
+  const [eLogsLoading, setELogsLoading] = useState(false);
 
   // Fetch HOS/ELD data
   const fetchHOSData = async () => {
@@ -76,7 +74,6 @@ const VehicleEldMonitor = () => {
     try {
       const response = await getHOSEldData();
       if (response?.success && response?.data) {
-        setVehicles(response.data.vehicleStatusList || []);
         setAuditLogs(response.data.auditLogs || []);
         setSummary(response.data.summary || {
           totalVehicles: 0,
@@ -94,13 +91,44 @@ const VehicleEldMonitor = () => {
     }
   };
 
+  // Fetch drivers for audit form
+  const fetchDrivers = async () => {
+    try {
+      const response = await getAllDrivers(1, 1000);
+      if (response?.success && response?.data) {
+        setDrivers(response.data.map((d: any) => ({
+          _id: d._id,
+          name: d.name || `${d.firstName || ''} ${d.lastName || ''}`.trim() || 'Unknown Driver',
+          email: d.email,
+          phone: d.phone || d.mobile
+        })));
+      }
+    } catch (error) {
+      console.error('Error fetching drivers:', error);
+    }
+  };
+
+  // Fetch E-Logs
+  const fetchELogs = async () => {
+    setELogsLoading(true);
+    try {
+      const response = await getELogs();
+      if (response?.success && response?.data) {
+        setELogs(response.data || []);
+      }
+    } catch (error) {
+      console.error('Error fetching E-Logs:', error);
+    } finally {
+      setELogsLoading(false);
+    }
+  };
+
   // Sync HOS data from Geotab
   const handleSyncHOS = async () => {
     setSyncing(true);
     try {
       const response = await syncHOSFromGeotab();
       if (response?.success) {
-        // Refresh data after sync
         await fetchHOSData();
         alert('HOS data synced successfully!');
       } else {
@@ -114,78 +142,134 @@ const VehicleEldMonitor = () => {
     }
   };
 
-  // Initialize Socket.IO for GPS tracking
-  useEffect(() => {
-    if (activeTab === 'gps') {
-      const socket = getSocket();
-      socketRef.current = socket;
-
-      // Join compliance GPS room
-      socket.emit('joinComplianceGPS');
-
-      // Listen for vehicle location updates
-      socket.on('vehicleLocationsUpdate', (locations: VehicleLocation[]) => {
-        setVehicleLocations(locations);
-        
-        // Update map center to first vehicle if available
-        if (locations.length > 0 && locations[0].location) {
-          const firstVehicle = locations[0];
-          const lat = firstVehicle.location.latitude;
-          const lng = firstVehicle.location.longitude;
-          
-          if (!isNaN(lat) && !isNaN(lng) && lat !== 0 && lng !== 0) {
-            setMapCenter({ lat, lng });
-            setMapZoom(10);
-            
-            // Update map center if map is loaded
-            if (map) {
-              map.setCenter({ lat, lng });
-            }
-          }
-        }
-      });
-
-      // Initial data will come from Socket.IO updates (every 5 seconds)
-      // No need to fetch separately as Socket.IO will provide real-time updates
-
-      return () => {
-        socket.emit('leaveComplianceGPS');
-        socket.off('vehicleLocationsUpdate');
-      };
+  // Submit HOS Audit
+  const handleSubmitAudit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!auditFormData.driverId) {
+      alert('Please select a driver');
+      return;
     }
-  }, [activeTab, map]);
+
+    setSubmittingAudit(true);
+    try {
+      const response = await submitHOSAudit(auditFormData);
+      if (response?.success) {
+        alert('HOS Audit submitted successfully!');
+        // Reset form
+        setAuditFormData({
+          driverId: '',
+          auditDate: new Date().toISOString().split('T')[0],
+          drivingHours: 0,
+          onDutyHours: 0,
+          offDutyHours: 0,
+          violations: [],
+          notes: '',
+          auditorName: ''
+        });
+        // Refresh audit logs
+        await fetchHOSData();
+      } else {
+        alert(response?.message || 'Failed to submit audit');
+      }
+    } catch (error) {
+      console.error('Error submitting audit:', error);
+      alert('Error submitting audit');
+    } finally {
+      setSubmittingAudit(false);
+    }
+  };
+
+  // Handle file upload for E-Logs
+  const handleFileUpload = async () => {
+    if (!selectedFile) {
+      alert('Please select a file to upload');
+      return;
+    }
+
+    setUploadingFile(true);
+    try {
+      const formData = new FormData();
+      formData.append('file', selectedFile);
+      if (selectedDriverForLog) {
+        formData.append('driverId', selectedDriverForLog);
+      }
+
+      const response = await uploadELogFile(formData);
+      if (response?.success) {
+        alert('E-Log file uploaded successfully!');
+        setSelectedFile(null);
+        setSelectedDriverForLog('');
+        await fetchELogs();
+      } else {
+        alert(response?.message || 'Failed to upload file');
+      }
+    } catch (error) {
+      console.error('Error uploading file:', error);
+      alert('Error uploading file');
+    } finally {
+      setUploadingFile(false);
+    }
+  };
+
+  // Delete E-Log
+  const handleDeleteELog = async (logId: string) => {
+    if (!confirm('Are you sure you want to delete this E-Log file?')) {
+      return;
+    }
+
+    try {
+      const response = await deleteELog(logId);
+      if (response?.success) {
+        alert('E-Log deleted successfully!');
+        await fetchELogs();
+      } else {
+        alert(response?.message || 'Failed to delete E-Log');
+      }
+    } catch (error) {
+      console.error('Error deleting E-Log:', error);
+      alert('Error deleting E-Log');
+    }
+  };
+
+  // Download E-Log
+  const handleDownloadELog = async (logId: string, fileName: string) => {
+    try {
+      const blob = await downloadELog(logId);
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = fileName;
+      document.body.appendChild(a);
+      a.click();
+      window.URL.revokeObjectURL(url);
+      document.body.removeChild(a);
+    } catch (error) {
+      console.error('Error downloading E-Log:', error);
+      alert('Error downloading E-Log');
+    }
+  };
+
 
   useEffect(() => {
     fetchHOSData();
-  }, []);
+    if (activeTab === 'audit-form') {
+      fetchDrivers();
+    }
+    if (activeTab === 'e-logs') {
+      fetchELogs();
+      fetchDrivers();
+    }
+  }, [activeTab]);
 
-  const filteredVehicles = vehicles.filter((vehicle: any) =>
-      vehicle.id?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      vehicle.driver?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      vehicle.location?.toLowerCase().includes(searchTerm.toLowerCase())
-  );
 
-  // Calculate engine hours data for chart
-  const engineHoursData = vehicles.map((v: any) => ({
-    name: v.id,
-    hours: v.engineHours || 0
-  }));
-
-  // Calculate status distribution for pie chart
-  const statusDistribution = {
-    moving: vehicles.filter((v: any) => v.status === 'moving').length,
-    idle: vehicles.filter((v: any) => v.status === 'idle').length,
-    offline: vehicles.filter((v: any) => v.status === 'offline').length
-  };
-
-  const STATUS_DATA = [
-    { name: 'Moving', value: statusDistribution.moving, color: '#10b981' },
-    { name: 'Idle', value: statusDistribution.idle, color: '#f59e0b' },
-    { name: 'Offline', value: statusDistribution.offline, color: '#6b7280' },
+  const violationOptions = [
+    '11-Hour Driving Limit',
+    '14-Hour On-Duty Limit',
+    '70-Hour/8-Day Limit',
+    '30-Minute Break Requirement',
+    'Rest Break Violation',
+    'Other'
   ];
-
-  // Mock maintenance alerts (can be replaced with real data later)
-  const MAINTENANCE_ALERTS: any[] = [];
 
   return (
       <div className="min-h-screen bg-[#EDF8FF] font-sans pb-12">
@@ -195,7 +279,7 @@ const VehicleEldMonitor = () => {
                   <div>
                       <h1 className="text-2xl font-bold text-gray-900 flex items-center gap-3">
                           <ShieldCheck size={28} className="text-blue-600" />
-                          Fleet Compliance Portal
+                          Compliance Portal
                       </h1>
                       <p className="text-sm text-gray-500 mt-1 ml-10">ELD Mandate Monitoring & HOS Audit Tracking</p>
                   </div>
@@ -203,505 +287,487 @@ const VehicleEldMonitor = () => {
 
               {/* Navigation Tabs */}
               <div className="px-8 flex gap-6">
-                  {['overview', 'gps', 'maintenance', 'compliance'].map((tab) => (
+                  {[
+                      { key: 'tracker', label: 'HOS Audit Tracker' },
+                      { key: 'audit-form', label: 'HOS Audit Form' },
+                      { key: 'e-logs', label: 'E-Logs' }
+                  ].map((tab) => (
                       <button
-                          key={tab}
-                          onClick={() => setActiveTab(tab as any)}
-                          className={`pb-3 px-2 text-sm font-bold capitalize transition-colors border-b-2 ${
-                              activeTab === tab ? 'border-blue-500 text-blue-600' : 'border-transparent text-gray-400'
+                          key={tab.key}
+                          onClick={() => setActiveTab(tab.key as any)}
+                          className={`pb-3 px-2 text-sm font-bold border-b-2 transition-colors ${
+                              activeTab === tab.key 
+                                  ? 'border-blue-500 text-blue-600' 
+                                  : 'border-transparent text-gray-400 hover:text-gray-600'
                           }`}
                       >
-                          {tab === 'compliance' ? 'HOS Audit Tracker' : tab.replace('_', ' ')}
+                          {tab.label}
                       </button>
                   ))}
               </div>
           </div>
 
-            <div className="w-full mx-auto px-4 mt-8">
-            {activeTab === 'compliance' && (
-                    <div className="space-y-6">
-                        {/* HOS Summary Cards */}
-                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                            <div className="bg-white p-5 rounded-xl border-l-4 border-green-500 shadow-sm">
-                                <p className="text-xs text-gray-500 font-bold uppercase">Fully Compliant</p>
-                                <h3 className="text-2xl font-bold">{summary.compliantDrivers}%</h3>
-                                <p className="text-xs text-gray-400 mt-1">{summary.totalDrivers} Drivers</p>
-                            </div>
-                            <div className="bg-white p-5 rounded-xl border-l-4 border-red-500 shadow-sm">
-                                <p className="text-xs text-gray-500 font-bold uppercase">Active Violations</p>
-                                <h3 className="text-2xl font-bold text-red-600">{summary.activeViolations}</h3>
-                                <p className="text-xs text-gray-400 mt-1">Requires immediate audit</p>
-                            </div>
-                            <div className="bg-white p-5 rounded-xl border-l-4 border-amber-500 shadow-sm">
-                                <p className="text-xs text-gray-500 font-bold uppercase">Uncertified Logs</p>
-                                <h3 className="text-2xl font-bold text-amber-600">{summary.uncertifiedLogs}</h3>
-                                <p className="text-xs text-gray-400 mt-1">Pending driver signature</p>
-                            </div>
-                        </div>
+          <div className="w-full mx-auto px-4 mt-8">
+              {/* HOS Audit Tracker Tab */}
+              {activeTab === 'tracker' && (
+                  <div className="space-y-6">
+                      {/* HOS Summary Cards */}
+                      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                          <div className="bg-white p-5 rounded-xl border-l-4 border-green-500 shadow-sm">
+                              <p className="text-xs text-gray-500 font-bold uppercase">Fully Compliant</p>
+                              <h3 className="text-2xl font-bold">{summary.compliantDrivers}%</h3>
+                              <p className="text-xs text-gray-400 mt-1">{summary.totalDrivers} Drivers</p>
+                          </div>
+                          <div className="bg-white p-5 rounded-xl border-l-4 border-red-500 shadow-sm">
+                              <p className="text-xs text-gray-500 font-bold uppercase">Active Violations</p>
+                              <h3 className="text-2xl font-bold text-red-600">{summary.activeViolations}</h3>
+                              <p className="text-xs text-gray-400 mt-1">Requires immediate audit</p>
+                          </div>
+                          <div className="bg-white p-5 rounded-xl border-l-4 border-amber-500 shadow-sm">
+                              <p className="text-xs text-gray-500 font-bold uppercase">Uncertified Logs</p>
+                              <h3 className="text-2xl font-bold text-amber-600">{summary.uncertifiedLogs}</h3>
+                              <p className="text-xs text-gray-400 mt-1">Pending driver signature</p>
+                          </div>
+                      </div>
 
-                        {/* Audit Table (Mirroring Excel Columns) */}
-                        <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
-                            <div className="px-6 py-4 border-b flex justify-between items-center bg-gray-50">
-                                <h3 className="font-bold text-gray-800">Driver Log Audit (Last 7 Days)</h3>
-                                <div className="flex gap-2">
-                                    <button 
-                                        onClick={handleSyncHOS}
-                                        disabled={syncing}
-                                        style={{
-                                            background: syncing ? '#9CA3AF' : 'linear-gradient(90deg, #42aeec 0%, #1db5f5 40%, #0ea3d8 100%)',
-                                        }}
-                                        className="flex items-center gap-2 text-sm font-semibold !text-white px-4 py-2 rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed">
-                                        <RefreshCw size={16} className={syncing ? 'animate-spin' : ''} /> 
-                                        {syncing ? 'Syncing...' : 'Sync from Geotab'}
-                                    </button>
-                                    <button 
-                                       style={{
-                                        background: 'linear-gradient(90deg, #42aeec 0%, #1db5f5 40%, #0ea3d8 100%)',
+                      {/* Audit Table */}
+                      <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+                          <div className="px-6 py-4 border-b flex justify-between items-center bg-gray-50">
+                              <h3 className="font-bold text-gray-800">Driver Log Audit (Last 7 Days)</h3>
+                              <div className="flex gap-2">
+                                  <button 
+                                      onClick={handleSyncHOS}
+                                      disabled={syncing}
+                                      style={{
+                                          background: syncing ? '#9CA3AF' : 'linear-gradient(90deg, #42aeec 0%, #1db5f5 40%, #0ea3d8 100%)',
                                       }}
-                                    className="flex items-center gap-2 text-sm font-semibold !text-white px-4 py-2 rounded-lg hover:bg-blue-700">
-                                        <Download size={16} /> Export HOS Report
-                                    </button>
-                                </div>
-                            </div>
+                                      className="flex items-center gap-2 text-sm font-semibold !text-white px-4 py-2 rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed">
+                                      <RefreshCw size={16} className={syncing ? 'animate-spin' : ''} /> 
+                                      {syncing ? 'Syncing...' : 'Sync from Geotab'}
+                                  </button>
+                                  <button 
+                                     style={{
+                                      background: 'linear-gradient(90deg, #42aeec 0%, #1db5f5 40%, #0ea3d8 100%)',
+                                    }}
+                                  className="flex items-center gap-2 text-sm font-semibold !text-white px-4 py-2 rounded-lg hover:bg-blue-700">
+                                      <Download size={16} /> Export HOS Report
+                                  </button>
+                              </div>
+                          </div>
 
-                            <table className="w-full text-sm text-left">
-                                <thead className="bg-gray-100 text-gray-600 uppercase text-[11px] font-bold">
-                                    <tr>
-                                        <th className="px-6 py-4">Driver Name</th>
-                                        <th className="px-6 py-4">Log Date</th>
-                                        <th className="px-6 py-4">Driving Time</th>
-                                        <th className="px-6 py-4">On-Duty Time</th>
-                                        <th className="px-6 py-4">Violation Type</th>
-                                        <th className="px-6 py-4">Status</th>
-                                        <th className="px-6 py-4">Actions</th>
-                                    </tr>
-                                </thead>
-                                <tbody className="divide-y divide-gray-100">
-                                    {loading ? (
-                                        <tr>
-                                            <td colSpan={7} className="px-6 py-8 text-center">
-                                                <div className="flex items-center justify-center text-gray-500">
-                                                    <RefreshCw className="animate-spin h-5 w-5 mr-2" />
-                                                    Loading HOS data...
-                                                </div>
-                                            </td>
-                                        </tr>
-                                    ) : auditLogs.length === 0 ? (
-                                        <tr>
-                                            <td colSpan={7} className="px-6 py-8 text-center text-gray-500">
-                                                No HOS logs found. Click "Sync from Geotab" to fetch data.
-                                            </td>
-                                        </tr>
-                                    ) : (
-                                        auditLogs.map((log) => (
-                                            <tr key={log.id} className="hover:bg-blue-50/30">
-                                                <td className="px-6 py-4 font-bold text-gray-900">{log.driver}</td>
-                                                <td className="px-6 py-4 text-gray-600">{log.date}</td>
-                                                <td className="px-6 py-4 font-mono text-gray-700">{log.driveUsed}</td>
-                                                <td className="px-6 py-4 font-mono text-gray-700">{log.dutyUsed}</td>
-                                                <td className="px-6 py-4">
-                                                    <span className={`font-medium ${log.violation !== 'None' ? 'text-red-600' : 'text-gray-400'}`}>
-                                                        {log.violation}
-                                                    </span>
-                                                </td>
-                                                <td className="px-6 py-4">
-                                                    <span className={`px-3 py-1 rounded-full text-[10px] font-bold uppercase ${
-                                                        log.status === 'compliant' ? 'bg-green-100 text-green-700' :
-                                                        log.status === 'violation' ? 'bg-red-100 text-red-700' : 'bg-amber-100 text-amber-700'
-                                                    }`}>
-                                                        {log.status}
-                                                    </span>
-                                                </td>
-                                                <td className="px-6 py-4">
-                                                    <button className="text-blue-600 font-bold hover:underline">View Log</button>
-                                                </td>
-                                            </tr>
-                                        ))
-                                    )}
-                                </tbody>
-                            </table>
-                        </div>
-                    </div>
-                )}
-                {/* --- OVERVIEW TAB --- */}
-                {activeTab === 'overview' && (
-                    <div className="space-y-6">
-                        {/* Stats Cards */}
-                        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-                            <div className="bg-white p-5 rounded-xl shadow-sm border border-gray-200">
-                                <div className="flex justify-between items-start">
-                                    <div>
-                                        <p className="text-xs text-gray-500 uppercase tracking-wide font-medium">Total Vehicles</p>
-                                        <h3 className="text-2xl font-bold text-gray-900 mt-1">{summary.totalVehicles || vehicles.length}</h3>
-                                    </div>
-                                    <div className="p-2 bg-blue-50 text-blue-600 rounded-lg">
-                                        <Truck size={20} />
-                                    </div>
-                                </div>
-                                <div className="mt-4 flex gap-2">
-                                    <span className="text-xs font-medium text-green-600 bg-green-50 px-2 py-0.5 rounded">{summary.activeVehicles || 0} Active</span>
-                                    <span className="text-xs font-medium text-gray-500 bg-gray-100 px-2 py-0.5 rounded">{statusDistribution.offline || 0} Offline</span>
-                                </div>
-                            </div>
+                          <table className="w-full text-sm text-left">
+                              <thead className="bg-gray-100 text-gray-600 uppercase text-[11px] font-bold">
+                                  <tr>
+                                      <th className="px-6 py-4">Driver Name</th>
+                                      <th className="px-6 py-4">Log Date</th>
+                                      <th className="px-6 py-4">Driving Time</th>
+                                      <th className="px-6 py-4">On-Duty Time</th>
+                                      <th className="px-6 py-4">Violation Type</th>
+                                      <th className="px-6 py-4">Status</th>
+                                      <th className="px-6 py-4">Actions</th>
+                                  </tr>
+                              </thead>
+                              <tbody className="divide-y divide-gray-100">
+                                  {loading ? (
+                                      <tr>
+                                          <td colSpan={7} className="px-6 py-8 text-center">
+                                              <div className="flex items-center justify-center text-gray-500">
+                                                  <RefreshCw className="animate-spin h-5 w-5 mr-2" />
+                                                  Loading HOS data...
+                                              </div>
+                                          </td>
+                                      </tr>
+                                  ) : auditLogs.length === 0 ? (
+                                      <tr>
+                                          <td colSpan={7} className="px-6 py-8 text-center text-gray-500">
+                                              No HOS logs found. Click "Sync from Geotab" to fetch data.
+                                          </td>
+                                      </tr>
+                                  ) : (
+                                      auditLogs.map((log) => (
+                                          <tr key={log.id} className="hover:bg-blue-50/30">
+                                              <td className="px-6 py-4 font-bold text-gray-900">{log.driver}</td>
+                                              <td className="px-6 py-4 text-gray-600">{log.date}</td>
+                                              <td className="px-6 py-4 font-mono text-gray-700">{log.driveUsed}</td>
+                                              <td className="px-6 py-4 font-mono text-gray-700">{log.dutyUsed}</td>
+                                              <td className="px-6 py-4">
+                                                  <span className={`font-medium ${log.violation !== 'None' ? 'text-red-600' : 'text-gray-400'}`}>
+                                                      {log.violation}
+                                                  </span>
+                                              </td>
+                                              <td className="px-6 py-4">
+                                                  <span className={`px-3 py-1 rounded-full text-[10px] font-bold uppercase ${
+                                                      log.status === 'compliant' ? 'bg-green-100 text-green-700' :
+                                                      log.status === 'violation' ? 'bg-red-100 text-red-700' : 'bg-amber-100 text-amber-700'
+                                                  }`}>
+                                                      {log.status}
+                                                  </span>
+                                              </td>
+                                              <td className="px-6 py-4">
+                                                  <button className="text-blue-600 font-bold hover:underline">View Log</button>
+                                              </td>
+                                          </tr>
+                                      ))
+                                  )}
+                              </tbody>
+                          </table>
+                      </div>
+                  </div>
+              )}
 
-                            <div className="bg-white p-5 rounded-xl shadow-sm border border-gray-200">
-                                <div className="flex justify-between items-start">
-                                    <div>
-                                        <p className="text-xs text-gray-500 uppercase tracking-wide font-medium">Avg Idle Time</p>
-                                        <h3 className="text-2xl font-bold text-gray-900 mt-1">1h 42m</h3>
-                                    </div>
-                                    <div className="p-2 bg-amber-50 text-amber-600 rounded-lg">
-                                        <Clock size={20} />
-                                    </div>
-                                </div>
-                                <div className="mt-4">
-                                    <span className="text-xs text-red-500 font-medium">+12% vs last week</span>
-                                </div>
-                            </div>
+              {/* HOS Audit Form Tab */}
+              {activeTab === 'audit-form' && (
+                  <div className="space-y-6">
+                      <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+                          <h2 className="text-xl font-bold text-gray-900 mb-6 flex items-center gap-2">
+                              <FileCheck size={24} className="text-blue-600" />
+                              HOS Audit Form
+                          </h2>
+                          
+                          <form onSubmit={handleSubmitAudit} className="space-y-6">
+                              {/* Driver Selection */}
+                              <div>
+                                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                                      Driver <span className="text-red-500">*</span>
+                                  </label>
+                                  <select
+                                      value={auditFormData.driverId}
+                                      onChange={(e) => setAuditFormData({ ...auditFormData, driverId: e.target.value })}
+                                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                      required
+                                  >
+                                      <option value="">Select a driver</option>
+                                      {drivers.map((driver) => (
+                                          <option key={driver._id} value={driver._id}>
+                                              {driver.name}
+                                          </option>
+                                      ))}
+                                  </select>
+                              </div>
 
-                            <div className="bg-white p-5 rounded-xl shadow-sm border border-gray-200">
-                                <div className="flex justify-between items-start">
-                                    <div>
-                                        <p className="text-xs text-gray-500 uppercase tracking-wide font-medium">Total Distance</p>
-                                        <h3 className="text-2xl font-bold text-gray-900 mt-1">24,500 mi</h3>
-                                    </div>
-                                    <div className="p-2 bg-indigo-50 text-indigo-600 rounded-lg">
-                                        <Navigation size={20} />
-                                    </div>
-                                </div>
-                                <div className="mt-4">
-                                    <span className="text-xs text-gray-500">This week (Fleet)</span>
-                                </div>
-                            </div>
+                              {/* Audit Date */}
+                              <div>
+                                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                                      Audit Date <span className="text-red-500">*</span>
+                                  </label>
+                                  <input
+                                      type="date"
+                                      value={auditFormData.auditDate}
+                                      onChange={(e) => setAuditFormData({ ...auditFormData, auditDate: e.target.value })}
+                                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                      required
+                                  />
+                              </div>
 
-                            <div className="bg-white p-5 rounded-xl shadow-sm border border-gray-200">
-                                <div className="flex justify-between items-start">
-                                    <div>
-                                        <p className="text-xs text-gray-500 uppercase tracking-wide font-medium">Fuel Efficiency</p>
-                                        <h3 className="text-2xl font-bold text-gray-900 mt-1">6.8 MPG</h3>
-                                    </div>
-                                    <div className="p-2 bg-green-50 text-green-600 rounded-lg">
-                                        <Zap size={20} />
-                                    </div>
-                                </div>
-                                <div className="mt-4">
-                                    <span className="text-xs text-green-600 font-medium">Optimal Range</span>
-                                </div>
-                            </div>
-                        </div>
+                              {/* Hours Section */}
+                              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                                  <div>
+                                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                                          Driving Hours <span className="text-red-500">*</span>
+                                      </label>
+                                      <input
+                                          type="number"
+                                          step="0.1"
+                                          min="0"
+                                          value={auditFormData.drivingHours}
+                                          onChange={(e) => setAuditFormData({ ...auditFormData, drivingHours: parseFloat(e.target.value) || 0 })}
+                                          className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                          required
+                                      />
+                                  </div>
+                                  <div>
+                                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                                          On-Duty Hours <span className="text-red-500">*</span>
+                                      </label>
+                                      <input
+                                          type="number"
+                                          step="0.1"
+                                          min="0"
+                                          value={auditFormData.onDutyHours}
+                                          onChange={(e) => setAuditFormData({ ...auditFormData, onDutyHours: parseFloat(e.target.value) || 0 })}
+                                          className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                          required
+                                      />
+                                  </div>
+                                  <div>
+                                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                                          Off-Duty Hours <span className="text-red-500">*</span>
+                                      </label>
+                                      <input
+                                          type="number"
+                                          step="0.1"
+                                          min="0"
+                                          value={auditFormData.offDutyHours}
+                                          onChange={(e) => setAuditFormData({ ...auditFormData, offDutyHours: parseFloat(e.target.value) || 0 })}
+                                          className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                          required
+                                      />
+                                  </div>
+                              </div>
 
-                        {/* Vehicle List */}
-                        <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
-                            <div className="px-6 py-4 border-b border-gray-100 flex justify-between items-center gap-4">
-                                <h3 className="font-bold text-gray-800">Vehicle Status List</h3>
+                              {/* Violations */}
+                              <div>
+                                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                                      Violations (if any)
+                                  </label>
+                                  <div className="space-y-2">
+                                      {violationOptions.map((violation) => (
+                                          <label key={violation} className="flex items-center gap-2 cursor-pointer">
+                                              <input
+                                                  type="checkbox"
+                                                  checked={auditFormData.violations.includes(violation)}
+                                                  onChange={(e) => {
+                                                      if (e.target.checked) {
+                                                          setAuditFormData({
+                                                              ...auditFormData,
+                                                              violations: [...auditFormData.violations, violation]
+                                                          });
+                                                      } else {
+                                                          setAuditFormData({
+                                                              ...auditFormData,
+                                                              violations: auditFormData.violations.filter(v => v !== violation)
+                                                          });
+                                                      }
+                                                  }}
+                                                  className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+                                              />
+                                              <span className="text-sm text-gray-700">{violation}</span>
+                                          </label>
+                                      ))}
+                                  </div>
+                              </div>
 
-                                <div className="flex items-center gap-3">
-                                    <div className="relative">
-                                        <Search size={16} className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
-                                        <input
-                                            type="text"
-                                            placeholder="Search vehicle..."
-                                            value={searchTerm}
-                                            onChange={(e) => setSearchTerm(e.target.value)}
-                                            className="pl-9 pr-4 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-                                        />
-                                    </div>
-                                    <button className="p-2 text-gray-500 hover:bg-gray-100 rounded-lg">
-                                        <RefreshCw size={18} />
-                                    </button>
-                                </div>
-                            </div>
+                              {/* Auditor Name */}
+                              <div>
+                                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                                      Auditor Name
+                                  </label>
+                                  <input
+                                      type="text"
+                                      value={auditFormData.auditorName}
+                                      onChange={(e) => setAuditFormData({ ...auditFormData, auditorName: e.target.value })}
+                                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                      placeholder="Enter auditor name"
+                                  />
+                              </div>
 
-                            <table className="w-full text-sm text-left">
-                                <thead className="bg-gray-50 text-gray-500 font-medium">
-                                    <tr>
-                                        <th className="px-6 py-3">Vehicle ID</th>
-                                        <th className="px-6 py-3">Assigned Driver</th>
-                                        <th className="px-6 py-3">Status</th>
-                                        <th className="px-6 py-3">Last Ping</th>
-                                        <th className="px-6 py-3">Location</th>
-                                        <th className="px-6 py-3">Idle Time</th>
-                                        <th className="px-6 py-3">Engine Hours</th>
-                                    </tr>
-                                </thead>
-                                <tbody className="divide-y divide-gray-100">
-                                    {filteredVehicles.map((v) => (
-                                        <tr key={v.id} className="hover:bg-blue-50/20 transition-colors group">
-                                            <td className="px-6 py-4 font-bold text-gray-900 flex items-center gap-2">
-                                                <Truck size={16} className="text-gray-400 group-hover:text-blue-500" />
-                                                {v.id}
-                                            </td>
-                                            <td className="px-6 py-4">
-                                                {v.driver === 'Unassigned' ? (
-                                                    <span className="text-gray-400 italic">Unassigned</span>
-                                                ) : (
-                                                    <div className="flex flex-col">
-                                                        <span className="text-gray-900 font-medium group-hover:text-blue-600 transition-colors">
-                                                            {v.driver}
-                                                            {v.isCoDriver && (
-                                                                <span className="ml-2 text-xs text-blue-600 bg-blue-50 px-1.5 py-0.5 rounded">Co-Driver</span>
-                                                            )}
-                                                        </span>
-                                                        {v.driverEmail && (
-                                                            <span className="text-xs text-gray-500 mt-0.5">{v.driverEmail}</span>
-                                                        )}
-                                                        {v.driverPhone && (
-                                                            <span className="text-xs text-gray-500">{v.driverPhone}</span>
-                                                        )}
-                                                        {v.tripNumber && (
-                                                            <span className="text-xs text-gray-400 mt-1">Trip: {v.tripNumber}</span>
-                                                        )}
-                                                    </div>
-                                                )}
-                                            </td>
-                                            <td className="px-6 py-4">
-                                                <span className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-medium uppercase tracking-wide
-                             ${v.status === 'active' || v.status === 'moving' ? 'bg-green-100 text-green-700' :
-                                                        v.status === 'idle' ? 'bg-amber-100 text-amber-700' : 'bg-gray-100 text-gray-500'}`}>
-                                                    {v.status === 'moving' && <Activity size={12} className="animate-pulse" />}
-                                                    {v.status}
-                                                </span>
-                                            </td>
-                                            <td className="px-6 py-4 text-gray-500">{v.lastPing}</td>
-                                            <td className="px-6 py-4 flex items-center gap-1.5 text-gray-700">
-                                                <MapPin size={14} className="text-gray-400" />
-                                                {v.location}
-                                            </td>
-                                            <td className="px-6 py-4">
-                                                <span className={`${v.idleTime && v.idleTime !== '-' && parseInt(v.idleTime) > 3 ? 'text-red-600 font-bold' : 'text-gray-600'}`}>
-                                                    {v.idleTime || '-'}
-                                                </span>
-                                            </td>
-                                            <td className="px-6 py-4 font-mono text-gray-600">
-                                                {v.engineHours ? v.engineHours.toLocaleString() : '0'} h
-                                            </td>
-                                        </tr>
-                                    ))}
-                                </tbody>
-                            </table>
-                        </div>
-                    </div>
-                )}
+                              {/* Notes */}
+                              <div>
+                                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                                      Notes
+                                  </label>
+                                  <textarea
+                                      value={auditFormData.notes}
+                                      onChange={(e) => setAuditFormData({ ...auditFormData, notes: e.target.value })}
+                                      rows={4}
+                                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                      placeholder="Enter any additional notes or observations..."
+                                  />
+                              </div>
 
-                {/* --- LIVE GPS TAB --- */}
-                {activeTab === 'gps' && (
-                    <div className="space-y-6">
-                        <div className="bg-white rounded-xl shadow-sm border border-gray-200 h-[600px] relative overflow-hidden">
-                            {loadError ? (
-                                <div className="flex items-center justify-center h-full">
-                                    <div className="text-center">
-                                        <AlertTriangle className="w-12 h-12 text-red-500 mx-auto mb-2" />
-                                        <p className="text-red-600 font-semibold">Failed to load Google Maps</p>
-                                        <p className="text-gray-500 text-sm mt-1">Please check your API key</p>
-                                    </div>
-                                </div>
-                            ) : !isLoaded ? (
-                                <div className="flex items-center justify-center h-full">
-                                    <div className="text-center">
-                                        <RefreshCw className="w-8 h-8 text-blue-500 animate-spin mx-auto mb-2" />
-                                        <p className="text-gray-600">Loading Google Maps...</p>
-                                    </div>
-                                </div>
-                            ) : (
-                                <>
-                                    <GoogleMap
-                                        mapContainerStyle={{ width: '100%', height: '100%' }}
-                                        center={mapCenter}
-                                        zoom={mapZoom}
-                                        onLoad={(mapInstance) => {
-                                            setMap(mapInstance);
-                                            // Center on first vehicle if available
-                                            if (vehicleLocations.length > 0 && vehicleLocations[0].location) {
-                                                const firstVehicle = vehicleLocations[0];
-                                                const lat = firstVehicle.location.latitude;
-                                                const lng = firstVehicle.location.longitude;
-                                                if (!isNaN(lat) && !isNaN(lng) && lat !== 0 && lng !== 0) {
-                                                    mapInstance.setCenter({ lat, lng });
-                                                    mapInstance.setZoom(10);
-                                                }
-                                            }
-                                        }}
-                                        options={{
-                                            zoomControl: true,
-                                            streetViewControl: false,
-                                            mapTypeControl: false,
-                                            fullscreenControl: true,
-                                        }}
-                                    >
-                                        {vehicleLocations.map((vehicle) => {
-                                            if (!vehicle.location || !vehicle.location.latitude || !vehicle.location.longitude) {
-                                                return null;
-                                            }
-                                            
-                                            const lat = vehicle.location.latitude;
-                                            const lng = vehicle.location.longitude;
-                                            
-                                            if (isNaN(lat) || isNaN(lng) || lat === 0 || lng === 0) {
-                                                return null;
-                                            }
+                              {/* Submit Button */}
+                              <div className="flex justify-end gap-4">
+                                  <button
+                                      type="button"
+                                      onClick={() => setAuditFormData({
+                                          driverId: '',
+                                          auditDate: new Date().toISOString().split('T')[0],
+                                          drivingHours: 0,
+                                          onDutyHours: 0,
+                                          offDutyHours: 0,
+                                          violations: [],
+                                          notes: '',
+                                          auditorName: ''
+                                      })}
+                                      className="px-6 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50"
+                                  >
+                                      Reset
+                                  </button>
+                                  <button
+                                      type="submit"
+                                      disabled={submittingAudit}
+                                      style={{
+                                          background: submittingAudit ? '#9CA3AF' : 'linear-gradient(90deg, #42aeec 0%, #1db5f5 40%, #0ea3d8 100%)',
+                                      }}
+                                      className="px-6 py-2 !text-white font-semibold rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                                  >
+                                      {submittingAudit ? 'Submitting...' : 'Submit Audit'}
+                                  </button>
+                              </div>
+                          </form>
+                      </div>
+                  </div>
+              )}
 
-                                            const statusColor = vehicle.status === 'moving' ? '#10b981' :
-                                                               vehicle.status === 'idle' ? '#f59e0b' :
-                                                               vehicle.status === 'active' ? '#3b82f6' : '#6b7280';
+              {/* E-Logs Tab */}
+              {activeTab === 'e-logs' && (
+                  <div className="space-y-6">
+                      {/* Upload Section */}
+                      <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+                          <h2 className="text-xl font-bold text-gray-900 mb-4 flex items-center gap-2">
+                              <Upload size={24} className="text-blue-600" />
+                              Upload E-Log File
+                          </h2>
+                          
+                          <div className="space-y-4">
+                              {/* Driver Selection (Optional) */}
+                              <div>
+                                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                                      Driver (Optional)
+                                  </label>
+                                  <select
+                                      value={selectedDriverForLog}
+                                      onChange={(e) => setSelectedDriverForLog(e.target.value)}
+                                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                  >
+                                      <option value="">All Drivers</option>
+                                      {drivers.map((driver) => (
+                                          <option key={driver._id} value={driver._id}>
+                                              {driver.name}
+                                          </option>
+                                      ))}
+                                  </select>
+                              </div>
 
-                                            return (
-                                                <Marker
-                                                    key={vehicle._id}
-                                                    position={{ lat, lng }}
-                                                    icon={{
-                                                        path: window.google.maps.SymbolPath.CIRCLE,
-                                                        scale: 8,
-                                                        fillColor: statusColor,
-                                                        fillOpacity: 1,
-                                                        strokeColor: '#ffffff',
-                                                        strokeWeight: 2,
-                                                    }}
-                                                    title={`${vehicle.unitNo} - ${vehicle.licensePlate || vehicle.makeModel || 'Vehicle'}`}
-                                                />
-                                            );
-                                        })}
-                                    </GoogleMap>
-                                    
-                                    {/* Info Card */}
-                                    <div className="absolute top-4 left-4 bg-white/90 backdrop-blur-sm p-4 rounded-lg shadow-lg border border-gray-200 z-10">
-                                        <div className="flex items-center gap-2 mb-2">
-                                            <Wifi size={18} className="text-green-500 animate-pulse" />
-                                            <h3 className="text-sm font-bold text-gray-800">Live ELD Location Feed</h3>
-                                        </div>
-                                        <p className="text-xs text-gray-600 mb-2">
-                                            {vehicleLocations.length} vehicle{vehicleLocations.length !== 1 ? 's' : ''} tracked
-                                        </p>
-                                        <p className="text-xs text-gray-500">
-                                            Updating every 5 seconds from Geotab
-                                        </p>
-                                    </div>
+                              {/* File Upload */}
+                              <div>
+                                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                                      Select E-Log File <span className="text-red-500">*</span>
+                                  </label>
+                                  <div className="flex items-center gap-4">
+                                      <label className="flex-1 cursor-pointer">
+                                          <input
+                                              type="file"
+                                              accept=".pdf,.txt,.csv,.xlsx,.xls"
+                                              onChange={(e) => setSelectedFile(e.target.files?.[0] || null)}
+                                              className="hidden"
+                                          />
+                                          <div className="px-4 py-3 border border-gray-300 rounded-lg border-dashed hover:bg-gray-50 text-center">
+                                              {selectedFile ? (
+                                                  <div className="flex items-center justify-center gap-2 text-blue-600">
+                                                      <FileText size={20} />
+                                                      <span className="font-medium">{selectedFile.name}</span>
+                                                      <button
+                                                          onClick={(e) => {
+                                                              e.stopPropagation();
+                                                              setSelectedFile(null);
+                                                          }}
+                                                          className="ml-2 text-red-500 hover:text-red-700"
+                                                      >
+                                                          <X size={18} />
+                                                      </button>
+                                                  </div>
+                                              ) : (
+                                                  <div className="text-gray-500">
+                                                      <Upload size={24} className="mx-auto mb-2" />
+                                                      <span>Click to select file or drag and drop</span>
+                                                      <p className="text-xs mt-1">PDF, TXT, CSV, XLSX (Max 20MB)</p>
+                                                  </div>
+                                              )}
+                                          </div>
+                                      </label>
+                                  </div>
+                              </div>
 
-                                    {/* Vehicle List Sidebar */}
-                                    {vehicleLocations.length > 0 && (
-                                        <div className="absolute top-4 right-4 bg-white/90 backdrop-blur-sm p-4 rounded-lg shadow-lg border border-gray-200 z-10 max-w-xs max-h-[400px] overflow-y-auto">
-                                            <h4 className="text-sm font-bold text-gray-800 mb-3">Active Vehicles</h4>
-                                            <div className="space-y-2">
-                                                {vehicleLocations.map((vehicle) => (
-                                                    <div key={vehicle._id} className="flex items-center gap-2 p-2 hover:bg-gray-50 rounded cursor-pointer">
-                                                        <div 
-                                                            className="w-3 h-3 rounded-full"
-                                                            style={{
-                                                                backgroundColor: vehicle.status === 'moving' ? '#10b981' :
-                                                                               vehicle.status === 'idle' ? '#f59e0b' :
-                                                                               vehicle.status === 'active' ? '#3b82f6' : '#6b7280'
-                                                            }}
-                                                        />
-                                                        <div className="flex-1 min-w-0">
-                                                            <p className="text-xs font-semibold text-gray-900 truncate">{vehicle.unitNo}</p>
-                                                            <p className="text-xs text-gray-500 truncate">{vehicle.location.address || 'Location unknown'}</p>
-                                                        </div>
-                                                    </div>
-                                                ))}
-                                            </div>
-                                        </div>
-                                    )}
-                                </>
-                            )}
-                        </div>
-                    </div>
-                )}
+                              {/* Upload Button */}
+                              <div className="flex justify-end">
+                                  <button
+                                      onClick={handleFileUpload}
+                                      disabled={!selectedFile || uploadingFile}
+                                      style={{
+                                          background: (!selectedFile || uploadingFile) ? '#9CA3AF' : 'linear-gradient(90deg, #42aeec 0%, #1db5f5 40%, #0ea3d8 100%)',
+                                      }}
+                                      className="px-6 py-2 text-white font-semibold rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+                                  >
+                                      {uploadingFile ? (
+                                          <>
+                                              <RefreshCw size={16} className="animate-spin" />
+                                              Uploading...
+                                          </>
+                                      ) : (
+                                          <>
+                                              <Upload size={16} />
+                                              Upload File
+                                          </>
+                                      )}
+                                  </button>
+                              </div>
+                          </div>
+                      </div>
 
-                {/* --- MAINTENANCE TAB --- */}
-                {activeTab === 'maintenance' && (
-                    <div className="space-y-6">
-                        {/* Alerts */}
-                        {MAINTENANCE_ALERTS.length > 0 && (
-                            <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-200">
-                                <h3 className="font-bold text-gray-800 mb-4 flex items-center gap-2">
-                                    <AlertTriangle size={20} className="text-amber-500" />
-                                    Active Maintenance Indicators
-                                </h3>
-                                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                                    {MAINTENANCE_ALERTS.map((alert: any) => (
-                                        <div key={alert.id} className={`p-4 rounded-lg border-l-4 shadow-sm
-                     ${alert.severity === 'high' ? 'bg-red-50 border-red-500' :
-                                                alert.severity === 'medium' ? 'bg-amber-50 border-amber-500' : 'bg-blue-50 border-blue-500'}`}>
-                                            <div className="flex justify-between items-start">
-                                                <h4 className={`font-bold text-sm ${alert.severity === 'high' ? 'text-red-700' :
-                                                    alert.severity === 'medium' ? 'text-amber-700' : 'text-blue-700'
-                                                    }`}>{alert.type}</h4>
-                                                <span className="text-xs text-gray-400">{alert.time}</span>
-                                            </div>
-                                            <p className="text-sm font-medium text-gray-900 mt-1">{alert.vehicle}</p>
-                                            <p className="text-xs text-gray-600 mt-1">{alert.description}</p>
+                      {/* E-Logs List */}
+                      <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+                          <div className="px-6 py-4 border-b bg-gray-50">
+                              <h3 className="font-bold text-gray-800 flex items-center gap-2">
+                                  <FileText size={20} className="text-blue-600" />
+                                  Uploaded E-Logs
+                              </h3>
+                          </div>
 
-                                        </div>
-                                    ))}
-                                </div>
-                            </div>
-                        )}
-
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                            {/* Engine Hours Chart */}
-                            <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-200">
-                                <h3 className="font-bold text-gray-800 mb-6 flex items-center gap-2">
-                                    <Wrench size={18} className="text-gray-400" />
-                                    Engine Hours vs Thresholds
-                                </h3>
-                                    <div className="h-64">
-                                    <ResponsiveContainer width="100%" height="100%">
-                                        <BarChart data={engineHoursData} layout="vertical">
-                                            <CartesianGrid strokeDasharray="3 3" horizontal={false} />
-                                            <XAxis type="number" stroke="#9ca3af" fontSize={12} />
-                                            <YAxis dataKey="name" type="category" stroke="#6b7280" fontSize={12} width={60} />
-                                            <Tooltip contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)' }} />
-                                            <Bar dataKey="hours" fill="#42aeec" radius={[0, 4, 4, 0]} barSize={20} />
-                                        </BarChart>
-                                    </ResponsiveContainer>
-                                </div>
-                                <div className="mt-4 text-xs text-center text-gray-500">
-                                    Vehicles approaching 15,000 engine hours require major service.
-                                </div>
-                            </div>
-
-                            {/* Vehicle Status Distribution */}
-                            <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-200">
-                                <h3 className="font-bold text-gray-800 mb-6 flex items-center gap-2">
-                                    <Activity size={18} className="text-gray-400" />
-                                    Real-time Vehicle Status
-                                </h3>
-                                <div className="h-64 flex justify-center">
-                                    <ResponsiveContainer width="100%" height="100%">
-                                        <PieChart>
-                                            <Pie
-                                                data={STATUS_DATA}
-                                                cx="50%"
-                                                cy="50%"
-                                                innerRadius={60}
-                                                outerRadius={80}
-                                                paddingAngle={5}
-                                                dataKey="value"
-                                            >
-                                                {STATUS_DATA.map((entry: any, index: number) => (
-                                                    <Cell key={`cell-${index}`} fill={entry.color} />
-                                                ))}
-                                            </Pie>
-                                            <Tooltip />
-                                        </PieChart>
-                                    </ResponsiveContainer>
-                                </div>
-                                <div className="flex justify-center gap-6 mt-4">
-                                    {STATUS_DATA.map((item: any) => (
-                                        <div key={item.name} className="flex items-center gap-2">
-                                            <div className="w-3 h-3 rounded-full" style={{ backgroundColor: item.color }}></div>
-                                            <span className="text-sm text-gray-600">{item.name}</span>
-                                            <span className="text-sm font-bold text-gray-900">{item.value}</span>
-                                        </div>
-                                    ))}
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                )}
-
-            </div>
-        </div>
-    );
+                          {eLogsLoading ? (
+                              <div className="px-6 py-8 text-center">
+                                  <RefreshCw className="animate-spin h-5 w-5 mx-auto text-gray-500" />
+                              </div>
+                          ) : eLogs.length === 0 ? (
+                              <div className="px-6 py-8 text-center text-gray-500">
+                                  No E-Log files uploaded yet.
+                              </div>
+                          ) : (
+                              <div className="overflow-x-auto">
+                                  <table className="w-full text-sm text-left">
+                                      <thead className="bg-gray-100 text-gray-600 uppercase text-[11px] font-bold">
+                                          <tr>
+                                              <th className="px-6 py-4">File Name</th>
+                                              <th className="px-6 py-4">Driver</th>
+                                              <th className="px-6 py-4">File Size</th>
+                                              <th className="px-6 py-4">Uploaded Date</th>
+                                              <th className="px-6 py-4">Actions</th>
+                                          </tr>
+                                      </thead>
+                                      <tbody className="divide-y divide-gray-100">
+                                          {eLogs.map((log) => (
+                                              <tr key={log._id} className="hover:bg-blue-50/30">
+                                                  <td className="px-6 py-4 font-medium text-gray-900 flex items-center gap-2">
+                                                      <FileText size={16} className="text-blue-500" />
+                                                      {log.fileName}
+                                                  </td>
+                                                  <td className="px-6 py-4 text-gray-600">
+                                                      {log.driverName || 'N/A'}
+                                                  </td>
+                                                  <td className="px-6 py-4 text-gray-600">
+                                                      {(log.fileSize / 1024 / 1024).toFixed(2)} MB
+                                                  </td>
+                                                  <td className="px-6 py-4 text-gray-600">
+                                                      {new Date(log.uploadedAt).toLocaleDateString()}
+                                                  </td>
+                                                  <td className="px-6 py-4">
+                                                      <div className="flex items-center gap-2">
+                                                          <button
+                                                              onClick={() => handleDownloadELog(log._id, log.fileName)}
+                                                              className="text-blue-600 hover:text-blue-800 font-medium"
+                                                          >
+                                                              <Download size={16} />
+                                                          </button>
+                                                          <button
+                                                              onClick={() => handleDeleteELog(log._id)}
+                                                              className="text-red-600 hover:text-red-800 font-medium"
+                                                          >
+                                                              <X size={16} />
+                                                          </button>
+                                                      </div>
+                                                  </td>
+                                              </tr>
+                                          ))}
+                                      </tbody>
+                                  </table>
+                              </div>
+                          )}
+                      </div>
+                  </div>
+              )}
+          </div>
+      </div>
+  );
 };
 
 export default VehicleEldMonitor;
