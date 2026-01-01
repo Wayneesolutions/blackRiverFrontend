@@ -23,7 +23,7 @@ import {
     Route
 } from 'lucide-react';
 import apiClient from '../../../../axios/apiClient';
-import { listTrip } from '../../../../axios/api/distapcher';
+import { listOrder } from '../../../../axios/api/distapcher';
 
 import type { ReactNode } from "react";
 
@@ -41,6 +41,10 @@ interface Vehicle {
     make: string;
     model: string;
     year: number;
+    unitNumber?: string;
+    trackingKey?: string;
+    type?: string;
+    ownership?: string;
     driver: {
         _id: string;
         name: string;
@@ -51,6 +55,12 @@ interface Vehicle {
     documents: { documentUrl: string }[];
     avatar: string;
     hasTrailer: boolean;
+    trailer?: {
+        _id: string;
+        trailerNumber?: string;
+        plateNumber?: string;
+        unitNumber?: string;
+    };
     trailerDetails: {
         serialNumber: string;
         capacity: string;
@@ -205,57 +215,66 @@ const VehicleList = () => {
                     setVehicles(formattedVehicles);
                 }
 
-                // Fetch all trips (all statuses to show any assignment)
-                const allTripsRes = await listTrip({ limit: 500 }); // Fetch all trips, no status filter
-                let allTrips: any[] = [];
+                // Fetch all orders (all statuses to show any assignment)
+                const allOrdersRes = await listOrder({ limit: 500 }); // Fetch all orders, no status filter
+                let allOrders: any[] = [];
 
-                if (allTripsRes?.success && Array.isArray(allTripsRes?.data)) {
-                    allTrips = allTripsRes.data;
+                if (allOrdersRes?.success && Array.isArray(allOrdersRes?.data)) {
+                    allOrders = allOrdersRes.data;
                 } else {
                     // Fallback: try fetching by status individually
-                    const plannedTripsRes = await listTrip({ status: 'planned', limit: 200 });
-                    const inProgressTripsRes = await listTrip({ status: 'in-progress', limit: 200 });
-                    const completedTripsRes = await listTrip({ status: 'completed', limit: 200 });
-                    const plannedTrips = plannedTripsRes?.success && Array.isArray(plannedTripsRes?.data) ? plannedTripsRes.data : [];
-                    const inProgressTrips = inProgressTripsRes?.success && Array.isArray(inProgressTripsRes?.data) ? inProgressTripsRes.data : [];
-                    const completedTrips = completedTripsRes?.success && Array.isArray(completedTripsRes?.data) ? completedTripsRes.data : [];
-                    allTrips = [...plannedTrips, ...inProgressTrips, ...completedTrips];
+                    const quotedOrdersRes = await listOrder({ status: 'QUOTED', limit: 200 });
+                    const inProgressOrdersRes = await listOrder({ status: 'IN_PROGRESS', limit: 200 });
+                    const dispatchedOrdersRes = await listOrder({ status: 'dispatched', limit: 200 });
+                    const completedOrdersRes = await listOrder({ status: 'COMPLETED', limit: 200 });
+                    const quotedOrders = quotedOrdersRes?.success && Array.isArray(quotedOrdersRes?.data) ? quotedOrdersRes.data : [];
+                    const inProgressOrders = inProgressOrdersRes?.success && Array.isArray(inProgressOrdersRes?.data) ? inProgressOrdersRes.data : [];
+                    const dispatchedOrders = dispatchedOrdersRes?.success && Array.isArray(dispatchedOrdersRes?.data) ? dispatchedOrdersRes.data : [];
+                    const completedOrders = completedOrdersRes?.success && Array.isArray(completedOrdersRes?.data) ? completedOrdersRes.data : [];
+                    allOrders = [...quotedOrders, ...inProgressOrders, ...dispatchedOrders, ...completedOrders];
                 }
 
-                console.log(`📊 Found ${allTrips.length} trips to process`);
-                console.log('📋 Sample trip data:', allTrips[0] ? {
-                    tripNumber: allTrips[0].tripNumber,
-                    status: allTrips[0].status,
-                    truck: allTrips[0].truck ? {
-                        _id: allTrips[0].truck._id,
-                        unitNo: allTrips[0].truck.unitNo,
-                        internalId: allTrips[0].truck.internalId,
-                        licensePlate: allTrips[0].truck.licensePlate
+                console.log(`📊 Found ${allOrders.length} orders to process`);
+                console.log('📋 Sample order data:', allOrders[0] ? {
+                    orderNumber: allOrders[0].orderNumber,
+                    customerOrderNo: allOrders[0].customerOrderNo,
+                    status: allOrders[0].status,
+                    truck: allOrders[0].truck ? {
+                        _id: allOrders[0].truck._id,
+                        unitNumber: allOrders[0].truck.unitNumber,
+                        internalId: allOrders[0].truck.internalId,
+                        plateNumber: allOrders[0].truck.plateNumber
                     } : 'No truck'
-                } : 'No trips');
+                } : 'No orders');
 
-                // Create assignments map from trips only
+                // Create assignments map from orders only
                 const assignments: Record<string, VehicleAssignment> = {};
 
-                // Process trips - prioritize in-progress, then planned, then others
-                const sortedTrips = [...allTrips].sort((a: any, b: any) => {
+                // Process orders - prioritize in-progress, then dispatched, then others
+                const sortedOrders = [...allOrders].sort((a: any, b: any) => {
                     const statusPriority: Record<string, number> = {
+                        'IN_PROGRESS': 1,
                         'in-progress': 1,
-                        'planned': 2,
-                        'completed': 3,
-                        'cancelled': 4
+                        'dispatched': 2,
+                        'DISPATCHED': 2,
+                        'QUOTED': 3,
+                        'quoted': 3,
+                        'COMPLETED': 4,
+                        'completed': 4,
+                        'cancelled': 5,
+                        'CANCELLED': 5
                     };
                     return (statusPriority[a.status] || 99) - (statusPriority[b.status] || 99);
                 });
 
-                sortedTrips.forEach((trip: any) => {
-                    if (!trip.truck) {
-                        console.warn('⚠️ Trip missing truck:', trip.tripNumber || trip._id);
+                sortedOrders.forEach((order: any) => {
+                    if (!order.truck) {
+                        console.warn('⚠️ Order missing truck:', order.orderNumber || order._id);
                         return;
                     }
 
-                    // Extract all possible vehicle identifiers from the trip's truck
-                    const truck = trip.truck;
+                    // Extract all possible vehicle identifiers from the order's truck
+                    const truck = order.truck;
                     const truckIds: string[] = [];
 
                     // Add all possible ID formats (convert to strings for consistent comparison)
@@ -263,105 +282,78 @@ const VehicleList = () => {
                         const idStr = typeof truck._id === 'string' ? truck._id : truck._id.toString();
                         truckIds.push(idStr);
                     }
-                    if (truck.unitNo) truckIds.push(String(truck.unitNo));
-                    if (truck.internalId) truckIds.push(String(truck.internalId));
-                    if (truck.licensePlate) truckIds.push(String(truck.licensePlate));
                     if (truck.unitNumber) truckIds.push(String(truck.unitNumber));
+                    if (truck.internalId) truckIds.push(String(truck.internalId));
+                    if (truck.plateNumber) truckIds.push(String(truck.plateNumber));
+                    if (truck.licensePlate) truckIds.push(String(truck.licensePlate));
 
                     if (truckIds.length === 0) {
-                        console.warn('⚠️ Trip truck has no identifiable ID:', trip.tripNumber || trip._id, truck);
+                        console.warn('⚠️ Order truck has no identifiable ID:', order.orderNumber || order._id, truck);
                         return;
                     }
 
-                    // Extract origin and destination from trip
+                    // Extract origin and destination from order
                     let origin = '—';
                     let destination = '—';
 
-                    // Try startLocation first
-                    if (trip.startLocation) {
-                        origin = trip.startLocation.place ||
-                            trip.startLocation.address ||
-                            (trip.startLocation.placeId?.name) ||
-                            (trip.startLocation.placeId?.currentLocation?.address) ||
-                            (typeof trip.startLocation === 'string' ? trip.startLocation : '—');
+                    // Get pickup location
+                    if (order.pickupLocation) {
+                        origin = order.pickupLocation.place ||
+                            order.pickupLocation.address ||
+                            (order.pickupLocation.placeId?.name) ||
+                            (order.pickupLocation.placeId?.currentLocation?.address) ||
+                            (typeof order.pickupLocation === 'string' ? order.pickupLocation : '—');
                     }
 
-                    // Try orders for origin if startLocation not available
-                    if (origin === '—' && trip.orders && trip.orders.length > 0) {
-                        const firstOrder = trip.orders[0];
-                        if (firstOrder.pickupLocation) {
-                            origin = firstOrder.pickupLocation.place ||
-                                firstOrder.pickupLocation.address ||
-                                (firstOrder.pickupLocation.placeId?.name) ||
-                                (firstOrder.pickupLocation.placeId?.currentLocation?.address) ||
-                                '—';
-                        }
+                    // Get delivery location
+                    if (order.deliveryLocation) {
+                        destination = order.deliveryLocation.place ||
+                            order.deliveryLocation.address ||
+                            (order.deliveryLocation.placeId?.name) ||
+                            (order.deliveryLocation.placeId?.currentLocation?.address) ||
+                            (typeof order.deliveryLocation === 'string' ? order.deliveryLocation : '—');
                     }
 
-                    // Try endLocation for destination
-                    if (trip.endLocation) {
-                        destination = trip.endLocation.place ||
-                            trip.endLocation.address ||
-                            (trip.endLocation.placeId?.name) ||
-                            (trip.endLocation.placeId?.currentLocation?.address) ||
-                            (typeof trip.endLocation === 'string' ? trip.endLocation : '—');
-                    }
-
-                    // Try orders for destination if endLocation not available
-                    if (destination === '—' && trip.orders && trip.orders.length > 0) {
-                        const lastOrder = trip.orders[trip.orders.length - 1];
-                        if (lastOrder.deliveryLocation) {
-                            destination = lastOrder.deliveryLocation.place ||
-                                lastOrder.deliveryLocation.address ||
-                                (lastOrder.deliveryLocation.placeId?.name) ||
-                                (lastOrder.deliveryLocation.placeId?.currentLocation?.address) ||
-                                '—';
-                        }
-                    }
-
-                    // Extract customer name from orders
+                    // Extract customer name
                     let customerName = '—';
-                    if (trip.orders && trip.orders.length > 0) {
-                        const firstOrder = trip.orders[0];
-                        customerName = firstOrder.customer?.name ||
-                            (typeof firstOrder.customer === 'string' ? firstOrder.customer : '—');
+                    if (order.customer) {
+                        customerName = order.customer.name ||
+                            (typeof order.customer === 'string' ? order.customer : '—');
                     }
 
-                    const driverName = trip.driver?.name || '—';
+                    const driverName = order.driver?.name || '—';
 
                     // Calculate ETA
                     let eta = '—';
-                    if (trip.plannedEndDate) {
-                        eta = `ETA ${new Date(trip.plannedEndDate).toLocaleString()}`;
-                    } else if (trip.actualEndDate) {
-                        eta = `Complete ${new Date(trip.actualEndDate).toLocaleDateString()}`;
+                    if (order.deliveryDate) {
+                        eta = `ETA ${new Date(order.deliveryDate).toLocaleString()}`;
                     }
 
-                    // Calculate distance from route or traveledPath
+                    // Calculate distance (rough estimate if route data available)
                     let distance = 0;
-                    if (trip.route?.totalDistance) {
-                        distance = Math.round(trip.route.totalDistance * 0.621371); // Convert km to miles
-                    } else if (trip.traveledPath && trip.traveledPath.length > 0) {
-                        // Rough estimate: could calculate actual distance from coordinates
-                        distance = trip.traveledPath.length * 0.1; // Rough estimate
+                    if (order.route?.totalDistance) {
+                        distance = Math.round(order.route.totalDistance * 0.621371); // Convert km to miles
                     }
 
                     // Store assignment with multiple keys for lookup
                     const assignment: VehicleAssignment = {
-                        loadId: trip.tripNumber || `Trip-${trip._id?.toString().slice(-6)}`,
+                        loadId: order.orderNumber || order.customerOrderNo || `Order-${order._id?.toString().slice(-6)}`,
                         customer: customerName,
                         origin: origin,
                         destination: destination,
                         dispatcher: driverName,
                         eta: eta,
                         milesToday: distance,
-                        milesThisWeek: 0, // Would need to calculate from trip history
-                        lastCheckpoint: trip.status === 'in-progress' ? 'En route' : trip.status === 'planned' ? 'Scheduled' : trip.status
+                        milesThisWeek: 0, // Would need to calculate from order history
+                        lastCheckpoint: order.status === 'IN_PROGRESS' || order.status === 'in-progress' ? 'En route' : 
+                                      order.status === 'dispatched' || order.status === 'DISPATCHED' ? 'Dispatched' : 
+                                      order.status === 'COMPLETED' || order.status === 'completed' ? 'Delivered' : 
+                                      order.status
                     };
 
                     // Store assignment with all possible vehicle ID formats for flexible lookup
-                    // Since trips are sorted by priority, we only store the first assignment for each vehicle
-                    // This ensures in-progress trips take priority over planned trips
+                    // Since orders are sorted by priority, we only store the first assignment for each vehicle
+                    // This ensures in-progress orders take priority over planned orders
                     truckIds.forEach(truckId => {
                         if (truckId) {
                             // Normalize the ID to string for consistent comparison
@@ -375,7 +367,7 @@ const VehicleList = () => {
                     // Log assignment creation for debugging
                     if (truckIds.length > 0) {
                         const storedCount = truckIds.filter(id => assignments[String(id).trim()]).length;
-                        console.log(`✅ Trip ${assignment.loadId} (${trip.status}): Matched ${storedCount}/${truckIds.length} vehicle IDs`, truckIds);
+                        console.log(`✅ Order ${assignment.loadId} (${order.status}): Matched ${storedCount}/${truckIds.length} vehicle IDs`, truckIds);
                     }
                 });
 

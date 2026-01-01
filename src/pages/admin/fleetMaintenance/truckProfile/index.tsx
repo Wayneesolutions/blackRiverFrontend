@@ -12,7 +12,7 @@ import {
 } from "react-icons/fa";
 // import { FLEET_COLORS } from "../colorUtils"; // Removing dependency on old colorUtils for new design
 import { getTruckProfile } from "../../../../axios/api/admin";
-import { listFleetUnits } from "../../../../axios/api/fleet.units";
+import { listVehicle, listTrailers } from "../../../../axios/api/distapcher";
 
 // Helper Component for Stats
 const StatCard = ({ title, value, subtitle, icon: Icon, bgColor, iconColor }: any) => (
@@ -54,9 +54,9 @@ type VehicleProfileData = {
     phone: string;
   } | null;
   currentAssignment?: {
-    type: 'load' | 'trip';
+    type: 'order' | 'trip';
     id: string;
-    loadNumber?: string;
+    orderNumber?: string;
     tripNumber?: string;
     status: string;
     customer?: string;
@@ -66,9 +66,9 @@ type VehicleProfileData = {
     };
   } | null;
   assignmentHistory: Array<{
-    type: 'load' | 'trip';
+    type: 'order' | 'trip';
     id: string;
-    loadNumber?: string;
+    orderNumber?: string;
     tripNumber?: string;
     driver: {
       _id: string;
@@ -151,20 +151,40 @@ const TruckProfile = () => {
     const fetchUnits = async () => {
       try {
         setLoading(true);
-        const category = activeTab === "truck" ? "trucks" : "trailers";
-        const response = await listFleetUnits({ category });
-        if (response?.success && response?.data) {
-          const unitList = response.data.map((u: any) => ({
-            unitNo: u.unitNo,
-            _id: u._id,
-            unitType: u.unitType
-          }));
-          setUnits(unitList);
-          if (unitList.length > 0 && (!selectedUnit || !unitList.find((u: any) => u.unitNo === selectedUnit))) {
-            setSelectedUnit(unitList[0].unitNo);
+        if (activeTab === "truck") {
+          // Fetch vehicles
+          const response = await listVehicle({ limit: 1000 });
+          if (response?.success && response?.data) {
+            const vehicles = Array.isArray(response.data.data) ? response.data.data : response.data;
+            const unitList = vehicles.map((v: any) => ({
+              unitNo: v.unitNumber || v.internalId || v.plateNumber || v._id,
+              _id: v._id,
+              unitType: "Truck"
+            }));
+            setUnits(unitList);
+            if (unitList.length > 0 && (!selectedUnit || !unitList.find((u: any) => u.unitNo === selectedUnit))) {
+              setSelectedUnit(unitList[0].unitNo);
+            }
+          } else {
+            setUnits([]);
           }
         } else {
-          setUnits([]);
+          // Fetch trailers
+          const response = await listTrailers({ limit: 1000 });
+          if (response?.success && response?.data) {
+            const trailers = Array.isArray(response.data.data) ? response.data.data : response.data;
+            const unitList = trailers.map((t: any) => ({
+              unitNo: t.unitNumber || t.internalId || t.plateNumber || t.trailer || t._id,
+              _id: t._id,
+              unitType: "Trailer"
+            }));
+            setUnits(unitList);
+            if (unitList.length > 0 && (!selectedUnit || !unitList.find((u: any) => u.unitNo === selectedUnit))) {
+              setSelectedUnit(unitList[0].unitNo);
+            }
+          } else {
+            setUnits([]);
+          }
         }
       } catch (error) {
         console.error("Error fetching units:", error);
@@ -463,10 +483,10 @@ const TruckProfile = () => {
                   <p className="text-xs font-bold uppercase text-gray-400 tracking-wider">Current Assignment</p>
                   <div className="mt-1">
                     <span className="inline-block px-2 py-1 rounded-md bg-purple-50 text-purple-700 text-xs font-bold mb-1">
-                      {selectedVehicle.currentAssignment.type === "load" ? "Load" : "Trip"}
+                      {selectedVehicle.currentAssignment.type === "order" ? "Order" : selectedVehicle.currentAssignment.type === "trip" ? "Trip" : "Load"}
                     </span>
                     <p className="text-lg font-bold text-gray-900">
-                      {selectedVehicle.currentAssignment.loadNumber || selectedVehicle.currentAssignment.tripNumber}
+                      {selectedVehicle.currentAssignment.orderNumber || selectedVehicle.currentAssignment.tripNumber || selectedVehicle.currentAssignment.loadNumber}
                     </p>
                   </div>
                 </div>
@@ -682,12 +702,12 @@ const TruckProfile = () => {
                 {filteredData.assignmentHistory.map((assignment) => (
                   <div key={assignment.id} className="flex flex-col sm:flex-row sm:items-center justify-between p-4 border border-gray-200 rounded-xl hover:bg-gray-50 transition-colors">
                     <div className="flex items-start gap-4">
-                      <div className={`p-2 rounded-full ${assignment.type === 'load' ? 'bg-purple-100 text-purple-600' : 'bg-indigo-100 text-indigo-600'}`}>
-                        {assignment.type === 'load' ? <FaTruck className="w-4 h-4" /> : <FaRoute className="w-4 h-4" />}
+                      <div className={`p-2 rounded-full ${assignment.type === 'order' || assignment.type === 'load' ? 'bg-purple-100 text-purple-600' : 'bg-indigo-100 text-indigo-600'}`}>
+                        {(assignment.type === 'order' || assignment.type === 'load') ? <FaTruck className="w-4 h-4" /> : <FaRoute className="w-4 h-4" />}
                       </div>
                       <div>
                         <p className="text-sm font-bold text-gray-900">
-                          {assignment.loadNumber || assignment.tripNumber}
+                          {assignment.orderNumber || assignment.tripNumber || assignment.loadNumber}
                         </p>
                         <p className="text-xs text-gray-500 mt-1">
                           <span className="font-semibold">{assignment.driver.name}</span> • {assignment.driver.phone}

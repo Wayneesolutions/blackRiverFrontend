@@ -2,13 +2,30 @@ import React, { useState, useEffect, useMemo, useCallback, useRef } from 'react'
 import { RefreshCw, Route, Search, ChevronLeft, ChevronRight, MapPin, User, X, Truck, Clock } from 'lucide-react';
 import { useJsApiLoader, GoogleMap, Marker, Polyline, DirectionsService, DirectionsRenderer } from '@react-google-maps/api';
 import type { Libraries } from '@react-google-maps/api';
-import { listTrip, getTripById } from '../../../../axios/api/distapcher';
+import { getActiveOrdersWithTracking } from '../../../../axios/api/distapcher';
+import { getSocket } from '../../../../socket/socketClient';
 
-// Type definitions
-interface Trip {
+// Type definitions - based on Order model
+interface RouteWaypoint {
+  type: 'pickup' | 'delivery';
+  orderNumber: string;
+  customerOrderNo?: string;
+  lat: number;
+  lng: number;
+  address: string;
+  orderId: string;
+}
+
+interface ActiveOrderGroup {
   _id: string;
-  tripNumber: string;
-  driver?: {
+  driverId: string;
+  driver: {
+    _id: string;
+    name: string;
+    email: string;
+    phone: string;
+  };
+  coDriver?: {
     _id: string;
     name: string;
     email: string;
@@ -16,44 +33,36 @@ interface Trip {
   };
   truck?: {
     _id: string;
-    licensePlate?: string;
-    unitNo?: string;
-    makeModel?: string;
-    internalId?: string;
+    plateNumber: string;
+    make: string;
+    model: string;
+    unitNumber: string;
+    internalId: string;
+    trackingKey?: string;
   };
   trailer?: {
     _id: string;
-    licensePlate?: string;
-    unitNo?: string;
-    makeModel?: string;
+    plateNumber: string;
+    unitNumber: string;
   };
-  status: 'planned' | 'in-progress' | 'completed' | 'cancelled';
-  actualStartDate?: string;
-  actualEndDate?: string;
-  plannedStartDate?: string;
-  startLocation?: {
-    place?: string;
-    latitude?: string;
-    longitude?: string;
-  };
-  endLocation?: {
-    place?: string;
-    latitude?: string;
-    longitude?: string;
-  };
-  traveledPath?: Array<{
-    latitude: string;
-    longitude: string;
-    timestamp: Date | string;
-    speed?: number;
-    odometer?: number;
-  }>;
-  orders?: Array<{
+  orders: Array<{
     _id: string;
     orderNumber: string;
-    pickupLocation?: any;
-    deliveryLocation?: any;
+    customerOrderNo?: string;
+    tripNo?: string;
+    status: string;
+    pickupDate?: string;
+    deliveryDate?: string;
   }>;
+  routeWaypoints: RouteWaypoint[];
+  currentLocation?: {
+    lat: number;
+    lng: number;
+    address: string;
+  };
+  speed: number;
+  engineOn: boolean;
+  orderCount: number;
 }
 
 declare global {
@@ -86,45 +95,20 @@ const ProfessionalTripTracker: React.FC = () => {
     libraries: GOOGLE_MAPS_LIBRARIES,
   });
 
-  const [trips, setTrips] = useState<Trip[]>([]);
-  const [selectedTrip, setSelectedTrip] = useState<Trip | null>(null);
+  const [orderGroups, setOrderGroups] = useState<ActiveOrderGroup[]>([]);
+  const [selectedOrderGroup, setSelectedOrderGroup] = useState<ActiveOrderGroup | null>(null);
   const [searchTerm, setSearchTerm] = useState<string>('');
   const [sidebarCollapsed, setSidebarCollapsed] = useState<boolean>(false);
   const [loading, setLoading] = useState<boolean>(true);
   const [map, setMap] = useState<google.maps.Map | null>(null);
-  const [tripDetails, setTripDetails] = useState<Trip | null>(null);
   const [directionsResult, setDirectionsResult] = useState<google.maps.DirectionsResult | null>(null);
   const [directionsRequest, setDirectionsRequest] = useState<google.maps.DirectionsRequest | null>(null);
   const refreshIntervalRef = useRef<NodeJS.Timeout | null>(null);
   const isInitialLoadRef = useRef<boolean>(true);
-  const currentTripIdRef = useRef<string | null>(null); // Track current trip ID to prevent stale paths
+  const socket = useMemo(() => getSocket(), []);
 
-  // Load detailed trip information including traveledPath
-  const loadTripDetails = useCallback(async (tripId: string) => {
-    try {
-      console.log(`🔄 Loading trip details for ID: ${tripId}`);
-      const response = await getTripById(tripId);
-      if (response?.success && response?.data) {
-        const tripData = response.data;
-        console.log(`✅ Trip details loaded for ${tripData.tripNumber} (ID: ${tripData._id})`);
-        console.log(`   TraveledPath exists: ${!!tripData.traveledPath}, Length: ${tripData.traveledPath?.length || 0}`);
-
-        // Ensure we only set tripDetails if the ID matches (prevents race conditions)
-        if (tripData._id === tripId) {
-          setTripDetails(tripData);
-          return tripData;
-        } else {
-          console.warn(`⚠️ Trip ID mismatch: expected ${tripId}, got ${tripData._id}`);
-        }
-      }
-    } catch (err) {
-      console.error('Error loading trip details:', err);
-    }
-    return null;
-  }, []);
-
-  // Fetch trips from backend
-  const fetchTripsData = useCallback(async () => {
+  // Fetch active orders from backend
+  const fetchOrdersData = useCallback(async () => {
     try {
       const isInitialLoad = isInitialLoadRef.current;
 
@@ -134,55 +118,46 @@ const ProfessionalTripTracker: React.FC = () => {
         isInitialLoadRef.current = false;
       }
 
-      const response = await listTrip({
-        status: 'in-progress',
-        limit: 100
-      });
+      const response = await getActiveOrdersWithTracking();
 
       if (response?.success && response?.data) {
-        const tripData = Array.isArray(response.data) ? response.data : (response.data.data || []);
-        setTrips(tripData);
+        const orderGroupsData = Array.isArray(response.data) ? response.data : [];
+        setOrderGroups(orderGroupsData);
 
-        // Auto-select first trip if none selected (only on initial load)
-        if (isInitialLoad && tripData.length > 0 && !selectedTrip) {
-          const firstTrip = tripData[0];
-          setSelectedTrip(firstTrip);
-          await loadTripDetails(firstTrip._id);
-        } else if (selectedTrip) {
-          // Refresh selected trip details if it still exists
-          const updatedTrip = tripData.find((t: Trip) => t._id === selectedTrip._id);
-          if (updatedTrip && tripDetails) {
-            // Only refresh if we have existing trip details
-            const updatedDetails = await loadTripDetails(updatedTrip._id);
-            if (updatedDetails && updatedDetails._id === selectedTrip._id) {
-              setTripDetails(updatedDetails);
-            }
-          } else if (!updatedTrip && tripDetails) {
-            // Trip is no longer in the list, clear selection
-            setSelectedTrip(null);
-            setTripDetails(null);
+        // Auto-select first order group if none selected (only on initial load)
+        if (isInitialLoad && orderGroupsData.length > 0 && !selectedOrderGroup) {
+          const firstGroup = orderGroupsData[0];
+          setSelectedOrderGroup(firstGroup);
+        } else if (selectedOrderGroup) {
+          // Refresh selected order group if it still exists
+          const updatedGroup = orderGroupsData.find((g: ActiveOrderGroup) => g.driverId === selectedOrderGroup.driverId);
+          if (updatedGroup) {
+            setSelectedOrderGroup(updatedGroup);
+          } else {
+            // Order group no longer in the list, clear selection
+            setSelectedOrderGroup(null);
             setDirectionsResult(null);
             setDirectionsRequest(null);
           }
         }
       } else {
-        setTrips([]);
+        setOrderGroups([]);
       }
     } catch (err) {
-      console.error('Error fetching trips:', err);
-      setTrips([]);
+      console.error('Error fetching active orders:', err);
+      setOrderGroups([]);
     } finally {
       setLoading(false);
     }
-  }, [selectedTrip, tripDetails, loadTripDetails]);
+  }, [selectedOrderGroup]);
 
   useEffect(() => {
     // Initial load
-    fetchTripsData();
+    fetchOrdersData();
 
-    // Refresh trips every 10 seconds
+    // Refresh orders every 10 seconds
     refreshIntervalRef.current = setInterval(() => {
-      fetchTripsData();
+      fetchOrdersData();
     }, 10000);
 
     return () => {
@@ -190,209 +165,118 @@ const ProfessionalTripTracker: React.FC = () => {
         clearInterval(refreshIntervalRef.current);
       }
     };
-  }, [fetchTripsData]);
+  }, [fetchOrdersData]);
 
-  // Helper to extract coordinates from location (checks both direct and placeId)
-  const extractCoordinates = useCallback((location: any): { lat: number; lng: number } | null => {
-    if (!location) return null;
+  // Set up socket for real-time vehicle location updates
+  useEffect(() => {
+    if (!selectedOrderGroup?.truck?.trackingKey) return;
 
-    // Try direct latitude/longitude first
-    if (location.latitude && location.longitude) {
-      const lat = parseFloat(location.latitude);
-      const lng = parseFloat(location.longitude);
-      if (!isNaN(lat) && !isNaN(lng)) {
-        return { lat, lng };
+    // Leave previous vehicle updates
+    socket.emit("leaveVehicle");
+
+    // Join vehicle updates
+    const vehicleId = selectedOrderGroup.truck.trackingKey || selectedOrderGroup.truck.internalId || selectedOrderGroup.truck._id;
+    socket.emit("joinVehicle", vehicleId);
+
+    // Listen for vehicle location updates
+    socket.off("vehicleLocation");
+    socket.on("vehicleLocation", (data) => {
+      if (selectedOrderGroup && data._id === selectedOrderGroup.truck?._id) {
+        setSelectedOrderGroup(prev => {
+          if (!prev) return null;
+          return {
+            ...prev,
+            currentLocation: data.currentLocation ? {
+              lat: Number(data.currentLocation.latitude || 0),
+              lng: Number(data.currentLocation.longitude || 0),
+              address: data.currentLocation.address || ''
+            } : prev.currentLocation,
+            speed: data.speed || prev.speed,
+            engineOn: data.engineOn !== undefined ? data.engineOn : prev.engineOn
+          };
+        });
       }
-    }
+    });
 
-    // Try placeId's currentLocation
-    if (location.placeId?.currentLocation) {
-      const loc = location.placeId.currentLocation;
-      if (loc.latitude && loc.longitude) {
-        const lat = parseFloat(loc.latitude);
-        const lng = parseFloat(loc.longitude);
-        if (!isNaN(lat) && !isNaN(lng)) {
-          return { lat, lng };
-        }
-      }
-    }
+    return () => {
+      socket.emit("leaveVehicle");
+      socket.off("vehicleLocation");
+    };
+  }, [socket, selectedOrderGroup?.truck?._id, selectedOrderGroup?.truck?.trackingKey]);
 
-    return null;
+  // Get current location from order group (truck's current location)
+  const getCurrentLocation = useCallback((group: ActiveOrderGroup | null): { lat: number; lng: number } | null => {
+    if (!group || !group.currentLocation) return null;
+    return { lat: group.currentLocation.lat, lng: group.currentLocation.lng };
   }, []);
 
-  // Get current trip location (from traveledPath or startLocation)
-  const getCurrentTripLocation = useCallback((trip: Trip | null): { lat: number; lng: number } | null => {
-    if (!trip) return null;
-
-    // If trip has traveled path, use the latest coordinate
-    if (trip.traveledPath && trip.traveledPath.length > 0) {
-      const lastPoint = trip.traveledPath[trip.traveledPath.length - 1];
-      if (lastPoint.latitude && lastPoint.longitude) {
-        const lat = parseFloat(lastPoint.latitude);
-        const lng = parseFloat(lastPoint.longitude);
-        if (!isNaN(lat) && !isNaN(lng)) {
-          return { lat, lng };
-        }
-      }
-    }
-
-    // Otherwise, use start location (check both direct and placeId)
-    const startCoords = extractCoordinates(trip.startLocation);
-    if (startCoords) return startCoords;
-
-    // If no start location, try first order's pickup location
-    if (trip.orders && trip.orders.length > 0) {
-      const firstOrder = trip.orders[0];
-      const pickupCoords = extractCoordinates(firstOrder.pickupLocation);
-      if (pickupCoords) return pickupCoords;
-    }
-
-    return null;
-  }, [extractCoordinates]);
-
-  // Handle trip selection
-  const handleTripClick = useCallback(async (trip: Trip) => {
-    // Prevent unnecessary clicks on already selected trip
-    if (selectedTrip?._id === trip._id && tripDetails && tripDetails._id === trip._id) {
-      console.log('🚛 Trip already selected, skipping');
+  // Handle order group selection
+  const handleOrderGroupClick = useCallback((group: ActiveOrderGroup) => {
+    if (selectedOrderGroup?.driverId === group.driverId) {
+      console.log('🚛 Order group already selected, skipping');
       return;
     }
 
-    console.log('🚛 Trip selected:', trip.tripNumber, 'ID:', trip._id);
+    console.log('🚛 Order group selected for driver:', group.driver.name);
 
-    // IMPORTANT: Clear ALL previous trip's data immediately to prevent stale data
-    console.log('🗑️ Clearing previous trip data...');
-    currentTripIdRef.current = null; // Clear the ref first
-    setTripDetails(null);
+    setSelectedOrderGroup(group);
     setDirectionsResult(null);
     setDirectionsRequest(null);
 
-    // Wait a tiny bit to ensure state updates are processed
-    await new Promise(resolve => setTimeout(resolve, 100));
+    // Center map on current location or first waypoint
+    const currentLocation = getCurrentLocation(group);
+    const centerLocation = currentLocation || (group.routeWaypoints.length > 0 ? {
+      lat: group.routeWaypoints[0].lat,
+      lng: group.routeWaypoints[0].lng
+    } : null);
 
-    // Set selected trip and update ref
-    console.log('✅ Setting selected trip:', trip.tripNumber);
-    setSelectedTrip(trip);
-    currentTripIdRef.current = trip._id; // Track current trip ID
-
-    // Load full trip details including traveledPath
-    const details = await loadTripDetails(trip._id);
-    if (details && details._id === trip._id && currentTripIdRef.current === trip._id) {
-      console.log('✅ Setting tripDetails for:', details.tripNumber, 'TraveledPath length:', details.traveledPath?.length || 0);
-      setTripDetails(details);
-
-      // Center map on trip's current location or start location
-      const currentLocation = getCurrentTripLocation(details);
-      if (currentLocation && map) {
-        map.setCenter(currentLocation);
-        map.setZoom(13);
-        console.log('🗺️ Map centered on trip location');
-      }
-    } else {
-      console.warn('⚠️ Failed to load trip details or ID mismatch');
-      // Ensure tripDetails stays null if loading failed
-      setTripDetails(null);
+    if (centerLocation && map) {
+      map.setCenter(centerLocation);
+      map.setZoom(12);
+      console.log('🗺️ Map centered on order group location');
     }
-  }, [map, loadTripDetails, getCurrentTripLocation, selectedTrip, tripDetails]);
+  }, [map, getCurrentLocation, selectedOrderGroup]);
 
-  // Filter trips by search
-  const filteredTrips = useMemo(() => {
-    if (!searchTerm) return trips;
+  // Filter order groups by search
+  const filteredOrderGroups = useMemo(() => {
+    if (!searchTerm) return orderGroups;
     const lowerSearch = searchTerm.toLowerCase();
-    return trips.filter((trip) =>
-      trip.tripNumber.toLowerCase().includes(lowerSearch) ||
-      trip.driver?.name.toLowerCase().includes(lowerSearch) ||
-      trip.truck?.licensePlate?.toLowerCase().includes(lowerSearch) ||
-      trip.truck?.unitNo?.toLowerCase().includes(lowerSearch)
+    return orderGroups.filter((group) =>
+      group.driver.name.toLowerCase().includes(lowerSearch) ||
+      group.truck?.plateNumber?.toLowerCase().includes(lowerSearch) ||
+      group.truck?.unitNumber?.toLowerCase().includes(lowerSearch) ||
+      group.orders.some(o => o.orderNumber.toLowerCase().includes(lowerSearch)) ||
+      group.orders.some(o => o.customerOrderNo?.toLowerCase().includes(lowerSearch))
     );
-  }, [trips, searchTerm]);
+  }, [orderGroups, searchTerm]);
 
-  // Get traveled path coordinates for map polyline
-  const getTraveledPathCoordinates = useCallback((trip: Trip | null): Array<{ lat: number; lng: number }> => {
-    if (!trip) return [];
-
-    // ONLY use traveledPath if it exists - don't create fallback paths
-    if (trip.traveledPath && Array.isArray(trip.traveledPath) && trip.traveledPath.length > 0) {
-      return trip.traveledPath
-        .filter(point => point && point.latitude && point.longitude)
-        .map(point => {
-          const lat = parseFloat(point.latitude);
-          const lng = parseFloat(point.longitude);
-          if (!isNaN(lat) && !isNaN(lng)) {
-            return { lat, lng };
-          }
-          return null;
-        })
-        .filter((point): point is { lat: number; lng: number } => point !== null);
-    }
-
-    // Return empty array if no traveledPath - don't create fallback paths
-    return [];
+  // Get route waypoints from order group (already combined by backend)
+  const getRouteWaypoints = useCallback((group: ActiveOrderGroup | null): Array<{ lat: number; lng: number; label: string; type: string }> => {
+    if (!group || !group.routeWaypoints || group.routeWaypoints.length === 0) return [];
+    
+    return group.routeWaypoints.map((wp) => ({
+      lat: wp.lat,
+      lng: wp.lng,
+      label: `${wp.type === 'pickup' ? 'Pickup' : 'Delivery'}: ${wp.orderNumber}`,
+      type: wp.type
+    }));
   }, []);
 
-  // Get route waypoints (from orders, start, end locations)
-  const getRouteWaypoints = useCallback((trip: Trip | null): Array<{ lat: number; lng: number; label: string }> => {
-    if (!trip) return [];
-
-    const waypoints: Array<{ lat: number; lng: number; label: string }> = [];
-
-    // Add start location (always show if available)
-    const startCoords = extractCoordinates(trip.startLocation);
-    if (startCoords) {
-      waypoints.push({
-        ...startCoords,
-        label: 'Start'
-      });
-    }
-
-    // Add order locations
-    if (trip.orders && trip.orders.length > 0) {
-      trip.orders.forEach((order) => {
-        const pickupCoords = extractCoordinates(order.pickupLocation);
-        if (pickupCoords) {
-          waypoints.push({
-            ...pickupCoords,
-            label: `Pickup: ${order.orderNumber}`
-          });
-        }
-
-        const deliveryCoords = extractCoordinates(order.deliveryLocation);
-        if (deliveryCoords) {
-          waypoints.push({
-            ...deliveryCoords,
-            label: `Delivery: ${order.orderNumber}`
-          });
-        }
-      });
-    }
-
-    // Add end location (always show if available)
-    const endCoords = extractCoordinates(trip.endLocation);
-    if (endCoords) {
-      waypoints.push({
-        ...endCoords,
-        label: 'End'
-      });
-    }
-
-    return waypoints;
-  }, [extractCoordinates]);
-
   // Build directions request for planned route
-  const buildDirectionsRequest = useCallback((trip: Trip | null): google.maps.DirectionsRequest | null => {
-    if (!trip || !isLoaded || !window.google?.maps) return null;
+  const buildDirectionsRequest = useCallback((group: ActiveOrderGroup | null): google.maps.DirectionsRequest | null => {
+    if (!group || !isLoaded || !window.google?.maps) return null;
 
-    const waypointsList = getRouteWaypoints(trip);
-    if (waypointsList.length < 2) return null; // Need at least start and end
+    const waypointsList = getRouteWaypoints(group);
+    if (waypointsList.length < 2) return null; // Need at least 2 waypoints
 
-    const startWaypoint = waypointsList.find(w => w.label === 'Start');
-    const endWaypoint = waypointsList.find(w => w.label === 'End') || waypointsList[waypointsList.length - 1];
+    const startWaypoint = waypointsList[0];
+    const endWaypoint = waypointsList[waypointsList.length - 1];
 
     if (!startWaypoint || !endWaypoint) return null;
 
-    // Get intermediate waypoints (pickup and delivery points)
+    // Get intermediate waypoints (skip first and last)
     const intermediateWaypoints = waypointsList
-      .filter(w => w.label !== 'Start' && w.label !== 'End')
+      .slice(1, -1)
       .map(w => ({
         location: new window.google.maps.LatLng(w.lat, w.lng),
         stopover: true,
@@ -417,74 +301,16 @@ const ProfessionalTripTracker: React.FC = () => {
     }
   }, []);
 
-  // Update directions request when trip changes
+  // Update directions request when order group changes
   useEffect(() => {
-    const trip = tripDetails || selectedTrip;
-    if (trip && isLoaded) {
-      const request = buildDirectionsRequest(trip);
+    if (selectedOrderGroup && isLoaded) {
+      const request = buildDirectionsRequest(selectedOrderGroup);
       setDirectionsRequest(request);
     } else {
       setDirectionsRequest(null);
       setDirectionsResult(null);
     }
-  }, [tripDetails, selectedTrip, isLoaded, buildDirectionsRequest]);
-
-  // Debug: Log when traveledPath changes
-  useEffect(() => {
-    if (tripDetails) {
-      if (tripDetails.traveledPath && tripDetails.traveledPath.length > 0) {
-        console.log(`📍 Trip ${tripDetails.tripNumber} (ID: ${tripDetails._id}) has ${tripDetails.traveledPath.length} traveled path points`);
-      } else {
-        console.log(`📍 Trip ${tripDetails.tripNumber} (ID: ${tripDetails._id}) has NO traveled path`);
-      }
-    } else {
-      console.log(`📍 No trip selected - clearing traveled path`);
-    }
-  }, [tripDetails]);
-
-  // Compute traveledPath only for the current trip - use useMemo to ensure proper isolation
-  // MUST be before early returns
-  const traveledPath = useMemo(() => {
-    // CRITICAL: If no tripDetails, return empty array immediately
-    if (!tripDetails || !tripDetails._id) {
-      console.log('📍 traveledPath: No tripDetails, returning empty array');
-      return [];
-    }
-
-    // CRITICAL: Check against ref to prevent stale data from previous trips
-    if (currentTripIdRef.current && tripDetails._id !== currentTripIdRef.current) {
-      console.warn(`⚠️ traveledPath BLOCKED: tripDetails._id (${tripDetails._id}) !== currentTripIdRef (${currentTripIdRef.current})`);
-      return [];
-    }
-
-    // CRITICAL: If selectedTrip exists, ensure tripDetails matches it exactly
-    if (selectedTrip) {
-      if (tripDetails._id !== selectedTrip._id) {
-        console.warn(`⚠️ traveledPath BLOCKED: Trip ID mismatch - tripDetails._id (${tripDetails._id}) !== selectedTrip._id (${selectedTrip._id})`);
-        return [];
-      }
-    }
-
-    // CRITICAL: Check if this trip actually has traveledPath data
-    if (!tripDetails.traveledPath || !Array.isArray(tripDetails.traveledPath) || tripDetails.traveledPath.length === 0) {
-      console.log(`📍 traveledPath: Trip ${tripDetails.tripNumber} (${tripDetails._id}) has NO traveledPath data`);
-      return [];
-    }
-
-    // Get traveledPath only from tripDetails - ensure it's the correct trip
-    const path = getTraveledPathCoordinates(tripDetails);
-    console.log(`✅ traveledPath computed for trip ${tripDetails.tripNumber} (${tripDetails._id}): ${path.length} points`);
-    return path;
-  }, [tripDetails, selectedTrip, getTraveledPathCoordinates]);
-
-  // Log traveledPath changes for debugging
-  useEffect(() => {
-    if (traveledPath.length > 0) {
-      console.log(`📍 traveledPath ACTIVE: ${traveledPath.length} points for trip ${tripDetails?._id || 'none'}`);
-    } else {
-      console.log(`📍 traveledPath EMPTY: tripDetails ID: ${tripDetails?._id || 'none'}, selectedTrip ID: ${selectedTrip?._id || 'none'}`);
-    }
-  }, [traveledPath.length, tripDetails?._id, selectedTrip?._id]);
+  }, [selectedOrderGroup, isLoaded, buildDirectionsRequest]);
 
   // Early returns AFTER all hooks
   if (loadError) {
@@ -509,10 +335,9 @@ const ProfessionalTripTracker: React.FC = () => {
     );
   }
 
-  // Compute values after early returns - ONLY use tripDetails for traveledPath (which has full data)
-  const activeTrip = tripDetails || selectedTrip;
-  const currentLocation = getCurrentTripLocation(activeTrip);
-  const waypoints = getRouteWaypoints(activeTrip);
+  // Compute values after early returns
+  const currentLocation = getCurrentLocation(selectedOrderGroup);
+  const waypoints = getRouteWaypoints(selectedOrderGroup);
 
   return (
     <div className="flex h-screen bg-[#EDF8FF]">
@@ -526,7 +351,7 @@ const ProfessionalTripTracker: React.FC = () => {
           <div className="flex items-center justify-between mb-4">
             <h2 className="text-xl font-bold flex items-center gap-2">
               <Route className="w-5 h-5" />
-              Trip Tracker
+              Order Tracker
             </h2>
             <button
               onClick={() => setSidebarCollapsed(true)}
@@ -541,7 +366,7 @@ const ProfessionalTripTracker: React.FC = () => {
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-3 h-3 text-gray-400" />
             <input
               type="text"
-              placeholder="Search by trip number, driver, truck..."
+              placeholder="Search by driver, truck, order number..."
               className="w-full pl-10 pr-4 py-1.5 text-sm rounded-lg bg-white/90 text-gray-800 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-white/50"
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
@@ -549,78 +374,77 @@ const ProfessionalTripTracker: React.FC = () => {
           </div>
         </div>
 
-        {/* Trip List */}
+        {/* Order Group List */}
         <div className="flex-1 overflow-y-auto p-3 bg-[#EDF8FF]">
           {loading ? (
             <div className="text-center py-8">
               <RefreshCw className="w-6 h-6 text-blue-600 animate-spin mx-auto mb-2" />
-              <p className="text-gray-500">Loading trips...</p>
+              <p className="text-gray-500">Loading active orders...</p>
             </div>
-          ) : filteredTrips.length === 0 ? (
+          ) : filteredOrderGroups.length === 0 ? (
             <div className="text-center py-8">
               <Route className="w-12 h-12 text-gray-300 mx-auto mb-2" />
-              <p className="text-gray-500">No active trips found</p>
+              <p className="text-gray-500">No active orders found</p>
             </div>
           ) : (
             <div className="space-y-3">
-              {filteredTrips.map((trip) => (
+              {filteredOrderGroups.map((group) => (
                 <div
-                  key={trip._id}
-                  className={`p-3 rounded-xl cursor-pointer transition-all duration-200 border-2 ${selectedTrip?._id === trip._id
+                  key={group.driverId}
+                  className={`p-3 rounded-xl cursor-pointer transition-all duration-200 border-2 ${selectedOrderGroup?.driverId === group.driverId
                     ? "bg-[#EDF8FF] border-[#42aeec] shadow-md"
                     : "bg-white border-gray-200 hover:border-blue-300 hover:shadow-sm"
                     }`}
                   onClick={(e) => {
                     e.preventDefault();
                     e.stopPropagation();
-                    handleTripClick(trip);
+                    handleOrderGroupClick(group);
                   }}
                 >
-                  {/* Trip Number & Status */}
+                  {/* Driver Name & Order Count */}
                   <div className="flex items-center justify-between mb-3">
                     <h3 className="font-bold text-base text-gray-800">
-                      {trip.tripNumber}
+                      {group.driver.name}
                     </h3>
-                    <span
-                      className="px-2 py-0.5 rounded-full text-xs font-semibold"
-                      style={{
-                        backgroundColor: statusBgColors[trip.status],
-                        color: statusColors[trip.status],
-                      }}
-                    >
-                      {trip.status.toUpperCase().replace('-', ' ')}
+                    <span className="px-2 py-0.5 rounded-full text-xs font-semibold bg-blue-100 text-blue-700">
+                      {group.orderCount} {group.orderCount === 1 ? 'Order' : 'Orders'}
                     </span>
                   </div>
 
-                  {/* Trip Details */}
+                  {/* Order Group Details */}
                   <div className="space-y-1 text-xs">
-                    {trip.driver && (
-                      <div className="flex items-center gap-2 text-gray-600">
-                        <User className="w-3 h-3" />
-                        <span>{trip.driver.name}</span>
-                      </div>
-                    )}
-                    {trip.truck && (
+                    {group.truck && (
                       <div className="flex items-center gap-2 text-gray-600">
                         <Truck className="w-3 h-3" />
                         <span>
-                          {trip.truck.licensePlate || trip.truck.unitNo || 'N/A'}
-                          {trip.truck.makeModel && ` - ${trip.truck.makeModel}`}
+                          {group.truck.plateNumber || group.truck.unitNumber || 'N/A'}
+                          {group.truck.make && group.truck.model && ` - ${group.truck.make} ${group.truck.model}`}
                         </span>
                       </div>
                     )}
-                    {trip.actualStartDate && (
-                      <div className="flex items-center gap-2 text-gray-500">
-                        <Clock className="w-3 h-3" />
-                        <span>
-                          Started: {new Date(trip.actualStartDate).toLocaleDateString()}
-                        </span>
-                      </div>
-                    )}
-                    {tripDetails?._id === trip._id && tripDetails?.traveledPath && tripDetails.traveledPath.length > 0 && (
-                      <div className="flex items-center gap-2 text-purple-600 font-medium">
+                    {group.currentLocation && (
+                      <div className="flex items-center gap-2 text-green-600 font-medium">
                         <MapPin className="w-3 h-3" />
-                        <span>{tripDetails.traveledPath.length} location points tracked</span>
+                        <span>Live tracking active</span>
+                      </div>
+                    )}
+                    {group.routeWaypoints.length > 0 && (
+                      <div className="flex items-center gap-2 text-gray-500">
+                        <Route className="w-3 h-3" />
+                        <span>{group.routeWaypoints.length} stops</span>
+                      </div>
+                    )}
+                    {group.orders.length > 0 && (
+                      <div className="pt-2 border-t border-gray-200">
+                        <p className="text-gray-500 mb-1">Orders:</p>
+                        {group.orders.slice(0, 2).map(order => (
+                          <p key={order._id} className="text-gray-600 text-xs">
+                            • {order.orderNumber}
+                          </p>
+                        ))}
+                        {group.orders.length > 2 && (
+                          <p className="text-gray-500 text-xs">+{group.orders.length - 2} more</p>
+                        )}
                       </div>
                     )}
                   </div>
@@ -645,12 +469,14 @@ const ProfessionalTripTracker: React.FC = () => {
       <div className="flex-1 relative">
         <GoogleMap
           mapContainerStyle={{ width: "100%", height: "100%" }}
-          center={currentLocation || { lat: 20.5937, lng: 78.9629 }}
-          zoom={currentLocation ? 13 : 5}
+          center={currentLocation || (waypoints.length > 0 ? { lat: waypoints[0].lat, lng: waypoints[0].lng } : { lat: 20.5937, lng: 78.9629 })}
+          zoom={currentLocation || waypoints.length > 0 ? 12 : 5}
           onLoad={(mapInstance) => {
             setMap(mapInstance);
             if (currentLocation) {
               mapInstance.setCenter(currentLocation);
+            } else if (waypoints.length > 0) {
+              mapInstance.setCenter({ lat: waypoints[0].lat, lng: waypoints[0].lng });
             }
           }}
           options={{
@@ -675,7 +501,7 @@ const ProfessionalTripTracker: React.FC = () => {
                 directions: directionsResult,
                 polylineOptions: {
                   strokeColor: '#3b82f6',
-                  strokeOpacity: 0.6,
+                  strokeOpacity: 0.7,
                   strokeWeight: 5,
                   zIndex: 1,
                 },
@@ -684,66 +510,38 @@ const ProfessionalTripTracker: React.FC = () => {
             />
           )}
 
-          {/* Traveled Path Polyline - ONLY show for current trip with valid traveledPath */}
-          {tripDetails &&
-            selectedTrip &&
-            tripDetails._id &&
-            selectedTrip._id &&
-            tripDetails._id === selectedTrip._id &&
-            tripDetails.traveledPath &&
-            Array.isArray(tripDetails.traveledPath) &&
-            tripDetails.traveledPath.length > 0 &&
-            traveledPath &&
-            Array.isArray(traveledPath) &&
-            traveledPath.length > 1 && (
-              <Polyline
-                key={`traveled-path-${tripDetails._id}-${traveledPath.length}`} // Unique key per trip ID and path length
-                path={traveledPath.map(p => ({ lat: p.lat, lng: p.lng }))} // Ensure clean path array
-                options={{
-                  strokeColor: '#8b5cf6',
-                  strokeOpacity: 0.9,
-                  strokeWeight: 4,
-                  geodesic: true,
-                  zIndex: 2, // Above planned route
-                  icons: undefined, // Ensure no icons that might simplify the path
-                  clickable: false,
-                }}
-              />
-            )}
-
-          {/* Current Location Marker */}
+          {/* Current Truck Location Marker */}
           {currentLocation && (
             <Marker
               position={currentLocation}
+              title={`Current Truck Location${selectedOrderGroup?.truck ? ` - ${selectedOrderGroup.truck.plateNumber}` : ''}`}
               icon={{
                 path: google.maps.SymbolPath.CIRCLE,
-                scale: 12,
-                fillColor: '#8b5cf6',
+                scale: 14,
+                fillColor: '#10b981',
                 fillOpacity: 1,
-                strokeWeight: 3,
+                strokeWeight: 4,
                 strokeColor: '#ffffff',
               }}
               zIndex={10}
             />
           )}
 
-          {/* Route Waypoints (Start, Pickup, Delivery, End) */}
+          {/* Route Waypoints (Pickup and Delivery) */}
           {waypoints.map((waypoint, index) => (
             <Marker
-              key={`waypoint-${index}`}
+              key={`waypoint-${index}-${waypoint.lat}-${waypoint.lng}`}
               position={{ lat: waypoint.lat, lng: waypoint.lng }}
               label={{
                 text: waypoint.label,
                 color: '#fff',
-                fontSize: '12px',
+                fontSize: '11px',
                 fontWeight: 'bold',
               }}
               icon={{
                 path: google.maps.SymbolPath.CIRCLE,
-                scale: 8,
-                fillColor: waypoint.label === 'Start' ? '#10b981' :
-                  waypoint.label.startsWith('Pickup') ? '#3b82f6' :
-                    waypoint.label.startsWith('Delivery') ? '#f59e0b' : '#ef4444',
+                scale: 10,
+                fillColor: waypoint.type === 'pickup' ? '#3b82f6' : '#f59e0b',
                 fillOpacity: 1,
                 strokeWeight: 2,
                 strokeColor: '#ffffff',
@@ -753,17 +551,16 @@ const ProfessionalTripTracker: React.FC = () => {
           ))}
         </GoogleMap>
 
-        {/* Trip Info Panel */}
-        {selectedTrip && tripDetails && (
-          <div className="absolute top-6 right-6 bg-white rounded-xl shadow-2xl w-72 overflow-hidden border border-gray-200 max-h-[70vh] overflow-y-auto">
+        {/* Order Group Info Panel */}
+        {selectedOrderGroup && (
+          <div className="absolute top-6 right-6 bg-white rounded-xl shadow-2xl w-80 overflow-hidden border border-gray-200 max-h-[70vh] overflow-y-auto">
             {/* Header */}
             <div className="p-3 text-white bg-[linear-gradient(90deg,#42aeec_0%,#1db5f5_40%,#0ea3d8_100%)]">
               <div className="flex items-center justify-between mb-1">
-                <h3 className="text-base font-bold truncate">{selectedTrip.tripNumber}</h3>
+                <h3 className="text-base font-bold truncate">{selectedOrderGroup.driver.name}</h3>
                 <button
                   onClick={() => {
-                    setSelectedTrip(null);
-                    setTripDetails(null);
+                    setSelectedOrderGroup(null);
                   }}
                   className="p-1.5 hover:bg-white/20 rounded-lg transition-colors flex-shrink-0"
                 >
@@ -771,47 +568,31 @@ const ProfessionalTripTracker: React.FC = () => {
                 </button>
               </div>
               <p className="text-xs opacity-90 truncate">
-                {selectedTrip.driver?.name || 'No driver assigned'}
+                {selectedOrderGroup.orders.length} {selectedOrderGroup.orders.length === 1 ? 'Order' : 'Orders'}
               </p>
             </div>
 
             {/* Content */}
             <div className="p-3 space-y-3">
-              {/* Status */}
-              <div className="flex items-center justify-between p-2 bg-gray-50 rounded-lg">
-                <span className="text-gray-600 text-sm font-medium">Status</span>
-                <span
-                  className="px-2 py-0.5 rounded-full text-xs font-bold"
-                  style={{
-                    backgroundColor: statusBgColors[selectedTrip.status],
-                    color: statusColors[selectedTrip.status],
-                  }}
-                >
-                  {selectedTrip.status.toUpperCase().replace('-', ' ')}
-                </span>
-              </div>
-
               {/* Metrics */}
               <div className="grid grid-cols-2 gap-2">
-                {tripDetails.traveledPath && tripDetails.traveledPath.length > 0 && (
-                  <div className="p-2 bg-[#EDF8FF] rounded-lg">
-                    <div className="flex items-center gap-1 text-purple-600 mb-0.5">
-                      <MapPin className="w-3 h-3" />
-                      <span className="text-xs font-medium">Points</span>
-                    </div>
-                    <p className="text-base font-bold text-gray-800">
-                      {tripDetails.traveledPath.length}
-                    </p>
+                <div className="p-2 bg-[#EDF8FF] rounded-lg">
+                  <div className="flex items-center gap-1 text-blue-600 mb-0.5">
+                    <Route className="w-3 h-3" />
+                    <span className="text-xs font-medium">Stops</span>
                   </div>
-                )}
-                {selectedTrip.orders && (
+                  <p className="text-base font-bold text-gray-800">
+                    {selectedOrderGroup.routeWaypoints.length}
+                  </p>
+                </div>
+                {selectedOrderGroup.currentLocation && (
                   <div className="p-2 bg-[#EDF8FF] rounded-lg">
-                    <div className="flex items-center gap-1 text-blue-600 mb-0.5">
-                      <Route className="w-3 h-3" />
-                      <span className="text-xs font-medium">Orders</span>
+                    <div className="flex items-center gap-1 text-green-600 mb-0.5">
+                      <MapPin className="w-3 h-3" />
+                      <span className="text-xs font-medium">Live</span>
                     </div>
                     <p className="text-base font-bold text-gray-800">
-                      {selectedTrip.orders.length}
+                      {selectedOrderGroup.speed} km/h
                     </p>
                   </div>
                 )}
@@ -819,45 +600,52 @@ const ProfessionalTripTracker: React.FC = () => {
 
               {/* Details */}
               <div className="space-y-2">
-                {selectedTrip.truck && (
+                {selectedOrderGroup.truck && (
                   <div className="flex justify-between py-1.5 border-b border-gray-200">
                     <span className="text-gray-600 text-sm">Truck</span>
                     <span className="font-semibold text-gray-800 text-sm truncate ml-2">
-                      {selectedTrip.truck.licensePlate || selectedTrip.truck.unitNo || 'N/A'}
+                      {selectedOrderGroup.truck.plateNumber || selectedOrderGroup.truck.unitNumber || 'N/A'}
                     </span>
                   </div>
                 )}
-                {selectedTrip.actualStartDate && (
+                {selectedOrderGroup.coDriver && (
                   <div className="flex justify-between py-1.5 border-b border-gray-200">
-                    <span className="text-gray-600 text-sm">Started</span>
-                    <span className="font-semibold text-gray-800 text-xs text-right">
-                      {new Date(selectedTrip.actualStartDate).toLocaleDateString()}
+                    <span className="text-gray-600 text-sm">Co-Driver</span>
+                    <span className="font-semibold text-gray-800 text-sm truncate ml-2">
+                      {selectedOrderGroup.coDriver.name}
                     </span>
                   </div>
                 )}
-                {selectedTrip.startLocation && (
+                {selectedOrderGroup.currentLocation && (
                   <div className="py-1.5">
                     <div className="flex items-start gap-1.5">
-                      <MapPin className="w-3 h-3 text-gray-400 mt-0.5 flex-shrink-0" />
+                      <MapPin className="w-3 h-3 text-green-500 mt-0.5 flex-shrink-0" />
                       <div className="min-w-0 flex-1">
-                        <p className="text-xs text-gray-500 mb-0.5">Start</p>
+                        <p className="text-xs text-gray-500 mb-0.5">Current Location</p>
                         <p className="text-xs text-gray-800 truncate">
-                          {selectedTrip.startLocation.place || 'N/A'}
+                          {selectedOrderGroup.currentLocation.address || 'Location tracking active'}
                         </p>
                       </div>
                     </div>
                   </div>
                 )}
-                {selectedTrip.endLocation && (
-                  <div className="py-1.5">
-                    <div className="flex items-start gap-1.5">
-                      <MapPin className="w-3 h-3 text-red-400 mt-0.5 flex-shrink-0" />
-                      <div className="min-w-0 flex-1">
-                        <p className="text-xs text-gray-500 mb-0.5">End</p>
-                        <p className="text-xs text-gray-800 truncate">
-                          {selectedTrip.endLocation.place || 'N/A'}
-                        </p>
-                      </div>
+                
+                {/* Orders List */}
+                {selectedOrderGroup.orders.length > 0 && (
+                  <div className="pt-2 border-t border-gray-200">
+                    <p className="text-xs text-gray-500 mb-2 font-medium">Orders:</p>
+                    <div className="space-y-1 max-h-40 overflow-y-auto">
+                      {selectedOrderGroup.orders.map(order => (
+                        <div key={order._id} className="p-2 bg-gray-50 rounded text-xs">
+                          <p className="font-semibold text-gray-800">{order.orderNumber}</p>
+                          {order.customerOrderNo && (
+                            <p className="text-gray-600">Cust: {order.customerOrderNo}</p>
+                          )}
+                          {order.tripNo && (
+                            <p className="text-gray-500 text-xs">Trip: {order.tripNo}</p>
+                          )}
+                        </div>
+                      ))}
                     </div>
                   </div>
                 )}

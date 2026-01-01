@@ -3,7 +3,7 @@ import { RefreshCw, Truck, Search, ChevronLeft, ChevronRight, MapPin, User, Gaug
 import { useJsApiLoader } from '@react-google-maps/api';
 import type { Libraries } from '@react-google-maps/api';
 import { getSocket } from "../../../../socket/socketClient";
-import { listFleetUnits, type FleetUnitDto } from '../../../../axios/api/fleet.units';
+import { getVehiclesWithTracking } from '../../../../axios/api/distapcher';
 
 // Type definitions
 interface Driver {
@@ -13,13 +13,17 @@ interface Driver {
     phone: string;
 }
 
-// Use FleetUnit for trucks (unitType === "Truck")
-type Vehicle = Omit<FleetUnitDto, 'status' | 'currentLocation'> & {
-    plateNumber: string; // Mapped from licensePlate
-    status: 'moving' | 'idle' | 'stopped' | 'maintenance'; // Mapped from operationStatus
+interface Vehicle {
+    _id: string;
+    unitNumber?: string;
+    internalId?: string;
+    plateNumber: string;
+    trackingKey?: string;
+    status: 'moving' | 'idle' | 'stopped' | 'maintenance' | 'In Service' | 'Out of Service' | 'Maintenance';
+    operationStatus?: string;
     make: string;
     model: string;
-    year: number;
+    year?: number | string;
     speed: number;
     fuelLevel: number;
     odometer: number;
@@ -31,7 +35,10 @@ type Vehicle = Omit<FleetUnitDto, 'status' | 'currentLocation'> & {
         updatedAt: string | Date;
     };
     driver?: Driver;
-};
+    vinNumber?: string;
+    type?: string;
+    ownership?: string;
+}
 
 declare global {
     interface Window {
@@ -75,59 +82,68 @@ const ProfessionalTruckTracker: React.FC = () => {
 
     const socket = useMemo(() => getSocket(), []);
 
-    // Fetch vehicles from backend
+    // Fetch vehicles from backend with Samsara tracking data
     const fetchVehiclesData = useCallback(async () => {
         setLoading(true);
         try {
-            const userInfoString = localStorage.getItem('userInfo');
-            let userInfo: any = null;
-            if (userInfoString) {
-                try {
-                    userInfo = JSON.parse(userInfoString);
-                } catch (err) {
-                    console.error('Error parsing userInfo from localStorage:', err);
-                }
-            }
-
-            // Handle different userInfo structures (userData.company or direct company)
-            const userRole = userInfo?.role || userInfo?.userData?.role;
-            const userCompany = userInfo?.company || userInfo?.userData?.company;
-            const isSuperadmin = userRole === 'superadmin';
-            const isDispatcher = userRole === 'dispatcher';
-            const hasCompany = Boolean(userCompany);
-
-            // Allow dispatchers to call API even if company is not visible in localStorage
-            // The backend will handle company filtering based on the authenticated user
-            if (userInfo && !isSuperadmin && !isDispatcher && !hasCompany) {
-                setVehicles([]);
-                return;
-            }
-
-            // Fetch trucks from FleetUnit (unitType === "Truck")
-            const res = await listFleetUnits({ category: "trucks" });
+            // Fetch vehicles with tracking data from Vehicle model
+            // Note: search is handled client-side by filtering
+            const res = await getVehiclesWithTracking({ 
+                limit: 1000
+            });
+            
             if (res?.success && res.data) {
-                const data = Array.isArray(res.data) ? res.data : [];
-                // Map FleetUnit to Vehicle format for compatibility
-                const formatted = data.map((v: FleetUnitDto): Vehicle => ({
-                    ...v,
-                    plateNumber: v.licensePlate || v.unitNo,
-                    status: (v.operationStatus === "in-transit" ? "moving" :
-                        v.operationStatus === "maintenance" ? "maintenance" :
-                            v.operationStatus === "idle" ? "idle" : "stopped") as 'moving' | 'idle' | 'stopped' | 'maintenance',
-                    make: v.make || "",
-                    model: v.model || "",
-                    year: v.year || 0,
-                    speed: (v as any).speed || 0,
-                    fuelLevel: (v as any).fuelLevel || 0,
-                    odometer: v.currentOdometer || 0,
-                    engineOn: (v as any).engineOn || false,
-                    currentLocation: {
-                        address: v.currentLocation?.address || "",
-                        latitude: Number(v.currentLocation?.latitude ?? 0),
-                        longitude: Number(v.currentLocation?.longitude ?? 0),
-                        updatedAt: v.currentLocation?.updatedAt || new Date().toISOString()
+                const vehiclesData = Array.isArray(res.data) ? res.data : [];
+                
+                // Map Vehicle model data to Vehicle format for display
+                const formatted = vehiclesData.map((v: any): Vehicle => {
+                    // Map status from Vehicle model to tracking status
+                    let trackingStatus: 'moving' | 'idle' | 'stopped' | 'maintenance' = 'stopped';
+                    if (v.status === 'moving' || v.operationStatus === 'in_transit' || v.operationStatus === 'in-transit') {
+                        trackingStatus = 'moving';
+                    } else if (v.status === 'idle' || v.operationStatus === 'idle') {
+                        trackingStatus = 'idle';
+                    } else if (v.status === 'maintenance' || v.operationStatus === 'MAINTENANCE' || v.operationStatus === 'maintenance') {
+                        trackingStatus = 'maintenance';
+                    } else if (v.engineOn && v.speed > 0) {
+                        trackingStatus = 'moving';
+                    } else if (v.engineOn && v.speed === 0) {
+                        trackingStatus = 'idle';
                     }
-                }));
+
+                    return {
+                        _id: v._id,
+                        unitNumber: v.unitNumber || v.internalId || '',
+                        internalId: v.internalId || v.unitNumber || '',
+                        plateNumber: v.plateNumber || '',
+                        trackingKey: v.trackingKey || '',
+                        status: trackingStatus,
+                        operationStatus: v.operationStatus || '',
+                        make: v.make || '',
+                        model: v.model || '',
+                        year: v.year || 0,
+                        speed: v.speed || 0,
+                        fuelLevel: v.fuelLevel || 0,
+                        odometer: v.odometer || 0,
+                        engineOn: v.engineOn || false,
+                        currentLocation: {
+                            address: v.currentLocation?.address || '',
+                            latitude: Number(v.currentLocation?.latitude ?? 0),
+                            longitude: Number(v.currentLocation?.longitude ?? 0),
+                            updatedAt: v.currentLocation?.updatedAt || new Date().toISOString()
+                        },
+                        driver: v.driver ? {
+                            _id: v.driver._id || '',
+                            name: v.driver.name || '',
+                            email: v.driver.email || '',
+                            phone: v.driver.phone || ''
+                        } : undefined,
+                        vinNumber: v.vinNumber || '',
+                        type: v.type || '',
+                        ownership: v.ownership || ''
+                    };
+                });
+                
                 setVehicles(formatted);
                 if (formatted.length > 0 && !selectedVehicle) {
                     handleVehicleClick(formatted[0]);
@@ -141,7 +157,23 @@ const ProfessionalTruckTracker: React.FC = () => {
         } finally {
             setLoading(false);
         }
-    }, [selectedVehicle]);
+    }, [selectedVehicle]); // Only re-fetch when selectedVehicle changes
+
+    // Initial fetch on mount
+    useEffect(() => {
+        fetchVehiclesData();
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []); // Only run once on mount
+
+    // Refresh vehicles periodically to get latest tracking data from Samsara
+    useEffect(() => {
+        const refreshInterval = setInterval(() => {
+            fetchVehiclesData();
+        }, 30000); // Refresh every 30 seconds
+
+        return () => clearInterval(refreshInterval);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []); // Only set up interval once
 
     useEffect(() => {
         fetchVehiclesData();
@@ -164,8 +196,8 @@ const ProfessionalTruckTracker: React.FC = () => {
         // Leave previous vehicle updates
         socket.emit("leaveVehicle");
 
-        // Join new vehicle updates (use internalId if available, otherwise _id)
-        const vehicleId = vehicle.internalId || vehicle._id;
+        // Join new vehicle updates (use trackingKey if available, otherwise internalId or _id)
+        const vehicleId = vehicle.trackingKey || vehicle.internalId || vehicle._id;
         socket.emit("joinVehicle", vehicleId);
 
         // Listen for vehicle updates
@@ -324,7 +356,10 @@ const ProfessionalTruckTracker: React.FC = () => {
 
     // Update markers on map
     const updateMarkers = useCallback(() => {
-        if (!map || !window.google || !window.google.maps) return;
+        if (!map || !isLoaded || !window.google || !window.google.maps) {
+            console.warn('⚠️ Cannot update markers: Google Maps API not ready');
+            return;
+        }
 
         // Clear existing markers
         markers.forEach(marker => {
@@ -348,35 +383,125 @@ const ProfessionalTruckTracker: React.FC = () => {
 
             try {
                 let marker;
-                if (advancedMarkersEnabled && window.google?.maps?.marker?.AdvancedMarkerElement) {
-                    const markerElement = document.createElement('div');
-                    markerElement.style.width = '24px';
-                    markerElement.style.height = '24px';
-                    markerElement.style.borderRadius = '50%';
-                    markerElement.style.background = markerColor;
-                    markerElement.style.border = '3px solid white';
-                    markerElement.style.boxShadow = '0 2px 8px rgba(0,0,0,0.3)';
-                    markerElement.style.cursor = 'pointer';
+                
+                // Create truck icon SVG
+                const createTruckIcon = (color: string) => {
+                    // Create SVG for truck icon with status color
+                    const svg = `
+                        <svg width="40" height="40" viewBox="0 0 40 40" xmlns="http://www.w3.org/2000/svg">
+                            <circle cx="20" cy="20" r="18" fill="white" stroke="${color}" stroke-width="2"/>
+                            <g transform="translate(8, 10)">
+                                <!-- Truck body -->
+                                <rect x="2" y="6" width="16" height="8" fill="${color}" rx="1"/>
+                                <!-- Truck cabin -->
+                                <rect x="2" y="4" width="8" height="6" fill="${color}" rx="1"/>
+                                <!-- Truck window -->
+                                <rect x="3" y="5" width="6" height="3" fill="white" opacity="0.8"/>
+                                <!-- Wheels -->
+                                <circle cx="6" cy="16" r="2.5" fill="#333"/>
+                                <circle cx="14" cy="16" r="2.5" fill="#333"/>
+                            </g>
+                        </svg>
+                    `;
+                    return {
+                        url: 'data:image/svg+xml;charset=UTF-8,' + encodeURIComponent(svg),
+                        scaledSize: new window.google.maps.Size(40, 40),
+                        anchor: new window.google.maps.Point(20, 20)
+                    };
+                };
 
-                    marker = new window.google.maps.marker.AdvancedMarkerElement({
+                const googleMaps = window.google.maps;
+                const AdvancedMarkerElement = googleMaps?.marker?.AdvancedMarkerElement;
+                
+                if (advancedMarkersEnabled && AdvancedMarkerElement) {
+                    // Create custom truck icon element for AdvancedMarkerElement
+                    const markerElement = document.createElement('div');
+                    markerElement.style.width = '40px';
+                    markerElement.style.height = '40px';
+                    markerElement.style.position = 'relative';
+                    markerElement.style.cursor = 'pointer';
+                    
+                    // Create SVG truck icon
+                    const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+                    svg.setAttribute('width', '40');
+                    svg.setAttribute('height', '40');
+                    svg.setAttribute('viewBox', '0 0 40 40');
+                    
+                    // White circle background
+                    const circle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+                    circle.setAttribute('cx', '20');
+                    circle.setAttribute('cy', '20');
+                    circle.setAttribute('r', '18');
+                    circle.setAttribute('fill', 'white');
+                    circle.setAttribute('stroke', markerColor);
+                    circle.setAttribute('stroke-width', '2');
+                    svg.appendChild(circle);
+                    
+                    // Truck body group
+                    const truckGroup = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+                    truckGroup.setAttribute('transform', 'translate(8, 10)');
+                    
+                    // Truck body
+                    const body = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
+                    body.setAttribute('x', '2');
+                    body.setAttribute('y', '6');
+                    body.setAttribute('width', '16');
+                    body.setAttribute('height', '8');
+                    body.setAttribute('fill', markerColor);
+                    body.setAttribute('rx', '1');
+                    truckGroup.appendChild(body);
+                    
+                    // Truck cabin
+                    const cabin = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
+                    cabin.setAttribute('x', '2');
+                    cabin.setAttribute('y', '4');
+                    cabin.setAttribute('width', '8');
+                    cabin.setAttribute('height', '6');
+                    cabin.setAttribute('fill', markerColor);
+                    cabin.setAttribute('rx', '1');
+                    truckGroup.appendChild(cabin);
+                    
+                    // Truck window
+                    const windowRect = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
+                    windowRect.setAttribute('x', '3');
+                    windowRect.setAttribute('y', '5');
+                    windowRect.setAttribute('width', '6');
+                    windowRect.setAttribute('height', '3');
+                    windowRect.setAttribute('fill', 'white');
+                    windowRect.setAttribute('opacity', '0.8');
+                    truckGroup.appendChild(windowRect);
+                    
+                    // Wheels
+                    const wheel1 = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+                    wheel1.setAttribute('cx', '6');
+                    wheel1.setAttribute('cy', '16');
+                    wheel1.setAttribute('r', '2.5');
+                    wheel1.setAttribute('fill', '#333');
+                    truckGroup.appendChild(wheel1);
+                    
+                    const wheel2 = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+                    wheel2.setAttribute('cx', '14');
+                    wheel2.setAttribute('cy', '16');
+                    wheel2.setAttribute('r', '2.5');
+                    wheel2.setAttribute('fill', '#333');
+                    truckGroup.appendChild(wheel2);
+                    
+                    svg.appendChild(truckGroup);
+                    markerElement.appendChild(svg);
+
+                    marker = new AdvancedMarkerElement({
                         position: { lat, lng },
                         map,
                         title: `${vehicle.plateNumber} - ${vehicle.status}`,
                         content: markerElement
                     });
                 } else {
-                    marker = new window.google.maps.Marker({
+                    // Use custom truck icon for standard markers
+                    marker = new googleMaps.Marker({
                         position: { lat, lng },
                         map,
                         title: `${vehicle.plateNumber} - ${vehicle.status}`,
-                        icon: {
-                            path: window.google.maps.SymbolPath.CIRCLE,
-                            scale: 10,
-                            fillColor: markerColor,
-                            fillOpacity: 0.8,
-                            strokeColor: '#ffffff',
-                            strokeWeight: 2
-                        }
+                        icon: createTruckIcon(markerColor)
                     });
                 }
 
@@ -393,14 +518,14 @@ const ProfessionalTruckTracker: React.FC = () => {
 
         setMarkers(newMarkers);
         console.log('✅ Markers updated:', newMarkers.length);
-    }, [map, vehicles, advancedMarkersEnabled, handleVehicleClick]);
+    }, [map, vehicles, advancedMarkersEnabled, handleVehicleClick, isLoaded]);
 
     // Update markers when vehicles or map changes
     useEffect(() => {
-        if (map && vehicles.length > 0) {
+        if (map && vehicles.length > 0 && isLoaded && window.google && window.google.maps) {
             updateMarkers();
         }
-    }, [map, vehicles, updateMarkers]);
+    }, [map, vehicles, updateMarkers, isLoaded]);
 
     // Filter vehicles by search
     const filteredVehicles = vehicles.filter(vehicle => {

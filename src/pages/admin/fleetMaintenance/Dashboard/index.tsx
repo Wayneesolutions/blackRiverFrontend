@@ -17,7 +17,8 @@ import {
   type ComplianceDashboardResponse,
   type ComplianceSafetyAlert,
   type CompliancePmUnit,
-  type ComplianceDocument
+  type ComplianceDocument,
+  fetchComplianceDashboard
 } from '../../../../axios/api/complianceDashboard';
 
 const formatDate = (value?: string) => {
@@ -47,8 +48,35 @@ const ComplianceDashboard: React.FC = () => {
     return role === 'Fleet Maintenance Manager' ? '/fleetmaintenance' : '/admin/fleetmaintenance';
   };
 
-  // Static data initialization
+  // Fetch dashboard data from API
   useEffect(() => {
+    const fetchDashboardData = async () => {
+      setLoading(true);
+      setError(null);
+      setRequiresCompanySetup(false);
+      try {
+        const response = await fetchComplianceDashboard();
+        if (response?.success && response.data) {
+          setData(response.data);
+          if (response.requiresCompanySetup) {
+            setRequiresCompanySetup(true);
+          }
+        } else {
+          setError(response?.message || 'Failed to load dashboard data');
+        }
+      } catch (err: any) {
+        console.error('Error fetching dashboard data:', err);
+        setError(err?.response?.data?.message || 'An error occurred while loading dashboard data');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchDashboardData();
+  }, []);
+
+  // Static data initialization - REMOVED - Now using API
+  /* useEffect(() => {
     // Initialize with static data instead of API call
     const staticData: ComplianceDashboardResponse['data'] = {
       fleetOperational: {
@@ -355,7 +383,7 @@ const ComplianceDashboard: React.FC = () => {
 
     setData(staticData);
     setLoading(false);
-  }, []);
+  }, []); */
 
   const safetyAlerts = useMemo<ComplianceSafetyAlert[]>(() => data?.safetyAlerts || [], [data]);
   const pmStatus = useMemo<CompliancePmUnit[]>(() => data?.pmStatus || [], [data]);

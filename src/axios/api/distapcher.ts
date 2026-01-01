@@ -308,6 +308,60 @@ export const listVehicle = async (params?: { page?: number; limit?: number; sear
   }
 }
 
+export const getVehiclesWithTracking = async (params?: { page?: number; limit?: number; search?: string; type?: string; status?: string; operationStatus?: string; ownership?: string }) => {
+  try {
+    const queryParams = new URLSearchParams();
+    if (params?.page) queryParams.append('page', params.page.toString());
+    if (params?.limit) queryParams.append('limit', params.limit.toString());
+    if (params?.search) queryParams.append('search', params.search);
+    if (params?.type) queryParams.append('type', params.type);
+    if (params?.status) queryParams.append('status', params.status);
+    if (params?.operationStatus) queryParams.append('operationStatus', params.operationStatus);
+    if (params?.ownership) queryParams.append('ownership', params.ownership);
+    
+    const queryString = queryParams.toString();
+    const url = `dispatcher/vehicle/tracking${queryString ? `?${queryString}` : ''}`;
+    
+    const res: AxiosResponse = await apiClient.get(url);
+    return res.data;
+  } catch (error: any) {
+    console.error('❌ getVehiclesWithTracking API error:', error);
+    return error?.response?.data || { success: false, message: 'Failed to fetch vehicles with tracking', data: [] };
+  }
+}
+
+export const getTrailersWithTracking = async (params?: { page?: number; limit?: number; search?: string; type?: string; status?: string; operationStatus?: string; isAttached?: boolean }) => {
+  try {
+    const queryParams = new URLSearchParams();
+    if (params?.page) queryParams.append('page', params.page.toString());
+    if (params?.limit) queryParams.append('limit', params.limit.toString());
+    if (params?.search) queryParams.append('search', params.search);
+    if (params?.type) queryParams.append('type', params.type);
+    if (params?.status) queryParams.append('status', params.status);
+    if (params?.operationStatus) queryParams.append('operationStatus', params.operationStatus);
+    if (params?.isAttached !== undefined) queryParams.append('isAttached', params.isAttached.toString());
+    
+    const queryString = queryParams.toString();
+    const url = `dispatcher/trailer/tracking${queryString ? `?${queryString}` : ''}`;
+    
+    const res: AxiosResponse = await apiClient.get(url);
+    return res.data;
+  } catch (error: any) {
+    console.error('❌ getTrailersWithTracking API error:', error);
+    return error?.response?.data || { success: false, message: 'Failed to fetch trailers with tracking', data: [] };
+  }
+}
+
+export const getActiveOrdersWithTracking = async () => {
+  try {
+    const res: AxiosResponse = await apiClient.get('dispatcher/orders/tracking');
+    return res.data;
+  } catch (error: any) {
+    console.error('❌ getActiveOrdersWithTracking API error:', error);
+    return error?.response?.data || { success: false, message: 'Failed to fetch active orders with tracking', data: [] };
+  }
+}
+
 export const getGpsVehicleDashboardStats = async () => {
   try {
     const res: AxiosResponse = await apiClient.get(`admin/gps-vehicle/dashboard-stats`);
@@ -636,6 +690,16 @@ export const getTodayPickups = async () => {
   } catch (error) {
     console.error('❌ getTodayPickups API error:', error);
     return (error as Error).response?.data || { success: false, message: 'Failed to fetch today\'s pickups', data: [] };
+  }
+}
+
+export const getTomorrowPickups = async () => {
+  try {
+    const res: AxiosResponse = await apiClient.get(`dispatcher/pickups/tomorrow`);
+    return res.data;
+  } catch (error) {
+    console.error('❌ getTomorrowPickups API error:', error);
+    return (error as Error).response?.data || { success: false, message: 'Failed to fetch tomorrow\'s pickups', data: [] };
   }
 }
 

@@ -38,6 +38,9 @@ interface VehicleLocation {
   speed: number;
   engineOn: boolean;
   engineHours: number;
+  driver?: string;
+  orderNumber?: string;
+  tripNumber?: string;
 }
 
 const GpsSection = () => {
@@ -138,16 +141,20 @@ const GpsSection = () => {
   );
 
   // Calculate engine hours data for chart
-  const engineHoursData = vehicles.map((v: any) => ({
-    name: v.id,
-    hours: v.engineHours || 0
-  }));
+  const engineHoursData = vehicles
+    .filter((v: any) => v.engineHours && v.engineHours > 0) // Only show vehicles with engine hours data
+    .map((v: any) => ({
+      name: v.id || v.unitNo || v.unitNumber || 'Unknown',
+      hours: v.engineHours || 0
+    }))
+    .sort((a, b) => b.hours - a.hours) // Sort by hours descending
+    .slice(0, 10); // Limit to top 10 for readability
 
   // Calculate status distribution for pie chart
   const statusDistribution = {
-    moving: vehicles.filter((v: any) => v.status === 'moving').length,
-    idle: vehicles.filter((v: any) => v.status === 'idle').length,
-    offline: vehicles.filter((v: any) => v.status === 'offline').length
+    moving: vehicles.filter((v: any) => v.status === 'moving' || v.status === 'active').length,
+    idle: vehicles.filter((v: any) => v.status === 'idle' || v.status === 'stopped').length,
+    offline: vehicles.filter((v: any) => v.status === 'offline' || !v.status).length
   };
 
   const STATUS_DATA = [
@@ -315,8 +322,10 @@ const GpsSection = () => {
                                                         {v.driverPhone && (
                                                             <span className="text-xs text-gray-500">{v.driverPhone}</span>
                                                         )}
-                                                        {v.tripNumber && (
-                                                            <span className="text-xs text-gray-400 mt-1">Trip: {v.tripNumber}</span>
+                                                        {(v.orderNumber || v.tripNumber || v.customerOrderNo) && (
+                                                            <span className="text-xs text-gray-400 mt-1">
+                                                                Order: {v.orderNumber || v.customerOrderNo || v.tripNumber || 'N/A'}
+                                                            </span>
                                                         )}
                                                     </div>
                                                 )}
@@ -439,7 +448,7 @@ const GpsSection = () => {
                                             {vehicleLocations.length} vehicle{vehicleLocations.length !== 1 ? 's' : ''} tracked
                                         </p>
                                         <p className="text-xs text-gray-500">
-                                            Updating every 5 seconds from Geotab
+                                            Updating every 5 seconds from Samsara
                                         </p>
                                     </div>
 
@@ -459,8 +468,16 @@ const GpsSection = () => {
                                                             }}
                                                         />
                                                         <div className="flex-1 min-w-0">
-                                                            <p className="text-xs font-semibold text-gray-900 truncate">{vehicle.unitNo}</p>
+                                                            <p className="text-xs font-semibold text-gray-900 truncate">{vehicle.unitNo || vehicle.internalId || vehicle.licensePlate}</p>
                                                             <p className="text-xs text-gray-500 truncate">{vehicle.location.address || 'Location unknown'}</p>
+                                                            {vehicle.driver && (
+                                                                <p className="text-xs text-blue-600 truncate">Driver: {vehicle.driver}</p>
+                                                            )}
+                                                            {(vehicle.orderNumber || vehicle.tripNumber) && (
+                                                                <p className="text-xs text-purple-600 truncate">
+                                                                    Order: {vehicle.orderNumber || vehicle.tripNumber}
+                                                                </p>
+                                                            )}
                                                         </div>
                                                     </div>
                                                 ))}
@@ -510,20 +527,32 @@ const GpsSection = () => {
                                     <Wrench size={18} className="text-gray-400" />
                                     Engine Hours vs Thresholds
                                 </h3>
-                                <div className="h-64">
-                                    <ResponsiveContainer width="100%" height="100%">
-                                        <BarChart data={engineHoursData} layout="vertical">
-                                            <CartesianGrid strokeDasharray="3 3" horizontal={false} />
-                                            <XAxis type="number" stroke="#9ca3af" fontSize={12} />
-                                            <YAxis dataKey="name" type="category" stroke="#6b7280" fontSize={12} width={60} />
-                                            <Tooltip contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)' }} />
-                                            <Bar dataKey="hours" fill="#42aeec" radius={[0, 4, 4, 0]} barSize={20} />
-                                        </BarChart>
-                                    </ResponsiveContainer>
-                                </div>
-                                <div className="mt-4 text-xs text-center text-gray-500">
-                                    Vehicles approaching 15,000 engine hours require major service.
-                                </div>
+                                {engineHoursData.length > 0 ? (
+                                    <>
+                                        <div className="h-64">
+                                            <ResponsiveContainer width="100%" height="100%">
+                                                <BarChart data={engineHoursData} layout="vertical">
+                                                    <CartesianGrid strokeDasharray="3 3" horizontal={false} />
+                                                    <XAxis type="number" stroke="#9ca3af" fontSize={12} />
+                                                    <YAxis dataKey="name" type="category" stroke="#6b7280" fontSize={12} width={80} />
+                                                    <Tooltip contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)' }} />
+                                                    <Bar dataKey="hours" fill="#42aeec" radius={[0, 4, 4, 0]} barSize={20} />
+                                                </BarChart>
+                                            </ResponsiveContainer>
+                                        </div>
+                                        <div className="mt-4 text-xs text-center text-gray-500">
+                                            Vehicles approaching 15,000 engine hours require major service.
+                                        </div>
+                                    </>
+                                ) : (
+                                    <div className="h-64 flex items-center justify-center">
+                                        <div className="text-center">
+                                            <Wrench className="w-12 h-12 text-gray-300 mx-auto mb-2" />
+                                            <p className="text-gray-500 text-sm">No engine hours data available</p>
+                                            <p className="text-gray-400 text-xs mt-1">Engine hours will appear here once vehicles are tracked</p>
+                                        </div>
+                                    </div>
+                                )}
                             </div>
 
                             {/* Vehicle Status Distribution */}
@@ -532,35 +561,47 @@ const GpsSection = () => {
                                     <Activity size={18} className="text-gray-400" />
                                     Real-time Vehicle Status
                                 </h3>
-                                <div className="h-64 flex justify-center">
-                                    <ResponsiveContainer width="100%" height="100%">
-                                        <PieChart>
-                                            <Pie
-                                                data={STATUS_DATA}
-                                                cx="50%"
-                                                cy="50%"
-                                                innerRadius={60}
-                                                outerRadius={80}
-                                                paddingAngle={5}
-                                                dataKey="value"
-                                            >
-                                                {STATUS_DATA.map((entry: any, index: number) => (
-                                                    <Cell key={`cell-${index}`} fill={entry.color} />
-                                                ))}
-                                            </Pie>
-                                            <Tooltip />
-                                        </PieChart>
-                                    </ResponsiveContainer>
-                                </div>
-                                <div className="flex justify-center gap-6 mt-4">
-                                    {STATUS_DATA.map((item: any) => (
-                                        <div key={item.name} className="flex items-center gap-2">
-                                            <div className="w-3 h-3 rounded-full" style={{ backgroundColor: item.color }}></div>
-                                            <span className="text-sm text-gray-600">{item.name}</span>
-                                            <span className="text-sm font-bold text-gray-900">{item.value}</span>
+                                {vehicles.length > 0 ? (
+                                    <>
+                                        <div className="h-64 flex justify-center">
+                                            <ResponsiveContainer width="100%" height="100%">
+                                                <PieChart>
+                                                    <Pie
+                                                        data={STATUS_DATA}
+                                                        cx="50%"
+                                                        cy="50%"
+                                                        innerRadius={60}
+                                                        outerRadius={80}
+                                                        paddingAngle={5}
+                                                        dataKey="value"
+                                                    >
+                                                        {STATUS_DATA.map((entry: any, index: number) => (
+                                                            <Cell key={`cell-${index}`} fill={entry.color} />
+                                                        ))}
+                                                    </Pie>
+                                                    <Tooltip />
+                                                </PieChart>
+                                            </ResponsiveContainer>
                                         </div>
-                                    ))}
-                                </div>
+                                        <div className="flex justify-center gap-6 mt-4">
+                                            {STATUS_DATA.map((item: any) => (
+                                                <div key={item.name} className="flex items-center gap-2">
+                                                    <div className="w-3 h-3 rounded-full" style={{ backgroundColor: item.color }}></div>
+                                                    <span className="text-sm text-gray-600">{item.name}</span>
+                                                    <span className="text-sm font-bold text-gray-900">{item.value}</span>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    </>
+                                ) : (
+                                    <div className="h-64 flex items-center justify-center">
+                                        <div className="text-center">
+                                            <Activity className="w-12 h-12 text-gray-300 mx-auto mb-2" />
+                                            <p className="text-gray-500 text-sm">No vehicle data available</p>
+                                            <p className="text-gray-400 text-xs mt-1">Vehicle status will appear here once vehicles are tracked</p>
+                                        </div>
+                                    </div>
+                                )}
                             </div>
                         </div>
                     </div>

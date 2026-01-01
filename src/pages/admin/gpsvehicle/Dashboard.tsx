@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { Loader2, Calendar, TrendingUp, MapPin, Truck, User, Package } from "lucide-react";
-import { getGpsVehicleDashboardStats, getDispatcherDashboard } from "../../../axios/api/distapcher";
+import { getGpsVehicleDashboardStats, getDispatcherDashboard, getTodayDeliveries, getTomorrowPickups } from "../../../axios/api/distapcher";
 import { listFleetUnits } from "../../../axios/api/fleet.units";
 import { getUserRole } from "../../../utils/auth";
 
@@ -18,101 +18,89 @@ interface FleetUnit {
   status?: string;
 }
 
-// Static data for deliveries today
-const staticDeliveriesToday = [
-  {
-    id: "DEL001",
-    orderNumber: "ORD-001",
-    customerName: "ABC Logistics",
-    deliveryLocation: "Winnipeg, MB",
-    deliveryTime: "10:00 AM",
-    status: "scheduled",
-    driverName: "John Doe",
-    truckPlate: "ABC-123",
-    items: 12,
-  },
-  {
-    id: "DEL002",
-    orderNumber: "ORD-002",
-    customerName: "XYZ Transport",
-    deliveryLocation: "Calgary, AB",
-    deliveryTime: "2:00 PM",
-    status: "in transit",
-    driverName: "Jane Smith",
-    truckPlate: "DEF-456",
-    items: 8,
-  },
-  {
-    id: "DEL003",
-    orderNumber: "ORD-003",
-    customerName: "Global Shipping",
-    deliveryLocation: "Toronto, ON",
-    deliveryTime: "9:00 AM",
-    status: "scheduled",
-    driverName: "Bob Johnson",
-    truckPlate: "GHI-789",
-    items: 15,
-  },
-  {
-    id: "DEL004",
-    orderNumber: "ORD-004",
-    customerName: "Fast Delivery Co",
-    deliveryLocation: "Edmonton, AB",
-    deliveryTime: "1:30 PM",
-    status: "scheduled",
-    driverName: "Alice Williams",
-    truckPlate: "JKL-012",
-    items: 6,
-  },
-];
+interface Delivery {
+  id: string;
+  _id?: string;
+  orderNumber: string;
+  customerOrderNo?: string;
+  tripNo?: string;
+  customerName: string;
+  deliveryLocation: string;
+  deliveryDate?: string;
+  deliveryTime: string;
+  status: string;
+  driverName: string;
+  driver?: {
+    _id: string;
+    name?: string;
+    email?: string;
+    phone?: string;
+  } | null;
+  coDriver?: {
+    _id: string;
+    name?: string;
+    email?: string;
+    phone?: string;
+  } | null;
+  truckPlate: string;
+  truck?: {
+    _id: string;
+    licensePlate?: string;
+    internalId?: string;
+    unitNumber?: string;
+    make?: string;
+    model?: string;
+  } | null;
+  trailer?: {
+    _id: string;
+    licensePlate?: string;
+    trailerNumber?: string;
+    unitNumber?: string;
+  } | null;
+  items: number;
+}
 
-// Static data for pickups tomorrow
-const staticPickupsTomorrow = [
-  {
-    id: "PICK001",
-    orderNumber: "ORD-101",
-    customerName: "Premium Logistics",
-    pickupLocation: "Vancouver, BC",
-    pickupTime: "9:00 AM",
-    status: "scheduled",
-    driverName: "Mike Brown",
-    truckPlate: "MNO-345",
-    items: 20,
-  },
-  {
-    id: "PICK002",
-    orderNumber: "ORD-102",
-    customerName: "Express Transport",
-    pickupLocation: "Montreal, QC",
-    pickupTime: "1:00 PM",
-    status: "scheduled",
-    driverName: "Sarah Davis",
-    truckPlate: "PQR-678",
-    items: 10,
-  },
-  {
-    id: "PICK003",
-    orderNumber: "ORD-103",
-    customerName: "Swift Shipping",
-    pickupLocation: "Ottawa, ON",
-    pickupTime: "11:00 AM",
-    status: "scheduled",
-    driverName: "Tom Wilson",
-    truckPlate: "STU-901",
-    items: 14,
-  },
-  {
-    id: "PICK004",
-    orderNumber: "ORD-104",
-    customerName: "Reliable Freight",
-    pickupLocation: "Halifax, NS",
-    pickupTime: "3:00 PM",
-    status: "scheduled",
-    driverName: "Emma Taylor",
-    truckPlate: "VWX-234",
-    items: 7,
-  },
-];
+interface Pickup {
+  id: string;
+  _id?: string;
+  orderNumber: string;
+  customerOrderNo?: string;
+  tripNo?: string;
+  customerName: string;
+  pickupLocation: string;
+  pickupDate?: string;
+  pickupTime: string;
+  status: string;
+  driverName: string;
+  driver?: {
+    _id: string;
+    name?: string;
+    email?: string;
+    phone?: string;
+  } | null;
+  coDriver?: {
+    _id: string;
+    name?: string;
+    email?: string;
+    phone?: string;
+  } | null;
+  truckPlate: string;
+  truck?: {
+    _id: string;
+    licensePlate?: string;
+    internalId?: string;
+    unitNumber?: string;
+    make?: string;
+    model?: string;
+  } | null;
+  trailer?: {
+    _id: string;
+    licensePlate?: string;
+    trailerNumber?: string;
+    unitNumber?: string;
+  } | null;
+  items: number;
+}
 
 const Dashboard = () => {
   const userRole = getUserRole();
@@ -122,8 +110,10 @@ const Dashboard = () => {
   const [, setFleetUnits] = useState<FleetUnit[]>([]);
   const [, setFleetLoading] = useState(false);
   const [, setFleetError] = useState<string | null>(null);
-  const [deliveriesToday, setDeliveriesToday] = useState(0);
-  const [pickupsToday, setPickupsToday] = useState(0);
+  const [deliveriesToday, setDeliveriesToday] = useState<Delivery[]>([]);
+  const [pickupsTomorrow, setPickupsTomorrow] = useState<Pickup[]>([]);
+  const [deliveriesLoading, setDeliveriesLoading] = useState(false);
+  const [pickupsLoading, setPickupsLoading] = useState(false);
 
   const scrollToDeliveries = () => {
     const element = document.getElementById('deliveries-today-table');
@@ -143,18 +133,12 @@ const Dashboard = () => {
     const fetchDashboardData = async () => {
       try {
         setLoading(true);
-        const [gpsRes, dispatcherRes] = await Promise.all([
-          getGpsVehicleDashboardStats(),
-          getDispatcherDashboard()
+        const [gpsRes] = await Promise.all([
+          getGpsVehicleDashboardStats()
         ]);
         
         if (gpsRes.success) {
           setDashboardData(gpsRes.data);
-        }
-        
-        if (dispatcherRes.success && dispatcherRes.data) {
-          setDeliveriesToday(dispatcherRes.data.todayTrips ?? 0);
-          setPickupsToday(dispatcherRes.data.todayTrips ?? 0);
         }
       } catch (error) {
         console.error("Error fetching dashboard data:", error);
@@ -164,6 +148,35 @@ const Dashboard = () => {
     };
 
     fetchDashboardData();
+  }, []);
+
+  useEffect(() => {
+    const fetchDeliveriesAndPickups = async () => {
+      try {
+        setDeliveriesLoading(true);
+        setPickupsLoading(true);
+
+        const [deliveriesRes, pickupsRes] = await Promise.all([
+          getTodayDeliveries(),
+          getTomorrowPickups()
+        ]);
+
+        if (deliveriesRes.success && deliveriesRes.data) {
+          setDeliveriesToday(deliveriesRes.data || []);
+        }
+
+        if (pickupsRes.success && pickupsRes.data) {
+          setPickupsTomorrow(pickupsRes.data || []);
+        }
+      } catch (error) {
+        console.error("Error fetching deliveries and pickups:", error);
+      } finally {
+        setDeliveriesLoading(false);
+        setPickupsLoading(false);
+      }
+    };
+
+    fetchDeliveriesAndPickups();
   }, []);
 
   useEffect(() => {
@@ -266,7 +279,7 @@ const Dashboard = () => {
                 <div className="flex-1">
                   <h3 className="text-sm font-bold text-gray-900 mb-1">Deliveries Today</h3>
                   <div className="flex items-baseline gap-2 mb-0.5">
-                    <span className="text-xl font-bold text-gray-900">{deliveriesToday}</span>
+                    <span className="text-xl font-bold text-gray-900">{deliveriesToday.length}</span>
                   </div>
                   <p className="text-xs text-gray-400">Scheduled for today</p>
                 </div>
@@ -285,9 +298,9 @@ const Dashboard = () => {
                 <div className="flex-1">
                   <h3 className="text-sm font-bold text-gray-900 mb-1">Pickups Today</h3>
                   <div className="flex items-baseline gap-2 mb-0.5">
-                    <span className="text-xl font-bold text-gray-900">{pickupsToday}</span>
+                    <span className="text-xl font-bold text-gray-900">{pickupsTomorrow.length}</span>
                   </div>
-                  <p className="text-xs text-gray-400">Scheduled for today</p>
+                  <p className="text-xs text-gray-400">Scheduled for tomorrow</p>
                 </div>
                 <div className="bg-yellow-50 rounded-lg p-2 shadow-sm">
                   <TrendingUp className="text-yellow-600" size={21} strokeWidth={2} />
@@ -333,45 +346,66 @@ const Dashboard = () => {
                   </tr>
                 </thead>
                 <tbody className="bg-white divide-y divide-gray-200">
-                  {staticDeliveriesToday.length === 0 ? (
+                  {deliveriesLoading ? (
+                    <tr>
+                      <td colSpan={8} className="px-4 py-8 text-center">
+                        <Loader2 className="w-5 h-5 animate-spin text-blue-500 mx-auto" />
+                      </td>
+                    </tr>
+                  ) : deliveriesToday.length === 0 ? (
                     <tr>
                       <td colSpan={8} className="px-4 py-8 text-center text-gray-500">
                         No deliveries scheduled for today
                       </td>
                     </tr>
                   ) : (
-                    staticDeliveriesToday.map((delivery) => (
-                      <tr key={delivery.id} className="hover:bg-gray-50 transition-colors">
-                        <td className="px-4 py-3 whitespace-nowrap">
-                          <div className="text-sm font-medium text-gray-900">{delivery.orderNumber}</div>
-                          <div className="text-xs text-gray-500">ID: {delivery.id}</div>
+                    deliveriesToday.map((delivery) => (
+                      <tr key={delivery.id || delivery._id} className="hover:bg-gray-50 transition-colors">
+                        <td className="px-4 py-3">
+                          <div className="text-sm font-medium text-gray-900">{delivery.orderNumber || 'N/A'}</div>
+                          {delivery.customerOrderNo && (
+                            <div className="text-xs text-gray-500">Cust: {delivery.customerOrderNo}</div>
+                          )}
+                          {delivery.tripNo && (
+                            <div className="text-xs text-blue-600">Trip: {delivery.tripNo}</div>
+                          )}
                         </td>
                         <td className="px-4 py-3 whitespace-nowrap">
-                          <div className="text-sm text-gray-900">{delivery.customerName}</div>
+                          <div className="text-sm text-gray-900">{delivery.customerName || 'N/A'}</div>
                         </td>
                         <td className="px-4 py-3">
                           <div className="flex items-center text-sm text-gray-900">
-                            <MapPin className="w-4 h-4 mr-1 text-gray-400" />
-                            {delivery.deliveryLocation}
+                            <MapPin className="w-4 h-4 mr-1 text-gray-400 flex-shrink-0" />
+                            <span className="truncate max-w-xs">{delivery.deliveryLocation || 'Location not specified'}</span>
                           </div>
                         </td>
                         <td className="px-4 py-3 whitespace-nowrap">
-                          <div className="text-sm text-gray-900">{delivery.deliveryTime}</div>
+                          <div className="text-sm text-gray-900">{delivery.deliveryTime || 'Not specified'}</div>
                         </td>
-                        <td className="px-4 py-3 whitespace-nowrap">
+                        <td className="px-4 py-3">
                           <div className="flex items-center text-sm text-gray-900">
-                            <User className="w-4 h-4 mr-1 text-gray-400" />
-                            {delivery.driverName}
+                            <User className="w-4 h-4 mr-1 text-gray-400 flex-shrink-0" />
+                            <div>
+                              <div>{delivery.driverName || 'Not assigned'}</div>
+                              {delivery.coDriver?.name && (
+                                <div className="text-xs text-gray-500">Co: {delivery.coDriver.name}</div>
+                              )}
+                            </div>
                           </div>
                         </td>
-                        <td className="px-4 py-3 whitespace-nowrap">
+                        <td className="px-4 py-3">
                           <div className="flex items-center text-sm text-gray-900">
-                            <Truck className="w-4 h-4 mr-1 text-gray-400" />
-                            {delivery.truckPlate}
+                            <Truck className="w-4 h-4 mr-1 text-gray-400 flex-shrink-0" />
+                            <div>
+                              <div>{delivery.truckPlate || 'Not assigned'}</div>
+                              {delivery.trailer?.licensePlate && (
+                                <div className="text-xs text-gray-500">Trailer: {delivery.trailer.licensePlate}</div>
+                              )}
+                            </div>
                           </div>
                         </td>
                         <td className="px-4 py-3 whitespace-nowrap">
-                          <div className="text-sm text-gray-900">{delivery.items}</div>
+                          <div className="text-sm text-gray-900">{delivery.items || 0}</div>
                         </td>
                         <td className="px-4 py-3 whitespace-nowrap">
                           {getStatusBadge(delivery.status)}
@@ -421,45 +455,66 @@ const Dashboard = () => {
                   </tr>
                 </thead>
                 <tbody className="bg-white divide-y divide-gray-200">
-                  {staticPickupsTomorrow.length === 0 ? (
+                  {pickupsLoading ? (
+                    <tr>
+                      <td colSpan={8} className="px-4 py-8 text-center">
+                        <Loader2 className="w-5 h-5 animate-spin text-blue-500 mx-auto" />
+                      </td>
+                    </tr>
+                  ) : pickupsTomorrow.length === 0 ? (
                     <tr>
                       <td colSpan={8} className="px-4 py-8 text-center text-gray-500">
                         No pickups scheduled for tomorrow
                       </td>
                     </tr>
                   ) : (
-                    staticPickupsTomorrow.map((pickup) => (
-                      <tr key={pickup.id} className="hover:bg-gray-50 transition-colors">
-                        <td className="px-4 py-3 whitespace-nowrap">
-                          <div className="text-sm font-medium text-gray-900">{pickup.orderNumber}</div>
-                          <div className="text-xs text-gray-500">ID: {pickup.id}</div>
+                    pickupsTomorrow.map((pickup) => (
+                      <tr key={pickup.id || pickup._id} className="hover:bg-gray-50 transition-colors">
+                        <td className="px-4 py-3">
+                          <div className="text-sm font-medium text-gray-900">{pickup.orderNumber || 'N/A'}</div>
+                          {pickup.customerOrderNo && (
+                            <div className="text-xs text-gray-500">Cust: {pickup.customerOrderNo}</div>
+                          )}
+                          {pickup.tripNo && (
+                            <div className="text-xs text-blue-600">Trip: {pickup.tripNo}</div>
+                          )}
                         </td>
                         <td className="px-4 py-3 whitespace-nowrap">
-                          <div className="text-sm text-gray-900">{pickup.customerName}</div>
+                          <div className="text-sm text-gray-900">{pickup.customerName || 'N/A'}</div>
                         </td>
                         <td className="px-4 py-3">
                           <div className="flex items-center text-sm text-gray-900">
-                            <MapPin className="w-4 h-4 mr-1 text-gray-400" />
-                            {pickup.pickupLocation}
+                            <MapPin className="w-4 h-4 mr-1 text-gray-400 flex-shrink-0" />
+                            <span className="truncate max-w-xs">{pickup.pickupLocation || 'Location not specified'}</span>
                           </div>
                         </td>
                         <td className="px-4 py-3 whitespace-nowrap">
-                          <div className="text-sm text-gray-900">{pickup.pickupTime}</div>
+                          <div className="text-sm text-gray-900">{pickup.pickupTime || 'Not specified'}</div>
                         </td>
-                        <td className="px-4 py-3 whitespace-nowrap">
+                        <td className="px-4 py-3">
                           <div className="flex items-center text-sm text-gray-900">
-                            <User className="w-4 h-4 mr-1 text-gray-400" />
-                            {pickup.driverName}
+                            <User className="w-4 h-4 mr-1 text-gray-400 flex-shrink-0" />
+                            <div>
+                              <div>{pickup.driverName || 'Not assigned'}</div>
+                              {pickup.coDriver?.name && (
+                                <div className="text-xs text-gray-500">Co: {pickup.coDriver.name}</div>
+                              )}
+                            </div>
                           </div>
                         </td>
-                        <td className="px-4 py-3 whitespace-nowrap">
+                        <td className="px-4 py-3">
                           <div className="flex items-center text-sm text-gray-900">
-                            <Truck className="w-4 h-4 mr-1 text-gray-400" />
-                            {pickup.truckPlate}
+                            <Truck className="w-4 h-4 mr-1 text-gray-400 flex-shrink-0" />
+                            <div>
+                              <div>{pickup.truckPlate || 'Not assigned'}</div>
+                              {pickup.trailer?.licensePlate && (
+                                <div className="text-xs text-gray-500">Trailer: {pickup.trailer.licensePlate}</div>
+                              )}
+                            </div>
                           </div>
                         </td>
                         <td className="px-4 py-3 whitespace-nowrap">
-                          <div className="text-sm text-gray-900">{pickup.items}</div>
+                          <div className="text-sm text-gray-900">{pickup.items || 0}</div>
                         </td>
                         <td className="px-4 py-3 whitespace-nowrap">
                           {getStatusBadge(pickup.status)}

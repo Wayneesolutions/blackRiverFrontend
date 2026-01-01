@@ -29,6 +29,28 @@ interface SortHeaderProps {
     className?: string;
 }
 
+interface Vehicle {
+    _id?: string;
+    internalId?: string;
+    plateNumber?: string;
+    make?: string;
+    model?: string;
+    year?: string | number;
+    status?: string;
+    currentLocation?: {
+        address?: string;
+        longitude?: string;
+        latitude?: string;
+    };
+    speed?: number;
+    fuelLevel?: number;
+    odometer?: number;
+    engineOn?: boolean;
+    trackingKey?: string;
+    type?: string;
+    ownership?: string;
+}
+
 interface Driver {
     _id: string;
     name: string;
@@ -42,30 +64,86 @@ interface Driver {
         latitude?: string;
     };
     details?: {
-        vehicle?: {
-            _id: string;
-            plateNumber: string;
-            make: string;
-            model: string;
-            internalId: string;
-            status: string;
-            currentLocation?: {
-                address?: string;
-                longitude?: string;
-                latitude?: string;
-            };
-            speed?: number;
-            fuelLevel?: number;
-        };
+        vehicle?: Vehicle;
         licenceNumber?: string;
         employeeCode?: string;
     };
+    vehicle?: Vehicle | null;
     joinDate: Date;
     profileImageUrl?: string;
     avatar?: string;
     country?: string;
     milesToday?: number;
     avgSpeed?: number;
+    // Additional Driver fields
+    mobile?: string;
+    gender?: string;
+    citizenship?: string;
+    wsib?: string;
+    wsibAccountNo?: string;
+    fastCard?: string;
+    fastCardExpiry?: string | Date;
+    medicalTracking?: string;
+    csa?: string;
+    employmentDetails?: string;
+    notes?: string;
+    driversLicence?: string;
+    passport?: string;
+    passportCountry?: string;
+    passportExpiry?: string | Date;
+    dateOfBirth?: string | Date;
+    ticketYTD?: number;
+    employeeCode?: string;
+    incorporation?: string;
+    postalCode?: string;
+    fleet?: string;
+    cell2?: string;
+    extension?: string;
+    fax?: string;
+    expiryDate?: string | Date;
+    gstNo?: string;
+    companyFlag?: boolean;
+    hireDate?: string | Date;
+    termDate?: string | Date;
+    // Payment and rate fields
+    defaultChargeName?: string;
+    defaultCurrency?: string;
+    chargesAppliedOn?: string;
+    defaultMode?: string;
+    defaultAmount?: number;
+    defaultRemarks?: string;
+    defaultPayrollType?: string;
+    paymentCurrency?: string;
+    paymentMethod?: string;
+    account?: string;
+    mileRate?: number;
+    mileRateTeam?: number;
+    emptyMileRate?: number;
+    emptyMileRateTeam?: number;
+    hourlyRate?: number;
+    weightRate?: number;
+    percentageRate?: number;
+    salaryPerMile?: number;
+    salaryPerMileSnow?: number;
+    salaryPerMileHighTemp?: number;
+    highTempThreshold?: number;
+    // Tax information
+    localTaxNo?: string;
+    federalTaxNo?: string;
+    sinNo?: string;
+    craAccountNo?: string;
+    fedTaxExempt?: boolean;
+    provTaxExempt?: boolean;
+    cppQppExempt?: boolean;
+    eiExempt?: boolean;
+    qpipExempt?: boolean;
+    // Payroll settings
+    payPeriod?: string;
+    vacationPay?: string;
+    ltl?: boolean;
+    onSettlements?: boolean;
+    settlementCurrencyByOrder?: boolean;
+    isDefault?: boolean;
 }
 
 
@@ -104,16 +182,86 @@ const DriverList = () => {
                         status: d.status || 'inactive',
                         location: d.location || {},
                         details: {
-                            vehicle: d.details?.vehicle || null,
-                            licenceNumber: d.details?.licenceNumber || 'N/A',
-                            employeeCode: d.details?.employeeCode || 'N/A'
+                            vehicle: d.details?.vehicle || d.vehicle || null,
+                            licenceNumber: d.details?.licenceNumber || d.driversLicence || 'N/A',
+                            employeeCode: d.details?.employeeCode || d.employeeCode || 'N/A'
                         },
+                        vehicle: d.vehicle || d.details?.vehicle || null,
                         joinDate: d.joinDate ? new Date(d.joinDate) : new Date(),
                         profileImageUrl: d.profileImageUrl || d.avatar,
                         avatar: d.avatar || d.profileImageUrl,
                         country: d.country || 'N/A',
                         milesToday: Number(d.milesToday ?? d.stats?.milesToday ?? 0),
                         avgSpeed: Number(d.avgSpeed ?? d.stats?.avgSpeed ?? 0),
+                        // Additional fields
+                        mobile: d.mobile,
+                        gender: d.gender,
+                        citizenship: d.citizenship,
+                        wsib: d.wsib,
+                        wsibAccountNo: d.wsibAccountNo,
+                        fastCard: d.fastCard,
+                        fastCardExpiry: d.fastCardExpiry,
+                        medicalTracking: d.medicalTracking,
+                        csa: d.csa,
+                        employmentDetails: d.employmentDetails,
+                        notes: d.notes,
+                        driversLicence: d.driversLicence,
+                        passport: d.passport,
+                        passportCountry: d.passportCountry,
+                        passportExpiry: d.passportExpiry,
+                        dateOfBirth: d.dateOfBirth,
+                        ticketYTD: d.ticketYTD || 0,
+                        employeeCode: d.employeeCode,
+                        incorporation: d.incorporation,
+                        postalCode: d.postalCode,
+                        fleet: d.fleet,
+                        cell2: d.cell2,
+                        extension: d.extension,
+                        fax: d.fax,
+                        expiryDate: d.expiryDate,
+                        gstNo: d.gstNo,
+                        companyFlag: d.companyFlag,
+                        hireDate: d.hireDate,
+                        termDate: d.termDate,
+                        // Payment fields
+                        defaultChargeName: d.defaultChargeName,
+                        defaultCurrency: d.defaultCurrency,
+                        chargesAppliedOn: d.chargesAppliedOn,
+                        defaultMode: d.defaultMode,
+                        defaultAmount: d.defaultAmount,
+                        defaultRemarks: d.defaultRemarks,
+                        defaultPayrollType: d.defaultPayrollType,
+                        paymentCurrency: d.paymentCurrency,
+                        paymentMethod: d.paymentMethod,
+                        account: d.account,
+                        mileRate: d.mileRate,
+                        mileRateTeam: d.mileRateTeam,
+                        emptyMileRate: d.emptyMileRate,
+                        emptyMileRateTeam: d.emptyMileRateTeam,
+                        hourlyRate: d.hourlyRate,
+                        weightRate: d.weightRate,
+                        percentageRate: d.percentageRate,
+                        salaryPerMile: d.salaryPerMile,
+                        salaryPerMileSnow: d.salaryPerMileSnow,
+                        salaryPerMileHighTemp: d.salaryPerMileHighTemp,
+                        highTempThreshold: d.highTempThreshold,
+                        // Tax fields
+                        localTaxNo: d.localTaxNo,
+                        federalTaxNo: d.federalTaxNo,
+                        sinNo: d.sinNo,
+                        craAccountNo: d.craAccountNo,
+                        fedTaxExempt: d.fedTaxExempt,
+                        provTaxExempt: d.provTaxExempt,
+                        cppQppExempt: d.cppQppExempt,
+                        eiExempt: d.eiExempt,
+                        qpipExempt: d.qpipExempt,
+                        // Payroll fields
+                        payPeriod: d.payPeriod,
+                        vacationPay: d.vacationPay,
+                        ltl: d.ltl,
+                        onSettlements: d.onSettlements,
+                        settlementCurrencyByOrder: d.settlementCurrencyByOrder,
+                        isDefault: d.isDefault,
                     }));
                     setDrivers(formattedDrivers);
                 } else {
@@ -595,12 +743,19 @@ const DriverList = () => {
                                                             src={driver.avatar || driver.profileImageUrl}
                                                             alt={driver.name}
                                                             className="w-10 h-10 rounded-full mr-3 object-cover border border-slate-200"
+                                                            onError={(e) => {
+                                                                // Handle broken image URLs
+                                                                e.currentTarget.style.display = 'none';
+                                                                const fallback = e.currentTarget.nextElementSibling as HTMLElement;
+                                                                if (fallback) fallback.style.display = 'flex';
+                                                            }}
                                                         />
-                                                    ) : (
-                                                        <div className="w-10 h-10 rounded-full mr-3 bg-blue-100 flex items-center justify-center border border-blue-200">
-                                                            <User className="w-5 h-5 text-blue-600" />
-                                                        </div>
-                                                    )}
+                                                    ) : null}
+                                                    <div 
+                                                        className={`w-10 h-10 rounded-full mr-3 bg-blue-100 flex items-center justify-center border border-blue-200 ${driver.avatar || driver.profileImageUrl ? 'hidden' : ''}`}
+                                                    >
+                                                        <User className="w-5 h-5 text-blue-600" />
+                                                    </div>
                                                     <div>
                                                         <div className="text-sm font-medium text-slate-900">
                                                             {driver.name}
@@ -634,11 +789,11 @@ const DriverList = () => {
                                                         {driver.location?.address || 'Location not available'}
                                                     </div>
                                                 </div>
-                                                {driver.details?.vehicle && (
+                                                {(driver.details?.vehicle || driver.vehicle) && (
                                                     <div className="flex items-center space-x-1 mt-2 ml-6">
                                                         <Truck className="w-3 h-3 text-blue-500" />
                                                         <span className="text-xs text-blue-600 font-medium">
-                                                            {driver.details.vehicle.plateNumber}
+                                                            {(driver.vehicle || driver.details?.vehicle)?.plateNumber || 'N/A'}
                                                         </span>
                                                     </div>
                                                 )}
@@ -772,12 +927,18 @@ const DriverList = () => {
                                                     src={selectedDriver.avatar || selectedDriver.profileImageUrl}
                                                     alt={selectedDriver.name}
                                                     className="w-12 h-12 rounded-lg object-cover border border-slate-200"
+                                                    onError={(e) => {
+                                                        e.currentTarget.style.display = 'none';
+                                                        const fallback = e.currentTarget.nextElementSibling as HTMLElement;
+                                                        if (fallback) fallback.style.display = 'flex';
+                                                    }}
                                                 />
-                                            ) : (
-                                                <div className="w-12 h-12 rounded-lg bg-blue-100 flex items-center justify-center border border-blue-200">
-                                                    <User className="w-6 h-6 text-blue-600" />
-                                                </div>
-                                            )}
+                                            ) : null}
+                                            <div 
+                                                className={`w-12 h-12 rounded-lg bg-blue-100 flex items-center justify-center border border-blue-200 ${selectedDriver.avatar || selectedDriver.profileImageUrl ? 'hidden' : ''}`}
+                                            >
+                                                <User className="w-6 h-6 text-blue-600" />
+                                            </div>
                                             <div>
                                                 <h2 className="text-xl font-bold text-slate-900">
                                                     {selectedDriver.name}
@@ -880,48 +1041,89 @@ const DriverList = () => {
                                         </div>
 
                                         {/* Vehicle Information */}
-                                        {selectedDriver.details?.vehicle ? (
+                                        {(selectedDriver.details?.vehicle || selectedDriver.vehicle) ? (
                                             <div className="bg-white border border-slate-200 rounded-lg p-6">
                                                 <h3 className="text-lg font-semibold text-slate-900 mb-4 flex items-center">
                                                     <Truck className="w-5 h-5 mr-2 text-orange-600" />
                                                     Assigned Vehicle
                                                 </h3>
-                                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                                    <div>
-                                                        <label className="text-sm font-medium text-slate-600">Plate Number</label>
-                                                        <p className="text-sm text-slate-900 font-medium">{selectedDriver.details.vehicle.plateNumber}</p>
-                                                    </div>
-                                                    <div>
-                                                        <label className="text-sm font-medium text-slate-600">Vehicle ID</label>
-                                                        <p className="text-sm text-slate-900 font-medium">{selectedDriver.details.vehicle.internalId}</p>
-                                                    </div>
-                                                    <div>
-                                                        <label className="text-sm font-medium text-slate-600">Make & Model</label>
-                                                        <p className="text-sm text-slate-900 font-medium">{selectedDriver.details.vehicle.make} {selectedDriver.details.vehicle.model}</p>
-                                                    </div>
-                                                    <div>
-                                                        <label className="text-sm font-medium text-slate-600">Vehicle Status</label>
-                                                        <p className="text-sm text-slate-900 font-medium capitalize">{selectedDriver.details.vehicle.status || 'N/A'}</p>
-                                                    </div>
-                                                    {selectedDriver.details.vehicle.currentLocation?.address && (
-                                                        <div className="md:col-span-2">
-                                                            <label className="text-sm font-medium text-slate-600">Vehicle Location</label>
-                                                            <p className="text-sm text-slate-900">{selectedDriver.details.vehicle.currentLocation.address}</p>
+                                                {(() => {
+                                                    const vehicle = selectedDriver.vehicle || selectedDriver.details?.vehicle;
+                                                    return (
+                                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                                            <div>
+                                                                <label className="text-sm font-medium text-slate-600">Plate Number</label>
+                                                                <p className="text-sm text-slate-900 font-medium">{vehicle?.plateNumber || 'N/A'}</p>
+                                                            </div>
+                                                            <div>
+                                                                <label className="text-sm font-medium text-slate-600">Vehicle ID</label>
+                                                                <p className="text-sm text-slate-900 font-medium">{vehicle?.internalId || 'N/A'}</p>
+                                                            </div>
+                                                            <div>
+                                                                <label className="text-sm font-medium text-slate-600">Make & Model</label>
+                                                                <p className="text-sm text-slate-900 font-medium">{vehicle?.make || ''} {vehicle?.model || ''}</p>
+                                                            </div>
+                                                            {vehicle?.year && (
+                                                                <div>
+                                                                    <label className="text-sm font-medium text-slate-600">Year</label>
+                                                                    <p className="text-sm text-slate-900 font-medium">{vehicle.year}</p>
+                                                                </div>
+                                                            )}
+                                                            <div>
+                                                                <label className="text-sm font-medium text-slate-600">Vehicle Status</label>
+                                                                <p className="text-sm text-slate-900 font-medium capitalize">{vehicle?.status || 'N/A'}</p>
+                                                            </div>
+                                                            {vehicle?.type && (
+                                                                <div>
+                                                                    <label className="text-sm font-medium text-slate-600">Type</label>
+                                                                    <p className="text-sm text-slate-900 font-medium">{vehicle.type}</p>
+                                                                </div>
+                                                            )}
+                                                            {vehicle?.ownership && (
+                                                                <div>
+                                                                    <label className="text-sm font-medium text-slate-600">Ownership</label>
+                                                                    <p className="text-sm text-slate-900 font-medium">{vehicle.ownership}</p>
+                                                                </div>
+                                                            )}
+                                                            {vehicle?.currentLocation?.address && (
+                                                                <div className="md:col-span-2">
+                                                                    <label className="text-sm font-medium text-slate-600">Vehicle Location</label>
+                                                                    <p className="text-sm text-slate-900">{vehicle.currentLocation.address}</p>
+                                                                </div>
+                                                            )}
+                                                            {vehicle?.speed !== undefined && (
+                                                                <div>
+                                                                    <label className="text-sm font-medium text-slate-600">Speed</label>
+                                                                    <p className="text-sm text-slate-900 font-medium">{vehicle.speed} km/h</p>
+                                                                </div>
+                                                            )}
+                                                            {vehicle?.fuelLevel !== undefined && (
+                                                                <div>
+                                                                    <label className="text-sm font-medium text-slate-600">Fuel Level</label>
+                                                                    <p className="text-sm text-slate-900 font-medium">{vehicle.fuelLevel}%</p>
+                                                                </div>
+                                                            )}
+                                                            {vehicle?.odometer !== undefined && (
+                                                                <div>
+                                                                    <label className="text-sm font-medium text-slate-600">Odometer</label>
+                                                                    <p className="text-sm text-slate-900 font-medium">{vehicle.odometer.toLocaleString()} km</p>
+                                                                </div>
+                                                            )}
+                                                            {vehicle?.engineOn !== undefined && (
+                                                                <div>
+                                                                    <label className="text-sm font-medium text-slate-600">Engine Status</label>
+                                                                    <p className="text-sm text-slate-900 font-medium">{vehicle.engineOn ? 'On' : 'Off'}</p>
+                                                                </div>
+                                                            )}
+                                                            {vehicle?.trackingKey && (
+                                                                <div className="md:col-span-2">
+                                                                    <label className="text-sm font-medium text-slate-600">Tracking Key</label>
+                                                                    <p className="text-sm text-slate-900 font-mono">{vehicle.trackingKey}</p>
+                                                                </div>
+                                                            )}
                                                         </div>
-                                                    )}
-                                                    {selectedDriver.details.vehicle.speed !== undefined && (
-                                                        <div>
-                                                            <label className="text-sm font-medium text-slate-600">Speed</label>
-                                                            <p className="text-sm text-slate-900 font-medium">{selectedDriver.details.vehicle.speed} km/h</p>
-                                                        </div>
-                                                    )}
-                                                    {selectedDriver.details.vehicle.fuelLevel !== undefined && (
-                                                        <div>
-                                                            <label className="text-sm font-medium text-slate-600">Fuel Level</label>
-                                                            <p className="text-sm text-slate-900 font-medium">{selectedDriver.details.vehicle.fuelLevel}%</p>
-                                                        </div>
-                                                    )}
-                                                </div>
+                                                    );
+                                                })()}
                                             </div>
                                         ) : (
                                             <div className="bg-white border border-slate-200 rounded-lg p-6">
@@ -980,12 +1182,18 @@ const DriverList = () => {
                                                         className="h-20 w-20 rounded-full object-cover border-4 border-white"
                                                         src={selectedDriver.avatar || selectedDriver.profileImageUrl}
                                                         alt={selectedDriver.name}
+                                                        onError={(e) => {
+                                                            e.currentTarget.style.display = 'none';
+                                                            const fallback = e.currentTarget.nextElementSibling as HTMLElement;
+                                                            if (fallback) fallback.style.display = 'flex';
+                                                        }}
                                                     />
-                                                ) : (
-                                                    <div className="h-20 w-20 rounded-full flex items-center justify-center text-white font-bold text-2xl border-4 border-white bg-gradient-to-br from-blue-500 to-purple-600">
-                                                        {selectedDriver.name?.charAt(0) || '?'}
-                                                    </div>
-                                                )}
+                                                ) : null}
+                                                <div 
+                                                    className={`h-20 w-20 rounded-full flex items-center justify-center text-white font-bold text-2xl border-4 border-white bg-gradient-to-br from-blue-500 to-purple-600 ${selectedDriver.avatar || selectedDriver.profileImageUrl ? 'hidden' : ''}`}
+                                                >
+                                                    {selectedDriver.name?.charAt(0) || '?'}
+                                                </div>
                                             </div>
                                             <div className="flex-1">
                                                 <h3 className="text-2xl font-bold mb-1">{selectedDriver.name}</h3>
@@ -1082,28 +1290,79 @@ const DriverList = () => {
                                     )}
 
                                     {/* Vehicle Information */}
-                                    {selectedDriver.details?.vehicle && (
+                                    {(selectedDriver.details?.vehicle || selectedDriver.vehicle) && (
                                         <div className="bg-gray-50 p-6 rounded-lg border border-gray-200">
                                             <h4 className="font-semibold text-gray-900 mb-4 text-lg flex items-center gap-2">
                                                 <Truck size={20} className="text-blue-600" />
                                                 Assigned Vehicle
                                             </h4>
-                                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                                <div>
-                                                    <p className="text-sm text-gray-500 mb-1">Plate Number</p>
-                                                    <p className="font-medium text-gray-900">{selectedDriver.details.vehicle.plateNumber}</p>
-                                                </div>
-                                                <div>
-                                                    <p className="text-sm text-gray-500 mb-1">Make / Model</p>
-                                                    <p className="font-medium text-gray-900">{selectedDriver.details.vehicle.make} {selectedDriver.details.vehicle.model}</p>
-                                                </div>
-                                                {selectedDriver.details.vehicle.currentLocation?.address && (
-                                                    <div className="md:col-span-2">
-                                                        <p className="text-sm text-gray-500 mb-1">Vehicle Location</p>
-                                                        <p className="font-medium text-gray-900">{selectedDriver.details.vehicle.currentLocation.address}</p>
+                                            {(() => {
+                                                const vehicle = selectedDriver.vehicle || selectedDriver.details?.vehicle;
+                                                return (
+                                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                                        <div>
+                                                            <p className="text-sm text-gray-500 mb-1">Plate Number</p>
+                                                            <p className="font-medium text-gray-900">{vehicle?.plateNumber || 'N/A'}</p>
+                                                        </div>
+                                                        <div>
+                                                            <p className="text-sm text-gray-500 mb-1">Vehicle ID</p>
+                                                            <p className="font-medium text-gray-900">{vehicle?.internalId || 'N/A'}</p>
+                                                        </div>
+                                                        <div>
+                                                            <p className="text-sm text-gray-500 mb-1">Make / Model</p>
+                                                            <p className="font-medium text-gray-900">{vehicle?.make || ''} {vehicle?.model || ''}</p>
+                                                        </div>
+                                                        {vehicle?.year && (
+                                                            <div>
+                                                                <p className="text-sm text-gray-500 mb-1">Year</p>
+                                                                <p className="font-medium text-gray-900">{vehicle.year}</p>
+                                                            </div>
+                                                        )}
+                                                        {vehicle?.type && (
+                                                            <div>
+                                                                <p className="text-sm text-gray-500 mb-1">Type</p>
+                                                                <p className="font-medium text-gray-900">{vehicle.type}</p>
+                                                            </div>
+                                                        )}
+                                                        {vehicle?.ownership && (
+                                                            <div>
+                                                                <p className="text-sm text-gray-500 mb-1">Ownership</p>
+                                                                <p className="font-medium text-gray-900">{vehicle.ownership}</p>
+                                                            </div>
+                                                        )}
+                                                        {vehicle?.currentLocation?.address && (
+                                                            <div className="md:col-span-2">
+                                                                <p className="text-sm text-gray-500 mb-1">Vehicle Location</p>
+                                                                <p className="font-medium text-gray-900">{vehicle.currentLocation.address}</p>
+                                                            </div>
+                                                        )}
+                                                        {vehicle?.speed !== undefined && (
+                                                            <div>
+                                                                <p className="text-sm text-gray-500 mb-1">Speed</p>
+                                                                <p className="font-medium text-gray-900">{vehicle.speed} km/h</p>
+                                                            </div>
+                                                        )}
+                                                        {vehicle?.fuelLevel !== undefined && (
+                                                            <div>
+                                                                <p className="text-sm text-gray-500 mb-1">Fuel Level</p>
+                                                                <p className="font-medium text-gray-900">{vehicle.fuelLevel}%</p>
+                                                            </div>
+                                                        )}
+                                                        {vehicle?.odometer !== undefined && (
+                                                            <div>
+                                                                <p className="text-sm text-gray-500 mb-1">Odometer</p>
+                                                                <p className="font-medium text-gray-900">{vehicle.odometer.toLocaleString()} km</p>
+                                                            </div>
+                                                        )}
+                                                        {vehicle?.engineOn !== undefined && (
+                                                            <div>
+                                                                <p className="text-sm text-gray-500 mb-1">Engine Status</p>
+                                                                <p className="font-medium text-gray-900">{vehicle.engineOn ? 'On' : 'Off'}</p>
+                                                            </div>
+                                                        )}
                                                     </div>
-                                                )}
-                                            </div>
+                                                );
+                                            })()}
                                         </div>
                                     )}
 
