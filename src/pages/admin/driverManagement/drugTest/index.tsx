@@ -252,7 +252,7 @@ const DrugTest = () => {
     });
 
     return (
-        <div className="min-h-screen bg-gray-50 p-6">
+        <div className="min-h-screen bg-[#EDF8FF] p-6">
             {/* Notifications */}
             <div className="fixed top-4 right-4 z-50 space-y-2">
                 {notifications.map(notification => (

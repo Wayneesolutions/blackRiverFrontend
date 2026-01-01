@@ -20,11 +20,6 @@ export const FleetMaintainSidebarlinks: FleetMaintainSidebarlinks[] = [
     },
 
     {
-        key: "/admin/fleetmaintenance/fleet-units",
-        icon: <FaTruck />,
-        label: "Fleets",
-    },
-    {
         key: "/admin/fleetmaintenance/trucks",
         icon: <FaTruck />,
         label: "Trucks",
