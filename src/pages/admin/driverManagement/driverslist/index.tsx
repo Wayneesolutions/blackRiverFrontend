@@ -4,6 +4,8 @@ import { FLEET_COLORS } from '../../fleetMaintenance/colorUtils';
 import * as driverApi from '../../../../axios/api/driver';
 import { getDocumentsByEmployee, createEmployeeDocument, getSignedEmployeeDocumentUrl } from '../../../../axios/api/employeeDocument';
 import type { EmployeeDocument } from '../../../../axios/api/employeeDocument';
+import { createViolation } from '../../../../axios/api/violations';
+import { createDeductionAddition } from '../../../../axios/api/account.settlement';
 
 // US States
 const US_STATES = [
@@ -288,6 +290,99 @@ const DriverManagement = () => {
     travelData: typeof travelData;
   } | null>(null);
 
+  // Country data for phone inputs
+  interface Country {
+    name: string;
+    code: string;
+    flag: string;
+    dialCode: string;
+  }
+
+  const [countries, setCountries] = useState<Country[]>([]);
+  const [primaryPhoneCountry, setPrimaryPhoneCountry] = useState<string>('US');
+  const [secondaryPhoneCountry, setSecondaryPhoneCountry] = useState<string>('US');
+  const [primaryCountryDropdownOpen, setPrimaryCountryDropdownOpen] = useState(false);
+  const [secondaryCountryDropdownOpen, setSecondaryCountryDropdownOpen] = useState(false);
+  const [primaryCountrySearch, setPrimaryCountrySearch] = useState('');
+  const [secondaryCountrySearch, setSecondaryCountrySearch] = useState('');
+  const primaryCountryDropdownRef = useRef<HTMLDivElement>(null);
+  const secondaryCountryDropdownRef = useRef<HTMLDivElement>(null);
+
+  // Helper function to parse phone number and extract country code
+  const parsePhoneNumber = (phone: string | undefined | null, countriesList: Country[] = countries): { countryCode: string; phoneNumber: string } => {
+    if (!phone) return { countryCode: 'US', phoneNumber: '' };
+    
+    // Remove any whitespace
+    const cleanPhone = phone.trim();
+    
+    // Try to match country code (try longer codes first to avoid partial matches)
+    const sortedCountries = [...countriesList].sort((a, b) => b.dialCode.length - a.dialCode.length);
+    for (const country of sortedCountries) {
+      if (cleanPhone.startsWith(country.dialCode)) {
+        return {
+          countryCode: country.code,
+          phoneNumber: cleanPhone.substring(country.dialCode.length).trim()
+        };
+      }
+    }
+    
+    // Default to US if no match found
+    return { countryCode: 'US', phoneNumber: cleanPhone.replace(/^\+1/, '').trim() };
+  };
+
+  // Fetch countries data
+  useEffect(() => {
+    fetch('https://restcountries.com/v3.1/all?fields=name,flag,idd,cca2')
+      .then(res => res.json())
+      .then(data => {
+        const sortedCountries = data
+          .filter((c: any) => c.idd && c.idd.root)
+          .map((c: any) => ({
+            name: c.name.common,
+            code: c.cca2,
+            flag: c.flag,
+            dialCode: c.idd.root + (c.idd.suffixes ? c.idd.suffixes[0] : ''),
+          }))
+          .sort((a: Country, b: Country) => a.name.localeCompare(b.name));
+
+        setCountries(sortedCountries);
+        const defaultCountry = sortedCountries.find((c: Country) => c.code === 'US');
+        if (defaultCountry) {
+          setPrimaryPhoneCountry('US');
+          setSecondaryPhoneCountry('US');
+        }
+      })
+      .catch(() => {
+        const fallback = [
+          { name: 'United States', code: 'US', flag: '🇺🇸', dialCode: '+1' },
+          { name: 'Canada', code: 'CA', flag: '🇨🇦', dialCode: '+1' },
+          { name: 'India', code: 'IN', flag: '🇮🇳', dialCode: '+91' },
+          { name: 'United Kingdom', code: 'GB', flag: '🇬🇧', dialCode: '+44' },
+          { name: 'Australia', code: 'AU', flag: '🇦🇺', dialCode: '+61' },
+        ];
+        setCountries(fallback);
+        setPrimaryPhoneCountry('US');
+        setSecondaryPhoneCountry('US');
+      });
+  }, []);
+
+  // Close dropdowns when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (primaryCountryDropdownRef.current && !primaryCountryDropdownRef.current.contains(event.target as Node)) {
+        setPrimaryCountryDropdownOpen(false);
+      }
+      if (secondaryCountryDropdownRef.current && !secondaryCountryDropdownRef.current.contains(event.target as Node)) {
+        setSecondaryCountryDropdownOpen(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, []);
+
   // Form state for Basic Information
   const [formData, setFormData] = useState({
     driverId: '',
@@ -298,8 +393,8 @@ const DriverManagement = () => {
     dateOfBirth: '',
     mobileApp: false,
     pin: '',
-    primaryPhone: '+1',
-    secondaryPhone: '+1',
+    primaryPhone: '',
+    secondaryPhone: '',
     searchAddress: '',
     address: '',
     unit: '',
@@ -612,8 +707,17 @@ const DriverManagement = () => {
               dateOfBirth: dateOfBirthFormatted,
               mobileApp: driver.mobileApp || false,
               pin: '',
-              primaryPhone: driver.phone || '+1',
-              secondaryPhone: driver.details?.cell1 || driver.details?.cell2 || driver.mobile || '+1',
+              primaryPhone: (() => {
+                const parsed = parsePhoneNumber(driver.phone, countries);
+                setPrimaryPhoneCountry(parsed.countryCode);
+                return parsed.phoneNumber;
+              })(),
+              secondaryPhone: (() => {
+                const secondary = driver.details?.cell1 || driver.details?.cell2 || driver.mobile;
+                const parsed = parsePhoneNumber(secondary, countries);
+                setSecondaryPhoneCountry(parsed.countryCode);
+                return parsed.phoneNumber;
+              })(),
               searchAddress: '',
               address: driver.location?.address || driver.address || '',
               unit: driver.location?.unit || driver.unit || '',
@@ -721,6 +825,11 @@ const DriverManagement = () => {
 
             // Store original data for comparison (after state updates)
             setTimeout(() => {
+              // Parse phone numbers for original data (same as formData)
+              const originalPrimaryParsed = parsePhoneNumber(driver.phone, countries);
+              const originalSecondary = driver.details?.cell1 || driver.details?.cell2 || driver.mobile;
+              const originalSecondaryParsed = parsePhoneNumber(originalSecondary, countries);
+              
               // Store original data snapshot
               setOriginalDriverData({
                 formData: {
@@ -732,8 +841,8 @@ const DriverManagement = () => {
                   dateOfBirth: dateOfBirthFormatted,
                   mobileApp: driver.mobileApp || false,
                   pin: '',
-                  primaryPhone: driver.phone || '+1',
-                  secondaryPhone: driver.details?.cell1 || driver.details?.cell2 || driver.mobile || '+1',
+                  primaryPhone: originalPrimaryParsed.phoneNumber,
+                  secondaryPhone: originalSecondaryParsed.phoneNumber,
                   searchAddress: '',
                   address: driver.location?.address || driver.address || '',
                   unit: driver.location?.unit || driver.unit || '',
@@ -825,8 +934,8 @@ const DriverManagement = () => {
           dateOfBirth: '',
           mobileApp: false,
           pin: '',
-          primaryPhone: '+1',
-          secondaryPhone: '+1',
+          primaryPhone: '',
+          secondaryPhone: '',
           searchAddress: '',
           address: '',
           unit: '',
@@ -1083,6 +1192,161 @@ const DriverManagement = () => {
     return mapping[tab] || 'Other';
   };
 
+  // Helper function to create certifications for a driver
+  const createDriverCertifications = async (driverId: string, certificationsToCreate: typeof certifications) => {
+    if (!certificationsToCreate || certificationsToCreate.length === 0) {
+      return;
+    }
+
+    const createPromises = certificationsToCreate.map(async (cert) => {
+      try {
+        // Note: If there's a specific certification API, use it here
+        // For now, certifications might be stored in driver details or need a separate endpoint
+        // This is a placeholder - adjust based on your backend API
+        console.log('📜 Certification to create:', cert);
+        // TODO: Implement certification creation API call when available
+        return { success: true, cert };
+      } catch (error: any) {
+        console.error('❌ Error creating certification:', error);
+        return { success: false, cert, error: error.message };
+      }
+    });
+
+    const results = await Promise.all(createPromises);
+    const failed = results.filter(r => !r.success);
+    
+    if (failed.length > 0) {
+      console.warn('⚠️ Some certifications failed to create:', failed);
+    }
+    
+    return results;
+  };
+
+  // Helper function to create violations for a driver
+  const createDriverViolations = async (driverId: string, violationsToCreate: typeof violations) => {
+    if (!violationsToCreate || violationsToCreate.length === 0) {
+      return;
+    }
+
+    const createPromises = violationsToCreate.map(async (viol) => {
+      try {
+        const violationData = {
+          driver: driverId,
+          paymentDueDate: viol.paymentDueDate || '',
+          ticket: viol.ticket || '',
+          // Note: File upload for violations might need separate handling
+        };
+        
+        const violResponse = await createViolation(violationData);
+        if (violResponse?.success) {
+          console.log('✅ Violation created successfully:', viol.ticket);
+          return { success: true, viol };
+        } else {
+          console.error('❌ Failed to create violation:', violResponse?.message);
+          return { success: false, viol, error: violResponse?.message };
+        }
+      } catch (error: any) {
+        console.error('❌ Error creating violation:', error);
+        return { success: false, viol, error: error.message };
+      }
+    });
+
+    const results = await Promise.all(createPromises);
+    const failed = results.filter(r => !r.success);
+    
+    if (failed.length > 0) {
+      console.warn('⚠️ Some violations failed to create:', failed);
+    }
+    
+    return results;
+  };
+
+  // Helper function to create deductions for a driver
+  const createDriverDeductions = async (driverId: string, deductionsToCreate: typeof deductions) => {
+    if (!deductionsToCreate || deductionsToCreate.length === 0) {
+      return;
+    }
+
+    const createPromises = deductionsToCreate.map(async (ded) => {
+      try {
+        const deductionData = {
+          name: ded.description || 'Deduction',
+          type: 'Deduction',
+          recurrence: ded.interval || 'One-time',
+          amount: ded.amount || '0',
+          assignedTo: driverId,
+          startDate: ded.startDate || '',
+          description: ded.description || '',
+          isActive: true
+        };
+        
+        const dedResponse = await createDeductionAddition(deductionData);
+        if (dedResponse?.success) {
+          console.log('✅ Deduction created successfully:', ded.description);
+          return { success: true, ded };
+        } else {
+          console.error('❌ Failed to create deduction:', dedResponse?.message);
+          return { success: false, ded, error: dedResponse?.message };
+        }
+      } catch (error: any) {
+        console.error('❌ Error creating deduction:', error);
+        return { success: false, ded, error: error.message };
+      }
+    });
+
+    const results = await Promise.all(createPromises);
+    const failed = results.filter(r => !r.success);
+    
+    if (failed.length > 0) {
+      console.warn('⚠️ Some deductions failed to create:', failed);
+    }
+    
+    return results;
+  };
+
+  // Helper function to create additions for a driver
+  const createDriverAdditions = async (driverId: string, additionsToCreate: typeof additions) => {
+    if (!additionsToCreate || additionsToCreate.length === 0) {
+      return;
+    }
+
+    const createPromises = additionsToCreate.map(async (add) => {
+      try {
+        const additionData = {
+          name: add.description || 'Addition',
+          type: 'Addition',
+          recurrence: add.interval || 'One-time',
+          amount: add.amount || '0',
+          assignedTo: driverId,
+          startDate: add.startDate || '',
+          description: add.description || '',
+          isActive: true
+        };
+        
+        const addResponse = await createDeductionAddition(additionData);
+        if (addResponse?.success) {
+          console.log('✅ Addition created successfully:', add.description);
+          return { success: true, add };
+        } else {
+          console.error('❌ Failed to create addition:', addResponse?.message);
+          return { success: false, add, error: addResponse?.message };
+        }
+      } catch (error: any) {
+        console.error('❌ Error creating addition:', error);
+        return { success: false, add, error: error.message };
+      }
+    });
+
+    const results = await Promise.all(createPromises);
+    const failed = results.filter(r => !r.success);
+    
+    if (failed.length > 0) {
+      console.warn('⚠️ Some additions failed to create:', failed);
+    }
+    
+    return results;
+  };
+
   // Helper function to upload documents for a driver
   const uploadDriverDocuments = async (driverId: string, documentsToUpload: typeof documents) => {
     if (!documentsToUpload || documentsToUpload.length === 0) {
@@ -1144,15 +1408,41 @@ const DriverManagement = () => {
       // Create FormData
       const driverFormData = new FormData();
       
-      // Basic Information
+      // Basic Information - always include these fields
       driverFormData.append('name', `${formData.firstName} ${formData.middle ? formData.middle + ' ' : ''}${formData.lastName}`.trim());
-      driverFormData.append('email', formData.emailAddress);
-      driverFormData.append('phone', formData.primaryPhone);
-      driverFormData.append('country', formData.country);
-      driverFormData.append('internalId', formData.driverId);
+      if (formData.emailAddress) driverFormData.append('email', formData.emailAddress);
+      
+      // Primary Phone - include country code prefix
+      if (formData.primaryPhone) {
+        const primaryCountry = countries.find(c => c.code === primaryPhoneCountry);
+        if (primaryCountry) {
+          // Remove + from dial code for comparison
+          const dialCodeWithoutPlus = primaryCountry.dialCode.replace('+', '');
+          // Check if phone already starts with the dial code
+          let phoneNumber = formData.primaryPhone;
+          if (phoneNumber.startsWith(dialCodeWithoutPlus)) {
+            // Phone already includes dial code, just add + prefix
+            driverFormData.append('phone', `+${phoneNumber}`);
+          } else {
+            // Phone doesn't include dial code, add it
+            driverFormData.append('phone', `${primaryCountry.dialCode}${phoneNumber}`);
+          }
+        } else {
+          // Fallback if country not found
+          driverFormData.append('phone', formData.primaryPhone.startsWith('+') ? formData.primaryPhone : `+${formData.primaryPhone}`);
+        }
+      }
+      
+      if (formData.country) driverFormData.append('country', formData.country);
+      if (formData.driverId) driverFormData.append('internalId', formData.driverId);
       driverFormData.append('password', formData.pin || 'TempPassword123!'); // Default password if not provided
       driverFormData.append('role', 'driver');
-      driverFormData.append('status', 'active');
+      // Use status from personalData if available, otherwise default to 'active'
+      const statusValue = personalData.status ? personalData.status.toLowerCase() : 'active';
+      driverFormData.append('status', statusValue);
+      
+      // Mobile App Access - always send (true/false)
+      driverFormData.append('mobileApp', String(formData.mobileApp));
       
       // Date of Birth
       if (formData.dateOfBirth) {
@@ -1161,6 +1451,7 @@ const DriverManagement = () => {
       
       // Address Information
       if (formData.address) driverFormData.append('address', formData.address);
+      if (formData.unit) driverFormData.append('unit', formData.unit);
       if (formData.city) driverFormData.append('city', formData.city);
       if (formData.stateProvince) driverFormData.append('state', formData.stateProvince);
       if (formData.postalCode) driverFormData.append('postalCode', formData.postalCode);
@@ -1171,22 +1462,170 @@ const DriverManagement = () => {
       if (personalData.gender) driverFormData.append('gender', personalData.gender);
       if (personalData.citizenship) driverFormData.append('citizenship', personalData.citizenship);
       
-      // Mobile/Secondary Phone
-      if (formData.secondaryPhone && formData.secondaryPhone !== '+1') {
-        driverFormData.append('mobile', formData.secondaryPhone);
+      // Employment Details - combine multiple fields into remark/employmentDetails
+      // The backend stores this in details.remark field
+      const employmentDetailsParts = [];
+      if (personalData.corporationName) employmentDetailsParts.push(`Corporation: ${personalData.corporationName}`);
+      if (personalData.driverName) employmentDetailsParts.push(`Driver Name: ${personalData.driverName}`);
+      if (personalData.paymentAddress) employmentDetailsParts.push(`Payment Address: ${personalData.paymentAddress}`);
+      if (personalData.gstNo) employmentDetailsParts.push(`GST No: ${personalData.gstNo}`);
+      if (personalData.vacationPercent) employmentDetailsParts.push(`Vacation Percent: ${personalData.vacationPercent}`);
+      if (employmentDetailsParts.length > 0) {
+        driverFormData.append('employmentDetails', employmentDetailsParts.join('; '));
       }
       
-      // Travel Information
+      // Payment/Salary Information
+      // Note: Backend currently accepts salaryPerMile, salaryPerMileSnow, salaryPerMileHighTemp, highTempThreshold
+      // For paymentMethod 'PAID PER MILE', use 'alone' field as salaryPerMile
+      if (personalData.paymentMethod === 'PAID PER MILE' && personalData.alone && personalData.alone !== '0') {
+        driverFormData.append('salaryPerMile', personalData.alone);
+      }
+      // Note: Other payment fields (empty, bonusDrop, team, emptyTeam, bonusPick, bonusLayover, 
+      // percentRate, perTripAmount, hourlyRate, dailyRate) may need backend updates to be fully supported
+      
+      // Mobile/Secondary Phone - include country code prefix
+      if (formData.secondaryPhone) {
+        const secondaryCountry = countries.find(c => c.code === secondaryPhoneCountry);
+        if (secondaryCountry) {
+          // Remove + from dial code for comparison
+          const dialCodeWithoutPlus = secondaryCountry.dialCode.replace('+', '');
+          let phoneNumber = formData.secondaryPhone;
+          
+          // If phone starts with the dial code, use it as is (just add + prefix)
+          // Otherwise, prepend the dial code
+          if (phoneNumber.startsWith(dialCodeWithoutPlus)) {
+            driverFormData.append('mobile', `+${phoneNumber}`);
+          } else {
+            // Phone doesn't start with dial code, prepend it
+            driverFormData.append('mobile', `${secondaryCountry.dialCode}${phoneNumber}`);
+          }
+        } else {
+          // Fallback if country not found - add + if not present
+          const phoneValue = formData.secondaryPhone.startsWith('+') ? formData.secondaryPhone : `+${formData.secondaryPhone}`;
+          driverFormData.append('mobile', phoneValue);
+        }
+      }
+      
+      // Travel Information - Drivers License
       if (travelData.driversLicenseNumber) driverFormData.append('licenceNumber', travelData.driversLicenseNumber);
+      // Note: createDriver doesn't accept licenceExpiry, licenceState, but we'll send them for consistency
+      if (travelData.driversLicenseExpiry) driverFormData.append('licenceExpiry', travelData.driversLicenseExpiry);
+      if (travelData.licenseStateProvince) driverFormData.append('licenceState', travelData.licenseStateProvince);
+      
+      // Travel Information - Passport
       if (travelData.passportNumber) driverFormData.append('passport', travelData.passportNumber);
       if (travelData.passportCountry) driverFormData.append('passportCountry', travelData.passportCountry);
+      // Note: createDriver doesn't accept passportExpiry, but we'll send it for consistency
+      if (travelData.passportExpiry) driverFormData.append('passportExpiry', travelData.passportExpiry);
+      
+      // Travel Information - Fast Card
+      if (travelData.fastCardNumber) driverFormData.append('fastCard', travelData.fastCardNumber);
+      // Note: createDriver doesn't accept fastCardExpiry, fastCardValid, but we'll send them for consistency
+      if (travelData.fastCardExpiry) driverFormData.append('fastCardExpiry', travelData.fastCardExpiry);
+      if (travelData.fastCardValid !== undefined && travelData.fastCardValid !== null) {
+        driverFormData.append('fastCardValid', String(travelData.fastCardValid));
+      }
+      
+      // Travel Information - Canadian Worker Status
+      // Note: createDriver doesn't accept these fields, but we'll send them for consistency
+      if (travelData.canadianWorkerStatus) driverFormData.append('canadianWorkerStatus', travelData.canadianWorkerStatus);
+      if (travelData.permanentResidenceExpiry) driverFormData.append('permanentResidenceExpiry', travelData.permanentResidenceExpiry);
+      if (travelData.workPermitExpiry) driverFormData.append('workPermitExpiry', travelData.workPermitExpiry);
+      if (travelData.wcbNumber) driverFormData.append('wsibAccountNo', travelData.wcbNumber);
+      
+      // Notes - send as JSON array for table data
+      if (notes && notes.length > 0) {
+        const notesData = notes.map(n => ({
+          id: n.id,
+          note: n.note,
+          category: n.category
+        }));
+        driverFormData.append('notes', JSON.stringify(notesData));
+        // Also keep the combined text version for backward compatibility
+        const notesText = notes.map(n => `[${n.category}] ${n.note}`).join('\n');
+        driverFormData.append('notesText', notesText);
+      }
+      
+      // Documents - send as JSON array (file data will be uploaded separately)
+      if (documents && documents.length > 0) {
+        const documentsData = documents.map(doc => ({
+          id: doc.id,
+          expiryDate: doc.expiryDate || '',
+          description: doc.description || '',
+          ignoreExpiration: doc.ignoreExpiration || false,
+          documentType: getDocumentTypeFromTab(documentsTab),
+          hasFile: !!doc.file,
+          documentId: doc.documentId || ''
+        }));
+        driverFormData.append('documents', JSON.stringify(documentsData));
+      }
+      
+      // Certifications - send as JSON array
+      if (certifications && certifications.length > 0) {
+        const certificationsData = certifications.map(cert => ({
+          id: cert.id,
+          expiryDate: cert.expiryDate || '',
+          title: cert.title || '',
+          subCategory: cert.subCategory || '',
+          result: cert.result || '',
+          ignoreExpiration: cert.ignoreExpiration || false
+        }));
+        driverFormData.append('certifications', JSON.stringify(certificationsData));
+      }
+      
+      // Violations - send as JSON array
+      if (violations && violations.length > 0) {
+        const violationsData = violations.map(viol => ({
+          id: viol.id,
+          paymentDueDate: viol.paymentDueDate || '',
+          ticket: viol.ticket || '',
+          hasFile: !!viol.file
+        }));
+        driverFormData.append('violations', JSON.stringify(violationsData));
+      }
+      
+      // Deductions - send as JSON array
+      if (deductions && deductions.length > 0) {
+        const deductionsData = deductions.map(ded => ({
+          id: ded.id,
+          startDate: ded.startDate || '',
+          description: ded.description || '',
+          amount: ded.amount || '0',
+          interval: ded.interval || '',
+          currency: ded.currency || 'CAD'
+        }));
+        driverFormData.append('deductions', JSON.stringify(deductionsData));
+      }
+      
+      // Additions - send as JSON array
+      if (additions && additions.length > 0) {
+        const additionsData = additions.map(add => ({
+          id: add.id,
+          startDate: add.startDate || '',
+          description: add.description || '',
+          amount: add.amount || '0',
+          interval: add.interval || '',
+          currency: add.currency || 'CAD'
+        }));
+        driverFormData.append('additions', JSON.stringify(additionsData));
+      }
       
       // Profile Image - backend expects 'file' field name
       if (formData.profileImage) {
         driverFormData.append('file', formData.profileImage);
       }
 
+      // Debug: Log all FormData entries
       console.log('📤 Creating driver with data...');
+      console.log('📋 FormData entries:');
+      for (const [key, value] of driverFormData.entries()) {
+        if (value instanceof File) {
+          console.log(`  ${key}: [File] ${value.name} (${value.size} bytes)`);
+        } else {
+          console.log(`  ${key}: ${value}`);
+        }
+      }
+
       const response = await driverApi.createDriver(driverFormData);
       
       if (response?.success && response?.data?._id) {
@@ -1197,6 +1636,30 @@ const DriverManagement = () => {
         if (documents && documents.length > 0) {
           console.log('📄 Uploading documents for driver...');
           await uploadDriverDocuments(driverId, documents);
+        }
+        
+        // Create certifications if any
+        if (certifications && certifications.length > 0) {
+          console.log('📜 Creating certifications for driver...');
+          await createDriverCertifications(driverId, certifications);
+        }
+        
+        // Create violations if any
+        if (violations && violations.length > 0) {
+          console.log('⚠️ Creating violations for driver...');
+          await createDriverViolations(driverId, violations);
+        }
+        
+        // Create deductions if any
+        if (deductions && deductions.length > 0) {
+          console.log('💰 Creating deductions for driver...');
+          await createDriverDeductions(driverId, deductions);
+        }
+        
+        // Create additions if any
+        if (additions && additions.length > 0) {
+          console.log('➕ Creating additions for driver...');
+          await createDriverAdditions(driverId, additions);
         }
         
         alert('Driver created successfully!');
@@ -1211,8 +1674,8 @@ const DriverManagement = () => {
           dateOfBirth: '',
           mobileApp: false,
           pin: '',
-          primaryPhone: '+1',
-          secondaryPhone: '+1',
+          primaryPhone: '',
+          secondaryPhone: '',
           searchAddress: '',
           address: '',
           unit: '',
@@ -1362,7 +1825,25 @@ const DriverManagement = () => {
       }
       
       if (hasValueChanged(formData.primaryPhone, original.formData.primaryPhone)) {
-        driverFormData.append('phone', formData.primaryPhone);
+        const primaryCountry = countries.find(c => c.code === primaryPhoneCountry);
+        if (primaryCountry) {
+          // Remove + from dial code for comparison
+          const dialCodeWithoutPlus = primaryCountry.dialCode.replace('+', '');
+          let phoneNumber = formData.primaryPhone;
+          
+          // If phone starts with the dial code, use it as is (just add + prefix)
+          // Otherwise, prepend the dial code
+          if (phoneNumber.startsWith(dialCodeWithoutPlus)) {
+            driverFormData.append('phone', `+${phoneNumber}`);
+          } else {
+            // Phone doesn't start with dial code, prepend it
+            driverFormData.append('phone', `${primaryCountry.dialCode}${phoneNumber}`);
+          }
+        } else {
+          // Fallback if country not found - add + if not present
+          const phoneValue = formData.primaryPhone.startsWith('+') ? formData.primaryPhone : `+${formData.primaryPhone}`;
+          driverFormData.append('phone', phoneValue);
+        }
       }
       
       if (hasValueChanged(formData.country, original.formData.country)) {
@@ -1420,10 +1901,26 @@ const DriverManagement = () => {
       }
       
       // Mobile/Secondary Phone
-      const currentMobile = formData.secondaryPhone && formData.secondaryPhone !== '+1' ? formData.secondaryPhone : '';
-      const originalMobile = original.formData.secondaryPhone && original.formData.secondaryPhone !== '+1' ? original.formData.secondaryPhone : '';
-      if (hasValueChanged(currentMobile, originalMobile)) {
-        driverFormData.append('mobile', currentMobile);
+      if (hasValueChanged(formData.secondaryPhone, original.formData.secondaryPhone)) {
+        const secondaryCountry = countries.find(c => c.code === secondaryPhoneCountry);
+        if (secondaryCountry) {
+          // Remove + from dial code for comparison
+          const dialCodeWithoutPlus = secondaryCountry.dialCode.replace('+', '');
+          let phoneNumber = formData.secondaryPhone;
+          
+          // If phone starts with the dial code, use it as is (just add + prefix)
+          // Otherwise, prepend the dial code
+          if (phoneNumber.startsWith(dialCodeWithoutPlus)) {
+            driverFormData.append('mobile', `+${phoneNumber}`);
+          } else {
+            // Phone doesn't start with dial code, prepend it
+            driverFormData.append('mobile', `${secondaryCountry.dialCode}${phoneNumber}`);
+          }
+        } else {
+          // Fallback if country not found - add + if not present
+          const phoneValue = formData.secondaryPhone.startsWith('+') ? formData.secondaryPhone : `+${formData.secondaryPhone}`;
+          driverFormData.append('mobile', phoneValue);
+        }
       }
       
       // Travel Information - Drivers License
@@ -2223,33 +2720,195 @@ const DriverManagement = () => {
                         <label className="block text-xs font-medium text-gray-700 mb-0.5">
                           Primary Phone #<span className="text-red-500">*</span>
                         </label>
-                        <div className="relative">
-                          <div className="absolute left-2 top-1/2 transform -translate-y-1/2 flex items-center gap-1">
-                            <span className="text-xs">🇺🇸</span>
-                            <span className="text-xs text-gray-600">+1</span>
+                        <div className="flex items-center border border-gray-300 rounded focus-within:ring-2 focus-within:ring-[#42aeec] focus-within:border-transparent">
+                          <div className="relative" ref={primaryCountryDropdownRef}>
+                            <button
+                              type="button"
+                              onClick={() => {
+                                setPrimaryCountryDropdownOpen(!primaryCountryDropdownOpen);
+                                if (!primaryCountryDropdownOpen) {
+                                  setPrimaryCountrySearch('');
+                                }
+                              }}
+                              className="flex items-center gap-1.5 px-2 py-1 text-xs bg-white border-none outline-none cursor-pointer h-full"
+                              style={{ minWidth: '85px' }}
+                            >
+                              {countries.find(c => c.code === primaryPhoneCountry) && (
+                                <>
+                                  <span className="text-sm" style={{ fontSize: '16px' }}>{countries.find(c => c.code === primaryPhoneCountry)?.flag}</span>
+                                  <span className="text-xs text-gray-600 font-medium">{countries.find(c => c.code === primaryPhoneCountry)?.dialCode}</span>
+                                </>
+                              )}
+                              <ChevronDown className="w-3 h-3 text-gray-400 ml-auto" />
+                            </button>
+                            {primaryCountryDropdownOpen && (
+                              <div className="absolute top-full left-0 z-50 bg-white border border-gray-300 rounded-lg shadow-lg mt-1" style={{ minWidth: '280px', maxWidth: '320px' }}>
+                                {/* Search Input */}
+                                <div className="p-2 border-b border-gray-200 sticky top-0 bg-white">
+                                  <input
+                                    type="text"
+                                    placeholder="Search country..."
+                                    value={primaryCountrySearch}
+                                    onChange={(e) => setPrimaryCountrySearch(e.target.value)}
+                                    onClick={(e) => e.stopPropagation()}
+                                    className="w-full px-3 py-1.5 text-xs border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-[#42aeec] focus:border-transparent"
+                                  />
+                                </div>
+                                {/* Countries List */}
+                                <div className="max-h-60 overflow-y-auto">
+                                  {countries
+                                    .filter((country) => {
+                                      const searchLower = primaryCountrySearch.toLowerCase();
+                                      return (
+                                        country.name.toLowerCase().includes(searchLower) ||
+                                        country.code.toLowerCase().includes(searchLower) ||
+                                        country.dialCode.includes(searchLower)
+                                      );
+                                    })
+                                    .map((country) => (
+                                      <button
+                                        key={country.code}
+                                        type="button"
+                                        onClick={() => {
+                                          setPrimaryPhoneCountry(country.code);
+                                          setPrimaryCountryDropdownOpen(false);
+                                          setPrimaryCountrySearch('');
+                                          // Auto-fill dial code in the phone input field (without + sign)
+                                          const dialCodeWithoutPlus = country.dialCode.replace('+', '');
+                                          setFormData({ ...formData, primaryPhone: dialCodeWithoutPlus });
+                                        }}
+                                        className={`w-full flex items-center gap-2 px-3 py-2 text-xs text-left hover:bg-gray-100 transition-colors ${
+                                          primaryPhoneCountry === country.code ? 'bg-blue-50' : ''
+                                        }`}
+                                      >
+                                        <span className="text-base" style={{ fontSize: '18px' }}>{country.flag}</span>
+                                        <span className="flex-1 truncate">{country.name}</span>
+                                        <span className="text-gray-600 font-medium">{country.dialCode}</span>
+                                      </button>
+                                    ))}
+                                  {countries.filter((country) => {
+                                    const searchLower = primaryCountrySearch.toLowerCase();
+                                    return (
+                                      country.name.toLowerCase().includes(searchLower) ||
+                                      country.code.toLowerCase().includes(searchLower) ||
+                                      country.dialCode.includes(searchLower)
+                                    );
+                                  }).length === 0 && (
+                                    <div className="px-3 py-4 text-xs text-gray-500 text-center">
+                                      No countries found
+                                    </div>
+                                  )}
+                                </div>
+                              </div>
+                            )}
                           </div>
+                          <div className="h-5 w-px bg-gray-300"></div>
                           <input
                             type="tel"
                             placeholder=""
                             value={formData.primaryPhone}
-                            onChange={(e) => setFormData({ ...formData, primaryPhone: e.target.value })}
-                            className="w-full pl-11 pr-2 py-1 text-xs border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-[#42aeec] focus:border-transparent"
+                            onChange={(e) => {
+                              const value = e.target.value.replace(/\D/g, '');
+                              setFormData({ ...formData, primaryPhone: value });
+                            }}
+                            className="flex-1 px-2 py-1 text-xs border-none outline-none focus:outline-none"
                           />
                         </div>
                       </div>
                       <div>
                         <label className="block text-xs font-medium text-gray-700 mb-0.5">Secondary Phone #</label>
-                        <div className="relative">
-                          <div className="absolute left-2 top-1/2 transform -translate-y-1/2 flex items-center gap-1">
-                            <span className="text-xs">🇺🇸</span>
-                            <span className="text-xs text-gray-600">+1</span>
+                        <div className="flex items-center border border-gray-300 rounded focus-within:ring-2 focus-within:ring-[#42aeec] focus-within:border-transparent">
+                          <div className="relative" ref={secondaryCountryDropdownRef}>
+                            <button
+                              type="button"
+                              onClick={() => {
+                                setSecondaryCountryDropdownOpen(!secondaryCountryDropdownOpen);
+                                if (!secondaryCountryDropdownOpen) {
+                                  setSecondaryCountrySearch('');
+                                }
+                              }}
+                              className="flex items-center gap-1.5 px-2 py-1 text-xs bg-white border-none outline-none cursor-pointer h-full"
+                              style={{ minWidth: '85px' }}
+                            >
+                              {countries.find(c => c.code === secondaryPhoneCountry) && (
+                                <>
+                                  <span className="text-sm" style={{ fontSize: '16px' }}>{countries.find(c => c.code === secondaryPhoneCountry)?.flag}</span>
+                                  <span className="text-xs text-gray-600 font-medium">{countries.find(c => c.code === secondaryPhoneCountry)?.dialCode}</span>
+                                </>
+                              )}
+                              <ChevronDown className="w-3 h-3 text-gray-400 ml-auto" />
+                            </button>
+                            {secondaryCountryDropdownOpen && (
+                              <div className="absolute top-full left-0 z-50 bg-white border border-gray-300 rounded-lg shadow-lg mt-1" style={{ minWidth: '280px', maxWidth: '320px' }}>
+                                {/* Search Input */}
+                                <div className="p-2 border-b border-gray-200 sticky top-0 bg-white">
+                                  <input
+                                    type="text"
+                                    placeholder="Search country..."
+                                    value={secondaryCountrySearch}
+                                    onChange={(e) => setSecondaryCountrySearch(e.target.value)}
+                                    onClick={(e) => e.stopPropagation()}
+                                    className="w-full px-3 py-1.5 text-xs border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-[#42aeec] focus:border-transparent"
+                                  />
+                                </div>
+                                {/* Countries List */}
+                                <div className="max-h-60 overflow-y-auto">
+                                  {countries
+                                    .filter((country) => {
+                                      const searchLower = secondaryCountrySearch.toLowerCase();
+                                      return (
+                                        country.name.toLowerCase().includes(searchLower) ||
+                                        country.code.toLowerCase().includes(searchLower) ||
+                                        country.dialCode.includes(searchLower)
+                                      );
+                                    })
+                                    .map((country) => (
+                                      <button
+                                        key={country.code}
+                                        type="button"
+                                        onClick={() => {
+                                          setSecondaryPhoneCountry(country.code);
+                                          setSecondaryCountryDropdownOpen(false);
+                                          setSecondaryCountrySearch('');
+                                          // Auto-fill dial code in the phone input field (without + sign)
+                                          const dialCodeWithoutPlus = country.dialCode.replace('+', '');
+                                          setFormData({ ...formData, secondaryPhone: dialCodeWithoutPlus });
+                                        }}
+                                        className={`w-full flex items-center gap-2 px-3 py-2 text-xs text-left hover:bg-gray-100 transition-colors ${
+                                          secondaryPhoneCountry === country.code ? 'bg-blue-50' : ''
+                                        }`}
+                                      >
+                                        <span className="text-base" style={{ fontSize: '18px' }}>{country.flag}</span>
+                                        <span className="flex-1 truncate">{country.name}</span>
+                                        <span className="text-gray-600 font-medium">{country.dialCode}</span>
+                                      </button>
+                                    ))}
+                                  {countries.filter((country) => {
+                                    const searchLower = secondaryCountrySearch.toLowerCase();
+                                    return (
+                                      country.name.toLowerCase().includes(searchLower) ||
+                                      country.code.toLowerCase().includes(searchLower) ||
+                                      country.dialCode.includes(searchLower)
+                                    );
+                                  }).length === 0 && (
+                                    <div className="px-3 py-4 text-xs text-gray-500 text-center">
+                                      No countries found
+                                    </div>
+                                  )}
+                                </div>
+                              </div>
+                            )}
                           </div>
+                          <div className="h-5 w-px bg-gray-300"></div>
                           <input
                             type="tel"
                             placeholder=""
                             value={formData.secondaryPhone}
-                            onChange={(e) => setFormData({ ...formData, secondaryPhone: e.target.value })}
-                            className="w-full pl-11 pr-2 py-1 text-xs border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-[#42aeec] focus:border-transparent"
+                            onChange={(e) => {
+                              const value = e.target.value.replace(/\D/g, '');
+                              setFormData({ ...formData, secondaryPhone: value });
+                            }}
+                            className="flex-1 px-2 py-1 text-xs border-none outline-none focus:outline-none"
                           />
                         </div>
                       </div>
@@ -2372,7 +3031,7 @@ const DriverManagement = () => {
                             onClick={() => {
                               fileInputRef.current?.click();
                             }}
-                            className="inline-block px-4 py-2 bg-[#42aeec] text-white rounded-lg cursor-pointer hover:bg-[#0ea3d8] transition-colors"
+                            className="inline-block !mr-3 px-4 py-2 bg-[#42aeec] !text-white rounded-lg cursor-pointer hover:bg-[#0ea3d8] transition-colors"
                           >
                             {formData.profileImage ? 'Change Image' : 'Select Image'}
                           </button>
@@ -2386,7 +3045,7 @@ const DriverManagement = () => {
                                   fileInputRef.current.value = '';
                                 }
                               }}
-                              className="ml-2 px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors"
+                              className="ml-2 px-4 py-2 bg-red-500 !text-white rounded-lg hover:bg-red-600 transition-colors"
                             >
                               Remove
                             </button>
