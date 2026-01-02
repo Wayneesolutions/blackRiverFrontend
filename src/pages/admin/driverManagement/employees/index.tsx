@@ -578,6 +578,9 @@ const EmployeesPage = () => {
       const response = await employeeApi.getEmployeeById(id);
       if (response?.success && response.data) {
         const emp = response.data;
+        console.log('📋 Loading employee for edit:', emp);
+        console.log('📋 Employee details:', emp.details);
+        
         const nameParts = (emp.name || '').split(' ');
         setBasicData({
           firstName: nameParts[0] || '',
@@ -590,22 +593,30 @@ const EmployeesPage = () => {
         // Parse phone number to extract country code and phone number
         const parsedPhone = parsePhoneNumber(emp.phone || '', countries);
         setPhoneCountry(parsedPhone.countryCode);
-        setPersonalData({
-          title: '',
-          payType: '',
-          vacationPay: '',
-          department: '',
-          jobType: '',
-          jobTime: 'FULL-TIME',
+        
+        // Load personal data - check both top-level and details object
+        const personalDataToSet = {
+          title: emp.details?.title || emp.title || '',
+          payType: emp.details?.payType || emp.payType || '',
+          vacationPay: emp.details?.vacationPay || emp.vacationPay || '',
+          department: emp.details?.department || emp.department || '',
+          jobType: emp.details?.jobType || emp.jobType || '',
+          jobTime: (emp.details?.jobTime || emp.jobTime || 'FULL-TIME') as 'FULL-TIME' | 'PART-TIME',
           phone: parsedPhone.phoneNumber || '1',
           searchAddress: '',
-          address: emp.location?.address || '',
-          hireDate: emp.joinDate ? new Date(emp.joinDate).toISOString().split('T')[0] : '',
+          address: emp.location?.address || emp.address || '',
+          hireDate: emp.joinDate ? new Date(emp.joinDate).toISOString().split('T')[0] : (emp.details?.hireDate ? new Date(emp.details.hireDate).toISOString().split('T')[0] : ''),
           terminationDate: emp.details?.termDate ? new Date(emp.details.termDate).toISOString().split('T')[0] : ''
-        });
+        };
+        
+        console.log('📋 Personal data to set:', personalDataToSet);
+        setPersonalData(personalDataToSet);
         if (emp.profileImageUrl) {
           setProfileImagePreview(emp.profileImageUrl);
         }
+
+        // Load notes/benefits
+        setNotesBenefits(emp.notes || emp.details?.notes || '');
 
         // Fetch existing documents - always fetch fresh data
         try {

@@ -1731,10 +1731,12 @@ const DriverManagement = () => {
           workPermitExpiry: '',
           wcbNumber: ''
         });
-        setDocuments([]);
-        setProfileImagePreview(null);
+        // Reset all form state after successful creation
+        setEditingId(null);
+        setEditingDriver(null);
+        setOriginalDriverData(null);
+        resetAllFormState();
         setShowNewDriverModal(false);
-        setActiveFormTab('basic');
         
         // Refresh drivers list
         await fetchDrivers();
@@ -1749,11 +1751,9 @@ const DriverManagement = () => {
     }
   };
 
-  const handleCloseModal = () => {
-    setShowNewDriverModal(false);
-    setEditingId(null);
-    setOriginalDriverData(null); // Clear original data when closing
-    // Reset form when closing
+  // Helper function to reset all form state
+  const resetAllFormState = () => {
+    // Reset all form data
     setFormData({
       driverId: '',
       firstName: '',
@@ -1774,8 +1774,127 @@ const DriverManagement = () => {
       stateProvince: '',
       profileImage: null
     });
+    
+    // Reset personal data
+    setPersonalData({
+      socialInsuranceNumber: '',
+      hireDate: '',
+      terminationDate: '',
+      status: 'Active',
+      vacationPercent: '',
+      paySearchAddress: '',
+      corporationName: '',
+      driverName: '',
+      paymentAddress: '',
+      gstNo: '',
+      driverType: 'COMPANY DRIVER',
+      paymentMethod: 'PAID PER MILE',
+      alone: '0',
+      empty: '0',
+      bonusDrop: '0',
+      team: '0',
+      emptyTeam: '0',
+      bonusPick: '0',
+      bonusLayover: '0',
+      percentRate: '0',
+      perTripAmount: '0',
+      hourlyRate: '0',
+      dailyRate: '0',
+      driverTypeSolo: true,
+      cppExempt: false,
+      payrollTaxExempt: false,
+      customHst: '',
+      gender: '',
+      citizenship: ''
+    });
+    
+    // Reset travel data
+    setTravelData({
+      driversLicenseNumber: '',
+      driversLicenseExpiry: '',
+      licenseStateProvince: '',
+      passportNumber: '',
+      passportCountry: '',
+      passportExpiry: '',
+      fastCardNumber: '',
+      fastCardExpiry: '',
+      fastCardValid: false,
+      canadianWorkerStatus: 'PERMANENT RESIDENT',
+      permanentResidenceExpiry: '',
+      workPermitExpiry: '',
+      wcbNumber: ''
+    });
+    
+    // Reset documents
+    setDocuments([]);
+    
+    // Reset certifications
+    setCertifications([]);
+    setNewCertification({
+      expiryDate: '',
+      title: '',
+      subCategory: '',
+      result: '',
+      ignoreExpiration: false
+    });
+    setSelectedCertificate(null);
+    setUploadedFiles({});
+    setDocumentFile(null);
+    
+    // Reset violations
+    setViolations([]);
+    setNewViolation({
+      paymentDueDate: '',
+      ticket: '',
+      file: null
+    });
+    setViolationFile(null);
+    
+    // Reset notes
+    setNotes([]);
+    setNewNote({
+      note: '',
+      category: ''
+    });
+    
+    // Reset deductions
+    setDeductions([]);
+    setNewDeduction({
+      startDate: '',
+      description: '',
+      amount: '0',
+      interval: '',
+      currency: 'CAD'
+    });
+    
+    // Reset additions
+    setAdditions([]);
+    setNewAddition({
+      startDate: '',
+      description: '',
+      amount: '0',
+      interval: '',
+      currency: 'CAD'
+    });
+    
+    // Reset other states
     setProfileImagePreview(null);
     setActiveFormTab('basic');
+    setDocumentsTab('general');
+    setPrimaryPhoneCountry('US');
+    setSecondaryPhoneCountry('US');
+    setPrimaryCountryDropdownOpen(false);
+    setSecondaryCountryDropdownOpen(false);
+    setPrimaryCountrySearch('');
+    setSecondaryCountrySearch('');
+  };
+
+  const handleCloseModal = () => {
+    setShowNewDriverModal(false);
+    setEditingId(null);
+    setEditingDriver(null);
+    setOriginalDriverData(null); // Clear original data when closing
+    resetAllFormState();
   };
 
   // Helper function to check if a value has changed
@@ -2038,29 +2157,10 @@ const DriverManagement = () => {
               <span className="text-2xl font-bold text-gray-700">({getTabCount(activeTab)})</span>
               <button
                 onClick={() => {
+                  setEditingId(null);
                   setEditingDriver(null);
-                  // Reset form data for new driver
-                  setFormData({
-                    driverId: '',
-                    firstName: '',
-                    middle: '',
-                    lastName: '',
-                    emailAddress: '',
-                    dateOfBirth: '',
-                    mobileApp: false,
-                    pin: '',
-                    primaryPhone: '+1',
-                    secondaryPhone: '+1',
-                    searchAddress: '',
-                    address: '',
-                    unit: '',
-                    city: '',
-                    postalCode: '',
-                    country: '',
-                    stateProvince: '',
-                    profileImage: null
-                  });
-                  setActiveFormTab('basic');
+                  setOriginalDriverData(null);
+                  resetAllFormState();
                   setShowNewDriverModal(true);
                 }}
                 className="w-10 h-10 bg-[#42aeec] !text-white rounded-lg flex items-center justify-center hover:bg-[#1db5f5] transition-colors shadow-md"
@@ -2367,6 +2467,11 @@ const DriverManagement = () => {
                     className="hover:bg-gray-50 transition-colors cursor-pointer"
                     onClick={() => {
                       setEditingDriver(driver);
+                      // Reset all state first, then populate with driver data
+                      setEditingId(null);
+                      setEditingDriver(null);
+                      setOriginalDriverData(null);
+                      resetAllFormState();
                       // Populate form data with driver data
                       setFormData({
                         driverId: driver.driverId,
@@ -2418,7 +2523,11 @@ const DriverManagement = () => {
                               console.log('✏️ Edit button clicked for driver:', driver._id);
                               setEditingId(driver._id);
                             } else {
+                              // Reset all state first, then populate with driver data
+                              setEditingId(null);
                               setEditingDriver(driver);
+                              setOriginalDriverData(null);
+                              resetAllFormState();
                               setFormData({
                                 driverId: driver.driverId,
                                 firstName: driver.firstName,
@@ -2478,7 +2587,7 @@ const DriverManagement = () => {
           className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4"
           onClick={(e) => {
             if (e.target === e.currentTarget) {
-              setShowNewDriverModal(false);
+              handleCloseModal();
             }
           }}
         >
@@ -3510,6 +3619,38 @@ const DriverManagement = () => {
                         onChange={(e) => setPersonalData({ ...personalData, customHst: e.target.value })}
                         className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#42aeec] focus:border-transparent"
                       />
+                    </div>
+
+                    {/* Gender and Citizenship */}
+                    <div className="mt-6 grid grid-cols-2 gap-4">
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">Gender</label>
+                        <select
+                          value={personalData.gender}
+                          onChange={(e) => setPersonalData({ ...personalData, gender: e.target.value })}
+                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#42aeec] focus:border-transparent"
+                        >
+                          <option value="">Select Gender</option>
+                          <option value="Male">Male</option>
+                          <option value="Female">Female</option>
+                          <option value="Other">Other</option>
+                          <option value="Prefer not to say">Prefer not to say</option>
+                        </select>
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">Citizenship</label>
+                        <select
+                          value={personalData.citizenship}
+                          onChange={(e) => setPersonalData({ ...personalData, citizenship: e.target.value })}
+                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#42aeec] focus:border-transparent"
+                        >
+                          <option value="">Select Citizenship</option>
+                          <option value="Canadian">Canadian</option>
+                          <option value="US">United States</option>
+                          <option value="Indian">Indian</option>
+                          <option value="Other">Other</option>
+                        </select>
+                      </div>
                     </div>
 
                     {/* Navigation Footer */}

@@ -6,7 +6,8 @@ import {
   getDispatcherDashboard,
   listDriver,
   listTrip,
-  listOrder
+  listOrder,
+  getOrderById
 } from "../../../../axios/api/distapcher";
 import NewOrderSidebar from "./order-list/NewOrderSidebar";
 import { listFleetUnits, type FleetUnitDto } from "../../../../axios/api/fleet.units";
@@ -1114,7 +1115,20 @@ const Index = () => {
                         <tr
                           key={order.id}
                           className="hover:bg-gray-50 cursor-pointer transition-colors"
-
+                          onClick={async () => {
+                            try {
+                              // Fetch full order data
+                              const fullOrderResponse = await getOrderById(order.id);
+                              if (fullOrderResponse?.success && fullOrderResponse?.data) {
+                                setEditingOrder(fullOrderResponse.data);
+                                setSidebarOpen(true);
+                              } else {
+                                console.error('Failed to fetch order details');
+                              }
+                            } catch (error) {
+                              console.error('Error fetching order:', error);
+                            }
+                          }}
                         >
                           <td className="px-6 py-4 whitespace-nowrap">
                             <div className="text-sm font-medium text-gray-900">{order.orderNo}</div>
@@ -1136,28 +1150,64 @@ const Index = () => {
                           <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                             {order.customerName}
                           </td>
-                          <td className="px-6 py-4">
+                          <td className="px-6 py-4" style={{ maxWidth: '300px', minWidth: '200px' }}>
                             {(() => {
                               const pickupLoc = extractLocationString(order.pickupLocation);
                               return pickupLoc ? (
-                                <div className="text-sm">
-                                  <div className="text-gray-900">{pickupLoc}</div>
-                                  {order.pickupRefNo && <div className="text-gray-600">Ref: {order.pickupRefNo}</div>}
-                                  {order.pickupDate && <div className="text-red-600">{order.pickupDate}</div>}
+                                <div className="text-sm space-y-1">
+                                  <div 
+                                    className="text-gray-900 break-words" 
+                                    style={{ 
+                                      maxHeight: '3em', 
+                                      overflow: 'hidden',
+                                      textOverflow: 'ellipsis',
+                                      display: '-webkit-box',
+                                      WebkitLineClamp: 2,
+                                      WebkitBoxOrient: 'vertical',
+                                      wordBreak: 'break-word'
+                                    }}
+                                    title={pickupLoc}
+                                  >
+                                    {pickupLoc}
+                                  </div>
+                                  {order.pickupRefNo && (
+                                    <div className="text-gray-600 text-xs truncate" title={order.pickupRefNo}>
+                                      Ref: {order.pickupRefNo}
+                                    </div>
+                                  )}
+                                  {order.pickupDate && <div className="text-red-600 text-xs">{order.pickupDate}</div>}
                                 </div>
                               ) : (
                                 <span className="text-sm text-gray-400">-</span>
                               );
                             })()}
                           </td>
-                          <td className="px-6 py-4">
+                          <td className="px-6 py-4" style={{ maxWidth: '300px', minWidth: '200px' }}>
                             {(() => {
                               const deliveryLoc = extractLocationString(order.deliveryLocation);
                               return deliveryLoc ? (
-                                <div className="text-sm">
-                                  <div className="text-gray-900">{deliveryLoc}</div>
-                                  {order.deliveryRefNo && <div className="text-gray-600">Ref: {order.deliveryRefNo}</div>}
-                                  {order.deliveryDate && <div className="text-red-600">{order.deliveryDate}</div>}
+                                <div className="text-sm space-y-1">
+                                  <div 
+                                    className="text-gray-900 break-words" 
+                                    style={{ 
+                                      maxHeight: '3em', 
+                                      overflow: 'hidden',
+                                      textOverflow: 'ellipsis',
+                                      display: '-webkit-box',
+                                      WebkitLineClamp: 2,
+                                      WebkitBoxOrient: 'vertical',
+                                      wordBreak: 'break-word'
+                                    }}
+                                    title={deliveryLoc}
+                                  >
+                                    {deliveryLoc}
+                                  </div>
+                                  {order.deliveryRefNo && (
+                                    <div className="text-gray-600 text-xs truncate" title={order.deliveryRefNo}>
+                                      Ref: {order.deliveryRefNo}
+                                    </div>
+                                  )}
+                                  {order.deliveryDate && <div className="text-red-600 text-xs">{order.deliveryDate}</div>}
                                 </div>
                               ) : (
                                 <span className="text-sm text-gray-400">-</span>
