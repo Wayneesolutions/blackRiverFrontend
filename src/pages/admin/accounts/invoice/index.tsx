@@ -118,6 +118,12 @@ interface Trip {
             phone?: string;
             address?: string;
             company?: string;
+            location?: {
+                address?: string;
+                city?: string;
+                state?: string;
+                postalCode?: string;
+            };
         };
         pickupLocation?: {
             place?: string;
@@ -1115,8 +1121,16 @@ const InvoiceManagement: React.FC = () => {
                         </thead>
                         <tbody className="divide-y divide-gray-200">
                             {filteredInvoices.map((invoice) => {
+                                // Extract trip number from notes if tripId is null
+                                const extractTripNumberFromNotes = (notes: string): string | null => {
+                                    if (!notes) return null;
+                                    const match = notes.match(/trip\s+([A-Z0-9]+)/i);
+                                    return match ? match[1] : null;
+                                };
+
                                 const trip = typeof invoice.tripId === 'object' && invoice.tripId ? invoice.tripId : null;
-                                const tripNumber = trip?.tripNumber || (typeof invoice.tripId === 'string' ? invoice.tripId.slice(-8) : null);
+                                const tripNumberFromNotes = !trip && invoice.notes ? extractTripNumberFromNotes(invoice.notes) : null;
+                                const tripNumber = trip?.tripNumber || tripNumberFromNotes || (typeof invoice.tripId === 'string' ? invoice.tripId.slice(-8) : null);
                                 const startLocation = trip?.startLocation?.place || trip?.orders?.[0]?.pickupLocation?.place || 'N/A';
                                 const endLocation = trip?.endLocation?.place || trip?.orders?.[trip?.orders?.length - 1]?.deliveryLocation?.place || 'N/A';
                                 const ordersCount = trip?.orders?.length || 0;
@@ -1161,6 +1175,20 @@ const InvoiceManagement: React.FC = () => {
                                                     {trip.truck && (
                                                         <div className="text-xs text-gray-500">
                                                             Truck: {trip.truck.plateNumber || trip.truck.licensePlate || trip.truck.unitNumber || trip.truck.internalId || 'N/A'}
+                                                        </div>
+                                                    )}
+                                                </div>
+                                            ) : tripNumber ? (
+                                                <div className="space-y-1">
+                                                    <div className="font-medium text-gray-900 text-sm">
+                                                        {tripNumber}
+                                                    </div>
+                                                    <div className="text-xs text-gray-500 italic">
+                                                        Trip details not loaded
+                                                    </div>
+                                                    {invoice.notes && invoice.notes.includes('Auto-generated') && (
+                                                        <div className="text-xs text-gray-400">
+                                                            Auto-generated invoice
                                                         </div>
                                                     )}
                                                 </div>
@@ -1304,7 +1332,7 @@ const InvoiceManagement: React.FC = () => {
                     )}
 
                     {/* Trip/Load Details Section */}
-                    {selectedInvoice.tripId && (
+                    {(selectedInvoice.tripId || (selectedInvoice.notes && selectedInvoice.notes.includes('Auto-generated invoice for trip'))) && (
                         <div className="mt-6 border-t border-gray-200 pt-6">
                             <h3 className="text-lg font-medium text-gray-900 mb-4">Trip/Load Details</h3>
                             {typeof selectedInvoice.tripId === 'object' && selectedInvoice.tripId ? (
@@ -1447,12 +1475,32 @@ const InvoiceManagement: React.FC = () => {
                                         </div>
                                     )}
                                 </div>
-                            ) : (
+                            ) : selectedInvoice.tripId ? (
                                 <div>
-                                    <p className="text-sm text-gray-500">Trip ID: {selectedInvoice.tripId}</p>
+                                    <p className="text-sm text-gray-500">Trip ID: {typeof selectedInvoice.tripId === 'string' ? selectedInvoice.tripId : String(selectedInvoice.tripId)}</p>
                                     <p className="text-xs text-gray-400 mt-1">Trip details not loaded. Please refresh the invoice.</p>
                                 </div>
-                            )}
+                            ) : selectedInvoice.notes && selectedInvoice.notes.includes('Auto-generated invoice for trip') ? (
+                                <div className="space-y-3">
+                                    <div>
+                                        <label className="text-sm font-medium text-gray-500">Trip Number</label>
+                                        <p className="text-sm font-medium">
+                                            {(() => {
+                                                const match = selectedInvoice.notes.match(/trip\s+([A-Z0-9]+)/i);
+                                                return match ? match[1] : 'N/A';
+                                            })()}
+                                        </p>
+                                    </div>
+                                    <div>
+                                        <p className="text-xs text-gray-500 italic">
+                                            Trip details are not available. This invoice was auto-generated when the trip was completed.
+                                        </p>
+                                        <p className="text-xs text-gray-400 mt-1">
+                                            {selectedInvoice.notes}
+                                        </p>
+                                    </div>
+                                </div>
+                            ) : null}
                         </div>
                     )}
                 </div>
@@ -1618,6 +1666,8 @@ const InvoiceManagement: React.FC = () => {
         const [newInvoice, setNewInvoice] = useState({
             clientName: '',
             clientEmail: '',
+            clientAddress: '',
+            clientPhone: '',
             tripId: '',
             amount: '',
             currency: 'USD',
@@ -1644,10 +1694,15 @@ const InvoiceManagement: React.FC = () => {
 
                 const customerName = customer?.name || '';
                 const customerEmail = customer?.email || '';
+                // Get customer address from customer.address or customer.location.address
+                const customerAddress = customer?.address || customer?.location?.address || '';
+                const customerPhone = customer?.phone || '';
 
                 console.log('Auto-filling customer details from trip:', {
                     customerName,
                     customerEmail,
+                    customerAddress,
+                    customerPhone,
                     tripNumber: selectedTrip.tripNumber
                 });
 
@@ -1656,6 +1711,8 @@ const InvoiceManagement: React.FC = () => {
                     tripId: tripId,
                     clientName: customerName,
                     clientEmail: customerEmail,
+                    clientAddress: customerAddress,
+                    clientPhone: customerPhone,
                 }));
             } else {
                 console.log('No trip found with ID or trip has no orders:', tripId);
@@ -1682,6 +1739,8 @@ const InvoiceManagement: React.FC = () => {
                     setNewInvoice({
                         clientName: '',
                         clientEmail: '',
+                        clientAddress: '',
+                        clientPhone: '',
                         tripId: '',
                         amount: '',
                         currency: 'USD',
@@ -1772,7 +1831,9 @@ const InvoiceManagement: React.FC = () => {
                                                     ...prev,
                                                     tripId: '',
                                                     clientName: '',
-                                                    clientEmail: ''
+                                                    clientEmail: '',
+                                                    clientAddress: '',
+                                                    clientPhone: ''
                                                 }));
                                             }}
                                             className="text-xs text-red-600 hover:text-red-800 underline"
