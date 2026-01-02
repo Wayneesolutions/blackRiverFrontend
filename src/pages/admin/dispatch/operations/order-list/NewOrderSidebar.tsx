@@ -1,10 +1,11 @@
 import { useState, useEffect, useRef, useCallback, useMemo } from "react";
 import { X, ChevronDown, ChevronUp, Search, FileText, ArrowLeft, ArrowRight, GripVertical, Edit, Trash2 } from "lucide-react";
 import { FaCheckCircle, FaExclamationCircle, FaTimes, FaFileAlt, FaUpload, FaCheck } from "react-icons/fa";
-import { listCustomer, createOrder, updateOrder, getOrderSuggestions } from "../../../../../axios/api/distapcher";
+import { listCustomer, createOrder, updateOrder, getOrderSuggestions, getAuditTrail } from "../../../../../axios/api/distapcher";
 import { listTrucks } from "../../../../../axios/api/truckTracking";
 import { listTrailers } from "../../../../../axios/api/trailerTracking";
 import { getAllDrivers } from "../../../../../axios/api/driver";
+import { getUserInfo } from "../../../../../utils/auth";
 
 // Color constants
 const PRIMARY_GRADIENT = 'linear-gradient(90deg, #42aeec 0%, #1db5f5 40%, #0ea3d8 100%)';
@@ -97,9 +98,16 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
 
     // Helper function to add audit trail entry
     const addAuditTrailEntry = useCallback((action: string) => {
+        // Get current user from localStorage
+        const userInfo = getUserInfo();
+        const userName = userInfo?.userData?.name || 
+                        userInfo?.userData?.email || 
+                        userInfo?.name || 
+                        'System';
+        
         const newEntry = {
             id: Date.now(),
-            user: "Rashmeen Kaur", // Replace with actual user from context/auth
+            user: userName,
             action: action,
             date: new Date().toLocaleString('en-US', { 
                 month: '2-digit', 
@@ -466,11 +474,15 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
         date: string;
     }>>([]);
     const [auditTrail, setAuditTrail] = useState<Array<{
-        id: number;
+        id: string | number;
         user: string;
         action: string;
         date: string;
+        timestamp?: string;
+        entityId?: string;
+        details?: string;
     }>>([]);
+    const [auditTrailLoading, setAuditTrailLoading] = useState(false);
     const [attachments, setAttachments] = useState<Array<{
         id: number;
         name: string;
@@ -785,7 +797,24 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
             });
             if (order.notes && Array.isArray(order.notes) && order.notes.length > 0) {
                 console.log('📝 [FRONTEND] Setting notes:', order.notes);
-                setNotes(order.notes);
+                // Map backend notes format to frontend format
+                const mappedNotes = order.notes.map((note: any) => ({
+                    id: note.id || note._id || Date.now() + Math.random(),
+                    type: note.type || 'public',
+                    text: note.text || note.note || '',
+                    user: note.user || note.createdBy || 'Unknown',
+                    date: note.createdAt 
+                        ? new Date(note.createdAt).toLocaleString('en-US', {
+                            month: '2-digit',
+                            day: '2-digit',
+                            year: 'numeric',
+                            hour: '2-digit',
+                            minute: '2-digit',
+                            hour12: true
+                        })
+                        : note.date || new Date().toLocaleString()
+                }));
+                setNotes(mappedNotes);
             } else {
                 console.log('📝 [FRONTEND] No valid notes found, setting empty array');
                 setNotes([]);
@@ -2441,6 +2470,56 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
             document.removeEventListener('mousedown', handleClickOutside);
         };
     }, []);
+
+    // Fetch audit trail when Notes/Audit step is opened
+    useEffect(() => {
+        const fetchOrderAuditTrail = async () => {
+            if (currentStep === 6 && order?._id) {
+                setAuditTrailLoading(true);
+                try {
+                    const response = await getAuditTrail();
+                    if (response.success && response.data) {
+                        // Filter audit trail entries for this specific order
+                        const orderId = order._id.toString();
+                        const orderNumber = order.orderNumber;
+                        const filteredEntries = response.data
+                            .filter((entry: any) => {
+                                const entryOrderId = entry.entityId || '';
+                                return entryOrderId === orderId || 
+                                       entryOrderId === orderNumber ||
+                                       entry.id?.includes(orderId);
+                            })
+                            .map((entry: any) => ({
+                                id: entry.id || entry._id || Date.now(),
+                                user: entry.user || 'Unknown',
+                                action: entry.action || 'Updated',
+                                date: entry.timestamp 
+                                    ? new Date(entry.timestamp).toLocaleString('en-US', {
+                                        month: '2-digit',
+                                        day: '2-digit',
+                                        year: 'numeric',
+                                        hour: '2-digit',
+                                        minute: '2-digit',
+                                        hour12: true
+                                    })
+                                    : new Date().toLocaleString(),
+                                timestamp: entry.timestamp,
+                                entityId: entry.entityId,
+                                details: entry.details || entry.action
+                            }));
+                        setAuditTrail(filteredEntries);
+                    }
+                } catch (error) {
+                    console.error('Error fetching audit trail:', error);
+                    addNotification('error', 'Failed to fetch audit trail');
+                } finally {
+                    setAuditTrailLoading(false);
+                }
+            }
+        };
+
+        fetchOrderAuditTrail();
+    }, [currentStep, order?._id, order?.orderNumber]);
 
     const stepNames = ["Customer", "Shipper", "Receiver", "Review", "Assignment", "Notes / Audit"];
 
@@ -4916,7 +4995,9 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
                                                                             (truck.plateNumber || '').toLowerCase().includes(truckSearch.toLowerCase()) ||
                                                                             (truck.vehicleNumber || '').toLowerCase().includes(truckSearch.toLowerCase()) ||
                                                                             (truck.make || '').toLowerCase().includes(truckSearch.toLowerCase()) ||
-                                                                            (truck.model || '').toLowerCase().includes(truckSearch.toLowerCase())
+                                                                            (truck.model || '').toLowerCase().includes(truckSearch.toLowerCase()) ||
+                                                                            (truck.internalId || '').toLowerCase().includes(truckSearch.toLowerCase()) ||
+                                                                            (truck.unitNumber || '').toLowerCase().includes(truckSearch.toLowerCase())
                                                                         )
                                                                         .map((truck) => (
                                                                             <div
@@ -4931,9 +5012,21 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
                                                                                         addAuditTrailEntry(`Receiver - Truck Added`);
                                                                                     }
                                                                                 }}
-                                                                                className="p-2 hover:bg-gray-100 cursor-pointer text-sm"
+                                                                                className="p-2 hover:bg-gray-100 cursor-pointer text-sm border-b border-gray-100 last:border-b-0"
                                                                             >
-                                                                                {truck.plateNumber || truck.vehicleNumber || truck.name || 'N/A'}
+                                                                                <div className="font-medium text-gray-900">
+                                                                                    {truck.plateNumber || truck.vehicleNumber || truck.unitNumber || truck.name || 'N/A'}
+                                                                                </div>
+                                                                                <div className="text-xs text-gray-600 mt-0.5 space-y-0.5">
+                                                                                    {truck.internalId && <div>ID: {truck.internalId}</div>}
+                                                                                    {(truck.make || truck.model) && (
+                                                                                        <div>{truck.make || ''} {truck.model || ''}</div>
+                                                                                    )}
+                                                                                    {truck.unitNumber && truck.unitNumber !== (truck.plateNumber || truck.vehicleNumber) && (
+                                                                                        <div>Unit: {truck.unitNumber}</div>
+                                                                                    )}
+                                                                                    {truck.status && <div className="text-gray-500">Status: {truck.status}</div>}
+                                                                                </div>
                                                                             </div>
                                                                         ))}
                                                                     {trucks.length === 0 && (
@@ -4955,6 +5048,22 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
                                                         </button>
                                                         <span>Clear All</span>
                                                     </div>
+                                                    {selectedTruck && (
+                                                        <div className="mt-2 p-3 bg-blue-50 border border-blue-200 rounded-lg">
+                                                            <div className="text-xs font-semibold text-blue-900 mb-2">Selected Truck Details:</div>
+                                                            <div className="text-xs text-gray-700 space-y-1">
+                                                                {selectedTruck.internalId && <div><span className="font-medium">Internal ID:</span> {selectedTruck.internalId}</div>}
+                                                                <div><span className="font-medium">Plate Number:</span> {selectedTruck.plateNumber || selectedTruck.vehicleNumber || 'N/A'}</div>
+                                                                {selectedTruck.unitNumber && <div><span className="font-medium">Unit Number:</span> {selectedTruck.unitNumber}</div>}
+                                                                {(selectedTruck.make || selectedTruck.model) && (
+                                                                    <div><span className="font-medium">Make/Model:</span> {selectedTruck.make || ''} {selectedTruck.model || ''}</div>
+                                                                )}
+                                                                {selectedTruck.year && <div><span className="font-medium">Year:</span> {selectedTruck.year}</div>}
+                                                                {selectedTruck.status && <div><span className="font-medium">Status:</span> {selectedTruck.status}</div>}
+                                                                {selectedTruck.vinNumber && <div><span className="font-medium">VIN:</span> {selectedTruck.vinNumber}</div>}
+                                                            </div>
+                                                        </div>
+                                                    )}
                                                 </div>
 
                                                 {/* Trailer Field */}
@@ -4994,7 +5103,9 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
                                                                             !trailerSearch || 
                                                                             (trailer.trailer || '').toLowerCase().includes(trailerSearch.toLowerCase()) ||
                                                                             (trailer.plateNumber || '').toLowerCase().includes(trailerSearch.toLowerCase()) ||
-                                                                            (trailer.type || '').toLowerCase().includes(trailerSearch.toLowerCase())
+                                                                            (trailer.type || '').toLowerCase().includes(trailerSearch.toLowerCase()) ||
+                                                                            (trailer.internalId || '').toLowerCase().includes(trailerSearch.toLowerCase()) ||
+                                                                            (trailer.unitNumber || '').toLowerCase().includes(trailerSearch.toLowerCase())
                                                                         )
                                                                         .map((trailer) => (
                                                                             <div
@@ -5009,9 +5120,19 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
                                                                                         addAuditTrailEntry(`Receiver - Trailer Added`);
                                                                                     }
                                                                                 }}
-                                                                                className="p-2 hover:bg-gray-100 cursor-pointer text-sm"
+                                                                                className="p-2 hover:bg-gray-100 cursor-pointer text-sm border-b border-gray-100 last:border-b-0"
                                                                             >
-                                                                                {trailer.trailer || trailer.plateNumber || trailer.name || 'N/A'}
+                                                                                <div className="font-medium text-gray-900">
+                                                                                    {trailer.trailer || trailer.plateNumber || trailer.unitNumber || trailer.name || 'N/A'}
+                                                                                </div>
+                                                                                <div className="text-xs text-gray-600 mt-0.5 space-y-0.5">
+                                                                                    {trailer.internalId && <div>ID: {trailer.internalId}</div>}
+                                                                                    {trailer.type && <div>Type: {trailer.type}</div>}
+                                                                                    {trailer.unitNumber && trailer.unitNumber !== (trailer.trailer || trailer.plateNumber) && (
+                                                                                        <div>Unit: {trailer.unitNumber}</div>
+                                                                                    )}
+                                                                                    {trailer.status && <div className="text-gray-500">Status: {trailer.status}</div>}
+                                                                                </div>
                                                                             </div>
                                                                         ))}
                                                                     {trailers.length === 0 && (
@@ -5033,6 +5154,20 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
                                                         </button>
                                                         <span>Clear All</span>
                                                     </div>
+                                                    {selectedTrailer && (
+                                                        <div className="mt-2 p-3 bg-green-50 border border-green-200 rounded-lg">
+                                                            <div className="text-xs font-semibold text-green-900 mb-2">Selected Trailer Details:</div>
+                                                            <div className="text-xs text-gray-700 space-y-1">
+                                                                {selectedTrailer.internalId && <div><span className="font-medium">Internal ID:</span> {selectedTrailer.internalId}</div>}
+                                                                <div><span className="font-medium">Trailer Number:</span> {selectedTrailer.trailer || selectedTrailer.plateNumber || 'N/A'}</div>
+                                                                {selectedTrailer.plateNumber && <div><span className="font-medium">Plate Number:</span> {selectedTrailer.plateNumber}</div>}
+                                                                {selectedTrailer.unitNumber && <div><span className="font-medium">Unit Number:</span> {selectedTrailer.unitNumber}</div>}
+                                                                {selectedTrailer.type && <div><span className="font-medium">Type:</span> {selectedTrailer.type}</div>}
+                                                                {selectedTrailer.status && <div><span className="font-medium">Status:</span> {selectedTrailer.status}</div>}
+                                                                {selectedTrailer.capacity && <div><span className="font-medium">Capacity:</span> {selectedTrailer.capacity}</div>}
+                                                            </div>
+                                                        </div>
+                                                    )}
                                                 </div>
 
                                                 {/* Driver Field */}
@@ -5072,7 +5207,8 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
                                                                             !driverSearch || 
                                                                             (driver.name || '').toLowerCase().includes(driverSearch.toLowerCase()) ||
                                                                             (driver.internalId || '').toLowerCase().includes(driverSearch.toLowerCase()) ||
-                                                                            (driver.phone || '').toLowerCase().includes(driverSearch.toLowerCase())
+                                                                            (driver.phone || '').toLowerCase().includes(driverSearch.toLowerCase()) ||
+                                                                            (driver.email || '').toLowerCase().includes(driverSearch.toLowerCase())
                                                                         )
                                                                         .map((driver) => (
                                                                             <div
@@ -5087,9 +5223,17 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
                                                                                         addAuditTrailEntry(`Receiver - Driver Added`);
                                                                                     }
                                                                                 }}
-                                                                                className="p-2 hover:bg-gray-100 cursor-pointer text-sm"
+                                                                                className="p-2 hover:bg-gray-100 cursor-pointer text-sm border-b border-gray-100 last:border-b-0"
                                                                             >
-                                                                                {driver.name || driver.internalId || 'N/A'}
+                                                                                <div className="font-medium text-gray-900">
+                                                                                    {driver.name || driver.internalId || 'N/A'}
+                                                                                </div>
+                                                                                <div className="text-xs text-gray-600 mt-0.5 space-y-0.5">
+                                                                                    {driver.internalId && <div>Internal ID: {driver.internalId}</div>}
+                                                                                    {driver.phone && <div>Phone: {driver.phone}</div>}
+                                                                                    {driver.email && <div>Email: {driver.email}</div>}
+                                                                                    {driver.licenseNumber && <div>License: {driver.licenseNumber}</div>}
+                                                                                </div>
                                                                             </div>
                                                                         ))}
                                                                     {drivers.length === 0 && (
@@ -5111,6 +5255,19 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
                                                         </button>
                                                         <span>Clear All</span>
                                                     </div>
+                                                    {selectedDriver && (
+                                                        <div className="mt-2 p-3 bg-purple-50 border border-purple-200 rounded-lg">
+                                                            <div className="text-xs font-semibold text-purple-900 mb-2">Selected Driver Details:</div>
+                                                            <div className="text-xs text-gray-700 space-y-1">
+                                                                {selectedDriver.internalId && <div><span className="font-medium">Internal ID:</span> {selectedDriver.internalId}</div>}
+                                                                <div><span className="font-medium">Name:</span> {selectedDriver.name || 'N/A'}</div>
+                                                                {selectedDriver.phone && <div><span className="font-medium">Phone:</span> {selectedDriver.phone}</div>}
+                                                                {selectedDriver.email && <div><span className="font-medium">Email:</span> {selectedDriver.email}</div>}
+                                                                {selectedDriver.licenseNumber && <div><span className="font-medium">License Number:</span> {selectedDriver.licenseNumber}</div>}
+                                                                {selectedDriver.status && <div><span className="font-medium">Status:</span> {selectedDriver.status}</div>}
+                                                            </div>
+                                                        </div>
+                                                    )}
                                                 </div>
 
                                                 {/* Co-Driver Field */}
@@ -5150,7 +5307,8 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
                                                                             !coDriverSearch || 
                                                                             (driver.name || '').toLowerCase().includes(coDriverSearch.toLowerCase()) ||
                                                                             (driver.internalId || '').toLowerCase().includes(coDriverSearch.toLowerCase()) ||
-                                                                            (driver.phone || '').toLowerCase().includes(coDriverSearch.toLowerCase())
+                                                                            (driver.phone || '').toLowerCase().includes(coDriverSearch.toLowerCase()) ||
+                                                                            (driver.email || '').toLowerCase().includes(coDriverSearch.toLowerCase())
                                                                         )
                                                                         .map((driver) => (
                                                                             <div
@@ -5165,9 +5323,17 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
                                                                                         addAuditTrailEntry(`Receiver - Codriver Added`);
                                                                                     }
                                                                                 }}
-                                                                                className="p-2 hover:bg-gray-100 cursor-pointer text-sm"
+                                                                                className="p-2 hover:bg-gray-100 cursor-pointer text-sm border-b border-gray-100 last:border-b-0"
                                                                             >
-                                                                                {driver.name || driver.internalId || 'N/A'}
+                                                                                <div className="font-medium text-gray-900">
+                                                                                    {driver.name || driver.internalId || 'N/A'}
+                                                                                </div>
+                                                                                <div className="text-xs text-gray-600 mt-0.5 space-y-0.5">
+                                                                                    {driver.internalId && <div>Internal ID: {driver.internalId}</div>}
+                                                                                    {driver.phone && <div>Phone: {driver.phone}</div>}
+                                                                                    {driver.email && <div>Email: {driver.email}</div>}
+                                                                                    {driver.licenseNumber && <div>License: {driver.licenseNumber}</div>}
+                                                                                </div>
                                                                             </div>
                                                                         ))}
                                                                     {coDrivers.length === 0 && (
@@ -5189,6 +5355,19 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
                                                         </button>
                                                         <span>Clear All</span>
                                                     </div>
+                                                    {selectedCoDriver && (
+                                                        <div className="mt-2 p-3 bg-orange-50 border border-orange-200 rounded-lg">
+                                                            <div className="text-xs font-semibold text-orange-900 mb-2">Selected Co-Driver Details:</div>
+                                                            <div className="text-xs text-gray-700 space-y-1">
+                                                                {selectedCoDriver.internalId && <div><span className="font-medium">Internal ID:</span> {selectedCoDriver.internalId}</div>}
+                                                                <div><span className="font-medium">Name:</span> {selectedCoDriver.name || 'N/A'}</div>
+                                                                {selectedCoDriver.phone && <div><span className="font-medium">Phone:</span> {selectedCoDriver.phone}</div>}
+                                                                {selectedCoDriver.email && <div><span className="font-medium">Email:</span> {selectedCoDriver.email}</div>}
+                                                                {selectedCoDriver.licenseNumber && <div><span className="font-medium">License Number:</span> {selectedCoDriver.licenseNumber}</div>}
+                                                                {selectedCoDriver.status && <div><span className="font-medium">Status:</span> {selectedCoDriver.status}</div>}
+                                                            </div>
+                                                        </div>
+                                                    )}
                                                 </div>
                                                     </>
                                                 )}
@@ -5861,7 +6040,12 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
                                         
                                         {/* Audit Trail Section */}
                                         <div className="space-y-4">
-                                            <h4 className="text-sm font-semibold text-gray-800">Audit Trail</h4>
+                                            <div className="flex items-center justify-between">
+                                                <h4 className="text-sm font-semibold text-gray-800">Audit Trail</h4>
+                                                {auditTrailLoading && (
+                                                    <span className="text-xs text-gray-500">Loading...</span>
+                                                )}
+                                            </div>
                                             
                                             {/* Audit Trail Table */}
                                             <div className="border border-gray-200 rounded overflow-hidden">
@@ -5872,20 +6056,28 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
                                                                 <th className="px-3 py-2 text-left text-xs font-semibold text-gray-700">User</th>
                                                                 <th className="px-3 py-2 text-left text-xs font-semibold text-gray-700">Action</th>
                                                                 <th className="px-3 py-2 text-left text-xs font-semibold text-gray-700">Date</th>
+                                                                <th className="px-3 py-2 text-left text-xs font-semibold text-gray-700">Details</th>
                                                             </tr>
                                                         </thead>
                                                         <tbody className="divide-y divide-gray-200">
-                                                            {auditTrail.length > 0 ? (
+                                                            {auditTrailLoading ? (
+                                                                <tr>
+                                                                    <td colSpan={4} className="px-3 py-4 text-center text-gray-500 text-sm">
+                                                                        Loading audit trail...
+                                                                    </td>
+                                                                </tr>
+                                                            ) : auditTrail.length > 0 ? (
                                                                 auditTrail.map((audit) => (
                                                                     <tr key={audit.id} className="hover:bg-gray-50">
                                                                         <td className="px-3 py-2 text-gray-700">{audit.user}</td>
                                                                         <td className="px-3 py-2 text-gray-600">{audit.action}</td>
                                                                         <td className="px-3 py-2 text-gray-500 text-xs">{audit.date}</td>
+                                                                        <td className="px-3 py-2 text-gray-500 text-xs">{audit.details || '-'}</td>
                                                                     </tr>
                                                                 ))
                                                             ) : (
                                                                 <tr>
-                                                                    <td colSpan={3} className="px-3 py-4 text-center text-gray-500 text-sm">
+                                                                    <td colSpan={4} className="px-3 py-4 text-center text-gray-500 text-sm">
                                                                         No audit trail entries yet
                                                                     </td>
                                                                 </tr>
