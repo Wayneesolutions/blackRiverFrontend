@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { FlaskConical, Search, Plus, Edit, Trash2, Calendar, MapPin, FileText } from 'lucide-react';
+import { FlaskConical, Search, Plus, Edit, Trash2, Calendar, MapPin, FileText, Eye, Clock } from 'lucide-react';
 import { FaCheckCircle, FaExclamationCircle, FaTimes } from 'react-icons/fa';
-import { getAllDrivers } from '../../../../axios/api/driver';
+import { getAllDrivers, getDrugTests, createDrugTest, updateDrugTest, deleteDrugTest, getDrugTestById, type DrugTestRequest } from '../../../../axios/api/driver';
 
 type NotificationType = 'success' | 'error' | 'info';
 
@@ -9,24 +9,6 @@ interface Notification {
     id: number;
     type: NotificationType;
     message: string;
-}
-
-interface DrugTestRequest {
-    _id?: string;
-    driverId: string;
-    driverName?: string;
-    testType: string;
-    reason: string;
-    scheduledDate: string;
-    scheduledTime?: string;
-    labName: string;
-    collectionSiteName?: string;
-    collectionSiteAddress?: string;
-    collectionSitePhone?: string;
-    importantDetails?: string;
-    status: 'pending' | 'scheduled' | 'completed' | 'cancelled';
-    createdAt?: string;
-    createdBy?: string;
 }
 
 const Notification = ({ notification, onClose }: { notification: Notification; onClose: (id: number) => void }) => {
@@ -69,10 +51,14 @@ const DrugTest = () => {
     const [searchQuery, setSearchQuery] = useState('');
     const [selectedDriver, setSelectedDriver] = useState<string>('');
     const [selectedStatus, setSelectedStatus] = useState<string>('');
+    const [selectedTestType, setSelectedTestType] = useState<string>('');
     const [drugTestRequests, setDrugTestRequests] = useState<DrugTestRequest[]>([]);
     const [drivers, setDrivers] = useState<any[]>([]);
     const [loading, setLoading] = useState(false);
+    const [saving, setSaving] = useState(false);
     const [showRequestModal, setShowRequestModal] = useState(false);
+    const [showDetailsModal, setShowDetailsModal] = useState(false);
+    const [selectedRequest, setSelectedRequest] = useState<DrugTestRequest | null>(null);
     const [editingRequest, setEditingRequest] = useState<DrugTestRequest | null>(null);
     const [notifications, setNotifications] = useState<Notification[]>([]);
 
@@ -117,6 +103,11 @@ const DrugTest = () => {
         fetchDrugTestRequests();
     }, []);
 
+    // Refetch when filters change
+    useEffect(() => {
+        fetchDrugTestRequests();
+    }, [selectedDriver, selectedStatus, selectedTestType]);
+
     const fetchDrivers = async () => {
         try {
             const response = await getAllDrivers(1, 1000);
@@ -135,15 +126,23 @@ const DrugTest = () => {
     const fetchDrugTestRequests = async () => {
         setLoading(true);
         try {
-            // TODO: Replace with actual API call when backend is ready
-            // const response = await getDrugTestRequests();
-            // setDrugTestRequests(response.data || []);
-            
-            // Mock data for now
-            setDrugTestRequests([]);
-        } catch (error) {
+            const params: any = {};
+            if (searchQuery) params.search = searchQuery;
+            if (selectedDriver) params.driverId = selectedDriver;
+            if (selectedStatus) params.status = selectedStatus;
+            if (selectedTestType) params.testType = selectedTestType;
+
+            const response = await getDrugTests(params);
+            if (response?.success && Array.isArray(response.data)) {
+                setDrugTestRequests(response.data);
+            } else {
+                showNotification('error', response?.message || 'Failed to load drug test requests');
+                setDrugTestRequests([]);
+            }
+        } catch (error: any) {
             console.error('Error fetching drug test requests:', error);
-            showNotification('error', 'Failed to load drug test requests');
+            showNotification('error', error?.message || 'Failed to load drug test requests');
+            setDrugTestRequests([]);
         } finally {
             setLoading(false);
         }
@@ -181,6 +180,30 @@ const DrugTest = () => {
         setShowRequestModal(true);
     };
 
+    const handleViewDetails = async (request: DrugTestRequest) => {
+        if (request._id) {
+            try {
+                const response = await getDrugTestById(request._id);
+                if (response?.success && response.data) {
+                    setSelectedRequest(response.data);
+                    setShowDetailsModal(true);
+                } else {
+                    // Fallback to using the request directly if API fails
+                    setSelectedRequest(request);
+                    setShowDetailsModal(true);
+                }
+            } catch (error: any) {
+                console.error('Error fetching drug test details:', error);
+                // Fallback to using the request directly
+                setSelectedRequest(request);
+                setShowDetailsModal(true);
+            }
+        } else {
+            setSelectedRequest(request);
+            setShowDetailsModal(true);
+        }
+    };
+
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         
@@ -189,21 +212,29 @@ const DrugTest = () => {
             return;
         }
 
+        setSaving(true);
         try {
-            // TODO: Replace with actual API call when backend is ready
-            // if (editingRequest?._id) {
-            //     await updateDrugTestRequest(editingRequest._id, formData);
-            // } else {
-            //     await createDrugTestRequest(formData);
-            // }
+            let response;
+            if (editingRequest?._id) {
+                response = await updateDrugTest(editingRequest._id, formData);
+            } else {
+                response = await createDrugTest(formData as DrugTestRequest);
+            }
 
-            showNotification('success', editingRequest ? 'Drug test request updated successfully' : 'Drug test request created successfully');
-            setShowRequestModal(false);
-            setFormData(requestForm);
-            fetchDrugTestRequests();
-        } catch (error) {
+            if (response?.success) {
+                showNotification('success', editingRequest ? 'Drug test request updated successfully' : 'Drug test request created successfully');
+                setShowRequestModal(false);
+                setFormData(requestForm);
+                setEditingRequest(null);
+                fetchDrugTestRequests();
+            } else {
+                showNotification('error', response?.message || 'Failed to save drug test request');
+            }
+        } catch (error: any) {
             console.error('Error saving drug test request:', error);
-            showNotification('error', 'Failed to save drug test request');
+            showNotification('error', error?.message || 'Failed to save drug test request');
+        } finally {
+            setSaving(false);
         }
     };
 
@@ -213,13 +244,16 @@ const DrugTest = () => {
         }
 
         try {
-            // TODO: Replace with actual API call when backend is ready
-            // await deleteDrugTestRequest(id);
-            showNotification('success', 'Drug test request deleted successfully');
-            fetchDrugTestRequests();
-        } catch (error) {
+            const response = await deleteDrugTest(id);
+            if (response?.success) {
+                showNotification('success', 'Drug test request deleted successfully');
+                fetchDrugTestRequests();
+            } else {
+                showNotification('error', response?.message || 'Failed to delete drug test request');
+            }
+        } catch (error: any) {
             console.error('Error deleting drug test request:', error);
-            showNotification('error', 'Failed to delete drug test request');
+            showNotification('error', error?.message || 'Failed to delete drug test request');
         }
     };
 
@@ -239,17 +273,31 @@ const DrugTest = () => {
     };
 
     const filteredRequests = drugTestRequests.filter(request => {
-        const matchesSearch = searchQuery === '' || 
-            request.driverName?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-            request.testType.toLowerCase().includes(searchQuery.toLowerCase()) ||
-            request.reason.toLowerCase().includes(searchQuery.toLowerCase()) ||
-            request.labName.toLowerCase().includes(searchQuery.toLowerCase());
-        
-        const matchesDriver = selectedDriver === '' || request.driverId === selectedDriver;
-        const matchesStatus = selectedStatus === '' || request.status === selectedStatus;
-        
-        return matchesSearch && matchesDriver && matchesStatus;
+        if (searchQuery) {
+            const searchLower = searchQuery.toLowerCase();
+            const matchesSearch = 
+                request.driverName?.toLowerCase().includes(searchLower) ||
+                request.testType.toLowerCase().includes(searchLower) ||
+                request.reason.toLowerCase().includes(searchLower) ||
+                request.labName.toLowerCase().includes(searchLower) ||
+                request.collectionSiteName?.toLowerCase().includes(searchLower);
+            
+            if (!matchesSearch) return false;
+        }
+        return true;
     });
+
+    const formatDateTime = (dateString?: string) => {
+        if (!dateString) return 'N/A';
+        const date = new Date(dateString);
+        return date.toLocaleString('en-US', {
+            year: 'numeric',
+            month: 'long',
+            day: 'numeric',
+            hour: '2-digit',
+            minute: '2-digit'
+        });
+    };
 
     return (
         <div className="min-h-screen bg-[#EDF8FF] p-6">
@@ -289,7 +337,7 @@ const DrugTest = () => {
 
             {/* Filters */}
             <div className="bg-white rounded-lg shadow-sm p-4 mb-6">
-                <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
                     <div>
                         <label className="block text-sm font-medium text-gray-700 mb-2">Search</label>
                         <div className="relative">
@@ -299,6 +347,11 @@ const DrugTest = () => {
                                 placeholder="Search requests..."
                                 value={searchQuery}
                                 onChange={(e) => setSearchQuery(e.target.value)}
+                                onKeyDown={(e) => {
+                                    if (e.key === 'Enter') {
+                                        fetchDrugTestRequests();
+                                    }
+                                }}
                                 className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                             />
                         </div>
@@ -319,6 +372,19 @@ const DrugTest = () => {
                         </select>
                     </div>
                     <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">Test Type</label>
+                        <select
+                            value={selectedTestType}
+                            onChange={(e) => setSelectedTestType(e.target.value)}
+                            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        >
+                            <option value="">All Types</option>
+                            {testTypes.map(type => (
+                                <option key={type} value={type}>{type}</option>
+                            ))}
+                        </select>
+                    </div>
+                    <div>
                         <label className="block text-sm font-medium text-gray-700 mb-2">Status</label>
                         <select
                             value={selectedStatus}
@@ -332,10 +398,16 @@ const DrugTest = () => {
                             <option value="cancelled">Cancelled</option>
                         </select>
                     </div>
-                    <div className="flex items-end">
+                    <div className="flex items-end justify-between">
                         <div className="text-sm text-gray-600">
                             Showing {filteredRequests.length} request(s)
                         </div>
+                        <button
+                            onClick={fetchDrugTestRequests}
+                            className="px-4 py-2 text-sm bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors"
+                        >
+                            Refresh
+                        </button>
                     </div>
                 </div>
             </div>
@@ -371,7 +443,7 @@ const DrugTest = () => {
                                 {filteredRequests.map((request) => (
                                     <tr key={request._id} className="hover:bg-gray-50">
                                         <td className="px-6 py-4 whitespace-nowrap">
-                                            <div className="text-sm font-medium text-gray-900">{request.driverName}</div>
+                                            <div className="text-sm font-medium text-gray-900">{request.driverName || 'Unknown'}</div>
                                         </td>
                                         <td className="px-6 py-4 whitespace-nowrap">
                                             <div className="text-sm text-gray-900">{request.testType}</div>
@@ -400,6 +472,13 @@ const DrugTest = () => {
                                         </td>
                                         <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
                                             <div className="flex items-center gap-3">
+                                                <button
+                                                    onClick={() => handleViewDetails(request)}
+                                                    className="text-blue-600 hover:text-blue-800"
+                                                    title="View Details"
+                                                >
+                                                    <Eye size={18} />
+                                                </button>
                                                 <button
                                                     onClick={() => handleEditClick(request)}
                                                     className="text-indigo-600 hover:text-indigo-800"
@@ -621,6 +700,7 @@ const DrugTest = () => {
                                     type="button"
                                     onClick={() => setShowRequestModal(false)}
                                     className="px-6 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50"
+                                    disabled={saving}
                                 >
                                     Cancel
                                 </button>
@@ -629,12 +709,160 @@ const DrugTest = () => {
                                     style={{
                                         background: 'linear-gradient(90deg, #42aeec 0%, #1db5f5 40%, #0ea3d8 100%)',
                                     }}
-                                    className="px-6 py-2 !text-white font-semibold rounded-lg hover:opacity-90"
+                                    className="px-6 py-2 !text-white font-semibold rounded-lg hover:opacity-90 disabled:opacity-50"
+                                    disabled={saving}
                                 >
-                                    {editingRequest ? 'Update' : 'Create'} Request
+                                    {saving ? 'Saving...' : editingRequest ? 'Update' : 'Create'} Request
                                 </button>
                             </div>
                         </form>
+                    </div>
+                </div>
+            )}
+
+            {/* Details Modal */}
+            {showDetailsModal && selectedRequest && (
+                <div 
+                    className="fixed inset-0 bg-gray-900/50 backdrop-blur-sm z-50 flex items-center justify-center p-4"
+                    onClick={(e) => {
+                        if (e.target === e.currentTarget) {
+                            setShowDetailsModal(false);
+                        }
+                    }}
+                >
+                    <div 
+                        className="bg-white rounded-xl shadow-2xl max-w-3xl w-full max-h-[90vh] overflow-y-auto"
+                        onClick={(e) => e.stopPropagation()}
+                    >
+                        <div className="sticky top-0 bg-white border-b border-gray-200 px-6 py-4 flex justify-between items-center z-10">
+                            <h2 className="text-2xl font-bold text-gray-900">Drug Test Request Details</h2>
+                            <button
+                                onClick={() => setShowDetailsModal(false)}
+                                className="text-gray-400 hover:text-gray-600 transition-colors"
+                            >
+                                <FaTimes size={24} />
+                            </button>
+                        </div>
+
+                        <div className="p-6 space-y-6">
+                            <div className="grid grid-cols-2 gap-6">
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-500 mb-1">Driver</label>
+                                    <p className="text-base font-semibold text-gray-900">{selectedRequest.driverName || 'Unknown'}</p>
+                                </div>
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-500 mb-1">Test Type</label>
+                                    <p className="text-base text-gray-900">{selectedRequest.testType}</p>
+                                </div>
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-500 mb-1">Reason</label>
+                                    <p className="text-base text-gray-900">{selectedRequest.reason}</p>
+                                </div>
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-500 mb-1">Status</label>
+                                    <span className={`px-3 py-1 inline-flex text-sm font-semibold rounded-full ${getStatusColor(selectedRequest.status)}`}>
+                                        {selectedRequest.status.toUpperCase()}
+                                    </span>
+                                </div>
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-500 mb-1">Scheduled Date</label>
+                                    <p className="text-base text-gray-900">
+                                        {new Date(selectedRequest.scheduledDate).toLocaleDateString('en-US', {
+                                            year: 'numeric',
+                                            month: 'long',
+                                            day: 'numeric'
+                                        })}
+                                    </p>
+                                </div>
+                                {selectedRequest.scheduledTime && (
+                                    <div>
+                                        <label className="block text-sm font-medium text-gray-500 mb-1">Scheduled Time</label>
+                                        <p className="text-base text-gray-900">{selectedRequest.scheduledTime}</p>
+                                    </div>
+                                )}
+                            </div>
+
+                            <div className="border-t border-gray-200 pt-4">
+                                <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
+                                    <MapPin className="text-blue-600" size={20} />
+                                    Lab or Collection Site Details
+                                </h3>
+                                <div className="grid grid-cols-2 gap-6">
+                                    <div>
+                                        <label className="block text-sm font-medium text-gray-500 mb-1">Lab Name</label>
+                                        <p className="text-base text-gray-900">{selectedRequest.labName}</p>
+                                    </div>
+                                    {selectedRequest.collectionSiteName && (
+                                        <div>
+                                            <label className="block text-sm font-medium text-gray-500 mb-1">Collection Site Name</label>
+                                            <p className="text-base text-gray-900">{selectedRequest.collectionSiteName}</p>
+                                        </div>
+                                    )}
+                                    {selectedRequest.collectionSiteAddress && (
+                                        <div className="col-span-2">
+                                            <label className="block text-sm font-medium text-gray-500 mb-1">Collection Site Address</label>
+                                            <p className="text-base text-gray-900 whitespace-pre-wrap">{selectedRequest.collectionSiteAddress}</p>
+                                        </div>
+                                    )}
+                                    {selectedRequest.collectionSitePhone && (
+                                        <div>
+                                            <label className="block text-sm font-medium text-gray-500 mb-1">Collection Site Phone</label>
+                                            <p className="text-base text-gray-900">{selectedRequest.collectionSitePhone}</p>
+                                        </div>
+                                    )}
+                                </div>
+                            </div>
+
+                            {selectedRequest.importantDetails && (
+                                <div className="border-t border-gray-200 pt-4">
+                                    <label className="block text-sm font-medium text-gray-500 mb-1 flex items-center gap-2">
+                                        <FileText className="text-blue-600" size={18} />
+                                        Important Details
+                                    </label>
+                                    <p className="text-base text-gray-900 whitespace-pre-wrap">{selectedRequest.importantDetails}</p>
+                                </div>
+                            )}
+
+                            <div className="pt-4 border-t border-gray-200">
+                                <div className="grid grid-cols-2 gap-6">
+                                    <div>
+                                        <label className="block text-sm font-medium text-gray-500 mb-1 flex items-center gap-2">
+                                            <Clock size={16} />
+                                            Created At
+                                        </label>
+                                        <p className="text-sm text-gray-600">{formatDateTime(selectedRequest.createdAt)}</p>
+                                    </div>
+                                    <div>
+                                        <label className="block text-sm font-medium text-gray-500 mb-1 flex items-center gap-2">
+                                            <Clock size={16} />
+                                            Last Updated
+                                        </label>
+                                        <p className="text-sm text-gray-600">{formatDateTime(selectedRequest.updatedAt)}</p>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div className="flex justify-end gap-4 pt-4 border-t border-gray-200">
+                                <button
+                                    onClick={() => setShowDetailsModal(false)}
+                                    className="px-6 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50"
+                                >
+                                    Close
+                                </button>
+                                <button
+                                    onClick={() => {
+                                        setShowDetailsModal(false);
+                                        handleEditClick(selectedRequest);
+                                    }}
+                                    style={{
+                                        background: 'linear-gradient(90deg, #42aeec 0%, #1db5f5 40%, #0ea3d8 100%)',
+                                    }}
+                                    className="px-6 py-2 !text-white font-semibold rounded-lg hover:opacity-90"
+                                >
+                                    Edit Request
+                                </button>
+                            </div>
+                        </div>
                     </div>
                 </div>
             )}
@@ -643,4 +871,3 @@ const DrugTest = () => {
 };
 
 export default DrugTest;
-

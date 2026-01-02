@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { FileText, Search, Eye, Trash2, Plus, Edit } from 'lucide-react';
+import { FileText, Search, Eye, Trash2, Plus, Edit, Clock } from 'lucide-react';
 import { FaCheckCircle, FaExclamationCircle, FaTimes } from 'react-icons/fa';
-import { getAllDrivers } from '../../../../axios/api/driver';
+import { getAllDrivers, getTrainingCertificates, createTrainingCertificate, updateTrainingCertificate, deleteTrainingCertificate, getTrainingCertificateSignedUrl, type TrainingCertificate } from '../../../../axios/api/driver';
 
 type NotificationType = 'success' | 'error' | 'info';
 
@@ -9,22 +9,6 @@ interface Notification {
     id: number;
     type: NotificationType;
     message: string;
-}
-
-interface TrainingCertificate {
-    _id?: string;
-    driverId: string;
-    driverName?: string;
-    certificateName: string;
-    certificateType: string;
-    issuedDate: string;
-    expiryDate?: string;
-    issuingAuthority: string;
-    certificateNumber?: string;
-    fileUrl?: string;
-    fileName?: string;
-    status: 'active' | 'expired' | 'expiring_soon';
-    notes?: string;
 }
 
 const Notification = ({ notification, onClose }: { notification: Notification; onClose: (id: number) => void }) => {
@@ -66,13 +50,18 @@ const Notification = ({ notification, onClose }: { notification: Notification; o
 const TrainingCertificates = () => {
     const [searchQuery, setSearchQuery] = useState('');
     const [selectedDriver, setSelectedDriver] = useState<string>('');
+    const [selectedType, setSelectedType] = useState<string>('');
+    const [selectedStatus, setSelectedStatus] = useState<string>('');
     const [certificates, setCertificates] = useState<TrainingCertificate[]>([]);
     const [drivers, setDrivers] = useState<any[]>([]);
     const [loading, setLoading] = useState(false);
     const [showAddModal, setShowAddModal] = useState(false);
+    const [showDetailsModal, setShowDetailsModal] = useState(false);
+    const [selectedCertificate, setSelectedCertificate] = useState<TrainingCertificate | null>(null);
     const [editingCertificate, setEditingCertificate] = useState<TrainingCertificate | null>(null);
     const [notifications, setNotifications] = useState<Notification[]>([]);
     const [selectedFile, setSelectedFile] = useState<File | null>(null);
+    const [saving, setSaving] = useState(false);
 
     const certificateForm = {
         driverId: '',
@@ -122,19 +111,32 @@ const TrainingCertificates = () => {
     const fetchCertificates = async () => {
         setLoading(true);
         try {
-            // TODO: Replace with actual API call when backend is ready
-            // const response = await getTrainingCertificates();
-            // setCertificates(response.data || []);
-            
-            // Mock data for now
-            setCertificates([]);
-        } catch (error) {
+            const params: any = {};
+            if (searchQuery) params.search = searchQuery;
+            if (selectedDriver) params.driverId = selectedDriver;
+            if (selectedType) params.certificateType = selectedType;
+            if (selectedStatus) params.status = selectedStatus;
+
+            const response = await getTrainingCertificates(params);
+            if (response?.success && Array.isArray(response.data)) {
+                setCertificates(response.data);
+            } else {
+                showNotification('error', response?.message || 'Failed to load training certificates');
+                setCertificates([]);
+            }
+        } catch (error: any) {
             console.error('Error fetching certificates:', error);
-            showNotification('error', 'Failed to load training certificates');
+            showNotification('error', error?.message || 'Failed to load training certificates');
+            setCertificates([]);
         } finally {
             setLoading(false);
         }
     };
+
+    // Refetch certificates when filters change
+    useEffect(() => {
+        fetchCertificates();
+    }, [selectedDriver, selectedType, selectedStatus]);
 
     const showNotification = (type: NotificationType, message: string) => {
         const id = Date.now();
@@ -168,38 +170,91 @@ const TrainingCertificates = () => {
         setShowAddModal(true);
     };
 
-    const handleSubmit = async (e: React.FormEvent) => {
-        e.preventDefault();
-        
-        if (!formData.driverId || !formData.certificateName || !formData.issuedDate) {
-            showNotification('error', 'Please fill in all required fields');
+    const handleViewDetails = async (certificate: TrainingCertificate) => {
+        setSelectedCertificate(certificate);
+        setShowDetailsModal(true);
+    };
+
+    const handleViewFile = async (certificate: TrainingCertificate) => {
+        if (!certificate._id || !certificate.fileUrl) {
+            showNotification('error', 'No file available for this certificate');
             return;
         }
 
         try {
-            // TODO: Replace with actual API call when backend is ready
-            // const formDataToSend = new FormData();
-            // Object.keys(formData).forEach(key => {
-            //     formDataToSend.append(key, formData[key]);
-            // });
-            // if (selectedFile) {
-            //     formDataToSend.append('file', selectedFile);
-            // }
-            // 
-            // if (editingCertificate?._id) {
-            //     await updateTrainingCertificate(editingCertificate._id, formDataToSend);
-            // } else {
-            //     await createTrainingCertificate(formDataToSend);
-            // }
+            const response = await getTrainingCertificateSignedUrl(certificate._id, 'inline');
+            if (response?.success && response.url) {
+                window.open(response.url, '_blank');
+            } else {
+                // Fallback to direct URL
+                if (certificate.fileUrl) {
+                    window.open(certificate.fileUrl, '_blank');
+                } else {
+                    showNotification('error', 'Unable to open certificate file');
+                }
+            }
+        } catch (error: any) {
+            console.error('Error opening certificate file:', error);
+            // Fallback to direct URL
+            if (certificate.fileUrl) {
+                window.open(certificate.fileUrl, '_blank');
+            } else {
+                showNotification('error', 'Unable to open certificate file');
+            }
+        }
+    };
 
-            showNotification('success', editingCertificate ? 'Certificate updated successfully' : 'Certificate added successfully');
-            setShowAddModal(false);
-            setFormData(certificateForm);
-            setSelectedFile(null);
-            fetchCertificates();
-        } catch (error) {
+    const handleSubmit = async (e: React.FormEvent) => {
+        e.preventDefault();
+        
+        if (!formData.driverId || !formData.certificateName || !formData.certificateType || !formData.issuedDate || !formData.issuingAuthority) {
+            showNotification('error', 'Please fill in all required fields');
+            return;
+        }
+
+        setSaving(true);
+        try {
+            const formDataToSend = new FormData();
+            formDataToSend.append('driverId', formData.driverId);
+            formDataToSend.append('certificateName', formData.certificateName);
+            formDataToSend.append('certificateType', formData.certificateType);
+            formDataToSend.append('issuedDate', formData.issuedDate);
+            if (formData.expiryDate) {
+                formDataToSend.append('expiryDate', formData.expiryDate);
+            }
+            formDataToSend.append('issuingAuthority', formData.issuingAuthority);
+            if (formData.certificateNumber) {
+                formDataToSend.append('certificateNumber', formData.certificateNumber);
+            }
+            if (formData.notes) {
+                formDataToSend.append('notes', formData.notes);
+            }
+            if (selectedFile) {
+                formDataToSend.append('file', selectedFile);
+            }
+            
+            let response;
+            if (editingCertificate?._id) {
+                response = await updateTrainingCertificate(editingCertificate._id, formDataToSend);
+            } else {
+                response = await createTrainingCertificate(formDataToSend);
+            }
+
+            if (response?.success) {
+                showNotification('success', editingCertificate ? 'Certificate updated successfully' : 'Certificate added successfully');
+                setShowAddModal(false);
+                setFormData(certificateForm);
+                setSelectedFile(null);
+                setEditingCertificate(null);
+                fetchCertificates();
+            } else {
+                showNotification('error', response?.message || 'Failed to save certificate');
+            }
+        } catch (error: any) {
             console.error('Error saving certificate:', error);
-            showNotification('error', 'Failed to save certificate');
+            showNotification('error', error?.message || 'Failed to save certificate');
+        } finally {
+            setSaving(false);
         }
     };
 
@@ -209,13 +264,16 @@ const TrainingCertificates = () => {
         }
 
         try {
-            // TODO: Replace with actual API call when backend is ready
-            // await deleteTrainingCertificate(id);
-            showNotification('success', 'Certificate deleted successfully');
-            fetchCertificates();
-        } catch (error) {
+            const response = await deleteTrainingCertificate(id);
+            if (response?.success) {
+                showNotification('success', 'Certificate deleted successfully');
+                fetchCertificates();
+            } else {
+                showNotification('error', response?.message || 'Failed to delete certificate');
+            }
+        } catch (error: any) {
             console.error('Error deleting certificate:', error);
-            showNotification('error', 'Failed to delete certificate');
+            showNotification('error', error?.message || 'Failed to delete certificate');
         }
     };
 
@@ -233,15 +291,30 @@ const TrainingCertificates = () => {
     };
 
     const filteredCertificates = certificates.filter(cert => {
-        const matchesSearch = searchQuery === '' || 
-            cert.certificateName.toLowerCase().includes(searchQuery.toLowerCase()) ||
-            cert.driverName?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-            cert.certificateNumber?.toLowerCase().includes(searchQuery.toLowerCase());
-        
-        const matchesDriver = selectedDriver === '' || cert.driverId === selectedDriver;
-        
-        return matchesSearch && matchesDriver;
+        if (searchQuery) {
+            const searchLower = searchQuery.toLowerCase();
+            const matchesSearch = 
+                cert.certificateName.toLowerCase().includes(searchLower) ||
+                cert.driverName?.toLowerCase().includes(searchLower) ||
+                cert.certificateNumber?.toLowerCase().includes(searchLower) ||
+                cert.issuingAuthority.toLowerCase().includes(searchLower);
+            
+            if (!matchesSearch) return false;
+        }
+        return true;
     });
+
+    const formatDateTime = (dateString?: string) => {
+        if (!dateString) return 'N/A';
+        const date = new Date(dateString);
+        return date.toLocaleString('en-US', {
+            year: 'numeric',
+            month: 'long',
+            day: 'numeric',
+            hour: '2-digit',
+            minute: '2-digit'
+        });
+    };
 
     return (
         <div className="min-h-screen bg-[#EDF8FF] p-6">
@@ -281,7 +354,7 @@ const TrainingCertificates = () => {
 
             {/* Filters */}
             <div className="bg-white rounded-lg shadow-sm p-4 mb-6">
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
                     <div>
                         <label className="block text-sm font-medium text-gray-700 mb-2">Search</label>
                         <div className="relative">
@@ -291,6 +364,11 @@ const TrainingCertificates = () => {
                                 placeholder="Search certificates..."
                                 value={searchQuery}
                                 onChange={(e) => setSearchQuery(e.target.value)}
+                                onKeyDown={(e) => {
+                                    if (e.key === 'Enter') {
+                                        fetchCertificates();
+                                    }
+                                }}
                                 className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                             />
                         </div>
@@ -310,11 +388,43 @@ const TrainingCertificates = () => {
                             ))}
                         </select>
                     </div>
-                    <div className="flex items-end">
-                        <div className="text-sm text-gray-600">
-                            Showing {filteredCertificates.length} certificate(s)
-                        </div>
+                    <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">Certificate Type</label>
+                        <select
+                            value={selectedType}
+                            onChange={(e) => setSelectedType(e.target.value)}
+                            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        >
+                            <option value="">All Types</option>
+                            {certificateTypes.map(type => (
+                                <option key={type} value={type}>{type}</option>
+                            ))}
+                        </select>
                     </div>
+                    <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">Status</label>
+                        <select
+                            value={selectedStatus}
+                            onChange={(e) => setSelectedStatus(e.target.value)}
+                            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        >
+                            <option value="">All Status</option>
+                            <option value="active">Active</option>
+                            <option value="expiring_soon">Expiring Soon</option>
+                            <option value="expired">Expired</option>
+                        </select>
+                    </div>
+                </div>
+                <div className="mt-4 flex items-center justify-between">
+                    <div className="text-sm text-gray-600">
+                        Showing {filteredCertificates.length} certificate(s)
+                    </div>
+                    <button
+                        onClick={fetchCertificates}
+                        className="px-4 py-2 text-sm bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors"
+                    >
+                        Refresh
+                    </button>
                 </div>
             </div>
 
@@ -349,7 +459,7 @@ const TrainingCertificates = () => {
                                 {filteredCertificates.map((cert) => (
                                     <tr key={cert._id} className="hover:bg-gray-50">
                                         <td className="px-6 py-4 whitespace-nowrap">
-                                            <div className="text-sm font-medium text-gray-900">{cert.driverName}</div>
+                                            <div className="text-sm font-medium text-gray-900">{cert.driverName || 'Unknown'}</div>
                                         </td>
                                         <td className="px-6 py-4">
                                             <div className="text-sm font-medium text-gray-900">{cert.certificateName}</div>
@@ -377,13 +487,20 @@ const TrainingCertificates = () => {
                                         </td>
                                         <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
                                             <div className="flex items-center gap-3">
+                                                <button
+                                                    onClick={() => handleViewDetails(cert)}
+                                                    className="text-blue-600 hover:text-blue-800"
+                                                    title="View Details"
+                                                >
+                                                    <Eye size={18} />
+                                                </button>
                                                 {cert.fileUrl && (
                                                     <button
-                                                        onClick={() => window.open(cert.fileUrl, '_blank')}
-                                                        className="text-blue-600 hover:text-blue-800"
-                                                        title="View Certificate"
+                                                        onClick={() => handleViewFile(cert)}
+                                                        className="text-purple-600 hover:text-purple-800"
+                                                        title="View File"
                                                     >
-                                                        <Eye size={18} />
+                                                        <FileText size={18} />
                                                     </button>
                                                 )}
                                                 <button
@@ -555,6 +672,8 @@ const TrainingCertificates = () => {
                                         <div className="px-4 py-2 border border-gray-300 rounded-lg border-dashed hover:bg-gray-50 text-center">
                                             {selectedFile ? (
                                                 <span className="text-blue-600">{selectedFile.name}</span>
+                                            ) : editingCertificate?.fileName ? (
+                                                <span className="text-gray-600">Current: {editingCertificate.fileName} (select new file to replace)</span>
                                             ) : (
                                                 <span className="text-gray-500">Click to upload certificate file</span>
                                             )}
@@ -581,6 +700,7 @@ const TrainingCertificates = () => {
                                     type="button"
                                     onClick={() => setShowAddModal(false)}
                                     className="px-6 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50"
+                                    disabled={saving}
                                 >
                                     Cancel
                                 </button>
@@ -589,12 +709,155 @@ const TrainingCertificates = () => {
                                     style={{
                                         background: 'linear-gradient(90deg, #42aeec 0%, #1db5f5 40%, #0ea3d8 100%)',
                                     }}
-                                    className="px-6 py-2 !text-white font-semibold rounded-lg hover:opacity-90"
+                                    className="px-6 py-2 !text-white font-semibold rounded-lg hover:opacity-90 disabled:opacity-50"
+                                    disabled={saving}
                                 >
-                                    {editingCertificate ? 'Update' : 'Save'} Certificate
+                                    {saving ? 'Saving...' : editingCertificate ? 'Update' : 'Save'} Certificate
                                 </button>
                             </div>
                         </form>
+                    </div>
+                </div>
+            )}
+
+            {/* Details Modal */}
+            {showDetailsModal && selectedCertificate && (
+                <div 
+                    className="fixed inset-0 bg-gray-900/50 backdrop-blur-sm z-50 flex items-center justify-center p-4"
+                    onClick={(e) => {
+                        if (e.target === e.currentTarget) {
+                            setShowDetailsModal(false);
+                        }
+                    }}
+                >
+                    <div 
+                        className="bg-white rounded-xl shadow-2xl max-w-3xl w-full max-h-[90vh] overflow-y-auto"
+                        onClick={(e) => e.stopPropagation()}
+                    >
+                        <div className="sticky top-0 bg-white border-b border-gray-200 px-6 py-4 flex justify-between items-center z-10">
+                            <h2 className="text-2xl font-bold text-gray-900">Certificate Details</h2>
+                            <button
+                                onClick={() => setShowDetailsModal(false)}
+                                className="text-gray-400 hover:text-gray-600 transition-colors"
+                            >
+                                <FaTimes size={24} />
+                            </button>
+                        </div>
+
+                        <div className="p-6 space-y-6">
+                            <div className="grid grid-cols-2 gap-6">
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-500 mb-1">Driver</label>
+                                    <p className="text-base font-semibold text-gray-900">{selectedCertificate.driverName || 'Unknown'}</p>
+                                </div>
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-500 mb-1">Certificate Name</label>
+                                    <p className="text-base font-semibold text-gray-900">{selectedCertificate.certificateName}</p>
+                                </div>
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-500 mb-1">Certificate Type</label>
+                                    <p className="text-base text-gray-900">{selectedCertificate.certificateType}</p>
+                                </div>
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-500 mb-1">Status</label>
+                                    <span className={`px-3 py-1 inline-flex text-sm font-semibold rounded-full ${getStatusColor(selectedCertificate.status)}`}>
+                                        {selectedCertificate.status.replace('_', ' ').toUpperCase()}
+                                    </span>
+                                </div>
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-500 mb-1">Issued Date</label>
+                                    <p className="text-base text-gray-900">
+                                        {new Date(selectedCertificate.issuedDate).toLocaleDateString('en-US', {
+                                            year: 'numeric',
+                                            month: 'long',
+                                            day: 'numeric'
+                                        })}
+                                    </p>
+                                </div>
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-500 mb-1">Expiry Date</label>
+                                    <p className="text-base text-gray-900">
+                                        {selectedCertificate.expiryDate 
+                                            ? new Date(selectedCertificate.expiryDate).toLocaleDateString('en-US', {
+                                                year: 'numeric',
+                                                month: 'long',
+                                                day: 'numeric'
+                                            })
+                                            : 'N/A'}
+                                    </p>
+                                </div>
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-500 mb-1">Issuing Authority</label>
+                                    <p className="text-base text-gray-900">{selectedCertificate.issuingAuthority}</p>
+                                </div>
+                                {selectedCertificate.certificateNumber && (
+                                    <div>
+                                        <label className="block text-sm font-medium text-gray-500 mb-1">Certificate Number</label>
+                                        <p className="text-base text-gray-900">{selectedCertificate.certificateNumber}</p>
+                                    </div>
+                                )}
+                            </div>
+
+                            {selectedCertificate.notes && (
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-500 mb-1">Notes</label>
+                                    <p className="text-base text-gray-900 whitespace-pre-wrap">{selectedCertificate.notes}</p>
+                                </div>
+                            )}
+
+                            {selectedCertificate.fileUrl && (
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-500 mb-1">Certificate File</label>
+                                    <button
+                                        onClick={() => handleViewFile(selectedCertificate)}
+                                        className="flex items-center gap-2 px-4 py-2 bg-blue-50 text-blue-700 rounded-lg hover:bg-blue-100 transition-colors"
+                                    >
+                                        <FileText size={18} />
+                                        {selectedCertificate.fileName || 'View Certificate File'}
+                                    </button>
+                                </div>
+                            )}
+
+                            <div className="pt-4 border-t border-gray-200">
+                                <div className="grid grid-cols-2 gap-6">
+                                    <div>
+                                        <label className="block text-sm font-medium text-gray-500 mb-1 flex items-center gap-2">
+                                            <Clock size={16} />
+                                            Created At
+                                        </label>
+                                        <p className="text-sm text-gray-600">{formatDateTime(selectedCertificate.createdAt)}</p>
+                                    </div>
+                                    <div>
+                                        <label className="block text-sm font-medium text-gray-500 mb-1 flex items-center gap-2">
+                                            <Clock size={16} />
+                                            Last Updated
+                                        </label>
+                                        <p className="text-sm text-gray-600">{formatDateTime(selectedCertificate.updatedAt)}</p>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div className="flex justify-end gap-4 pt-4 border-t border-gray-200">
+                                <button
+                                    onClick={() => setShowDetailsModal(false)}
+                                    className="px-6 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50"
+                                >
+                                    Close
+                                </button>
+                                <button
+                                    onClick={() => {
+                                        setShowDetailsModal(false);
+                                        handleEditClick(selectedCertificate);
+                                    }}
+                                    style={{
+                                        background: 'linear-gradient(90deg, #42aeec 0%, #1db5f5 40%, #0ea3d8 100%)',
+                                    }}
+                                    className="px-6 py-2 !text-white font-semibold rounded-lg hover:opacity-90"
+                                >
+                                    Edit Certificate
+                                </button>
+                            </div>
+                        </div>
                     </div>
                 </div>
             )}
@@ -603,4 +866,3 @@ const TrainingCertificates = () => {
 };
 
 export default TrainingCertificates;
-

@@ -104,6 +104,20 @@ export const getDriverCompletedTrips = async (driverId: string, startDate?: stri
     }
 };
 
+export const getDriverCompletedOrders = async (driverId: string, startDate?: string, endDate?: string) => {
+    try {
+        let url = `hr/completed-orders/${driverId}`;
+        if (startDate && endDate) {
+            url += `?startDate=${startDate}&endDate=${endDate}`;
+        }
+        const res: AxiosResponse = await apiClient.get(url);
+        return res.data;
+    } catch (error: any) {
+        const err = error as Error;
+        return err.response?.data;
+    }
+};
+
 // Automated Payroll Generation
 export const generateAutomatedPayroll = async (data: {
     userId: string;

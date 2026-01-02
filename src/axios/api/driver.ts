@@ -135,3 +135,185 @@ export const generateInternalId = (role: string = 'driver') => {
   const rolePrefix = role === 'driver' ? 'DRV' : 'EMP';
   return `${rolePrefix}-${timestamp}`;
 };
+
+// ==================== TRAINING CERTIFICATE APIs ====================
+export interface TrainingCertificate {
+  _id?: string;
+  driverId: string;
+  driverName?: string;
+  certificateName: string;
+  certificateType: string;
+  issuedDate: string;
+  expiryDate?: string;
+  issuingAuthority: string;
+  certificateNumber?: string;
+  fileUrl?: string;
+  fileName?: string;
+  status: 'active' | 'expired' | 'expiring_soon';
+  notes?: string;
+  createdAt?: string;
+  updatedAt?: string;
+}
+
+export const getTrainingCertificates = async (params?: {
+  search?: string;
+  driverId?: string;
+  certificateType?: string;
+  status?: string;
+}) => {
+  try {
+    const queryParams = new URLSearchParams();
+    if (params?.search) queryParams.append('search', params.search);
+    if (params?.driverId) queryParams.append('driverId', params.driverId);
+    if (params?.certificateType) queryParams.append('certificateType', params.certificateType);
+    if (params?.status) queryParams.append('status', params.status);
+    
+    const queryString = queryParams.toString();
+    const url = `hr/driver/training-certificate${queryString ? `?${queryString}` : ''}`;
+    const res: AxiosResponse = await apiClient.get(url);
+    return res.data;
+  } catch (error) {
+    console.error('❌ Error fetching training certificates:', error);
+    return (error as any).response?.data;
+  }
+};
+
+export const getTrainingCertificateById = async (id: string) => {
+  try {
+    const res: AxiosResponse = await apiClient.get(`hr/driver/training-certificate/${id}`);
+    return res.data;
+  } catch (error) {
+    console.error('❌ Error fetching training certificate:', error);
+    return (error as any).response?.data;
+  }
+};
+
+export const createTrainingCertificate = async (formData: FormData) => {
+  try {
+    const res: AxiosResponse = await apiClient.post('hr/driver/training-certificate', formData, {
+      headers: {
+        'Content-Type': 'multipart/form-data'
+      }
+    });
+    return res.data;
+  } catch (error) {
+    console.error('❌ Error creating training certificate:', error);
+    return (error as any).response?.data;
+  }
+};
+
+export const updateTrainingCertificate = async (id: string, formData: FormData) => {
+  try {
+    const res: AxiosResponse = await apiClient.put(`hr/driver/training-certificate/${id}`, formData, {
+      headers: {
+        'Content-Type': 'multipart/form-data'
+      }
+    });
+    return res.data;
+  } catch (error) {
+    console.error('❌ Error updating training certificate:', error);
+    return (error as any).response?.data;
+  }
+};
+
+export const deleteTrainingCertificate = async (id: string) => {
+  try {
+    const res: AxiosResponse = await apiClient.delete(`hr/driver/training-certificate/${id}`);
+    return res.data;
+  } catch (error) {
+    console.error('❌ Error deleting training certificate:', error);
+    return (error as any).response?.data;
+  }
+};
+
+export const getTrainingCertificateSignedUrl = async (id: string, disposition: 'inline' | 'attachment' = 'inline') => {
+  try {
+    const res: AxiosResponse = await apiClient.get(`hr/driver/training-certificate/${id}/signed-url?disposition=${disposition}`);
+    return res.data;
+  } catch (error) {
+    console.error('❌ Error getting training certificate signed URL:', error);
+    return (error as any).response?.data;
+  }
+};
+
+// ==================== DRUG TEST APIs ====================
+export interface DrugTestRequest {
+  _id?: string;
+  driverId: string;
+  driverName?: string;
+  testType: string;
+  reason: string;
+  scheduledDate: string;
+  scheduledTime?: string;
+  labName: string;
+  collectionSiteName?: string;
+  collectionSiteAddress?: string;
+  collectionSitePhone?: string;
+  importantDetails?: string;
+  status: 'pending' | 'scheduled' | 'completed' | 'cancelled';
+  createdAt?: string;
+  updatedAt?: string;
+}
+
+export const getDrugTests = async (params?: {
+  search?: string;
+  driverId?: string;
+  status?: string;
+  testType?: string;
+}) => {
+  try {
+    const queryParams = new URLSearchParams();
+    if (params?.search) queryParams.append('search', params.search);
+    if (params?.driverId) queryParams.append('driverId', params.driverId);
+    if (params?.status) queryParams.append('status', params.status);
+    if (params?.testType) queryParams.append('testType', params.testType);
+    
+    const queryString = queryParams.toString();
+    const url = `hr/driver/drug-test${queryString ? `?${queryString}` : ''}`;
+    const res: AxiosResponse = await apiClient.get(url);
+    return res.data;
+  } catch (error) {
+    console.error('❌ Error fetching drug tests:', error);
+    return (error as any).response?.data;
+  }
+};
+
+export const getDrugTestById = async (id: string) => {
+  try {
+    const res: AxiosResponse = await apiClient.get(`hr/driver/drug-test/${id}`);
+    return res.data;
+  } catch (error) {
+    console.error('❌ Error fetching drug test:', error);
+    return (error as any).response?.data;
+  }
+};
+
+export const createDrugTest = async (data: DrugTestRequest) => {
+  try {
+    const res: AxiosResponse = await apiClient.post('hr/driver/drug-test', data);
+    return res.data;
+  } catch (error) {
+    console.error('❌ Error creating drug test:', error);
+    return (error as any).response?.data;
+  }
+};
+
+export const updateDrugTest = async (id: string, data: Partial<DrugTestRequest>) => {
+  try {
+    const res: AxiosResponse = await apiClient.put(`hr/driver/drug-test/${id}`, data);
+    return res.data;
+  } catch (error) {
+    console.error('❌ Error updating drug test:', error);
+    return (error as any).response?.data;
+  }
+};
+
+export const deleteDrugTest = async (id: string) => {
+  try {
+    const res: AxiosResponse = await apiClient.delete(`hr/driver/drug-test/${id}`);
+    return res.data;
+  } catch (error) {
+    console.error('❌ Error deleting drug test:', error);
+    return (error as any).response?.data;
+  }
+};

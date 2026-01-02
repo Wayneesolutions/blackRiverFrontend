@@ -508,21 +508,6 @@ const CashFlowInsightsPage: React.FC<CashFlowInsightsPageProps> = () => {
                                 </div>
                             </div>
                         )}
-
-                        {/* Upcoming Obligations */}
-                        <div className="bg-white rounded-lg p-6 border border-gray-200 shadow-sm">
-                            <h3 className="text-lg font-bold text-gray-900 mb-4">Upcoming Obligations (Next 30 Days)</h3>
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                <div className="bg-red-50 rounded-lg p-4 border border-red-200">
-                                    <div className="text-sm font-medium text-gray-700 mb-1">Upcoming Expenses</div>
-                                    <div className="text-2xl font-bold text-red-600">{formatCurrency(insightsData.upcomingExpenses)}</div>
-                                </div>
-                                <div className="bg-blue-50 rounded-lg p-4 border border-blue-200">
-                                    <div className="text-sm font-medium text-gray-700 mb-1">Upcoming Payroll</div>
-                                    <div className="text-2xl font-bold text-blue-600">{formatCurrency(insightsData.upcomingPayroll)}</div>
-                                </div>
-                            </div>
-                        </div>
                     </div>
                 )}
             </div>

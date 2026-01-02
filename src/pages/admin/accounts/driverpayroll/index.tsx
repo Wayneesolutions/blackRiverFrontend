@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { Plus, Search, DollarSign, Users, Calendar, TrendingUp, X, AlertCircle, CheckCircle, Edit2, Trash2, Eye, MapPin, Package, Truck, FileText, Download } from 'lucide-react';
-import { createPayroll, listPayrolls, updatePayroll, deletePayroll, getDriverCompletedTrips, generateAIDriverPayroll, bulkAnalyzeAIDriverPayrolls, bulkCreateDriverPayrolls, getPaystubByPayrollId } from '../../../../axios/api/account.payroll';
+import { createPayroll, listPayrolls, updatePayroll, deletePayroll, getDriverCompletedOrders, generateAIDriverPayroll, bulkAnalyzeAIDriverPayrolls, bulkCreateDriverPayrolls, getPaystubByPayrollId } from '../../../../axios/api/account.payroll';
 import * as driverApi from '../../../../axios/api/driver';
 import jsPDF from 'jspdf';
 
@@ -14,7 +14,9 @@ interface Driver {
     salaryPerMileSnow?: number;
     salaryPerMileHighTemp?: number;
     highTempThreshold?: number;
+    companyFlag?: boolean;
   };
+  companyFlag?: boolean; // Direct property for easier access
 }
 
 interface Trip {
@@ -330,6 +332,7 @@ const DriverPayrollManagement = () => {
   const [loadingBulkAI, setLoadingBulkAI] = useState<boolean>(false);
   const [notification, setNotification] = useState<Notification | null>(null);
   const [showBulkGenerateModal, setShowBulkGenerateModal] = useState<boolean>(false);
+  const [driverTypeTab, setDriverTypeTab] = useState<'ownerOperator' | 'companyDriver'>('ownerOperator');
   const [showBulkSuggestionsModal, setShowBulkSuggestionsModal] = useState<boolean>(false);
   const [bulkGenerateResult, setBulkGenerateResult] = useState<any>(null);
   const [bulkPayrollSuggestions, setBulkPayrollSuggestions] = useState<any[]>([]);
@@ -422,15 +425,19 @@ const DriverPayrollManagement = () => {
             salaryPerMile: salaryPerMile
           });
 
+          const companyFlag = driver.details?.companyFlag ?? driver.companyFlag ?? false;
+          
           return {
             _id: driver._id,
             name: driver.name,
             role: driver.role || 'driver',
+            companyFlag: companyFlag,
             details: {
               salaryPerMile: Number(salaryPerMile) || 0,
               salaryPerMileSnow: Number(salaryPerMileSnow) || 0,
               salaryPerMileHighTemp: Number(salaryPerMileHighTemp) || 0,
-              highTempThreshold: Number(highTempThreshold) || 35
+              highTempThreshold: Number(highTempThreshold) || 35,
+              companyFlag: companyFlag
             }
           };
         });
@@ -521,7 +528,7 @@ const DriverPayrollManagement = () => {
         return;
       }
 
-      const response = await getDriverCompletedTrips(driverId, startDate, endDate);
+      const response = await getDriverCompletedOrders(driverId, startDate, endDate);
 
       if (response?.success) {
         const trips: Trip[] = (response.data || []).map((trip: any) => ({
@@ -1513,14 +1520,43 @@ const DriverPayrollManagement = () => {
     setDriverPayrollSummary(null);
   };
 
-  const filteredPayrolls = payrollData.filter(payroll => {
-    const searchLower = searchTerm.toLowerCase();
-    return searchTerm === '' ||
-      payroll.userId.name?.toLowerCase().includes(searchLower);
+  // Filter drivers based on type (owner operator vs company driver)
+  const filteredDriversByType = drivers.filter(driver => {
+    const isCompanyDriver = driver.companyFlag ?? driver.details?.companyFlag ?? false;
+    if (driverTypeTab === 'companyDriver') {
+      return isCompanyDriver;
+    } else {
+      return !isCompanyDriver; // owner operator
+    }
   });
 
-  const totalPayroll = payrollData.reduce((sum, payroll) => sum + payroll.totalSalary, 0);
-  const totalMiles = payrollData.reduce((sum, payroll) => sum + (payroll.totalMiles || 0), 0);
+  // Filter payrolls based on driver type and search term
+  const filteredPayrolls = payrollData.filter(payroll => {
+    // First check if payroll's driver matches the selected driver type
+    const payrollDriver = typeof payroll.userId === 'object' ? payroll.userId : null;
+    if (payrollDriver) {
+      // Try to find the driver in our drivers list to check companyFlag
+      const driver = drivers.find(d => d._id === payrollDriver._id?.toString() || d._id === payrollDriver.toString());
+      if (driver) {
+        const isCompanyDriver = driver.companyFlag ?? driver.details?.companyFlag ?? false;
+        if (driverTypeTab === 'companyDriver' && !isCompanyDriver) {
+          return false; // Skip owner operators when company driver tab is selected
+        }
+        if (driverTypeTab === 'ownerOperator' && isCompanyDriver) {
+          return false; // Skip company drivers when owner operator tab is selected
+        }
+      }
+    }
+    
+    // Then apply search filter
+    const searchLower = searchTerm.toLowerCase();
+    return searchTerm === '' ||
+      (payrollDriver?.name?.toLowerCase().includes(searchLower) ?? false);
+  });
+
+  // Calculate stats based on filtered payrolls (matching selected driver type tab)
+  const totalPayroll = filteredPayrolls.reduce((sum, payroll) => sum + payroll.totalSalary, 0);
+  const totalMiles = filteredPayrolls.reduce((sum, payroll) => sum + (payroll.totalMiles || 0), 0);
   const avgPerMile = totalMiles > 0 ? totalPayroll / totalMiles : 0;
 
   return (
@@ -1588,7 +1624,7 @@ const DriverPayrollManagement = () => {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm font-medium text-[#063f6f]">Active Drivers</p>
-                <p className="text-2xl font-bold text-[#016ab2] mt-1">{payrollData.length}</p>
+                <p className="text-2xl font-bold text-[#016ab2] mt-1">{filteredPayrolls.length}</p>
               </div>
               <div className="p-3 rounded-full bg-white">
                 <Users className="text-[#42aeec]" size={24} />
@@ -1636,9 +1672,43 @@ const DriverPayrollManagement = () => {
           </div>
         </div>
 
+        {/* Driver Type Tabs */}
+        <div className="bg-white rounded-xl border-gray-200 shadow-sm border mb-6">
+          <div className="flex border-b border-gray-200">
+            <button
+              onClick={() => setDriverTypeTab('ownerOperator')}
+              className={`flex-1 px-6 py-4 text-sm font-medium transition-colors ${
+                driverTypeTab === 'ownerOperator'
+                  ? 'text-[#42aeec] border-b-2 border-[#42aeec] bg-blue-50'
+                  : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
+              }`}
+            >
+              Owner Operators
+              <span className="ml-2 text-xs text-gray-500">
+                ({drivers.filter(d => !(d.companyFlag ?? d.details?.companyFlag ?? false)).length})
+              </span>
+            </button>
+            <button
+              onClick={() => setDriverTypeTab('companyDriver')}
+              className={`flex-1 px-6 py-4 text-sm font-medium transition-colors ${
+                driverTypeTab === 'companyDriver'
+                  ? 'text-[#42aeec] border-b-2 border-[#42aeec] bg-blue-50'
+                  : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
+              }`}
+            >
+              Company Drivers
+              <span className="ml-2 text-xs text-gray-500">
+                ({drivers.filter(d => d.companyFlag ?? d.details?.companyFlag ?? false).length})
+              </span>
+            </button>
+          </div>
+        </div>
+
         <div className="bg-white border-gray-200 rounded-xl shadow-sm border">
           <div className="p-6 border-b border-gray-200">
-            <h2 className="text-xl font-bold text-gray-900">Driver Payroll Records</h2>
+            <h2 className="text-xl font-bold text-gray-900">
+              {driverTypeTab === 'ownerOperator' ? 'Owner Operator' : 'Company Driver'} Payroll Records
+            </h2>
           </div>
           
           {loading ? (
@@ -1853,7 +1923,7 @@ const DriverPayrollManagement = () => {
                         className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
                       >
                         <option value="">Choose a driver...</option>
-                        {drivers.map((driver) => (
+                        {filteredDriversByType.map((driver) => (
                           <option key={driver._id} value={driver._id}>
                             {driver.name} - Base: ${driver.details?.salaryPerMile || 0}/mi
                             {driver.details?.salaryPerMileSnow ? ` | Snow: +$${driver.details.salaryPerMileSnow}/mi` : ''}
