@@ -10,13 +10,13 @@ const Dispatch = lazy(() => import("../../pages/admin/dispatch/operations/dispat
 
 const Scheduling = lazy(() => import("../../pages/admin/driverManagement/schedulePage/index"))
 
-const BulkOrder = lazy(() => import("../../pages/admin/dispatch/operations/bulk-order/index"))
+
 const Trips = lazy(() => import("../../pages/admin/dispatch/operations/tripsOrder"))
 
 const DriversPage = lazy(() => import("../../pages/admin/dispatch/resources/drivers"))
 const Fleets = lazy(() => import("../../pages/admin/dispatch/resources/fleet/index"))
 
-const Contacts = lazy(() => import("../../pages/admin/dispatch/resources/contacts/index"))
+const Contacts = lazy(() => import("../../pages/admin/driverManagement/customers/index"))
 const Profile = lazy(() => import("../../pages/admin/dashboard/Profile/index"))
 
 const Utilization = lazy(() => import("../../pages/admin/dispatch/operations/utilization/index"))
@@ -37,7 +37,7 @@ function DispatchRoutes() {
           <Route path="/dashboard" element={<DispatchDashboard />} />
           <Route path="/profile" element={<Profile />} />
           {/* <Route path="/order-list" element={<OrderList />} /> */}
-          <Route path="/bulk-order" element={<BulkOrder />} />
+        
           <Route path="/trips" element={<Trips />} />
    
           <Route path="/dispatch" element={<Dispatch />} />

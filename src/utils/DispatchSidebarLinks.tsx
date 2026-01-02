@@ -34,11 +34,6 @@ export const DispatchSidebarLinks: DispatchSidebarLinks[] = [
     icon: <FaRoute />,
     label: "Trips",
   },
-  {
-    key: "/admin/dispatch/bulk-order",
-    icon: <FaLayerGroup />,
-    label: "Bulk Order",
-  },
 
   {
     key: "/admin/dispatch/scheduling",

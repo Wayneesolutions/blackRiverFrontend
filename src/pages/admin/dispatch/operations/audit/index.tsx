@@ -270,45 +270,77 @@ const AuditTrail = () => {
           <div className="mt-4 flex gap-2">
             <button
               onClick={() => setDateFilter("all")}
-              className={`px-4 py-1 rounded-lg text-sm font-medium transition-colors ${
+              style={
                 dateFilter === "all"
-                  ? "bg-blue-600 text-white"
-                  : "bg-gray-100 text-gray-700 hover:bg-gray-200"
-              }`}
+                  ? {
+                    background:
+                      "linear-gradient(90deg, #42aeec 0%, #1db5f5 40%, #0ea3d8 100%)",
+                  }
+                  : undefined
+              }
+              className={`px-4 py-1 rounded-lg text-sm font-medium transition-colors ${dateFilter === "all"
+                ? "!text-white"
+                : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+                }`}
             >
               All Time
             </button>
+
             <button
               onClick={() => setDateFilter("today")}
-              className={`px-4 py-1 rounded-lg text-sm font-medium transition-colors ${
+              style={
                 dateFilter === "today"
-                  ? "bg-blue-600 text-white"
-                  : "bg-gray-100 text-gray-700 hover:bg-gray-200"
-              }`}
+                  ? {
+                    background:
+                      "linear-gradient(90deg, #42aeec 0%, #1db5f5 40%, #0ea3d8 100%)",
+                  }
+                  : undefined
+              }
+              className={`px-4 py-1 rounded-lg text-sm font-medium transition-colors ${dateFilter === "today"
+                ? "!text-white"
+                : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+                }`}
             >
               Today
             </button>
+
             <button
               onClick={() => setDateFilter("week")}
-              className={`px-4 py-1 rounded-lg text-sm font-medium transition-colors ${
+              style={
                 dateFilter === "week"
-                  ? "bg-blue-600 text-white"
-                  : "bg-gray-100 text-gray-700 hover:bg-gray-200"
-              }`}
+                  ? {
+                    background:
+                      "linear-gradient(90deg, #42aeec 0%, #1db5f5 40%, #0ea3d8 100%)",
+                  }
+                  : undefined
+              }
+              className={`px-4 py-1 rounded-lg text-sm font-medium transition-colors ${dateFilter === "week"
+                ? "!text-white"
+                : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+                }`}
             >
               Last 7 Days
             </button>
+
             <button
               onClick={() => setDateFilter("month")}
-              className={`px-4 py-1 rounded-lg text-sm font-medium transition-colors ${
+              style={
                 dateFilter === "month"
-                  ? "bg-blue-600 text-white"
-                  : "bg-gray-100 text-gray-700 hover:bg-gray-200"
-              }`}
+                  ? {
+                    background:
+                      "linear-gradient(90deg, #42aeec 0%, #1db5f5 40%, #0ea3d8 100%)",
+                  }
+                  : undefined
+              }
+              className={`px-4 py-1 rounded-lg text-sm font-medium transition-colors ${dateFilter === "month"
+                ? "!text-white"
+                : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+                }`}
             >
               Last 30 Days
             </button>
           </div>
+
         </div>
 
         {/* Results Count */}

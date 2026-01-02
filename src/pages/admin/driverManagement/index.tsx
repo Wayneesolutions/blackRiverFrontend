@@ -164,17 +164,6 @@ const Index = () => {
       path: `${basePath}/drivers`
     },
     {
-      id: 'office-employees',
-      title: 'Total Office Employees',
-      value: dashboardStats?.totalOfficeEmployees ?? 0,
-      subtitle: 'Office workforce',
-      icon: Users,
-      bgColor: 'bg-purple-100',
-      iconColor: 'text-purple-700',
-      cardBg: 'bg-gradient-to-br from-purple-50 to-purple-100',
-      path: `${basePath}/employeelist`
-    },
-    {
       id: 'employees',
       title: 'Total Employees',
       value: dashboardStats?.totalEmployees ?? 0,
