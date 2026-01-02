@@ -406,7 +406,7 @@ const EmployeesPage = () => {
         formData.append('jobTime', personalData.jobTime);
       }
       
-      // Documents - send as JSON array (file data will be uploaded separately)
+      // Documents - send as JSON array and files
       if (documents && documents.length > 0) {
         const documentsData = documents.map(doc => ({
           id: doc.id,
@@ -419,6 +419,16 @@ const EmployeesPage = () => {
           isExisting: doc.isExisting || false
         }));
         formData.append('documents', JSON.stringify(documentsData));
+        
+        // Append document files (only new files, not existing ones)
+        const newDocuments = documents.filter(doc => !doc.isExisting && doc.file);
+        newDocuments.forEach((doc) => {
+          if (doc.file) {
+            formData.append('documentFiles', doc.file);
+            console.log(`📎 Appending document file: ${doc.file.name} (${(doc.file.size / 1024).toFixed(2)} KB)`);
+          }
+        });
+        console.log(`📄 Total documents: ${documents.length}, New files: ${newDocuments.length}`);
       }
       
       // Notes / Benefits - send as text
@@ -429,24 +439,6 @@ const EmployeesPage = () => {
       // Profile image
       if (profileImage) {
         formData.append('file', profileImage);
-      }
-
-      // Log documents before sending
-      const newDocuments = documents.filter(doc => !doc.isExisting && doc.file);
-      console.log('📄 Total documents in form:', documents.length);
-      console.log('📄 New documents to upload:', newDocuments.length);
-      console.log('📄 Existing documents (not uploading):', documents.filter(doc => doc.isExisting).length);
-      
-      if (newDocuments.length > 0) {
-        newDocuments.forEach((doc, index) => {
-          console.log(`  📎 Document ${index + 1}:`, {
-            description: doc.description || doc.documentType || 'No description',
-            expiryDate: doc.expiryDate || 'No expiry date',
-            fileName: doc.file?.name || 'No file',
-            fileSize: doc.file?.size || 0,
-            ignoreExpiration: doc.ignoreExpiration
-          });
-        });
       }
 
       let response;
@@ -464,54 +456,8 @@ const EmployeesPage = () => {
 
       if (response?.success) {
         console.log('✅ Employee saved successfully, employeeId:', employeeId);
+        console.log('✅ Documents were included in the employee creation/update request');
         
-        // Save new documents (only those that are not existing)
-        if (employeeId && newDocuments.length > 0) {
-          console.log(`📤 Starting upload of ${newDocuments.length} document(s) for employee ${employeeId}`);
-          
-          try {
-            const documentPromises = newDocuments.map(async (doc, index) => {
-              try {
-                console.log(`  📤 Preparing document ${index + 1}/${newDocuments.length}: ${doc.description || doc.file?.name || 'Untitled'}`);
-                
-                const docFormData = new FormData();
-                docFormData.append('employee', employeeId);
-                docFormData.append('documentType', doc.documentType || 'Other');
-                docFormData.append('status', 'valid');
-                if (doc.expiryDate) docFormData.append('expiryDate', doc.expiryDate);
-                if (doc.description) docFormData.append('description', doc.description);
-                if (doc.ignoreExpiration) docFormData.append('ignoreExpiration', 'true');
-                if (doc.file) {
-                  docFormData.append('documentFile', doc.file);
-                  console.log(`    📎 File: ${doc.file.name} (${(doc.file.size / 1024).toFixed(2)} KB)`);
-                }
-
-                console.log(`  🚀 Uploading document ${index + 1}/${newDocuments.length}...`);
-                const docResponse = await createEmployeeDocument(docFormData);
-                console.log(`  ✅ Document ${index + 1} uploaded successfully:`, docResponse?.data?._id || 'ID received');
-                return docResponse;
-              } catch (docError: any) {
-                console.error(`  ❌ Error uploading document ${index + 1}:`, docError?.response?.data || docError?.message || docError);
-                throw docError;
-              }
-            });
-
-            const results = await Promise.all(documentPromises);
-            console.log(`✅ All ${newDocuments.length} document(s) uploaded successfully for employee ${employeeId}`);
-            console.log('📊 Document upload results:', results.map((r, i) => ({ index: i + 1, success: r?.success, id: r?.data?._id })));
-          } catch (docError: any) {
-            console.error('❌ Error uploading documents:', docError);
-            console.error('❌ Error details:', docError?.response?.data || docError?.message);
-            alert('Employee saved but some documents failed to upload. Please add them manually.');
-          }
-        } else if (employeeId && documents.length > 0 && newDocuments.length === 0) {
-          console.log('ℹ️ No new documents to upload (all documents are existing)');
-        } else if (!employeeId) {
-          console.warn('⚠️ No employeeId available, cannot upload documents');
-        } else {
-          console.log('ℹ️ No documents to upload');
-        }
-
         alert(`Employee ${editingId ? 'updated' : 'created'} successfully!`);
         setShowNewEmployeeModal(false);
         resetForm();

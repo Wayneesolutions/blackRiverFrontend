@@ -837,6 +837,7 @@ const Trips = () => {
                   <tr>
                     <th className="px-4 py-3 text-left text-xs font-semibold text-gray-700 uppercase">Trip #</th>
                     <th className="px-4 py-3 text-left text-xs font-semibold text-gray-700 uppercase">Driver</th>
+                    <th className="px-4 py-3 text-left text-xs font-semibold text-gray-700 uppercase">Co-Driver</th>
                     <th className="px-4 py-3 text-left text-xs font-semibold text-gray-700 uppercase">Truck</th>
                     <th className="px-4 py-3 text-left text-xs font-semibold text-gray-700 uppercase">Trailer</th>
                     <th className="px-4 py-3 text-left text-xs font-semibold text-gray-700 uppercase">Orders</th>
@@ -861,14 +862,15 @@ const Trips = () => {
                         </button>
                       </td>
                       <td className="px-4 py-3 whitespace-nowrap">
-                        <div className="flex items-start gap-2">
-                          <FaUser className="text-gray-400 mt-0.5" size={14} />
-                          <div className="leading-tight">
-                            <div>{trip.driver?.name || '-'}</div>
-                            {trip.coDriver?.name && (
-                              <div className="text-xs text-gray-500">Co-driver: {trip.coDriver.name}</div>
-                            )}
-                          </div>
+                        <div className="flex items-center gap-2">
+                          <FaUser className="text-gray-400" size={14} />
+                          <div>{trip.driver?.name || '-'}</div>
+                        </div>
+                      </td>
+                      <td className="px-4 py-3 whitespace-nowrap">
+                        <div className="flex items-center gap-2">
+                          <FaUser className="text-gray-400" size={14} />
+                          <div>{trip.coDriver?.name || '-'}</div>
                         </div>
                       </td>
                       <td className="px-4 py-3 whitespace-nowrap">

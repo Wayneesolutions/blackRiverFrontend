@@ -89,6 +89,7 @@ interface Order {
   currency: string;
   status: "QUOTED" | "CONFIRMED" | "IN_PROGRESS" | "COMPLETED";
   driver: string;
+  coDriver: string;
   truckNo: string;
   trailerNo: string;
 }
@@ -324,6 +325,7 @@ const OrderList = () => {
           currency: order.currency || order.rateCurrency || 'CAD',
           status: order.status || 'QUOTED',
           driver: order.driver?.name || '',
+          coDriver: order.coDriver?.name || '',
           truckNo: order.truck?.licensePlate || order.truck?.unitNo || order.truck?.internalId || '',
           trailerNo: order.trailer?.licensePlate || order.trailer?.unitNo || '',
           // Additional fields for table display
@@ -804,6 +806,9 @@ const OrderList = () => {
                   Driver/Carrier
                 </th>
                 <th className="px-4 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                  Co-Driver
+                </th>
+                <th className="px-4 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
                   Booked
                 </th>
                 <th className="px-4 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
@@ -829,14 +834,14 @@ const OrderList = () => {
             <tbody className="bg-white divide-y divide-gray-200">
               {loading ? (
                 <tr>
-                  <td colSpan={23} className="px-6 py-12 text-center text-gray-500">
+                  <td colSpan={24} className="px-6 py-12 text-center text-gray-500">
                     <div className="animate-spin rounded-full h-8 w-8 border-b-2 mx-auto" style={{ borderBottomColor: PRIMARY_COLOR }}></div>
                     <p className="mt-2">Loading orders...</p>
                   </td>
                 </tr>
               ) : paginatedOrders.length === 0 ? (
                 <tr>
-                  <td colSpan={23} className="px-6 py-12 text-center text-gray-500">
+                  <td colSpan={24} className="px-6 py-12 text-center text-gray-500">
                     <p className="text-lg font-medium">No orders found</p>
                     <p className="text-sm">Create a new order to get started</p>
                   </td>
@@ -908,10 +913,11 @@ const OrderList = () => {
                   // Carrier (could be from driver assignment or separate field)
                   const carrierName = (order as any).carrier || fullOrder.carrier || fullOrder.carrierName || '-';
                   
-                  // Truck, Trailer, Driver
+                  // Truck, Trailer, Driver, Co-Driver
                   const truckDisplay = order.truckNo || '-';
                   const trailerDisplay = order.trailerNo || '-';
                   const driverDisplay = order.driver || '-';
+                  const coDriverDisplay = order.coDriver || '-';
 
                   return (
                     <tr 
@@ -986,6 +992,9 @@ const OrderList = () => {
                       </td>
                       <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-900">
                         {driverDisplay}
+                      </td>
+                      <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-900">
+                        {coDriverDisplay}
                       </td>
                       <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-900">
                         {displayBooked}
