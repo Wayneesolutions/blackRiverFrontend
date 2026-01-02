@@ -74,12 +74,92 @@ const EmployeesPage = () => {
     department: '',
     jobType: '',
     jobTime: 'FULL-TIME' as 'FULL-TIME' | 'PART-TIME',
-    phone: '+1',
+    phone: '1', // Store phone without country code prefix
     searchAddress: '',
     address: '',
     hireDate: '',
     terminationDate: ''
   });
+
+  // Country selector state for phone
+  interface Country {
+    name: string;
+    code: string;
+    flag: string;
+    dialCode: string;
+  }
+
+  const [countries, setCountries] = useState<Country[]>([]);
+  const [phoneCountry, setPhoneCountry] = useState<string>('US');
+  const [phoneCountryDropdownOpen, setPhoneCountryDropdownOpen] = useState(false);
+  const [phoneCountrySearch, setPhoneCountrySearch] = useState('');
+  const phoneCountryDropdownRef = useRef<HTMLDivElement>(null);
+
+  // Helper function to parse phone number and extract country code
+  const parsePhoneNumber = (phone: string | undefined | null, countriesList: Country[] = countries): { countryCode: string; phoneNumber: string } => {
+    if (!phone) return { countryCode: 'US', phoneNumber: '' };
+    
+    const cleanPhone = phone.trim();
+    const sortedCountries = [...countriesList].sort((a, b) => b.dialCode.length - a.dialCode.length);
+    
+    for (const country of sortedCountries) {
+      if (cleanPhone.startsWith(country.dialCode)) {
+        return {
+          countryCode: country.code,
+          phoneNumber: cleanPhone.substring(country.dialCode.length).trim()
+        };
+      }
+    }
+    
+    return { countryCode: 'US', phoneNumber: cleanPhone.replace(/^\+1/, '').trim() };
+  };
+
+  // Fetch countries data
+  useEffect(() => {
+    fetch('https://restcountries.com/v3.1/all?fields=name,flag,idd,cca2')
+      .then(res => res.json())
+      .then(data => {
+        const sortedCountries = data
+          .filter((c: any) => c.idd && c.idd.root)
+          .map((c: any) => ({
+            name: c.name.common,
+            code: c.cca2,
+            flag: c.flag,
+            dialCode: c.idd.root + (c.idd.suffixes ? c.idd.suffixes[0] : ''),
+          }))
+          .sort((a: Country, b: Country) => a.name.localeCompare(b.name));
+
+        setCountries(sortedCountries);
+        const defaultCountry = sortedCountries.find((c: Country) => c.code === 'US');
+        if (defaultCountry) {
+          setPhoneCountry('US');
+        }
+      })
+      .catch(() => {
+        const fallback = [
+          { name: 'United States', code: 'US', flag: '🇺🇸', dialCode: '+1' },
+          { name: 'Canada', code: 'CA', flag: '🇨🇦', dialCode: '+1' },
+          { name: 'India', code: 'IN', flag: '🇮🇳', dialCode: '+91' },
+          { name: 'United Kingdom', code: 'GB', flag: '🇬🇧', dialCode: '+44' },
+          { name: 'Australia', code: 'AU', flag: '🇦🇺', dialCode: '+61' },
+        ];
+        setCountries(fallback);
+        setPhoneCountry('US');
+      });
+  }, []);
+
+  // Close dropdown on outside click
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (phoneCountryDropdownRef.current && !phoneCountryDropdownRef.current.contains(event.target as Node)) {
+        setPhoneCountryDropdownOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, []);
 
   // Form state for Documents
   const [documents, setDocuments] = useState<Array<{
@@ -261,18 +341,90 @@ const EmployeesPage = () => {
     try {
       const formData = new FormData();
       
-      // Basic data
-      formData.append('name', `${basicData.firstName} ${basicData.lastName}`);
+      // Basic data - always include required fields
+      formData.append('name', `${basicData.firstName} ${basicData.lastName}`.trim());
       formData.append('email', basicData.email);
-      if (basicData.password) formData.append('password', basicData.password);
+      formData.append('password', basicData.password || 'TempPassword123!'); // Always send password
       formData.append('status', basicData.status.toLowerCase());
       if (basicData.role) formData.append('role', basicData.role);
       
-      // Personal data
-      if (personalData.phone) formData.append('phone', personalData.phone);
-      if (personalData.address) formData.append('address', personalData.address);
-      if (personalData.hireDate) formData.append('hireDate', personalData.hireDate);
-      if (personalData.terminationDate) formData.append('termDate', personalData.terminationDate);
+      // Personal data - include all fields (even if empty)
+      // Phone - include country code prefix
+      if (personalData.phone) {
+        const phoneCountryObj = countries.find(c => c.code === phoneCountry);
+        if (phoneCountryObj) {
+          // Remove + from dial code for comparison
+          const dialCodeWithoutPlus = phoneCountryObj.dialCode.replace('+', '');
+          let phoneNumber = personalData.phone.trim();
+          
+          // Remove any existing + prefix
+          if (phoneNumber.startsWith('+')) {
+            phoneNumber = phoneNumber.substring(1);
+          }
+          
+          // Check if phone number already starts with the dial code (without +)
+          if (phoneNumber.startsWith(dialCodeWithoutPlus)) {
+            // Phone already includes dial code, just add + prefix
+            formData.append('phone', `+${phoneNumber}`);
+          } else {
+            // Phone doesn't start with dial code, prepend it
+            formData.append('phone', `${phoneCountryObj.dialCode}${phoneNumber}`);
+          }
+        } else {
+          // Fallback if country not found - add + if not present
+          const phoneValue = personalData.phone.startsWith('+') ? personalData.phone : `+${personalData.phone}`;
+          formData.append('phone', phoneValue);
+        }
+      }
+      if (personalData.address) {
+        formData.append('address', personalData.address);
+      }
+      if (personalData.hireDate) {
+        formData.append('hireDate', personalData.hireDate);
+      }
+      if (personalData.terminationDate) {
+        formData.append('termDate', personalData.terminationDate);
+      }
+      
+      // Additional personal data fields
+      if (personalData.title) {
+        formData.append('title', personalData.title);
+      }
+      if (personalData.payType) {
+        formData.append('payType', personalData.payType);
+      }
+      if (personalData.vacationPay) {
+        formData.append('vacationPay', personalData.vacationPay);
+      }
+      if (personalData.department) {
+        formData.append('department', personalData.department);
+      }
+      if (personalData.jobType) {
+        formData.append('jobType', personalData.jobType);
+      }
+      if (personalData.jobTime) {
+        formData.append('jobTime', personalData.jobTime);
+      }
+      
+      // Documents - send as JSON array (file data will be uploaded separately)
+      if (documents && documents.length > 0) {
+        const documentsData = documents.map(doc => ({
+          id: doc.id,
+          _id: doc._id || '',
+          expiryDate: doc.expiryDate || '',
+          description: doc.description || '',
+          ignoreExpiration: doc.ignoreExpiration || false,
+          documentType: doc.documentType || 'Other',
+          hasFile: !!doc.file,
+          isExisting: doc.isExisting || false
+        }));
+        formData.append('documents', JSON.stringify(documentsData));
+      }
+      
+      // Notes / Benefits - send as text
+      if (notesBenefits && notesBenefits.trim()) {
+        formData.append('notes', notesBenefits.trim());
+      }
       
       // Profile image
       if (profileImage) {
@@ -435,6 +587,9 @@ const EmployeesPage = () => {
           status: emp.status || 'active',
           role: emp.role || ''
         });
+        // Parse phone number to extract country code and phone number
+        const parsedPhone = parsePhoneNumber(emp.phone || '', countries);
+        setPhoneCountry(parsedPhone.countryCode);
         setPersonalData({
           title: '',
           payType: '',
@@ -442,7 +597,7 @@ const EmployeesPage = () => {
           department: '',
           jobType: '',
           jobTime: 'FULL-TIME',
-          phone: emp.phone || '+1',
+          phone: parsedPhone.phoneNumber || '1',
           searchAddress: '',
           address: emp.location?.address || '',
           hireDate: emp.joinDate ? new Date(emp.joinDate).toISOString().split('T')[0] : '',
@@ -706,7 +861,17 @@ const EmployeesPage = () => {
                   </tr>
                 ) : (
                   filteredEmployees.map((employee, index) => (
-                    <tr key={employee._id || index} className="hover:bg-gray-50 transition-colors">
+                    <tr 
+                      key={employee._id || index} 
+                      className="hover:bg-gray-50 transition-colors cursor-pointer"
+                      onClick={() => {
+                        if (employee._id) {
+                          setEditingId(employee._id);
+                          loadEmployeeForEdit(employee._id);
+                          setShowNewEmployeeModal(true);
+                        }
+                      }}
+                    >
                       <td className="px-4 py-3">
                         <div className="flex items-center justify-center">
                           {employee.profileImageUrl || employee.profileImage ? (
@@ -746,11 +911,13 @@ const EmployeesPage = () => {
                       <td className="px-4 py-3">
                         <div className="flex items-center gap-2">
                           <button
-                            onClick={() => {
+                            onClick={(e) => {
+                              e.stopPropagation(); // Prevent row click from triggering
                               if (employee._id) {
                                 setEditingId(employee._id);
                                 // Load employee data for editing
                                 loadEmployeeForEdit(employee._id);
+                                setShowNewEmployeeModal(true);
                               }
                             }}
                             className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
@@ -759,7 +926,8 @@ const EmployeesPage = () => {
                             <Edit className="w-4 h-4" />
                           </button>
                           <button
-                            onClick={() => {
+                            onClick={(e) => {
+                              e.stopPropagation(); // Prevent row click from triggering
                               if (employee._id && window.confirm('Are you sure you want to delete this employee?')) {
                                 handleDelete(employee._id);
                               }
@@ -1095,15 +1263,99 @@ const EmployeesPage = () => {
                           </button>
                         </div>
                       </div>
-                      <div>
+                      <div className="col-span-2">
                         <label className="block text-sm font-medium text-gray-700 mb-1">Phone #</label>
-                        <div className="flex items-center gap-2">
-                          <span className="text-sm text-gray-600">us +1</span>
+                        <div className="flex items-center border border-gray-300 rounded-lg focus-within:ring-2 focus-within:ring-[#42aeec] focus-within:border-transparent">
+                          <div className="relative" ref={phoneCountryDropdownRef}>
+                            <button
+                              type="button"
+                              onClick={() => {
+                                setPhoneCountryDropdownOpen(!phoneCountryDropdownOpen);
+                                if (!phoneCountryDropdownOpen) {
+                                  setPhoneCountrySearch('');
+                                }
+                              }}
+                              className="flex items-center gap-1.5 px-2 py-2 text-sm bg-white border-none outline-none cursor-pointer h-full"
+                              style={{ minWidth: '85px' }}
+                            >
+                              {countries.find(c => c.code === phoneCountry) && (
+                                <>
+                                  <span className="text-sm" style={{ fontSize: '16px' }}>{countries.find(c => c.code === phoneCountry)?.flag}</span>
+                                  <span className="text-xs text-gray-600 font-medium">{countries.find(c => c.code === phoneCountry)?.dialCode}</span>
+                                </>
+                              )}
+                              <ChevronDown className="w-3 h-3 text-gray-400 ml-auto" />
+                            </button>
+                            {phoneCountryDropdownOpen && (
+                              <div className="absolute top-full left-0 z-50 bg-white border border-gray-300 rounded-lg shadow-lg mt-1" style={{ minWidth: '280px', maxWidth: '320px' }}>
+                                {/* Search Input */}
+                                <div className="p-2 border-b border-gray-200 sticky top-0 bg-white">
+                                  <input
+                                    type="text"
+                                    placeholder="Search country..."
+                                    value={phoneCountrySearch}
+                                    onChange={(e) => setPhoneCountrySearch(e.target.value)}
+                                    onClick={(e) => e.stopPropagation()}
+                                    className="w-full px-3 py-1.5 text-xs border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-[#42aeec] focus:border-transparent"
+                                  />
+                                </div>
+                                {/* Countries List */}
+                                <div className="max-h-60 overflow-y-auto">
+                                  {countries
+                                    .filter((country) => {
+                                      const searchLower = phoneCountrySearch.toLowerCase();
+                                      return (
+                                        country.name.toLowerCase().includes(searchLower) ||
+                                        country.code.toLowerCase().includes(searchLower) ||
+                                        country.dialCode.includes(searchLower)
+                                      );
+                                    })
+                                    .map((country) => (
+                                      <button
+                                        key={country.code}
+                                        type="button"
+                                        onClick={() => {
+                                          setPhoneCountry(country.code);
+                                          setPhoneCountryDropdownOpen(false);
+                                          setPhoneCountrySearch('');
+                                          // Don't auto-fill dial code - let user type the number without country code
+                                          // The dial code will be prepended when saving
+                                        }}
+                                        className={`w-full flex items-center gap-2 px-3 py-2 text-xs text-left hover:bg-gray-100 transition-colors ${
+                                          phoneCountry === country.code ? 'bg-blue-50' : ''
+                                        }`}
+                                      >
+                                        <span className="text-base" style={{ fontSize: '18px' }}>{country.flag}</span>
+                                        <span className="flex-1 truncate">{country.name}</span>
+                                        <span className="text-gray-600 font-medium">{country.dialCode}</span>
+                                      </button>
+                                    ))}
+                                  {countries.filter((country) => {
+                                    const searchLower = phoneCountrySearch.toLowerCase();
+                                    return (
+                                      country.name.toLowerCase().includes(searchLower) ||
+                                      country.code.toLowerCase().includes(searchLower) ||
+                                      country.dialCode.includes(searchLower)
+                                    );
+                                  }).length === 0 && (
+                                    <div className="px-3 py-4 text-xs text-gray-500 text-center">
+                                      No countries found
+                                    </div>
+                                  )}
+                                </div>
+                              </div>
+                            )}
+                          </div>
+                          <div className="h-6 w-px bg-gray-300"></div>
                           <input
                             type="tel"
+                            placeholder=""
                             value={personalData.phone}
-                            onChange={(e) => setPersonalData({ ...personalData, phone: e.target.value })}
-                            className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#42aeec] focus:border-transparent"
+                            onChange={(e) => {
+                              const value = e.target.value.replace(/\D/g, '');
+                              setPersonalData({ ...personalData, phone: value });
+                            }}
+                            className="flex-1 px-3 py-2 text-sm border-none outline-none focus:outline-none"
                           />
                         </div>
                       </div>
