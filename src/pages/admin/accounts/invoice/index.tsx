@@ -65,19 +65,26 @@ interface Trip {
     };
     truck?: {
         _id: string;
+        unitNumber?: string;
         plateNumber?: string;
-        licensePlate?: string;
+        licensePlate?: string; // Legacy field
         internalId?: string;
-        makeModel?: string;
-        unitType?: string;
+        make?: string;
+        model?: string;
+        makeModel?: string; // Legacy field
+        type?: string;
+        unitType?: string; // Legacy field
     };
     trailer?: {
         _id: string;
+        unitNumber?: string;
         plateNumber?: string;
-        licensePlate?: string;
-        makeModel?: string;
-        unitType?: string;
+        licensePlate?: string; // Legacy field
+        make?: string;
+        model?: string;
+        makeModel?: string; // Legacy field
         type?: string;
+        unitType?: string; // Legacy field
         capacity?: string;
     };
     orders?: Array<{
@@ -412,10 +419,15 @@ const InvoiceManagement: React.FC = () => {
                     doc.setTextColor(107, 114, 128);
                     doc.text('Truck:', margin, yPos);
                     doc.setTextColor(textR, textG, textB);
+                    const plateNumber = trip.truck.plateNumber || trip.truck.licensePlate || trip.truck.unitNumber || 'N/A';
+                    const makeModel = trip.truck.make && trip.truck.model 
+                        ? `${trip.truck.make} ${trip.truck.model}` 
+                        : (trip.truck.makeModel || '');
+                    const vehicleType = trip.truck.type || trip.truck.unitType || '';
                     const vehicleInfo = [
-                        trip.truck.licensePlate || trip.truck.plateNumber,
-                        trip.truck.makeModel,
-                        trip.truck.unitType ? `(${trip.truck.unitType})` : ''
+                        plateNumber,
+                        makeModel,
+                        vehicleType ? `(${vehicleType})` : ''
                     ].filter(Boolean).join(' ');
                     doc.text(vehicleInfo || 'N/A', margin + 50, yPos);
                     yPos += 7;
@@ -434,8 +446,9 @@ const InvoiceManagement: React.FC = () => {
                         'container': 'Container'
                     };
                     const trailerType = trip.trailer.type ? trailerTypeMap[trip.trailer.type] || trip.trailer.type : '';
+                    const plateNumber = trip.trailer.plateNumber || trip.trailer.licensePlate || trip.trailer.unitNumber || 'N/A';
                     const trailerInfo = [
-                        trip.trailer.licensePlate || trip.trailer.plateNumber,
+                        plateNumber,
                         trailerType,
                         trip.trailer.capacity ? `(${trip.trailer.capacity})` : ''
                     ].filter(Boolean).join(' ');
@@ -1147,7 +1160,7 @@ const InvoiceManagement: React.FC = () => {
                                                     )}
                                                     {trip.truck && (
                                                         <div className="text-xs text-gray-500">
-                                                            Truck: {trip.truck.plateNumber || trip.truck.licensePlate || trip.truck.internalId || 'N/A'}
+                                                            Truck: {trip.truck.plateNumber || trip.truck.licensePlate || trip.truck.unitNumber || trip.truck.internalId || 'N/A'}
                                                         </div>
                                                     )}
                                                 </div>
@@ -1320,9 +1333,14 @@ const InvoiceManagement: React.FC = () => {
                                         <div>
                                             <label className="text-sm font-medium text-gray-500">Truck</label>
                                             <p className="text-sm">
-                                                {selectedInvoice.tripId.truck.plateNumber || selectedInvoice.tripId.truck.licensePlate || selectedInvoice.tripId.truck.internalId || 'N/A'}
-                                                {selectedInvoice.tripId.truck.makeModel && ` - ${selectedInvoice.tripId.truck.makeModel}`}
-                                                {selectedInvoice.tripId.truck.unitType && ` (${selectedInvoice.tripId.truck.unitType})`}
+                                                {selectedInvoice.tripId.truck.plateNumber || selectedInvoice.tripId.truck.licensePlate || selectedInvoice.tripId.truck.unitNumber || selectedInvoice.tripId.truck.internalId || 'N/A'}
+                                                {(() => {
+                                                    const makeModel = selectedInvoice.tripId.truck.make && selectedInvoice.tripId.truck.model
+                                                        ? `${selectedInvoice.tripId.truck.make} ${selectedInvoice.tripId.truck.model}`
+                                                        : (selectedInvoice.tripId.truck.makeModel || '');
+                                                    return makeModel ? ` - ${makeModel}` : '';
+                                                })()}
+                                                {(selectedInvoice.tripId.truck.type || selectedInvoice.tripId.truck.unitType) && ` (${selectedInvoice.tripId.truck.type || selectedInvoice.tripId.truck.unitType})`}
                                             </p>
                                         </div>
                                     )}
@@ -1331,8 +1349,13 @@ const InvoiceManagement: React.FC = () => {
                                         <div>
                                             <label className="text-sm font-medium text-gray-500">Trailer</label>
                                             <p className="text-sm">
-                                                {selectedInvoice.tripId.trailer.plateNumber || selectedInvoice.tripId.trailer.licensePlate || 'N/A'}
-                                                {selectedInvoice.tripId.trailer.makeModel && ` - ${selectedInvoice.tripId.trailer.makeModel}`}
+                                                {selectedInvoice.tripId.trailer.plateNumber || selectedInvoice.tripId.trailer.licensePlate || selectedInvoice.tripId.trailer.unitNumber || 'N/A'}
+                                                {(() => {
+                                                    const makeModel = selectedInvoice.tripId.trailer.make && selectedInvoice.tripId.trailer.model
+                                                        ? `${selectedInvoice.tripId.trailer.make} ${selectedInvoice.tripId.trailer.model}`
+                                                        : (selectedInvoice.tripId.trailer.makeModel || '');
+                                                    return makeModel ? ` - ${makeModel}` : '';
+                                                })()}
                                                 {selectedInvoice.tripId.trailer.type && ` (${selectedInvoice.tripId.trailer.type})`}
                                                 {selectedInvoice.tripId.trailer.capacity && ` - ${selectedInvoice.tripId.trailer.capacity}`}
                                             </p>

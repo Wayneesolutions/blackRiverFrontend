@@ -288,6 +288,12 @@ const DriverManagement = () => {
     formData: typeof formData;
     personalData: typeof personalData;
     travelData: typeof travelData;
+    notes?: typeof notes;
+    documents?: typeof documents;
+    certifications?: typeof certifications;
+    violations?: typeof violations;
+    deductions?: typeof deductions;
+    additions?: typeof additions;
   } | null>(null);
 
   // Country data for phone inputs
@@ -481,6 +487,8 @@ const DriverManagement = () => {
     file?: File | null;
     isExisting?: boolean;
     documentId?: string;
+    fileUrl?: string;
+    fileName?: string;
   }>>([]);
   const [newDocument, setNewDocument] = useState({
     expiryDate: '',
@@ -646,9 +654,11 @@ const DriverManagement = () => {
           if (response?.success === true && response?.data) {
             // Standard structure: { success: true, data: {...} }
             driver = response.data;
+            console.log('📦 Driver documents from API:', driver.documents?.length || 0, driver.documents);
           } else if (response?.data) {
             // Has data property but success might be undefined
             driver = response.data;
+            console.log('📦 Driver documents from API (alt):', driver.documents?.length || 0, driver.documents);
           } else if (response && typeof response === 'object' && (response._id || response.name || response.email || response.internalId)) {
             // Response is the driver object directly (no wrapper)
             driver = response;
@@ -737,18 +747,25 @@ const DriverManagement = () => {
 
              // Set personal data
              setPersonalData({
-               socialInsuranceNumber: driver.details?.sinNo || '',
-               hireDate: driver.joinDate ? new Date(driver.joinDate).toISOString().split('T')[0] : '',
-               terminationDate: driver.details?.termDate ? new Date(driver.details.termDate).toISOString().split('T')[0] : '',
+               socialInsuranceNumber: driver.details?.sinNo || driver.sinNo || '',
+               hireDate: (() => {
+                 // Prefer details.hireDate, fallback to joinDate, then hireDate
+                 const hireDateValue = driver.details?.hireDate || driver.hireDate || driver.joinDate;
+                 return hireDateValue ? new Date(hireDateValue).toISOString().split('T')[0] : '';
+               })(),
+               terminationDate: (() => {
+                 const termDateValue = driver.details?.termDate || driver.termDate;
+                 return termDateValue ? new Date(termDateValue).toISOString().split('T')[0] : '';
+               })(),
                status: driver.status === 'active' || driver.status === 'ACTIVE' ? 'Active' : 'Inactive',
-               vacationPercent: '',
+               vacationPercent: driver.details?.vacationPay || driver.vacationPay || '',
                paySearchAddress: '',
-               corporationName: '',
-               driverName: '',
-               paymentAddress: '',
-               gstNo: driver.details?.gstNo || '',
-               driverType: 'COMPANY DRIVER',
-               paymentMethod: 'PAID PER MILE',
+               corporationName: driver.details?.incorporation || driver.incorporation || '',
+               driverName: driver.details?.driverName || driver.driverName || '',
+               paymentAddress: driver.details?.paymentAddress || driver.paymentAddress || '',
+               gstNo: driver.details?.gstNo || driver.gstNo || '',
+               driverType: (driver.details?.companyFlag || driver.companyFlag) ? 'OWNER OPERATOR' : 'COMPANY DRIVER',
+               paymentMethod: driver.details?.paymentMethod || driver.paymentMethod || 'PAID PER MILE',
                alone: '0',
                empty: '0',
                bonusDrop: '0',
@@ -761,53 +778,179 @@ const DriverManagement = () => {
                hourlyRate: '0',
                dailyRate: '0',
                driverTypeSolo: true,
-               cppExempt: false,
-               payrollTaxExempt: false,
-               customHst: '',
+               cppExempt: driver.details?.cppQppExempt || driver.cppQppExempt || false,
+               payrollTaxExempt: driver.details?.provTaxExempt || driver.provTaxExempt || false,
+               customHst: driver.details?.customHst || driver.customHst || '',
                gender: driver.details?.gender || driver.gender || '',
                citizenship: driver.details?.citizenship || driver.citizenship || ''
              });
 
-            // Set travel data with all fields
+            // Set travel data with all fields (check top-level first, then details for backward compatibility)
             setTravelData({
-              driversLicenseNumber: driver.details?.licenceNumber || driver.details?.driversLicence || '',
-              driversLicenseExpiry: driver.details?.licenceExpiry ? new Date(driver.details.licenceExpiry).toISOString().split('T')[0] : '',
-              licenseStateProvince: driver.details?.licenceState || '',
-              passportNumber: driver.details?.passport || driver.details?.passportNumber || '',
-              passportCountry: driver.details?.passportCountry || '',
-              passportExpiry: driver.details?.passportExpiry ? new Date(driver.details.passportExpiry).toISOString().split('T')[0] : '',
-              fastCardNumber: driver.details?.fastCardNo || '',
-              fastCardExpiry: driver.details?.fastCardExpiry ? new Date(driver.details.fastCardExpiry).toISOString().split('T')[0] : '',
-              fastCardValid: driver.details?.fastCardValid || false,
-              canadianWorkerStatus: (driver.details?.canadianWorkerStatus as any) || 'PERMANENT RESIDENT',
-              permanentResidenceExpiry: driver.details?.permanentResidenceExpiry ? new Date(driver.details.permanentResidenceExpiry).toISOString().split('T')[0] : '',
-              workPermitExpiry: driver.details?.workPermitExpiry ? new Date(driver.details.workPermitExpiry).toISOString().split('T')[0] : '',
-              wcbNumber: driver.details?.wsibAccountNo || ''
+              driversLicenseNumber: driver.licenceNumber || driver.details?.licenceNumber || driver.details?.driversLicence || '',
+              driversLicenseExpiry: (() => {
+                const expiryValue = driver.licenceExpiry || driver.details?.licenceExpiry;
+                return expiryValue ? new Date(expiryValue).toISOString().split('T')[0] : '';
+              })(),
+              licenseStateProvince: driver.licenceState || driver.details?.licenceState || '',
+              passportNumber: driver.passport || driver.details?.passport || driver.details?.passportNumber || '',
+              passportCountry: driver.passportCountry || driver.details?.passportCountry || '',
+              passportExpiry: (() => {
+                const expiryValue = driver.passportExpiry || driver.details?.passportExpiry;
+                return expiryValue ? new Date(expiryValue).toISOString().split('T')[0] : '';
+              })(),
+              fastCardNumber: driver.fastCard || driver.details?.fastCardNo || '',
+              fastCardExpiry: (() => {
+                const expiryValue = driver.fastCardExpiry || driver.details?.fastCardExpiry;
+                return expiryValue ? new Date(expiryValue).toISOString().split('T')[0] : '';
+              })(),
+              fastCardValid: driver.fastCardValid !== undefined ? driver.fastCardValid : (driver.details?.fastCardValid || false),
+              canadianWorkerStatus: (driver.canadianWorkerStatus || driver.details?.canadianWorkerStatus || 'PERMANENT RESIDENT') as 'CANADIAN CITIZEN' | 'PERMANENT RESIDENT' | 'WORK PERMIT',
+              permanentResidenceExpiry: (() => {
+                const expiryValue = driver.permanentResidenceExpiry || driver.details?.permanentResidenceExpiry;
+                return expiryValue ? new Date(expiryValue).toISOString().split('T')[0] : '';
+              })(),
+              workPermitExpiry: (() => {
+                const expiryValue = driver.workPermitExpiry || driver.details?.workPermitExpiry;
+                return expiryValue ? new Date(expiryValue).toISOString().split('T')[0] : '';
+              })(),
+              wcbNumber: driver.wsibAccountNo || driver.details?.wsibAccountNo || ''
             });
 
-            // Load documents for this driver
+            // Load documents for this driver (use documents from getDriverById response)
             try {
-              const documentsResponse = await getDocumentsByEmployee(editingId);
-              if (documentsResponse?.success && documentsResponse.data) {
-                const existingDocuments = documentsResponse.data.map((doc: EmployeeDocument) => ({
+              // First, try to use documents from getDriverById response
+              let documentsToUse: EmployeeDocument[] = [];
+              if (driver.documents && Array.isArray(driver.documents) && driver.documents.length > 0) {
+                documentsToUse = driver.documents;
+                console.log(`✅ Using ${documentsToUse.length} documents from getDriverById response`);
+              } else {
+                // Fallback to separate API call if documents not in response
+                console.log('⚠️ Documents not in getDriverById response, fetching separately...');
+                const documentsResponse = await getDocumentsByEmployee(editingId);
+                if (documentsResponse?.success && documentsResponse.data) {
+                  documentsToUse = documentsResponse.data;
+                  console.log(`✅ Fetched ${documentsToUse.length} documents from separate API`);
+                }
+              }
+              
+              if (documentsToUse.length > 0) {
+                const currentDocumentType = getDocumentTypeFromTab(documentsTab);
+                // Filter documents by the current tab's document type
+                const filteredDocuments = documentsToUse.filter((doc: EmployeeDocument) => 
+                  doc.documentType === currentDocumentType
+                );
+                const existingDocuments = filteredDocuments.map((doc: EmployeeDocument) => ({
                   id: `existing-${doc._id}`,
                   expiryDate: doc.expiryDate ? new Date(doc.expiryDate).toISOString().split('T')[0] : '',
                   description: doc.description || doc.documentType || '',
-                  ignoreExpiration: false,
+                  ignoreExpiration: doc.ignoreExpiration || false,
                   file: null,
                   isExisting: true,
-                  documentId: doc._id
+                  documentId: doc._id,
+                  fileUrl: doc.fileUrl || '',
+                  fileName: doc.fileName || ''
                 }));
                 setDocuments(existingDocuments);
+                console.log(`✅ Documents loaded (${existingDocuments.length} documents for ${documentsTab} tab)`);
+              } else {
+                console.log('⚠️ No documents found for this driver');
+                setDocuments([]);
               }
             } catch (docError) {
               console.error('Error loading documents:', docError);
               setDocuments([]);
             }
 
+            // Load certifications (Safety Certifications) from getDriverById response
+            try {
+              if (driver.certifications && Array.isArray(driver.certifications) && driver.certifications.length > 0) {
+                const existingCertifications = driver.certifications.map((cert: any) => ({
+                  id: `existing-${cert._id}`,
+                  expiryDate: cert.expiryDate ? new Date(cert.expiryDate).toISOString().split('T')[0] : '',
+                  title: cert.certificateName || cert.title || '',
+                  subCategory: cert.description || cert.subCategory || '',
+                  result: cert.status || cert.result || 'pass',
+                  ignoreExpiration: false // TrainingCertificate doesn't have ignoreExpiration, but we can add it
+                }));
+                setCertifications(existingCertifications);
+                console.log(`✅ Certifications loaded (${existingCertifications.length} certifications)`);
+              } else {
+                console.log('⚠️ No certifications found for this driver');
+                setCertifications([]);
+              }
+            } catch (certError) {
+              console.error('Error loading certifications:', certError);
+              setCertifications([]);
+            }
+
+            // Load violations (Tickets / Violations) from getDriverById response
+            try {
+              if (driver.violations && Array.isArray(driver.violations) && driver.violations.length > 0) {
+                const existingViolations = driver.violations.map((vio: any) => ({
+                  id: `existing-${vio._id}`,
+                  paymentDueDate: vio.date ? new Date(vio.date).toISOString().split('T')[0] : '',
+                  ticket: vio.ticketInfo?.ticketNumber || vio.ticket || vio.description || '',
+                  file: vio.fileName ? { name: vio.fileName, size: vio.fileSize || 0 } : null
+                }));
+                setViolations(existingViolations);
+                console.log(`✅ Violations loaded (${existingViolations.length} violations)`);
+              } else {
+                console.log('⚠️ No violations found for this driver');
+                setViolations([]);
+              }
+            } catch (vioError) {
+              console.error('Error loading violations:', vioError);
+              setViolations([]);
+            }
+
+            // Load deductions (Payroll Deductions) from getDriverById response
+            try {
+              if (driver.deductions && Array.isArray(driver.deductions) && driver.deductions.length > 0) {
+                const existingDeductions = driver.deductions.map((ded: any) => ({
+                  id: `existing-${ded._id}`,
+                  startDate: ded.startDate ? new Date(ded.startDate).toISOString().split('T')[0] : '',
+                  description: ded.name || ded.description || '',
+                  amount: ded.amount?.toString() || '0',
+                  interval: ded.recurrence || ded.interval || '',
+                  currency: 'CAD' // Default currency
+                }));
+                setDeductions(existingDeductions);
+                console.log(`✅ Deductions loaded (${existingDeductions.length} deductions)`);
+              } else {
+                console.log('⚠️ No deductions found for this driver');
+                setDeductions([]);
+              }
+            } catch (dedError) {
+              console.error('Error loading deductions:', dedError);
+              setDeductions([]);
+            }
+
+            // Load additions (Payroll Additions) from getDriverById response
+            try {
+              if (driver.additions && Array.isArray(driver.additions) && driver.additions.length > 0) {
+                const existingAdditions = driver.additions.map((add: any) => ({
+                  id: `existing-${add._id}`,
+                  startDate: add.startDate ? new Date(add.startDate).toISOString().split('T')[0] : '',
+                  description: add.name || add.description || '',
+                  amount: add.amount?.toString() || '0',
+                  interval: add.recurrence || add.interval || '',
+                  currency: 'CAD' // Default currency
+                }));
+                setAdditions(existingAdditions);
+                console.log(`✅ Additions loaded (${existingAdditions.length} additions)`);
+              } else {
+                console.log('⚠️ No additions found for this driver');
+                setAdditions([]);
+              }
+            } catch (addError) {
+              console.error('Error loading additions:', addError);
+              setAdditions([]);
+            }
+
             // Load notes
+            let notesArray: Array<{ id: string; note: string; category: string }> = [];
             if (driver.details?.notes || driver.notes) {
-              let notesArray: Array<{ id: string; note: string; category: string }> = [];
               if (Array.isArray(driver.details?.notes)) {
                 notesArray = driver.details.notes.map((note: any, index: number) => ({
                   id: note.id || `note-${index}`,
@@ -824,6 +967,14 @@ const DriverManagement = () => {
             }
 
             // Store original data for comparison (after state updates)
+            // Capture current state values for original data snapshot
+            const currentNotes = notesArray;
+            const currentDocuments = documents;
+            const currentCertifications = certifications;
+            const currentViolations = violations;
+            const currentDeductions = deductions;
+            const currentAdditions = additions;
+            
             setTimeout(() => {
               // Parse phone numbers for original data (same as formData)
               const originalPrimaryParsed = parsePhoneNumber(driver.phone, countries);
@@ -853,18 +1004,24 @@ const DriverManagement = () => {
                   profileImage: null
                 },
                 personalData: {
-                  socialInsuranceNumber: driver.details?.sinNo || '',
-                  hireDate: driver.joinDate ? new Date(driver.joinDate).toISOString().split('T')[0] : '',
-                  terminationDate: driver.details?.termDate ? new Date(driver.details.termDate).toISOString().split('T')[0] : '',
+                  socialInsuranceNumber: driver.details?.sinNo || driver.sinNo || '',
+                  hireDate: (() => {
+                    const hireDateValue = driver.details?.hireDate || driver.hireDate || driver.joinDate;
+                    return hireDateValue ? new Date(hireDateValue).toISOString().split('T')[0] : '';
+                  })(),
+                  terminationDate: (() => {
+                    const termDateValue = driver.details?.termDate || driver.termDate;
+                    return termDateValue ? new Date(termDateValue).toISOString().split('T')[0] : '';
+                  })(),
                   status: driver.status === 'active' || driver.status === 'ACTIVE' ? 'Active' : 'Inactive',
-                  vacationPercent: '',
+                  vacationPercent: driver.details?.vacationPay || driver.vacationPay || '',
                   paySearchAddress: '',
-                  corporationName: '',
-                  driverName: '',
-                  paymentAddress: '',
-                  gstNo: driver.details?.gstNo || '',
-                  driverType: 'COMPANY DRIVER',
-                  paymentMethod: 'PAID PER MILE',
+                  corporationName: driver.details?.incorporation || driver.incorporation || '',
+                  driverName: driver.details?.driverName || driver.driverName || '',
+                  paymentAddress: driver.details?.paymentAddress || driver.paymentAddress || '',
+                  gstNo: driver.details?.gstNo || driver.gstNo || '',
+                  driverType: (driver.details?.companyFlag || driver.companyFlag) ? 'OWNER OPERATOR' : 'COMPANY DRIVER',
+                  paymentMethod: driver.details?.paymentMethod || driver.paymentMethod || 'PAID PER MILE',
                   alone: '0',
                   empty: '0',
                   bonusDrop: '0',
@@ -877,27 +1034,48 @@ const DriverManagement = () => {
                   hourlyRate: '0',
                   dailyRate: '0',
                   driverTypeSolo: true,
-                  cppExempt: false,
-                  payrollTaxExempt: false,
-                  customHst: '',
+                  cppExempt: driver.details?.cppQppExempt || driver.cppQppExempt || false,
+                  payrollTaxExempt: driver.details?.provTaxExempt || driver.provTaxExempt || false,
+                  customHst: driver.details?.customHst || driver.customHst || '',
                   gender: driver.details?.gender || driver.gender || '',
                   citizenship: driver.details?.citizenship || driver.citizenship || ''
                 },
                 travelData: {
-                  driversLicenseNumber: driver.details?.licenceNumber || driver.details?.driversLicence || '',
-                  driversLicenseExpiry: driver.details?.licenceExpiry ? new Date(driver.details.licenceExpiry).toISOString().split('T')[0] : '',
-                  licenseStateProvince: driver.details?.licenceState || '',
-                  passportNumber: driver.details?.passport || driver.details?.passportNumber || '',
-                  passportCountry: driver.details?.passportCountry || '',
-                  passportExpiry: driver.details?.passportExpiry ? new Date(driver.details.passportExpiry).toISOString().split('T')[0] : '',
-                  fastCardNumber: driver.details?.fastCardNo || '',
-                  fastCardExpiry: driver.details?.fastCardExpiry ? new Date(driver.details.fastCardExpiry).toISOString().split('T')[0] : '',
-                  fastCardValid: driver.details?.fastCardValid || false,
-                  canadianWorkerStatus: (driver.details?.canadianWorkerStatus as any) || 'PERMANENT RESIDENT',
-                  permanentResidenceExpiry: driver.details?.permanentResidenceExpiry ? new Date(driver.details.permanentResidenceExpiry).toISOString().split('T')[0] : '',
-                  workPermitExpiry: driver.details?.workPermitExpiry ? new Date(driver.details.workPermitExpiry).toISOString().split('T')[0] : '',
-                  wcbNumber: driver.details?.wsibAccountNo || ''
-                }
+                  driversLicenseNumber: driver.licenceNumber || driver.details?.licenceNumber || driver.details?.driversLicence || '',
+                  driversLicenseExpiry: (() => {
+                    const expiryValue = driver.licenceExpiry || driver.details?.licenceExpiry;
+                    return expiryValue ? new Date(expiryValue).toISOString().split('T')[0] : '';
+                  })(),
+                  licenseStateProvince: driver.licenceState || driver.details?.licenceState || '',
+                  passportNumber: driver.passport || driver.details?.passport || driver.details?.passportNumber || '',
+                  passportCountry: driver.passportCountry || driver.details?.passportCountry || '',
+                  passportExpiry: (() => {
+                    const expiryValue = driver.passportExpiry || driver.details?.passportExpiry;
+                    return expiryValue ? new Date(expiryValue).toISOString().split('T')[0] : '';
+                  })(),
+                  fastCardNumber: driver.fastCard || driver.details?.fastCardNo || '',
+                  fastCardExpiry: (() => {
+                    const expiryValue = driver.fastCardExpiry || driver.details?.fastCardExpiry;
+                    return expiryValue ? new Date(expiryValue).toISOString().split('T')[0] : '';
+                  })(),
+                  fastCardValid: driver.fastCardValid !== undefined ? driver.fastCardValid : (driver.details?.fastCardValid || false),
+                  canadianWorkerStatus: (driver.canadianWorkerStatus || driver.details?.canadianWorkerStatus || 'PERMANENT RESIDENT') as 'CANADIAN CITIZEN' | 'PERMANENT RESIDENT' | 'WORK PERMIT',
+                  permanentResidenceExpiry: (() => {
+                    const expiryValue = driver.permanentResidenceExpiry || driver.details?.permanentResidenceExpiry;
+                    return expiryValue ? new Date(expiryValue).toISOString().split('T')[0] : '';
+                  })(),
+                  workPermitExpiry: (() => {
+                    const expiryValue = driver.workPermitExpiry || driver.details?.workPermitExpiry;
+                    return expiryValue ? new Date(expiryValue).toISOString().split('T')[0] : '';
+                  })(),
+                  wcbNumber: driver.wsibAccountNo || driver.details?.wsibAccountNo || ''
+                },
+                notes: currentNotes || [],
+                documents: currentDocuments || [],
+                certifications: currentCertifications || [],
+                violations: currentViolations || [],
+                deductions: currentDeductions || [],
+                additions: currentAdditions || []
               });
               console.log('✅ Form data populated, opening modal');
               setShowNewDriverModal(true);
@@ -999,6 +1177,68 @@ const DriverManagement = () => {
 
     loadDriverForEdit();
   }, [editingId]);
+
+  // Reload documents when documentsTab changes
+  useEffect(() => {
+    const reloadDocumentsForTab = async () => {
+      if (editingId) {
+        try {
+          console.log(`🔄 Tab changed to "${documentsTab}", reloading documents...`);
+          // Use getDriverById to get all documents
+          const driverResponse = await driverApi.getDriverById(editingId);
+          let documentsToUse: EmployeeDocument[] = [];
+          
+          if (driverResponse?.success && driverResponse.data?.documents) {
+            documentsToUse = driverResponse.data.documents;
+            console.log(`✅ Using ${documentsToUse.length} documents from getDriverById response`);
+          } else {
+            // Fallback to separate API call
+            const documentsResponse = await getDocumentsByEmployee(editingId);
+            if (documentsResponse?.success && documentsResponse.data) {
+              documentsToUse = documentsResponse.data;
+              console.log(`✅ Fetched ${documentsToUse.length} documents from separate API`);
+            }
+          }
+          
+          if (documentsToUse.length > 0) {
+            const currentDocumentType = getDocumentTypeFromTab(documentsTab);
+            console.log(`🔍 Filtering by document type: ${currentDocumentType} (tab: ${documentsTab})`);
+            
+            // Filter documents by the current tab's document type
+            const filteredDocuments = documentsToUse.filter((doc: EmployeeDocument) => {
+              const matches = doc.documentType === currentDocumentType;
+              return matches;
+            });
+            
+            console.log(`✅ Filtered to ${filteredDocuments.length} documents matching tab "${documentsTab}"`);
+            
+            const existingDocuments = filteredDocuments.map((doc: EmployeeDocument) => ({
+              id: `existing-${doc._id}`,
+              expiryDate: doc.expiryDate ? new Date(doc.expiryDate).toISOString().split('T')[0] : '',
+              description: doc.description || doc.documentType || '',
+              ignoreExpiration: doc.ignoreExpiration || false,
+              file: null,
+              isExisting: true,
+              documentId: doc._id,
+              fileUrl: doc.fileUrl || '',
+              fileName: doc.fileName || ''
+            }));
+            
+            setDocuments(existingDocuments);
+          } else {
+            setDocuments([]);
+          }
+        } catch (error) {
+          console.error('Error reloading documents for tab:', error);
+        }
+      }
+    };
+
+    // Only reload if editingId exists (driver is being edited)
+    if (editingId) {
+      reloadDocumentsForTab();
+    }
+  }, [documentsTab, editingId]);
 
   // Filter drivers based on active tab
   const getFilteredDrivers = () => {
@@ -1184,7 +1424,7 @@ const DriverManagement = () => {
   const getDocumentTypeFromTab = (tab: string): string => {
     const mapping: Record<string, string> = {
       'general': 'Other',
-      'driving-violations': 'Other',
+      'driving-violations': 'Driving Record (MVR)',
       'other-violations': 'Other',
       'other': 'Other',
       'warning-letters': 'Company Policy'
@@ -1350,29 +1590,55 @@ const DriverManagement = () => {
   // Helper function to upload documents for a driver
   const uploadDriverDocuments = async (driverId: string, documentsToUpload: typeof documents) => {
     if (!documentsToUpload || documentsToUpload.length === 0) {
+      console.log('📄 No documents to upload');
       return;
     }
 
+    console.log(`📤 Uploading ${documentsToUpload.length} documents for driver ${driverId}`);
+    
     const uploadPromises = documentsToUpload
       .filter(doc => doc.file) // Only upload documents with files
       .map(async (doc) => {
         try {
+          const currentDocumentType = getDocumentTypeFromTab(documentsTab);
+          console.log(`📄 Uploading document:`, {
+            description: doc.description,
+            expiryDate: doc.expiryDate,
+            hasFile: !!doc.file,
+            fileName: doc.file?.name,
+            fileSize: doc.file?.size,
+            currentTab: documentsTab,
+            documentType: currentDocumentType
+          });
+          
           const documentFormData = new FormData();
           documentFormData.append('employee', driverId);
-          documentFormData.append('documentType', getDocumentTypeFromTab(documentsTab));
+          documentFormData.append('documentType', currentDocumentType);
+          console.log(`📋 Using document type: "${currentDocumentType}" for tab: "${documentsTab}"`);
           documentFormData.append('description', doc.description || '');
           if (doc.expiryDate) {
             documentFormData.append('expiryDate', doc.expiryDate);
           }
+          documentFormData.append('ignoreExpiration', String(doc.ignoreExpiration || false));
           documentFormData.append('status', 'valid');
           if (doc.file) {
             documentFormData.append('documentFile', doc.file);
+            console.log(`📎 File attached: ${doc.file.name} (${doc.file.size} bytes)`);
+          } else {
+            console.warn(`⚠️ Document "${doc.description}" has no file attached`);
           }
 
           const docResponse = await createEmployeeDocument(documentFormData);
+          console.log('📥 Document upload response:', docResponse);
+          
           if (docResponse?.success) {
-            console.log('✅ Document uploaded successfully:', doc.description);
-            return { success: true, doc };
+            console.log('✅ Document uploaded successfully:', {
+              id: docResponse.data?._id,
+              description: doc.description,
+              fileUrl: docResponse.data?.fileUrl || 'NOT SET',
+              fileName: docResponse.data?.fileName || 'NOT SET'
+            });
+            return { success: true, doc, response: docResponse };
           } else {
             console.error('❌ Failed to upload document:', docResponse?.message);
             return { success: false, doc, error: docResponse?.message };
@@ -1385,6 +1651,9 @@ const DriverManagement = () => {
 
     const results = await Promise.all(uploadPromises);
     const failed = results.filter(r => !r.success);
+    const successful = results.filter(r => r.success);
+    
+    console.log(`📊 Upload results: ${successful.length} successful, ${failed.length} failed`);
     
     if (failed.length > 0) {
       console.warn('⚠️ Some documents failed to upload:', failed);
@@ -1891,7 +2160,45 @@ const DriverManagement = () => {
         driverFormData.append('sinNo', personalData.socialInsuranceNumber);
       }
       if (hasValueChanged(personalData.hireDate, original.personalData.hireDate)) {
+        driverFormData.append('hireDate', personalData.hireDate);
+        // Also send as joinDate for backward compatibility
         driverFormData.append('joinDate', personalData.hireDate);
+      }
+      if (hasValueChanged(personalData.terminationDate, original.personalData.terminationDate)) {
+        driverFormData.append('termDate', personalData.terminationDate);
+      }
+      if (hasValueChanged(personalData.vacationPercent, original.personalData.vacationPercent)) {
+        driverFormData.append('vacationPay', personalData.vacationPercent);
+      }
+      if (hasValueChanged(personalData.corporationName, original.personalData.corporationName)) {
+        driverFormData.append('incorporation', personalData.corporationName);
+      }
+      if (hasValueChanged(personalData.gstNo, original.personalData.gstNo)) {
+        driverFormData.append('gstNo', personalData.gstNo);
+      }
+      if (hasValueChanged(personalData.driverType, original.personalData.driverType)) {
+        // Send companyFlag: true for OWNER OPERATOR, false for COMPANY DRIVER
+        const companyFlagValue = personalData.driverType === 'OWNER OPERATOR';
+        driverFormData.append('companyFlag', String(companyFlagValue));
+      }
+      if (hasValueChanged(personalData.paymentMethod, original.personalData.paymentMethod)) {
+        driverFormData.append('paymentMethod', personalData.paymentMethod);
+      }
+      // Exemption and additional fields
+      if (hasValueChanged(personalData.cppExempt, original.personalData.cppExempt)) {
+        driverFormData.append('cppExempt', String(personalData.cppExempt));
+      }
+      if (hasValueChanged(personalData.payrollTaxExempt, original.personalData.payrollTaxExempt)) {
+        driverFormData.append('payrollTaxExempt', String(personalData.payrollTaxExempt));
+      }
+      if (hasValueChanged(personalData.customHst, original.personalData.customHst)) {
+        driverFormData.append('customHst', personalData.customHst);
+      }
+      if (hasValueChanged(personalData.driverName, original.personalData.driverName)) {
+        driverFormData.append('driverName', personalData.driverName);
+      }
+      if (hasValueChanged(personalData.paymentAddress, original.personalData.paymentAddress)) {
+        driverFormData.append('paymentAddress', personalData.paymentAddress);
       }
       if (hasValueChanged(personalData.gender, original.personalData.gender)) {
         driverFormData.append('gender', personalData.gender);
@@ -1923,15 +2230,18 @@ const DriverManagement = () => {
         }
       }
       
-      // Travel Information - Drivers License
+      // Travel Information - Drivers License (always send if changed)
       if (hasValueChanged(travelData.driversLicenseNumber, original.travelData.driversLicenseNumber)) {
-        driverFormData.append('licenceNumber', travelData.driversLicenseNumber);
+        driverFormData.append('licenceNumber', travelData.driversLicenseNumber || '');
+        console.log('📤 Sending licenceNumber:', travelData.driversLicenseNumber, '(original:', original.travelData.driversLicenseNumber, ')');
       }
       if (hasValueChanged(travelData.driversLicenseExpiry, original.travelData.driversLicenseExpiry)) {
-        driverFormData.append('licenceExpiry', travelData.driversLicenseExpiry);
+        driverFormData.append('licenceExpiry', travelData.driversLicenseExpiry || '');
+        console.log('📤 Sending licenceExpiry:', travelData.driversLicenseExpiry, '(original:', original.travelData.driversLicenseExpiry, ')');
       }
       if (hasValueChanged(travelData.licenseStateProvince, original.travelData.licenseStateProvince)) {
-        driverFormData.append('licenceState', travelData.licenseStateProvince);
+        driverFormData.append('licenceState', travelData.licenseStateProvince || '');
+        console.log('📤 Sending licenceState:', travelData.licenseStateProvince, '(original:', original.travelData.licenseStateProvince, ')');
       }
       
       // Travel Information - Passport
@@ -1956,9 +2266,10 @@ const DriverManagement = () => {
         driverFormData.append('fastCardValid', String(travelData.fastCardValid));
       }
       
-      // Travel Information - Canadian Worker Status
+      // Travel Information - Canadian Worker Status (always send if changed)
       if (hasValueChanged(travelData.canadianWorkerStatus, original.travelData.canadianWorkerStatus)) {
-        driverFormData.append('canadianWorkerStatus', travelData.canadianWorkerStatus);
+        driverFormData.append('canadianWorkerStatus', travelData.canadianWorkerStatus || '');
+        console.log('📤 Sending canadianWorkerStatus:', travelData.canadianWorkerStatus, '(original:', original.travelData.canadianWorkerStatus, ')');
       }
       if (hasValueChanged(travelData.permanentResidenceExpiry, original.travelData.permanentResidenceExpiry)) {
         driverFormData.append('permanentResidenceExpiry', travelData.permanentResidenceExpiry);
@@ -1975,13 +2286,124 @@ const DriverManagement = () => {
         driverFormData.append('file', formData.profileImage);
       }
 
+      // Certifications - send as JSON array if changed
+      const originalCertifications = original.certifications || [];
+      
+      // Normalize certifications for comparison (only compare relevant fields)
+      const normalizeCert = (cert: any) => ({
+        id: cert.id || '',
+        expiryDate: cert.expiryDate || '',
+        title: cert.title || '',
+        subCategory: cert.subCategory || '',
+        result: cert.result || '',
+        ignoreExpiration: cert.ignoreExpiration || false
+      });
+      
+      const normalizedCurrent = certifications.map(normalizeCert).sort((a, b) => (a.id || '').localeCompare(b.id || ''));
+      const normalizedOriginal = originalCertifications.map(normalizeCert).sort((a, b) => (a.id || '').localeCompare(b.id || ''));
+      
+      const certificationsChanged = JSON.stringify(normalizedCurrent) !== JSON.stringify(normalizedOriginal);
+      
+      console.log('📜 Certifications comparison:', {
+        currentCount: certifications.length,
+        originalCount: originalCertifications.length,
+        changed: certificationsChanged,
+        current: normalizedCurrent,
+        original: normalizedOriginal
+      });
+      
+      // Always send certifications if they exist (even if unchanged, to ensure backend has latest data)
+      if (certifications && certifications.length > 0) {
+        const certificationsData = certifications.map(cert => ({
+          id: cert.id,
+          expiryDate: cert.expiryDate || '',
+          title: cert.title || '',
+          subCategory: cert.subCategory || '',
+          result: cert.result || '',
+          ignoreExpiration: cert.ignoreExpiration || false
+        }));
+        driverFormData.append('certifications', JSON.stringify(certificationsData));
+        console.log('📜 Sending certifications:', certificationsData.length, 'certifications');
+      }
+      
+      // Violations - send as JSON array if changed
+      const originalViolations = original.violations || [];
+      const violationsChanged = JSON.stringify(violations) !== JSON.stringify(originalViolations);
+      if (violationsChanged && violations && violations.length > 0) {
+        const violationsData = violations.map(vio => ({
+          id: vio.id,
+          paymentDueDate: vio.paymentDueDate || '',
+          ticket: vio.ticket || ''
+        }));
+        driverFormData.append('violations', JSON.stringify(violationsData));
+        console.log('🚨 Violations changed, sending:', violationsData.length, 'violations');
+      }
+      
+      // Deductions - send as JSON array if changed
+      const originalDeductions = original.deductions || [];
+      const deductionsChanged = JSON.stringify(deductions) !== JSON.stringify(originalDeductions);
+      if (deductionsChanged && deductions && deductions.length > 0) {
+        const deductionsData = deductions.map(ded => ({
+          id: ded.id,
+          startDate: ded.startDate || '',
+          description: ded.description || '',
+          amount: ded.amount || '0',
+          interval: ded.interval || '',
+          currency: ded.currency || 'CAD'
+        }));
+        driverFormData.append('deductions', JSON.stringify(deductionsData));
+        console.log('💰 Deductions changed, sending:', deductionsData.length, 'deductions');
+      }
+      
+      // Additions - send as JSON array if changed
+      const originalAdditions = original.additions || [];
+      const additionsChanged = JSON.stringify(additions) !== JSON.stringify(originalAdditions);
+      if (additionsChanged && additions && additions.length > 0) {
+        const additionsData = additions.map(add => ({
+          id: add.id,
+          startDate: add.startDate || '',
+          description: add.description || '',
+          amount: add.amount || '0',
+          interval: add.interval || '',
+          currency: add.currency || 'CAD'
+        }));
+        driverFormData.append('additions', JSON.stringify(additionsData));
+        console.log('➕ Additions changed, sending:', additionsData.length, 'additions');
+      }
+      
       // Log what's being sent
       console.log('📤 Updating driver with ID:', editingId);
       const changedFields = Array.from(driverFormData.keys());
       console.log('📋 Changed fields:', changedFields);
       
-      // Only proceed if there are changes (or a new profile image)
-      if (changedFields.length === 0 && !formData.profileImage) {
+      // Check if there are new documents to upload (documents that haven't been uploaded yet - with or without files)
+      const newDocuments = documents.filter(doc => !doc.id?.startsWith('existing-'));
+      const hasNewDocuments = newDocuments.length > 0;
+      console.log('📄 New documents to upload:', hasNewDocuments, newDocuments.length);
+      
+      // Check if certifications, violations, deductions, or additions have changed
+      const hasCertificationsChanges = certificationsChanged;
+      const hasViolationsChanges = violationsChanged;
+      const hasDeductionsChanges = deductionsChanged;
+      const hasAdditionsChanges = additionsChanged;
+      
+      // Check if certifications exist (even if unchanged, we still want to send them)
+      const hasCertifications = certifications && certifications.length > 0;
+      
+      console.log('🔍 Change detection summary:', {
+        changedFieldsCount: changedFields.length,
+        hasProfileImage: !!formData.profileImage,
+        hasNewDocuments,
+        hasCertifications,
+        hasCertificationsChanges,
+        hasViolationsChanges,
+        hasDeductionsChanges,
+        hasAdditionsChanges
+      });
+      
+      // Only proceed if there are changes (or a new profile image, or new documents/certifications/violations/deductions/additions to upload)
+      // Note: We allow updates if certifications exist (even if unchanged) because backend needs to process them
+      if (changedFields.length === 0 && !formData.profileImage && !hasNewDocuments && !hasCertifications && !hasCertificationsChanges && !hasViolationsChanges && !hasDeductionsChanges && !hasAdditionsChanges) {
         alert('No changes detected. Please modify at least one field before updating.');
         setIsSubmitting(false);
         return;
@@ -1998,9 +2420,119 @@ const DriverManagement = () => {
         if (newDocuments.length > 0) {
           console.log('📄 Uploading new documents for driver...');
           await uploadDriverDocuments(editingId, newDocuments);
+          console.log('✅ Documents upload completed');
+        }
+        
+        // Reload documents for this driver to show newly added/updated documents
+        // Do this BEFORE the alert so the UI updates immediately
+        if (editingId) {
+          try {
+            console.log('🔄 Reloading documents after update...');
+            // Use getDriverById to get all documents (including newly uploaded ones)
+            const driverResponse = await driverApi.getDriverById(editingId);
+            let documentsToUse: EmployeeDocument[] = [];
+            
+            if (driverResponse?.success && driverResponse.data?.documents) {
+              documentsToUse = driverResponse.data.documents;
+              console.log(`✅ Using ${documentsToUse.length} documents from getDriverById response`);
+            } else {
+              // Fallback to separate API call
+              console.log('⚠️ Documents not in getDriverById response, fetching separately...');
+              const documentsResponse = await getDocumentsByEmployee(editingId);
+              if (documentsResponse?.success && documentsResponse.data) {
+                documentsToUse = documentsResponse.data;
+                console.log(`✅ Fetched ${documentsToUse.length} documents from separate API`);
+              }
+            }
+            
+            if (documentsToUse.length > 0) {
+              const currentDocumentType = getDocumentTypeFromTab(documentsTab);
+              console.log(`🔍 Filtering by document type: ${currentDocumentType} (tab: ${documentsTab})`);
+              console.log(`📋 Total documents before filtering: ${documentsToUse.length}`);
+              
+              // Log all documents before filtering
+              documentsToUse.forEach((doc, index) => {
+                console.log(`  [${index + 1}] ID: ${doc._id}, Type: "${doc.documentType}", Description: "${doc.description || 'N/A'}"`);
+              });
+              
+              // Filter documents by the current tab's document type
+              const filteredDocuments = documentsToUse.filter((doc: EmployeeDocument) => {
+                const matches = doc.documentType === currentDocumentType;
+                console.log(`  - Document ${doc._id}: type="${doc.documentType}", description="${doc.description || 'N/A'}", matches=${matches}`);
+                return matches;
+              });
+              
+              console.log(`✅ Filtered to ${filteredDocuments.length} documents matching current tab (${currentDocumentType})`);
+              
+              const existingDocuments = filteredDocuments.map((doc: EmployeeDocument) => ({
+                id: `existing-${doc._id}`,
+                expiryDate: doc.expiryDate ? new Date(doc.expiryDate).toISOString().split('T')[0] : '',
+                description: doc.description || doc.documentType || '',
+                ignoreExpiration: doc.ignoreExpiration || false,
+                file: null,
+                isExisting: true,
+                documentId: doc._id,
+                fileUrl: doc.fileUrl || '',
+                fileName: doc.fileName || ''
+              }));
+              
+              setDocuments(existingDocuments);
+              console.log(`✅ Documents state updated with ${existingDocuments.length} documents for tab "${documentsTab}"`);
+            } else {
+              console.log('⚠️ No documents found for this driver');
+              setDocuments([]);
+            }
+          } catch (docError) {
+            console.error('❌ Error reloading documents:', docError);
+          }
         }
         
         alert('Driver updated successfully!');
+        
+        // Reload the driver data to refresh the form if modal is still open
+        if (editingId) {
+          try {
+            const driverResponse = await driverApi.getDriverById(editingId);
+            if (driverResponse?.success && driverResponse.data) {
+              const driver = driverResponse.data;
+              // Update travel data with fresh data from server
+              setTravelData({
+                driversLicenseNumber: driver.licenceNumber || driver.details?.licenceNumber || driver.details?.driversLicence || '',
+                driversLicenseExpiry: (() => {
+                  const expiryValue = driver.licenceExpiry || driver.details?.licenceExpiry;
+                  return expiryValue ? new Date(expiryValue).toISOString().split('T')[0] : '';
+                })(),
+                licenseStateProvince: driver.licenceState || driver.details?.licenceState || '',
+                passportNumber: driver.passport || driver.details?.passport || driver.details?.passportNumber || '',
+                passportCountry: driver.passportCountry || driver.details?.passportCountry || '',
+                passportExpiry: (() => {
+                  const expiryValue = driver.passportExpiry || driver.details?.passportExpiry;
+                  return expiryValue ? new Date(expiryValue).toISOString().split('T')[0] : '';
+                })(),
+                fastCardNumber: driver.fastCard || driver.details?.fastCardNo || '',
+                fastCardExpiry: (() => {
+                  const expiryValue = driver.fastCardExpiry || driver.details?.fastCardExpiry;
+                  return expiryValue ? new Date(expiryValue).toISOString().split('T')[0] : '';
+                })(),
+                fastCardValid: driver.fastCardValid !== undefined ? driver.fastCardValid : (driver.details?.fastCardValid || false),
+                canadianWorkerStatus: (driver.canadianWorkerStatus || driver.details?.canadianWorkerStatus || 'PERMANENT RESIDENT') as 'CANADIAN CITIZEN' | 'PERMANENT RESIDENT' | 'WORK PERMIT',
+                permanentResidenceExpiry: (() => {
+                  const expiryValue = driver.permanentResidenceExpiry || driver.details?.permanentResidenceExpiry;
+                  return expiryValue ? new Date(expiryValue).toISOString().split('T')[0] : '';
+                })(),
+                workPermitExpiry: (() => {
+                  const expiryValue = driver.workPermitExpiry || driver.details?.workPermitExpiry;
+                  return expiryValue ? new Date(expiryValue).toISOString().split('T')[0] : '';
+                })(),
+                wcbNumber: driver.wsibAccountNo || driver.details?.wsibAccountNo || ''
+              });
+              console.log('✅ Travel data refreshed after update');
+            }
+          } catch (error) {
+            console.error('Error reloading driver data:', error);
+          }
+        }
+        
         handleCloseModal();
         // Refresh drivers list
         await fetchDrivers();
@@ -3908,29 +4440,63 @@ const DriverManagement = () => {
                           <tr>
                             <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase">EXPIRY DATE</th>
                             <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase">DESCRIPTION</th>
+                            <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase">FILE</th>
                             <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase">IGNORE EXPIRATION</th>
                           </tr>
                         </thead>
                         <tbody className="bg-white divide-y divide-gray-200">
                           {documents.length === 0 ? (
                             <tr>
-                              <td colSpan={3} className="px-4 py-8 text-center text-gray-500">
+                              <td colSpan={4} className="px-4 py-8 text-center text-gray-500">
                                 No Data
                               </td>
                             </tr>
                           ) : (
                             documents.map((doc) => (
-                              <tr key={doc.id} className="hover:bg-gray-50 cursor-pointer" onClick={() => {
-                                // Could add document details view here if needed
-                              }}>
+                              <tr key={doc.id} className="hover:bg-gray-50">
                                 <td className="px-4 py-3 text-sm text-gray-900">{doc.expiryDate || '-'}</td>
                                 <td className="px-4 py-3 text-sm text-gray-900">
+                                  {doc.description || '-'}
+                                </td>
+                                <td className="px-4 py-3 text-sm text-gray-900">
                                   <div className="flex items-center gap-2">
-                                    {doc.description || '-'}
-                                    {uploadedFiles[doc.id] && (
-                                      <span title={uploadedFiles[doc.id].name}>
+                                    {doc.isExisting && doc.documentId && (doc.fileUrl || doc.fileName) ? (
+                                      <button
+                                        onClick={async (e) => {
+                                          e.stopPropagation();
+                                          try {
+                                            if (doc.documentId) {
+                                              const signedUrlResponse = await getSignedEmployeeDocumentUrl(doc.documentId, 'inline');
+                                              if (signedUrlResponse?.success && signedUrlResponse.url) {
+                                                window.open(signedUrlResponse.url, '_blank');
+                                              } else {
+                                                // Fallback to direct fileUrl if signed URL fails
+                                                if (doc.fileUrl) {
+                                                  window.open(doc.fileUrl, '_blank');
+                                                }
+                                              }
+                                            }
+                                          } catch (error) {
+                                            console.error('Error opening document:', error);
+                                            // Fallback to direct fileUrl
+                                            if (doc.fileUrl) {
+                                              window.open(doc.fileUrl, '_blank');
+                                            }
+                                          }
+                                        }}
+                                        className="flex items-center gap-1 text-blue-600 hover:text-blue-800 hover:underline"
+                                        title={doc.fileName || 'View document'}
+                                      >
+                                        <FileText className="w-4 h-4" />
+                                        <span className="text-xs">{doc.fileName || 'View'}</span>
+                                      </button>
+                                    ) : uploadedFiles[doc.id] ? (
+                                      <span title={uploadedFiles[doc.id].name} className="flex items-center gap-1 text-gray-600">
                                         <FileText className="w-4 h-4 text-blue-500" />
+                                        <span className="text-xs">{uploadedFiles[doc.id].name}</span>
                                       </span>
+                                    ) : (
+                                      <span className="text-gray-400">-</span>
                                     )}
                                   </div>
                                 </td>

@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { FlaskConical, Search, Plus, Edit, Trash2, Calendar, MapPin, FileText, Eye, Clock } from 'lucide-react';
 import { FaCheckCircle, FaExclamationCircle, FaTimes } from 'react-icons/fa';
-import { getAllDrivers, getDrugTests, createDrugTest, updateDrugTest, deleteDrugTest, getDrugTestById, type DrugTestRequest } from '../../../../axios/api/driver';
+import { getAllDrivers, getAllUsersForDrugTest, getDrugTests, createDrugTest, updateDrugTest, deleteDrugTest, getDrugTestById, type DrugTestRequest } from '../../../../axios/api/driver';
 
 type NotificationType = 'success' | 'error' | 'info';
 
@@ -110,16 +110,32 @@ const DrugTest = () => {
 
     const fetchDrivers = async () => {
         try {
-            const response = await getAllDrivers(1, 1000);
+            // Fetch all users for drug test (excluding admin and superadmin)
+            const response = await getAllUsersForDrugTest();
             if (response?.success && response?.data) {
-                const driverList = Array.isArray(response.data) ? response.data : [];
-                setDrivers(driverList.map((d: any) => ({
-                    _id: d._id,
-                    name: d.name || `${d.firstName || ''} ${d.lastName || ''}`.trim() || 'Unknown Driver'
+                const userList = Array.isArray(response.data) ? response.data : [];
+                setDrivers(userList.map((user: any) => ({
+                    _id: user._id,
+                    name: user.name || 'Unknown User'
                 })));
+            } else {
+                // Fallback to getAllDrivers if the new endpoint fails
+                const fallbackResponse = await getAllDrivers(1, 1000);
+                if (fallbackResponse?.success && fallbackResponse?.data) {
+                    const driverList = Array.isArray(fallbackResponse.data) ? fallbackResponse.data : [];
+                    // Filter out admin, superadmin, customer, and reporter
+                    const filteredDrivers = driverList.filter((d: any) => {
+                        const role = d.role?.toLowerCase() || '';
+                        return role !== 'admin' && role !== 'superadmin' && role !== 'customer' && role !== 'reporter';
+                    });
+                    setDrivers(filteredDrivers.map((d: any) => ({
+                        _id: d._id,
+                        name: d.name || `${d.firstName || ''} ${d.lastName || ''}`.trim() || 'Unknown Driver'
+                    })));
+                }
             }
         } catch (error) {
-            console.error('Error fetching drivers:', error);
+            console.error('Error fetching users for drug test:', error);
         }
     };
 
@@ -357,13 +373,13 @@ const DrugTest = () => {
                         </div>
                     </div>
                     <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">Driver</label>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">  Employees</label>
                         <select
                             value={selectedDriver}
                             onChange={(e) => setSelectedDriver(e.target.value)}
                             className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                         >
-                            <option value="">All Drivers</option>
+                            <option value="">All Employees</option>
                             {drivers.map(driver => (
                                 <option key={driver._id} value={driver._id}>
                                     {driver.name}

@@ -49,6 +49,17 @@ export const getAllDrivers = async (page: number = 1, limit: number = 10, search
   }
 };
 
+// Get all users for drug test (excluding admin and superadmin)
+export const getAllUsersForDrugTest = async () => {
+  try {
+    const res: AxiosResponse = await apiClient.get('hr/users-for-drug-test');
+    return res.data;
+  } catch (error) {
+    console.error('❌ Error fetching users for drug test:', error);
+    return (error as any).response?.data;
+  }
+};
+
 export const getDriverById = async (id: string) => {
   try {
     const res: AxiosResponse = await apiClient.get(`hr/driver/${id}`);
