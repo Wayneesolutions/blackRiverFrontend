@@ -12,10 +12,7 @@ import {
   Gift,
   Award,
   UserCheck,
-  UsersRound,
-  TrendingUp,
-  CheckCircle2,
-  XCircle
+  UsersRound
 } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
@@ -90,18 +87,6 @@ const Index = () => {
   const [dashboardStats, setDashboardStats] = useState<HRDashboardStats | null>(null);
   const [loading, setLoading] = useState(true);
 
-  // Static data for missing features
-  const staticStats = {
-    totalDrivers: 49,
-    totalOfficeEmployees: 15,
-    soloDrivers: 32,
-    teamDrivers: 17,
-    newEmployees: 3,
-    driverOnboarding: 5,
-    compliancePercentage: 85,
-    nonCompliancePercentage: 15
-  };
-
   useEffect(() => {
     fetchDashboardData();
   }, []);
@@ -115,30 +100,7 @@ const Index = () => {
       setDashboardStats(dashboardRes.success && dashboardRes.data ? dashboardRes.data : null);
     } catch (error) {
       console.error('Error fetching dashboard data:', error);
-      // Set static data if API fails
-      setDashboardStats({
-        recentDriverActivity: { active: 45, inactive: 4 },
-        pendingDocumentRenewals: 12,
-        totalDrivers: 49,
-        totalEmployees: 15,
-        totalOfficeEmployees: 15,
-        activeDrivers: 45,
-        soloDrivers: 32,
-        teamDrivers: 17,
-        totalLoads: 1250,
-        newJoinersThisMonth: 3,
-        newEmployeesThisMonth: 3,
-        documents: { pending: 8 },
-        companyDocuments: { total: 25, expiringSoon: 3 },
-        attendance: { presentToday: 42 },
-        employeePortfolio: { completed: 12 },
-        issues: { open: 5 },
-        usBasedDrivers: 28,
-        canadaBasedDrivers: 21,
-        upcomingBirthdays: [],
-        upcomingWorkAnniversaries: [],
-        documentExpiryTracking: []
-      });
+      setDashboardStats(null);
     } finally {
       setLoading(false);
     }
@@ -263,17 +225,6 @@ const Index = () => {
       path: `${basePath}/employeelist`
     },
     {
-      id: 'driver-onboarding',
-      title: 'Driver Onboarding',
-      value: staticStats.driverOnboarding,
-      subtitle: 'In progress',
-      icon: TrendingUp,
-      bgColor: 'bg-violet-100',
-      iconColor: 'text-violet-700',
-      cardBg: 'bg-gradient-to-br from-violet-50 to-violet-100',
-      path: `${basePath}/drivers`
-    },
-    {
       id: 'attendance',
       title: 'Present Today',
       value: dashboardStats?.attendance?.presentToday ?? 0,
@@ -287,7 +238,7 @@ const Index = () => {
     {
       id: 'loads',
       title: 'Total Loads',
-      value: dashboardStats?.totalLoads ?? 1250,
+      value: dashboardStats?.totalLoads ?? 0,
       subtitle: 'All time loads',
       icon: Briefcase,
       bgColor: 'bg-indigo-100',
@@ -461,51 +412,6 @@ const Index = () => {
             </div>
           </div>
 
-          {/* Compliance Section */}
-          <div className="bg-white rounded-lg shadow-sm border border-gray-100 overflow-hidden p-6 mb-4">
-            <div className="flex items-center gap-2 mb-4">
-              <CheckCircle2 className="h-5 w-5 text-green-600" />
-              <h2 className="text-lg font-bold text-gray-900">Compliance Status</h2>
-            </div>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              {/* Compliance Percentage */}
-              <div className="space-y-3">
-                <div className="flex items-center justify-between">
-                  <span className="text-sm font-medium text-gray-700">Compliance</span>
-                  <span className="text-lg font-bold text-green-600">{staticStats.compliancePercentage}%</span>
-                </div>
-                <div className="w-full bg-gray-200 rounded-full h-3">
-                  <div 
-                    className="bg-green-500 h-3 rounded-full transition-all duration-300"
-                    style={{ width: `${staticStats.compliancePercentage}%` }}
-                  ></div>
-                </div>
-                <div className="flex items-center gap-2 text-xs text-gray-600">
-                  <CheckCircle2 className="h-4 w-4 text-green-600" />
-                  <span>{staticStats.compliancePercentage}% of documents are compliant</span>
-                </div>
-              </div>
-
-              {/* Non-Compliance Percentage */}
-              <div className="space-y-3">
-                <div className="flex items-center justify-between">
-                  <span className="text-sm font-medium text-gray-700">Non-Compliance</span>
-                  <span className="text-lg font-bold text-red-600">{staticStats.nonCompliancePercentage}%</span>
-                </div>
-                <div className="w-full bg-gray-200 rounded-full h-3">
-                  <div 
-                    className="bg-red-500 h-3 rounded-full transition-all duration-300"
-                    style={{ width: `${staticStats.nonCompliancePercentage}%` }}
-                  ></div>
-                </div>
-                <div className="flex items-center gap-2 text-xs text-gray-600">
-                  <XCircle className="h-4 w-4 text-red-600" />
-                  <span>{staticStats.nonCompliancePercentage}% require attention</span>
-                </div>
-              </div>
-            </div>
-          </div>
-
           {/* Additional Information Sections */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
             {/* Upcoming Birthdays */}
@@ -600,32 +506,8 @@ const Index = () => {
                   <Award className="h-5 w-5 text-amber-600" />
                   <h2 className="text-lg font-bold text-gray-900">Upcoming Work Anniversaries</h2>
                 </div>
-                <div className="space-y-3">
-                  {[
-                    { name: 'John Smith', anniversaryDate: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000), yearsOfService: 5, role: 'Driver' },
-                    { name: 'Sarah Johnson', anniversaryDate: new Date(Date.now() + 15 * 24 * 60 * 60 * 1000), yearsOfService: 3, role: 'Employee' },
-                    { name: 'Mike Davis', anniversaryDate: new Date(Date.now() + 22 * 24 * 60 * 60 * 1000), yearsOfService: 7, role: 'Driver' },
-                    { name: 'Emily Brown', anniversaryDate: new Date(Date.now() + 28 * 24 * 60 * 60 * 1000), yearsOfService: 2, role: 'Employee' },
-                    { name: 'David Wilson', anniversaryDate: new Date(Date.now() + 35 * 24 * 60 * 60 * 1000), yearsOfService: 10, role: 'Driver' }
-                  ].map((anniversary, index) => {
-                    const today = new Date();
-                    today.setHours(0, 0, 0, 0);
-                    const daysUntil = Math.ceil((anniversary.anniversaryDate.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
-                    
-                    return (
-                      <div key={index} className="flex items-center justify-between p-3 bg-amber-50 rounded-lg border border-amber-100">
-                        <div>
-                          <p className="text-sm font-semibold text-gray-900">{anniversary.name}</p>
-                          <p className="text-xs text-gray-600">
-                            {anniversary.yearsOfService} {anniversary.yearsOfService === 1 ? 'year' : 'years'} • {anniversary.anniversaryDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
-                          </p>
-                        </div>
-                        <span className="text-xs font-medium text-amber-700 bg-amber-100 px-2 py-1 rounded-full">
-                          {daysUntil === 0 ? 'Today' : daysUntil < 0 ? 'Past' : `${daysUntil} days`}
-                        </span>
-                      </div>
-                    );
-                  })}
+                <div className="text-center py-8 text-gray-500">
+                  <p className="text-sm">No upcoming work anniversaries</p>
                 </div>
               </div>
             )}
@@ -696,58 +578,8 @@ const Index = () => {
                 <Calendar className="h-5 w-5 text-orange-600" />
                 <h2 className="text-lg font-bold text-gray-900">Document Expiry Tracking</h2>
               </div>
-              <div className="overflow-x-auto">
-                <table className="w-full">
-                  <thead className="bg-gray-50">
-                    <tr>
-                      <th className="px-4 py-2 text-left text-xs font-semibold text-gray-700 uppercase">Employee/Driver</th>
-                      <th className="px-4 py-2 text-left text-xs font-semibold text-gray-700 uppercase">Document Type</th>
-                      <th className="px-4 py-2 text-left text-xs font-semibold text-gray-700 uppercase">Expiry Date</th>
-                      <th className="px-4 py-2 text-left text-xs font-semibold text-gray-700 uppercase">Status</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-gray-200">
-                    {[
-                      { employeeOrDriverName: 'John Smith', documentType: 'Driver License', expiryDate: new Date(Date.now() + 15 * 24 * 60 * 60 * 1000), role: 'Driver' },
-                      { employeeOrDriverName: 'Sarah Johnson', documentType: 'Passport', expiryDate: new Date(Date.now() + 45 * 24 * 60 * 60 * 1000), role: 'Employee' },
-                      { employeeOrDriverName: 'Mike Davis', documentType: 'Medical Certificate', expiryDate: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000), role: 'Driver' },
-                      { employeeOrDriverName: 'Emily Brown', documentType: 'Work Permit', expiryDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000), role: 'Employee' },
-                      { employeeOrDriverName: 'David Wilson', documentType: 'Fast Card', expiryDate: new Date(Date.now() + 60 * 24 * 60 * 60 * 1000), role: 'Driver' },
-                      { employeeOrDriverName: 'Lisa Anderson', documentType: 'Insurance', expiryDate: new Date(Date.now() + 20 * 24 * 60 * 60 * 1000), role: 'Employee' },
-                      { employeeOrDriverName: 'Robert Taylor', documentType: 'Driver License', expiryDate: new Date(Date.now() - 10 * 24 * 60 * 60 * 1000), role: 'Driver' },
-                      { employeeOrDriverName: 'Jennifer Martinez', documentType: 'Background Check', expiryDate: new Date(Date.now() + 90 * 24 * 60 * 60 * 1000), role: 'Employee' }
-                    ].map((doc, index) => {
-                      const today = new Date();
-                      today.setHours(0, 0, 0, 0);
-                      const daysUntilExpiry = Math.ceil((doc.expiryDate.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
-                      
-                      return (
-                        <tr key={index} className="hover:bg-gray-50">
-                          <td className="px-4 py-3 text-sm text-gray-900">{doc.employeeOrDriverName}</td>
-                          <td className="px-4 py-3 text-sm text-gray-600">{doc.documentType}</td>
-                          <td className="px-4 py-3 text-sm text-gray-600">
-                            {doc.expiryDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
-                          </td>
-                          <td className="px-4 py-3">
-                            <span className={`text-xs font-medium px-2 py-1 rounded-full ${
-                              daysUntilExpiry < 0 
-                                ? 'bg-red-100 text-red-700' 
-                                : daysUntilExpiry <= 30 
-                                ? 'bg-orange-100 text-orange-700' 
-                                : 'bg-green-100 text-green-700'
-                            }`}>
-                              {daysUntilExpiry < 0 
-                                ? 'Expired' 
-                                : daysUntilExpiry === 0 
-                                ? 'Expires Today' 
-                                : `${daysUntilExpiry} days left`}
-                            </span>
-                          </td>
-                        </tr>
-                      );
-                    })}
-                  </tbody>
-                </table>
+              <div className="text-center py-8 text-gray-500">
+                <p className="text-sm">No document expiry records available</p>
               </div>
             </div>
           )}
