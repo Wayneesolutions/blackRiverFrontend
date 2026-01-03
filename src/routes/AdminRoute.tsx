@@ -14,10 +14,10 @@ const Member = lazy(() => import("../pages/admin/dashboard/member/index"));
 const Invoice = lazy(() => import("../pages/admin/dashboard/invoice/index"));
 const TruckProfile = lazy(() => import("../pages/admin/fleetMaintenance/truckProfile/index"));
 const Driver = lazy(() => import("../pages/admin/driverManagement/driverslist/index"))
-
+const Customers = lazy(() => import("../pages/admin/driverManagement/customers/index"))
 
 const Integrations = lazy(() => import("../pages/admin/dashboard/setting/Api"))
-const UserManage = lazy(() => import("../pages/admin/dashboard/setting/Users"));
+const Employees = lazy(() => import("../pages/admin/driverManagement/employees/index"));
 const CompanyManage = lazy(() => import("../pages/admin/dashboard/setting/Company"))
 const CompanyDocuments = lazy(() => import("../pages/admin/dashboard/documents/index"));
 
@@ -95,7 +95,8 @@ function AdminRoute() {
           <Route path="invoice" element={<ErrorBoundary><Invoice /></ErrorBoundary>} />
           <Route path="truck-profile" element={<ErrorBoundary><TruckProfile /></ErrorBoundary>} />
 
-          <Route path="users" element={<ErrorBoundary><UserManage /></ErrorBoundary>} />
+          <Route path="employees" element={<ErrorBoundary><Employees /></ErrorBoundary>} />
+          <Route path="customers" element={<ErrorBoundary><Customers /></ErrorBoundary>} />
           <Route path="company" element={<ErrorBoundary><CompanyManage /></ErrorBoundary>} />
           <Route path="drivers" element={<ErrorBoundary><Driver /></ErrorBoundary>} />
           <Route path="integrations" element={<ErrorBoundary><Integrations /></ErrorBoundary>} />

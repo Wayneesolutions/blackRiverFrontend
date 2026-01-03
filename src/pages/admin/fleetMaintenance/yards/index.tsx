@@ -170,7 +170,7 @@ const YardManagement = () => {
             </div>
             <button
               onClick={() => handleOpenModal()}
-              className="px-4 py-2 bg-[#42aeec] text-white rounded-lg hover:bg-[#3598c7] transition-colors flex items-center gap-2"
+              className="px-4 py-2 bg-[#42aeec] !text-white rounded-lg hover:bg-[#3598c7] transition-colors flex items-center gap-2"
             >
               <FaPlus /> Add Yard
             </button>
@@ -258,7 +258,7 @@ const YardManagement = () => {
                 </thead>
                 <tbody className="bg-white divide-y divide-gray-200">
                   {filteredYards.map((yard) => (
-                    <tr key={yard._id} className="hover:bg-gray-50">
+                    <tr key={yard._id} className="hover:bg-gray-50"    onClick={() => handleOpenModal(yard)}>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                         {yard.yardId}
                       </td>
@@ -399,7 +399,7 @@ const YardManagement = () => {
                   </button>
                   <button
                     type="submit"
-                    className="px-4 py-2 bg-[#42aeec] text-white rounded-lg hover:bg-[#3598c7] transition-colors"
+                    className="px-4 py-2 bg-[#42aeec] !text-white rounded-lg hover:bg-[#3598c7] transition-colors"
                   >
                     {editingYard ? 'Update' : 'Create'}
                   </button>

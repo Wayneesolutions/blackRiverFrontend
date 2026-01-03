@@ -9,7 +9,7 @@ import {
 import { BsPersonVcard } from "react-icons/bs";
 import { RiBillLine } from "react-icons/ri";
 import { RiFoldersLine } from "react-icons/ri";
-import { FaTruck } from "react-icons/fa";
+import { FaTruck,FaUsers } from "react-icons/fa";
 
 export type AdminSidebarLink = {
     key: string;
@@ -67,9 +67,14 @@ export const AdminSidebarLinks: AdminSidebarLink[] = [
         label: "Settings",
         children: [
             {
-                key: "users",
+                key: "employees",
                 icon: <MdPeople />,
                 label: "Employees",
+            },
+            {
+                key: "customers",
+                icon: <FaUsers />,
+                label: "Customers",
             },
             {
                 key: "drivers",

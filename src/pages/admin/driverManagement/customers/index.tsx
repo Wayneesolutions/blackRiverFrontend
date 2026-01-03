@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Plus, Download, Trash2, ChevronUp, ChevronDown, X, HelpCircle, Edit } from 'lucide-react';
 import * as customerApi from '../../../../axios/api/customer';
 
@@ -40,6 +40,96 @@ const CustomersPage = () => {
   const [showBatchBilling, setShowBatchBilling] = useState(false);
   const [billingType, setBillingType] = useState<'DEFAULT / LOAD' | 'BATCH WEEKLY' | 'BATCH MONTHLY'>('DEFAULT / LOAD');
 
+  // Country selector state for phones
+  interface Country {
+    name: string;
+    code: string;
+    flag: string;
+    dialCode: string;
+  }
+
+  const [countries, setCountries] = useState<Country[]>([]);
+  const [primaryPhoneCountry, setPrimaryPhoneCountry] = useState<string>('US');
+  const [secondaryPhoneCountry, setSecondaryPhoneCountry] = useState<string>('US');
+  const [primaryCountryDropdownOpen, setPrimaryCountryDropdownOpen] = useState(false);
+  const [secondaryCountryDropdownOpen, setSecondaryCountryDropdownOpen] = useState(false);
+  const [primaryCountrySearch, setPrimaryCountrySearch] = useState('');
+  const [secondaryCountrySearch, setSecondaryCountrySearch] = useState('');
+  const primaryCountryDropdownRef = useRef<HTMLDivElement>(null);
+  const secondaryCountryDropdownRef = useRef<HTMLDivElement>(null);
+
+  // Helper function to parse phone number and extract country code
+  const parsePhoneNumber = (phone: string | undefined | null, countriesList: Country[] = countries): { countryCode: string; phoneNumber: string } => {
+    if (!phone) return { countryCode: 'US', phoneNumber: '' };
+    
+    const cleanPhone = phone.trim();
+    const sortedCountries = [...countriesList].sort((a, b) => b.dialCode.length - a.dialCode.length);
+    
+    for (const country of sortedCountries) {
+      if (cleanPhone.startsWith(country.dialCode)) {
+        return {
+          countryCode: country.code,
+          phoneNumber: cleanPhone.substring(country.dialCode.length).trim()
+        };
+      }
+    }
+    
+    return { countryCode: 'US', phoneNumber: cleanPhone.replace(/^\+1/, '').trim() };
+  };
+
+  // Fetch countries data
+  useEffect(() => {
+    fetch('https://restcountries.com/v3.1/all?fields=name,flag,idd,cca2')
+      .then(res => res.json())
+      .then(data => {
+        const sortedCountries = data
+          .filter((c: any) => c.idd && c.idd.root)
+          .map((c: any) => ({
+            name: c.name.common,
+            code: c.cca2,
+            flag: c.flag,
+            dialCode: c.idd.root + (c.idd.suffixes ? c.idd.suffixes[0] : ''),
+          }))
+          .sort((a: Country, b: Country) => a.name.localeCompare(b.name));
+
+        setCountries(sortedCountries);
+        const defaultCountry = sortedCountries.find((c: Country) => c.code === 'US');
+        if (defaultCountry) {
+          setPrimaryPhoneCountry('US');
+          setSecondaryPhoneCountry('US');
+        }
+      })
+      .catch(() => {
+        const fallback = [
+          { name: 'United States', code: 'US', flag: '🇺🇸', dialCode: '+1' },
+          { name: 'Canada', code: 'CA', flag: '🇨🇦', dialCode: '+1' },
+          { name: 'India', code: 'IN', flag: '🇮🇳', dialCode: '+91' },
+          { name: 'United Kingdom', code: 'GB', flag: '🇬🇧', dialCode: '+44' },
+          { name: 'Australia', code: 'AU', flag: '🇦🇺', dialCode: '+61' },
+        ];
+        setCountries(fallback);
+        setPrimaryPhoneCountry('US');
+        setSecondaryPhoneCountry('US');
+      });
+  }, []);
+
+  // Close dropdowns when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (primaryCountryDropdownRef.current && !primaryCountryDropdownRef.current.contains(event.target as Node)) {
+        setPrimaryCountryDropdownOpen(false);
+      }
+      if (secondaryCountryDropdownRef.current && !secondaryCountryDropdownRef.current.contains(event.target as Node)) {
+        setSecondaryCountryDropdownOpen(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, []);
+
   // Form state
   const [formData, setFormData] = useState({
     customer: '',
@@ -49,8 +139,8 @@ const CustomersPage = () => {
     trackingEmail: '',
     taxId: '',
     assignedSalesperson: '',
-    primaryPhone: '+1',
-    secondaryPhone: '+1',
+    primaryPhone: '',
+    secondaryPhone: '',
     contact: '',
     searchAddress: '',
     address: '',
@@ -157,6 +247,39 @@ const CustomersPage = () => {
 
   const handleSaveCustomer = async () => {
     try {
+      // Prepare phone numbers with country code prefix
+      let phonePrimary = formData.primaryPhone;
+      if (formData.primaryPhone) {
+        const primaryCountry = countries.find(c => c.code === primaryPhoneCountry);
+        if (primaryCountry) {
+          const dialCodeWithoutPlus = primaryCountry.dialCode.replace('+', '');
+          let phoneNumber = formData.primaryPhone.trim();
+          if (phoneNumber.startsWith(dialCodeWithoutPlus)) {
+            phonePrimary = `+${phoneNumber}`;
+          } else {
+            phonePrimary = `${primaryCountry.dialCode}${phoneNumber}`;
+          }
+        } else {
+          phonePrimary = formData.primaryPhone.startsWith('+') ? formData.primaryPhone : `+${formData.primaryPhone}`;
+        }
+      }
+
+      let phoneSecondary = formData.secondaryPhone;
+      if (formData.secondaryPhone) {
+        const secondaryCountry = countries.find(c => c.code === secondaryPhoneCountry);
+        if (secondaryCountry) {
+          const dialCodeWithoutPlus = secondaryCountry.dialCode.replace('+', '');
+          let phoneNumber = formData.secondaryPhone.trim();
+          if (phoneNumber.startsWith(dialCodeWithoutPlus)) {
+            phoneSecondary = `+${phoneNumber}`;
+          } else {
+            phoneSecondary = `${secondaryCountry.dialCode}${phoneNumber}`;
+          }
+        } else {
+          phoneSecondary = formData.secondaryPhone.startsWith('+') ? formData.secondaryPhone : `+${formData.secondaryPhone}`;
+        }
+      }
+
       const customerData = {
         customer: formData.customer,
         customerId: formData.customerId,
@@ -166,8 +289,8 @@ const CustomersPage = () => {
         trackingEmail: formData.trackingEmail,
         taxId: formData.taxId,
         assignedSalesperson: formData.assignedSalesperson,
-        phonePrimary: formData.primaryPhone,
-        phoneSecondary: formData.secondaryPhone,
+        phonePrimary: phonePrimary,
+        phoneSecondary: phoneSecondary,
         contact: formData.contact,
         address: formData.address,
         unit: formData.unit,
@@ -225,8 +348,18 @@ const CustomersPage = () => {
             trackingEmail: customer.customerDetails?.trackingEmail || '',
             taxId: customer.customerDetails?.taxId || '',
             assignedSalesperson: customer.customerDetails?.assignedSalesperson || '',
-            primaryPhone: customer.customerDetails?.phonePrimary || customer.phone || '+1',
-            secondaryPhone: customer.customerDetails?.phoneSecondary || '+1',
+            primaryPhone: (() => {
+              const phone = customer.customerDetails?.phonePrimary || customer.phone;
+              const parsed = parsePhoneNumber(phone, countries);
+              setPrimaryPhoneCountry(parsed.countryCode);
+              return parsed.phoneNumber;
+            })(),
+            secondaryPhone: (() => {
+              const phone = customer.customerDetails?.phoneSecondary;
+              const parsed = parsePhoneNumber(phone, countries);
+              setSecondaryPhoneCountry(parsed.countryCode);
+              return parsed.phoneNumber;
+            })(),
             contact: customer.customerDetails?.contact || '',
             searchAddress: '',
             address: customer.customerDetails?.address || customer.location?.address || '',
@@ -254,6 +387,8 @@ const CustomersPage = () => {
   };
 
   const resetForm = () => {
+    setPrimaryPhoneCountry('US');
+    setSecondaryPhoneCountry('US');
     setFormData({
       customer: '',
       customerId: '',
@@ -262,8 +397,8 @@ const CustomersPage = () => {
       trackingEmail: '',
       taxId: '',
       assignedSalesperson: '',
-      primaryPhone: '+1',
-      secondaryPhone: '+1',
+      primaryPhone: '',
+      secondaryPhone: '',
       contact: '',
       searchAddress: '',
       address: '',
@@ -465,6 +600,11 @@ const CustomersPage = () => {
                     <tr 
                       key={customer._id || index} 
                       className="hover:bg-gray-50 transition-colors"
+                      onClick={() => {
+                        if (customer._id) {
+                          loadCustomerForEdit(customer._id);
+                        }
+                      }}
                     >
                       <td className="px-4 py-3 text-sm text-gray-900">{customer.name}</td>
                       <td className="px-4 py-3 text-sm text-gray-900">{customer.type}</td>
@@ -726,13 +866,97 @@ const CustomersPage = () => {
                       <label className="block text-sm font-medium text-gray-700 mb-1">
                         Primary Phone #<span className="text-red-500">*</span>
                       </label>
-                      <div className="flex items-center gap-2">
-                        <span className="text-sm text-gray-600">us +1</span>
+                      <div className="flex items-center border border-gray-300 rounded-lg focus-within:ring-2 focus-within:ring-[#42aeec] focus-within:border-transparent">
+                        <div className="relative" ref={primaryCountryDropdownRef}>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setPrimaryCountryDropdownOpen(!primaryCountryDropdownOpen);
+                              if (!primaryCountryDropdownOpen) {
+                                setPrimaryCountrySearch('');
+                              }
+                            }}
+                            className="flex items-center gap-1.5 px-2 py-2 text-sm bg-white border-none outline-none cursor-pointer h-full"
+                            style={{ minWidth: '85px' }}
+                          >
+                            {countries.find(c => c.code === primaryPhoneCountry) && (
+                              <>
+                                <span className="text-sm" style={{ fontSize: '16px' }}>{countries.find(c => c.code === primaryPhoneCountry)?.flag}</span>
+                                <span className="text-xs text-gray-600 font-medium">{countries.find(c => c.code === primaryPhoneCountry)?.dialCode}</span>
+                              </>
+                            )}
+                            <ChevronDown className="w-3 h-3 text-gray-400 ml-auto" />
+                          </button>
+                          {primaryCountryDropdownOpen && (
+                            <div className="absolute top-full left-0 z-50 bg-white border border-gray-300 rounded-lg shadow-lg mt-1" style={{ minWidth: '280px', maxWidth: '320px' }}>
+                              {/* Search Input */}
+                              <div className="p-2 border-b border-gray-200 sticky top-0 bg-white">
+                                <input
+                                  type="text"
+                                  placeholder="Search country..."
+                                  value={primaryCountrySearch}
+                                  onChange={(e) => setPrimaryCountrySearch(e.target.value)}
+                                  onClick={(e) => e.stopPropagation()}
+                                  className="w-full px-3 py-1.5 text-xs border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-[#42aeec] focus:border-transparent"
+                                />
+                              </div>
+                              {/* Countries List */}
+                              <div className="max-h-60 overflow-y-auto">
+                                {countries
+                                  .filter((country) => {
+                                    const searchLower = primaryCountrySearch.toLowerCase();
+                                    return (
+                                      country.name.toLowerCase().includes(searchLower) ||
+                                      country.code.toLowerCase().includes(searchLower) ||
+                                      country.dialCode.includes(searchLower)
+                                    );
+                                  })
+                                  .map((country) => (
+                                    <button
+                                      key={country.code}
+                                      type="button"
+                                      onClick={() => {
+                                        setPrimaryPhoneCountry(country.code);
+                                        setPrimaryCountryDropdownOpen(false);
+                                        setPrimaryCountrySearch('');
+                                        // Don't auto-fill dial code - let user type the number without country code
+                                        // The dial code will be prepended when saving
+                                      }}
+                                      className={`w-full flex items-center gap-2 px-3 py-2 text-xs text-left hover:bg-gray-100 transition-colors ${
+                                        primaryPhoneCountry === country.code ? 'bg-blue-50' : ''
+                                      }`}
+                                    >
+                                      <span className="text-base" style={{ fontSize: '18px' }}>{country.flag}</span>
+                                      <span className="flex-1 truncate">{country.name}</span>
+                                      <span className="text-gray-600 font-medium">{country.dialCode}</span>
+                                    </button>
+                                  ))}
+                                {countries.filter((country) => {
+                                  const searchLower = primaryCountrySearch.toLowerCase();
+                                  return (
+                                    country.name.toLowerCase().includes(searchLower) ||
+                                    country.code.toLowerCase().includes(searchLower) ||
+                                    country.dialCode.includes(searchLower)
+                                  );
+                                }).length === 0 && (
+                                  <div className="px-3 py-4 text-xs text-gray-500 text-center">
+                                    No countries found
+                                  </div>
+                                )}
+                              </div>
+                            </div>
+                          )}
+                        </div>
+                        <div className="h-6 w-px bg-gray-300"></div>
                         <input
                           type="tel"
+                          placeholder=""
                           value={formData.primaryPhone}
-                          onChange={(e) => setFormData({ ...formData, primaryPhone: e.target.value })}
-                          className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#42aeec] focus:border-transparent"
+                          onChange={(e) => {
+                            const value = e.target.value.replace(/\D/g, '');
+                            setFormData({ ...formData, primaryPhone: value });
+                          }}
+                          className="flex-1 px-3 py-2 text-sm border-none outline-none focus:outline-none"
                         />
                       </div>
                     </div>
@@ -740,13 +964,97 @@ const CustomersPage = () => {
                     {/* Secondary Phone # */}
                     <div className="mb-4">
                       <label className="block text-sm font-medium text-gray-700 mb-1">Secondary Phone #</label>
-                      <div className="flex items-center gap-2">
-                        <span className="text-sm text-gray-600">us +1</span>
+                      <div className="flex items-center border border-gray-300 rounded-lg focus-within:ring-2 focus-within:ring-[#42aeec] focus-within:border-transparent">
+                        <div className="relative" ref={secondaryCountryDropdownRef}>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setSecondaryCountryDropdownOpen(!secondaryCountryDropdownOpen);
+                              if (!secondaryCountryDropdownOpen) {
+                                setSecondaryCountrySearch('');
+                              }
+                            }}
+                            className="flex items-center gap-1.5 px-2 py-2 text-sm bg-white border-none outline-none cursor-pointer h-full"
+                            style={{ minWidth: '85px' }}
+                          >
+                            {countries.find(c => c.code === secondaryPhoneCountry) && (
+                              <>
+                                <span className="text-sm" style={{ fontSize: '16px' }}>{countries.find(c => c.code === secondaryPhoneCountry)?.flag}</span>
+                                <span className="text-xs text-gray-600 font-medium">{countries.find(c => c.code === secondaryPhoneCountry)?.dialCode}</span>
+                              </>
+                            )}
+                            <ChevronDown className="w-3 h-3 text-gray-400 ml-auto" />
+                          </button>
+                          {secondaryCountryDropdownOpen && (
+                            <div className="absolute top-full left-0 z-50 bg-white border border-gray-300 rounded-lg shadow-lg mt-1" style={{ minWidth: '280px', maxWidth: '320px' }}>
+                              {/* Search Input */}
+                              <div className="p-2 border-b border-gray-200 sticky top-0 bg-white">
+                                <input
+                                  type="text"
+                                  placeholder="Search country..."
+                                  value={secondaryCountrySearch}
+                                  onChange={(e) => setSecondaryCountrySearch(e.target.value)}
+                                  onClick={(e) => e.stopPropagation()}
+                                  className="w-full px-3 py-1.5 text-xs border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-[#42aeec] focus:border-transparent"
+                                />
+                              </div>
+                              {/* Countries List */}
+                              <div className="max-h-60 overflow-y-auto">
+                                {countries
+                                  .filter((country) => {
+                                    const searchLower = secondaryCountrySearch.toLowerCase();
+                                    return (
+                                      country.name.toLowerCase().includes(searchLower) ||
+                                      country.code.toLowerCase().includes(searchLower) ||
+                                      country.dialCode.includes(searchLower)
+                                    );
+                                  })
+                                  .map((country) => (
+                                    <button
+                                      key={country.code}
+                                      type="button"
+                                      onClick={() => {
+                                        setSecondaryPhoneCountry(country.code);
+                                        setSecondaryCountryDropdownOpen(false);
+                                        setSecondaryCountrySearch('');
+                                        // Don't auto-fill dial code - let user type the number without country code
+                                        // The dial code will be prepended when saving
+                                      }}
+                                      className={`w-full flex items-center gap-2 px-3 py-2 text-xs text-left hover:bg-gray-100 transition-colors ${
+                                        secondaryPhoneCountry === country.code ? 'bg-blue-50' : ''
+                                      }`}
+                                    >
+                                      <span className="text-base" style={{ fontSize: '18px' }}>{country.flag}</span>
+                                      <span className="flex-1 truncate">{country.name}</span>
+                                      <span className="text-gray-600 font-medium">{country.dialCode}</span>
+                                    </button>
+                                  ))}
+                                {countries.filter((country) => {
+                                  const searchLower = secondaryCountrySearch.toLowerCase();
+                                  return (
+                                    country.name.toLowerCase().includes(searchLower) ||
+                                    country.code.toLowerCase().includes(searchLower) ||
+                                    country.dialCode.includes(searchLower)
+                                  );
+                                }).length === 0 && (
+                                  <div className="px-3 py-4 text-xs text-gray-500 text-center">
+                                    No countries found
+                                  </div>
+                                )}
+                              </div>
+                            </div>
+                          )}
+                        </div>
+                        <div className="h-6 w-px bg-gray-300"></div>
                         <input
                           type="tel"
+                          placeholder=""
                           value={formData.secondaryPhone}
-                          onChange={(e) => setFormData({ ...formData, secondaryPhone: e.target.value })}
-                          className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#42aeec] focus:border-transparent"
+                          onChange={(e) => {
+                            const value = e.target.value.replace(/\D/g, '');
+                            setFormData({ ...formData, secondaryPhone: value });
+                          }}
+                          className="flex-1 px-3 py-2 text-sm border-none outline-none focus:outline-none"
                         />
                       </div>
                     </div>
