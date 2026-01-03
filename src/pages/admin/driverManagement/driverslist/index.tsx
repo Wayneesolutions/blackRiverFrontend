@@ -3,10 +3,11 @@ import { Edit, Trash2, Plus, X, RefreshCw, AlertCircle, User, Search, Eye, Check
 import { FaCheckCircle, FaExclamationCircle, FaTimes } from 'react-icons/fa';
 import { FLEET_COLORS } from '../../fleetMaintenance/colorUtils';
 import * as driverApi from '../../../../axios/api/driver';
-import { getDocumentsByEmployee, createEmployeeDocument, getSignedEmployeeDocumentUrl } from '../../../../axios/api/employeeDocument';
+import { listDriver } from '../../../../axios/api/distapcher';
+import { getDocumentsByEmployee, createEmployeeDocument, getSignedEmployeeDocumentUrl, deleteEmployeeDocument } from '../../../../axios/api/employeeDocument';
 import type { EmployeeDocument } from '../../../../axios/api/employeeDocument';
-import { createViolation } from '../../../../axios/api/violations';
-import { createDeductionAddition } from '../../../../axios/api/account.settlement';
+import { createViolation, deleteViolation } from '../../../../axios/api/violations';
+import { createDeductionAddition, deleteDeductionAddition } from '../../../../axios/api/account.settlement';
 
 // US States
 const US_STATES = [
@@ -145,153 +146,6 @@ interface Driver {
   [key: string]: any; // Allow additional fields from backend
 }
 
-// Static driver data for fallback/initial state
-const staticDrivers: Driver[] = [
-  {
-    driverId: 'BRBS75',
-    firstName: 'BALJINDER',
-    lastName: 'SINGH',
-    driversLicence: 'SI-NG-HB-*S23B8',
-    passport: 'Y2051470',
-    dateOfBirth: '01/28/1998',
-    notes: '',
-    ticketYTD: 0,
-    status: 'ACTIVE',
-    compliance: 'COMPLIANT'
-  },
-  {
-    driverId: 'BRJS49',
-    firstName: 'JASKIRAT',
-    lastName: 'SINGH',
-    driversLicence: 'SI-NG-HJ-*999R2',
-    passport: 'V1705202',
-    dateOfBirth: '12/22/2001',
-    notes: '',
-    ticketYTD: 0,
-    status: 'ACTIVE',
-    compliance: 'COMPLIANT'
-  },
-  {
-    driverId: 'BRMC50',
-    firstName: 'MANPREET',
-    lastName: 'SINGH CHAUDHARY',
-    driversLicence: 'SI-NG-HM-*020LW',
-    passport: 'P9519579',
-    dateOfBirth: '06/16/1998',
-    notes: '',
-    ticketYTD: 0,
-    status: 'ACTIVE',
-    compliance: 'COMPLIANT'
-  },
-  {
-    driverId: 'BRGM52',
-    firstName: 'GURMAN',
-    lastName: 'MANGAT',
-    driversLicence: 'MA-NG-AG-S988WB',
-    passport: 'T0092005',
-    dateOfBirth: '09/02/2002',
-    notes: '',
-    ticketYTD: 0,
-    status: 'ACTIVE',
-    compliance: 'EXPIRING SOON'
-  },
-  {
-    driverId: 'BRKS53',
-    firstName: 'KARAN',
-    lastName: 'SINGH',
-    driversLicence: 'SI-NG-HK-*123AB',
-    passport: 'T1234567',
-    dateOfBirth: '03/15/1995',
-    notes: '',
-    ticketYTD: 0,
-    status: 'ACTIVE',
-    compliance: 'COMPLIANT'
-  },
-  {
-    driverId: 'BRHS54',
-    firstName: 'HARJINDER',
-    lastName: 'SINGH',
-    driversLicence: 'SI-NG-HH-*456CD',
-    passport: 'T2345678',
-    dateOfBirth: '07/20/1999',
-    notes: '',
-    ticketYTD: 0,
-    status: 'ACTIVE',
-    compliance: 'COMPLIANT'
-  },
-  {
-    driverId: 'BRPS55',
-    firstName: 'PARAMJIT',
-    lastName: 'SINGH',
-    driversLicence: 'SI-NG-HP-*789EF',
-    passport: 'T3456789',
-    dateOfBirth: '11/10/1997',
-    notes: '',
-    ticketYTD: 0,
-    status: 'ACTIVE',
-    compliance: 'COMPLIANT'
-  },
-  {
-    driverId: 'BRSS56',
-    firstName: 'SUKHJINDER',
-    lastName: 'SINGH',
-    driversLicence: 'SI-NG-HS-*012GH',
-    passport: 'T4567890',
-    dateOfBirth: '05/25/2000',
-    notes: '',
-    ticketYTD: 0,
-    status: 'ACTIVE',
-    compliance: 'COMPLIANT'
-  },
-  {
-    driverId: 'BRMS57',
-    firstName: 'MANDEEP',
-    lastName: 'SINGH',
-    driversLicence: 'SI-NG-HM-*345IJ',
-    passport: 'T5678901',
-    dateOfBirth: '08/30/1996',
-    notes: '',
-    ticketYTD: 0,
-    status: 'ACTIVE',
-    compliance: 'COMPLIANT'
-  },
-  {
-    driverId: 'BRGS58',
-    firstName: 'GURPREET',
-    lastName: 'SINGH',
-    driversLicence: 'SI-NG-HG-*678KL',
-    passport: 'T6789012',
-    dateOfBirth: '02/14/1998',
-    notes: '',
-    ticketYTD: 0,
-    status: 'ACTIVE',
-    compliance: 'COMPLIANT'
-  },
-  {
-    driverId: 'BRAS59',
-    firstName: 'AMANDEEP',
-    lastName: 'SINGH',
-    driversLicence: 'SI-NG-HA-*901MN',
-    passport: 'T7890123',
-    dateOfBirth: '10/05/2001',
-    notes: '',
-    ticketYTD: 0,
-    status: 'ACTIVE',
-    compliance: 'COMPLIANT'
-  },
-  {
-    driverId: 'BRRS60',
-    firstName: 'RAVINDER',
-    lastName: 'SINGH',
-    driversLicence: 'SI-NG-HR-*234OP',
-    passport: 'T8901234',
-    dateOfBirth: '04/18/1999',
-    notes: '',
-    ticketYTD: 0,
-    status: 'ACTIVE',
-    compliance: 'COMPLIANT'
-  }
-];
 
 const DriverManagement = () => {
   const [activeTab, setActiveTab] = useState<'all' | 'external' | 'unassigned'>('all');
@@ -307,6 +161,7 @@ const DriverManagement = () => {
   const [driverDocuments, setDriverDocuments] = useState<any[]>([]);
   const [drivers, setDrivers] = useState<Driver[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
+  const [driverCounts, setDriverCounts] = useState<{ total: number; assigned: number; unassigned: number }>({ total: 0, assigned: 0, unassigned: 0 });
   const [profileImagePreview, setProfileImagePreview] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -570,6 +425,8 @@ const DriverManagement = () => {
   } | null>(null);
   const [uploadedFiles, setUploadedFiles] = useState<Record<string, { name: string; size: number }>>({});
   const [documentFile, setDocumentFile] = useState<{ name: string; size: number } | null>(null);
+  const [editingDocumentId, setEditingDocumentId] = useState<string | null>(null);
+  const [editingCertificationId, setEditingCertificationId] = useState<string | null>(null);
 
   // Form state for Violations
   const [violations, setViolations] = useState<Array<{
@@ -586,6 +443,7 @@ const DriverManagement = () => {
     file: null as File | null
   });
   const [violationFile, setViolationFile] = useState<File | null>(null);
+  const [editingViolationId, setEditingViolationId] = useState<string | null>(null);
 
   // Form state for Notes
   const [notes, setNotes] = useState<Array<{
@@ -597,6 +455,7 @@ const DriverManagement = () => {
     note: '',
     category: ''
   });
+  const [editingNoteId, setEditingNoteId] = useState<string | null>(null);
 
   // Form state for Deductions
   const [deductions, setDeductions] = useState<Array<{
@@ -614,6 +473,7 @@ const DriverManagement = () => {
     interval: '',
     currency: 'CAD'
   });
+  const [editingDeductionId, setEditingDeductionId] = useState<string | null>(null);
 
   // Form state for Additions
   const [additions, setAdditions] = useState<Array<{
@@ -631,33 +491,64 @@ const DriverManagement = () => {
     interval: '',
     currency: 'CAD'
   });
+  const [editingAdditionId, setEditingAdditionId] = useState<string | null>(null);
 
   // Fetch drivers from API
   const fetchDrivers = async () => {
     try {
       setLoading(true);
-      const response = await driverApi.getAllDrivers(1, 1000); // Fetch all drivers
+      // Determine assignment parameter based on activeTab
+      let assignmentParam: 'all' | 'assigned' | 'unassigned' = 'all';
+      if (activeTab === 'unassigned') {
+        assignmentParam = 'unassigned';
+      } else if (activeTab === 'external') {
+        // External drivers are those assigned to orders (we'll use 'assigned' for now)
+        assignmentParam = 'assigned';
+      }
+      
+      // Use dispatcher endpoint which supports assignment filtering and returns counts
+      const response = await listDriver({ 
+        page: 1, 
+        limit: 1000,
+        assignment: assignmentParam
+      });
       
       if (response?.success && response.data) {
+        // Store counts from API response
+        if (response.count !== undefined && response.assignedDrivers !== undefined && response.unassignedDrivers !== undefined) {
+          setDriverCounts({
+            total: response.count || 0,
+            assigned: response.assignedDrivers || 0,
+            unassigned: response.unassignedDrivers || 0
+          });
+        }
+        
         // Transform backend data to match Driver interface
-        const transformedDrivers: Driver[] = response.data.map((driver: any) => ({
-          _id: driver._id,
-          driverId: driver.driverId || driver.internalId || driver._id?.slice(-6).toUpperCase() || 'N/A',
-          firstName: driver.firstName || (driver.name ? driver.name.split(' ')[0] : ''),
-          lastName: driver.lastName || (driver.name ? driver.name.split(' ').slice(1).join(' ') : ''),
-          driversLicence: driver.driversLicence || driver.details?.licenceNumber || driver.details?.driversLicence || '',
-          passport: driver.passport || driver.details?.passport || driver.details?.passportNumber || '',
-          dateOfBirth: driver.dateOfBirth || (driver.details?.dateOfBirth ? new Date(driver.details.dateOfBirth).toISOString().split('T')[0] : '') || (driver.dob ? new Date(driver.dob).toISOString().split('T')[0] : ''),
-          notes: driver.notes || driver.details?.notes || '',
-          ticketYTD: driver.ticketYTD || driver.details?.ticketYTD || 0,
-          status: driver.status || 'ACTIVE',
-          compliance: driver.compliance || 'NON-COMPLIANT',
-          complianceDetails: driver.complianceDetails,
-          email: driver.email,
-          phone: driver.phone,
-          mobile: driver.mobile || driver.details?.cell1,
-          company: driver.company
-        }));
+        const transformedDrivers: Driver[] = response.data.map((driver: any) => {
+          // Handle name field (could be name string or firstName/lastName)
+          const nameParts = driver.name ? driver.name.split(' ') : [];
+          const firstName = driver.firstName || nameParts[0] || '';
+          const lastName = driver.lastName || nameParts.slice(1).join(' ') || '';
+          
+          return {
+            _id: driver._id,
+            driverId: driver.driverId || driver.internalId || driver._id?.slice(-6).toUpperCase() || 'N/A',
+            firstName: firstName,
+            lastName: lastName,
+            driversLicence: driver.driversLicence || driver.details?.licenceNumber || driver.details?.driversLicence || '',
+            passport: driver.passport || driver.details?.passport || driver.details?.passportNumber || '',
+            dateOfBirth: driver.dateOfBirth || (driver.details?.dateOfBirth ? new Date(driver.details.dateOfBirth).toISOString().split('T')[0] : '') || (driver.dob ? new Date(driver.dob).toISOString().split('T')[0] : ''),
+            notes: driver.notes || driver.details?.notes || '',
+            ticketYTD: driver.ticketYTD || driver.details?.ticketYTD || 0,
+            status: driver.status || 'ACTIVE',
+            compliance: driver.compliance || 'NON-COMPLIANT',
+            complianceDetails: driver.complianceDetails,
+            email: driver.email,
+            phone: driver.phone,
+            mobile: driver.mobile || driver.details?.cell1,
+            company: driver.company
+          };
+        });
         
         setDrivers(transformedDrivers);
       } else {
@@ -672,10 +563,10 @@ const DriverManagement = () => {
     }
   };
 
-  // Fetch drivers on component mount
+  // Fetch drivers on component mount and when activeTab changes
   useEffect(() => {
     fetchDrivers();
-  }, []);
+  }, [activeTab]);
 
   // Load driver data when editing
   useEffect(() => {
@@ -1282,14 +1173,11 @@ const DriverManagement = () => {
 
   // Filter drivers based on active tab
   const getFilteredDrivers = () => {
-    // Use real drivers if available, otherwise fallback to static
-    const driversToFilter = drivers.length > 0 ? drivers : staticDrivers;
-    let filtered = driversToFilter;
+    // Only use drivers from backend - no static/hardcoded data
+    let filtered = drivers;
 
-    // Apply tab filter
-    // Note: Tab filtering logic would need to be implemented based on actual assignment data
-    // For now, we'll show all drivers for all tabs
-    // TODO: Implement proper assignment filtering when assignment data is available
+    // Tab filtering is now handled by the API (assignment parameter)
+    // The drivers array already contains only the drivers for the current activeTab
 
     // Apply search filter
     if (searchTerm) {
@@ -1392,18 +1280,16 @@ const DriverManagement = () => {
   };
 
   const getTabCount = (tab: 'all' | 'external' | 'unassigned') => {
-    // Use real driver count if available
-    const totalCount = drivers.length > 0 ? drivers.length : staticDrivers.length;
-    
+    // Use counts from backend API response
     switch (tab) {
       case 'all':
-        return totalCount;
+        return driverCounts.total || drivers.length || 0;
       case 'external':
-        // TODO: Implement proper external driver count when assignment data is available
-        return Math.floor(totalCount * 0.94); // Mock: ~94% are external
+        // External drivers are those assigned to orders
+        return driverCounts.assigned || 0;
       case 'unassigned':
-        // TODO: Implement proper unassigned driver count when assignment data is available
-        return Math.max(0, Math.floor(totalCount * 0.06)); // Mock: ~6% are unassigned
+        // Unassigned drivers are those not assigned to any active order (as driver or coDriver)
+        return driverCounts.unassigned || 0;
       default:
         return 0;
     }
@@ -2204,6 +2090,7 @@ const DriverManagement = () => {
       ignoreExpiration: false
     });
     setSelectedCertificate(null);
+    setEditingCertificationId(null);
     setUploadedFiles({});
     setDocumentFile(null);
     
@@ -2215,9 +2102,15 @@ const DriverManagement = () => {
       file: null
     });
     setViolationFile(null);
+    setEditingViolationId(null);
     
     // Reset notes
     setNotes([]);
+    setNewNote({
+      note: '',
+      category: ''
+    });
+    setEditingNoteId(null);
     setNewNote({
       note: '',
       category: ''
@@ -2232,6 +2125,7 @@ const DriverManagement = () => {
       interval: '',
       currency: 'CAD'
     });
+    setEditingDeductionId(null);
     
     // Reset additions
     setAdditions([]);
@@ -2242,6 +2136,7 @@ const DriverManagement = () => {
       interval: '',
       currency: 'CAD'
     });
+    setEditingAdditionId(null);
     
     // Reset other states
     setProfileImagePreview(null);
@@ -4659,16 +4554,36 @@ const DriverManagement = () => {
                                 <button
                                   onClick={() => {
                                     if (newDocument.expiryDate || newDocument.description) {
-                                      const docId = Date.now().toString();
-                                      setDocuments([...documents, {
-                                        id: docId,
-                                        expiryDate: newDocument.expiryDate,
-                                        description: newDocument.description,
-                                        ignoreExpiration: newDocument.ignoreExpiration,
-                                        file: newDocument.file
-                                      }]);
-                                      if (newDocument.file && documentFile) {
-                                        setUploadedFiles({ ...uploadedFiles, [docId]: documentFile });
+                                      if (editingDocumentId) {
+                                        // Update existing document in the list
+                                        setDocuments(documents.map(d => 
+                                          d.id === editingDocumentId 
+                                            ? {
+                                                ...d,
+                                                expiryDate: newDocument.expiryDate,
+                                                description: newDocument.description,
+                                                ignoreExpiration: newDocument.ignoreExpiration,
+                                                file: newDocument.file
+                                              }
+                                            : d
+                                        ));
+                                        if (newDocument.file && documentFile) {
+                                          setUploadedFiles({ ...uploadedFiles, [editingDocumentId]: documentFile });
+                                        }
+                                        setEditingDocumentId(null);
+                                      } else {
+                                        // Add new document
+                                        const docId = Date.now().toString();
+                                        setDocuments([...documents, {
+                                          id: docId,
+                                          expiryDate: newDocument.expiryDate,
+                                          description: newDocument.description,
+                                          ignoreExpiration: newDocument.ignoreExpiration,
+                                          file: newDocument.file
+                                        }]);
+                                        if (newDocument.file && documentFile) {
+                                          setUploadedFiles({ ...uploadedFiles, [docId]: documentFile });
+                                        }
                                       }
                                       setNewDocument({
                                         expiryDate: '',
@@ -4681,7 +4596,7 @@ const DriverManagement = () => {
                                   }}
                                   className="w-10 h-10 bg-black !text-white rounded-lg flex items-center justify-center hover:bg-gray-800 transition-colors"
                                 >
-                                  <Plus className="w-5 h-5" />
+                                  {editingDocumentId ? <Save className="w-5 h-5" /> : <Plus className="w-5 h-5" />}
                                 </button>
                               </div>
                             </td>
@@ -4699,12 +4614,13 @@ const DriverManagement = () => {
                             <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase">DESCRIPTION</th>
                             <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase">FILE</th>
                             <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase">IGNORE EXPIRATION</th>
+                            <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase">ACTIONS</th>
                           </tr>
                         </thead>
                         <tbody className="bg-white divide-y divide-gray-200">
                           {documents.length === 0 ? (
                             <tr>
-                              <td colSpan={4} className="px-4 py-8 text-center text-gray-500">
+                              <td colSpan={5} className="px-4 py-8 text-center text-gray-500">
                                 No Data
                               </td>
                             </tr>
@@ -4763,6 +4679,76 @@ const DriverManagement = () => {
                                   ) : (
                                     <span className="text-gray-400">-</span>
                                   )}
+                                </td>
+                                <td className="px-4 py-3 text-sm text-gray-900">
+                                  <div className="flex items-center gap-2">
+                                    <button
+                                      onClick={(e) => {
+                                        e.stopPropagation();
+                                        // Load document data into form for editing
+                                        setNewDocument({
+                                          expiryDate: doc.expiryDate || '',
+                                          description: doc.description || '',
+                                          ignoreExpiration: doc.ignoreExpiration || false,
+                                          file: doc.file || null
+                                        });
+                                        setEditingDocumentId(doc.id);
+                                        if (doc.file instanceof File) {
+                                          setDocumentFile(doc.file);
+                                        } else {
+                                          setDocumentFile(null);
+                                        }
+                                      }}
+                                      className="p-1.5 text-blue-600 hover:bg-blue-50 rounded transition-colors"
+                                      title="Edit document"
+                                    >
+                                      <Edit className="w-4 h-4" />
+                                    </button>
+                                    <button
+                                      onClick={async (e) => {
+                                        e.stopPropagation();
+                                        if (window.confirm('Are you sure you want to delete this document?')) {
+                                          try {
+                                            // If it's an existing document, delete it from backend
+                                            if (doc.isExisting && doc.documentId) {
+                                              const response = await deleteEmployeeDocument(doc.documentId);
+                                              if (response?.success) {
+                                                addNotification('success', 'Document deleted successfully!');
+                                              } else {
+                                                addNotification('error', response?.message || 'Failed to delete document');
+                                              }
+                                            }
+                                            // Remove from local state
+                                            setDocuments(documents.filter(d => d.id !== doc.id));
+                                            // Clear editing state if this was the document being edited
+                                            if (editingDocumentId === doc.id) {
+                                              setEditingDocumentId(null);
+                                              setNewDocument({
+                                                expiryDate: '',
+                                                description: '',
+                                                ignoreExpiration: false,
+                                                file: null
+                                              });
+                                              setDocumentFile(null);
+                                            }
+                                            // Remove from uploadedFiles if it exists
+                                            if (uploadedFiles[doc.id]) {
+                                              const newUploadedFiles = { ...uploadedFiles };
+                                              delete newUploadedFiles[doc.id];
+                                              setUploadedFiles(newUploadedFiles);
+                                            }
+                                          } catch (error: any) {
+                                            console.error('Error deleting document:', error);
+                                            addNotification('error', error.response?.data?.message || error.message || 'Failed to delete document');
+                                          }
+                                        }
+                                      }}
+                                      className="p-1.5 text-red-600 hover:bg-red-50 rounded transition-colors"
+                                      title="Delete document"
+                                    >
+                                      <Trash2 className="w-4 h-4" />
+                                    </button>
+                                  </div>
                                 </td>
                               </tr>
                             ))
@@ -4866,14 +4852,32 @@ const DriverManagement = () => {
                                 <button
                                   onClick={() => {
                                     if (newCertification.expiryDate || newCertification.title) {
-                                      setCertifications([...certifications, {
-                                        id: Date.now().toString(),
-                                        expiryDate: newCertification.expiryDate,
-                                        title: newCertification.title,
-                                        subCategory: newCertification.subCategory,
-                                        result: newCertification.result,
-                                        ignoreExpiration: newCertification.ignoreExpiration
-                                      }]);
+                                      if (editingCertificationId) {
+                                        // Update existing certification in the list
+                                        setCertifications(certifications.map(c => 
+                                          c.id === editingCertificationId 
+                                            ? {
+                                                ...c,
+                                                expiryDate: newCertification.expiryDate,
+                                                title: newCertification.title,
+                                                subCategory: newCertification.subCategory,
+                                                result: newCertification.result,
+                                                ignoreExpiration: newCertification.ignoreExpiration
+                                              }
+                                            : c
+                                        ));
+                                        setEditingCertificationId(null);
+                                      } else {
+                                        // Add new certification
+                                        setCertifications([...certifications, {
+                                          id: Date.now().toString(),
+                                          expiryDate: newCertification.expiryDate,
+                                          title: newCertification.title,
+                                          subCategory: newCertification.subCategory,
+                                          result: newCertification.result,
+                                          ignoreExpiration: newCertification.ignoreExpiration
+                                        }]);
+                                      }
                                       setNewCertification({
                                         expiryDate: '',
                                         title: '',
@@ -4885,7 +4889,7 @@ const DriverManagement = () => {
                                   }}
                                   className="w-10 h-10 bg-black !text-white rounded-lg flex items-center justify-center hover:bg-gray-800 transition-colors"
                                 >
-                                  <Plus className="w-5 h-5" />
+                                  {editingCertificationId ? <Save className="w-5 h-5" /> : <Plus className="w-5 h-5" />}
                                 </button>
                               </div>
                             </td>
@@ -4904,12 +4908,13 @@ const DriverManagement = () => {
                             <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase">SUBCATEGORY</th>
                             <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase">RESULT</th>
                             <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase">IGNORE EXPIRATION</th>
+                            <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase">ACTIONS</th>
                           </tr>
                         </thead>
                         <tbody className="bg-white divide-y divide-gray-200">
                           {certifications.length === 0 ? (
                             <tr>
-                              <td colSpan={5} className="px-4 py-8 text-center text-gray-500">
+                              <td colSpan={6} className="px-4 py-8 text-center text-gray-500">
                                 No Data
                               </td>
                             </tr>
@@ -4917,8 +4922,7 @@ const DriverManagement = () => {
                             certifications.map((cert) => (
                               <tr
                                 key={cert.id}
-                                className={`hover:bg-gray-50 cursor-pointer ${selectedCertificate?.id === cert.id ? 'bg-blue-50' : ''}`}
-                                onClick={() => setSelectedCertificate(cert)}
+                                className={`hover:bg-gray-50 ${selectedCertificate?.id === cert.id ? 'bg-blue-50' : ''}`}
                               >
                                 <td className="px-4 py-3 text-sm text-gray-900">{cert.expiryDate || '-'}</td>
                                 <td className="px-4 py-3 text-sm text-gray-900">{cert.title || '-'}</td>
@@ -4930,6 +4934,72 @@ const DriverManagement = () => {
                                   ) : (
                                     <span className="text-gray-400">-</span>
                                   )}
+                                </td>
+                                <td className="px-4 py-3 text-sm text-gray-900">
+                                  <div className="flex items-center gap-2">
+                                    <button
+                                      onClick={(e) => {
+                                        e.stopPropagation();
+                                        // Load certification data into form for editing
+                                        setNewCertification({
+                                          expiryDate: cert.expiryDate || '',
+                                          title: cert.title || '',
+                                          subCategory: cert.subCategory || '',
+                                          result: cert.result || '',
+                                          ignoreExpiration: cert.ignoreExpiration || false
+                                        });
+                                        setEditingCertificationId(cert.id);
+                                        setSelectedCertificate(null); // Close side panel if open
+                                      }}
+                                      className="p-1.5 text-blue-600 hover:bg-blue-50 rounded transition-colors"
+                                      title="Edit certification"
+                                    >
+                                      <Edit className="w-4 h-4" />
+                                    </button>
+                                    <button
+                                      onClick={async (e) => {
+                                        e.stopPropagation();
+                                        if (window.confirm('Are you sure you want to delete this certification?')) {
+                                          try {
+                                            // Check if it's an existing certification (ID starts with "existing-")
+                                            if (cert.id && cert.id.toString().startsWith('existing-')) {
+                                              const actualId = cert.id.toString().replace('existing-', '');
+                                              const response = await driverApi.deleteTrainingCertificate(actualId);
+                                              if (response?.success) {
+                                                addNotification('success', 'Certification deleted successfully!');
+                                              } else {
+                                                addNotification('error', response?.message || 'Failed to delete certification');
+                                              }
+                                            }
+                                            // Remove from local state
+                                            setCertifications(certifications.filter(c => c.id !== cert.id));
+                                            // Clear editing state if this was the certification being edited
+                                            if (editingCertificationId === cert.id) {
+                                              setEditingCertificationId(null);
+                                              setNewCertification({
+                                                expiryDate: '',
+                                                title: '',
+                                                subCategory: '',
+                                                result: '',
+                                                ignoreExpiration: false
+                                              });
+                                            }
+                                            // Clear selected certificate if it was this one
+                                            if (selectedCertificate?.id === cert.id) {
+                                              setSelectedCertificate(null);
+                                            }
+                                          } catch (error: any) {
+                                            console.error('Error deleting certification:', error);
+                                            addNotification('error', error.response?.data?.message || error.message || 'Failed to delete certification');
+                                          }
+                                        }
+                                      }}
+                                      className="p-1.5 text-red-600 hover:bg-red-50 rounded transition-colors"
+                                      title="Delete certification"
+                                    >
+                                      <Trash2 className="w-4 h-4" />
+                                    </button>
+                                  </div>
                                 </td>
                               </tr>
                             ))
@@ -5123,12 +5193,13 @@ const DriverManagement = () => {
                           <tr>
                             <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase">Payment Due Date</th>
                             <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase">Ticket</th>
+                            <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase">ACTIONS</th>
                           </tr>
                         </thead>
                         <tbody className="bg-white divide-y divide-gray-200">
                           {violations.length === 0 ? (
                             <tr>
-                              <td colSpan={2} className="px-4 py-8 text-center text-gray-500">
+                              <td colSpan={3} className="px-4 py-8 text-center text-gray-500">
                                 No Data
                               </td>
                             </tr>
@@ -5144,6 +5215,69 @@ const DriverManagement = () => {
                                         <FileText className="w-4 h-4 text-blue-500" />
                                       </span>
                                     )}
+                                  </div>
+                                </td>
+                                <td className="px-4 py-3 text-sm text-gray-900">
+                                  <div className="flex items-center gap-2">
+                                    <button
+                                      onClick={(e) => {
+                                        e.stopPropagation();
+                                        // Load violation data into form for editing
+                                        setNewViolation({
+                                          paymentDueDate: violation.paymentDueDate || '',
+                                          ticket: violation.ticket || '',
+                                          file: violation.file || null
+                                        });
+                                        setEditingViolationId(violation.id);
+                                        if (violation.file instanceof File) {
+                                          setViolationFile(violation.file);
+                                        } else {
+                                          setViolationFile(null);
+                                        }
+                                      }}
+                                      className="p-1.5 text-blue-600 hover:bg-blue-50 rounded transition-colors"
+                                      title="Edit violation"
+                                    >
+                                      <Edit className="w-4 h-4" />
+                                    </button>
+                                    <button
+                                      onClick={async (e) => {
+                                        e.stopPropagation();
+                                        if (window.confirm('Are you sure you want to delete this violation?')) {
+                                          try {
+                                            // Check if it's an existing violation (ID starts with "existing-")
+                                            if (violation.id && violation.id.toString().startsWith('existing-')) {
+                                              const actualId = violation.id.toString().replace('existing-', '');
+                                              const response = await deleteViolation(actualId);
+                                              if (response?.success) {
+                                                addNotification('success', 'Violation deleted successfully!');
+                                              } else {
+                                                addNotification('error', response?.message || 'Failed to delete violation');
+                                              }
+                                            }
+                                            // Remove from local state
+                                            setViolations(violations.filter(v => v.id !== violation.id));
+                                            // Clear editing state if this was the violation being edited
+                                            if (editingViolationId === violation.id) {
+                                              setEditingViolationId(null);
+                                              setNewViolation({
+                                                paymentDueDate: '',
+                                                ticket: '',
+                                                file: null
+                                              });
+                                              setViolationFile(null);
+                                            }
+                                          } catch (error: any) {
+                                            console.error('Error deleting violation:', error);
+                                            addNotification('error', error.response?.data?.message || error.message || 'Failed to delete violation');
+                                          }
+                                        }
+                                      }}
+                                      className="p-1.5 text-red-600 hover:bg-red-50 rounded transition-colors"
+                                      title="Delete violation"
+                                    >
+                                      <Trash2 className="w-4 h-4" />
+                                    </button>
                                   </div>
                                 </td>
                               </tr>
@@ -5204,11 +5338,26 @@ const DriverManagement = () => {
                         <button
                           onClick={() => {
                             if (newNote.note) {
-                              setNotes([...notes, {
-                                id: Date.now().toString(),
-                                note: newNote.note,
-                                category: newNote.category
-                              }]);
+                              if (editingNoteId) {
+                                // Update existing note in the list
+                                setNotes(notes.map(n => 
+                                  n.id === editingNoteId 
+                                    ? {
+                                        ...n,
+                                        note: newNote.note,
+                                        category: newNote.category
+                                      }
+                                    : n
+                                ));
+                                setEditingNoteId(null);
+                              } else {
+                                // Add new note
+                                setNotes([...notes, {
+                                  id: Date.now().toString(),
+                                  note: newNote.note,
+                                  category: newNote.category
+                                }]);
+                              }
                               setNewNote({
                                 note: '',
                                 category: ''
@@ -5217,7 +5366,7 @@ const DriverManagement = () => {
                           }}
                           className="w-10 h-10 bg-black !text-white rounded-lg flex items-center justify-center hover:bg-gray-800 transition-colors"
                         >
-                          <Plus className="w-5 h-5" />
+                          {editingNoteId ? <Save className="w-5 h-5" /> : <Plus className="w-5 h-5" />}
                         </button>
                       </div>
                     </div>
@@ -5239,12 +5388,39 @@ const DriverManagement = () => {
                                     <p className="text-xs text-gray-500 mt-1">Category: {note.category}</p>
                                   )}
                                 </div>
-                                <button
-                                  onClick={() => setNotes(notes.filter(n => n.id !== note.id))}
-                                  className="text-gray-400 hover:text-red-500"
-                                >
-                                  <X className="w-4 h-4" />
-                                </button>
+                                <div className="flex items-center gap-2">
+                                  <button
+                                    onClick={() => {
+                                      setNewNote({
+                                        note: note.note,
+                                        category: note.category
+                                      });
+                                      setEditingNoteId(note.id);
+                                    }}
+                                    className="p-1.5 text-blue-600 hover:bg-blue-50 rounded transition-colors"
+                                    title="Edit note"
+                                  >
+                                    <Edit className="w-4 h-4" />
+                                  </button>
+                                  <button
+                                    onClick={() => {
+                                      if (window.confirm('Are you sure you want to delete this note?')) {
+                                        setNotes(notes.filter(n => n.id !== note.id));
+                                        if (editingNoteId === note.id) {
+                                          setEditingNoteId(null);
+                                          setNewNote({
+                                            note: '',
+                                            category: ''
+                                          });
+                                        }
+                                      }
+                                    }}
+                                    className="p-1.5 text-red-600 hover:bg-red-50 rounded transition-colors"
+                                    title="Delete note"
+                                  >
+                                    <Trash2 className="w-4 h-4" />
+                                  </button>
+                                </div>
                               </div>
                             </div>
                           ))}
@@ -5337,14 +5513,32 @@ const DriverManagement = () => {
                         <button
                           onClick={() => {
                             if (newDeduction.startDate || newDeduction.description) {
-                              setDeductions([...deductions, {
-                                id: Date.now().toString(),
-                                startDate: newDeduction.startDate,
-                                description: newDeduction.description,
-                                amount: newDeduction.amount,
-                                interval: newDeduction.interval,
-                                currency: newDeduction.currency
-                              }]);
+                              if (editingDeductionId) {
+                                // Update existing deduction in the list
+                                setDeductions(deductions.map(d => 
+                                  d.id === editingDeductionId 
+                                    ? {
+                                        ...d,
+                                        startDate: newDeduction.startDate,
+                                        description: newDeduction.description,
+                                        amount: newDeduction.amount,
+                                        interval: newDeduction.interval,
+                                        currency: newDeduction.currency
+                                      }
+                                    : d
+                                ));
+                                setEditingDeductionId(null);
+                              } else {
+                                // Add new deduction
+                                setDeductions([...deductions, {
+                                  id: Date.now().toString(),
+                                  startDate: newDeduction.startDate,
+                                  description: newDeduction.description,
+                                  amount: newDeduction.amount,
+                                  interval: newDeduction.interval,
+                                  currency: newDeduction.currency
+                                }]);
+                              }
                               setNewDeduction({
                                 startDate: '',
                                 description: '',
@@ -5356,7 +5550,7 @@ const DriverManagement = () => {
                           }}
                           className="w-10 h-10 bg-black !text-white rounded-lg flex items-center justify-center hover:bg-gray-800 transition-colors"
                         >
-                          <Plus className="w-5 h-5" />
+                          {editingDeductionId ? <Save className="w-5 h-5" /> : <Plus className="w-5 h-5" />}
                         </button>
                       </div>
                     </div>
@@ -5370,12 +5564,13 @@ const DriverManagement = () => {
                             <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase">Description</th>
                             <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase">Amount</th>
                             <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase">Interval</th>
+                            <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase">ACTIONS</th>
                           </tr>
                         </thead>
                         <tbody className="bg-white divide-y divide-gray-200">
                           {deductions.length === 0 ? (
                             <tr>
-                              <td colSpan={4} className="px-4 py-8 text-center text-gray-500">
+                              <td colSpan={5} className="px-4 py-8 text-center text-gray-500">
                                 No Data
                               </td>
                             </tr>
@@ -5386,6 +5581,66 @@ const DriverManagement = () => {
                                 <td className="px-4 py-3 text-sm text-gray-900">{deduction.description || '-'}</td>
                                 <td className="px-4 py-3 text-sm text-gray-900">{deduction.amount || '0'} {deduction.currency}</td>
                                 <td className="px-4 py-3 text-sm text-gray-900">{deduction.interval || '-'}</td>
+                                <td className="px-4 py-3 text-sm text-gray-900">
+                                  <div className="flex items-center gap-2">
+                                    <button
+                                      onClick={(e) => {
+                                        e.stopPropagation();
+                                        setNewDeduction({
+                                          startDate: deduction.startDate || '',
+                                          description: deduction.description || '',
+                                          amount: deduction.amount || '0',
+                                          interval: deduction.interval || '',
+                                          currency: deduction.currency || 'CAD'
+                                        });
+                                        setEditingDeductionId(deduction.id);
+                                      }}
+                                      className="p-1.5 text-blue-600 hover:bg-blue-50 rounded transition-colors"
+                                      title="Edit deduction"
+                                    >
+                                      <Edit className="w-4 h-4" />
+                                    </button>
+                                    <button
+                                      onClick={async (e) => {
+                                        e.stopPropagation();
+                                        if (window.confirm('Are you sure you want to delete this deduction?')) {
+                                          try {
+                                            // Check if it's an existing deduction (ID starts with "existing-")
+                                            if (deduction.id && deduction.id.toString().startsWith('existing-')) {
+                                              const actualId = deduction.id.toString().replace('existing-', '');
+                                              const response = await deleteDeductionAddition(actualId);
+                                              if (response?.success) {
+                                                addNotification('success', 'Deduction deleted successfully!');
+                                              } else {
+                                                addNotification('error', response?.message || 'Failed to delete deduction');
+                                              }
+                                            }
+                                            // Remove from local state
+                                            setDeductions(deductions.filter(d => d.id !== deduction.id));
+                                            // Clear editing state if this was the deduction being edited
+                                            if (editingDeductionId === deduction.id) {
+                                              setEditingDeductionId(null);
+                                              setNewDeduction({
+                                                startDate: '',
+                                                description: '',
+                                                amount: '0',
+                                                interval: '',
+                                                currency: 'CAD'
+                                              });
+                                            }
+                                          } catch (error: any) {
+                                            console.error('Error deleting deduction:', error);
+                                            addNotification('error', error.response?.data?.message || error.message || 'Failed to delete deduction');
+                                          }
+                                        }
+                                      }}
+                                      className="p-1.5 text-red-600 hover:bg-red-50 rounded transition-colors"
+                                      title="Delete deduction"
+                                    >
+                                      <Trash2 className="w-4 h-4" />
+                                    </button>
+                                  </div>
+                                </td>
                               </tr>
                             ))
                           )}
@@ -5478,14 +5733,32 @@ const DriverManagement = () => {
                         <button
                           onClick={() => {
                             if (newAddition.startDate || newAddition.description) {
-                              setAdditions([...additions, {
-                                id: Date.now().toString(),
-                                startDate: newAddition.startDate,
-                                description: newAddition.description,
-                                amount: newAddition.amount,
-                                interval: newAddition.interval,
-                                currency: newAddition.currency
-                              }]);
+                              if (editingAdditionId) {
+                                // Update existing addition in the list
+                                setAdditions(additions.map(a => 
+                                  a.id === editingAdditionId 
+                                    ? {
+                                        ...a,
+                                        startDate: newAddition.startDate,
+                                        description: newAddition.description,
+                                        amount: newAddition.amount,
+                                        interval: newAddition.interval,
+                                        currency: newAddition.currency
+                                      }
+                                    : a
+                                ));
+                                setEditingAdditionId(null);
+                              } else {
+                                // Add new addition
+                                setAdditions([...additions, {
+                                  id: Date.now().toString(),
+                                  startDate: newAddition.startDate,
+                                  description: newAddition.description,
+                                  amount: newAddition.amount,
+                                  interval: newAddition.interval,
+                                  currency: newAddition.currency
+                                }]);
+                              }
                               setNewAddition({
                                 startDate: '',
                                 description: '',
@@ -5497,7 +5770,7 @@ const DriverManagement = () => {
                           }}
                           className="w-10 h-10 bg-black !text-white rounded-lg flex items-center justify-center hover:bg-gray-800 transition-colors"
                         >
-                          <Plus className="w-5 h-5" />
+                          {editingAdditionId ? <Save className="w-5 h-5" /> : <Plus className="w-5 h-5" />}
                         </button>
                       </div>
                     </div>
@@ -5511,12 +5784,13 @@ const DriverManagement = () => {
                             <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase">Description</th>
                             <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase">Amount</th>
                             <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase">Interval</th>
+                            <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase">ACTIONS</th>
                           </tr>
                         </thead>
                         <tbody className="bg-white divide-y divide-gray-200">
                           {additions.length === 0 ? (
                             <tr>
-                              <td colSpan={4} className="px-4 py-8 text-center text-gray-500">
+                              <td colSpan={5} className="px-4 py-8 text-center text-gray-500">
                                 No Data
                               </td>
                             </tr>
@@ -5527,6 +5801,66 @@ const DriverManagement = () => {
                                 <td className="px-4 py-3 text-sm text-gray-900">{addition.description || '-'}</td>
                                 <td className="px-4 py-3 text-sm text-gray-900">{addition.amount || '0'} {addition.currency}</td>
                                 <td className="px-4 py-3 text-sm text-gray-900">{addition.interval || '-'}</td>
+                                <td className="px-4 py-3 text-sm text-gray-900">
+                                  <div className="flex items-center gap-2">
+                                    <button
+                                      onClick={(e) => {
+                                        e.stopPropagation();
+                                        setNewAddition({
+                                          startDate: addition.startDate || '',
+                                          description: addition.description || '',
+                                          amount: addition.amount || '0',
+                                          interval: addition.interval || '',
+                                          currency: addition.currency || 'CAD'
+                                        });
+                                        setEditingAdditionId(addition.id);
+                                      }}
+                                      className="p-1.5 text-blue-600 hover:bg-blue-50 rounded transition-colors"
+                                      title="Edit addition"
+                                    >
+                                      <Edit className="w-4 h-4" />
+                                    </button>
+                                    <button
+                                      onClick={async (e) => {
+                                        e.stopPropagation();
+                                        if (window.confirm('Are you sure you want to delete this addition?')) {
+                                          try {
+                                            // Check if it's an existing addition (ID starts with "existing-")
+                                            if (addition.id && addition.id.toString().startsWith('existing-')) {
+                                              const actualId = addition.id.toString().replace('existing-', '');
+                                              const response = await deleteDeductionAddition(actualId);
+                                              if (response?.success) {
+                                                addNotification('success', 'Addition deleted successfully!');
+                                              } else {
+                                                addNotification('error', response?.message || 'Failed to delete addition');
+                                              }
+                                            }
+                                            // Remove from local state
+                                            setAdditions(additions.filter(a => a.id !== addition.id));
+                                            // Clear editing state if this was the addition being edited
+                                            if (editingAdditionId === addition.id) {
+                                              setEditingAdditionId(null);
+                                              setNewAddition({
+                                                startDate: '',
+                                                description: '',
+                                                amount: '0',
+                                                interval: '',
+                                                currency: 'CAD'
+                                              });
+                                            }
+                                          } catch (error: any) {
+                                            console.error('Error deleting addition:', error);
+                                            addNotification('error', error.response?.data?.message || error.message || 'Failed to delete addition');
+                                          }
+                                        }
+                                      }}
+                                      className="p-1.5 text-red-600 hover:bg-red-50 rounded transition-colors"
+                                      title="Delete addition"
+                                    >
+                                      <Trash2 className="w-4 h-4" />
+                                    </button>
+                                  </div>
+                                </td>
                               </tr>
                             ))
                           )}
