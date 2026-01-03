@@ -98,10 +98,10 @@ const EmployeesPage = () => {
   // Helper function to parse phone number and extract country code
   const parsePhoneNumber = (phone: string | undefined | null, countriesList: Country[] = countries): { countryCode: string; phoneNumber: string } => {
     if (!phone) return { countryCode: 'US', phoneNumber: '' };
-    
+
     const cleanPhone = phone.trim();
     const sortedCountries = [...countriesList].sort((a, b) => b.dialCode.length - a.dialCode.length);
-    
+
     for (const country of sortedCountries) {
       if (cleanPhone.startsWith(country.dialCode)) {
         return {
@@ -110,7 +110,7 @@ const EmployeesPage = () => {
         };
       }
     }
-    
+
     return { countryCode: 'US', phoneNumber: cleanPhone.replace(/^\+1/, '').trim() };
   };
 
@@ -219,7 +219,7 @@ const EmployeesPage = () => {
       setLoading(true);
       const hasRole = activeTab === 'advanced' ? 'true' : activeTab === 'nonSignin' ? 'false' : undefined;
       const status = filterBy === 'All' ? undefined : filterBy.toLowerCase();
-      
+
       const response = await employeeApi.getAllEmployees(
         1,
         1000,
@@ -262,7 +262,7 @@ const EmployeesPage = () => {
 
     // Filter by search term
     if (searchTerm) {
-      filtered = filtered.filter(emp => 
+      filtered = filtered.filter(emp =>
         (emp.firstName || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
         (emp.lastName || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
         (emp.email || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -275,7 +275,7 @@ const EmployeesPage = () => {
       filtered = [...filtered].sort((a, b) => {
         const aValue = (a as any)[sortConfig.key!] || '';
         const bValue = (b as any)[sortConfig.key!] || '';
-        
+
         if (aValue < bValue) {
           return sortConfig.direction === 'asc' ? -1 : 1;
         }
@@ -349,7 +349,7 @@ const EmployeesPage = () => {
     setIsSubmitting(true);
     try {
       const formData = new FormData();
-      
+
       // Basic data - always include required fields
       formData.append('name', `${basicData.firstName} ${basicData.lastName}`.trim());
       formData.append('email', basicData.email);
@@ -367,7 +367,7 @@ const EmployeesPage = () => {
       
       formData.append('status', basicData.status.toLowerCase());
       if (basicData.role) formData.append('role', basicData.role);
-      
+
       // Personal data - include all fields (even if empty)
       // Phone - include country code prefix
       if (personalData.phone) {
@@ -376,12 +376,12 @@ const EmployeesPage = () => {
           // Remove + from dial code for comparison
           const dialCodeWithoutPlus = phoneCountryObj.dialCode.replace('+', '');
           let phoneNumber = personalData.phone.trim();
-          
+
           // Remove any existing + prefix
           if (phoneNumber.startsWith('+')) {
             phoneNumber = phoneNumber.substring(1);
           }
-          
+
           // Check if phone number already starts with the dial code (without +)
           if (phoneNumber.startsWith(dialCodeWithoutPlus)) {
             // Phone already includes dial code, just add + prefix
@@ -405,7 +405,7 @@ const EmployeesPage = () => {
       if (personalData.terminationDate) {
         formData.append('termDate', personalData.terminationDate);
       }
-      
+
       // Additional personal data fields
       if (personalData.title) {
         formData.append('title', personalData.title);
@@ -425,7 +425,7 @@ const EmployeesPage = () => {
       if (personalData.jobTime) {
         formData.append('jobTime', personalData.jobTime);
       }
-      
+
       // Documents - send as JSON array and files
       if (documents && documents.length > 0) {
         const documentsData = documents.map(doc => ({
@@ -439,7 +439,7 @@ const EmployeesPage = () => {
           isExisting: doc.isExisting || false
         }));
         formData.append('documents', JSON.stringify(documentsData));
-        
+
         // Append document files (only new files, not existing ones)
         const newDocuments = documents.filter(doc => !doc.isExisting && doc.file);
         newDocuments.forEach((doc) => {
@@ -450,12 +450,12 @@ const EmployeesPage = () => {
         });
         console.log(`📄 Total documents: ${documents.length}, New files: ${newDocuments.length}`);
       }
-      
+
       // Notes / Benefits - send as text
       if (notesBenefits && notesBenefits.trim()) {
         formData.append('notes', notesBenefits.trim());
       }
-      
+
       // Profile image
       if (profileImage) {
         formData.append('file', profileImage);
@@ -463,7 +463,7 @@ const EmployeesPage = () => {
 
       let response;
       let employeeId = editingId; // Use editingId for updates
-      
+
       console.log('🔄 Saving employee:', editingId ? `Update (ID: ${editingId})` : 'Create new');
       if (editingId) {
         response = await employeeApi.updateEmployee(editingId, formData);
@@ -477,7 +477,7 @@ const EmployeesPage = () => {
       if (response?.success) {
         console.log('✅ Employee saved successfully, employeeId:', employeeId);
         console.log('✅ Documents were included in the employee creation/update request');
-        
+
         alert(`Employee ${editingId ? 'updated' : 'created'} successfully!`);
         setShowNewEmployeeModal(false);
         resetForm();
@@ -546,7 +546,7 @@ const EmployeesPage = () => {
         const emp = response.data;
         console.log('📋 Loading employee for edit:', emp);
         console.log('📋 Employee details:', emp.details);
-        
+
         const nameParts = (emp.name || '').split(' ');
         setBasicData({
           firstName: nameParts[0] || '',
@@ -559,7 +559,7 @@ const EmployeesPage = () => {
         // Parse phone number to extract country code and phone number
         const parsedPhone = parsePhoneNumber(emp.phone || '', countries);
         setPhoneCountry(parsedPhone.countryCode);
-        
+
         // Load personal data - check both top-level and details object
         const personalDataToSet = {
           title: emp.details?.title || emp.title || '',
@@ -574,7 +574,7 @@ const EmployeesPage = () => {
           hireDate: emp.joinDate ? new Date(emp.joinDate).toISOString().split('T')[0] : (emp.details?.hireDate ? new Date(emp.details.hireDate).toISOString().split('T')[0] : ''),
           terminationDate: emp.details?.termDate ? new Date(emp.details.termDate).toISOString().split('T')[0] : ''
         };
-        
+
         console.log('📋 Personal data to set:', personalDataToSet);
         setPersonalData(personalDataToSet);
         if (emp.profileImageUrl) {
@@ -589,7 +589,7 @@ const EmployeesPage = () => {
           console.log('🔄 Fetching documents for employee:', id);
           const documentsResponse = await getDocumentsByEmployee(id);
           console.log('📄 Documents response:', documentsResponse);
-          
+
           if (documentsResponse?.success && documentsResponse.data && Array.isArray(documentsResponse.data)) {
             const existingDocs = documentsResponse.data.map((doc: any) => ({
               id: doc._id || Date.now().toString(),
@@ -645,7 +645,7 @@ const EmployeesPage = () => {
             <h1 className="text-3xl font-bold text-gray-900">Employees</h1>
             <div className="flex items-center gap-2">
               <span className="text-2xl font-bold text-gray-700">({filteredEmployees.length})</span>
-              <button 
+              <button
                 onClick={() => setShowNewEmployeeModal(true)}
                 className="w-10 h-10 bg-[#42aeec] !text-white rounded-lg flex items-center justify-center hover:bg-[#1db5f5] transition-colors shadow-md"
               >
@@ -658,31 +658,28 @@ const EmployeesPage = () => {
           <div className="flex gap-6 border-b-2 border-gray-200">
             <button
               onClick={() => setActiveTab('users')}
-              className={`pb-3 px-1 font-medium transition-colors ${
-                activeTab === 'users'
+              className={`pb-3 px-1 font-medium transition-colors ${activeTab === 'users'
                   ? 'text-[#42aeec] border-b-2 border-[#42aeec] -mb-[2px]'
                   : 'text-gray-600 hover:text-gray-900'
-              }`}
+                }`}
             >
               Users
             </button>
             <button
               onClick={() => setActiveTab('nonSignin')}
-              className={`pb-3 px-1 font-medium transition-colors ${
-                activeTab === 'nonSignin'
+              className={`pb-3 px-1 font-medium transition-colors ${activeTab === 'nonSignin'
                   ? 'text-[#42aeec] border-b-2 border-[#42aeec] -mb-[2px]'
                   : 'text-gray-600 hover:text-gray-900'
-              }`}
+                }`}
             >
               Non Signin Employees
             </button>
             <button
               onClick={() => setActiveTab('advanced')}
-              className={`pb-3 px-1 font-medium transition-colors ${
-                activeTab === 'advanced'
+              className={`pb-3 px-1 font-medium transition-colors ${activeTab === 'advanced'
                   ? 'text-[#42aeec] border-b-2 border-[#42aeec] -mb-[2px]'
                   : 'text-gray-600 hover:text-gray-900'
-              }`}
+                }`}
             >
               Advanced Permissions
             </button>
@@ -696,7 +693,7 @@ const EmployeesPage = () => {
               <Info className="w-5 h-5 text-gray-600" />
               <h2 className="text-lg font-semibold text-gray-900">User Roles & Permissions</h2>
             </div>
-            
+
             <div className="flex flex-wrap gap-2 mb-4">
               {roleBadges.map((role, index) => (
                 <span
@@ -724,7 +721,7 @@ const EmployeesPage = () => {
               onChange={(e) => setSearchTerm(e.target.value)}
               className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#42aeec] focus:border-transparent"
             />
-          
+
           </div>
 
           <div className="flex items-center gap-4">
@@ -773,7 +770,7 @@ const EmployeesPage = () => {
                   <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase">
                     Image
                   </th>
-                  <th 
+                  <th
                     className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase cursor-pointer hover:bg-gray-100"
                     onClick={() => handleSort('firstName')}
                   >
@@ -782,7 +779,7 @@ const EmployeesPage = () => {
                       {getSortIcon('firstName')}
                     </div>
                   </th>
-                  <th 
+                  <th
                     className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase cursor-pointer hover:bg-gray-100"
                     onClick={() => handleSort('lastName')}
                   >
@@ -791,7 +788,7 @@ const EmployeesPage = () => {
                       {getSortIcon('lastName')}
                     </div>
                   </th>
-                  <th 
+                  <th
                     className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase cursor-pointer hover:bg-gray-100"
                     onClick={() => handleSort('email')}
                   >
@@ -800,7 +797,7 @@ const EmployeesPage = () => {
                       {getSortIcon('email')}
                     </div>
                   </th>
-                  <th 
+                  <th
                     className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase cursor-pointer hover:bg-gray-100"
                     onClick={() => handleSort('role')}
                   >
@@ -809,7 +806,7 @@ const EmployeesPage = () => {
                       {getSortIcon('role')}
                     </div>
                   </th>
-                  <th 
+                  <th
                     className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase cursor-pointer hover:bg-gray-100"
                     onClick={() => handleSort('status')}
                   >
@@ -838,8 +835,8 @@ const EmployeesPage = () => {
                   </tr>
                 ) : (
                   filteredEmployees.map((employee, index) => (
-                    <tr 
-                      key={employee._id || index} 
+                    <tr
+                      key={employee._id || index}
                       className="hover:bg-gray-50 transition-colors cursor-pointer"
                       onClick={() => {
                         if (employee._id) {
@@ -865,7 +862,7 @@ const EmployeesPage = () => {
                               }}
                             />
                           ) : null}
-                          <div 
+                          <div
                             className={`w-10 h-10 rounded-full bg-gray-200 flex items-center justify-center border-2 border-gray-200 ${employee.profileImageUrl || employee.profileImage ? 'hidden' : ''}`}
                           >
                             <User className="w-6 h-6 text-gray-400" />
@@ -877,11 +874,10 @@ const EmployeesPage = () => {
                       <td className="px-4 py-3 text-sm text-gray-900">{employee.email}</td>
                       <td className="px-4 py-3 text-sm text-gray-900">{getRoleDisplayName(employee.role)}</td>
                       <td className="px-4 py-3">
-                        <span className={`px-3 py-1 rounded text-xs font-medium ${
-                          (employee.status === 'ACTIVE' || employee.status === 'active')
-                            ? 'bg-green-100 text-green-800' 
+                        <span className={`px-3 py-1 rounded text-xs font-medium ${(employee.status === 'ACTIVE' || employee.status === 'active')
+                            ? 'bg-green-100 text-green-800'
                             : 'bg-red-100 text-red-800'
-                        }`}>
+                          }`}>
                           {employee.status}
                         </span>
                       </td>
@@ -929,7 +925,7 @@ const EmployeesPage = () => {
 
       {/* New Employee Modal */}
       {showNewEmployeeModal && (
-        <div 
+        <div
           className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4"
           onClick={(e) => {
             if (e.target === e.currentTarget) {
@@ -937,7 +933,7 @@ const EmployeesPage = () => {
             }
           }}
         >
-          <div 
+          <div
             className="bg-white rounded-lg shadow-2xl w-full max-w-6xl max-h-[90vh] flex overflow-hidden"
             onClick={(e) => e.stopPropagation()}
           >
@@ -945,7 +941,7 @@ const EmployeesPage = () => {
             <div className="w-64 bg-gray-50 border-r border-gray-200 flex flex-col">
               {/* Image Upload Area */}
               <div className="p-4 border-b border-gray-200">
-                <div 
+                <div
                   className="border-2 border-dashed border-gray-300 p-8 text-center mb-3 cursor-pointer hover:border-[#42aeec] transition-colors"
                   onClick={() => fileInputRef.current?.click()}
                 >
@@ -983,7 +979,7 @@ const EmployeesPage = () => {
                   }}
                   className="hidden"
                 />
-                <button 
+                <button
                   type="button"
                   onClick={() => fileInputRef.current?.click()}
                   className="w-full bg-black !text-white py-2 font-medium hover:bg-gray-800 transition-colors"
@@ -1008,11 +1004,10 @@ const EmployeesPage = () => {
                       <button
                         key={tab.id}
                         onClick={() => setActiveFormTab(tab.id as any)}
-                        className={`w-full flex items-center gap-2 px-3 py-2 transition-colors text-left ${
-                          isActive
+                        className={`w-full flex items-center gap-2 px-3 py-2 transition-colors text-left ${isActive
                             ? 'bg-[#0ea3d8] !text-white shadow-md'
                             : 'bg-gray-700 !text-white hover:bg-gray-600'
-                        }`}
+                          }`}
                       >
                         <Icon className="w-4 h-4" />
                         <span className="font-medium text-center">{tab.label}</span>
@@ -1029,7 +1024,7 @@ const EmployeesPage = () => {
               <div className="flex items-center justify-between p-6 border-b border-gray-200 bg-white">
                 <h2 className="text-2xl font-bold text-gray-900">{editingId ? 'Edit Employee' : 'New Employee'}</h2>
                 <div className="flex items-center gap-3">
-                  <button 
+                  <button
                     onClick={handleSaveEmployee}
                     disabled={isSubmitting}
                     className="px-6 py-2 bg-gray-600 !text-white rounded-lg hover:bg-gray-700 transition-colors font-medium disabled:opacity-50"
@@ -1050,7 +1045,7 @@ const EmployeesPage = () => {
                 {activeFormTab === 'basic' && (
                   <div className="space-y-6">
                     <h3 className="text-lg font-bold text-gray-900 mb-4">Basic Information</h3>
-                    
+
                     {/* First Row */}
                     <div className="grid grid-cols-4 gap-4">
                       <div>
@@ -1155,7 +1150,7 @@ const EmployeesPage = () => {
                 {activeFormTab === 'personal' && (
                   <div className="space-y-6">
                     <h3 className="text-lg font-bold text-gray-900 mb-4">Personal Information</h3>
-                    
+
                     <div className="grid grid-cols-4 gap-4">
                       <div>
                         <label className="block text-sm font-medium text-gray-700 mb-1">Title</label>
@@ -1222,22 +1217,20 @@ const EmployeesPage = () => {
                           <button
                             type="button"
                             onClick={() => setPersonalData({ ...personalData, jobTime: 'FULL-TIME' })}
-                            className={`flex-1 px-4 py-2 rounded-lg font-medium transition-colors ${
-                              personalData.jobTime === 'FULL-TIME'
+                            className={`flex-1 px-4 py-2 rounded-lg font-medium transition-colors ${personalData.jobTime === 'FULL-TIME'
                                 ? 'bg-gray-700 !text-white'
                                 : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
-                            }`}
+                              }`}
                           >
                             FULL-TIME
                           </button>
                           <button
                             type="button"
                             onClick={() => setPersonalData({ ...personalData, jobTime: 'PART-TIME' })}
-                            className={`flex-1 px-4 py-2 rounded-lg font-medium transition-colors ${
-                              personalData.jobTime === 'PART-TIME'
+                            className={`flex-1 px-4 py-2 rounded-lg font-medium transition-colors ${personalData.jobTime === 'PART-TIME'
                                 ? 'bg-gray-700 !text-white'
                                 : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
-                            }`}
+                              }`}
                           >
                             PART-TIME
                           </button>
@@ -1301,9 +1294,8 @@ const EmployeesPage = () => {
                                           // Don't auto-fill dial code - let user type the number without country code
                                           // The dial code will be prepended when saving
                                         }}
-                                        className={`w-full flex items-center gap-2 px-3 py-2 text-xs text-left hover:bg-gray-100 transition-colors ${
-                                          phoneCountry === country.code ? 'bg-blue-50' : ''
-                                        }`}
+                                        className={`w-full flex items-center gap-2 px-3 py-2 text-xs text-left hover:bg-gray-100 transition-colors ${phoneCountry === country.code ? 'bg-blue-50' : ''
+                                          }`}
                                       >
                                         <span className="text-base" style={{ fontSize: '18px' }}>{country.flag}</span>
                                         <span className="flex-1 truncate">{country.name}</span>
@@ -1318,10 +1310,10 @@ const EmployeesPage = () => {
                                       country.dialCode.includes(searchLower)
                                     );
                                   }).length === 0 && (
-                                    <div className="px-3 py-4 text-xs text-gray-500 text-center">
-                                      No countries found
-                                    </div>
-                                  )}
+                                      <div className="px-3 py-4 text-xs text-gray-500 text-center">
+                                        No countries found
+                                      </div>
+                                    )}
                                 </div>
                               </div>
                             )}
@@ -1406,7 +1398,7 @@ const EmployeesPage = () => {
                 {activeFormTab === 'documents' && (
                   <div className="space-y-6">
                     <h3 className="text-lg font-bold text-gray-900 mb-4">Documents</h3>
-                    
+
                     {/* Document Input Row */}
                     <div className="border border-gray-200 rounded-lg overflow-hidden">
                       <table className="w-full">
@@ -1443,23 +1435,33 @@ const EmployeesPage = () => {
                               />
                             </td>
                             <td className="px-4 py-3">
-                              <button
-                                type="button"
-                                onClick={() => {
-                                  const input = document.createElement('input');
-                                  input.type = 'file';
-                                  input.onchange = (e) => {
-                                    const file = (e.target as HTMLInputElement).files?.[0];
-                                    if (file) setNewDocument({ ...newDocument, file });
-                                  };
-                                  input.click();
-                                }}
-                                className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors flex items-center gap-2"
-                              >
-                                <Upload className="w-4 h-4" />
-                                Select File
-                              </button>
+                              <div className="flex flex-col gap-1">
+                                <button
+                                  type="button"
+                                  onClick={() => {
+                                    const input = document.createElement('input');
+                                    input.type = 'file';
+                                    input.onchange = (e) => {
+                                      const file = (e.target as HTMLInputElement).files?.[0];
+                                      if (file) setNewDocument({ ...newDocument, file });
+                                    };
+                                    input.click();
+                                  }}
+                                  className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors flex items-center gap-2"
+                                >
+                                  <Upload className="w-4 h-4" />
+                                  Select File
+                                </button>
+
+                                {/* Show selected file name */}
+                                {newDocument?.file && (
+                                  <span className="text-sm text-gray-600 truncate max-w-[220px]">
+                                    {newDocument.file.name}
+                                  </span>
+                                )}
+                              </div>
                             </td>
+
                             <td className="px-4 py-3">
                               <label className="flex items-center gap-2 cursor-pointer">
                                 <input
@@ -1543,9 +1545,9 @@ const EmployeesPage = () => {
                                   {editingDocumentId === doc.id && editingDocument ? (
                                     <div className="flex flex-col gap-2">
                                       {doc.isExisting && doc.fileUrl && (
-                                        <a 
-                                          href={doc.fileUrl} 
-                                          target="_blank" 
+                                        <a
+                                          href={doc.fileUrl}
+                                          target="_blank"
                                           rel="noopener noreferrer"
                                           className="text-blue-600 hover:underline text-xs"
                                         >
@@ -1572,9 +1574,9 @@ const EmployeesPage = () => {
                                   ) : (
                                     <>
                                       {doc.isExisting && doc.fileUrl ? (
-                                        <a 
-                                          href={doc.fileUrl} 
-                                          target="_blank" 
+                                        <a
+                                          href={doc.fileUrl}
+                                          target="_blank"
                                           rel="noopener noreferrer"
                                           className="text-blue-600 hover:underline text-sm"
                                         >
@@ -1692,7 +1694,7 @@ const EmployeesPage = () => {
                                             setDocuments(documents.filter(d => d.id !== doc.id));
                                             return;
                                           }
-                                          
+
                                           if (window.confirm('Are you sure you want to delete this document?')) {
                                             try {
                                               const response = await deleteEmployeeDocument(doc._id);
@@ -1753,7 +1755,7 @@ const EmployeesPage = () => {
                     <div className="flex items-center justify-between mb-4">
                       <h3 className="text-lg font-bold text-gray-900">Notes / Benefits</h3>
                     </div>
-                    
+
                     <textarea
                       value={notesBenefits}
                       onChange={(e) => setNotesBenefits(e.target.value)}
