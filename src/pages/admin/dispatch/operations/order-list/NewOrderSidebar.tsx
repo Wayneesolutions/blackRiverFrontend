@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef, useCallback, useMemo } from "react";
-import { X, ChevronDown, ChevronUp, Search, FileText, ArrowLeft, ArrowRight, GripVertical, Edit, Trash2 } from "lucide-react";
-import { FaCheckCircle, FaExclamationCircle, FaTimes, FaFileAlt, FaUpload, FaCheck } from "react-icons/fa";
-import { listCustomer, createOrder, updateOrder, getOrderSuggestions, getAuditTrail } from "../../../../../axios/api/distapcher";
+import { X, ChevronDown, ChevronUp, Search, ArrowLeft, ArrowRight, GripVertical, Edit, Trash2 } from "lucide-react";
+import { FaCheckCircle, FaExclamationCircle, FaTimes } from "react-icons/fa";
+import { listCustomer, createOrder, updateOrder, getAuditTrail } from "../../../../../axios/api/distapcher";
 import { listTrucks } from "../../../../../axios/api/truckTracking";
 import { listTrailers } from "../../../../../axios/api/trailerTracking";
 import { getAllDrivers } from "../../../../../axios/api/driver";
@@ -154,7 +154,7 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
     const [, setEquipmentDropdownOpen] = useState(false);
     const [noOfPackages, setNoOfPackages] = useState("");
     const [noOfPackagesType, setNoOfPackagesType] = useState("");
-    const [noOfPackagesSearch] = useState("");
+    const [] = useState("");
     const [, setNoOfPackagesDropdownOpen] = useState(false);
     const [weight, setWeight] = useState("");
     const [weightUnit, setWeightUnit] = useState("");
@@ -505,10 +505,14 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
         printedManifest?: string | null;
     }>({});
 
+<<<<<<< HEAD
     // Suggestions states
     const [commoditySuggestions, setCommoditySuggestions] = useState<string[]>([]);
 
     const [, setShowCommoditySuggestions] = useState(false);
+=======
+ 
+>>>>>>> b5850d8ad96099501eac01e1486d112ed86ae89a
 
 
     // Fetch customers on component mount
@@ -1176,16 +1180,9 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
         }
     };
 
-    const packageTypes = ["Bag", "Bale", "Barrel", "Basket", "Bin", "Bing Chest", "Box", "Bucket", "Bundle", "Cage", "Carton", "Case", "Chest", "Container", "Crate", "Drum", "Envelope", "Package", "Pallet", "Parcel", "Piece", "Reel", "Roll", "Sack", "Skid", "Tank", "Tote", "Tray", "Tub", "Unit"];
-
+  
     const equipmentTypes = ["DV", "RF", "FB", "HV", "SD", "DV/RF", "B-TRAIN", "FDA", "Double Drop", "Drayage", "Other", "PO", "Tri-Axle", "Tandem", "Quad-Axle"];
-    const weightUnits = ["kg", "lbs", "tons"];
-    const dimensionUnits = ["cm", "inch", "m", "ft"];
-    const currencyOptions = [
-        { value: "CAD", label: "CAD - Canadian Dollar" },
-        { value: "INR", label: "INR - Indian Rupee" },
-        { value: "USD", label: "USD - US Dollar" }
-    ];
+ 
 
     const customerDropdownRef = useRef<HTMLDivElement>(null);
     const shipperCustomerDropdownRef = useRef<HTMLDivElement>(null);
@@ -1318,91 +1315,12 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
         setReceiverAddress(fullAddress);
     };
 
-    const filteredPackages = packageTypes.filter(pkg =>
-        pkg.toLowerCase().includes(noOfPackagesSearch.toLowerCase())
-    );
-
-
-    const handleEquipmentToggle = (equipment: string) => {
-        setSelectedEquipment(prev =>
-            prev.includes(equipment)
-                ? prev.filter(e => e !== equipment)
-                : [...prev, equipment]
-        );
-    };
 
 
 
-    // File handling functions
-    const handleFileUpload = (file: File, type: 'bol' | 'customs' | 'rate' | 'pod' | 'stampedManifest' | 'loadSecurement') => {
-        if (type === 'bol') {
-            setBolFile(file);
-        } else if (type === 'customs') {
-            setCustomsHazmatFiles(prev => [...prev, file]);
-        } else if (type === 'rate') {
-            setRateConfirmationFile(file);
-        } else if (type === 'pod') {
-            setPodFile(file);
-        } else if (type === 'stampedManifest') {
-            setStampedManifestFile(file);
-        } else if (type === 'loadSecurement') {
-            setLoadSecurementFiles(prev => [...prev, file]);
-        }
-    };
-
-    const removeFile = (type: 'bol' | 'customs' | 'rate' | 'pod' | 'stampedManifest' | 'loadSecurement', index?: number) => {
-        if (type === 'bol') {
-            setBolFile(null);
-        } else if (type === 'customs' && index !== undefined) {
-            setCustomsHazmatFiles(prev => prev.filter((_, i) => i !== index));
-        } else if (type === 'rate') {
-            setRateConfirmationFile(null);
-        } else if (type === 'pod') {
-            setPodFile(null);
-        } else if (type === 'stampedManifest') {
-            setStampedManifestFile(null);
-        } else if (type === 'loadSecurement' && index !== undefined) {
-            setLoadSecurementFiles(prev => prev.filter((_, i) => i !== index));
-        }
-    };
 
 
-    // Get suggestions as user types
-    const fetchSuggestions = async (field: string, value: string) => {
-        if (!value || value.trim().length < 2) {
-            if (field === 'commodity') setCommoditySuggestions([]);
-      
-            return;
-        }
-
-        try {
-            const customerId = selectedCustomer?._id || selectedCustomer?.id;
-            const customerIdStr = customerId ? String(customerId) : undefined;
-            const response = await getOrderSuggestions(field, value, customerIdStr);
-
-            if (response?.success && response?.data) {
-                if (field === 'commodity') {
-                    setCommoditySuggestions(response.data);
-                    setShowCommoditySuggestions(true);
-                } 
-            }
-        } catch (error) {
-            console.error('Error fetching suggestions:', error);
-        }
-    };
-
-    // Debounce function for suggestions
-    const debounce = (func: Function, wait: number) => {
-        let timeout: NodeJS.Timeout;
-        return function executedFunction(...args: any[]) {
-            const later = () => {
-                clearTimeout(timeout);
-                func(...args);
-            };
-            clearTimeout(timeout);
-            timeout = setTimeout(later, wait);
-        };
-    };
+   
 
     // Invoice calculations
     const invoiceCalculations = useMemo(() => {
@@ -1515,10 +1433,7 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
         setReceiverStops(updatedStops);
     };
 
-    const debouncedFetchSuggestions = useCallback(
-        debounce((field: string, value: string) => fetchSuggestions(field, value), 300),
-        [selectedCustomer]
-    );
+ 
 
     // Helper function to render Shipper Panel
     const renderShipperPanel = (shipperData: {
@@ -2405,7 +2320,7 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
             
             // Get origin (shipper)
             const origin = shipperAddress || pickupLocationAddress;
-            const originCity = shipperCity || shipperProvince || '';
+           
             
             // Get destinations (receivers)
             const destinations: Array<{ address: string; city: string }> = [];

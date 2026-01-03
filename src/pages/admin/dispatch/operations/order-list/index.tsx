@@ -1,5 +1,5 @@
 import { useState, useMemo, useEffect, useCallback, useRef } from "react";
-import { MoreVertical, Edit, Trash2, Plus, ChevronDown, ChevronUp, X, Package, DollarSign, Route, Truck, MessageCircle } from "lucide-react";
+import {  Edit, Plus, X, Package, DollarSign, Route, Truck, MessageCircle } from "lucide-react";
 import { FaCheckCircle, FaExclamationCircle, FaTimes } from "react-icons/fa";
 import NewOrderSidebar from "./NewOrderSidebar";
 import { listOrder, deleteOrder, getOrderById } from "../../../../../axios/api/distapcher";
@@ -13,7 +13,7 @@ import { createPortal } from "react-dom";
 const PRIMARY_GRADIENT = 'linear-gradient(90deg, #42aeec 0%, #1db5f5 40%, #0ea3d8 100%)';
 const PRIMARY_COLOR = '#016ab2';
 const PRIMARY_LIGHT_BG = 'rgba(66, 174, 236, 0.1)';
-const FOCUS_RING = 'rgba(1, 106, 178, 0.2)';
+
 
 interface Place {
   _id: string;
@@ -105,7 +105,7 @@ const OrderList = () => {
 
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [editingOrder, setEditingOrder] = useState<Order | null>(null);
-  const [actionMenuOpen, setActionMenuOpen] = useState<string | null>(null);
+  const [, setActionMenuOpen] = useState<string | null>(null);
 
   // Order details sidebar state
   const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
@@ -124,9 +124,9 @@ const OrderList = () => {
   // Places state for search dropdowns
   const [places, setPlaces] = useState<Place[]>([]);
   const [pickupLocationSearch, setPickupLocationSearch] = useState("");
-  const [pickupLocationDropdownOpen, setPickupLocationDropdownOpen] = useState(false);
-  const [deliveryLocationSearch, setDeliveryLocationSearch] = useState("");
-  const [deliveryLocationDropdownOpen, setDeliveryLocationDropdownOpen] = useState(false);
+  const [, setPickupLocationDropdownOpen] = useState(false);
+  const [, setDeliveryLocationSearch] = useState("");
+  const [, setDeliveryLocationDropdownOpen] = useState(false);
   const pickupLocationDropdownRef = useRef<HTMLDivElement>(null);
   const deliveryLocationDropdownRef = useRef<HTMLDivElement>(null);
 
@@ -405,7 +405,7 @@ const OrderList = () => {
   const [createdDate, setCreatedDate] = useState("");
   const [byDays, setByDays] = useState("");
   const [orderStatus, setOrderStatus] = useState("");
-  const [accounting, setAccounting] = useState("");
+  const [, setAccounting] = useState("");
   const [sortBy, setSortBy] = useState("");
 
   // Search states
@@ -460,29 +460,10 @@ const OrderList = () => {
     );
   }, [places, pickupLocationSearch]);
 
-  const filteredDeliveryPlaces = useMemo(() => {
-    return places.filter(place =>
-      !deliveryLocationSearch ||
-      (place.name || '').toLowerCase().includes(deliveryLocationSearch.toLowerCase()) ||
-      (place.currentLocation?.address || '').toLowerCase().includes(deliveryLocationSearch.toLowerCase()) ||
-      (place.city || '').toLowerCase().includes(deliveryLocationSearch.toLowerCase()) ||
-      (place.state || '').toLowerCase().includes(deliveryLocationSearch.toLowerCase())
-    );
-  }, [places, deliveryLocationSearch]);
 
-  const handlePickupLocationSelect = (place: Place) => {
-    const locationString = place.currentLocation?.address || place.name || '';
-    setPickupLocation(locationString);
-    setPickupLocationSearch(locationString);
-    setPickupLocationDropdownOpen(false);
-  };
 
-  const handleDeliveryLocationSelect = (place: Place) => {
-    const locationString = place.currentLocation?.address || place.name || '';
-    setDeliveryLocation(locationString);
-    setDeliveryLocationSearch(locationString);
-    setDeliveryLocationDropdownOpen(false);
-  };
+
+
 
   const handleCreateOrder = () => {
     setEditingOrder(null);
@@ -506,9 +487,6 @@ const OrderList = () => {
     }
   };
 
-  const handleDeleteOrder = async (orderId: string) => {
-    setDeleteConfirm({ show: true, orderId });
-  };
 
   const confirmDeleteOrder = async () => {
     if (!deleteConfirm.orderId) return;

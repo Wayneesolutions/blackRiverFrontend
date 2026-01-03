@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { Loader2, Calendar, TrendingUp, MapPin, Truck, User } from "lucide-react";
 import { getGpsVehicleDashboardStats, getTodayDeliveries, getTomorrowPickups } from "../../../axios/api/distapcher";
 import { listFleetUnits } from "../../../axios/api/fleet.units";
-import { getUserRole } from "../../../utils/auth";
+
 
 interface FleetUnit {
   _id?: string;

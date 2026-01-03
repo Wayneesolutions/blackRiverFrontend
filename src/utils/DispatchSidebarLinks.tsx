@@ -6,9 +6,8 @@ import {
 import {
   FaTruck,
   FaUserTie,
-  FaLayerGroup,
-  FaRoute,
   FaWarehouse,
+  FaRoute,
   FaDollarSign,
   FaShippingFast,
   FaBoxOpen,

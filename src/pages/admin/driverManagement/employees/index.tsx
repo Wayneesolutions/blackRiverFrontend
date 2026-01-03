@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { Plus, Info, ChevronUp, ChevronDown, X, User, FileText, Calendar, Upload, Edit, Trash2, Save } from 'lucide-react';
 import * as employeeApi from '../../../../axios/api/employee';
-import { getDocumentsByEmployee, createEmployeeDocument, updateEmployeeDocument, deleteEmployeeDocument } from '../../../../axios/api/employeeDocument';
+import { getDocumentsByEmployee, updateEmployeeDocument, deleteEmployeeDocument } from '../../../../axios/api/employeeDocument';
 
 interface Employee {
   _id?: string;
