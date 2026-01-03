@@ -1,5 +1,5 @@
-import { useState } from "react";
-import { DollarSign, Truck, TrendingUp, ArrowLeft } from "lucide-react";
+import { useState, useEffect } from "react";
+import { DollarSign, Truck, TrendingUp, Calendar, X } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { getUserRole } from "../../../../../utils/auth";
 import {
@@ -14,26 +14,7 @@ import {
   CartesianGrid,
   Legend,
 } from "recharts";
-
-// Static data for revenue per mile
-const staticRevenueData = [
-  { truck: "TRK001", truckPlate: "ABC-123", revenuePerMile: 2.45, totalMiles: 1250, totalRevenue: 3062.5 },
-  { truck: "TRK002", truckPlate: "DEF-456", revenuePerMile: 2.78, totalMiles: 980, totalRevenue: 2724.4 },
-  { truck: "TRK003", truckPlate: "GHI-789", revenuePerMile: 2.12, totalMiles: 1560, totalRevenue: 3307.2 },
-  { truck: "TRK004", truckPlate: "JKL-012", revenuePerMile: 3.15, totalMiles: 890, totalRevenue: 2803.5 },
-  { truck: "TRK005", truckPlate: "MNO-345", revenuePerMile: 2.89, totalMiles: 1120, totalRevenue: 3236.8 },
-  { truck: "TRK006", truckPlate: "PQR-678", revenuePerMile: 2.56, totalMiles: 1340, totalRevenue: 3430.4 },
-  { truck: "TRK007", truckPlate: "STU-901", revenuePerMile: 2.34, totalMiles: 1090, totalRevenue: 2550.6 },
-];
-
-const monthlyTrendData = [
-  { month: "Jan", revenuePerMile: 2.45, totalRevenue: 45000 },
-  { month: "Feb", revenuePerMile: 2.52, totalRevenue: 46200 },
-  { month: "Mar", revenuePerMile: 2.48, totalRevenue: 47800 },
-  { month: "Apr", revenuePerMile: 2.61, totalRevenue: 49500 },
-  { month: "May", revenuePerMile: 2.67, totalRevenue: 51200 },
-  { month: "Jun", revenuePerMile: 2.73, totalRevenue: 52800 },
-];
+import { getRevenuePerMile, type VehicleRevenueData, type MonthlyTrendData } from "../../../../../axios/api/analytics.revenuePerMile";
 
 const RevenuePerMilePage = () => {
   const navigate = useNavigate();
@@ -42,18 +23,63 @@ const RevenuePerMilePage = () => {
   const basePath = isDispatcher ? '/dispatch' : '/admin/dispatch';
 
   const [searchTerm, setSearchTerm] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [vehicleRevenueData, setVehicleRevenueData] = useState<VehicleRevenueData[]>([]);
+  const [monthlyTrendData, setMonthlyTrendData] = useState<MonthlyTrendData[]>([]);
+  const [totalRevenue, setTotalRevenue] = useState(0);
+  const [totalMiles, setTotalMiles] = useState(0);
+  const [averageRevenuePerMile, setAverageRevenuePerMile] = useState(0);
+  const [totalVehicles, setTotalVehicles] = useState(0);
+  const [startDate, setStartDate] = useState("");
+  const [endDate, setEndDate] = useState("");
+  const [showDateFilter, setShowDateFilter] = useState(false);
 
-  const filteredData = staticRevenueData.filter(
+  // Fetch revenue per mile data
+  useEffect(() => {
+    fetchRevenuePerMile();
+  }, []);
+
+  const fetchRevenuePerMile = async (dateParams?: { startDate?: string; endDate?: string }) => {
+    setLoading(true);
+    try {
+      const params = dateParams || {};
+      const response = await getRevenuePerMile(
+        params.startDate || startDate || undefined,
+        params.endDate || endDate || undefined
+      );
+
+      if (response.success) {
+        setVehicleRevenueData(response.data.vehicleRevenue || []);
+        setMonthlyTrendData(response.data.monthlyTrend || []);
+        setTotalRevenue(response.data.summary.totalRevenue || 0);
+        setTotalMiles(response.data.summary.totalMiles || 0);
+        setAverageRevenuePerMile(response.data.summary.averageRevenuePerMile || 0);
+        setTotalVehicles(response.data.summary.totalVehicles || 0);
+      }
+    } catch (error) {
+      console.error("Error fetching revenue per mile data:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleDateFilter = () => {
+    fetchRevenuePerMile({ startDate, endDate });
+    setShowDateFilter(false);
+  };
+
+  const clearFilters = () => {
+    setStartDate("");
+    setEndDate("");
+    setSearchTerm("");
+    fetchRevenuePerMile({ startDate: "", endDate: "" });
+  };
+
+  const filteredData = vehicleRevenueData.filter(
     (item) =>
-      item.truck.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      item.truckPlate.toLowerCase().includes(searchTerm.toLowerCase())
+      item.unitNumber.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      item.plateNumber.toLowerCase().includes(searchTerm.toLowerCase())
   );
-
-  const averageRevenuePerMile =
-    staticRevenueData.reduce((sum, item) => sum + item.revenuePerMile, 0) / staticRevenueData.length;
-
-  const totalRevenue = staticRevenueData.reduce((sum, item) => sum + item.totalRevenue, 0);
-  const totalMiles = staticRevenueData.reduce((sum, item) => sum + item.totalMiles, 0);
 
   return (
     <div className="min-h-screen" style={{ backgroundColor: '#EDF8FF' }}>
@@ -66,10 +92,62 @@ const RevenuePerMilePage = () => {
           <div className="mb-4 relative z-10">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
-           
                 <h1 className="text-xl font-bold text-black">Revenue Per Mile</h1>
               </div>
+              <div className="flex items-center gap-2">
+                {/* Date Filter Toggle */}
+                <button
+                  onClick={() => setShowDateFilter(!showDateFilter)}
+                  className="px-4 py-2 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 flex items-center gap-2 transition-colors text-sm"
+                >
+                  <Calendar size={18} />
+                  Date Filter
+                </button>
+                
+                {/* Clear Filters */}
+                {(startDate || endDate || searchTerm) && (
+                  <button
+                    onClick={clearFilters}
+                    className="px-4 py-2 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 flex items-center gap-2 transition-colors text-sm text-red-600"
+                  >
+                    <X size={18} />
+                    Clear
+                  </button>
+                )}
+              </div>
             </div>
+
+            {/* Date Filter Panel */}
+            {showDateFilter && (
+              <div className="mt-4 bg-white rounded-lg shadow-sm border border-gray-200 p-4">
+                <div className="flex flex-wrap items-end gap-4">
+                  <div className="flex-1 min-w-[200px]">
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Start Date</label>
+                    <input
+                      type="date"
+                      value={startDate}
+                      onChange={(e) => setStartDate(e.target.value)}
+                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    />
+                  </div>
+                  <div className="flex-1 min-w-[200px]">
+                    <label className="block text-sm font-medium text-gray-700 mb-2">End Date</label>
+                    <input
+                      type="date"
+                      value={endDate}
+                      onChange={(e) => setEndDate(e.target.value)}
+                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    />
+                  </div>
+                  <button
+                    onClick={handleDateFilter}
+                    className="px-6 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium transition-colors"
+                  >
+                    Apply Filter
+                  </button>
+                </div>
+              </div>
+            )}
           </div>
 
           {/* Summary Cards */}
@@ -112,16 +190,23 @@ const RevenuePerMilePage = () => {
           </div>
 
           {/* Charts Section */}
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-4">
-            {/* Revenue Per Mile by Truck - Bar Chart */}
-            <div className="bg-white rounded-lg shadow-sm border border-gray-100 p-6">
-              <h2 className="text-lg font-semibold text-gray-900 mb-4">Revenue Per Mile by Truck</h2>
-              <div style={{ width: '100%', height: 300 }}>
-                <ResponsiveContainer>
-                  <BarChart data={staticRevenueData} barCategoryGap="20%">
+          {loading ? (
+            <div className="flex justify-center items-center py-12 bg-white rounded-lg shadow-sm border border-gray-100">
+              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+            </div>
+          ) : (
+            <>
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-4">
+                {/* Revenue Per Mile by Truck - Bar Chart */}
+                <div className="bg-white rounded-lg shadow-sm border border-gray-100 p-6">
+                  <h2 className="text-lg font-semibold text-gray-900 mb-4">Revenue Per Mile by Truck</h2>
+                  {vehicleRevenueData.length > 0 ? (
+                    <div style={{ width: '100%', height: 300 }}>
+                      <ResponsiveContainer>
+                        <BarChart data={vehicleRevenueData} barCategoryGap="20%">
                     <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
                     <XAxis
-                      dataKey="truckPlate"
+                      dataKey="plateNumber"
                       stroke="#6b7280"
                       style={{ fontSize: '11px' }}
                     />
@@ -152,17 +237,23 @@ const RevenuePerMilePage = () => {
                         <stop offset="100%" stopColor="#1db5f5" stopOpacity={0.7} />
                       </linearGradient>
                     </defs>
-                  </BarChart>
-                </ResponsiveContainer>
-              </div>
-            </div>
+                        </BarChart>
+                      </ResponsiveContainer>
+                    </div>
+                  ) : (
+                    <div className="text-center py-12 text-gray-500">
+                      No data available
+                    </div>
+                  )}
+                </div>
 
-            {/* Monthly Trend - Line Chart */}
-            <div className="bg-white rounded-lg shadow-sm border border-gray-100 p-6">
-              <h2 className="text-lg font-semibold text-gray-900 mb-4">Monthly Revenue Trend</h2>
-              <div style={{ width: '100%', height: 300 }}>
-                <ResponsiveContainer>
-                  <LineChart data={monthlyTrendData}>
+                {/* Monthly Trend - Line Chart */}
+                <div className="bg-white rounded-lg shadow-sm border border-gray-100 p-6">
+                  <h2 className="text-lg font-semibold text-gray-900 mb-4">Monthly Revenue Trend</h2>
+                  {monthlyTrendData.length > 0 ? (
+                    <div style={{ width: '100%', height: 300 }}>
+                      <ResponsiveContainer>
+                        <LineChart data={monthlyTrendData}>
                     <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
                     <XAxis
                       dataKey="month"
@@ -214,11 +305,18 @@ const RevenuePerMilePage = () => {
                       name="Total Revenue"
                       dot={{ fill: '#10b981', r: 4 }}
                     />
-                  </LineChart>
-                </ResponsiveContainer>
+                        </LineChart>
+                      </ResponsiveContainer>
+                    </div>
+                  ) : (
+                    <div className="text-center py-12 text-gray-500">
+                      No trend data available
+                    </div>
+                  )}
+                </div>
               </div>
-            </div>
-          </div>
+            </>
+          )}
 
           {/* Truck-wise Details Table */}
           <div className="bg-white rounded-lg shadow-sm border border-gray-100">
@@ -271,12 +369,15 @@ const RevenuePerMilePage = () => {
                     </tr>
                   ) : (
                     filteredData.map((item) => (
-                      <tr key={item.truck} className="hover:bg-gray-50 transition-colors">
+                      <tr key={item.vehicleId} className="hover:bg-gray-50 transition-colors">
                         <td className="px-6 py-4 whitespace-nowrap">
-                          <div className="text-sm font-medium text-gray-900">{item.truck}</div>
+                          <div className="text-sm font-medium text-gray-900">{item.unitNumber}</div>
+                          {item.make && item.model && (
+                            <div className="text-xs text-gray-500">{item.make} {item.model}</div>
+                          )}
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap">
-                          <div className="text-sm text-gray-900">{item.truckPlate}</div>
+                          <div className="text-sm text-gray-900">{item.plateNumber}</div>
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap">
                           <div className="text-sm font-semibold text-green-600">

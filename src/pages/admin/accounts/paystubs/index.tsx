@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Search, Download, Calendar, FileText, Users, Filter, X, Eye } from 'lucide-react';
+import { Search, Download, Calendar, FileText, Users, X } from 'lucide-react';
 import { getPaystubs, getPaystubById } from '../../../../axios/api/account.payroll';
 import jsPDF from 'jspdf';
 
@@ -48,7 +48,7 @@ const PaystubsList = () => {
   const [startDate, setStartDate] = useState<string>('');
   const [endDate, setEndDate] = useState<string>('');
   const [showDateFilter, setShowDateFilter] = useState<boolean>(false);
-  const [activeTab, setActiveTab] = useState<'all' | 'employees' | 'drivers'>('all');
+  const [activeTab, setActiveTab] = useState<'all' | 'employees' | 'drivers' | 'ownerOperators'>('all');
 
   useEffect(() => {
     fetchPaystubs();
@@ -89,16 +89,23 @@ const PaystubsList = () => {
   const applyFilters = () => {
     let filtered = [...paystubs];
 
-    // Apply tab filter (employees/drivers)
+    // Apply tab filter (employees/drivers/owner operators)
     if (activeTab === 'employees') {
       filtered = filtered.filter(paystub => {
         const role = paystub.employeeRole?.toLowerCase() || paystub.userId?.role?.toLowerCase() || '';
-        return role !== 'driver';
+        const workType = paystub.workType?.toLowerCase() || '';
+        return role !== 'driver' && workType !== 'owner-operator';
       });
     } else if (activeTab === 'drivers') {
       filtered = filtered.filter(paystub => {
         const role = paystub.employeeRole?.toLowerCase() || paystub.userId?.role?.toLowerCase() || '';
-        return role === 'driver';
+        const workType = paystub.workType?.toLowerCase() || '';
+        return role === 'driver' && workType !== 'owner-operator';
+      });
+    } else if (activeTab === 'ownerOperators') {
+      filtered = filtered.filter(paystub => {
+        const workType = paystub.workType?.toLowerCase() || '';
+        return workType === 'owner-operator';
       });
     }
 
@@ -445,7 +452,7 @@ const PaystubsList = () => {
                 <FileText className="text-blue-600" size={28} />
                 Paystubs
               </h1>
-              <p className="text-sm text-gray-600 mt-1">View and download all employee and driver paystubs</p>
+              <p className="text-sm text-gray-600 mt-1">View and download paystubs for employees, drivers, and owner operators</p>
             </div>
           </div>
 
@@ -494,7 +501,25 @@ const PaystubsList = () => {
               <span className="ml-2 px-2 py-0.5 bg-gray-100 rounded-full text-xs">
                 {paystubs.filter(p => {
                   const role = p.employeeRole?.toLowerCase() || p.userId?.role?.toLowerCase() || '';
-                  return role === 'driver';
+                  const workType = p.workType?.toLowerCase() || '';
+                  return role === 'driver' && workType !== 'owner-operator';
+                }).length}
+              </span>
+            </button>
+            <button
+              onClick={() => setActiveTab('ownerOperators')}
+              className={`px-6 py-3 font-medium text-sm transition-colors border-b-2 flex items-center gap-2 ${
+                activeTab === 'ownerOperators'
+                  ? 'border-blue-600 text-blue-600'
+                  : 'border-transparent text-gray-500 hover:text-gray-700'
+              }`}
+            >
+              <Users size={18} />
+              Owner Operators
+              <span className="ml-2 px-2 py-0.5 bg-gray-100 rounded-full text-xs">
+                {paystubs.filter(p => {
+                  const workType = p.workType?.toLowerCase() || '';
+                  return workType === 'owner-operator';
                 }).length}
               </span>
             </button>
@@ -582,7 +607,7 @@ const PaystubsList = () => {
             <div className="text-center py-12 text-gray-500">
               <FileText className="mx-auto mb-4 text-gray-400" size={48} />
               <p className="text-lg font-medium">
-                No {activeTab === 'employees' ? 'employee' : activeTab === 'drivers' ? 'driver' : ''} paystubs found
+                No {activeTab === 'employees' ? 'employee' : activeTab === 'drivers' ? 'driver' : activeTab === 'ownerOperators' ? 'owner operator' : ''} paystubs found
               </p>
               <p className="text-sm">Try adjusting your filters, search query, or date range</p>
             </div>
@@ -693,7 +718,7 @@ const PaystubsList = () => {
                   Showing <span className="font-semibold text-gray-900">{filteredPaystubs.length}</span> paystub{filteredPaystubs.length !== 1 ? 's' : ''}
                   {activeTab !== 'all' && (
                     <span className="ml-2 text-blue-600">
-                      ({activeTab === 'employees' ? 'Employees' : 'Drivers'})
+                      ({activeTab === 'employees' ? 'Employees' : activeTab === 'drivers' ? 'Drivers' : activeTab === 'ownerOperators' ? 'Owner Operators' : ''})
                     </span>
                   )}
                 </div>
