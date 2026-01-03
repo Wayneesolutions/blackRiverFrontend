@@ -6,6 +6,8 @@ import { getAllDrivers, type Driver } from '../../../../axios/api/driver';
 import { createVehicleDocument, updateVehicleDocument } from '../../../../axios/api/compilance.vehicledoc';
 import { getAllTrailers } from '../../../../axios/api/trailer';
 import { getAllEmployees } from '../../../../axios/api/employee';
+import { getAllYards, type Yard } from '../../../../axios/api/fleet.yards';
+import apiClient from '../../../../axios/apiClient';
 
 interface Truck {
     _id?: string;
@@ -35,6 +37,7 @@ interface Truck {
     lastDispatch?: string;
     lastDispatchDate?: string | Date;
     lastDropLocation?: string;
+    yard?: string | { _id: string; yardName: string; yardCode: string };
 }
 
 // Static truck data - removed, now using API
@@ -51,7 +54,8 @@ const Trucks: React.FC = () => {
         return 'All';
     };
     
-    const [activeTab, setActiveTab] = useState<'All' | 'MB' | 'AB' | 'TX' | 'External' | 'Unassigned'>(getInitialTab(routeCategory));
+    const [activeTab, setActiveTab] = useState<string>(getInitialTab(routeCategory) || 'All');
+    const [assignedTruckIds, setAssignedTruckIds] = useState<Set<string>>(new Set());
     const [searchTerm, setSearchTerm] = useState('');
     const [sortBy, setSortBy] = useState('');
     const [complianceStatus, setComplianceStatus] = useState('All');
@@ -65,6 +69,7 @@ const Trucks: React.FC = () => {
     const [drivers, setDrivers] = useState<Driver[]>([]);
     const [operators, setOperators] = useState<Array<{ _id: string; name: string; email: string }>>([]);
     const [trailers, setTrailers] = useState<Array<{ _id: string; unitNumber: string; trailer?: string }>>([]);
+    const [yards, setYards] = useState<Yard[]>([]);
     const [originalTruckData, setOriginalTruckData] = useState<any>(null);
 
     // Sidebar modal state
@@ -241,6 +246,7 @@ const Trucks: React.FC = () => {
         operator: '',
         coOperator: '',
         fleet: '',
+        yard: '',
         subType: '' as '' | 'HIGHWAY USE' | 'CITY USE' | 'STORAGE USE' | 'RENTAL' | 'OTHER'
     });
 
@@ -275,13 +281,43 @@ const Trucks: React.FC = () => {
         'Mexico': ['Aguascalientes', 'Baja California', 'Baja California Sur', 'Campeche', 'Chiapas', 'Chihuahua', 'Coahuila', 'Colima', 'Durango', 'Guanajuato', 'Guerrero', 'Hidalgo', 'Jalisco', 'México', 'Michoacán', 'Morelos', 'Nayarit', 'Nuevo León', 'Oaxaca', 'Puebla', 'Querétaro', 'Quintana Roo', 'San Luis Potosí', 'Sinaloa', 'Sonora', 'Tabasco', 'Tamaulipas', 'Tlaxcala', 'Veracruz', 'Yucatán', 'Zacatecas']
     };
 
-    const fleetOptions = [
-        'Winnipeg Yard',
-        'Surrey Yard / TMG',
-        'Calgary Yard / Ocean',
-        'Impact Freight Services - Acheson',
-        'Laredo Yard - Santos'
-    ];
+    // Fetch yards from API
+    useEffect(() => {
+        const fetchYards = async () => {
+            try {
+                const response = await getAllYards();
+                if (response.success) {
+                    setYards(response.data || []);
+                }
+            } catch (error) {
+                console.error('Error fetching yards:', error);
+            }
+        };
+        fetchYards();
+    }, []);
+
+    // Fetch active orders to determine truck assignments (for Unassigned tab)
+    useEffect(() => {
+        const fetchActiveOrders = async () => {
+            try {
+                const response = await apiClient.get('dispatcher/order?status=IN_PROGRESS,dispatched,in-delivery,CONFIRMED&limit=1000');
+                if (response?.data?.success && response?.data?.data) {
+                    const assignedIds = new Set<string>();
+                    response.data.data.forEach((order: any) => {
+                        if (order.truck?._id) {
+                            assignedIds.add(order.truck._id.toString());
+                        } else if (order.truck && typeof order.truck === 'string') {
+                            assignedIds.add(order.truck);
+                        }
+                    });
+                    setAssignedTruckIds(assignedIds);
+                }
+            } catch (error) {
+                console.error('Error fetching active orders:', error);
+            }
+        };
+        fetchActiveOrders();
+    }, []);
 
     // Fetch trucks from API
     useEffect(() => {
@@ -316,7 +352,8 @@ const Trucks: React.FC = () => {
                         subType: truck.subType,
                         lastDispatch: truck.lastDispatch,
                         lastDispatchDate: truck.lastDispatchDate,
-                        lastDropLocation: truck.lastDropLocation
+                        lastDropLocation: truck.lastDropLocation,
+                        yard: truck.yard || null
                     }));
                     setTrucks(transformedTrucks);
                 }
@@ -436,7 +473,8 @@ const Trucks: React.FC = () => {
                         trailer: truck.trailer?._id?.toString() || truck.trailer?.toString() || '',
                         operator: truck.operator?._id?.toString() || truck.operator?.toString() || '',
                         coOperator: truck.coOperator?._id?.toString() || truck.coOperator?.toString() || '',
-                        fleet: truck.fleet || ''
+                        fleet: truck.fleet || '',
+                        yard: truck.yard?._id?.toString() || truck.yard?.toString() || ''
                     };
                     console.log('📝 Form data populated:', truckFormData);
                     
@@ -550,8 +588,25 @@ const Trucks: React.FC = () => {
         let filtered = [...trucks];
 
         // Filter by active tab
-        if (activeTab !== 'All') {
-            filtered = filtered.filter(truck => truck.category === activeTab);
+        if (activeTab === 'All') {
+            // Show all trucks
+        } else if (activeTab === 'External') {
+            // Show Owner Operator trucks
+            filtered = filtered.filter(truck => truck.ownership === 'OWNER OPERATOR');
+        } else if (activeTab === 'Unassigned') {
+            // Show trucks not assigned to any order
+            filtered = filtered.filter(truck => {
+                const truckId = truck._id?.toString() || truck.id?.toString();
+                return !truckId || !assignedTruckIds.has(truckId);
+            });
+        } else {
+            // Filter by yard ID (no navigation, just state change)
+            filtered = filtered.filter(truck => {
+                const truckYardId = typeof truck.yard === 'string' 
+                    ? truck.yard 
+                    : (truck.yard?._id?.toString() || truck.yard?.toString() || null);
+                return truckYardId && truckYardId === activeTab;
+            });
         }
 
         // Filter by search term (Unit #, Plate #, Make, VIN)
@@ -627,7 +682,22 @@ const Trucks: React.FC = () => {
     // Count trucks by category
     const getCountByCategory = (category: string) => {
         if (category === 'All') return trucks.length;
-        return trucks.filter(t => t.category === category).length;
+        if (category === 'External') {
+            return trucks.filter(truck => truck.ownership === 'OWNER OPERATOR').length;
+        }
+        if (category === 'Unassigned') {
+            return trucks.filter(truck => {
+                const truckId = truck._id?.toString() || truck.id?.toString();
+                return !truckId || !assignedTruckIds.has(truckId);
+            }).length;
+        }
+        // Count by yard ID
+        return trucks.filter(truck => {
+            const truckYardId = typeof truck.yard === 'string' 
+                ? truck.yard 
+                : (truck.yard?._id?.toString() || truck.yard?.toString() || null);
+            return truckYardId && truckYardId === category;
+        }).length;
     };
 
     // Handle create/update truck
@@ -789,6 +859,9 @@ const Trucks: React.FC = () => {
                 }
                 if (formData.coOperator) {
                     formDataToSend.append('coOperator', formData.coOperator);
+                }
+                if (formData.yard) {
+                    formDataToSend.append('yard', formData.yard);
                 }
                 if (formData.fleet) {
                     formDataToSend.append('fleet', formData.fleet);
@@ -1003,6 +1076,7 @@ const Trucks: React.FC = () => {
                 operator: '',
                 coOperator: '',
                 fleet: '',
+                yard: '',
                 subType: ''
             });
             setSelectedImage(null);
@@ -1198,6 +1272,7 @@ const Trucks: React.FC = () => {
                                         operator: '',
                                         coOperator: '',
                                         fleet: '',
+                                        yard: '',
                                         subType: ''
                                     });
                                     setSelectedImage(null);
@@ -1233,34 +1308,90 @@ const Trucks: React.FC = () => {
 
                 {/* Navigation Tabs */}
                 <div className="mb-6 bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
-                    <div className="flex border-b border-gray-200">
-                        {(['All', 'MB', 'AB', 'TX', 'External', 'Unassigned'] as const).map((tab) => (
+                    <div className="flex border-b border-gray-200 overflow-x-auto">
+                        {/* All Tab */}
+                        <button
+                            type="button"
+                            onClick={(e) => {
+                                e.preventDefault();
+                                e.stopPropagation();
+                                setActiveTab('All');
+                            }}
+                            className={`flex-shrink-0 px-6 py-4 text-center font-medium transition-colors relative ${activeTab === 'All'
+                                    ? 'text-[#42aeec] border-b-2 border-[#42aeec]'
+                                    : 'text-gray-600 hover:bg-gray-50'
+                                }`}
+                        >
+                            <div>
+                                <div className="font-semibold">
+                                    All ({getCountByCategory('All')})
+                                </div>
+                            </div>
+                        </button>
+                        
+                        {/* Yard Tabs - Use state only, no navigation */}
+                        {yards.filter(yard => yard.status === 'active').map((yard) => (
                             <button
-                                key={tab}
-                                onClick={() => {
-                                    setActiveTab(tab);
-                                    const basePath = '/admin/fleetmaintenance/trucks';
-                                    if (tab === 'All') {
-                                        navigate(basePath);
-                                    } else {
-                                        navigate(`${basePath}/${tab}`);
-                                    }
+                                key={yard._id}
+                                type="button"
+                                onClick={(e) => {
+                                    e.preventDefault();
+                                    e.stopPropagation();
+                                    setActiveTab(yard._id!);
                                 }}
-                                className={`flex-1 px-6 py-4 text-center font-medium transition-colors relative ${activeTab === tab
+                                className={`flex-shrink-0 px-6 py-4 text-center font-medium transition-colors relative ${activeTab === yard._id
                                         ? 'text-[#42aeec] border-b-2 border-[#42aeec]'
                                         : 'text-gray-600 hover:bg-gray-50'
                                     }`}
                             >
                                 <div>
                                     <div className="font-semibold">
-                                        {tab} ({getCountByCategory(tab)})
+                                        {yard.yardName} ({getCountByCategory(yard._id!)})
                                     </div>
-                                    {tab === 'MB' && <div className="text-xs text-gray-500 mt-1">Home to Winnipeg Yard</div>}
-                                    {tab === 'AB' && <div className="text-xs text-gray-500 mt-1">Home to Calgary Yard / Ocean, Impact freight services - Acheson</div>}
-                                    {tab === 'TX' && <div className="text-xs text-gray-500 mt-1">Home to Laredo Yard - Santos</div>}
+                                    <div className="text-xs text-gray-500 mt-1">Home to {yard.yardName}</div>
                                 </div>
                             </button>
                         ))}
+                        
+                        {/* External Tab */}
+                        <button
+                            type="button"
+                            onClick={(e) => {
+                                e.preventDefault();
+                                e.stopPropagation();
+                                setActiveTab('External');
+                            }}
+                            className={`flex-shrink-0 px-6 py-4 text-center font-medium transition-colors relative ${activeTab === 'External'
+                                    ? 'text-[#42aeec] border-b-2 border-[#42aeec]'
+                                    : 'text-gray-600 hover:bg-gray-50'
+                                }`}
+                        >
+                            <div>
+                                <div className="font-semibold">
+                                    External ({getCountByCategory('External')})
+                                </div>
+                            </div>
+                        </button>
+                        
+                        {/* Unassigned Tab */}
+                        <button
+                            type="button"
+                            onClick={(e) => {
+                                e.preventDefault();
+                                e.stopPropagation();
+                                setActiveTab('Unassigned');
+                            }}
+                            className={`flex-shrink-0 px-6 py-4 text-center font-medium transition-colors relative ${activeTab === 'Unassigned'
+                                    ? 'text-[#42aeec] border-b-2 border-[#42aeec]'
+                                    : 'text-gray-600 hover:bg-gray-50'
+                                }`}
+                        >
+                            <div>
+                                <div className="font-semibold">
+                                    Unassigned ({getCountByCategory('Unassigned')})
+                                </div>
+                            </div>
+                        </button>
                     </div>
                 </div>
 
@@ -1921,16 +2052,18 @@ const Trucks: React.FC = () => {
                                                 </div>
                                                 <div>
                                                     <label className="block text-sm font-medium text-gray-700 mb-1">
-                                                        Fleet
+                                                        Yard
                                                     </label>
                                                     <select
-                                                        value={formData.fleet}
-                                                        onChange={(e) => setFormData({ ...formData, fleet: e.target.value })}
+                                                        value={formData.yard}
+                                                        onChange={(e) => setFormData({ ...formData, yard: e.target.value })}
                                                         className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#42aeec]"
                                                     >
                                                         <option value="">Select</option>
-                                                        {fleetOptions.map((fleet) => (
-                                                            <option key={fleet} value={fleet}>{fleet}</option>
+                                                        {yards.filter(yard => yard.status === 'active').map((yard) => (
+                                                            <option key={yard._id} value={yard._id}>
+                                                                {yard.yardName} ({yard.yardCode})
+                                                            </option>
                                                         ))}
                                                     </select>
                                                 </div>

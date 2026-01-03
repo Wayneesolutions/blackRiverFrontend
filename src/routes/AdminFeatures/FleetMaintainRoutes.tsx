@@ -18,6 +18,7 @@ const RegulatorySafety = lazy(() => import("../../pages/admin/fleetMaintenance/r
 const VehicleDocuments = lazy(() => import("../../pages/admin/fleetMaintenance/vehicleDocument/VehicleDocuments"))
 const FuelReports = lazy(() => import('../../pages/admin/dispatch/resources/fuel-reports/index'))
 const FleetInvoices = lazy(() => import("../../pages/admin/compilance/invoices"))
+const Yards = lazy(() => import("../../pages/admin/fleetMaintenance/yards/index"))
 const TruckProfile = lazy(() => import("../../pages/admin/fleetMaintenance/truckProfile/index"))
 const Profile = lazy(() => import("../../pages/admin/dashboard/Profile/index"))
 const Issues = lazy(() => import("../../pages/admin/dispatch/resources/issues/index"))
@@ -44,6 +45,7 @@ function FleetMaintainRoutes() {
                     <Route path="/regulatory-safety" element={<RegulatorySafety />} />
                     <Route path="/fuel-reports" element={<FuelReports />} />
                     <Route path="/invoices" element={<FleetInvoices />} />
+                    <Route path="/yards" element={<Yards />} />
                     <Route path="/truck-profile" element={<TruckProfile />} />
                     <Route path="/issues" element={<Issues />} />
                 </Route>
