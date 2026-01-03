@@ -20,7 +20,7 @@ const OrderChat: React.FC<OrderChatProps> = ({ orderId, orderNumber, onClose }) 
   const [newMessage, setNewMessage] = useState("");
   const [loading, setLoading] = useState(true);
   const [sending, setSending] = useState(false);
-  const [uploadingFile, setUploadingFile] = useState(false);
+  const [] = useState(false);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [typingUsers, setTypingUsers] = useState<Set<string>>(new Set());
   const messagesEndRef = useRef<HTMLDivElement>(null);
@@ -212,16 +212,6 @@ const OrderChat: React.FC<OrderChatProps> = ({ orderId, orderNumber, onClose }) 
   };
 
   // Handle file download
-  const handleFileDownload = async (message: ChatMessage) => {
-    try {
-      const response = await getChatMessageFileSignedUrl(message._id, 'attachment');
-      if (response.success && response.url) {
-        window.open(response.url, '_blank');
-      }
-    } catch (error) {
-      console.error("Error downloading file:", error);
-    }
-  };
 
   // Handle file view
   const handleFileView = async (message: ChatMessage) => {

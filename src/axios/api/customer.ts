@@ -4,7 +4,7 @@ import type { AxiosResponse } from 'axios';
 // Customer Management APIs
 
 // Get all customers with filters and pagination
-export const getAllCustomers = async (page: number = 1, limit: number = 10, search?: string, status?: string, type?: string, sortBy?: string, sortOrder?: string) => {
+export const getAllCustomers = async (_page: number = 1, _limit: number = 10, search?: string, status?: string, type?: string, sortBy?: string, sortOrder?: string) => {
   try {
     const params = new URLSearchParams();
     

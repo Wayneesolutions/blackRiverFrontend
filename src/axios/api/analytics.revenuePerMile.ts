@@ -1,6 +1,6 @@
 import apiClient from '../apiClient';
-import { AxiosResponse } from 'axios';
-
+import type { AxiosResponse } from 'axios';
+// 
 export interface VehicleRevenueData {
   vehicleId: string;
   unitNumber: string;

@@ -151,11 +151,11 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
     const [valueOfGoods, setValueOfGoods] = useState("");
     const [valueOfGoodsCurrency, setValueOfGoodsCurrency] = useState("");
     const [selectedEquipment, setSelectedEquipment] = useState<string[]>([]);
-    const [equipmentDropdownOpen, setEquipmentDropdownOpen] = useState(false);
+    const [, setEquipmentDropdownOpen] = useState(false);
     const [noOfPackages, setNoOfPackages] = useState("");
     const [noOfPackagesType, setNoOfPackagesType] = useState("");
-    const [noOfPackagesSearch, setNoOfPackagesSearch] = useState("");
-    const [noOfPackagesDropdownOpen, setNoOfPackagesDropdownOpen] = useState(false);
+    const [noOfPackagesSearch] = useState("");
+    const [, setNoOfPackagesDropdownOpen] = useState(false);
     const [weight, setWeight] = useState("");
     const [weightUnit, setWeightUnit] = useState("");
     const [temperature, setTemperature] = useState("");
@@ -257,8 +257,6 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
     const [countryOfOrigin, setCountryOfOrigin] = useState("");
 
     // Custom Brokers List (Mock for now as per "Pre-saved brokers")
-    const BROKER_OPTIONS = ["Livingston International", "C.H. Robinson", "Hub Group", "XPO Logistics", "Delmar International", "Kuehne + Nagel"];
-    const PORT_OPTIONS = ["Detroit", "Buffalo", "Windsor", "Port Huron", "Champlain", "Lewiston", "Sarnia", "Fort Erie", "International Falls", "Pembina"];
 
 
     // Multi-step form state
@@ -321,7 +319,7 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
     const [receiverName, setReceiverName] = useState("");
     const [receiverPhone, setReceiverPhone] = useState("");
     const [receiverAddress, setReceiverAddress] = useState("");
-    const [receiverContact, setReceiverContact] = useState("");
+    const [receiverContact] = useState("");
     const [deliveryAppointmentType, setDeliveryAppointmentType] = useState("EXACT"); // EXACT / WINDOW
     const [deliveryAppointmentDate, setDeliveryAppointmentDate] = useState(new Date().toISOString().split('T')[0]);
     const [deliveryAppointmentTime, setDeliveryAppointmentTime] = useState("12:00");
@@ -392,7 +390,7 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
     const [selectedCarrier, setSelectedCarrier] = useState<any>(null);
     const [carrierSearch, setCarrierSearch] = useState("");
     const [carrierDropdownOpen, setCarrierDropdownOpen] = useState(false);
-    const [carriers, setCarriers] = useState<any[]>([]);
+    const [carriers] = useState<any[]>([]);
 
     // Pay section states
     const [selectedPayDriver, setSelectedPayDriver] = useState<any>(null);
@@ -413,7 +411,6 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
         memo: string;
         gst: boolean;
     }>>([]);
-    const [payParking, setPayParking] = useState("");
     const [deductionItems, setDeductionItems] = useState<Array<{
         amount: string;
         date: string;
@@ -435,11 +432,11 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
         locked: boolean;
     }>>([]);
     const [totalMiles, setTotalMiles] = useState(0);
-    const [emptyMiles, setEmptyMiles] = useState(0);
-    const [milesDate, setMilesDate] = useState("");
-    const [emptyMilesCheck, setEmptyMilesCheck] = useState(false);
-    const [milesCurrency, setMilesCurrency] = useState<"CAD" | "USD">("USD");
-    const [milesParking, setMilesParking] = useState("");
+    // const [emptyMiles, setEmptyMiles] = useState(0);
+    // const [milesDate, setMilesDate] = useState("");
+    // const [emptyMilesCheck, setEmptyMilesCheck] = useState(false);
+    // const [milesCurrency, setMilesCurrency] = useState<"CAD" | "USD">("USD");
+    // const [milesParking, setMilesParking] = useState("");
 
     // Job stops table states
     const [jobStops, setJobStops] = useState<Array<{
@@ -456,12 +453,12 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
     }>>([]);
     const [selectedStopIndex, setSelectedStopIndex] = useState<number | null>(null);
 
-    // Notes states
-    const [yardNotes, setYardNotes] = useState("");
-    const [shipperNotes, setShipperNotes] = useState("");
-    const [receiverNotes, setReceiverNotes] = useState("");
-    const [yardNotes2, setYardNotes2] = useState("");
-    const [smsPhoneNumber, setSmsPhoneNumber] = useState("+1 (647) 451-8874");
+    // // Notes states
+    // const [yardNotes, setYardNotes] = useState("");
+    // const [shipperNotes, setShipperNotes] = useState("");
+    // const [receiverNotes, setReceiverNotes] = useState("");
+    // const [yardNotes2, setYardNotes2] = useState("");
+    // const [smsPhoneNumber, setSmsPhoneNumber] = useState("+1 (647) 451-8874");
     
     // Notes/Audit states
     const [noteType, setNoteType] = useState<"public" | "private">("public");
@@ -498,7 +495,7 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
     const [stampedManifestFile, setStampedManifestFile] = useState<File | null>(null);
     
     // Existing document URLs (from database when editing)
-    const [existingDocuments, setExistingDocuments] = useState<{
+    const [, setExistingDocuments] = useState<{
         bol?: string | null;
         pod?: string | null;
         customsHazmat?: string[];
@@ -511,7 +508,7 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
     // Suggestions states
     const [commoditySuggestions, setCommoditySuggestions] = useState<string[]>([]);
 
-    const [showCommoditySuggestions, setShowCommoditySuggestions] = useState(false);
+    const [, setShowCommoditySuggestions] = useState(false);
 
 
     // Fetch customers on component mount
