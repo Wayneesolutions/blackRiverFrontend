@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef, useCallback, useMemo } from "react";
-import { X, ChevronDown, ChevronUp, Search, FileText, ArrowLeft, ArrowRight, GripVertical, Edit, Trash2 } from "lucide-react";
-import { FaCheckCircle, FaExclamationCircle, FaTimes, FaFileAlt, FaUpload, FaCheck } from "react-icons/fa";
-import { listCustomer, createOrder, updateOrder, getOrderSuggestions, getAuditTrail } from "../../../../../axios/api/distapcher";
+import { X, ChevronDown, ChevronUp, Search, ArrowLeft, ArrowRight, GripVertical, Edit, Trash2 } from "lucide-react";
+import { FaCheckCircle, FaExclamationCircle, FaTimes } from "react-icons/fa";
+import { listCustomer, createOrder, updateOrder, getAuditTrail } from "../../../../../axios/api/distapcher";
 import { listTrucks } from "../../../../../axios/api/truckTracking";
 import { listTrailers } from "../../../../../axios/api/trailerTracking";
 import { getAllDrivers } from "../../../../../axios/api/driver";
@@ -151,11 +151,10 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
     const [valueOfGoods, setValueOfGoods] = useState("");
     const [valueOfGoodsCurrency, setValueOfGoodsCurrency] = useState("");
     const [selectedEquipment, setSelectedEquipment] = useState<string[]>([]);
-    const [equipmentDropdownOpen, setEquipmentDropdownOpen] = useState(false);
+    const [, setEquipmentDropdownOpen] = useState(false);
     const [noOfPackages, setNoOfPackages] = useState("");
     const [noOfPackagesType, setNoOfPackagesType] = useState("");
-    const [noOfPackagesSearch, setNoOfPackagesSearch] = useState("");
-    const [noOfPackagesDropdownOpen, setNoOfPackagesDropdownOpen] = useState(false);
+    const [, setNoOfPackagesDropdownOpen] = useState(false);
     const [weight, setWeight] = useState("");
     const [weightUnit, setWeightUnit] = useState("");
     const [temperature, setTemperature] = useState("");
@@ -256,9 +255,7 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
     const [commercialValue, setCommercialValue] = useState("");
     const [countryOfOrigin, setCountryOfOrigin] = useState("");
 
-    // Custom Brokers List (Mock for now as per "Pre-saved brokers")
-    const BROKER_OPTIONS = ["Livingston International", "C.H. Robinson", "Hub Group", "XPO Logistics", "Delmar International", "Kuehne + Nagel"];
-    const PORT_OPTIONS = ["Detroit", "Buffalo", "Windsor", "Port Huron", "Champlain", "Lewiston", "Sarnia", "Fort Erie", "International Falls", "Pembina"];
+ 
 
 
     // Multi-step form state
@@ -321,7 +318,7 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
     const [receiverName, setReceiverName] = useState("");
     const [receiverPhone, setReceiverPhone] = useState("");
     const [receiverAddress, setReceiverAddress] = useState("");
-    const [receiverContact, setReceiverContact] = useState("");
+    const [receiverContact,] = useState("");
     const [deliveryAppointmentType, setDeliveryAppointmentType] = useState("EXACT"); // EXACT / WINDOW
     const [deliveryAppointmentDate, setDeliveryAppointmentDate] = useState(new Date().toISOString().split('T')[0]);
     const [deliveryAppointmentTime, setDeliveryAppointmentTime] = useState("12:00");
@@ -392,7 +389,7 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
     const [selectedCarrier, setSelectedCarrier] = useState<any>(null);
     const [carrierSearch, setCarrierSearch] = useState("");
     const [carrierDropdownOpen, setCarrierDropdownOpen] = useState(false);
-    const [carriers, setCarriers] = useState<any[]>([]);
+    const [carriers,] = useState<any[]>([]);
 
     // Pay section states
     const [selectedPayDriver, setSelectedPayDriver] = useState<any>(null);
@@ -413,7 +410,7 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
         memo: string;
         gst: boolean;
     }>>([]);
-    const [payParking, setPayParking] = useState("");
+   
     const [deductionItems, setDeductionItems] = useState<Array<{
         amount: string;
         date: string;
@@ -435,11 +432,7 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
         locked: boolean;
     }>>([]);
     const [totalMiles, setTotalMiles] = useState(0);
-    const [emptyMiles, setEmptyMiles] = useState(0);
-    const [milesDate, setMilesDate] = useState("");
-    const [emptyMilesCheck, setEmptyMilesCheck] = useState(false);
-    const [milesCurrency, setMilesCurrency] = useState<"CAD" | "USD">("USD");
-    const [milesParking, setMilesParking] = useState("");
+  
 
     // Job stops table states
     const [jobStops, setJobStops] = useState<Array<{
@@ -456,12 +449,7 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
     }>>([]);
     const [selectedStopIndex, setSelectedStopIndex] = useState<number | null>(null);
 
-    // Notes states
-    const [yardNotes, setYardNotes] = useState("");
-    const [shipperNotes, setShipperNotes] = useState("");
-    const [receiverNotes, setReceiverNotes] = useState("");
-    const [yardNotes2, setYardNotes2] = useState("");
-    const [smsPhoneNumber, setSmsPhoneNumber] = useState("+1 (647) 451-8874");
+  
     
     // Notes/Audit states
     const [noteType, setNoteType] = useState<"public" | "private">("public");
@@ -498,7 +486,7 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
     const [stampedManifestFile, setStampedManifestFile] = useState<File | null>(null);
     
     // Existing document URLs (from database when editing)
-    const [existingDocuments, setExistingDocuments] = useState<{
+    const [, setExistingDocuments] = useState<{
         bol?: string | null;
         pod?: string | null;
         customsHazmat?: string[];
@@ -508,10 +496,7 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
         printedManifest?: string | null;
     }>({});
 
-    // Suggestions states
-    const [commoditySuggestions, setCommoditySuggestions] = useState<string[]>([]);
-
-    const [showCommoditySuggestions, setShowCommoditySuggestions] = useState(false);
+ 
 
 
     // Fetch customers on component mount
@@ -1179,16 +1164,9 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
         }
     };
 
-    const packageTypes = ["Bag", "Bale", "Barrel", "Basket", "Bin", "Bing Chest", "Box", "Bucket", "Bundle", "Cage", "Carton", "Case", "Chest", "Container", "Crate", "Drum", "Envelope", "Package", "Pallet", "Parcel", "Piece", "Reel", "Roll", "Sack", "Skid", "Tank", "Tote", "Tray", "Tub", "Unit"];
-
+  
     const equipmentTypes = ["DV", "RF", "FB", "HV", "SD", "DV/RF", "B-TRAIN", "FDA", "Double Drop", "Drayage", "Other", "PO", "Tri-Axle", "Tandem", "Quad-Axle"];
-    const weightUnits = ["kg", "lbs", "tons"];
-    const dimensionUnits = ["cm", "inch", "m", "ft"];
-    const currencyOptions = [
-        { value: "CAD", label: "CAD - Canadian Dollar" },
-        { value: "INR", label: "INR - Indian Rupee" },
-        { value: "USD", label: "USD - US Dollar" }
-    ];
+ 
 
     const customerDropdownRef = useRef<HTMLDivElement>(null);
     const shipperCustomerDropdownRef = useRef<HTMLDivElement>(null);
@@ -1321,91 +1299,12 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
         setReceiverAddress(fullAddress);
     };
 
-    const filteredPackages = packageTypes.filter(pkg =>
-        pkg.toLowerCase().includes(noOfPackagesSearch.toLowerCase())
-    );
-
-
-    const handleEquipmentToggle = (equipment: string) => {
-        setSelectedEquipment(prev =>
-            prev.includes(equipment)
-                ? prev.filter(e => e !== equipment)
-                : [...prev, equipment]
-        );
-    };
 
 
 
-    // File handling functions
-    const handleFileUpload = (file: File, type: 'bol' | 'customs' | 'rate' | 'pod' | 'stampedManifest' | 'loadSecurement') => {
-        if (type === 'bol') {
-            setBolFile(file);
-        } else if (type === 'customs') {
-            setCustomsHazmatFiles(prev => [...prev, file]);
-        } else if (type === 'rate') {
-            setRateConfirmationFile(file);
-        } else if (type === 'pod') {
-            setPodFile(file);
-        } else if (type === 'stampedManifest') {
-            setStampedManifestFile(file);
-        } else if (type === 'loadSecurement') {
-            setLoadSecurementFiles(prev => [...prev, file]);
-        }
-    };
-
-    const removeFile = (type: 'bol' | 'customs' | 'rate' | 'pod' | 'stampedManifest' | 'loadSecurement', index?: number) => {
-        if (type === 'bol') {
-            setBolFile(null);
-        } else if (type === 'customs' && index !== undefined) {
-            setCustomsHazmatFiles(prev => prev.filter((_, i) => i !== index));
-        } else if (type === 'rate') {
-            setRateConfirmationFile(null);
-        } else if (type === 'pod') {
-            setPodFile(null);
-        } else if (type === 'stampedManifest') {
-            setStampedManifestFile(null);
-        } else if (type === 'loadSecurement' && index !== undefined) {
-            setLoadSecurementFiles(prev => prev.filter((_, i) => i !== index));
-        }
-    };
 
 
-    // Get suggestions as user types
-    const fetchSuggestions = async (field: string, value: string) => {
-        if (!value || value.trim().length < 2) {
-            if (field === 'commodity') setCommoditySuggestions([]);
-      
-            return;
-        }
-
-        try {
-            const customerId = selectedCustomer?._id || selectedCustomer?.id;
-            const customerIdStr = customerId ? String(customerId) : undefined;
-            const response = await getOrderSuggestions(field, value, customerIdStr);
-
-            if (response?.success && response?.data) {
-                if (field === 'commodity') {
-                    setCommoditySuggestions(response.data);
-                    setShowCommoditySuggestions(true);
-                } 
-            }
-        } catch (error) {
-            console.error('Error fetching suggestions:', error);
-        }
-    };
-
-    // Debounce function for suggestions
-    const debounce = (func: Function, wait: number) => {
-        let timeout: NodeJS.Timeout;
-        return function executedFunction(...args: any[]) {
-            const later = () => {
-                clearTimeout(timeout);
-                func(...args);
-            };
-            clearTimeout(timeout);
-            timeout = setTimeout(later, wait);
-        };
-    };
+   
 
     // Invoice calculations
     const invoiceCalculations = useMemo(() => {
@@ -1518,10 +1417,7 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
         setReceiverStops(updatedStops);
     };
 
-    const debouncedFetchSuggestions = useCallback(
-        debounce((field: string, value: string) => fetchSuggestions(field, value), 300),
-        [selectedCustomer]
-    );
+ 
 
     // Helper function to render Shipper Panel
     const renderShipperPanel = (shipperData: {
@@ -2408,7 +2304,7 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
             
             // Get origin (shipper)
             const origin = shipperAddress || pickupLocationAddress;
-            const originCity = shipperCity || shipperProvince || '';
+           
             
             // Get destinations (receivers)
             const destinations: Array<{ address: string; city: string }> = [];

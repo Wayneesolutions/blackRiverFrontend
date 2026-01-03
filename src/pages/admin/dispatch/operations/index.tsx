@@ -721,7 +721,7 @@ const Index = () => {
   const filteredDrivers = drivers;
   const filteredVehicles = vehicles;
   const filteredTrailers = trailers;
-  const filteredTrips = trips;
+
   const filteredOrders = orders.filter(order => {
     if (!orderSearchTerm) return true;
     const search = orderSearchTerm.toLowerCase();

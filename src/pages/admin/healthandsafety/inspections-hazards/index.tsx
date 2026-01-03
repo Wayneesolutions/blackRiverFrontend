@@ -23,6 +23,7 @@ import {
     updateHazard,
     deleteHazard
 } from '../../../../axios/api/healthSafety';
+import { getUserInfo } from '../../../../utils/auth';
 
 interface Hazard {
     _id: string;
@@ -174,7 +175,7 @@ const HazardControl = () => {
 
     // Check if user has company set up
     const checkCompanySetup = () => {
-        const user = getUserDetails();
+        const user = getUserInfo();
         if (!user?.company) {
             addNotification('error', 'Please complete company settings first before creating records. Go to Company Settings to set up your company.');
             return false;

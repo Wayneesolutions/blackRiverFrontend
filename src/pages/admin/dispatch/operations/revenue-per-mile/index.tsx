@@ -1,7 +1,5 @@
 import { useState, useEffect } from "react";
 import { DollarSign, Truck, TrendingUp, Calendar, X } from "lucide-react";
-import { useNavigate } from "react-router-dom";
-import { getUserRole } from "../../../../../utils/auth";
 import {
   BarChart,
   Bar,
@@ -17,10 +15,7 @@ import {
 import { getRevenuePerMile, type VehicleRevenueData, type MonthlyTrendData } from "../../../../../axios/api/analytics.revenuePerMile";
 
 const RevenuePerMilePage = () => {
-  const navigate = useNavigate();
-  const userRole = getUserRole();
-  const isDispatcher = userRole === 'dispatcher';
-  const basePath = isDispatcher ? '/dispatch' : '/admin/dispatch';
+
 
   const [searchTerm, setSearchTerm] = useState("");
   const [loading, setLoading] = useState(false);
@@ -29,7 +24,7 @@ const RevenuePerMilePage = () => {
   const [totalRevenue, setTotalRevenue] = useState(0);
   const [totalMiles, setTotalMiles] = useState(0);
   const [averageRevenuePerMile, setAverageRevenuePerMile] = useState(0);
-  const [totalVehicles, setTotalVehicles] = useState(0);
+  const [, setTotalVehicles] = useState(0);
   const [startDate, setStartDate] = useState("");
   const [endDate, setEndDate] = useState("");
   const [showDateFilter, setShowDateFilter] = useState(false);
