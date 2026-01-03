@@ -59,7 +59,7 @@ const Trucks: React.FC = () => {
     const [searchTerm, setSearchTerm] = useState('');
     const [sortBy, setSortBy] = useState('');
     const [complianceStatus, setComplianceStatus] = useState('All');
-    const [category, setCategory] = useState('In Service Only');
+    const [category, setCategory] = useState('All');
 
     // API state
     const [trucks, setTrucks] = useState<Truck[]>([]);
@@ -320,11 +320,38 @@ const Trucks: React.FC = () => {
     }, []);
 
     // Fetch trucks from API
+    // Fetch trucks based on activeTab
     useEffect(() => {
         const fetchTrucks = async () => {
             setLoading(true);
             try {
-                const response = await getAllVehicles(1, 1000);
+                // Determine filter parameters based on activeTab
+                let yardFilter: string | undefined = undefined;
+                let ownershipFilter: string | undefined = undefined;
+                
+                if (activeTab === 'All') {
+                    // No filters - fetch all
+                } else if (activeTab === 'External') {
+                    ownershipFilter = 'OWNER OPERATOR';
+                } else if (activeTab === 'Unassigned') {
+                    // For unassigned, we'll fetch all and filter on frontend
+                    // (or could create a backend endpoint for this)
+                } else {
+                    // Yard filter - activeTab is a yard ID
+                    yardFilter = activeTab;
+                }
+                
+                const response = await getAllVehicles(
+                    1, 
+                    1000,
+                    undefined, // search
+                    undefined, // type
+                    undefined, // status
+                    undefined, // operationStatus
+                    ownershipFilter, // ownership
+                    yardFilter // yard
+                );
+                
                 if (response?.success && response?.data) {
                     // Transform backend data to match frontend interface
                     const transformedTrucks = response.data.map((truck: any) => ({
@@ -353,9 +380,18 @@ const Trucks: React.FC = () => {
                         lastDispatch: truck.lastDispatch,
                         lastDispatchDate: truck.lastDispatchDate,
                         lastDropLocation: truck.lastDropLocation,
-                        yard: truck.yard || null
+                        yard: truck.yard || null // Keep full yard object
                     }));
-                    setTrucks(transformedTrucks);
+                    // For Unassigned tab, filter out trucks assigned to orders
+                    if (activeTab === 'Unassigned') {
+                        const unassignedTrucks = transformedTrucks.filter((truck: Truck) => {
+                            const truckId = truck._id?.toString() || truck.id?.toString();
+                            return !truckId || !assignedTruckIds.has(truckId);
+                        });
+                        setTrucks(unassignedTrucks);
+                    } else {
+                        setTrucks(transformedTrucks);
+                    }
                 }
             } catch (error) {
                 console.error('Error fetching trucks:', error);
@@ -365,7 +401,7 @@ const Trucks: React.FC = () => {
             }
         };
         fetchTrucks();
-    }, []);
+    }, [activeTab, assignedTruckIds]);
 
     // Fetch operators (employees with role 'operator')
     useEffect(() => {
@@ -583,31 +619,10 @@ const Trucks: React.FC = () => {
         loadTruckForEdit();
     }, [editingId]);
 
-    // Get filtered trucks
+    // Get filtered trucks (backend already filters by yard/ownership, only apply local filters)
     const getFilteredTrucks = () => {
+        // Backend already filters by yard/ownership, so we just use the trucks from state
         let filtered = [...trucks];
-
-        // Filter by active tab
-        if (activeTab === 'All') {
-            // Show all trucks
-        } else if (activeTab === 'External') {
-            // Show Owner Operator trucks
-            filtered = filtered.filter(truck => truck.ownership === 'OWNER OPERATOR');
-        } else if (activeTab === 'Unassigned') {
-            // Show trucks not assigned to any order
-            filtered = filtered.filter(truck => {
-                const truckId = truck._id?.toString() || truck.id?.toString();
-                return !truckId || !assignedTruckIds.has(truckId);
-            });
-        } else {
-            // Filter by yard ID (no navigation, just state change)
-            filtered = filtered.filter(truck => {
-                const truckYardId = typeof truck.yard === 'string' 
-                    ? truck.yard 
-                    : (truck.yard?._id?.toString() || truck.yard?.toString() || null);
-                return truckYardId && truckYardId === activeTab;
-            });
-        }
 
         // Filter by search term (Unit #, Plate #, Make, VIN)
         if (searchTerm) {
@@ -679,25 +694,56 @@ const Trucks: React.FC = () => {
 
     const filteredTrucks = getFilteredTrucks();
 
-    // Count trucks by category
+    // Count trucks by category - fetch counts from backend
+    const [categoryCounts, setCategoryCounts] = useState<Record<string, number>>({});
+    
+    // Fetch counts for all categories
+    useEffect(() => {
+        const fetchCategoryCounts = async () => {
+            try {
+                const counts: Record<string, number> = {};
+                
+                // Fetch All count
+                const allResponse = await getAllVehicles(1, 1);
+                counts['All'] = allResponse?.pagination?.total || 0;
+                
+                // Fetch External count
+                const externalResponse = await getAllVehicles(1, 1, undefined, undefined, undefined, undefined, 'OWNER OPERATOR');
+                counts['External'] = externalResponse?.pagination?.total || 0;
+                
+                // Fetch Unassigned count (fetch all and filter)
+                const unassignedResponse = await getAllVehicles(1, 1000);
+                if (unassignedResponse?.success && unassignedResponse?.data) {
+                    const unassignedCount = unassignedResponse.data.filter((truck: any) => {
+                        const truckId = truck._id?.toString();
+                        return !truckId || !assignedTruckIds.has(truckId);
+                    }).length;
+                    counts['Unassigned'] = unassignedCount;
+                } else {
+                    counts['Unassigned'] = 0;
+                }
+                
+                // Fetch counts for each yard
+                for (const yard of yards) {
+                    if (yard.status === 'active' && yard._id) {
+                        const yardResponse = await getAllVehicles(1, 1, undefined, undefined, undefined, undefined, undefined, yard._id);
+                        counts[yard._id] = yardResponse?.pagination?.total || 0;
+                    }
+                }
+                
+                setCategoryCounts(counts);
+            } catch (error) {
+                console.error('Error fetching category counts:', error);
+            }
+        };
+        
+        if (yards.length > 0 || assignedTruckIds.size > 0) {
+            fetchCategoryCounts();
+        }
+    }, [yards, assignedTruckIds]);
+    
     const getCountByCategory = (category: string) => {
-        if (category === 'All') return trucks.length;
-        if (category === 'External') {
-            return trucks.filter(truck => truck.ownership === 'OWNER OPERATOR').length;
-        }
-        if (category === 'Unassigned') {
-            return trucks.filter(truck => {
-                const truckId = truck._id?.toString() || truck.id?.toString();
-                return !truckId || !assignedTruckIds.has(truckId);
-            }).length;
-        }
-        // Count by yard ID
-        return trucks.filter(truck => {
-            const truckYardId = typeof truck.yard === 'string' 
-                ? truck.yard 
-                : (truck.yard?._id?.toString() || truck.yard?.toString() || null);
-            return truckYardId && truckYardId === category;
-        }).length;
+        return categoryCounts[category] || 0;
     };
 
     // Handle create/update truck
@@ -824,7 +870,8 @@ const Trucks: React.FC = () => {
                             subType: truck.subType,
                             lastDispatch: truck.lastDispatch,
                             lastDispatchDate: truck.lastDispatchDate,
-                            lastDropLocation: truck.lastDropLocation
+                            lastDropLocation: truck.lastDropLocation,
+                            yard: truck.yard || null // Include yard field
                         }));
                         setTrucks(transformedTrucks);
                     }
@@ -980,7 +1027,8 @@ const Trucks: React.FC = () => {
                             subType: truck.subType,
                             lastDispatch: truck.lastDispatch,
                             lastDispatchDate: truck.lastDispatchDate,
-                            lastDropLocation: truck.lastDropLocation
+                            lastDropLocation: truck.lastDropLocation,
+                            yard: truck.yard || null // Include yard field
                         }));
                         setTrucks(transformedTrucks);
                     }
@@ -1337,9 +1385,9 @@ const Trucks: React.FC = () => {
                                 onClick={(e) => {
                                     e.preventDefault();
                                     e.stopPropagation();
-                                    setActiveTab(yard._id!);
+                                    setActiveTab(yard._id!.toString());
                                 }}
-                                className={`flex-shrink-0 px-6 py-4 text-center font-medium transition-colors relative ${activeTab === yard._id
+                                className={`flex-shrink-0 px-6 py-4 text-center font-medium transition-colors relative ${activeTab === yard._id?.toString()
                                         ? 'text-[#42aeec] border-b-2 border-[#42aeec]'
                                         : 'text-gray-600 hover:bg-gray-50'
                                     }`}

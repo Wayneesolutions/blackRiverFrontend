@@ -12,6 +12,7 @@ export const getAllVehicles = async (
   status?: string,
   operationStatus?: string,
   ownership?: string,
+  yard?: string,
   sortBy?: string,
   sortOrder?: string
 ) => {
@@ -25,6 +26,7 @@ export const getAllVehicles = async (
     if (status) params.append('status', status);
     if (operationStatus) params.append('operationStatus', operationStatus);
     if (ownership) params.append('ownership', ownership);
+    if (yard) params.append('yard', yard);
     if (sortBy) params.append('sortBy', sortBy);
     if (sortOrder) params.append('sortOrder', sortOrder);
     

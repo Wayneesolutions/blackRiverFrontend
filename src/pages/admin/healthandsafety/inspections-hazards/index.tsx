@@ -23,6 +23,7 @@ import {
     updateHazard,
     deleteHazard
 } from '../../../../axios/api/healthSafety';
+import { getUserDetails } from '../../../../utils/utils';
 
 interface Hazard {
     _id: string;
@@ -171,6 +172,16 @@ const HazardControl = () => {
     const [showDeleteModal, setShowDeleteModal] = useState(false);
     const [itemToDelete, setItemToDelete] = useState<string | null>(null);
     const [deleteType, setDeleteType] = useState<'hazard' | 'observation' | 'trucking-hazard' | null>(null);
+
+    // Check if user has company set up
+    const checkCompanySetup = () => {
+        const user = getUserDetails();
+        if (!user?.company) {
+            addNotification('error', 'Please complete company settings first before creating records. Go to Company Settings to set up your company.');
+            return false;
+        }
+        return true;
+    };
 
     // Form states
     const [newHazard, setNewHazard] = useState({
@@ -510,6 +521,7 @@ const HazardControl = () => {
                 <div className="flex items-center gap-2">
                     <button
                         onClick={() => {
+                            if (!checkCompanySetup()) return;
                             setEditingHazard(null);
                             setNewHazard({ type: '', description: '', location: '', reporter: '', likelihood: 3, severity: 3 });
                             setSidebarType('hazard');
@@ -655,6 +667,7 @@ const HazardControl = () => {
                     <h3 className="text-sm font-bold text-gray-700">Driver Observations</h3>
                     <button
                         onClick={() => {
+                            if (!checkCompanySetup()) return;
                             setSidebarType('observation');
                             setShowSidebar(true);
                         }}
@@ -765,6 +778,7 @@ const HazardControl = () => {
                         <h3 className="text-sm font-bold text-gray-700">Trucking-Specific Hazards</h3>
                         <button
                             onClick={() => {
+                                if (!checkCompanySetup()) return;
                                 setEditingHazard(null);
                                 setNewTruckingHazard({ truckingType: '', description: '', location: '', reporter: '', severity: 'Medium' });
                                 setSidebarType('trucking-hazard');
