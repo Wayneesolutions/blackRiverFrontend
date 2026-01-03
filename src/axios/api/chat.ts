@@ -5,7 +5,8 @@ import apiClient from "../apiClient";
 
 export interface ChatMessage {
   _id: string;
-  tripId: string;
+  tripId?: string; // Optional for backward compatibility
+  orderId?: string; // New field for orders
   senderId: {
     _id: string;
     name: string;
@@ -149,6 +150,100 @@ export const getChatMessageFileSignedUrl = async (
       success: false,
       url: '',
       expiresIn: 0,
+    };
+  }
+};
+
+// ===== ORDER CHAT FUNCTIONS (New) =====
+
+// Get chat messages for an order
+export const getOrderChatMessages = async (
+  orderId: string,
+  page: number = 1,
+  limit: number = 50
+): Promise<ChatMessagesResponse> => {
+  try {
+    const res: AxiosResponse = await apiClient.get(
+      `chat/order/${orderId}/messages`,
+      {
+        params: { page, limit },
+      }
+    );
+    return res.data;
+  } catch (error) {
+    console.error("Get order chat messages error:", error);
+    return {
+      success: false,
+      message: (error as any).response?.data?.message || "Failed to fetch chat messages",
+      data: { messages: [], pagination: { current: 1, pages: 0, total: 0, limit: 50 } },
+    };
+  }
+};
+
+// Send a chat message for an order (with optional file)
+export const sendOrderChatMessage = async (
+  orderId: string,
+  message: string,
+  file?: File
+): Promise<{ success: boolean; data?: ChatMessage; message: string }> => {
+  try {
+    const formData = new FormData();
+    formData.append("message", message);
+    if (file) {
+      formData.append("file", file);
+    }
+
+    const res: AxiosResponse = await apiClient.post(
+      `chat/order/${orderId}/message`,
+      formData,
+      {
+        headers: {
+          "Content-Type": "multipart/form-data",
+        },
+      }
+    );
+    return res.data;
+  } catch (error) {
+    console.error("Send order chat message error:", error);
+    return {
+      success: false,
+      message: (error as any).response?.data?.message || "Failed to send message",
+    };
+  }
+};
+
+// Mark order messages as read
+export const markOrderMessagesAsRead = async (
+  orderId: string
+): Promise<{ success: boolean; message: string; count?: number }> => {
+  try {
+    const res: AxiosResponse = await apiClient.post(
+      `chat/order/${orderId}/mark-read`
+    );
+    return res.data;
+  } catch (error) {
+    console.error("Mark order messages as read error:", error);
+    return {
+      success: false,
+      message: (error as any).response?.data?.message || "Failed to mark messages as read",
+    };
+  }
+};
+
+// Get unread message count for an order
+export const getOrderUnreadMessageCount = async (
+  orderId: string
+): Promise<{ success: boolean; data: { unreadCount: number } }> => {
+  try {
+    const res: AxiosResponse = await apiClient.get(
+      `chat/order/${orderId}/unread-count`
+    );
+    return res.data;
+  } catch (error) {
+    console.error("Get order unread count error:", error);
+    return {
+      success: false,
+      data: { unreadCount: 0 },
     };
   }
 };

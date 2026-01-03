@@ -1,10 +1,12 @@
 import { useState, useMemo, useEffect, useCallback, useRef } from "react";
-import { MoreVertical, Edit, Trash2, Plus, ChevronDown, ChevronUp, X, Package, DollarSign, Route, Truck } from "lucide-react";
+import { MoreVertical, Edit, Trash2, Plus, ChevronDown, ChevronUp, X, Package, DollarSign, Route, Truck, MessageCircle } from "lucide-react";
 import { FaCheckCircle, FaExclamationCircle, FaTimes } from "react-icons/fa";
 import NewOrderSidebar from "./NewOrderSidebar";
 import { listOrder, deleteOrder, getOrderById } from "../../../../../axios/api/distapcher";
 import { listPlace } from "../../../../../axios/api/dispatcher.places";
 import ConfirmationModal from "../../../../../components/common/ConfirmationModal";
+import OrderChat from "../../../../../components/chat/OrderChat";
+import { getOrderUnreadMessageCount } from "../../../../../axios/api/chat";
 import { createPortal } from "react-dom";
 
 // Color constants
@@ -108,6 +110,12 @@ const OrderList = () => {
   // Order details sidebar state
   const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
   const [showOrderDetails, setShowOrderDetails] = useState(false);
+
+  // Chat state
+  const [showChat, setShowChat] = useState(false);
+  const [chatOrderId, setChatOrderId] = useState<string | null>(null);
+  const [chatOrderNumber, setChatOrderNumber] = useState<string>("");
+  const [unreadCounts, setUnreadCounts] = useState<Record<string, number>>({});
 
   // Refs for scrollbar synchronization
   const topScrollRef = useRef<HTMLDivElement>(null);
@@ -245,6 +253,38 @@ const OrderList = () => {
   useEffect(() => {
     fetchOrders();
   }, [userInfo?.company]);
+
+  // Fetch unread message counts for all orders
+  useEffect(() => {
+    const fetchUnreadCounts = async () => {
+      if (orders.length === 0) return;
+
+      try {
+        const counts: Record<string, number> = {};
+        
+        // Fetch unread counts for all orders (limit to first 50 to avoid too many requests)
+        const ordersToCheck = orders.slice(0, 50);
+        await Promise.all(
+          ordersToCheck.map(async (order) => {
+            try {
+              const response = await getOrderUnreadMessageCount(order.id);
+              if (response?.success && response?.data) {
+                counts[order.id] = response.data.unreadCount;
+              }
+            } catch (error) {
+              console.error(`Error fetching unread count for order ${order.id}:`, error);
+            }
+          })
+        );
+        
+        setUnreadCounts(counts);
+      } catch (error) {
+        console.error('Error fetching unread counts:', error);
+      }
+    };
+
+    fetchUnreadCounts();
+  }, [orders]);
 
   // Helper function to safely extract location string
   const extractLocationString = (location: any): string => {
@@ -829,19 +869,22 @@ const OrderList = () => {
                 <th className="px-4 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
                   Carrier
                 </th>
+                <th className="px-4 py-3 text-center text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                  Chat
+                </th>
               </tr>
             </thead>
             <tbody className="bg-white divide-y divide-gray-200">
               {loading ? (
                 <tr>
-                  <td colSpan={24} className="px-6 py-12 text-center text-gray-500">
+                  <td colSpan={25} className="px-6 py-12 text-center text-gray-500">
                     <div className="animate-spin rounded-full h-8 w-8 border-b-2 mx-auto" style={{ borderBottomColor: PRIMARY_COLOR }}></div>
                     <p className="mt-2">Loading orders...</p>
                   </td>
                 </tr>
               ) : paginatedOrders.length === 0 ? (
                 <tr>
-                  <td colSpan={24} className="px-6 py-12 text-center text-gray-500">
+                  <td colSpan={25} className="px-6 py-12 text-center text-gray-500">
                     <p className="text-lg font-medium">No orders found</p>
                     <p className="text-sm">Create a new order to get started</p>
                   </td>
@@ -1016,6 +1059,26 @@ const OrderList = () => {
                       </td>
                       <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-900">
                         {carrierName}
+                      </td>
+                      {/* Chat Icon */}
+                      <td className="px-4 py-4 whitespace-nowrap text-center">
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation(); // Prevent row click event
+                            setChatOrderId(order.id);
+                            setChatOrderNumber(order.orderNo);
+                            setShowChat(true);
+                          }}
+                          className="relative inline-flex items-center justify-center text-[#42aeec] hover:text-[#1db5f5] transition-colors"
+                          title="Open chat"
+                        >
+                          <MessageCircle className="w-5 h-5" />
+                          {unreadCounts[order.id] > 0 && (
+                            <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full w-4 h-4 flex items-center justify-center font-semibold">
+                              {unreadCounts[order.id] > 9 ? '9+' : unreadCounts[order.id]}
+                            </span>
+                          )}
+                        </button>
                       </td>
                     </tr>
                   );
@@ -1356,6 +1419,44 @@ const OrderList = () => {
                   setEditingOrder(null);
                 }}
                 onSave={handleSaveOrder}
+              />
+            </div>
+          </>,
+          document.body
+        )
+      }
+
+      {/* Order Chat Modal */}
+      {showChat && chatOrderId &&
+        createPortal(
+          <>
+            <div
+              className="fixed inset-0 bg-black/50"
+              style={{ zIndex: 99999 }}
+              onClick={() => {
+                setShowChat(false);
+                setChatOrderId(null);
+                setChatOrderNumber("");
+              }}
+            />
+            <div
+              className="fixed top-0 right-0 h-screen w-full max-w-3xl bg-white shadow-2xl"
+              style={{ zIndex: 100000 }}
+            >
+              <OrderChat
+                orderId={chatOrderId}
+                orderNumber={chatOrderNumber}
+                onClose={() => {
+                  setShowChat(false);
+                  setChatOrderId(null);
+                  setChatOrderNumber("");
+                  // Refresh unread count for this order
+                  getOrderUnreadMessageCount(chatOrderId).then((response: any) => {
+                    if (response?.success && response?.data) {
+                      setUnreadCounts(prev => ({ ...prev, [chatOrderId]: response.data.unreadCount }));
+                    }
+                  });
+                }}
               />
             </div>
           </>,

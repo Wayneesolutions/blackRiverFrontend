@@ -41,7 +41,7 @@ const TrailersPage: React.FC = () => {
     const [searchTerm, setSearchTerm] = useState('');
     const [sortBy, setSortBy] = useState('');
     const [complianceStatus, setComplianceStatus] = useState('All');
-    const [operatingStatus, setOperatingStatus] = useState('Active');
+    const [operatingStatus, setOperatingStatus] = useState('All');
     
     // API state
     const [trailers, setTrailers] = useState<Trailer[]>([]);
@@ -322,47 +322,65 @@ const TrailersPage: React.FC = () => {
         fetchYards();
     }, []);
 
-    // Function to fetch counts
-    const fetchCounts = async () => {
+    // Track which counts have been fetched to avoid redundant API calls
+    const [fetchedCounts, setFetchedCounts] = useState<Set<string>>(new Set(['All']));
+
+    // Function to fetch count for a specific tab
+    const fetchTabCount = async (tabId: string) => {
+        // Skip if already fetched
+        if (fetchedCounts.has(tabId)) {
+            return;
+        }
+
         try {
-            const counts: { [key: string]: number } = {};
+            let count = 0;
             
-            // Fetch count for 'All'
-            const allResponse = await getAllTrailers(1, 1);
-            counts['All'] = allResponse?.pagination?.total || 0;
-            
-            // Fetch count for 'External' (THIRD PARTY ASSET)
-            const externalResponse = await getAllTrailers(1, 1, undefined, undefined, undefined, undefined, undefined, 'THIRD PARTY ASSET');
-            counts['External'] = externalResponse?.pagination?.total || 0;
-            
-            // Fetch count for 'Unassigned' - get all trailers and filter by assignedTrailerIds
-            const unassignedResponse = await getAllTrailers(1, 1000);
-            if (unassignedResponse?.success && unassignedResponse?.data) {
-                const unassignedCount = unassignedResponse.data.filter((trailer: any) => 
-                    !assignedTrailerIds.has(trailer._id)
-                ).length;
-                counts['Unassigned'] = unassignedCount;
+            if (tabId === 'All') {
+                const response = await getAllTrailers(1, 1);
+                count = response?.pagination?.total || 0;
+            } else if (tabId === 'External') {
+                const response = await getAllTrailers(1, 1, undefined, undefined, undefined, undefined, undefined, 'THIRD PARTY ASSET');
+                count = response?.pagination?.total || 0;
+            } else if (tabId === 'Unassigned') {
+                // For unassigned, we need to fetch all and filter
+                const response = await getAllTrailers(1, 1000);
+                if (response?.success && response?.data) {
+                    count = response.data.filter((trailer: any) => 
+                        !assignedTrailerIds.has(trailer._id)
+                    ).length;
+                }
+            } else {
+                // Yard-specific count
+                const response = await getAllTrailers(1, 1, undefined, undefined, undefined, undefined, tabId);
+                count = response?.pagination?.total || 0;
             }
             
-            // Fetch count for each active yard
-            const activeYards = yards.filter(yard => yard.status === 'active');
-            for (const yard of activeYards) {
-                const yardResponse = await getAllTrailers(1, 1, undefined, undefined, undefined, undefined, yard._id);
-                counts[yard._id!] = yardResponse?.pagination?.total || 0;
-            }
+            setYardCounts(prev => ({ ...prev, [tabId]: count }));
+            setFetchedCounts(prev => new Set([...prev, tabId]));
             
-            setYardCounts(counts);
+            console.log(`✅ Fetched count for tab "${tabId}":`, count);
         } catch (error) {
-            console.error('Error fetching counts:', error);
+            console.error(`Error fetching count for tab "${tabId}":`, error);
         }
     };
 
-    // Fetch counts for each yard when yards or assignedTrailerIds change
+    // Fetch only "All" count on initial load
     useEffect(() => {
-        if (yards.length > 0 && assignedTrailerIds.size >= 0) {
-            fetchCounts();
+        const fetchInitialCount = async () => {
+            try {
+                const allResponse = await getAllTrailers(1, 1);
+                const allCount = allResponse?.pagination?.total || 0;
+                setYardCounts({ 'All': allCount });
+                console.log('✅ Initial "All" count fetched:', allCount);
+            } catch (error) {
+                console.error('Error fetching initial count:', error);
+            }
+        };
+
+        if (yards.length > 0) {
+            fetchInitialCount();
         }
-    }, [yards, assignedTrailerIds]);
+    }, [yards]);
 
     // Handle create/update trailer
     const handleSaveTrailer = async () => {
@@ -635,8 +653,17 @@ const TrailersPage: React.FC = () => {
                         yard: trailer.yard || null
                     }));
                     setTrailers(transformedTrailers);
-                    // Refresh counts
-                    fetchCounts();
+                    // Refresh count for current tab and All tab
+                    setFetchedCounts(prev => {
+                        const updated = new Set(prev);
+                        updated.delete(activeTab);
+                        updated.delete('All');
+                        return updated;
+                    });
+                    fetchTabCount('All');
+                    if (activeTab !== 'All') {
+                        fetchTabCount(activeTab);
+                    }
                 }
             } else {
                 alert(response?.message || 'Failed to save trailer. Please try again.');
@@ -661,8 +688,17 @@ const TrailersPage: React.FC = () => {
             if (response?.success) {
                 alert('Trailer deleted successfully!');
                 setTrailers(trailers.filter(t => (t._id || t.id) !== id));
-                // Refresh counts
-                fetchCounts();
+                // Refresh count for current tab and All tab
+                setFetchedCounts(prev => {
+                    const updated = new Set(prev);
+                    updated.delete(activeTab);
+                    updated.delete('All');
+                    return updated;
+                });
+                fetchTabCount('All');
+                if (activeTab !== 'All') {
+                    fetchTabCount(activeTab);
+                }
             } else {
                 alert(response?.message || 'Failed to delete trailer. Please try again.');
             }
@@ -1030,7 +1066,10 @@ const TrailersPage: React.FC = () => {
                     <div className="flex border-b border-gray-200 overflow-x-auto">
                         {/* All Tab */}
                         <button
-                            onClick={() => setActiveTab('All')}
+                            onClick={() => {
+                                setActiveTab('All');
+                                fetchTabCount('All');
+                            }}
                             className={`flex-shrink-0 px-6 py-4 text-center font-medium transition-colors relative ${activeTab === 'All'
                                 ? 'text-[#42aeec] border-b-2 border-[#42aeec]'
                                 : 'text-gray-600 hover:bg-gray-50'
@@ -1047,7 +1086,10 @@ const TrailersPage: React.FC = () => {
                             .map((yard) => (
                                 <button
                                     key={yard._id}
-                                    onClick={() => setActiveTab(yard._id!)}
+                                    onClick={() => {
+                                        setActiveTab(yard._id!);
+                                        fetchTabCount(yard._id!);
+                                    }}
                                     className={`flex-shrink-0 px-6 py-4 text-center font-medium transition-colors relative ${activeTab === yard._id
                                         ? 'text-[#42aeec] border-b-2 border-[#42aeec]'
                                         : 'text-gray-600 hover:bg-gray-50'
@@ -1066,7 +1108,10 @@ const TrailersPage: React.FC = () => {
 
                         {/* External Tab */}
                         <button
-                            onClick={() => setActiveTab('External')}
+                            onClick={() => {
+                                setActiveTab('External');
+                                fetchTabCount('External');
+                            }}
                             className={`flex-shrink-0 px-6 py-4 text-center font-medium transition-colors relative ${activeTab === 'External'
                                 ? 'text-[#42aeec] border-b-2 border-[#42aeec]'
                                 : 'text-gray-600 hover:bg-gray-50'
@@ -1079,7 +1124,10 @@ const TrailersPage: React.FC = () => {
 
                         {/* Unassigned Tab */}
                         <button
-                            onClick={() => setActiveTab('Unassigned')}
+                            onClick={() => {
+                                setActiveTab('Unassigned');
+                                fetchTabCount('Unassigned');
+                            }}
                             className={`flex-shrink-0 px-6 py-4 text-center font-medium transition-colors relative ${activeTab === 'Unassigned'
                                 ? 'text-[#42aeec] border-b-2 border-[#42aeec]'
                                 : 'text-gray-600 hover:bg-gray-50'

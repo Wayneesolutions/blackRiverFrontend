@@ -337,6 +337,15 @@ const EmployeesPage = () => {
       return;
     }
 
+    // Check if password is required for this role
+    const nonSigninRoles = ['reporter', 'Maintenance Crew (Mechanics)', 'operator'];
+    const isNonSigninRole = nonSigninRoles.includes(basicData.role);
+    
+    if (!isNonSigninRole && !editingId && !basicData.password) {
+      alert('Password is required for this role');
+      return;
+    }
+
     setIsSubmitting(true);
     try {
       const formData = new FormData();
@@ -344,7 +353,18 @@ const EmployeesPage = () => {
       // Basic data - always include required fields
       formData.append('name', `${basicData.firstName} ${basicData.lastName}`.trim());
       formData.append('email', basicData.email);
-      formData.append('password', basicData.password || 'TempPassword123!'); // Always send password
+      
+      // Only include password if it's provided or if it's a non-signin role
+      if (basicData.password) {
+        formData.append('password', basicData.password);
+      } else if (isNonSigninRole) {
+        // For non-signin roles, send a placeholder password if none provided
+        formData.append('password', 'NonSignin123!');
+      } else {
+        // Default password if somehow we get here
+        formData.append('password', 'TempPassword123!');
+      }
+      
       formData.append('status', basicData.status.toLowerCase());
       if (basicData.role) formData.append('role', basicData.role);
       
@@ -1069,18 +1089,21 @@ const EmployeesPage = () => {
                           className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#42aeec] focus:border-transparent"
                         />
                       </div>
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">
-                          Password<span className="text-red-500">*</span>
-                        </label>
-                        <input
-                          type="password"
-                          placeholder="Password"
-                          value={basicData.password}
-                          onChange={(e) => setBasicData({ ...basicData, password: e.target.value })}
-                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#42aeec] focus:border-transparent"
-                        />
-                      </div>
+                      {/* Only show password field for roles that require sign-in */}
+                      {!['reporter', 'Maintenance Crew (Mechanics)', 'operator'].includes(basicData.role) && (
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700 mb-1">
+                            Password{!editingId && <span className="text-red-500">*</span>}
+                          </label>
+                          <input
+                            type="password"
+                            placeholder="Password"
+                            value={basicData.password}
+                            onChange={(e) => setBasicData({ ...basicData, password: e.target.value })}
+                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#42aeec] focus:border-transparent"
+                          />
+                        </div>
+                      )}
                     </div>
 
                     {/* Second Row */}

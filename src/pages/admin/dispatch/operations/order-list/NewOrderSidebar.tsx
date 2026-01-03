@@ -1761,10 +1761,11 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
                 addNotification('error', "Please enter shipper name");
                 return false;
             }
-            if (!shipperPhone) {
-                addNotification('error', "Please enter shipper phone");
-                return false;
-            }
+            // Shipper phone is now optional - not all customers have phone numbers
+            // if (!shipperPhone) {
+            //     addNotification('error', "Please enter shipper phone");
+            //     return false;
+            // }
             if (!pickupLocationAddress) {
                 addNotification('error', "Please select a shipper customer to set pickup location");
                 return false;
@@ -1774,10 +1775,11 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
                 addNotification('error', "Please enter receiver name");
                 return false;
             }
-            if (!receiverPhone) {
-                addNotification('error', "Please enter receiver phone");
-                return false;
-            }
+            // Receiver phone is now optional - not all customers have phone numbers
+            // if (!receiverPhone) {
+            //     addNotification('error', "Please enter receiver phone");
+            //     return false;
+            // }
         } else if (step === 4) {
             // Documents step - no required validation
         }
@@ -1810,14 +1812,17 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
             addNotification('error', "Please enter customer order number");
             return;
         }
-        if (!shipperName || !shipperPhone) {
-            addNotification('error', "Please complete shipper information");
+        if (!shipperName) {
+            addNotification('error', "Please enter shipper name");
             return;
         }
-        if (!receiverName || !receiverPhone) {
-            addNotification('error', "Please complete receiver information");
+        // Shipper phone is optional - not all customers have phone numbers
+        if (!receiverName) {
+            addNotification('error', "Please enter receiver name");
             return;
         }
+        // Receiver phone is also optional
+        
 
         setLoading(true);
         try {

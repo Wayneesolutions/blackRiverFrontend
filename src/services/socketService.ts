@@ -215,6 +215,85 @@ class SocketService {
   getIsAuthenticated(): boolean {
     return this.isAuthenticated;
   }
+
+  // ===== ORDER CHAT METHODS (New) =====
+
+  // Join order chat room
+  joinOrderChat(orderId: string): Promise<void> {
+    return new Promise((resolve, reject) => {
+      if (!this.socket || !this.isAuthenticated) {
+        reject(new Error("Socket not connected or authenticated"));
+        return;
+      }
+
+      const timeout = setTimeout(() => {
+        reject(new Error("Join order chat timeout"));
+      }, 5000);
+
+      this.socket.emit("joinOrderChat", orderId);
+
+      this.socket.once("joinedOrderChat", (data) => {
+        clearTimeout(timeout);
+        console.log("✅ Joined order chat:", data);
+        resolve();
+      });
+
+      this.socket.once("error", (error) => {
+        clearTimeout(timeout);
+        reject(new Error(error.message || "Failed to join order chat"));
+      });
+    });
+  }
+
+  // Leave order chat room
+  leaveOrderChat(orderId: string) {
+    if (this.socket) {
+      this.socket.emit("leaveOrderChat", orderId);
+    }
+  }
+
+  // Emit typing indicator for order
+  emitOrderTyping(orderId: string) {
+    if (this.socket && this.isAuthenticated) {
+      this.socket.emit("orderTyping", { orderId });
+    }
+  }
+
+  // Listen to order chat messages
+  onOrderChatMessage(callback: (message: any) => void) {
+    if (this.socket) {
+      this.socket.on("newOrderChatMessage", callback);
+    }
+  }
+
+  // Remove order chat message listener
+  offOrderChatMessage(callback?: (message: any) => void) {
+    if (this.socket) {
+      if (callback) {
+        this.socket.off("newOrderChatMessage", callback);
+      } else {
+        this.socket.off("newOrderChatMessage");
+      }
+    }
+  }
+
+  // Listen to order typing indicator
+  onOrderTyping(callback: (data: { userId: string; userName: string; orderId: string }) => void) {
+    if (this.socket) {
+      this.socket.on("orderUserTyping", callback);
+    }
+  }
+
+  // Remove order typing listener
+  offOrderTyping(callback?: (data: any) => void) {
+    if (this.socket) {
+      if (callback) {
+        this.socket.off("orderUserTyping", callback);
+      } else {
+        this.socket.off("orderUserTyping");
+      }
+    }
+  }
 }
 
 // Export singleton instance
