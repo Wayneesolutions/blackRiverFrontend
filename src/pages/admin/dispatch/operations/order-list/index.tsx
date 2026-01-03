@@ -122,7 +122,7 @@ const OrderList = () => {
   const bottomScrollRef = useRef<HTMLDivElement>(null);
 
   // Places state for search dropdowns
-  const [places, setPlaces] = useState<Place[]>([]);
+  const [, setPlaces] = useState<Place[]>([]);
   const [pickupLocationSearch, setPickupLocationSearch] = useState("");
   const [, setPickupLocationDropdownOpen] = useState(false);
   const [, setDeliveryLocationSearch] = useState("");
@@ -449,16 +449,7 @@ const OrderList = () => {
     currentPage * itemsPerPage
   );
 
-  // Filtered places for search dropdowns
-  const filteredPickupPlaces = useMemo(() => {
-    return places.filter(place =>
-      !pickupLocationSearch ||
-      (place.name || '').toLowerCase().includes(pickupLocationSearch.toLowerCase()) ||
-      (place.currentLocation?.address || '').toLowerCase().includes(pickupLocationSearch.toLowerCase()) ||
-      (place.city || '').toLowerCase().includes(pickupLocationSearch.toLowerCase()) ||
-      (place.state || '').toLowerCase().includes(pickupLocationSearch.toLowerCase())
-    );
-  }, [places, pickupLocationSearch]);
+
 
 
 
@@ -519,25 +510,6 @@ const OrderList = () => {
     }, 500);
   };
 
-  const handleReset = () => {
-    setOrderNo("");
-    setCustOrderNo("");
-    setTripNo("");
-    setPickupDeliveryRef("");
-    setCustName("");
-    setPickupLocation("");
-    setPickupLocationSearch("");
-    setDeliveryLocation("");
-    setDeliveryLocationSearch("");
-    setOrderType("");
-    setCreatedDate("");
-    setByDays("");
-    setOrderStatus("");
-    setAccounting("");
-    setSortBy("");
-    setLoadBoard("LOAD BOARD");
-    setDispatcher("");
-  };
 
   const getStatusColor = (status: string) => {
     switch (status) {

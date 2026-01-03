@@ -149,14 +149,14 @@ const Index = () => {
 
   const [loading, setLoading] = useState(true);
   const [stats, setStats] = useState<DashboardStats | null>(null);
-  const [drivers, setDrivers] = useState<Driver[]>([]);
-  const [vehicles, setVehicles] = useState<FleetUnit[]>([]);
-  const [trailers, setTrailers] = useState<FleetUnit[]>([]);
+  const [, setDrivers] = useState<Driver[]>([]);
+  const [, setVehicles] = useState<FleetUnit[]>([]);
+  const [, setTrailers] = useState<FleetUnit[]>([]);
   const [trips, setTrips] = useState<Trip[]>([]);
   const [orders, setOrders] = useState<Order[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [orderSearchTerm, setOrderSearchTerm] = useState("");
-  const [activeTab, setActiveTab] = useState<"drivers" | "vehicles" | "trailers" | "trips" | "orders">("drivers");
+  const [activeTab, ] = useState<"drivers" | "vehicles" | "trailers" | "trips" | "orders">("drivers");
 
   // Additional dashboard metrics
   const [unassignedDrivers, setUnassignedDrivers] = useState(0);
@@ -175,7 +175,6 @@ const Index = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [editingOrder, setEditingOrder] = useState<any>(null);
   // Filter state
-  const [showFilters, setShowFilters] = useState(false);
   const [statusFilter, setStatusFilter] = useState<string>("");
   const [operationStatusFilter, setOperationStatusFilter] = useState<string>("");
   const [typeFilter, setTypeFilter] = useState<string>("");
@@ -640,15 +639,7 @@ const Index = () => {
   };
 
 
-  const handleTabChange = (tab: "drivers" | "vehicles" | "trailers" | "trips") => {
-    setActiveTab(tab);
-    setSearchTerm("");
-    setCurrentPage(1);
-    setStatusFilter("");
-    setOperationStatusFilter("");
-    setTypeFilter("");
-    setShowFilters(false);
-  };
+
 
   useEffect(() => {
     if (loading) return;
@@ -718,9 +709,7 @@ const Index = () => {
     fetchOrders();
   }, [activeTab, currentPage, searchTerm, statusFilter, operationStatusFilter, typeFilter, itemsPerPage]);
 
-  const filteredDrivers = drivers;
-  const filteredVehicles = vehicles;
-  const filteredTrailers = trailers;
+
 
   const filteredOrders = orders.filter(order => {
     if (!orderSearchTerm) return true;
