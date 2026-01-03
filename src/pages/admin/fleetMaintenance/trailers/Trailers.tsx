@@ -1,8 +1,6 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { Plus, Edit, Trash2, Search, Truck, AlertTriangle, CheckCircle } from 'lucide-react';
 import { FaExclamationCircle, FaTimes } from 'react-icons/fa';
-import { getAllTrailers, createTrailer, updateTrailer, deleteTrailer } from '../../../../axios/api/trailer';
-import { getAllYards, type Yard } from '../../../../axios/api/fleet.yards';
 
 type TrailerType = 'Reefer Trailer' | 'Tri-Axle Trailer' | 'Dry Van' | 'Flatbed' | 'Step Deck' | 'Lowboy' | 'Tank Trailer' | 'Dump Trailer';
 
@@ -20,7 +18,6 @@ interface Trailer {
   odometer?: number;
   status: string;
   operationStatus: string;
-  yard?: string | { _id: string; yardName: string; yardCode: string };
   // Safety compliance fields
   safetyExpiryDate?: string;
   safetyDecalNumber?: string;
@@ -134,17 +131,13 @@ const staticTrailers: Trailer[] = [
 ];
 
 const Trailers: React.FC = () => {
-  const [activeTab, setActiveTab] = useState<string>('All');
   const [searchTerm, setSearchTerm] = useState('');
   const [showAddModal, setShowAddModal] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
   const [showSafetyModal, setShowSafetyModal] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [selectedTrailer, setSelectedTrailer] = useState<Trailer | null>(null);
-  const [trailers, setTrailers] = useState<Trailer[]>([]);
-  const [loading, setLoading] = useState(false);
-  const [yards, setYards] = useState<Yard[]>([]);
-  const [categoryCounts, setCategoryCounts] = useState<Record<string, number>>({});
+  const [trailers, setTrailers] = useState<Trailer[]>(staticTrailers);
   const [formData, setFormData] = useState({
     internalId: '',
     trailer: '',
@@ -157,8 +150,7 @@ const Trailers: React.FC = () => {
     capacity: '',
     odometer: '',
     status: 'available',
-    operationStatus: 'available',
-    yard: ''
+    operationStatus: 'available'
   });
   const [safetyForm, setSafetyForm] = useState({
     safetyExpiryDate: '',
@@ -167,105 +159,6 @@ const Trailers: React.FC = () => {
     lastInspectionShop: '',
     lastInspectionInvoice: ''
   });
-
-  // Fetch yards on mount
-  useEffect(() => {
-    const fetchYards = async () => {
-      try {
-        const response = await getAllYards(1, 1000, undefined, 'active');
-        if (response?.success && response?.data) {
-          setYards(response.data);
-        }
-      } catch (error) {
-        console.error('Error fetching yards:', error);
-      }
-    };
-    fetchYards();
-  }, []);
-
-  // Fetch trailers based on activeTab
-  useEffect(() => {
-    const fetchTrailers = async () => {
-      setLoading(true);
-      try {
-        let yardFilter: string | undefined = undefined;
-        
-        if (activeTab === 'All') {
-          // No filters - fetch all
-        } else {
-          // Yard filter - activeTab is a yard ID
-          yardFilter = activeTab;
-        }
-        
-        const response = await getAllTrailers(
-          1, 
-          1000,
-          undefined, // search
-          undefined, // type
-          undefined, // status
-          undefined, // operationStatus
-          yardFilter // yard
-        );
-        
-        if (response?.success && response?.data) {
-          const transformedTrailers = response.data.map((trailer: any) => ({
-            _id: trailer._id,
-            internalId: trailer.internalId || trailer.trailer || '',
-            trailer: trailer.trailer || trailer.unitNumber || '',
-            plateNumber: trailer.plateNumber || '',
-            vinNumber: trailer.vinNumber || '',
-            make: trailer.make || '',
-            model: trailer.model || '',
-            year: trailer.year || new Date().getFullYear(),
-            trailerType: trailer.type || 'Dry Van',
-            capacity: trailer.capacity || '',
-            odometer: trailer.odometer,
-            status: trailer.status || 'available',
-            operationStatus: trailer.operationStatus || 'available',
-            yard: trailer.yard || null,
-            safetyExpiryDate: trailer.safetyExpiryDate,
-            safetyDecalNumber: trailer.safetyDecalNumber,
-            safetyPaperNumber: trailer.safetyPaperNumber,
-            lastInspectionShop: trailer.lastInspectionShop,
-            lastInspectionInvoice: trailer.lastInspectionInvoice
-          }));
-          setTrailers(transformedTrailers);
-        }
-      } catch (error) {
-        console.error('Error fetching trailers:', error);
-      } finally {
-        setLoading(false);
-      }
-    };
-    fetchTrailers();
-  }, [activeTab]);
-
-  // Fetch category counts
-  useEffect(() => {
-    const fetchCategoryCounts = async () => {
-      try {
-        const counts: Record<string, number> = {};
-        
-        // Fetch all trailers count
-        const allResponse = await getAllTrailers(1, 1000);
-        counts['All'] = allResponse?.data?.length || 0;
-        
-        // Fetch count for each yard
-        for (const yard of yards) {
-          const yardResponse = await getAllTrailers(1, 1000, undefined, undefined, undefined, undefined, yard._id);
-          counts[yard._id] = yardResponse?.data?.length || 0;
-        }
-        
-        setCategoryCounts(counts);
-      } catch (error) {
-        console.error('Error fetching category counts:', error);
-      }
-    };
-    
-    if (yards.length > 0) {
-      fetchCategoryCounts();
-    }
-  }, [yards, trailers.length]);
 
   const filteredTrailers = trailers.filter(trailer => {
     return !searchTerm || 
@@ -321,16 +214,13 @@ const Trailers: React.FC = () => {
       capacity: '',
       odometer: '',
       status: 'available',
-      operationStatus: 'available',
-      yard: ''
+      operationStatus: 'available'
     });
-    setSelectedTrailer(null);
     setShowAddModal(true);
   };
 
   const handleEditTrailer = (trailer: Trailer) => {
     setSelectedTrailer(trailer);
-    const yardId = typeof trailer.yard === 'object' && trailer.yard?._id ? trailer.yard._id : (typeof trailer.yard === 'string' ? trailer.yard : '');
     setFormData({
       internalId: trailer.internalId,
       trailer: trailer.trailer,
@@ -343,8 +233,7 @@ const Trailers: React.FC = () => {
       capacity: trailer.capacity,
       odometer: trailer.odometer?.toString() || '',
       status: trailer.status,
-      operationStatus: trailer.operationStatus,
-      yard: yardId
+      operationStatus: trailer.operationStatus
     });
     setShowEditModal(true);
   };
@@ -366,72 +255,54 @@ const Trailers: React.FC = () => {
     setShowDeleteModal(true);
   };
 
-  const handleSaveTrailer = async () => {
+  const handleSaveTrailer = () => {
     if (!formData.internalId || !formData.plateNumber || !formData.vinNumber || !formData.make || !formData.model) {
       alert('Please fill in all required fields');
       return;
     }
 
-    try {
-      const trailerData = new FormData();
-      trailerData.append('unitNumber', formData.internalId);
-      trailerData.append('trailer', formData.trailer || formData.internalId);
-      trailerData.append('plateNumber', formData.plateNumber);
-      trailerData.append('vinNumber', formData.vinNumber);
-      trailerData.append('make', formData.make);
-      trailerData.append('model', formData.model);
-      trailerData.append('year', formData.year);
-      trailerData.append('type', formData.trailerType);
-      trailerData.append('capacity', formData.capacity);
-      if (formData.odometer) trailerData.append('odometer', formData.odometer);
-      trailerData.append('status', formData.status);
-      trailerData.append('operationStatus', formData.operationStatus);
-      if (formData.yard) trailerData.append('yard', formData.yard);
-
-      let response;
-      if (showAddModal) {
-        response = await createTrailer(trailerData);
-      } else if (showEditModal && selectedTrailer) {
-        response = await updateTrailer(selectedTrailer._id, trailerData);
-      }
-
-      if (response?.success) {
-        // Refresh trailers list
-        const refreshResponse = await getAllTrailers(1, 1000, undefined, undefined, undefined, undefined, activeTab === 'All' ? undefined : activeTab);
-        if (refreshResponse?.success && refreshResponse?.data) {
-          const transformedTrailers = refreshResponse.data.map((trailer: any) => ({
-            _id: trailer._id,
-            internalId: trailer.internalId || trailer.trailer || '',
-            trailer: trailer.trailer || trailer.unitNumber || '',
-            plateNumber: trailer.plateNumber || '',
-            vinNumber: trailer.vinNumber || '',
-            make: trailer.make || '',
-            model: trailer.model || '',
-            year: trailer.year || new Date().getFullYear(),
-            trailerType: trailer.type || 'Dry Van',
-            capacity: trailer.capacity || '',
-            odometer: trailer.odometer,
-            status: trailer.status || 'available',
-            operationStatus: trailer.operationStatus || 'available',
-            yard: trailer.yard || null,
-            safetyExpiryDate: trailer.safetyExpiryDate,
-            safetyDecalNumber: trailer.safetyDecalNumber,
-            safetyPaperNumber: trailer.safetyPaperNumber,
-            lastInspectionShop: trailer.lastInspectionShop,
-            lastInspectionInvoice: trailer.lastInspectionInvoice
-          }));
-          setTrailers(transformedTrailers);
-        }
-        setShowAddModal(false);
-        setShowEditModal(false);
-        setSelectedTrailer(null);
-      } else {
-        alert(response?.message || 'Failed to save trailer');
-      }
-    } catch (error) {
-      console.error('Error saving trailer:', error);
-      alert('An error occurred while saving the trailer');
+    if (showAddModal) {
+      const newTrailer: Trailer = {
+        _id: Date.now().toString(),
+        internalId: formData.internalId,
+        trailer: formData.trailer,
+        plateNumber: formData.plateNumber,
+        vinNumber: formData.vinNumber,
+        make: formData.make,
+        model: formData.model,
+        year: parseInt(formData.year),
+        trailerType: formData.trailerType,
+        capacity: formData.capacity,
+        odometer: parseInt(formData.odometer) || undefined,
+        status: formData.status,
+        operationStatus: formData.operationStatus
+      };
+      setTrailers([...trailers, newTrailer]);
+    } else if (showEditModal && selectedTrailer) {
+      setTrailers(trailers.map(trailer => 
+        trailer._id === selectedTrailer._id 
+          ? { 
+              ...trailer, 
+              internalId: formData.internalId,
+              trailer: formData.trailer,
+              plateNumber: formData.plateNumber,
+              vinNumber: formData.vinNumber,
+              make: formData.make,
+              model: formData.model,
+              year: parseInt(formData.year),
+              trailerType: formData.trailerType,
+              capacity: formData.capacity,
+              odometer: parseInt(formData.odometer) || trailer.odometer,
+              status: formData.status,
+              operationStatus: formData.operationStatus
+            }
+          : trailer
+      ));
     }
+
+    setShowAddModal(false);
+    setShowEditModal(false);
+    setSelectedTrailer(null);
   };
 
   const handleSaveSafety = () => {
@@ -456,21 +327,11 @@ const Trailers: React.FC = () => {
     setSelectedTrailer(null);
   };
 
-  const handleConfirmDelete = async () => {
+  const handleConfirmDelete = () => {
     if (selectedTrailer) {
-      try {
-        const response = await deleteTrailer(selectedTrailer._id);
-        if (response?.success) {
-          setTrailers(trailers.filter(trailer => trailer._id !== selectedTrailer._id));
-          setShowDeleteModal(false);
-          setSelectedTrailer(null);
-        } else {
-          alert(response?.message || 'Failed to delete trailer');
-        }
-      } catch (error) {
-        console.error('Error deleting trailer:', error);
-        alert('An error occurred while deleting the trailer');
-      }
+      setTrailers(trailers.filter(trailer => trailer._id !== selectedTrailer._id));
+      setShowDeleteModal(false);
+      setSelectedTrailer(null);
     }
   };
 
@@ -513,42 +374,6 @@ const Trailers: React.FC = () => {
               <Plus className="w-5 h-5" />
               Add Trailer
             </button>
-          </div>
-        </div>
-
-        {/* Yard Tabs */}
-        <div className="mb-6 bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
-          <div className="flex border-b border-gray-200 overflow-x-auto">
-            {/* All Tab */}
-            <button
-              type="button"
-              onClick={() => setActiveTab('All')}
-              className={`flex-shrink-0 px-6 py-4 text-center font-medium transition-colors relative ${
-                activeTab === 'All'
-                  ? 'text-[#42aeec] border-b-2 border-[#42aeec]'
-                  : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
-              }`}
-            >
-              <span>Trailers ({categoryCounts['All'] || 0})</span>
-              <span className="block text-xs text-gray-500 mt-1">All</span>
-            </button>
-
-            {/* Dynamic Yard Tabs */}
-            {yards.filter(yard => yard.status === 'active').map((yard) => (
-              <button
-                key={yard._id}
-                type="button"
-                onClick={() => setActiveTab(yard._id)}
-                className={`flex-shrink-0 px-6 py-4 text-center font-medium transition-colors relative ${
-                  activeTab === yard._id
-                    ? 'text-[#42aeec] border-b-2 border-[#42aeec]'
-                    : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
-                }`}
-              >
-                <span>{yard.yardName} ({categoryCounts[yard._id] || 0})</span>
-                <span className="block text-xs text-gray-500 mt-1">{yard.yardCode}</span>
-              </button>
-            ))}
           </div>
         </div>
 

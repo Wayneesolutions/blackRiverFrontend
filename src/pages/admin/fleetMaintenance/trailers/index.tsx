@@ -3,6 +3,8 @@ import { Plus, Upload, ChevronUp, ChevronDown, HelpCircle, Clock, X, Image as Im
 import { getAllTrailers, createTrailer, updateTrailer, deleteTrailer, getTrailerById } from '../../../../axios/api/trailer';
 import { getAllDrivers, type Driver } from '../../../../axios/api/driver';
 import { createVehicleDocument, updateVehicleDocument } from '../../../../axios/api/compilance.vehicledoc';
+import { getAllYards, type Yard } from '../../../../axios/api/fleet.yards';
+import apiClient from '../../../../axios/apiClient';
 
 interface Trailer {
     _id?: string;
@@ -29,12 +31,13 @@ interface Trailer {
     year?: string;
     vinNumber?: string;
     status?: string;
+    yard?: any;
 }
 
 // Trailer data will be fetched from API
 
 const TrailersPage: React.FC = () => {
-    const [activeTab, setActiveTab] = useState<'All' | 'MB' | 'AB' | 'TX' | 'External' | 'Unassigned'>('All');
+    const [activeTab, setActiveTab] = useState<string>('All');
     const [searchTerm, setSearchTerm] = useState('');
     const [sortBy, setSortBy] = useState('');
     const [complianceStatus, setComplianceStatus] = useState('All');
@@ -46,6 +49,9 @@ const TrailersPage: React.FC = () => {
     const [editingId, setEditingId] = useState<string | null>(null);
     const [selectedImageFile, setSelectedImageFile] = useState<File | null>(null);
     const [drivers, setDrivers] = useState<Driver[]>([]);
+    const [yards, setYards] = useState<Yard[]>([]);
+    const [yardCounts, setYardCounts] = useState<{ [key: string]: number }>({});
+    const [assignedTrailerIds, setAssignedTrailerIds] = useState<Set<string>>(new Set());
 
     // Sidebar modal state
     const [showSidebar, setShowSidebar] = useState(false);
@@ -69,7 +75,8 @@ const TrailersPage: React.FC = () => {
         uom: 'Kg',
         status: 'In Service',
         ownership: 'COMPANY ASSET' as 'COMPANY ASSET' | 'THIRD PARTY ASSET',
-        subType: '' as '' | 'HIGHWAY USE' | 'CITY USE' | 'STORAGE USE' | 'RENTAL' | 'OTHER'
+        subType: '' as '' | 'HIGHWAY USE' | 'CITY USE' | 'STORAGE USE' | 'RENTAL' | 'OTHER',
+        yard: ''
     });
 
     // Store original trailer data for partial updates
@@ -190,12 +197,62 @@ const TrailersPage: React.FC = () => {
         direction: 'asc'
     });
 
+    // Fetch active orders to determine trailer assignments (for Unassigned tab)
+    useEffect(() => {
+        const fetchActiveOrders = async () => {
+            try {
+                const response = await apiClient.get('dispatcher/order?status=IN_PROGRESS,dispatched,in-delivery,CONFIRMED&limit=1000');
+                if (response.data?.success && response.data?.data) {
+                    const trailerIds = new Set<string>();
+                    response.data.data.forEach((order: any) => {
+                        if (order.trailer?._id) {
+                            trailerIds.add(order.trailer._id);
+                        }
+                    });
+                    setAssignedTrailerIds(trailerIds);
+                }
+            } catch (error) {
+                console.error('Error fetching active orders:', error);
+            }
+        };
+        fetchActiveOrders();
+    }, []);
+
     // Fetch trailers from API
     useEffect(() => {
         const fetchTrailers = async () => {
             setLoading(true);
             try {
-                const response = await getAllTrailers(1, 1000);
+                // Determine filter parameters based on activeTab (same logic as Trucks)
+                let yardFilter: string | undefined = undefined;
+                let ownershipFilter: string | undefined = undefined;
+                
+                if (activeTab === 'All') {
+                    // No filters - fetch all
+                } else if (activeTab === 'External') {
+                    ownershipFilter = 'THIRD PARTY ASSET';
+                } else if (activeTab === 'Unassigned') {
+                    // For unassigned, fetch all and filter on frontend
+                } else {
+                    // Yard filter - activeTab is a yard ID
+                    yardFilter = activeTab;
+                }
+
+                console.log('🔍 Fetching trailers with filters:', { activeTab, yardFilter, ownershipFilter });
+
+                const response = await getAllTrailers(
+                    1,
+                    1000,
+                    undefined, // search
+                    undefined, // type
+                    undefined, // status
+                    undefined, // operationStatus
+                    yardFilter, // yard
+                    ownershipFilter // ownership
+                );
+                
+                console.log('📥 Trailers API response:', response);
+                
                 if (response?.success && response?.data) {
                     // Transform backend data to match frontend interface
                     const transformedTrailers = response.data.map((trailer: any) => ({
@@ -221,7 +278,8 @@ const TrailersPage: React.FC = () => {
                         model: trailer.model,
                         year: trailer.year,
                         vinNumber: trailer.vinNumber,
-                        status: trailer.status
+                        status: trailer.status,
+                        yard: trailer.yard || null
                     }));
                     setTrailers(transformedTrailers);
                 }
@@ -233,7 +291,7 @@ const TrailersPage: React.FC = () => {
             }
         };
         fetchTrailers();
-    }, []);
+    }, [activeTab, assignedTrailerIds]);
 
     // Fetch drivers from API
     useEffect(() => {
@@ -250,7 +308,61 @@ const TrailersPage: React.FC = () => {
             }
         };
         fetchDrivers();
+
+        const fetchYards = async () => {
+            try {
+                const response = await getAllYards();
+                if (response.success) {
+                    setYards(response.data || []);
+                }
+            } catch (error) {
+                console.error('Error fetching yards:', error);
+            }
+        };
+        fetchYards();
     }, []);
+
+    // Function to fetch counts
+    const fetchCounts = async () => {
+        try {
+            const counts: { [key: string]: number } = {};
+            
+            // Fetch count for 'All'
+            const allResponse = await getAllTrailers(1, 1);
+            counts['All'] = allResponse?.pagination?.total || 0;
+            
+            // Fetch count for 'External' (THIRD PARTY ASSET)
+            const externalResponse = await getAllTrailers(1, 1, undefined, undefined, undefined, undefined, undefined, 'THIRD PARTY ASSET');
+            counts['External'] = externalResponse?.pagination?.total || 0;
+            
+            // Fetch count for 'Unassigned' - get all trailers and filter by assignedTrailerIds
+            const unassignedResponse = await getAllTrailers(1, 1000);
+            if (unassignedResponse?.success && unassignedResponse?.data) {
+                const unassignedCount = unassignedResponse.data.filter((trailer: any) => 
+                    !assignedTrailerIds.has(trailer._id)
+                ).length;
+                counts['Unassigned'] = unassignedCount;
+            }
+            
+            // Fetch count for each active yard
+            const activeYards = yards.filter(yard => yard.status === 'active');
+            for (const yard of activeYards) {
+                const yardResponse = await getAllTrailers(1, 1, undefined, undefined, undefined, undefined, yard._id);
+                counts[yard._id!] = yardResponse?.pagination?.total || 0;
+            }
+            
+            setYardCounts(counts);
+        } catch (error) {
+            console.error('Error fetching counts:', error);
+        }
+    };
+
+    // Fetch counts for each yard when yards or assignedTrailerIds change
+    useEffect(() => {
+        if (yards.length > 0 && assignedTrailerIds.size >= 0) {
+            fetchCounts();
+        }
+    }, [yards, assignedTrailerIds]);
 
     // Handle create/update trailer
     const handleSaveTrailer = async () => {
@@ -309,6 +421,9 @@ const TrailersPage: React.FC = () => {
                 if (formData.subType !== originalTrailerData.subType) {
                     formDataToSend.append('subType', formData.subType || '');
                 }
+                if (formData.yard !== originalTrailerData.yard) {
+                    formDataToSend.append('yard', formData.yard || '');
+                }
                 
                 if (selectedImageFile) {
                     formDataToSend.append('image', selectedImageFile);
@@ -330,6 +445,7 @@ const TrailersPage: React.FC = () => {
                 formDataToSend.append('status', formData.status || 'In Service');
                 formDataToSend.append('ownership', formData.ownership || 'COMPANY ASSET');
                 formDataToSend.append('subType', formData.subType || '');
+                formDataToSend.append('yard', formData.yard || '');
                 formDataToSend.append('operationStatus', formData.status === 'In Service' ? 'IN SERVICE' : formData.status === 'Out of Service' ? 'OUT OF SERVICE' : 'MAINTENANCE');
                 
                 if (selectedImageFile) {
@@ -470,7 +586,8 @@ const TrailersPage: React.FC = () => {
                     uom: 'Kg',
                     status: 'In Service',
                     ownership: 'COMPANY ASSET',
-                    subType: ''
+                    subType: '',
+                    yard: ''
                 });
                 setSelectedImage(null);
                 setSelectedImageFile(null);
@@ -482,8 +599,20 @@ const TrailersPage: React.FC = () => {
                     Safety: [],
                     Insurance: []
                 });
-                // Refresh trailers list
-                const trailersResponse = await getAllTrailers(1, 1000);
+                // Refresh trailers list with current filter (same logic as fetchTrailers)
+                let yardFilter: string | undefined = undefined;
+                let ownershipFilter: string | undefined = undefined;
+                if (activeTab === 'All') {
+                    // No filters
+                } else if (activeTab === 'External') {
+                    ownershipFilter = 'THIRD PARTY ASSET';
+                } else if (activeTab === 'Unassigned') {
+                    // No filters, will filter on frontend
+                } else {
+                    // Yard filter - activeTab is a yard ID
+                    yardFilter = activeTab;
+                }
+                const trailersResponse = await getAllTrailers(1, 1000, undefined, undefined, undefined, undefined, yardFilter, ownershipFilter);
                 if (trailersResponse?.success && trailersResponse?.data) {
                     const transformedTrailers = trailersResponse.data.map((trailer: any) => ({
                         _id: trailer._id,
@@ -502,9 +631,12 @@ const TrailersPage: React.FC = () => {
                         loadedStatus: trailer.loadedStatus || 'IDLE',
                         compliance: trailer.compliance || 'COMPLIANT',
                         category: trailer.category,
-                        imageUrl: trailer.imageUrl || trailer.trailerImageUrl
+                        imageUrl: trailer.imageUrl || trailer.trailerImageUrl,
+                        yard: trailer.yard || null
                     }));
                     setTrailers(transformedTrailers);
+                    // Refresh counts
+                    fetchCounts();
                 }
             } else {
                 alert(response?.message || 'Failed to save trailer. Please try again.');
@@ -529,6 +661,8 @@ const TrailersPage: React.FC = () => {
             if (response?.success) {
                 alert('Trailer deleted successfully!');
                 setTrailers(trailers.filter(t => (t._id || t.id) !== id));
+                // Refresh counts
+                fetchCounts();
             } else {
                 alert(response?.message || 'Failed to delete trailer. Please try again.');
             }
@@ -561,7 +695,8 @@ const TrailersPage: React.FC = () => {
                     uom: trailer.uom || 'Kg',
                     status: trailer.status || 'In Service',
                     ownership: trailer.ownership || trailer.ownerShip || 'COMPANY ASSET',
-                    subType: trailer.subType || ''
+                    subType: trailer.subType || '',
+                    yard: trailer.yard || ''
                 };
                 
                 setFormData(trailerFormData);
@@ -663,9 +798,11 @@ const TrailersPage: React.FC = () => {
     const getFilteredTrailers = () => {
         let filtered = [...trailers];
 
-        // Filter by active tab
-        if (activeTab !== 'All') {
-            filtered = filtered.filter(trailer => trailer.category === activeTab);
+        // Backend already handles yard and ownership filtering
+        // Only apply client-side filtering for Unassigned
+        if (activeTab === 'Unassigned') {
+            // Filter trailers that are not assigned to any active order
+            filtered = filtered.filter(trailer => !assignedTrailerIds.has(trailer._id || trailer.id || ''));
         }
 
         // Filter by search term (Unit #, Plate #, Make, VIN)
@@ -759,6 +896,11 @@ const TrailersPage: React.FC = () => {
 
     // Count trailers by category
     const getCountByCategory = (category: string) => {
+        // For yard tabs, use the yardCounts
+        if (yardCounts[category] !== undefined) {
+            return yardCounts[category];
+        }
+        // For legacy category tabs (MB, AB, TX, etc.)
         if (category === 'All') return trailers.length;
         return trailers.filter(t => t.category === category).length;
     };
@@ -867,7 +1009,8 @@ const TrailersPage: React.FC = () => {
                                         uom: 'Kg',
                                         status: 'In Service',
                                         ownership: 'COMPANY ASSET',
-                                        subType: ''
+                                        subType: '',
+                                        yard: ''
                                     });
                                     setSelectedImage(null);
                                     setSelectedImageFile(null);
@@ -884,26 +1027,68 @@ const TrailersPage: React.FC = () => {
 
                 {/* Navigation Tabs */}
                 <div className="mb-6 bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
-                    <div className="flex border-b border-gray-200">
-                        {(['All', 'MB', 'AB', 'TX', 'External', 'Unassigned'] as const).map((tab) => (
-                            <button
-                                key={tab}
-                                onClick={() => setActiveTab(tab)}
-                                className={`flex-1 px-6 py-4 text-center font-medium transition-colors relative ${activeTab === tab
-                                    ? 'text-[#42aeec] border-b-2 border-[#42aeec]'
-                                    : 'text-gray-600 hover:bg-gray-50'
-                                    }`}
-                            >
-                                <div>
-                                    <div className="font-semibold">
-                                        {tab} ({getCountByCategory(tab)})
+                    <div className="flex border-b border-gray-200 overflow-x-auto">
+                        {/* All Tab */}
+                        <button
+                            onClick={() => setActiveTab('All')}
+                            className={`flex-shrink-0 px-6 py-4 text-center font-medium transition-colors relative ${activeTab === 'All'
+                                ? 'text-[#42aeec] border-b-2 border-[#42aeec]'
+                                : 'text-gray-600 hover:bg-gray-50'
+                                }`}
+                        >
+                            <div className="font-semibold">
+                                All ({getCountByCategory('All')})
+                            </div>
+                        </button>
+
+                        {/* Dynamic Yard Tabs */}
+                        {yards
+                            .filter(yard => yard.status === 'active')
+                            .map((yard) => (
+                                <button
+                                    key={yard._id}
+                                    onClick={() => setActiveTab(yard._id!)}
+                                    className={`flex-shrink-0 px-6 py-4 text-center font-medium transition-colors relative ${activeTab === yard._id
+                                        ? 'text-[#42aeec] border-b-2 border-[#42aeec]'
+                                        : 'text-gray-600 hover:bg-gray-50'
+                                        }`}
+                                >
+                                    <div>
+                                        <div className="font-semibold">
+                                            {yard.yardName} ({getCountByCategory(yard._id!)})
+                                        </div>
+                                        <div className="text-xs text-gray-500 mt-1">
+                                            {yard.yardCode}
+                                        </div>
                                     </div>
-                                    {tab === 'MB' && <div className="text-xs text-gray-500 mt-1">Home to Winnipeg Yard</div>}
-                                    {tab === 'AB' && <div className="text-xs text-gray-500 mt-1">Home to Calgary Yard / Ocean, Impact freight services - Acheson</div>}
-                                    {tab === 'TX' && <div className="text-xs text-gray-500 mt-1">Home to Laredo Yard - Santos</div>}
-                                </div>
-                            </button>
-                        ))}
+                                </button>
+                            ))}
+
+                        {/* External Tab */}
+                        <button
+                            onClick={() => setActiveTab('External')}
+                            className={`flex-shrink-0 px-6 py-4 text-center font-medium transition-colors relative ${activeTab === 'External'
+                                ? 'text-[#42aeec] border-b-2 border-[#42aeec]'
+                                : 'text-gray-600 hover:bg-gray-50'
+                                }`}
+                        >
+                            <div className="font-semibold">
+                                External ({getCountByCategory('External')})
+                            </div>
+                        </button>
+
+                        {/* Unassigned Tab */}
+                        <button
+                            onClick={() => setActiveTab('Unassigned')}
+                            className={`flex-shrink-0 px-6 py-4 text-center font-medium transition-colors relative ${activeTab === 'Unassigned'
+                                ? 'text-[#42aeec] border-b-2 border-[#42aeec]'
+                                : 'text-gray-600 hover:bg-gray-50'
+                                }`}
+                        >
+                            <div className="font-semibold">
+                                Unassigned ({getCountByCategory('Unassigned')})
+                            </div>
+                        </button>
                     </div>
                 </div>
 
@@ -1521,6 +1706,22 @@ const TrailersPage: React.FC = () => {
                                                     THIRD PARTY ASSET
                                                 </button>
                                             </div>
+                                        </div>
+
+                                        <div className="mt-4">
+                                            <h3 className="text-base font-semibold text-gray-900 mb-2">Yard</h3>
+                                            <select
+                                                value={formData.yard}
+                                                onChange={(e) => setFormData({ ...formData, yard: e.target.value })}
+                                                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#42aeec]"
+                                            >
+                                                <option value="">Select</option>
+                                                {yards.filter(yard => yard.status === 'active').map((yard) => (
+                                                    <option key={yard._id} value={yard._id}>
+                                                        {yard.yardName} ({yard.yardCode})
+                                                    </option>
+                                                ))}
+                                            </select>
                                         </div>
 
                                         {(formData.ownership === 'COMPANY ASSET' || formData.ownership === 'THIRD PARTY ASSET') && (
