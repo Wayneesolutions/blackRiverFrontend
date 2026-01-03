@@ -23,7 +23,6 @@ import {
     updateHazard,
     deleteHazard
 } from '../../../../axios/api/healthSafety';
-import { getUserDetails } from '../../../../utils/utils';
 
 interface Hazard {
     _id: string;

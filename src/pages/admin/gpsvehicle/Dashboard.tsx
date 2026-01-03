@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
-import { Loader2, Calendar, TrendingUp, MapPin, Truck, User, Package } from "lucide-react";
-import { getGpsVehicleDashboardStats, getDispatcherDashboard, getTodayDeliveries, getTomorrowPickups } from "../../../axios/api/distapcher";
+import { Loader2, Calendar, TrendingUp, MapPin, Truck, User } from "lucide-react";
+import { getGpsVehicleDashboardStats, getTodayDeliveries, getTomorrowPickups } from "../../../axios/api/distapcher";
 import { listFleetUnits } from "../../../axios/api/fleet.units";
 import { getUserRole } from "../../../utils/auth";
 
@@ -103,9 +103,9 @@ interface Pickup {
 }
 
 const Dashboard = () => {
-  const userRole = getUserRole();
 
-  const [dashboardData, setDashboardData] = useState<any>(null);
+
+  const [, setDashboardData] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [, setFleetUnits] = useState<FleetUnit[]>([]);
   const [, setFleetLoading] = useState(false);

@@ -44,7 +44,7 @@ interface Truck {
 
 const Trucks: React.FC = () => {
     const { category: routeCategory } = useParams<{ category?: string }>();
-    const navigate = useNavigate();
+    
     
     // Initialize activeTab from route params, default to 'All'
     const getInitialTab = (cat?: string): 'All' | 'MB' | 'AB' | 'TX' | 'External' | 'Unassigned' => {

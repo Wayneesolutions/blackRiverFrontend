@@ -486,7 +486,7 @@ const TruckProfile = () => {
                       {selectedVehicle.currentAssignment.type === "order" ? "Order" : selectedVehicle.currentAssignment.type === "trip" ? "Trip" : "Load"}
                     </span>
                     <p className="text-lg font-bold text-gray-900">
-                      {selectedVehicle.currentAssignment.orderNumber || selectedVehicle.currentAssignment.tripNumber || selectedVehicle.currentAssignment.loadNumber}
+                      {selectedVehicle.currentAssignment.orderNumber || selectedVehicle.currentAssignment.tripNumber}
                     </p>
                   </div>
                 </div>
@@ -702,12 +702,12 @@ const TruckProfile = () => {
                 {filteredData.assignmentHistory.map((assignment) => (
                   <div key={assignment.id} className="flex flex-col sm:flex-row sm:items-center justify-between p-4 border border-gray-200 rounded-xl hover:bg-gray-50 transition-colors">
                     <div className="flex items-start gap-4">
-                      <div className={`p-2 rounded-full ${assignment.type === 'order' || assignment.type === 'load' ? 'bg-purple-100 text-purple-600' : 'bg-indigo-100 text-indigo-600'}`}>
-                        {(assignment.type === 'order' || assignment.type === 'load') ? <FaTruck className="w-4 h-4" /> : <FaRoute className="w-4 h-4" />}
+                      <div className={`p-2 rounded-full ${assignment.type === 'order' ? 'bg-purple-100 text-purple-600' : 'bg-indigo-100 text-indigo-600'}`}>
+                        {(assignment.type === 'order') ? <FaTruck className="w-4 h-4" /> : <FaRoute className="w-4 h-4" />}
                       </div>
                       <div>
                         <p className="text-sm font-bold text-gray-900">
-                          {assignment.orderNumber || assignment.tripNumber || assignment.loadNumber}
+                          {assignment.orderNumber || assignment.tripNumber}
                         </p>
                         <p className="text-xs text-gray-500 mt-1">
                           <span className="font-semibold">{assignment.driver.name}</span> • {assignment.driver.phone}

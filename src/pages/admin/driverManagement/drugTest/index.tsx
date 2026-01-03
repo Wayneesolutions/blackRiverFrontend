@@ -549,7 +549,7 @@ const DrugTest = () => {
                             {/* Driver Selection */}
                             <div>
                                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                                    Driver <span className="text-red-500">*</span>
+                                    Employee <span className="text-red-500">*</span>
                                 </label>
                                 <select
                                     value={formData.driverId}
@@ -557,7 +557,7 @@ const DrugTest = () => {
                                     className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                                     required
                                 >
-                                    <option value="">Select a driver</option>
+                                    <option value="">Select a employee</option>
                                     {drivers.map(driver => (
                                         <option key={driver._id} value={driver._id}>
                                             {driver.name}

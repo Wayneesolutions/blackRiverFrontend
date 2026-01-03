@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useMemo, useCallback, useRef } from 'react';
-import { RefreshCw, Route, Search, ChevronLeft, ChevronRight, MapPin, User, X, Truck, Clock } from 'lucide-react';
-import { useJsApiLoader, GoogleMap, Marker, Polyline, DirectionsService, DirectionsRenderer } from '@react-google-maps/api';
+import { RefreshCw, Route, Search, ChevronLeft, ChevronRight, MapPin, X, Truck } from 'lucide-react';
+import { useJsApiLoader, GoogleMap, Marker, DirectionsService, DirectionsRenderer } from '@react-google-maps/api';
 import type { Libraries } from '@react-google-maps/api';
 import { getActiveOrdersWithTracking } from '../../../../axios/api/distapcher';
 import { getSocket } from '../../../../socket/socketClient';
@@ -74,19 +74,8 @@ declare global {
 const GOOGLE_MAPS_API_KEY = "AIzaSyBE6Ii-ZxHsICvzD2Fp3m3iMPYX-Vie1N4";
 const GOOGLE_MAPS_LIBRARIES: Libraries = ["marker", "places"];
 
-const statusColors: Record<string, string> = {
-  'in-progress': "#10b981",
-  'planned': "#3b82f6",
-  'completed': "#6b7280",
-  'cancelled': "#ef4444",
-};
 
-const statusBgColors: Record<string, string> = {
-  'in-progress': "#d1fae5",
-  'planned': "#dbeafe",
-  'completed': "#f3f4f6",
-  'cancelled': "#fee2e2",
-};
+
 
 const ProfessionalTripTracker: React.FC = () => {
   const { isLoaded, loadError } = useJsApiLoader({

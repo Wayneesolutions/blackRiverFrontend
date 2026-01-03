@@ -46,7 +46,7 @@ interface VehicleLocation {
 const GpsSection = () => {
   const [activeTab, setActiveTab] = useState<'overview' | 'gps' | 'maintenance'>('overview');
   const [searchTerm, setSearchTerm] = useState('');
-  const [loading, setLoading] = useState(false);
+  const [, setLoading] = useState(false);
   const [vehicles, setVehicles] = useState<any[]>([]);
   const [summary, setSummary] = useState({
     totalVehicles: 0,

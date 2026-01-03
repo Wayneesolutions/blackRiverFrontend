@@ -1,13 +1,12 @@
 import { useState, useEffect, useRef } from 'react';
-import { Edit, Trash2, Plus, X, RefreshCw, AlertCircle, User, Search, Eye, CheckCircle, FileText, Briefcase, Phone, Globe, MapPin, CreditCard, Heart, Building2, DollarSign, Snowflake, Thermometer, Upload, ChevronLeft, ChevronRight, Save, Filter, ArrowUpDown, Mail, Wrench, Users, ChevronUp, ChevronDown, Calendar, Award, AlertTriangle, FileText as FileTextIcon, PlusCircle, Check } from 'lucide-react';
+import { Edit, Trash2, Plus, X, RefreshCw, User, Search, FileText,  MapPin, DollarSign, Upload, Save, ChevronUp, ChevronDown, Calendar, Award, AlertTriangle, FileText as FileTextIcon, PlusCircle, Check } from 'lucide-react';
 import { FaCheckCircle, FaExclamationCircle, FaTimes } from 'react-icons/fa';
-import { FLEET_COLORS } from '../../fleetMaintenance/colorUtils';
 import * as driverApi from '../../../../axios/api/driver';
 import { listDriver } from '../../../../axios/api/distapcher';
-import { getDocumentsByEmployee, createEmployeeDocument, getSignedEmployeeDocumentUrl, deleteEmployeeDocument } from '../../../../axios/api/employeeDocument';
+import { getSignedEmployeeDocumentUrl, deleteEmployeeDocument } from '../../../../axios/api/employeeDocument';
 import type { EmployeeDocument } from '../../../../axios/api/employeeDocument';
-import { createViolation, deleteViolation } from '../../../../axios/api/violations';
-import { createDeductionAddition, deleteDeductionAddition } from '../../../../axios/api/account.settlement';
+import { deleteViolation } from '../../../../axios/api/violations';
+import { deleteDeductionAddition } from '../../../../axios/api/account.settlement';
 
 // US States
 const US_STATES = [
@@ -150,25 +149,16 @@ interface Driver {
 const DriverManagement = () => {
   const [activeTab, setActiveTab] = useState<'all' | 'external' | 'unassigned'>('all');
   const [searchTerm, setSearchTerm] = useState('');
-  const [selectedStatus, setSelectedStatus] = useState<string>('');
-  const [sortOrder, setSortOrder] = useState<string>('');
-  const [showSidebar, setShowSidebar] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [deleteConfirm, setDeleteConfirm] = useState<{ show: boolean; driverId: string | null }>({ show: false, driverId: null });
-  const [imageErrors, setImageErrors] = useState<Set<string>>(new Set());
   const [notifications, setNotifications] = useState<ToastNotification[]>([]);
-  const [currentStep, setCurrentStep] = useState<1 | 2>(1);
-  const [driverDocuments, setDriverDocuments] = useState<any[]>([]);
   const [drivers, setDrivers] = useState<Driver[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [driverCounts, setDriverCounts] = useState<{ total: number; assigned: number; unassigned: number }>({ total: 0, assigned: 0, unassigned: 0 });
   const [profileImagePreview, setProfileImagePreview] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
-
-  const [showDocumentsModal, setShowDocumentsModal] = useState<{ show: boolean; driver: Driver | null }>({ show: false, driver: null });
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [selectedDriver, setSelectedDriver] = useState<Driver | null>(null);
-  const [showDriverDetails, setShowDriverDetails] = useState(false);
+  const [, setIsSubmitting] = useState(false);
+ 
 
   const [filterBy, setFilterBy] = useState('Active');
   const [category, setCategory] = useState('');
@@ -757,9 +747,9 @@ const DriverManagement = () => {
               wcbNumber: driver.wsibAccountNo || driver.details?.wsibAccountNo || ''
             });
 
-            // Load documents for this driver (use documents from getDriverById response - all data comes in one API call)
+          
+            
             try {
-              // Use documents from getDriverById response (backend already includes all documents)
               let documentsToUse: EmployeeDocument[] = [];
               if (driver.documents && Array.isArray(driver.documents) && driver.documents.length > 0) {
                 documentsToUse = driver.documents;
@@ -1327,33 +1317,7 @@ const DriverManagement = () => {
     }
   };
 
-  const toggleStatus = async (id: string, currentStatus: string) => {
-    try {
-      const newStatus = currentStatus === 'active' || currentStatus === 'ACTIVE' ? 'inactive' : 'active';
-      const response = await driverApi.updateDriverStatus(id, newStatus);
-      if (response.success) {
-        await fetchDrivers();
-      } else {
-        alert(response.message || 'Failed to update driver status');
-      }
-    } catch (error: any) {
-      console.error('Error updating driver status:', error);
-      alert(error.response?.data?.message || error.message || 'Failed to update driver status');
-    }
-  };
-
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
-    const { name, value } = e.target;
-    setFormData(prev => {
-      const updated = { ...prev, [name]: value };
-      return updated;
-    });
-  };
-
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0] || null;
-    setFormData(prev => ({ ...prev, file }));
-  };
+ 
 
   // Helper function to map documentsTab to documentType
   const getDocumentTypeFromTab = (tab: string): string => {
@@ -1367,236 +1331,8 @@ const DriverManagement = () => {
     return mapping[tab] || 'Other';
   };
 
-  // Helper function to create certifications for a driver
-  const createDriverCertifications = async (driverId: string, certificationsToCreate: typeof certifications) => {
-    if (!certificationsToCreate || certificationsToCreate.length === 0) {
-      return;
-    }
+ 
 
-    const createPromises = certificationsToCreate.map(async (cert) => {
-      try {
-        // Note: If there's a specific certification API, use it here
-        // For now, certifications might be stored in driver details or need a separate endpoint
-        // This is a placeholder - adjust based on your backend API
-        console.log('📜 Certification to create:', cert);
-        // TODO: Implement certification creation API call when available
-        return { success: true, cert };
-      } catch (error: any) {
-        console.error('❌ Error creating certification:', error);
-        return { success: false, cert, error: error.message };
-      }
-    });
-
-    const results = await Promise.all(createPromises);
-    const failed = results.filter(r => !r.success);
-    
-    if (failed.length > 0) {
-      console.warn('⚠️ Some certifications failed to create:', failed);
-    }
-    
-    return results;
-  };
-
-  // Helper function to create violations for a driver
-  const createDriverViolations = async (driverId: string, violationsToCreate: typeof violations) => {
-    if (!violationsToCreate || violationsToCreate.length === 0) {
-      return;
-    }
-
-    const createPromises = violationsToCreate.map(async (viol) => {
-      try {
-        const violationData = {
-          driver: driverId,
-          paymentDueDate: viol.paymentDueDate || '',
-          ticket: viol.ticket || '',
-          // Note: File upload for violations might need separate handling
-        };
-        
-        const violResponse = await createViolation(violationData);
-        if (violResponse?.success) {
-          console.log('✅ Violation created successfully:', viol.ticket);
-          return { success: true, viol };
-        } else {
-          console.error('❌ Failed to create violation:', violResponse?.message);
-          return { success: false, viol, error: violResponse?.message };
-        }
-      } catch (error: any) {
-        console.error('❌ Error creating violation:', error);
-        return { success: false, viol, error: error.message };
-      }
-    });
-
-    const results = await Promise.all(createPromises);
-    const failed = results.filter(r => !r.success);
-    
-    if (failed.length > 0) {
-      console.warn('⚠️ Some violations failed to create:', failed);
-    }
-    
-    return results;
-  };
-
-  // Helper function to create deductions for a driver
-  const createDriverDeductions = async (driverId: string, deductionsToCreate: typeof deductions) => {
-    if (!deductionsToCreate || deductionsToCreate.length === 0) {
-      return;
-    }
-
-    const createPromises = deductionsToCreate.map(async (ded) => {
-      try {
-        const deductionData = {
-          name: ded.description || 'Deduction',
-          type: 'Deduction',
-          recurrence: ded.interval || 'One-time',
-          amount: ded.amount || '0',
-          assignedTo: driverId,
-          startDate: ded.startDate || '',
-          description: ded.description || '',
-          isActive: true
-        };
-        
-        const dedResponse = await createDeductionAddition(deductionData);
-        if (dedResponse?.success) {
-          console.log('✅ Deduction created successfully:', ded.description);
-          return { success: true, ded };
-        } else {
-          console.error('❌ Failed to create deduction:', dedResponse?.message);
-          return { success: false, ded, error: dedResponse?.message };
-        }
-      } catch (error: any) {
-        console.error('❌ Error creating deduction:', error);
-        return { success: false, ded, error: error.message };
-      }
-    });
-
-    const results = await Promise.all(createPromises);
-    const failed = results.filter(r => !r.success);
-    
-    if (failed.length > 0) {
-      console.warn('⚠️ Some deductions failed to create:', failed);
-    }
-    
-    return results;
-  };
-
-  // Helper function to create additions for a driver
-  const createDriverAdditions = async (driverId: string, additionsToCreate: typeof additions) => {
-    if (!additionsToCreate || additionsToCreate.length === 0) {
-      return;
-    }
-
-    const createPromises = additionsToCreate.map(async (add) => {
-      try {
-        const additionData = {
-          name: add.description || 'Addition',
-          type: 'Addition',
-          recurrence: add.interval || 'One-time',
-          amount: add.amount || '0',
-          assignedTo: driverId,
-          startDate: add.startDate || '',
-          description: add.description || '',
-          isActive: true
-        };
-        
-        const addResponse = await createDeductionAddition(additionData);
-        if (addResponse?.success) {
-          console.log('✅ Addition created successfully:', add.description);
-          return { success: true, add };
-        } else {
-          console.error('❌ Failed to create addition:', addResponse?.message);
-          return { success: false, add, error: addResponse?.message };
-        }
-      } catch (error: any) {
-        console.error('❌ Error creating addition:', error);
-        return { success: false, add, error: error.message };
-      }
-    });
-
-    const results = await Promise.all(createPromises);
-    const failed = results.filter(r => !r.success);
-    
-    if (failed.length > 0) {
-      console.warn('⚠️ Some additions failed to create:', failed);
-    }
-    
-    return results;
-  };
-
-  // Helper function to upload documents for a driver
-  const uploadDriverDocuments = async (driverId: string, documentsToUpload: typeof documents) => {
-    if (!documentsToUpload || documentsToUpload.length === 0) {
-      console.log('📄 No documents to upload');
-      return;
-    }
-
-    console.log(`📤 Uploading ${documentsToUpload.length} documents for driver ${driverId}`);
-    
-    const uploadPromises = documentsToUpload
-      .filter(doc => doc.file) // Only upload documents with files
-      .map(async (doc) => {
-        try {
-          const currentDocumentType = getDocumentTypeFromTab(documentsTab);
-          console.log(`📄 Uploading document:`, {
-            description: doc.description,
-            expiryDate: doc.expiryDate,
-            hasFile: !!doc.file,
-            fileName: doc.file?.name,
-            fileSize: doc.file?.size,
-            currentTab: documentsTab,
-            documentType: currentDocumentType
-          });
-          
-          const documentFormData = new FormData();
-          documentFormData.append('employee', driverId);
-          documentFormData.append('documentType', currentDocumentType);
-          console.log(`📋 Using document type: "${currentDocumentType}" for tab: "${documentsTab}"`);
-          documentFormData.append('description', doc.description || '');
-          if (doc.expiryDate) {
-            documentFormData.append('expiryDate', doc.expiryDate);
-          }
-          documentFormData.append('ignoreExpiration', String(doc.ignoreExpiration || false));
-          documentFormData.append('status', 'valid');
-          if (doc.file) {
-            documentFormData.append('documentFile', doc.file);
-            console.log(`📎 File attached: ${doc.file.name} (${doc.file.size} bytes)`);
-          } else {
-            console.warn(`⚠️ Document "${doc.description}" has no file attached`);
-          }
-
-          const docResponse = await createEmployeeDocument(documentFormData);
-          console.log('📥 Document upload response:', docResponse);
-          
-          if (docResponse?.success) {
-            console.log('✅ Document uploaded successfully:', {
-              id: docResponse.data?._id,
-              description: doc.description,
-              fileUrl: docResponse.data?.fileUrl || 'NOT SET',
-              fileName: docResponse.data?.fileName || 'NOT SET'
-            });
-            return { success: true, doc, response: docResponse };
-          } else {
-            console.error('❌ Failed to upload document:', docResponse?.message);
-            return { success: false, doc, error: docResponse?.message };
-          }
-        } catch (error: any) {
-          console.error('❌ Error uploading document:', error);
-          return { success: false, doc, error: error.message };
-        }
-      });
-
-    const results = await Promise.all(uploadPromises);
-    const failed = results.filter(r => !r.success);
-    const successful = results.filter(r => r.success);
-    
-    console.log(`📊 Upload results: ${successful.length} successful, ${failed.length} failed`);
-    
-    if (failed.length > 0) {
-      console.warn('⚠️ Some documents failed to upload:', failed);
-      // Don't throw error, just log - driver was created successfully
-    }
-    
-    return results;
-  };
 
   const handleSaveDriver = async () => {
     try {
