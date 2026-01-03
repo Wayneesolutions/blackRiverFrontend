@@ -505,14 +505,8 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
         printedManifest?: string | null;
     }>({});
 
-<<<<<<< HEAD
     // Suggestions states
-    const [commoditySuggestions, setCommoditySuggestions] = useState<string[]>([]);
 
-    const [, setShowCommoditySuggestions] = useState(false);
-=======
- 
->>>>>>> b5850d8ad96099501eac01e1486d112ed86ae89a
 
 
     // Fetch customers on component mount

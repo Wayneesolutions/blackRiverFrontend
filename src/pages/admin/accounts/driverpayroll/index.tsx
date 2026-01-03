@@ -3348,31 +3348,31 @@ const DriverPayrollManagement = () => {
                 </div>
 
                 {/* Employer Contributions (if applicable) */}
-                {selectedPaystub.employerContributions && selectedPaystub.employerContributions.total > 0 && (
+                {selectedPaystub.employerContributions && selectedPaystub?.employerContributions?.total && selectedPaystub?.employerContributions?.total > 0 && (
                   <div className="bg-purple-50 p-5 rounded-lg border border-purple-200">
                     <h3 className="text-lg font-bold text-gray-900 mb-4 border-b border-purple-300 pb-2">Employer Contributions</h3>
                     <div className="space-y-2">
-                      {selectedPaystub.employerContributions.companyInsurance > 0 && (
+                      {selectedPaystub?.employerContributions?.companyInsurance && selectedPaystub?.employerContributions?.companyInsurance > 0 && (
                         <div className="flex justify-between items-center py-2 border-b border-purple-200">
                           <span className="text-sm text-gray-700">Company Insurance</span>
                           <span className="text-sm font-semibold text-purple-600">
-                            ${selectedPaystub.employerContributions.companyInsurance.toFixed(2)}
+                            ${selectedPaystub?.employerContributions?.companyInsurance?.toFixed(2)}
                           </span>
                         </div>
                       )}
-                      {selectedPaystub.employerContributions.pensionPF > 0 && (
+                      {selectedPaystub?.employerContributions?.pensionPF && selectedPaystub?.employerContributions?.pensionPF > 0 && (
                         <div className="flex justify-between items-center py-2 border-b border-purple-200">
                           <span className="text-sm text-gray-700">Pension / PF</span>
                           <span className="text-sm font-semibold text-purple-600">
-                            ${selectedPaystub.employerContributions.pensionPF.toFixed(2)}
+                            ${selectedPaystub?.employerContributions?.pensionPF?.toFixed(2)}
                           </span>
                         </div>
                       )}
-                      {selectedPaystub.employerContributions.benefitContributions > 0 && (
+                      {selectedPaystub?.employerContributions?.benefitContributions && selectedPaystub?.employerContributions?.benefitContributions > 0 && (
                         <div className="flex justify-between items-center py-2 border-b border-purple-200">
                           <span className="text-sm text-gray-700">Benefit Contributions</span>
                           <span className="text-sm font-semibold text-purple-600">
-                            ${selectedPaystub.employerContributions.benefitContributions.toFixed(2)}
+                            ${selectedPaystub?.employerContributions?.benefitContributions?.toFixed(2)}
                           </span>
                         </div>
                       )}

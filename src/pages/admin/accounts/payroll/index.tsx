@@ -2979,38 +2979,38 @@ const PayrollManagement = () => {
                                 </div>
 
                                 {/* Employer Contributions (if applicable) */}
-                                {selectedPaystub.employerContributions && selectedPaystub.employerContributions.total > 0 && (
+                                {selectedPaystub.employerContributions && selectedPaystub?.employerContributions?.total && selectedPaystub?.employerContributions?.total > 0 && (
                                     <div className="bg-purple-50 p-5 rounded-lg border border-purple-200">
                                         <h3 className="text-lg font-bold text-gray-900 mb-4 border-b border-purple-300 pb-2">Employer Contributions</h3>
                                         <div className="space-y-2">
-                                            {selectedPaystub.employerContributions.companyInsurance > 0 && (
+                                            {selectedPaystub?.employerContributions?.companyInsurance && selectedPaystub?.employerContributions?.companyInsurance > 0 && (
                                                 <div className="flex justify-between items-center py-2 border-b border-purple-200">
                                                     <span className="text-sm text-gray-700">Company Insurance</span>
                                                     <span className="text-sm font-semibold text-purple-600">
-                                                        ${selectedPaystub.employerContributions.companyInsurance.toFixed(2)}
+                                                        ${selectedPaystub?.employerContributions?.companyInsurance?.toFixed(2)}
                                                     </span>
                                                 </div>
                                             )}
-                                            {selectedPaystub.employerContributions.pensionPF > 0 && (
+                                            {selectedPaystub?.employerContributions?.pensionPF && selectedPaystub?.employerContributions?.pensionPF > 0 && (
                                                 <div className="flex justify-between items-center py-2 border-b border-purple-200">
                                                     <span className="text-sm text-gray-700">Pension / PF</span>
                                                     <span className="text-sm font-semibold text-purple-600">
-                                                        ${selectedPaystub.employerContributions.pensionPF.toFixed(2)}
+                                                        ${selectedPaystub?.employerContributions?.pensionPF?.toFixed(2)}
                                                     </span>
                                                 </div>
                                             )}
-                                            {selectedPaystub.employerContributions.benefitContributions > 0 && (
+                                            {selectedPaystub?.employerContributions?.benefitContributions && selectedPaystub?.employerContributions?.benefitContributions > 0 && (
                                                 <div className="flex justify-between items-center py-2 border-b border-purple-200">
                                                     <span className="text-sm text-gray-700">Benefit Contributions</span>
                                                     <span className="text-sm font-semibold text-purple-600">
-                                                        ${selectedPaystub.employerContributions.benefitContributions.toFixed(2)}
+                                                        ${selectedPaystub?.employerContributions?.benefitContributions?.toFixed(2)}
                                                     </span>
                                                 </div>
                                             )}
                                             <div className="flex justify-between items-center py-3 bg-purple-100 rounded mt-2 px-3 font-bold">
                                                 <span className="text-base text-gray-900">Total Employer Contributions</span>
                                                 <span className="text-base text-purple-700">
-                                                    ${selectedPaystub.employerContributions.total.toFixed(2)}
+                                                    ${selectedPaystub?.employerContributions?.total?.toFixed(2)}
                                                 </span>
                                             </div>
                                         </div>
@@ -3024,19 +3024,19 @@ const PayrollManagement = () => {
                                         <div>
                                             <label className="text-sm font-semibold opacity-90 uppercase">Gross Earnings</label>
                                             <div className="mt-1 text-2xl font-bold">
-                                                ${selectedPaystub.summary.grossPay.toFixed(2)}
+                                                ${selectedPaystub?.summary?.grossPay?.toFixed(2)}
                                             </div>
                                         </div>
                                         <div>
                                             <label className="text-sm font-semibold opacity-90 uppercase">Total Deductions</label>
                                             <div className="mt-1 text-2xl font-bold">
-                                                ${selectedPaystub.summary.totalDeductions.toFixed(2)}
+                                                ${selectedPaystub?.summary?.totalDeductions?.toFixed(2)}
                                             </div>
                                         </div>
                                         <div className="col-span-2 border-t border-blue-400 pt-4 mt-2">
                                             <div className="flex justify-between items-center">
                                                 <div className="text-3xl font-bold">
-                                                    ${selectedPaystub.summary.netPay.toFixed(2)}
+                                                    ${selectedPaystub?.summary?.netPay?.toFixed(2)}
                                                 </div>
                                             </div>
                                         </div>
@@ -3051,19 +3051,19 @@ const PayrollManagement = () => {
                                             <div>
                                                 <label className="text-xs font-semibold text-gray-600 uppercase">YTD Earnings</label>
                                                 <div className="mt-1 text-base font-bold text-indigo-700">
-                                                    ${selectedPaystub.ytd.earnings.toFixed(2)}
+                                                    ${selectedPaystub?.ytd?.earnings?.toFixed(2)}
                                                 </div>
                                             </div>
                                             <div>
                                                 <label className="text-xs font-semibold text-gray-600 uppercase">YTD Deductions</label>
                                                 <div className="mt-1 text-base font-bold text-red-600">
-                                                    ${selectedPaystub.ytd.deductions.toFixed(2)}
+                                                    ${selectedPaystub?.ytd?.deductions?.toFixed(2)}
                                                 </div>
                                             </div>
                                             <div>
                                                 <label className="text-xs font-semibold text-gray-600 uppercase">YTD Net Pay</label>
                                                 <div className="mt-1 text-base font-bold text-green-700">
-                                                    ${selectedPaystub.ytd.netPay.toFixed(2)}
+                                                    ${selectedPaystub?.ytd?.netPay?.toFixed(2)}
                                                 </div>
                                             </div>
                                         </div>
