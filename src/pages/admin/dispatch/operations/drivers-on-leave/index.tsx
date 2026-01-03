@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { User, Calendar, Phone, Mail, Search,  Clock, Loader2, FileText } from "lucide-react";
-import { useNavigate } from "react-router-dom";
+
 import { getUserRole } from "../../../../../utils/auth";
 import { getDriversOnLeave } from "../../../../../axios/api/distapcher";
 
@@ -19,10 +19,10 @@ interface DriverOnLeave {
 }
 
 const DriversOnLeavePage = () => {
-  const navigate = useNavigate();
+
   const userRole = getUserRole();
   const isDispatcher = userRole === 'dispatcher';
-  const basePath = isDispatcher ? '/dispatch' : '/admin/dispatch';
+ 
 
   const [searchTerm, setSearchTerm] = useState("");
   const [drivers, setDrivers] = useState<DriverOnLeave[]>([]);

@@ -123,9 +123,9 @@ const OrderList = () => {
 
   // Places state for search dropdowns
   const [, setPlaces] = useState<Place[]>([]);
-  const [pickupLocationSearch, setPickupLocationSearch] = useState("");
+
   const [, setPickupLocationDropdownOpen] = useState(false);
-  const [, setDeliveryLocationSearch] = useState("");
+
   const [, setDeliveryLocationDropdownOpen] = useState(false);
   const pickupLocationDropdownRef = useRef<HTMLDivElement>(null);
   const deliveryLocationDropdownRef = useRef<HTMLDivElement>(null);
