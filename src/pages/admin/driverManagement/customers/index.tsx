@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { Plus, Download, Trash2, ChevronUp, ChevronDown, X, HelpCircle, Edit } from 'lucide-react';
 import * as customerApi from '../../../../axios/api/customer';
+import AddressSearch from '../../../../components/common/AddressSearch';
 
 interface Customer {
   _id?: string;
@@ -1080,13 +1081,65 @@ const CustomersPage = () => {
                     <h3 className="text-lg font-semibold text-gray-700 mb-4">Address</h3>
                     
                     <div className="mb-4">
-                      <label className="block text-sm font-medium text-gray-700 mb-1">Search Address</label>
-                      <input
-                        type="text"
+                      <AddressSearch
+                        label="Search Address"
                         placeholder="Search For An Address..."
-                        value={formData.searchAddress}
-                        onChange={(e) => setFormData({ ...formData, searchAddress: e.target.value })}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#42aeec] focus:border-transparent"
+                        onAddressSelect={(addressData) => {
+                          // Map country name to country code
+                          let countryCode = '';
+                          const countryName = addressData.country?.toLowerCase() || '';
+                          if (countryName.includes('united states') || countryName.includes('usa') || countryName === 'us') {
+                            countryCode = 'US';
+                          } else if (countryName.includes('canada') || countryName === 'ca') {
+                            countryCode = 'CA';
+                          }
+
+                          // Map state/province name to code
+                          let stateProvinceCode = addressData.state || '';
+                          // Common state/province mappings
+                          const stateMap: { [key: string]: string } = {
+                            'ontario': 'ON',
+                            'british columbia': 'BC',
+                            'alberta': 'AB',
+                            'quebec': 'QC',
+                            'manitoba': 'MB',
+                            'saskatchewan': 'SK',
+                            'nova scotia': 'NS',
+                            'new brunswick': 'NB',
+                            'newfoundland and labrador': 'NL',
+                            'prince edward island': 'PE',
+                            'northwest territories': 'NT',
+                            'yukon': 'YT',
+                            'nunavut': 'NU',
+                            'california': 'CA',
+                            'texas': 'TX',
+                            'florida': 'FL',
+                            'new york': 'NY',
+                            'pennsylvania': 'PA',
+                            'illinois': 'IL',
+                            'ohio': 'OH',
+                            'georgia': 'GA',
+                            'north carolina': 'NC',
+                            'michigan': 'MI'
+                          };
+                          
+                          const stateNameLower = addressData.state?.toLowerCase() || '';
+                          if (stateMap[stateNameLower]) {
+                            stateProvinceCode = stateMap[stateNameLower];
+                          }
+
+                          // Populate all address fields
+                          setFormData({
+                            ...formData,
+                            address: addressData.address || '',
+                            city: addressData.city || '',
+                            zipCode: addressData.postalCode || '',
+                            stateProvince: stateProvinceCode,
+                            country: countryCode,
+                            searchAddress: addressData.fullAddress || ''
+                          });
+                        }}
+                        className=""
                       />
                     </div>
 

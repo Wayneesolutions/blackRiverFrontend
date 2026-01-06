@@ -8,6 +8,17 @@ export interface Yard {
   yardCode: string;
   yardType: 'parking' | 'drop yard' | 'terminal' | 'maintenance' | 'warehouse';
   status: 'active' | 'inactive';
+  address?: string;
+  unit?: string;
+  city?: string;
+  stateProvince?: string;
+  country?: string;
+  zipPostalCode?: string;
+  coordinates?: {
+    latitude: number | null;
+    longitude: number | null;
+    geocodedAt: string | null;
+  };
   company?: string;
   createdBy?: string;
   updatedBy?: string;
@@ -20,6 +31,12 @@ export interface CreateYardData {
   yardCode: string;
   yardType: 'parking' | 'drop yard' | 'terminal' | 'maintenance' | 'warehouse';
   status?: 'active' | 'inactive';
+  address: string;
+  unit?: string;
+  city: string;
+  stateProvince: string;
+  country: string;
+  zipPostalCode: string;
 }
 
 export interface UpdateYardData {
@@ -27,6 +44,12 @@ export interface UpdateYardData {
   yardCode?: string;
   yardType?: 'parking' | 'drop yard' | 'terminal' | 'maintenance' | 'warehouse';
   status?: 'active' | 'inactive';
+  address?: string;
+  unit?: string;
+  city?: string;
+  stateProvince?: string;
+  country?: string;
+  zipPostalCode?: string;
 }
 
 // Get all yards

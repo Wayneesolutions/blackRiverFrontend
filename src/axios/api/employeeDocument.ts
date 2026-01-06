@@ -3,6 +3,7 @@ import type { AxiosResponse } from 'axios';
 
 // Employee Document interfaces
 export interface EmployeeDocument {
+  ignoreExpiration: boolean;
   _id: string;
   employee: string;
   documentType: string;

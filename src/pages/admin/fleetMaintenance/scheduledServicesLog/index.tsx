@@ -9,6 +9,7 @@ import {
   createVehicleService,
   updateVehicleService,
   deleteVehicleService,
+  getSamsaraUpcomingServices,
   type VehicleServiceData,
   type VehicleServiceResponse,
   type VehicleServiceType,
@@ -64,6 +65,7 @@ interface ScheduledService {
   notes?: string;
   status: 'pending' | 'in-progress' | 'completed';
   priority?: string;
+  source?: 'samsara' | 'manual';
 }
 
 interface UnitOption {
@@ -112,8 +114,10 @@ const ScheduledServicesLog: React.FC = () => {
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [selectedService, setSelectedService] = useState<ScheduledService | null>(null);
   const [services, setServices] = useState<ScheduledService[]>([]);
+  const [samsaraServices, setSamsaraServices] = useState<ScheduledService[]>([]);
   const [units, setUnits] = useState<UnitOption[]>([]);
   const [loading, setLoading] = useState(false);
+  const [loadingSamsara, setLoadingSamsara] = useState(false);
   const [showServiceDetails, setShowServiceDetails] = useState(false);
   
   // Refs for scrollbar synchronization
@@ -170,7 +174,8 @@ const ScheduledServicesLog: React.FC = () => {
       invoiceNo: service.invoiceNumber || undefined,
       notes: service.notes || undefined,
       status: service.status,
-      priority: service.priority
+      priority: service.priority,
+      source: (service as any).source || 'manual'
     };
   }, []);
 
@@ -220,13 +225,33 @@ const ScheduledServicesLog: React.FC = () => {
     }
   }, [filterServiceType, mapApiService]);
 
+  const fetchSamsaraServices = useCallback(async () => {
+    setLoadingSamsara(true);
+    try {
+      const response = await getSamsaraUpcomingServices();
+      if (response?.success) {
+        const mapped =
+          (response.data as VehicleServiceResponse[] | undefined)?.map(mapApiService) || [];
+        setSamsaraServices(mapped);
+      } else {
+        setSamsaraServices([]);
+      }
+    } catch (err: any) {
+      console.error('Failed to fetch Samsara services:', err);
+      setSamsaraServices([]);
+    } finally {
+      setLoadingSamsara(false);
+    }
+  }, [mapApiService]);
+
   useEffect(() => {
     fetchUnits();
   }, [fetchUnits]);
 
   useEffect(() => {
     fetchServices();
-  }, [fetchServices]);
+    fetchSamsaraServices();
+  }, [fetchServices, fetchSamsaraServices]);
 
   // Sync scroll between top and bottom scrollbars
   useEffect(() => {
@@ -388,7 +413,10 @@ const ScheduledServicesLog: React.FC = () => {
       units.map(unit => [unit.unitNo, unit])
     );
 
-    const filtered = services.filter((service) => {
+    // Combine regular services and Samsara services
+    const allServices = [...services, ...samsaraServices];
+
+    const filtered = allServices.filter((service) => {
       const matchesSearch =
         !searchTerm ||
         service.unitNo.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -407,13 +435,14 @@ const ScheduledServicesLog: React.FC = () => {
 
     console.log('🔍 [ScheduledServicesLog] Filtered services:', {
       totalServices: services.length,
+      samsaraServices: samsaraServices.length,
       filterIncoming,
       filteredCount: filtered.length,
       unitsCount: units.length
     });
 
     return filtered;
-  }, [services, searchTerm, filterServiceType, filterIncoming, units, isIncomingService]);
+  }, [services, samsaraServices, searchTerm, filterServiceType, filterIncoming, units, isIncomingService]);
 
   // Calculate summary statistics
   const summaryStats = useMemo(() => {
@@ -428,9 +457,12 @@ const ScheduledServicesLog: React.FC = () => {
       units.map(unit => [unit.unitNo, unit])
     );
 
+    // Combine regular services and Samsara services for stats
+    const allServicesForStats = [...services, ...samsaraServices];
+    
     // Calculate incoming maintenance (services due within next 7,500 km or 30 days)
     // Also considers vehicle service intervals (days and mileage)
-    const incomingServices = services.filter((service) => {
+    const incomingServices = allServicesForStats.filter((service) => {
       if (service.status === 'completed') return false;
 
       let isIncoming = false;
@@ -520,7 +552,7 @@ const ScheduledServicesLog: React.FC = () => {
     // Get unique units needing maintenance
     const unitsNeedingMaintenance = new Set(incomingServices.map(s => s.unitNo)).size;
 
-    // Recent activity - completed services in last 30 days
+    // Recent activity - completed services in last 30 days (only from regular services, not Samsara)
     const recentServices = services.filter((service) => {
       if (service.status !== 'completed') return false;
       if (!service.serviceDate) return false;
@@ -1027,7 +1059,16 @@ const ScheduledServicesLog: React.FC = () => {
                         <td className="px-6 py-4 text-gray-900">
                           {formatDate(service.serviceDate || service.dueDate)}
                         </td>
-                        <td className="px-6 py-4 font-medium text-gray-900">{service.unitNo}</td>
+                        <td className="px-6 py-4 font-medium text-gray-900">
+                          <div className="flex items-center gap-2">
+                            {service.unitNo}
+                            {service._id?.startsWith('samsara-') && (
+                              <span className="inline-flex px-2 py-0.5 text-xs font-semibold rounded-full bg-purple-100 text-purple-800" title="From Samsara">
+                                Samsara
+                              </span>
+                            )}
+                          </div>
+                        </td>
                         <td className="px-6 py-4">
                           <span className="inline-flex px-3 py-1 text-xs font-semibold rounded-full bg-blue-100 text-blue-800">
                             {service.unitType || 'Unit'}

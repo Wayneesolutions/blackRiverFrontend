@@ -7,7 +7,7 @@ import { useNavigate } from "react-router-dom";
 import type { RootState } from "../../redux/store";
 import { getUserRole } from "../../utils/auth";
 import { useQuickActions } from "../common/QuickAction";
-import { getIncomingMaintenanceCount } from "../../axios/api/vehicleService";
+import { getIncomingMaintenanceCount, getSamsaraUpcomingServices, type VehicleServiceResponse } from "../../axios/api/vehicleService";
 
 function Header({ onToggleSidebar }: { onToggleSidebar: () => void }) {
     const [showLogoutModal, setShowLogoutModal] = useState(false);
@@ -16,6 +16,10 @@ function Header({ onToggleSidebar }: { onToggleSidebar: () => void }) {
     const [searchQuery, setSearchQuery] = useState("");
     const [selectedIndex, setSelectedIndex] = useState(0);
     const [incomingMaintenanceCount, setIncomingMaintenanceCount] = useState(0);
+    const [isNotificationOpen, setIsNotificationOpen] = useState(false);
+    const [upcomingServices, setUpcomingServices] = useState<VehicleServiceResponse[]>([]);
+    const [loadingNotifications, setLoadingNotifications] = useState(false);
+    const notificationRef = useRef<HTMLDivElement>(null);
 
     const dropdownRef = useRef<HTMLDivElement>(null);
     const searchRef = useRef<HTMLDivElement>(null);
@@ -39,10 +43,13 @@ function Header({ onToggleSidebar }: { onToggleSidebar: () => void }) {
             if (searchRef.current && !searchRef.current.contains(event.target as Node)) {
                 setIsSearchOpen(false);
             }
+            if (notificationRef.current && !notificationRef.current.contains(event.target as Node)) {
+                setIsNotificationOpen(false);
+            }
         };
         document.addEventListener('mousedown', handleClickOutside);
         return () => document.removeEventListener('mousedown', handleClickOutside);
-    }, [isSearchOpen, isDropdownOpen]);
+    }, [isSearchOpen, isDropdownOpen, isNotificationOpen]);
 
     // Handle escape key
     useEffect(() => {
@@ -74,26 +81,55 @@ function Header({ onToggleSidebar }: { onToggleSidebar: () => void }) {
         setSelectedIndex(0);
     }, [searchQuery]);
 
+    // Fetch upcoming services when notification panel opens
+    const fetchUpcomingServices = async () => {
+        if (loadingNotifications) return;
+        setLoadingNotifications(true);
+        try {
+            const [maintenanceResponse, samsaraResponse] = await Promise.all([
+                getIncomingMaintenanceCount(),
+                getSamsaraUpcomingServices()
+            ]);
+            
+            const services: VehicleServiceResponse[] = [];
+            
+            // Add Samsara services
+            if (samsaraResponse?.success && samsaraResponse.data) {
+                services.push(...samsaraResponse.data);
+            }
+            
+            setUpcomingServices(services);
+            
+            // Update count including Samsara services
+            const maintenanceCount = maintenanceResponse?.incomingMaintenance ?? maintenanceResponse?.count ?? 0;
+            const samsaraCount = samsaraResponse?.count ?? 0;
+            setIncomingMaintenanceCount(Number(maintenanceCount) + Number(samsaraCount));
+        } catch (error: any) {
+            console.error('🔔 [Header] Error fetching upcoming services:', error);
+            setUpcomingServices([]);
+        } finally {
+            setLoadingNotifications(false);
+        }
+    };
+
     // Fetch incoming maintenance count on mount and every 5 minutes
     useEffect(() => {
         const fetchIncomingMaintenance = async () => {
             try {
                 console.log('🔔 [Header] Fetching incoming maintenance count...');
-                const response = await getIncomingMaintenanceCount();
-                console.log('🔔 [Header] Full API Response:', JSON.stringify(response, null, 2));
+                const [maintenanceResponse, samsaraResponse] = await Promise.all([
+                    getIncomingMaintenanceCount(),
+                    getSamsaraUpcomingServices()
+                ]);
                 
-                if (response?.success !== false) {
-                    // Check multiple possible response formats
-                    const count = response?.incomingMaintenance ?? response?.count ?? response?.data?.incomingMaintenance ?? response?.data?.count ?? 0;
-                    console.log('🔔 [Header] Extracted count:', count, 'from response keys:', Object.keys(response || {}));
-                    setIncomingMaintenanceCount(Number(count) || 0);
-                } else {
-                    console.warn('🔔 [Header] API response not successful:', response);
-                    setIncomingMaintenanceCount(0);
-                }
+                const maintenanceCount = maintenanceResponse?.incomingMaintenance ?? maintenanceResponse?.count ?? 0;
+                const samsaraCount = samsaraResponse?.count ?? 0;
+                const totalCount = Number(maintenanceCount) + Number(samsaraCount);
+                setIncomingMaintenanceCount(totalCount);
+                
+                console.log('🔔 [Header] Total count:', totalCount, '(Maintenance:', maintenanceCount, '+ Samsara:', samsaraCount, ')');
             } catch (error: any) {
                 console.error('🔔 [Header] Error fetching incoming maintenance count:', error);
-                console.error('🔔 [Header] Error details:', error?.response?.data || error?.message);
                 setIncomingMaintenanceCount(0);
             }
         };
@@ -198,22 +234,146 @@ function Header({ onToggleSidebar }: { onToggleSidebar: () => void }) {
                 {/* RIGHT: Search + Notification + Profile Dropdown */}
                 <div className="flex items-center gap-4">
                     {/* Incoming Maintenance Notification - Always show, even if 0 */}
-                    <button
-                        onClick={() => {
-                            const basePath = isFleetMaintenanceManager ? '/fleetmaintenance' : '/admin/fleetmaintenance';
-                            navigate(`${basePath}/scheduled-services-log?filter=incoming`);
-                        }}
-                        className="relative p-2 rounded-lg hover:bg-white/20 transition-colors !text-white z-10"
-                        title={incomingMaintenanceCount > 0 
-                            ? `${incomingMaintenanceCount} incoming maintenance service(s) due within 30 days`
-                            : 'No incoming maintenance services'
-                        }
-                    >
-                        <Bell size={20} className="relative z-0" />
-                        <span className={`absolute -top-0.5 -right-0.5 text-white text-xs font-bold rounded-full min-w-[20px] h-5 px-1 flex items-center justify-center border-2 border-white shadow-lg z-10 ${incomingMaintenanceCount > 0 ? 'bg-red-500' : 'bg-gray-500'}`}>
-                            {incomingMaintenanceCount > 99 ? '99+' : incomingMaintenanceCount}
-                        </span>
-                    </button>
+                    <div className="relative" ref={notificationRef}>
+                        <button
+                            onClick={() => {
+                                if (!isNotificationOpen) {
+                                    fetchUpcomingServices();
+                                }
+                                setIsNotificationOpen(!isNotificationOpen);
+                            }}
+                            className="relative p-2 rounded-lg hover:bg-white/20 transition-colors !text-white z-10"
+                            title={incomingMaintenanceCount > 0 
+                                ? `${incomingMaintenanceCount} incoming maintenance service(s) due within 30 days`
+                                : 'No incoming maintenance services'
+                            }
+                        >
+                            <Bell size={20} className="relative z-0" />
+                            <span className={`absolute -top-0.5 -right-0.5 text-white text-xs font-bold rounded-full min-w-[20px] h-5 px-1 flex items-center justify-center border-2 border-white shadow-lg z-10 ${incomingMaintenanceCount > 0 ? 'bg-red-500' : 'bg-gray-500'}`}>
+                                {incomingMaintenanceCount > 99 ? '99+' : incomingMaintenanceCount}
+                            </span>
+                        </button>
+
+                        {/* Notification Panel */}
+                        {isNotificationOpen && (
+                            <div className="absolute right-0 mt-2 w-96 bg-white rounded-lg shadow-xl border border-gray-200 overflow-hidden z-50 max-h-[600px] flex flex-col">
+                                {/* Header */}
+                                <div className="px-4 py-3 border-b border-gray-200 bg-gradient-to-r from-blue-600 to-blue-700 text-white flex items-center justify-between">
+                                    <div className="flex items-center gap-2">
+                                        <Bell size={18} />
+                                        <h3 className="font-semibold text-sm">Upcoming Services</h3>
+                                        {incomingMaintenanceCount > 0 && (
+                                            <span className="bg-white/20 text-xs px-2 py-0.5 rounded-full">
+                                                {incomingMaintenanceCount}
+                                            </span>
+                                        )}
+                                    </div>
+                                    <button
+                                        onClick={() => setIsNotificationOpen(false)}
+                                        className="p-1 hover:bg-white/20 rounded transition-colors"
+                                    >
+                                        <X size={16} />
+                                    </button>
+                                </div>
+
+                                {/* Content */}
+                                <div className="overflow-y-auto flex-1">
+                                    {loadingNotifications ? (
+                                        <div className="p-8 text-center text-gray-500">
+                                            <div className="inline-block animate-spin rounded-full h-6 w-6 border-b-2 border-blue-600 mb-2"></div>
+                                            <p className="text-sm">Loading services...</p>
+                                        </div>
+                                    ) : upcomingServices.length === 0 ? (
+                                        <div className="p-8 text-center text-gray-500">
+                                            <Bell size={32} className="mx-auto mb-2 text-gray-300" />
+                                            <p className="text-sm">No upcoming services</p>
+                                        </div>
+                                    ) : (
+                                        <div className="divide-y divide-gray-100">
+                                            {upcomingServices.map((service) => {
+                                                const isSamsara = service._id?.startsWith('samsara-');
+                                                const remainingKm = service.dueMileage && service.odometer 
+                                                    ? service.dueMileage - service.odometer 
+                                                    : null;
+                                                const isOverdue = remainingKm !== null && remainingKm < 0;
+                                                const isDueSoon = remainingKm !== null && remainingKm >= 0 && remainingKm <= 7500;
+                                                
+                                                return (
+                                                    <div
+                                                        key={service._id}
+                                                        className="p-4 hover:bg-gray-50 transition-colors cursor-pointer"
+                                                        onClick={() => {
+                                                            const basePath = isFleetMaintenanceManager ? '/fleetmaintenance' : '/admin/fleetmaintenance';
+                                                            navigate(`${basePath}/scheduled-services-log?filter=incoming`);
+                                                            setIsNotificationOpen(false);
+                                                        }}
+                                                    >
+                                                        <div className="flex items-start justify-between mb-2">
+                                                            <div className="flex-1">
+                                                                <div className="flex items-center gap-2 mb-1">
+                                                                    <span className="font-semibold text-sm text-gray-900">
+                                                                        {service.unitNumber || service.vehicleId?.internalId || 'N/A'}
+                                                                    </span>
+                                                                    {isSamsara && (
+                                                                        <span className="px-2 py-0.5 text-xs font-semibold rounded-full bg-purple-100 text-purple-800">
+                                                                            Samsara
+                                                                        </span>
+                                                                    )}
+                                                                    {isOverdue && (
+                                                                        <span className="px-2 py-0.5 text-xs font-semibold rounded-full bg-red-100 text-red-800">
+                                                                            Overdue
+                                                                        </span>
+                                                                    )}
+                                                                    {isDueSoon && !isOverdue && (
+                                                                        <span className="px-2 py-0.5 text-xs font-semibold rounded-full bg-orange-100 text-orange-800">
+                                                                            Due Soon
+                                                                        </span>
+                                                                    )}
+                                                                </div>
+                                                                <p className="text-xs text-gray-600 mb-1">
+                                                                    {service.makeModel || service.vehicleId?.make + ' ' + service.vehicleId?.model || 'N/A'}
+                                                                </p>
+                                                                <p className="text-xs font-medium text-gray-900">
+                                                                    {service.serviceType?.replace(/-/g, ' ').replace(/\b\w/g, (char) => char.toUpperCase()) || 'Service'}
+                                                                </p>
+                                                            </div>
+                                                        </div>
+                                                        <div className="flex items-center justify-between text-xs text-gray-500 mt-2">
+                                                            {service.dueDate && (
+                                                                <span>Due: {new Date(service.dueDate).toLocaleDateString()}</span>
+                                                            )}
+                                                            {remainingKm !== null && (
+                                                                <span className={isOverdue ? 'text-red-600 font-semibold' : isDueSoon ? 'text-orange-600 font-semibold' : ''}>
+                                                                    {isOverdue ? `${Math.abs(remainingKm).toLocaleString()} km overdue` : `${remainingKm.toLocaleString()} km remaining`}
+                                                                </span>
+                                                            )}
+                                                        </div>
+                                                    </div>
+                                                );
+                                            })}
+                                        </div>
+                                    )}
+                                </div>
+
+                                {/* Footer */}
+                                {upcomingServices.length > 0 && (
+                                    <div className="px-4 py-3 border-t border-gray-200 bg-gray-50">
+                                        <button
+                                            onClick={() => {
+                                                const basePath = isFleetMaintenanceManager ? '/fleetmaintenance' : '/admin/fleetmaintenance';
+                                                navigate(`${basePath}/scheduled-services-log?filter=incoming`);
+                                                setIsNotificationOpen(false);
+                                            }}
+                                            className="w-full flex items-center justify-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm font-medium"
+                                        >
+                                            View All Services
+                                            <ArrowRight size={16} />
+                                        </button>
+                                    </div>
+                                )}
+                            </div>
+                        )}
+                    </div>
 
                     {/* Search Button */}
                     <button

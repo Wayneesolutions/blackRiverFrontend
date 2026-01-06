@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from 'react';
 import { Plus, Info, ChevronUp, ChevronDown, X, User, FileText, Calendar, Upload, Edit, Trash2, Save } from 'lucide-react';
 import * as employeeApi from '../../../../axios/api/employee';
 import { getDocumentsByEmployee, updateEmployeeDocument, deleteEmployeeDocument } from '../../../../axios/api/employeeDocument';
+import AddressSearch from '../../../../components/common/AddressSearch';
 
 interface Employee {
   _id?: string;
@@ -1335,13 +1336,18 @@ const EmployeesPage = () => {
 
                     <div className="grid grid-cols-4 gap-4">
                       <div className="col-span-2">
-                        <label className="block text-sm font-medium text-gray-700 mb-1">Search Address</label>
-                        <input
-                          type="text"
+                        <AddressSearch
+                          label="Search Address"
                           placeholder="Search For An Address..."
-                          value={personalData.searchAddress}
-                          onChange={(e) => setPersonalData({ ...personalData, searchAddress: e.target.value })}
-                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#42aeec] focus:border-transparent"
+                          onAddressSelect={(addressData) => {
+                            // Populate address fields
+                            setPersonalData({
+                              ...personalData,
+                              address: addressData.fullAddress || addressData.address || '',
+                              searchAddress: addressData.fullAddress || ''
+                            });
+                          }}
+                          className=""
                         />
                       </div>
                       <div className="col-span-2">

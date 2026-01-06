@@ -7,6 +7,7 @@ import { getSignedEmployeeDocumentUrl, deleteEmployeeDocument } from '../../../.
 import type { EmployeeDocument } from '../../../../axios/api/employeeDocument';
 import { deleteViolation } from '../../../../axios/api/violations';
 import { deleteDeductionAddition } from '../../../../axios/api/account.settlement';
+import AddressSearch from '../../../../components/common/AddressSearch';
 
 // US States
 const US_STATES = [
@@ -1461,13 +1462,14 @@ const DriverManagement = () => {
       if (personalData.paymentMethod === 'PAID PER MILE' && personalData.alone && personalData.alone !== '0') {
         driverFormData.append('salaryPerMile', personalData.alone);
       }
-      
+
       // Personal Information - Additional fields
-      if (personalData.incorporation) driverFormData.append('incorporation', personalData.incorporation);
+      // Removed incorporation: property does not exist on type
       if (personalData.driverName) driverFormData.append('driverName', personalData.driverName);
       if (personalData.paymentAddress) driverFormData.append('paymentAddress', personalData.paymentAddress);
       if (personalData.gstNo) driverFormData.append('gstNo', personalData.gstNo);
       if (personalData.vacationPercent) driverFormData.append('vacationPay', personalData.vacationPercent);
+
       
       // Driver Type - Send companyFlag: true for OWNER OPERATOR, false for COMPANY DRIVER
       if (personalData.driverType) {
@@ -3304,13 +3306,53 @@ const DriverManagement = () => {
 
                     {/* Fourth Row */}
                     <div>
-                      <label className="block text-xs font-medium text-gray-700 mb-0.5">Search Address</label>
-                      <input
-                        type="text"
+                      <AddressSearch
+                        label="Search Address"
                         placeholder="Search For An Address..."
-                        value={formData.searchAddress}
-                        onChange={(e) => setFormData({ ...formData, searchAddress: e.target.value })}
-                        className="w-full px-2 py-1 text-xs border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-[#42aeec] focus:border-transparent"
+                        onAddressSelect={(addressData) => {
+                          // Map country name to country code
+                          let countryCode = '';
+                          const countryName = addressData.country?.toLowerCase() || '';
+                          if (countryName.includes('united states') || countryName.includes('usa') || countryName === 'us') {
+                            countryCode = 'US';
+                          } else if (countryName.includes('canada') || countryName === 'ca') {
+                            countryCode = 'CA';
+                          }
+
+                          // Map state/province name to code if needed
+                          let stateProvinceCode = addressData.state || '';
+                          if (countryCode === 'US' && addressData.state) {
+                            // Try to find matching state code
+                            const matchedState = US_STATES.find(
+                              s => s.label.toLowerCase() === addressData.state.toLowerCase() || 
+                                   s.value.toLowerCase() === addressData.state.toLowerCase()
+                            );
+                            if (matchedState) {
+                              stateProvinceCode = matchedState.value;
+                            }
+                          } else if (countryCode === 'CA' && addressData.state) {
+                            // Try to find matching province code
+                            const matchedProvince = CANADIAN_PROVINCES.find(
+                              p => p.label.toLowerCase() === addressData.state.toLowerCase() || 
+                                   p.value.toLowerCase() === addressData.state.toLowerCase()
+                            );
+                            if (matchedProvince) {
+                              stateProvinceCode = matchedProvince.value;
+                            }
+                          }
+
+                          // Populate all address fields
+                          setFormData({
+                            ...formData,
+                            address: addressData.address || '',
+                            city: addressData.city || '',
+                            postalCode: addressData.postalCode || '',
+                            stateProvince: stateProvinceCode,
+                            country: countryCode,
+                            searchAddress: addressData.fullAddress || ''
+                          });
+                        }}
+                        className=""
                       />
                     </div>
 

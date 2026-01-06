@@ -1,13 +1,14 @@
 import { useState, useEffect, useCallback, useRef } from "react";
 import { createPortal } from "react-dom";
-import { Truck, Users, Package, Loader2, Search, ChevronLeft, ChevronRight, Plus, X, Route, TrendingUp, Calendar, UserCheck, UserX, DollarSign } from "lucide-react";
+import { Truck, Users, Package, Loader2, Search, ChevronLeft, ChevronRight, Plus, Route, TrendingUp, Calendar, UserCheck, UserX, DollarSign } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import {
   getDispatcherDashboard,
   listDriver,
   listTrip,
   listOrder,
-  getOrderById
+  getOrderById,
+  updateOrder
 } from "../../../../axios/api/distapcher";
 import NewOrderSidebar from "./order-list/NewOrderSidebar";
 import { listFleetUnits, type FleetUnitDto } from "../../../../axios/api/fleet.units";
@@ -112,6 +113,7 @@ interface Order {
   currency?: string;
   status: string;
   driver?: string;
+  coDriver?: string;
   truckNo?: string;
   trailerNo?: string;
   // Keep original fields if needed for broader compatibility, or just use the mapped ones. 
@@ -119,11 +121,11 @@ interface Order {
 }
 
 const getStatusColor = (status: string) => {
-  const s = status?.toUpperCase() || '';
-  if (['COMPLETED', 'DELIVERED'].includes(s)) return 'bg-green-100 text-green-800';
-  if (['PLANNED', 'DISPATCHED'].includes(s)) return 'bg-blue-100 text-blue-800';
-  if (['CANCELLED'].includes(s)) return 'bg-red-100 text-red-800';
-  if (['QUOTED', 'CONFIRMED'].includes(s)) return 'bg-yellow-100 text-yellow-800';
+  const s = status?.toLowerCase() || '';
+  if (['planned', 'dispatched'].includes(s)) return 'bg-blue-100 text-blue-800';
+  if (['in-progress', 'in-delivery', 'quoted', 'confirmed'].includes(s)) return 'bg-yellow-100 text-yellow-800';
+  if (['completed', 'delivered'].includes(s)) return 'bg-green-100 text-green-800';
+  if (['cancelled'].includes(s)) return 'bg-red-100 text-red-800';
   return 'bg-gray-100 text-gray-800';
 };
 
@@ -156,7 +158,7 @@ const Index = () => {
   const [orders, setOrders] = useState<Order[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [orderSearchTerm, setOrderSearchTerm] = useState("");
-  const [activeTab, ] = useState<"drivers" | "vehicles" | "trailers" | "trips" | "orders">("drivers");
+  const [activeTab,] = useState<"drivers" | "vehicles" | "trailers" | "trips" | "orders">("drivers");
 
   // Additional dashboard metrics
   const [unassignedDrivers, setUnassignedDrivers] = useState(0);
@@ -601,10 +603,11 @@ const Index = () => {
             : '',
           deliveryLocation: order.deliveryLocation || '',
           deliveryRefNo: order.deliveryRefNo || '',
-          totalAmount: order.totalAmount?.toFixed(2) || '0.00',
-          currency: order.currency || 'CAD',
+          totalAmount: (order.rate || order.totalAmount || 0).toFixed(2),
+          currency: order.rateCurrency || order.currency || 'CAD',
           status: order.status || 'QUOTED',
           driver: order.driver?.name || '',
+          coDriver: order.coDriver?.name || '',
           truckNo:
             order.truck?.licensePlate ||
             order.truck?.unitNo ||
@@ -1061,13 +1064,13 @@ const Index = () => {
                   <thead className="bg-gray-50 border-b border-gray-200">
                     <tr>
                       <th className="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
-                        Order#/Cust. Order#
-                      </th>
-                      <th className="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
-                        Trip#
+                        Order ID
                       </th>
                       <th className="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
                         Order Date
+                      </th>
+                      <th className="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                        Payment
                       </th>
                       <th className="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
                         Company Name
@@ -1082,7 +1085,10 @@ const Index = () => {
                         Delivery Date/Location/Ref No
                       </th>
                       <th className="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
-                        Total Amount
+                        Amount
+                      </th>
+                      <th className="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                        Status
                       </th>
                       <th className="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
                         Driver
@@ -1120,18 +1126,38 @@ const Index = () => {
                           }}
                         >
                           <td className="px-6 py-4 whitespace-nowrap">
-                            <div className="text-sm font-medium text-gray-900">{order.orderNo}</div>
-                            <div className="text-xs text-gray-500">{order.orderType}</div>
-                            {order.custOrderNo && (
-                              <div className="text-xs text-gray-500">{order.custOrderNo}</div>
-                            )}
-                          </td>
-                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                            {order.tripNo || "-"}
+                            <div className="text-sm font-medium text-gray-900">{order.custOrderNo || order.orderNo}</div>
                           </td>
                           <td className="px-6 py-4 whitespace-nowrap">
                             <div className="text-sm text-gray-900">{order.orderDate}</div>
-                            <div className="text-xs text-gray-500">Total Item: {order.totalItems}</div>
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap">
+                            <select
+                              value={order.paymentStatus || 'PENDING'}
+                              onChange={async (e) => {
+                                const newPaymentStatus = e.target.value;
+                                try {
+                                  const res = await updateOrder(order.id, { paymentStatus: newPaymentStatus });
+                                  if (res?.success) {
+                                    fetchOrders(); // Refresh orders to show updated status
+                                  } else {
+                                    console.error('Failed to update payment status');
+                                  }
+                                } catch (err) {
+                                  console.error('Error updating payment status:', err);
+                                }
+                              }}
+                              onClick={(e) => e.stopPropagation()} // Prevent row click from opening sidebar
+                              className={`text-xs font-medium rounded-full px-2 py-1 border-0 ring-1 ring-inset focus:ring-2 focus:ring-inset sm:text-sm sm:leading-6 ${order.paymentStatus === 'PAID' ? 'bg-green-50 text-green-700 ring-green-600/20' :
+                                order.paymentStatus === 'PENDING' ? 'bg-yellow-50 text-yellow-700 ring-yellow-600/20' :
+                                  order.paymentStatus === 'OVERDUE' ? 'bg-red-50 text-red-700 ring-red-600/20' :
+                                    'bg-gray-50 text-gray-600 ring-gray-500/10'
+                                }`}
+                            >
+                              <option value="PENDING">Pending</option>
+                              <option value="PAID">Paid</option>
+                              <option value="OVERDUE">Overdue</option>
+                            </select>
                           </td>
                           <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                             {order.companyName}
@@ -1144,10 +1170,10 @@ const Index = () => {
                               const pickupLoc = extractLocationString(order.pickupLocation);
                               return pickupLoc ? (
                                 <div className="text-sm space-y-1">
-                                  <div 
-                                    className="text-gray-900 break-words" 
-                                    style={{ 
-                                      maxHeight: '3em', 
+                                  <div
+                                    className="text-gray-900 break-words"
+                                    style={{
+                                      maxHeight: '3em',
                                       overflow: 'hidden',
                                       textOverflow: 'ellipsis',
                                       display: '-webkit-box',
@@ -1176,10 +1202,10 @@ const Index = () => {
                               const deliveryLoc = extractLocationString(order.deliveryLocation);
                               return deliveryLoc ? (
                                 <div className="text-sm space-y-1">
-                                  <div 
-                                    className="text-gray-900 break-words" 
-                                    style={{ 
-                                      maxHeight: '3em', 
+                                  <div
+                                    className="text-gray-900 break-words"
+                                    style={{
+                                      maxHeight: '3em',
                                       overflow: 'hidden',
                                       textOverflow: 'ellipsis',
                                       display: '-webkit-box',
@@ -1205,14 +1231,57 @@ const Index = () => {
                           </td>
                           <td className="px-6 py-4 whitespace-nowrap">
                             <div className="text-sm font-medium text-gray-900">
-                              {order.currency} {order.totalAmount}
+                              {order.currency || 'CAD'} {order.totalAmount || (order as any).valueOfGoods || '0'}
                             </div>
-                            <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getStatusColor(order.status)}`}>
-                              {order.status}
-                            </span>
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap">
+                            <select
+                              value={order.status || 'QUOTED'}
+                              onChange={async (e) => {
+                                const newStatus = e.target.value;
+                                try {
+                                  const res = await updateOrder(order.id, { status: newStatus });
+                                  if (res?.success) {
+                                    // Refresh orders
+                                    fetchOrders();
+                                  } else {
+                                    console.error('Failed to update status');
+                                  }
+                                } catch (err) {
+                                  console.error('Error updating status:', err);
+                                }
+                              }}
+                              onClick={(e) => e.stopPropagation()}
+                              className={`text-xs font-medium rounded-full px-2 py-1 border-0 ring-1 ring-inset focus:ring-2 focus:ring-inset sm:text-sm sm:leading-6 ${order.status === 'quoted' ? 'bg-gray-50 text-gray-600 ring-gray-500/10' :
+                                order.status === 'planned' ? 'bg-blue-50 text-blue-700 ring-blue-700/10' :
+                                  order.status === 'completed' ? 'bg-green-50 text-green-700 ring-green-600/20' :
+                                    order.status === 'delivered' ? 'bg-purple-50 text-purple-700 ring-purple-700/10' :
+                                      order.status === 'in-delivery' ? 'bg-orange-50 text-orange-700 ring-orange-700/10' :
+                                        order.status === 'canceled' ? 'bg-red-50 text-red-700 ring-red-700/10' :
+                                          'bg-gray-50 text-gray-600 ring-gray-500/10'
+                                }`}
+                            >
+                              <option value="planned">Planned</option>
+                              <option value="quoted">Quoted</option>
+                              <option value="in-delivery">In Delivery</option>
+                              <option value="delivered">Delivered</option>
+                              <option value="completed">Completed</option>
+                              <option value="canceled">Canceled</option>
+                            </select>
                           </td>
                           <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                            {order.driver || "-"}
+                            <div className="flex flex-col">
+                              <span className="text-sm font-medium text-gray-900 line-clamp-1" title={order.driver || ''}>
+                                <span className="text-gray-500 font-normal mr-1">Driver:</span>
+                                {order.driver || "-"}
+                              </span>
+                              {order.coDriver && (
+                                <span className="text-xs font-medium text-gray-700 mt-1 line-clamp-1" title={order.coDriver}>
+                                  <span className="text-gray-500 font-normal mr-1">Co-Driver:</span>
+                                  {order.coDriver}
+                                </span>
+                              )}
+                            </div>
                           </td>
                           <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                             {order.truckNo || order.trailerNo ? (
@@ -1337,7 +1406,7 @@ const Index = () => {
         </div>
 
 
-      </div>
+      </div >
     </>
   );
 };

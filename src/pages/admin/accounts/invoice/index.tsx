@@ -35,6 +35,12 @@ interface Invoice {
     clientPhone?: string;
     loadId?: string; // Legacy field
     tripId?: string | Trip; // New field - can be populated
+    orderId?: {
+        orderNumber: string;
+        customerOrderNo?: string;
+        pickupLocation?: { place?: string };
+        deliveryLocation?: { place?: string };
+    };
     amount: number | string;
     currency: string;
     status: 'paid' | 'pending';
@@ -426,8 +432,8 @@ const InvoiceManagement: React.FC = () => {
                     doc.text('Truck:', margin, yPos);
                     doc.setTextColor(textR, textG, textB);
                     const plateNumber = trip.truck.plateNumber || trip.truck.licensePlate || trip.truck.unitNumber || 'N/A';
-                    const makeModel = trip.truck.make && trip.truck.model 
-                        ? `${trip.truck.make} ${trip.truck.model}` 
+                    const makeModel = trip.truck.make && trip.truck.model
+                        ? `${trip.truck.make} ${trip.truck.model}`
                         : (trip.truck.makeModel || '');
                     const vehicleType = trip.truck.type || trip.truck.unitType || '';
                     const vehicleInfo = [
@@ -1129,15 +1135,16 @@ const InvoiceManagement: React.FC = () => {
                                 };
 
                                 const trip = typeof invoice.tripId === 'object' && invoice.tripId ? invoice.tripId : null;
+                                const order = invoice.orderId;
                                 const tripNumberFromNotes = !trip && invoice.notes ? extractTripNumberFromNotes(invoice.notes) : null;
-                                const tripNumber = trip?.tripNumber || tripNumberFromNotes || (typeof invoice.tripId === 'string' ? invoice.tripId.slice(-8) : null);
-                                const startLocation = trip?.startLocation?.place || trip?.orders?.[0]?.pickupLocation?.place || 'N/A';
-                                const endLocation = trip?.endLocation?.place || trip?.orders?.[trip?.orders?.length - 1]?.deliveryLocation?.place || 'N/A';
-                                const ordersCount = trip?.orders?.length || 0;
+                                const displayId = trip?.tripNumber || order?.orderNumber || tripNumberFromNotes || (typeof invoice.tripId === 'string' ? invoice.tripId.slice(-8) : null);
+                                const startLocation = trip?.startLocation?.place || trip?.orders?.[0]?.pickupLocation?.place || order?.pickupLocation?.place || 'N/A';
+                                const endLocation = trip?.endLocation?.place || trip?.orders?.[trip?.orders?.length - 1]?.deliveryLocation?.place || order?.deliveryLocation?.place || 'N/A';
+                                const ordersCount = trip?.orders?.length || (order ? 1 : 0);
 
                                 return (
-                                    <tr 
-                                        key={invoice._id} 
+                                    <tr
+                                        key={invoice._id}
                                         className="hover:bg-gray-50 cursor-pointer transition-colors"
                                         onClick={() => {
                                             setSelectedInvoice(invoice);
@@ -1178,17 +1185,22 @@ const InvoiceManagement: React.FC = () => {
                                                         </div>
                                                     )}
                                                 </div>
-                                            ) : tripNumber ? (
+                                            ) : displayId ? (
                                                 <div className="space-y-1">
                                                     <div className="font-medium text-gray-900 text-sm">
-                                                        {tripNumber}
+                                                        {displayId}
                                                     </div>
-                                                    <div className="text-xs text-gray-500 italic">
-                                                        Trip details not loaded
+                                                    <div className="text-xs text-gray-600">
+                                                        {startLocation} → {endLocation}
                                                     </div>
+                                                    {order && (
+                                                        <div className="text-xs text-gray-400">
+                                                            Order Invoice
+                                                        </div>
+                                                    )}
                                                     {invoice.notes && invoice.notes.includes('Auto-generated') && (
                                                         <div className="text-xs text-gray-400">
-                                                            Auto-generated invoice
+                                                            Auto-generated
                                                         </div>
                                                     )}
                                                 </div>
@@ -1331,11 +1343,42 @@ const InvoiceManagement: React.FC = () => {
                         </div>
                     )}
 
-                    {/* Trip/Load Details Section */}
-                    {(selectedInvoice.tripId || (selectedInvoice.notes && selectedInvoice.notes.includes('Auto-generated invoice for trip'))) && (
+                    {/* Trip/Load/Order Details Section */}
+                    {(selectedInvoice.tripId || selectedInvoice.orderId || (selectedInvoice.notes && selectedInvoice.notes.includes('Auto-generated'))) && (
                         <div className="mt-6 border-t border-gray-200 pt-6">
-                            <h3 className="text-lg font-medium text-gray-900 mb-4">Trip/Load Details</h3>
-                            {typeof selectedInvoice.tripId === 'object' && selectedInvoice.tripId ? (
+                            <h3 className="text-lg font-medium text-gray-900 mb-4">
+                                {selectedInvoice.orderId ? 'Order Details' : 'Trip/Load Details'}
+                            </h3>
+                            {selectedInvoice.orderId ? (
+                                <div className="space-y-4">
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                        <div>
+                                            <label className="text-sm font-medium text-gray-500">Order Number</label>
+                                            <p className="text-sm font-medium">{selectedInvoice.orderId.orderNumber}</p>
+                                        </div>
+                                        {selectedInvoice.orderId.customerOrderNo && (
+                                            <div>
+                                                <label className="text-sm font-medium text-gray-500">Customer Ref</label>
+                                                <p className="text-sm">{selectedInvoice.orderId.customerOrderNo}</p>
+                                            </div>
+                                        )}
+                                    </div>
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                        {selectedInvoice.orderId.pickupLocation?.place && (
+                                            <div>
+                                                <label className="text-sm font-medium text-gray-500">Pickup Location</label>
+                                                <p className="text-sm">{selectedInvoice.orderId.pickupLocation.place}</p>
+                                            </div>
+                                        )}
+                                        {selectedInvoice.orderId.deliveryLocation?.place && (
+                                            <div>
+                                                <label className="text-sm font-medium text-gray-500">Delivery Location</label>
+                                                <p className="text-sm">{selectedInvoice.orderId.deliveryLocation.place}</p>
+                                            </div>
+                                        )}
+                                    </div>
+                                </div>
+                            ) : typeof selectedInvoice.tripId === 'object' && selectedInvoice.tripId ? (
                                 <div className="space-y-4">
                                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                         {selectedInvoice.tripId.tripNumber && (

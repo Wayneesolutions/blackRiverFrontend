@@ -1,8 +1,8 @@
 import { useState, useMemo, useEffect, useCallback, useRef } from "react";
-import {  Edit, Plus, X, Package, DollarSign, Route, Truck, MessageCircle } from "lucide-react";
+import { Edit, Plus, X, Package, DollarSign, Route, Truck, MessageCircle } from "lucide-react";
 import { FaCheckCircle, FaExclamationCircle, FaTimes } from "react-icons/fa";
 import NewOrderSidebar from "./NewOrderSidebar";
-import { listOrder, deleteOrder, getOrderById } from "../../../../../axios/api/distapcher";
+import { listOrder, deleteOrder, getOrderById, updateOrder } from "../../../../../axios/api/distapcher";
 import { listPlace } from "../../../../../axios/api/dispatcher.places";
 import ConfirmationModal from "../../../../../components/common/ConfirmationModal";
 import OrderChat from "../../../../../components/chat/OrderChat";
@@ -201,8 +201,8 @@ const OrderList = () => {
 
     const bottomTable = bottomScroll.querySelector('table');
     if (bottomTable) {
-      tableObserver.observe(bottomTable, { 
-        childList: true, 
+      tableObserver.observe(bottomTable, {
+        childList: true,
         subtree: true,
         attributes: true,
         attributeFilter: ['style', 'class']
@@ -261,7 +261,7 @@ const OrderList = () => {
 
       try {
         const counts: Record<string, number> = {};
-        
+
         // Fetch unread counts for all orders (limit to first 50 to avoid too many requests)
         const ordersToCheck = orders.slice(0, 50);
         await Promise.all(
@@ -276,7 +276,7 @@ const OrderList = () => {
             }
           })
         );
-        
+
         setUnreadCounts(counts);
       } catch (error) {
         console.error('Error fetching unread counts:', error);
@@ -401,21 +401,21 @@ const OrderList = () => {
   const [dispatcher, setDispatcher] = useState("");
 
   // Filter states (keeping for backward compatibility)
-  const [orderType, setOrderType] = useState("");
+  const [orderType] = useState("");
   const [createdDate, setCreatedDate] = useState("");
   const [byDays, setByDays] = useState("");
   const [orderStatus, setOrderStatus] = useState("");
-  const [, setAccounting] = useState("");
+  const [] = useState("");
   const [sortBy, setSortBy] = useState("");
 
   // Search states
-  const [orderNo, setOrderNo] = useState("");
-  const [custOrderNo, setCustOrderNo] = useState("");
-  const [tripNo, setTripNo] = useState("");
-  const [pickupDeliveryRef, setPickupDeliveryRef] = useState("");
-  const [custName, setCustName] = useState("");
-  const [pickupLocation, setPickupLocation] = useState("");
-  const [deliveryLocation, setDeliveryLocation] = useState("");
+  const [orderNo] = useState("");
+  const [custOrderNo] = useState("");
+  const [tripNo] = useState("");
+  const [pickupDeliveryRef] = useState("");
+  const [custName] = useState("");
+  const [pickupLocation] = useState("");
+  const [deliveryLocation] = useState("");
 
   // Pagination
   const [currentPage, setCurrentPage] = useState(1);
@@ -564,7 +564,7 @@ const OrderList = () => {
         };
       }
     }
-    
+
     // Fallback to parsing location string
     if (typeof location === 'string' && location) {
       const parts = location.split(',').map(p => p.trim());
@@ -653,7 +653,7 @@ const OrderList = () => {
 
       {/* Top Filter Bar */}
       <div style={{ backgroundColor: PRIMARY_LIGHT_BG }} className="p-3 rounded-lg mb-4 flex flex-wrap gap-3">
-       
+
         <select
           value={createdDate}
           onChange={(e) => setCreatedDate(e.target.value)}
@@ -685,7 +685,7 @@ const OrderList = () => {
           <option value="IN_PROGRESS">In Progress</option>
           <option value="COMPLETED">Completed</option>
         </select>
-   
+
         <select
           value={sortBy}
           onChange={(e) => setSortBy(e.target.value)}
@@ -699,7 +699,7 @@ const OrderList = () => {
         </select>
       </div>
 
-    
+
 
       {/* Orders Table */}
       <div className="bg-white rounded-lg shadow-md overflow-hidden">
@@ -726,10 +726,10 @@ const OrderList = () => {
             display: none; /* Chrome, Safari, Opera */
           }
         `}</style>
-        <div 
+        <div
           ref={topScrollRef}
           className="overflow-x-auto overflow-y-hidden top-scrollbar-container"
-          style={{ 
+          style={{
             maxHeight: '20px',
             marginBottom: '2px',
             scrollbarWidth: 'thin',
@@ -739,14 +739,14 @@ const OrderList = () => {
           <div className="top-scroll-content" style={{ height: '1px' }}></div>
         </div>
         {/* Main Table - Scrollbar hidden, controlled by top scrollbar */}
-        <div 
+        <div
           ref={bottomScrollRef}
           className="overflow-x-auto table-container-hidden-scrollbar"
         >
           <table className="w-full">
             <thead className="bg-gray-50 border-b border-gray-200">
               <tr>
-               
+
                 <th className="px-4 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
                   Load #
                 </th>
@@ -758,6 +758,9 @@ const OrderList = () => {
                 </th>
                 <th className="px-4 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
                   Status
+                </th>
+                <th className="px-4 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                  Payment
                 </th>
                 <th className="px-4 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
                   Customer
@@ -848,64 +851,64 @@ const OrderList = () => {
                   const deliveryCityState = extractCityState(deliveryLoc, (order as any)._fullOrder || order, 'receiver');
                   const shipDateTime = formatDateAndTime(order.pickupDate || '');
                   const receiveDateTime = formatDateAndTime(order.deliveryDate || '');
-                  
+
                   // Determine if status should be UNASSIGNED
                   const displayStatus = (!order.driver && !order.truckNo) ? 'UNASSIGNED' : (order.status || 'UNASSIGNED');
                   const isUnassigned = displayStatus === 'UNASSIGNED';
-                  
+
                   // Get load number
                   const loadNumber = getLoadNumber(order);
-                  
+
                   // Get order number (prefer customer order number)
                   const orderNumber = order.custOrderNo || order.orderNo || '-';
-                  
+
                   // Get rate - prefer rate field, fallback to totalAmount
-                  const rateValue = (order as any).rate !== undefined && (order as any).rate !== null && (order as any).rate !== 0 
-                    ? (order as any).rate 
+                  const rateValue = (order as any).rate !== undefined && (order as any).rate !== null && (order as any).rate !== 0
+                    ? (order as any).rate
                     : (order.totalAmount ? parseFloat(order.totalAmount) : 0);
                   const rate = rateValue ? rateValue.toFixed(0) : '0';
 
                   // Extract actual data from order
                   const fullOrder = (order as any)._fullOrder || order;
-                  
+
                   // Shipper city/state - use from order data
                   const shipperCity = (order as any).shipperCity || pickupCityState.city || '-';
                   const shipperState = (order as any).shipperState || pickupCityState.state || '-';
-                  
+
                   // Receiver city/state - try to parse from address if not directly available
                   let receiverCity = (order as any).receiverCity || deliveryCityState.city || '-';
                   let receiverState = (order as any).receiverState || deliveryCityState.state || '-';
-                  
+
                   // If receiver city/state are empty, try parsing from receiver address
                   if ((receiverCity === '-' || !receiverCity) && (order as any).receiverAddress) {
                     const parsed = extractCityState((order as any).receiverAddress, null, 'receiver');
                     receiverCity = parsed.city || receiverCity;
                     receiverState = parsed.state || receiverState;
                   }
-                  
+
                   // Temperature
                   const tempValue = (order as any).temperature || fullOrder.temperature || '';
                   const tempUnit = (order as any).temperatureUnit || fullOrder.temperatureUnit || '';
                   const displayTemp = tempValue ? `${tempValue}${tempUnit ? ' ' + tempUnit : ''}` : '-';
-                  
+
                   // Hazmat
                   const hazmatValue = (order as any).hazmat !== undefined ? (order as any).hazmat : (fullOrder.additionalInfo?.HAZMAT || false);
                   const displayHazmat = hazmatValue ? 'Yes' : 'No';
-                  
+
                   // Booked
                   const bookedValue = (order as any).bookedForCarrier !== undefined ? (order as any).bookedForCarrier : (fullOrder.bookedForCarrier || false);
                   const displayBooked = bookedValue ? 'Yes' : '-';
-                  
+
                   // Entry (could be border entry or customs entry)
                   const borderInfo = (order as any).borderInfo || fullOrder.borderInfo;
                   const displayEntry = borderInfo?.portOfEntry || borderInfo?.detailsRequired ? (borderInfo.portOfEntry || 'Yes') : '-';
-                  
+
                   // Dispatcher
                   const dispatcherName = (order as any).dispatcher || fullOrder.dispatcher || fullOrder.dispatcherName || '-';
-                  
+
                   // Carrier (could be from driver assignment or separate field)
                   const carrierName = (order as any).carrier || fullOrder.carrier || fullOrder.carrierName || '-';
-                  
+
                   // Truck, Trailer, Driver, Co-Driver
                   const truckDisplay = order.truckNo || '-';
                   const trailerDisplay = order.trailerNo || '-';
@@ -913,8 +916,8 @@ const OrderList = () => {
                   const coDriverDisplay = order.coDriver || '-';
 
                   return (
-                    <tr 
-                      key={order.id} 
+                    <tr
+                      key={order.id}
                       className="hover:bg-gray-50 cursor-pointer transition-colors"
                       onClick={async () => {
                         // Open sidebar in edit mode
@@ -942,13 +945,71 @@ const OrderList = () => {
                         {rate}
                       </td>
                       <td className="px-4 py-4 whitespace-nowrap">
-                        <div className={`inline-flex items-center rounded-full px-3 py-1 text-xs font-medium ${
-                          isUnassigned 
-                            ? 'bg-gray-200 text-gray-700' 
-                            : getStatusColor(displayStatus)
-                        }`} style={!isUnassigned ? getStatusStyle(displayStatus) : {}}>
-                          {displayStatus}
-                        </div>
+                        <select
+                          value={order.status || 'QUOTED'}
+                          onChange={async (e) => {
+                            e.stopPropagation();
+                            const newStatus = e.target.value;
+                            try {
+                              const res = await updateOrder(order.id, { status: newStatus });
+                              if (res?.success) {
+                                addNotification('success', 'Order status updated');
+                                fetchOrders();
+                              } else {
+                                addNotification('error', 'Failed to update status');
+                              }
+                            } catch (err) {
+                              console.error('Error updating status:', err);
+                              addNotification('error', 'Error updating status');
+                            }
+                          }}
+                          onClick={(e) => e.stopPropagation()}
+                          className={`text-xs font-medium rounded-full px-2 py-1 border-0 ring-1 ring-inset focus:ring-2 focus:ring-inset sm:text-sm sm:leading-6 cursor-pointer outline-none ${order.status === 'quoted' ? 'bg-orange-100 text-orange-800 ring-orange-600/20' :
+                            order.status === 'planned' ? 'bg-blue-100 text-blue-800 ring-blue-600/20' :
+                              order.status === 'completed' ? 'bg-gray-100 text-gray-800 ring-gray-600/20' :
+                                order.status === 'delivered' ? 'bg-purple-100 text-purple-800 ring-purple-600/20' :
+                                  order.status === 'in-delivery' ? 'bg-yellow-100 text-yellow-800 ring-yellow-600/20' :
+                                    order.status === 'canceled' ? 'bg-red-100 text-red-800 ring-red-600/20' :
+                                      'bg-gray-100 text-gray-800 ring-gray-500/10'
+                            }`}
+                        >
+                          <option value="planned">Planned</option>
+                          <option value="quoted">Quoted</option>
+                          <option value="in-delivery">In Delivery</option>
+                          <option value="delivered">Delivered</option>
+                          <option value="completed">Completed</option>
+                          <option value="canceled">Canceled</option>
+                        </select>
+                      </td>
+                      <td className="px-4 py-4 whitespace-nowrap">
+                        <select
+                          value={order.accountingStatus || 'pending'}
+                          onChange={async (e) => {
+                            e.stopPropagation();
+                            const newStatus = e.target.value;
+                            try {
+                              const res = await updateOrder(order.id, { accountingStatus: newStatus });
+                              if (res?.success) {
+                                addNotification('success', 'Payment status updated');
+                                fetchOrders();
+                              } else {
+                                addNotification('error', 'Failed to update payment status');
+                              }
+                            } catch (err) {
+                              console.error('Error updating payment status:', err);
+                              addNotification('error', 'Error updating payment status');
+                            }
+                          }}
+                          onClick={(e) => e.stopPropagation()}
+                          className={`text-xs font-medium rounded-full px-2 py-1 border-0 ring-1 ring-inset focus:ring-2 focus:ring-inset sm:text-sm sm:leading-6 cursor-pointer outline-none ${(order.accountingStatus || 'pending') === 'paid' ? 'bg-green-100 text-green-800 ring-green-600/20' :
+                              (order.accountingStatus || 'pending') === 'unpaid' ? 'bg-red-100 text-red-800 ring-red-600/20' :
+                                'bg-yellow-100 text-yellow-800 ring-yellow-600/20'
+                            }`}
+                        >
+                          <option value="pending">Pending</option>
+                          <option value="paid">Paid</option>
+                          <option value="unpaid">Unpaid</option>
+                        </select>
                       </td>
                       <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-900">
                         {truncateText(order.customerName || '-', 15)}

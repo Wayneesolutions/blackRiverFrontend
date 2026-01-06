@@ -1,8 +1,8 @@
 import { useState, useEffect, useCallback, useRef } from "react";
-import { Plus, Edit, Trash2, Eye, Search, X, File, Download ,MessageCircle} from "lucide-react";
+import { Plus, Edit, Trash2, Eye, Search, X, File, Download, MessageCircle } from "lucide-react";
 import { FaCheckCircle, FaExclamationCircle, FaTimes, FaTruck, FaUser, FaTrailer } from "react-icons/fa";
 import NewTripSidebar from "./NewTripSidebar";
-import { listTrip, deleteTrip, getTripById, startTrip as startTripAPI, completeTrip as completeTripAPI, listDriver, listVehicle, getTripDocumentSignedUrl } from "../../../../../axios/api/distapcher";
+import { listTrip, deleteTrip, getTripById, startTrip as startTripAPI, completeTrip as completeTripAPI, listDriver, listVehicle, getTripDocumentSignedUrl, updateOrder, updateTrip } from "../../../../../axios/api/distapcher";
 import ConfirmationModal from "../../../../../components/common/ConfirmationModal";
 import { FLEET_COLORS, getFocusStyles } from "../../../fleetMaintenance/colorUtils";
 import TripChat from "../../../../../components/chat/TripChat";
@@ -94,8 +94,8 @@ interface ToastNotification {
   driverName?: string;
 }
 
-const ToastNotification = ({ notification, onClose, onChatClick }: { 
-  notification: ToastNotification; 
+const ToastNotification = ({ notification, onClose, onChatClick }: {
+  notification: ToastNotification;
   onClose: (id: number) => void;
   onChatClick?: (tripId: string, tripNumber: string) => void;
 }) => {
@@ -131,7 +131,7 @@ const ToastNotification = ({ notification, onClose, onChatClick }: {
   // Chat notification (Advanced UI)
   if (notification.type === 'chat') {
     return (
-      <div 
+      <div
         onClick={handleClick}
         className="fixed top-4 right-4 w-[400px] bg-white rounded-2xl shadow-2xl z-[10000] animate-slide-in cursor-pointer hover:shadow-3xl transition-all duration-300 hover:scale-[1.02] border border-gray-100 overflow-hidden"
         style={{
@@ -140,7 +140,7 @@ const ToastNotification = ({ notification, onClose, onChatClick }: {
       >
         {/* Progress bar */}
         <div className="h-1 bg-gradient-to-r from-blue-500 to-purple-500 transition-all duration-100" style={{ width: `${progress}%` }}></div>
-        
+
         <div className="p-5">
           {/* Header with avatar */}
           <div className="flex items-start gap-4">
@@ -223,7 +223,7 @@ const ToastNotification = ({ notification, onClose, onChatClick }: {
     <div className={`fixed top-4 right-4 w-[350px] rounded-xl border-2 shadow-xl z-[10000] ${bgColors[notification.type]} animate-slide-in overflow-hidden`}>
       {/* Progress bar */}
       <div className={`h-1 ${progressColors[notification.type]} transition-all duration-100`} style={{ width: `${progress}%` }}></div>
-      
+
       <div className="flex items-start gap-3 p-4">
         <div className="flex-shrink-0 mt-0.5">
           {icons[notification.type]}
@@ -317,8 +317,8 @@ const Trips = () => {
   const [trucks, setTrucks] = useState<any[]>([]);
 
   const addNotification = useCallback((
-    type: NotificationType, 
-    message: string, 
+    type: NotificationType,
+    message: string,
     extra?: { tripId?: string; tripNumber?: string; driverName?: string }
   ) => {
     const id = Date.now();
@@ -443,8 +443,8 @@ const Trips = () => {
 
     const bottomTable = bottomScroll.querySelector('table');
     if (bottomTable) {
-      tableObserver.observe(bottomTable, { 
-        childList: true, 
+      tableObserver.observe(bottomTable, {
+        childList: true,
         subtree: true,
         attributes: true,
         attributeFilter: ['style', 'class']
@@ -505,7 +505,7 @@ const Trips = () => {
         setTrips(response.data || []);
         setTotalPages(response.pagination?.totalPages || 1);
         setTotalItems(response.pagination?.totalItems || 0);
-        
+
         // Fetch unread message counts for all trips
         fetchUnreadCounts(response.data || []);
       } else {
@@ -523,7 +523,7 @@ const Trips = () => {
   const fetchUnreadCounts = async (tripsList: Trip[]) => {
     try {
       const counts: Record<string, number> = {};
-      
+
       // Fetch unread counts for each trip in parallel
       await Promise.all(
         tripsList.map(async (trip) => {
@@ -538,7 +538,7 @@ const Trips = () => {
           }
         })
       );
-      
+
       setUnreadCounts(counts);
     } catch (error) {
       console.error("Error fetching unread counts:", error);
@@ -813,10 +813,10 @@ const Trips = () => {
                 display: none; /* Chrome, Safari, Opera */
               }
             `}</style>
-            <div 
+            <div
               ref={topScrollRef}
               className="overflow-x-auto overflow-y-hidden top-scrollbar-container"
-              style={{ 
+              style={{
                 height: '20px',
                 marginBottom: '2px',
                 scrollbarWidth: 'thin',
@@ -828,7 +828,7 @@ const Trips = () => {
               <div className="top-scroll-content" style={{ height: '1px', minWidth: '100%' }}></div>
             </div>
             {/* Main Table - Scrollbar hidden, controlled by top scrollbar */}
-            <div 
+            <div
               ref={bottomScrollRef}
               className="overflow-x-auto table-container-hidden-scrollbar"
             >
@@ -898,9 +898,48 @@ const Trips = () => {
                         {formatDate(trip.plannedStartDate)}
                       </td>
                       <td className="px-4 py-3 whitespace-nowrap">
-                        <span className={`px-2 py-1 rounded-full text-xs font-medium ${getStatusBadge(trip.status)}`}>
-                          {trip.status.charAt(0).toUpperCase() + trip.status.slice(1).replace('-', ' ')}
-                        </span>
+                        <select
+                          value={trip.status}
+                          onChange={async (e) => {
+                            const newStatus = e.target.value;
+                            e.stopPropagation(); // Stop row click
+
+                            try {
+                              if (newStatus === 'in-progress') {
+                                await handleStartTrip(trip);
+                              } else if (newStatus === 'completed') {
+                                const isPaid = trip.orders?.every((o: any) => o.accountingStatus === 'paid');
+                                if (!isPaid) {
+                                  addNotification('error', 'Cannot complete trip: Payment Pending');
+                                  // Revert selection by forcing re-render or just letting the current state persist until fetch
+                                  return;
+                                }
+                                await handleCompleteTrip(trip);
+                              } else {
+                                // For other statuses (e.g., reverting to planned), use generic update
+                                const res = await updateTrip(trip._id, { status: newStatus });
+                                if (res?.success) {
+                                  addNotification('success', 'Trip status updated');
+                                  fetchTrips();
+                                } else {
+                                  addNotification('error', 'Failed to update trip status');
+                                }
+                              }
+                            } catch (err) {
+                              console.error('Error updating trip status:', err);
+                              addNotification('error', 'Error updating trip status');
+                            }
+                          }}
+                          className="text-xs border rounded px-2 py-1"
+                          onClick={(e) => e.stopPropagation()}
+                        >
+                          <option value="planned">Planned</option>
+                          <option value="quoted">Quoted</option>
+                          <option value="in-delivery">In Delivery</option>
+                          <option value="delivered">Delivered</option>
+                          <option value="completed">Completed</option>
+                          <option value="canceled">Canceled</option>
+                        </select>
                       </td>
                       <td className="px-4 py-3 whitespace-nowrap">
                         <div className="flex items-center justify-center">
@@ -912,8 +951,8 @@ const Trips = () => {
                             className="relative p-2 rounded-lg transition-colors hover:bg-blue-50"
                             title="Open Chat"
                           >
-                            <MessageCircle 
-                              className="w-5 h-5" 
+                            <MessageCircle
+                              className="w-5 h-5"
                               style={{ color: unreadCounts[trip._id] > 0 ? FLEET_COLORS.primary : '#9CA3AF' }}
                             />
                             {unreadCounts[trip._id] > 0 && (
@@ -1083,172 +1122,172 @@ const Trips = () => {
               </div>
             ) : (
               <div className="p-6 space-y-6 overflow-y-auto flex-1">
-              {/* Trip Info */}
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="text-sm font-medium text-gray-600">Driver</label>
-                  <p className="text-lg font-semibold">{viewingTrip.driver?.name || '-'}</p>
-                </div>
-                <div>
-                  <label className="text-sm font-medium text-gray-600">Co-driver</label>
-                  <p className="text-lg font-semibold">{viewingTrip.coDriver?.name || '-'}</p>
-                </div>
-                <div>
-                  <label className="text-sm font-medium text-gray-600">Truck</label>
-                  <p className="text-lg font-semibold">{viewingTrip.truck?.licensePlate || viewingTrip.truck?.unitNo || viewingTrip.truck?.internalId || viewingTrip.truck?.makeModel || '-'}</p>
-                </div>
-                <div>
-                  <label className="text-sm font-medium text-gray-600">Trailer</label>
-                  <p className="text-lg font-semibold">{viewingTrip.trailer?.licensePlate || viewingTrip.trailer?.unitNo || viewingTrip.trailer?.makeModel || '-'}</p>
-                </div>
-                <div>
-                  <label className="text-sm font-medium text-gray-600">Status</label>
-                  <p className={`text-lg font-semibold inline-block px-3 py-1 rounded-full ${getStatusBadge(viewingTrip.status)}`}>
-                    {viewingTrip.status.charAt(0).toUpperCase() + viewingTrip.status.slice(1).replace('-', ' ')}
-                  </p>
-                </div>
-                <div>
-                  <label className="text-sm font-medium text-gray-600">Planned Start</label>
-                  <p className="text-lg font-semibold">{formatDate(viewingTrip.plannedStartDate)}</p>
-                </div>
-                <div>
-                  <label className="text-sm font-medium text-gray-600">Planned End</label>
-                  <p className="text-lg font-semibold">{formatDate(viewingTrip.plannedEndDate)}</p>
-                </div>
-              </div>
-
-              {/* Orders */}
-              {viewingTrip.orders && viewingTrip.orders.length > 0 && (
-                <div>
-                  <h4 className="font-semibold text-gray-800 mb-3">Orders ({viewingTrip.orders.length})</h4>
-                  <div className="space-y-3">
-                    {viewingTrip.orders.map((order) => {
-                      const extractLocationString = (location: any): string => {
-                        if (!location) return 'N/A';
-                        if (typeof location === 'string') return location;
-                        if (location.place) return location.place;
-                        if (location.placeId?.name) return location.placeId.name;
-                        if (location.placeId?.currentLocation?.address) return location.placeId.currentLocation.address;
-                        return 'N/A';
-                      };
-                      const customerName = order.customer?.name || order.customer?.firstName || 'N/A';
-                      const pickupLocation = extractLocationString(order.pickupLocation);
-                      const deliveryLocation = extractLocationString(order.deliveryLocation);
-                      return (
-                        <div key={order._id} className="p-4 bg-gray-50 rounded-lg border border-gray-200">
-                          <div className="flex items-start justify-between mb-2">
-                            <div className="font-semibold" style={{ color: FLEET_COLORS.primary }}>{order.orderNumber}</div>
-                            {order.status && (
-                              <span
-                                className="px-2 py-1 rounded text-xs font-medium"
-                                style={
-                                  order.status === 'planned' ? { backgroundColor: '#fef3c7', color: '#92400e' } :
-                                    order.status === 'dispatched' ? { backgroundColor: `${FLEET_COLORS.light}20`, color: FLEET_COLORS.dark } :
-                                      order.status === 'in-delivery' ? { backgroundColor: '#fed7aa', color: '#9a3412' } :
-                                        order.status === 'completed' ? { backgroundColor: '#d1fae5', color: '#065f46' } :
-                                          { backgroundColor: '#f3f4f6', color: '#1f2937' }
-                                }
-                              >
-                                {order.status}
-                              </span>
-                            )}
-                          </div>
-                          <div className="text-sm text-gray-700 space-y-1 mt-2">
-                            {order.customerOrderNo && (
-                              <div><span className="font-medium">Customer Order:</span> {order.customerOrderNo}</div>
-                            )}
-                            <div><span className="font-medium">Customer:</span> {customerName}</div>
-                            <div><span className="font-medium">Pickup:</span> {pickupLocation}</div>
-                            <div><span className="font-medium">Delivery:</span> {deliveryLocation}</div>
-                          </div>
-                        </div>
-                      );
-                    })}
+                {/* Trip Info */}
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="text-sm font-medium text-gray-600">Driver</label>
+                    <p className="text-lg font-semibold">{viewingTrip.driver?.name || '-'}</p>
+                  </div>
+                  <div>
+                    <label className="text-sm font-medium text-gray-600">Co-driver</label>
+                    <p className="text-lg font-semibold">{viewingTrip.coDriver?.name || '-'}</p>
+                  </div>
+                  <div>
+                    <label className="text-sm font-medium text-gray-600">Truck</label>
+                    <p className="text-lg font-semibold">{viewingTrip.truck?.licensePlate || viewingTrip.truck?.unitNo || viewingTrip.truck?.internalId || viewingTrip.truck?.makeModel || '-'}</p>
+                  </div>
+                  <div>
+                    <label className="text-sm font-medium text-gray-600">Trailer</label>
+                    <p className="text-lg font-semibold">{viewingTrip.trailer?.licensePlate || viewingTrip.trailer?.unitNo || viewingTrip.trailer?.makeModel || '-'}</p>
+                  </div>
+                  <div>
+                    <label className="text-sm font-medium text-gray-600">Status</label>
+                    <p className={`text-lg font-semibold inline-block px-3 py-1 rounded-full ${getStatusBadge(viewingTrip.status)}`}>
+                      {viewingTrip.status.charAt(0).toUpperCase() + viewingTrip.status.slice(1).replace('-', ' ')}
+                    </p>
+                  </div>
+                  <div>
+                    <label className="text-sm font-medium text-gray-600">Planned Start</label>
+                    <p className="text-lg font-semibold">{formatDate(viewingTrip.plannedStartDate)}</p>
+                  </div>
+                  <div>
+                    <label className="text-sm font-medium text-gray-600">Planned End</label>
+                    <p className="text-lg font-semibold">{formatDate(viewingTrip.plannedEndDate)}</p>
                   </div>
                 </div>
-              )}
 
-
-              {/* Notes */}
-              {viewingTrip.notes && (
-                <div>
-                  <h4 className="font-semibold text-gray-800 mb-2">Notes</h4>
-                  <p className="text-gray-700">{viewingTrip.notes}</p>
-                </div>
-              )}
-
-              {/* Documents */}
-              {viewingTrip.documents && viewingTrip.documents.length > 0 && (
-                <div>
-                  <h4 className="font-semibold text-gray-800 mb-3">Documents ({viewingTrip.documents.length})</h4>
-                  <div className="space-y-3">
-                    {viewingTrip.documents.map((doc) => {
-                      const formatFileSize = (bytes?: number) => {
-                        if (!bytes) return 'Unknown size';
-                        if (bytes < 1024) return bytes + ' B';
-                        if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(2) + ' KB';
-                        return (bytes / (1024 * 1024)).toFixed(2) + ' MB';
-                      };
-                      return (
-                        <div
-                          key={doc._id || doc.fileUrl}
-                          className="flex items-start justify-between gap-3 p-4 bg-gray-50 border border-gray-200 rounded-lg hover:shadow-sm transition-shadow"
-                        >
-                          <div className="flex items-start gap-3 flex-1 min-w-0">
-                            <File className="w-5 h-5 flex-shrink-0 mt-0.5" style={{ color: FLEET_COLORS.primary }} />
-                            <div className="flex-1 min-w-0">
-                              <div className="font-medium text-sm text-gray-900 truncate">
-                                {doc.fileName}
-                              </div>
-                              {doc.description && (
-                                <div className="text-xs text-gray-600 mt-1">{doc.description}</div>
+                {/* Orders */}
+                {viewingTrip.orders && viewingTrip.orders.length > 0 && (
+                  <div>
+                    <h4 className="font-semibold text-gray-800 mb-3">Orders ({viewingTrip.orders.length})</h4>
+                    <div className="space-y-3">
+                      {viewingTrip.orders.map((order) => {
+                        const extractLocationString = (location: any): string => {
+                          if (!location) return 'N/A';
+                          if (typeof location === 'string') return location;
+                          if (location.place) return location.place;
+                          if (location.placeId?.name) return location.placeId.name;
+                          if (location.placeId?.currentLocation?.address) return location.placeId.currentLocation.address;
+                          return 'N/A';
+                        };
+                        const customerName = order.customer?.name || order.customer?.firstName || 'N/A';
+                        const pickupLocation = extractLocationString(order.pickupLocation);
+                        const deliveryLocation = extractLocationString(order.deliveryLocation);
+                        return (
+                          <div key={order._id} className="p-4 bg-gray-50 rounded-lg border border-gray-200">
+                            <div className="flex items-start justify-between mb-2">
+                              <div className="font-semibold" style={{ color: FLEET_COLORS.primary }}>{order.orderNumber}</div>
+                              {order.status && (
+                                <span
+                                  className="px-2 py-1 rounded text-xs font-medium"
+                                  style={
+                                    order.status === 'planned' ? { backgroundColor: '#fef3c7', color: '#92400e' } :
+                                      order.status === 'dispatched' ? { backgroundColor: `${FLEET_COLORS.light}20`, color: FLEET_COLORS.dark } :
+                                        order.status === 'in-delivery' ? { backgroundColor: '#fed7aa', color: '#9a3412' } :
+                                          order.status === 'completed' ? { backgroundColor: '#d1fae5', color: '#065f46' } :
+                                            { backgroundColor: '#f3f4f6', color: '#1f2937' }
+                                  }
+                                >
+                                  {order.status}
+                                </span>
                               )}
-                              <div className="flex items-center gap-3 mt-1 text-xs text-gray-500">
-                                <span>{formatFileSize(doc.fileSize)}</span>
-                                {doc.uploadedAt && (
-                                  <span>
-                                    {new Date(doc.uploadedAt).toLocaleDateString()}
-                                  </span>
-                                )}
-                                {doc.uploadedBy?.name && (
-                                  <span>Uploaded by {doc.uploadedBy.name}</span>
-                                )}
-                              </div>
+                            </div>
+                            <div className="text-sm text-gray-700 space-y-1 mt-2">
+                              {order.customerOrderNo && (
+                                <div><span className="font-medium">Customer Order:</span> {order.customerOrderNo}</div>
+                              )}
+                              <div><span className="font-medium">Customer:</span> {customerName}</div>
+                              <div><span className="font-medium">Pickup:</span> {pickupLocation}</div>
+                              <div><span className="font-medium">Delivery:</span> {deliveryLocation}</div>
                             </div>
                           </div>
-                          <div className="flex items-center gap-2 flex-shrink-0">
-                            <button
-                              onClick={async () => {
-                                if (!viewingTrip?._id || !doc._id) return;
-                                try {
-                                  const response = await getTripDocumentSignedUrl(viewingTrip._id, doc._id, 'inline');
-                                  if (response?.success && response?.url) {
-                                    window.open(response.url, '_blank');
-                                  } else {
+                        );
+                      })}
+                    </div>
+                  </div>
+                )}
+
+
+                {/* Notes */}
+                {viewingTrip.notes && (
+                  <div>
+                    <h4 className="font-semibold text-gray-800 mb-2">Notes</h4>
+                    <p className="text-gray-700">{viewingTrip.notes}</p>
+                  </div>
+                )}
+
+                {/* Documents */}
+                {viewingTrip.documents && viewingTrip.documents.length > 0 && (
+                  <div>
+                    <h4 className="font-semibold text-gray-800 mb-3">Documents ({viewingTrip.documents.length})</h4>
+                    <div className="space-y-3">
+                      {viewingTrip.documents.map((doc) => {
+                        const formatFileSize = (bytes?: number) => {
+                          if (!bytes) return 'Unknown size';
+                          if (bytes < 1024) return bytes + ' B';
+                          if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(2) + ' KB';
+                          return (bytes / (1024 * 1024)).toFixed(2) + ' MB';
+                        };
+                        return (
+                          <div
+                            key={doc._id || doc.fileUrl}
+                            className="flex items-start justify-between gap-3 p-4 bg-gray-50 border border-gray-200 rounded-lg hover:shadow-sm transition-shadow"
+                          >
+                            <div className="flex items-start gap-3 flex-1 min-w-0">
+                              <File className="w-5 h-5 flex-shrink-0 mt-0.5" style={{ color: FLEET_COLORS.primary }} />
+                              <div className="flex-1 min-w-0">
+                                <div className="font-medium text-sm text-gray-900 truncate">
+                                  {doc.fileName}
+                                </div>
+                                {doc.description && (
+                                  <div className="text-xs text-gray-600 mt-1">{doc.description}</div>
+                                )}
+                                <div className="flex items-center gap-3 mt-1 text-xs text-gray-500">
+                                  <span>{formatFileSize(doc.fileSize)}</span>
+                                  {doc.uploadedAt && (
+                                    <span>
+                                      {new Date(doc.uploadedAt).toLocaleDateString()}
+                                    </span>
+                                  )}
+                                  {doc.uploadedBy?.name && (
+                                    <span>Uploaded by {doc.uploadedBy.name}</span>
+                                  )}
+                                </div>
+                              </div>
+                            </div>
+                            <div className="flex items-center gap-2 flex-shrink-0">
+                              <button
+                                onClick={async () => {
+                                  if (!viewingTrip?._id || !doc._id) return;
+                                  try {
+                                    const response = await getTripDocumentSignedUrl(viewingTrip._id, doc._id, 'inline');
+                                    if (response?.success && response?.url) {
+                                      window.open(response.url, '_blank');
+                                    } else {
+                                      // Fallback to original URL
+                                      window.open(doc.fileUrl, '_blank');
+                                    }
+                                  } catch (error) {
+                                    console.error('Error getting signed URL:', error);
                                     // Fallback to original URL
                                     window.open(doc.fileUrl, '_blank');
                                   }
-                                } catch (error) {
-                                  console.error('Error getting signed URL:', error);
-                                  // Fallback to original URL
-                                  window.open(doc.fileUrl, '_blank');
-                                }
-                              }}
-                              className="p-2 rounded-lg transition-colors"
-                              style={{ color: FLEET_COLORS.primary }}
-                              onMouseEnter={(e) => e.currentTarget.style.backgroundColor = `${FLEET_COLORS.primary}15`}
-                              onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
-                              title="View/Download Document"
-                            >
-                              <Download className="w-4 h-4" />
-                            </button>
+                                }}
+                                className="p-2 rounded-lg transition-colors"
+                                style={{ color: FLEET_COLORS.primary }}
+                                onMouseEnter={(e) => e.currentTarget.style.backgroundColor = `${FLEET_COLORS.primary}15`}
+                                onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
+                                title="View/Download Document"
+                              >
+                                <Download className="w-4 h-4" />
+                              </button>
+                            </div>
                           </div>
-                        </div>
-                      );
-                    })}
+                        );
+                      })}
+                    </div>
                   </div>
-                </div>
-              )}
+                )}
               </div>
             )}
             {!showChat && (

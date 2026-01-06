@@ -65,13 +65,24 @@ const Index = () => {
         try {
             const response = await getAdminDashboard();
             if (response.success && response.data) {
-                // Filter to ensure only current company's data (backend should already filter, but double-check)
+                // Ensure stats are properly formatted with default values
+                const stats = response.data.stats || {};
                 const filteredData = {
                     ...response.data,
+                    stats: {
+                        activeLoads: Number(stats.activeLoads) || 0,
+                        vehiclesOnline: Number(stats.vehiclesOnline) || 0,
+                        activeDrivers: Number(stats.activeDrivers) || 0,
+                        pendingTasks: Number(stats.pendingTasks) || 0,
+                        complianceRate: Number(stats.complianceRate) || 0,
+                        monthlyRevenue: Number(stats.monthlyRevenue) || 0,
+                        openIncidents: Number(stats.openIncidents) || 0
+                    },
                     trips: response.data.trips || [],
                     trucks: response.data.trucks || []
                 };
                 console.log('📊 Dashboard data received:', {
+                    stats: filteredData.stats,
                     tripsCount: filteredData.trips.length,
                     trucksCount: filteredData.trucks.length,
                     trips: filteredData.trips.map(t => ({ id: t.id, tripNumber: t.tripNumber, status: t.status }))
@@ -94,9 +105,9 @@ const Index = () => {
             return { lat: 39.8283, lng: -98.5795 }; // Center of USA
         }
 
-        // Filter active trips - match backend filter (only 'planned' and 'in-progress')
+        // Filter active orders - match backend filter (only 'planned' and 'in-delivery')
         const activeTrips = dashboardData.trips.filter(t =>
-            t.status === 'in-progress' || t.status === 'planned'
+            t.status === 'in-delivery' || t.status === 'in-progress' || t.status === 'planned'
         );
 
         // Collect all valid coordinates
@@ -240,9 +251,9 @@ const Index = () => {
         navigate(route);
     };
 
-    // Filter active trips - match backend filter (only 'planned' and 'in-progress')
+    // Filter active orders - match backend filter (only 'planned' and 'in-delivery')
     const activeTrips = dashboardData?.trips.filter(t =>
-        t.status === 'in-progress' || t.status === 'planned'
+        t.status === 'in-delivery' || t.status === 'in-progress' || t.status === 'planned'
     ) || [];
 
     if (loading) {

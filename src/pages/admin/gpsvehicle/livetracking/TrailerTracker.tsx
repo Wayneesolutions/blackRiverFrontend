@@ -1,9 +1,18 @@
-import React, { useState, useEffect, useMemo, useCallback } from 'react';
+import React, { useState, useEffect, useMemo, useCallback, useRef } from 'react';
 import { RefreshCw, Package, Search, ChevronLeft, ChevronRight, MapPin, Truck, Gauge, X } from 'lucide-react';
-import { useJsApiLoader } from '@react-google-maps/api';
-import type { Libraries } from '@react-google-maps/api';
+import { MapContainer, TileLayer, Marker, Popup, useMap } from 'react-leaflet';
+import L from 'leaflet';
+import 'leaflet/dist/leaflet.css';
 import { getSocket } from "../../../../socket/socketClient";
 import { listFleetUnits, type FleetUnitDto } from '../../../../axios/api/fleet.units';
+
+// Fix for default marker icons in Leaflet
+delete (L.Icon.Default.prototype as any)._getIconUrl;
+L.Icon.Default.mergeOptions({
+    iconRetinaUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon-2x.png',
+    iconUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon.png',
+    shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-shadow.png',
+});
 
 // Type definitions
 // Use FleetUnit for trailers (unitType !== "Truck")
@@ -34,16 +43,6 @@ type Trailer = Omit<FleetUnitDto, 'status' | 'currentLocation'> & {
     internalId?: string; // For Termoking integration
 };
 
-declare global {
-    interface Window {
-        google: any;
-    }
-}
-
-const GOOGLE_MAPS_API_KEY = "AIzaSyBE6Ii-ZxHsICvzD2Fp3m3iMPYX-Vie1N4";
-const GOOGLE_MAPS_LIBRARIES: Libraries = ["marker", "places"];
-const GOOGLE_MAPS_MAP_ID = import.meta.env.VITE_GOOGLE_MAP_ID?.trim() || "AIzaSyBE6Ii-ZxHsICvzD2Fp3m3iMPYX-Vie1N4";
-
 const statusColors: Record<string, string> = {
     moving: "#10b981",
     idle: "#f59e0b",
@@ -58,21 +57,49 @@ const statusBgColors: Record<string, string> = {
     maintenance: "#f3f4f6",
 };
 
-const ProfessionalTrailerTracker: React.FC = () => {
-    const { isLoaded, loadError } = useJsApiLoader({
-        id: 'google-maps-api',
-        googleMapsApiKey: GOOGLE_MAPS_API_KEY,
-        libraries: GOOGLE_MAPS_LIBRARIES,
-    });
+// Component to handle map center updates
+const MapController: React.FC<{ center: [number, number]; zoom: number }> = ({ center, zoom }) => {
+    const map = useMap();
+    
+    useEffect(() => {
+        map.setView(center, zoom);
+    }, [map, center, zoom]);
+    
+    return null;
+};
 
+// Create custom trailer icon for Leaflet
+const createTrailerIcon = (color: string) => {
+    const svg = `
+        <svg width="40" height="40" viewBox="0 0 40 40" xmlns="http://www.w3.org/2000/svg">
+            <circle cx="20" cy="20" r="18" fill="white" stroke="${color}" stroke-width="2"/>
+            <g transform="translate(6, 8)">
+                <rect x="2" y="8" width="24" height="12" fill="${color}" rx="1"/>
+                <rect x="3" y="9" width="22" height="10" fill="white" opacity="0.3"/>
+                <circle cx="8" cy="22" r="2.5" fill="#333"/>
+                <circle cx="20" cy="22" r="2.5" fill="#333"/>
+                <circle cx="30" cy="22" r="2.5" fill="#333"/>
+            </g>
+        </svg>
+    `;
+    
+    return L.divIcon({
+        html: svg,
+        className: 'custom-trailer-icon',
+        iconSize: [40, 40],
+        iconAnchor: [20, 20],
+    });
+};
+
+const ProfessionalTrailerTracker: React.FC = () => {
     const [trailers, setTrailers] = useState<Trailer[]>([]);
     const [selectedTrailer, setSelectedTrailer] = useState<Trailer | null>(null);
     const [searchTerm, setSearchTerm] = useState<string>('');
     const [sidebarCollapsed, setSidebarCollapsed] = useState<boolean>(false);
     const [loading, setLoading] = useState<boolean>(true);
-    const [map, setMap] = useState<google.maps.Map | null>(null);
-    const [markers, setMarkers] = useState<any[]>([]);
-    const [advancedMarkersEnabled, setAdvancedMarkersEnabled] = useState<boolean>(false);
+    const [mapCenter, setMapCenter] = useState<[number, number]>([20.5937, 78.9629]); // Default to India
+    const [mapZoom, setMapZoom] = useState<number>(5);
+    const mapRef = useRef<L.Map | null>(null);
 
     const socket = useMemo(() => getSocket(), []);
 
@@ -84,9 +111,9 @@ const ProfessionalTrailerTracker: React.FC = () => {
         // Center map on selected trailer
         const lat = Number(trailer.currentLocation?.latitude);
         const lng = Number(trailer.currentLocation?.longitude);
-        if (!isNaN(lat) && !isNaN(lng) && map) {
-            map.setCenter({ lat, lng });
-            map.setZoom(15);
+        if (!isNaN(lat) && !isNaN(lng) && lat !== 0 && lng !== 0) {
+            setMapCenter([lat, lng]);
+            setMapZoom(15);
             console.log('🗺️ Map centered on selected trailer');
         }
 
@@ -113,12 +140,12 @@ const ProfessionalTrailerTracker: React.FC = () => {
                 // Update map center for real-time tracking
                 const newLat = Number(data.currentLocation?.latitude);
                 const newLng = Number(data.currentLocation?.longitude);
-                if (!isNaN(newLat) && !isNaN(newLng) && map) {
-                    map.setCenter({ lat: newLat, lng: newLng });
+                if (!isNaN(newLat) && !isNaN(newLng) && newLat !== 0 && newLng !== 0) {
+                    setMapCenter([newLat, newLng]);
                 }
             }
         });
-    }, [socket, map]);
+    }, [socket]);
 
     // Fetch trailers from backend
     const fetchTrailersData = useCallback(async () => {
@@ -183,7 +210,20 @@ const ProfessionalTrailerTracker: React.FC = () => {
                         }
                     };
                 });
+                
                 setTrailers(formatted);
+                
+                // Set map center to first trailer if available
+                if (formatted.length > 0 && formatted[0].currentLocation) {
+                    const firstTrailer = formatted[0];
+                    const lat = Number(firstTrailer.currentLocation.latitude);
+                    const lng = Number(firstTrailer.currentLocation.longitude);
+                    if (!isNaN(lat) && !isNaN(lng) && lat !== 0 && lng !== 0) {
+                        setMapCenter([lat, lng]);
+                        setMapZoom(12);
+                    }
+                }
+                
                 if (formatted.length > 0 && !selectedTrailer) {
                     handleTrailerClick(formatted[0]);
                 }
@@ -201,216 +241,6 @@ const ProfessionalTrailerTracker: React.FC = () => {
     useEffect(() => {
         fetchTrailersData();
     }, [fetchTrailersData]);
-
-    // Separate function to initialize the map
-    const initializeMap = useCallback((mapElement: HTMLElement) => {
-        if (map) {
-            console.log('⚠️ Map already initialized, skipping...');
-            return; // Prevent double initialization
-        }
-
-        console.log('🗺️ Initializing Google Map...');
-
-        // Use first trailer location as center if available, otherwise use default
-        let center = { lat: 20.5937, lng: 78.9629 }; // Default to India
-        let zoom = 5;
-
-        if (trailers.length > 0 && trailers[0].currentLocation) {
-            const firstTrailer = trailers[0];
-            const lat = Number(firstTrailer.currentLocation.latitude);
-            const lng = Number(firstTrailer.currentLocation.longitude);
-            if (!isNaN(lat) && !isNaN(lng)) {
-                center = { lat, lng };
-                zoom = 12;
-                console.log('📍 Centering map on first trailer:', firstTrailer.plateNumber, center);
-            }
-        }
-
-        const mapOptions: google.maps.MapOptions = {
-            center,
-            zoom,
-            mapTypeId: window.google.maps.MapTypeId.ROADMAP,
-            clickableIcons: true,
-            gestureHandling: 'greedy',
-            fullscreenControl: false,
-            streetViewControl: false,
-        };
-
-        if (GOOGLE_MAPS_MAP_ID) {
-            mapOptions.mapId = GOOGLE_MAPS_MAP_ID;
-            console.log('✅ Using Google Maps Map ID:', GOOGLE_MAPS_MAP_ID);
-        } else {
-            mapOptions.styles = [{
-                featureType: 'poi',
-                elementType: 'labels',
-                stylers: [{ visibility: 'off' }]
-            }];
-            console.warn('⚠️ VITE_GOOGLE_MAP_ID not set, using standard map');
-        }
-
-        try {
-            const rect = mapElement.getBoundingClientRect();
-            console.log('📐 Map element dimensions:', { width: rect.width, height: rect.height });
-
-            // Wait for element to have dimensions
-            if (rect.width === 0 || rect.height === 0) {
-                console.log('⏳ Waiting for map element dimensions...');
-                const checkDimensions = setInterval(() => {
-                    const newRect = mapElement.getBoundingClientRect();
-                    if (newRect.width > 0 && newRect.height > 0) {
-                        clearInterval(checkDimensions);
-                        const newMap = new window.google.maps.Map(mapElement, mapOptions);
-                        console.log('✅ Google Map initialized successfully (after dimension check)');
-                        setMap(newMap);
-                        setAdvancedMarkersEnabled(Boolean(GOOGLE_MAPS_MAP_ID && window.google?.maps?.marker?.AdvancedMarkerElement));
-
-                        // Trigger resize after a short delay to ensure map renders properly
-                        setTimeout(() => {
-                            if (newMap) {
-                                window.google.maps.event.trigger(newMap, 'resize');
-                                console.log('✅ Map resize triggered');
-                            }
-                        }, 300);
-                    }
-                }, 50);
-
-                // Cleanup interval after 5 seconds
-                setTimeout(() => clearInterval(checkDimensions), 5000);
-                return;
-            }
-
-            const newMap = new window.google.maps.Map(mapElement, mapOptions);
-            console.log('✅ Google Map initialized successfully');
-            setMap(newMap);
-            setAdvancedMarkersEnabled(Boolean(GOOGLE_MAPS_MAP_ID && window.google?.maps?.marker?.AdvancedMarkerElement));
-
-            // Trigger resize after initialization to ensure proper rendering
-            setTimeout(() => {
-                if (newMap) {
-                    window.google.maps.event.trigger(newMap, 'resize');
-                    console.log('✅ Map resize triggered');
-                }
-            }, 300);
-        } catch (error) {
-            console.error('❌ Error initializing map:', error);
-        }
-    }, [map, trailers]);
-
-    // Initialize map - only run once when Google Maps API is loaded
-    useEffect(() => {
-        if (!isLoaded || !window.google || !window.google.maps || map) {
-            return;
-        }
-
-        const mapElement = document.getElementById('trailer-google-map');
-        if (!mapElement) {
-            console.warn('⚠️ Map element not found, retrying...');
-            // Retry after a short delay
-            const timeoutId = setTimeout(() => {
-                const retryElement = document.getElementById('trailer-google-map');
-                if (retryElement && !map) {
-                    initializeMap(retryElement);
-                }
-            }, 100);
-            return () => clearTimeout(timeoutId);
-        }
-
-        initializeMap(mapElement);
-    }, [isLoaded, map, initializeMap]); // Include initializeMap in dependencies
-
-    // Re-center map when trailers are loaded (only if map already exists)
-    useEffect(() => {
-        if (map && trailers.length > 0 && trailers[0].currentLocation && !selectedTrailer) {
-            const firstTrailer = trailers[0];
-            const lat = Number(firstTrailer.currentLocation.latitude);
-            const lng = Number(firstTrailer.currentLocation.longitude);
-            if (!isNaN(lat) && !isNaN(lng)) {
-                map.setCenter({ lat, lng });
-                map.setZoom(12);
-                console.log('📍 Map re-centered on first trailer:', firstTrailer.plateNumber);
-            }
-        }
-    }, [map, trailers, selectedTrailer]);
-
-    // Update markers on map
-    const updateMarkers = useCallback(() => {
-        if (!map || !window.google || !window.google.maps) return;
-
-        // Clear existing markers
-        markers.forEach(marker => {
-            if (marker && typeof marker.setMap === 'function') {
-                marker.setMap(null);
-            }
-        });
-
-        const newMarkers: any[] = [];
-
-        trailers.forEach((trailer) => {
-            const lat = Number(trailer.currentLocation?.latitude);
-            const lng = Number(trailer.currentLocation?.longitude);
-
-            if (isNaN(lat) || isNaN(lng)) {
-                console.error('❌ Invalid coordinates for trailer:', trailer.plateNumber);
-                return;
-            }
-
-            const markerColor = statusColors[trailer.status] || '#6b7280';
-
-            try {
-                let marker;
-                if (advancedMarkersEnabled && window.google?.maps?.marker?.AdvancedMarkerElement) {
-                    const markerElement = document.createElement('div');
-                    markerElement.style.width = '24px';
-                    markerElement.style.height = '24px';
-                    markerElement.style.borderRadius = '50%';
-                    markerElement.style.background = markerColor;
-                    markerElement.style.border = '3px solid white';
-                    markerElement.style.boxShadow = '0 2px 8px rgba(0,0,0,0.3)';
-                    markerElement.style.cursor = 'pointer';
-
-                    marker = new window.google.maps.marker.AdvancedMarkerElement({
-                        position: { lat, lng },
-                        map,
-                        title: `${trailer.plateNumber} - ${trailer.status}`,
-                        content: markerElement
-                    });
-                } else {
-                    marker = new window.google.maps.Marker({
-                        position: { lat, lng },
-                        map,
-                        title: `${trailer.plateNumber} - ${trailer.status}`,
-                        icon: {
-                            path: window.google.maps.SymbolPath.CIRCLE,
-                            scale: 10,
-                            fillColor: markerColor,
-                            fillOpacity: 0.8,
-                            strokeColor: '#ffffff',
-                            strokeWeight: 2
-                        }
-                    });
-                }
-
-                // Add click listener
-                marker.addListener('click', () => {
-                    handleTrailerClick(trailer);
-                });
-
-                newMarkers.push(marker);
-            } catch (error) {
-                console.error('❌ Error creating marker:', error);
-            }
-        });
-
-        setMarkers(newMarkers);
-        console.log('✅ Markers updated:', newMarkers.length);
-    }, [map, trailers, advancedMarkersEnabled, handleTrailerClick]);
-
-    // Update markers when trailers or map changes
-    useEffect(() => {
-        if (map && trailers.length > 0) {
-            updateMarkers();
-        }
-    }, [map, trailers, updateMarkers]);
 
     // Filter trailers by search
     const filteredTrailers = trailers.filter(trailer => {
@@ -549,42 +379,85 @@ const ProfessionalTrailerTracker: React.FC = () => {
 
             {/* Right Map */}
             <div className="flex-1 relative" style={{ height: '100vh', minHeight: '100vh' }}>
-                {!isLoaded && !loadError && (
-                    <div className="absolute inset-0 bg-[#EDF8FF] flex items-center justify-center z-10">
-                        <div className="text-center text-gray-600 space-y-2">
-                            <RefreshCw className="w-8 h-8 animate-spin text-blue-600 mx-auto mb-4" />
-                            <p className="text-sm">Loading Google Maps...</p>
-                        </div>
-                    </div>
-                )}
-                {loadError && (
-                    <div className="absolute inset-0 bg-[#EDF8FF] flex items-center justify-center z-10">
-                        <div className="text-center text-gray-600 space-y-2">
-                            <div className="font-semibold text-red-500">Failed to load Google Maps</div>
-                            <p className="text-sm">Please check your network connection and try again.</p>
-                            <p className="text-xs text-gray-500 mt-2">Error: {loadError.message || 'Unknown error'}</p>
-                        </div>
-                    </div>
-                )}
-                {/* Always render map container to prevent it from being destroyed */}
-                <div
-                    id="trailer-google-map"
-                    className="absolute inset-0 w-full h-full"
-                    style={{
-                        width: '100%',
-                        height: '100%',
-                        position: 'absolute',
-                        top: 0,
-                        left: 0,
-                        right: 0,
-                        bottom: 0,
-                        backgroundColor: isLoaded ? 'transparent' : '#e5e7eb'
+                <MapContainer
+                    center={mapCenter}
+                    zoom={mapZoom}
+                    style={{ height: '100%', width: '100%', zIndex: 0 }}
+                    whenCreated={(mapInstance) => {
+                        mapRef.current = mapInstance;
                     }}
-                ></div>
+                >
+                    <TileLayer
+                        attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+                        url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+                    />
+                    <MapController center={mapCenter} zoom={mapZoom} />
+                    
+                    {/* Trailer Markers */}
+                    {filteredTrailers.map((trailer) => {
+                        const lat = Number(trailer.currentLocation?.latitude);
+                        const lng = Number(trailer.currentLocation?.longitude);
+                        
+                        if (isNaN(lat) || isNaN(lng) || lat === 0 || lng === 0) {
+                            return null;
+                        }
+                        
+                        const markerColor = statusColors[trailer.status] || '#6b7280';
+                        
+                        return (
+                            <Marker
+                                key={trailer._id}
+                                position={[lat, lng]}
+                                icon={createTrailerIcon(markerColor)}
+                                eventHandlers={{
+                                    click: () => {
+                                        handleTrailerClick(trailer);
+                                    },
+                                }}
+                            >
+                                <Popup>
+                                    <div className="p-2">
+                                        <h3 className="font-bold text-sm mb-2">{trailer.plateNumber}</h3>
+                                        <div className="space-y-1 text-xs">
+                                            <div className="flex items-center justify-between">
+                                                <span className="text-gray-600">Status:</span>
+                                                <span
+                                                    className="px-2 py-0.5 rounded-full text-xs font-semibold"
+                                                    style={{
+                                                        backgroundColor: statusBgColors[trailer.status],
+                                                        color: statusColors[trailer.status],
+                                                    }}
+                                                >
+                                                    {trailer.status.toUpperCase()}
+                                                </span>
+                                            </div>
+                                            <div className="flex items-center justify-between">
+                                                <span className="text-gray-600">Type:</span>
+                                                <span className="font-medium">{trailer.type}</span>
+                                            </div>
+                                            {trailer.speed !== undefined && (
+                                                <div className="flex items-center justify-between">
+                                                    <span className="text-gray-600">Speed:</span>
+                                                    <span className="font-medium">{trailer.speed} km/h</span>
+                                                </div>
+                                            )}
+                                            {trailer.attachedVehicle && (
+                                                <div className="flex items-center justify-between">
+                                                    <span className="text-gray-600">Attached to:</span>
+                                                    <span className="font-medium">{trailer.attachedVehicle.plateNumber}</span>
+                                                </div>
+                                            )}
+                                        </div>
+                                    </div>
+                                </Popup>
+                            </Marker>
+                        );
+                    })}
+                </MapContainer>
 
                 {/* Selected Trailer Info Panel */}
                 {selectedTrailer && (
-                    <div className="absolute top-4 right-4 bg-white rounded-lg shadow-lg p-3 max-w-xs z-10">
+                    <div className="absolute top-4 right-4 bg-white rounded-lg shadow-lg p-3 max-w-xs z-[1000]">
                         <div className="flex items-center justify-between mb-3">
                             <h3 className="text-base font-bold text-gray-800">{selectedTrailer.plateNumber}</h3>
                             <button
@@ -633,7 +506,7 @@ const ProfessionalTrailerTracker: React.FC = () => {
                 )}
 
                 {/* Status Legend */}
-                <div className="absolute bottom-4 left-4 bg-white p-2 rounded-lg shadow-lg text-xs z-10">
+                <div className="absolute bottom-4 left-4 bg-white p-2 rounded-lg shadow-lg text-xs z-[1000]">
                     <div className="font-semibold mb-2">Trailer Status:</div>
                     <div className="space-y-1">
                         <div className="flex items-center gap-2">

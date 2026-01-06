@@ -6,6 +6,7 @@ import { listTrucks } from "../../../../../axios/api/truckTracking";
 import { listTrailers } from "../../../../../axios/api/trailerTracking";
 import { getAllDrivers } from "../../../../../axios/api/driver";
 import { getUserInfo } from "../../../../../utils/auth";
+import AddressSearch from "../../../../../components/common/AddressSearch";
 
 // Color constants
 const PRIMARY_GRADIENT = 'linear-gradient(90deg, #42aeec 0%, #1db5f5 40%, #0ea3d8 100%)';
@@ -3430,11 +3431,31 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
 
                                             {/* Search Address */}
                                             <div className="bg-white rounded-lg border border-gray-200 p-4">
-                                                <label className="block text-xs font-medium text-gray-700 mb-1">Search Address</label>
-                                                <input
-                                                    type="text"
+                                                <AddressSearch
+                                                    label="Search Address"
                                                     placeholder="Search For An Address..."
-                                                    className="w-full p-2 border border-gray-300 rounded focus:outline-none focus:ring-2 text-sm"
+                                                    onAddressSelect={(addressData) => {
+                                                        // Populate shipper address fields
+                                                        if (addressData.address) {
+                                                            setShipperAddress(addressData.address);
+                                                        }
+                                                        if (addressData.city) {
+                                                            setShipperCity(addressData.city);
+                                                        }
+                                                        if (addressData.state) {
+                                                            setShipperProvince(addressData.state);
+                                                        }
+                                                        if (addressData.postalCode) {
+                                                            setShipperPostalCode(addressData.postalCode);
+                                                        }
+                                                        if (addressData.country) {
+                                                            setShipperCountry(addressData.country);
+                                                        }
+                                                        // Also set pickup location address
+                                                        if (addressData.fullAddress) {
+                                                            setPickupLocationAddress(addressData.fullAddress);
+                                                        }
+                                                    }}
                                                 />
                                             </div>
 
@@ -4054,6 +4075,29 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
                                                 />
                                             </div>
 
+                                            {/* Search Address for Delivery Location */}
+                                            {!selectedReceiverCustomer && (
+                                                <div className="bg-white rounded-lg border border-gray-200 p-4">
+                                                    <AddressSearch
+                                                        label="Search Delivery Address"
+                                                        placeholder="Search For A Delivery Address..."
+                                                        onAddressSelect={(addressData) => {
+                                                            // Populate receiver address fields
+                                                            if (addressData.address) {
+                                                                setReceiverAddress(addressData.address);
+                                                            }
+                                                            if (addressData.city) {
+                                                                // Set receiver city if there's a field for it
+                                                            }
+                                                            // Set delivery location address
+                                                            if (addressData.fullAddress) {
+                                                                setDeliveryLocationAddress(addressData.fullAddress);
+                                                            }
+                                                        }}
+                                                    />
+                                                </div>
+                                            )}
+
                                             {/* Delivery Location Address (Read-only, auto-populated from customer) */}
                                             {selectedReceiverCustomer && (
                                                 <div>
@@ -4064,6 +4108,20 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
                                                         readOnly
                                                         className="w-full p-2.5 border border-gray-300 rounded-md bg-gray-50 text-sm cursor-not-allowed"
                                                         placeholder="Auto-filled from customer"
+                                                    />
+                                                </div>
+                                            )}
+                                            
+                                            {/* Receiver Address (editable when no customer selected) */}
+                                            {!selectedReceiverCustomer && (
+                                                <div>
+                                                    <label className="block text-xs font-medium text-gray-700 mb-1">Receiver Address</label>
+                                                    <input
+                                                        type="text"
+                                                        value={receiverAddress}
+                                                        onChange={(e) => setReceiverAddress(e.target.value)}
+                                                        className="w-full p-2.5 border border-gray-300 rounded-md focus:outline-none focus:ring-2 text-sm"
+                                                        placeholder="Enter receiver address"
                                                     />
                                                 </div>
                                             )}

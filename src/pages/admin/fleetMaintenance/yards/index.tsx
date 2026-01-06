@@ -17,6 +17,7 @@ import {
   type Yard,
   type CreateYardData
 } from '../../../../axios/api/fleet.yards';
+import AddressSearch from '../../../../components/common/AddressSearch';
 
 type NotificationType = 'success' | 'error' | 'info';
 
@@ -37,7 +38,13 @@ const YardManagement = () => {
     yardName: '',
     yardCode: '',
     yardType: 'parking',
-    status: 'active'
+    status: 'active',
+    address: '',
+    unit: '',
+    city: '',
+    stateProvince: '',
+    country: '',
+    zipPostalCode: ''
   });
 
   const yardTypes = ['parking', 'drop yard', 'terminal', 'maintenance', 'warehouse'];
@@ -78,7 +85,13 @@ const YardManagement = () => {
         yardName: yard.yardName,
         yardCode: yard.yardCode,
         yardType: yard.yardType,
-        status: yard.status
+        status: yard.status,
+        address: yard.address || '',
+        unit: yard.unit || '',
+        city: yard.city || '',
+        stateProvince: yard.stateProvince || '',
+        country: yard.country || '',
+        zipPostalCode: yard.zipPostalCode || ''
       });
     } else {
       setEditingYard(null);
@@ -86,7 +99,13 @@ const YardManagement = () => {
         yardName: '',
         yardCode: '',
         yardType: 'parking',
-        status: 'active'
+        status: 'active',
+        address: '',
+        unit: '',
+        city: '',
+        stateProvince: '',
+        country: '',
+        zipPostalCode: ''
       });
     }
     setShowModal(true);
@@ -99,7 +118,13 @@ const YardManagement = () => {
       yardName: '',
       yardCode: '',
       yardType: 'parking',
-      status: 'active'
+      status: 'active',
+      address: '',
+      unit: '',
+      city: '',
+      stateProvince: '',
+      country: '',
+      zipPostalCode: ''
     });
   };
 
@@ -108,6 +133,13 @@ const YardManagement = () => {
     
     if (!formData.yardName.trim() || !formData.yardCode.trim()) {
       addNotification('error', 'Yard name and code are required');
+      return;
+    }
+
+    // Validate address fields
+    if (!formData.address.trim() || !formData.city.trim() || !formData.stateProvince.trim() || 
+        !formData.country.trim() || !formData.zipPostalCode.trim()) {
+      addNotification('error', 'All address fields are required');
       return;
     }
 
@@ -252,6 +284,12 @@ const YardManagement = () => {
                       Status
                     </th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Created At
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Updated At
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                       Actions
                     </th>
                   </tr>
@@ -282,6 +320,28 @@ const YardManagement = () => {
                           {yard.status}
                         </span>
                       </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                        {yard.createdAt 
+                          ? new Date(yard.createdAt).toLocaleString('en-US', {
+                              year: 'numeric',
+                              month: 'short',
+                              day: 'numeric',
+                              hour: '2-digit',
+                              minute: '2-digit'
+                            })
+                          : 'N/A'}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                        {yard.updatedAt 
+                          ? new Date(yard.updatedAt).toLocaleString('en-US', {
+                              year: 'numeric',
+                              month: 'short',
+                              day: 'numeric',
+                              hour: '2-digit',
+                              minute: '2-digit'
+                            })
+                          : 'N/A'}
+                      </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
                         <div className="flex items-center gap-3">
                           <button
@@ -311,8 +371,8 @@ const YardManagement = () => {
         {/* Modal */}
         {showModal && (
           <div className="fixed inset-0 bg-white/30 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-            <div className="bg-white rounded-lg shadow-xl max-w-md w-full">
-              <div className="flex items-center justify-between p-6 border-b border-gray-200">
+            <div className="bg-white rounded-lg shadow-xl max-w-md w-full max-h-[90vh] flex flex-col">
+              <div className="flex items-center justify-between p-6 border-b border-gray-200 flex-shrink-0">
                 <h2 className="text-xl font-bold text-gray-900">
                   {editingYard ? 'Edit Yard' : 'Add New Yard'}
                 </h2>
@@ -324,7 +384,8 @@ const YardManagement = () => {
                 </button>
               </div>
 
-              <form onSubmit={handleSubmit} className="p-6 space-y-4">
+              <form onSubmit={handleSubmit} className="flex flex-col flex-1 min-h-0">
+                <div className="p-6 space-y-4 overflow-y-auto flex-1">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
                     Yard Name <span className="text-red-500">*</span>
@@ -389,7 +450,117 @@ const YardManagement = () => {
                   </select>
                 </div>
 
-                <div className="flex items-center justify-end gap-3 pt-4 border-t border-gray-200">
+                {/* Address Section */}
+                <div className="pt-4 border-t border-gray-200">
+                  <h3 className="text-sm font-semibold text-gray-900 mb-4">Address Information</h3>
+                  
+                  <div className="mb-4">
+                    <AddressSearch
+                      label="Search Address"
+                      placeholder="Search For An Address..."
+                      onAddressSelect={(addressData) => {
+                        // Populate address fields
+                        setFormData({
+                          ...formData,
+                          address: addressData.address || '',
+                          city: addressData.city || '',
+                          stateProvince: addressData.state || '',
+                          country: addressData.country || '',
+                          zipPostalCode: addressData.postalCode || ''
+                        });
+                      }}
+                      className=""
+                    />
+                  </div>
+
+                  <div className="mb-4">
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Address <span className="text-red-500">*</span>
+                    </label>
+                    <input
+                      type="text"
+                      required
+                      value={formData.address}
+                      onChange={(e) => setFormData({ ...formData, address: e.target.value })}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#42aeec]"
+                      placeholder="Enter street address"
+                    />
+                  </div>
+
+                  <div className="mb-4">
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Unit / Lot
+                    </label>
+                    <input
+                      type="text"
+                      value={formData.unit}
+                      onChange={(e) => setFormData({ ...formData, unit: e.target.value })}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#42aeec]"
+                      placeholder="Enter unit or lot number"
+                    />
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-4 mb-4">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                        City <span className="text-red-500">*</span>
+                      </label>
+                      <input
+                        type="text"
+                        required
+                        value={formData.city}
+                        onChange={(e) => setFormData({ ...formData, city: e.target.value })}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#42aeec]"
+                        placeholder="Enter city"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                        State / Province <span className="text-red-500">*</span>
+                      </label>
+                      <input
+                        type="text"
+                        required
+                        value={formData.stateProvince}
+                        onChange={(e) => setFormData({ ...formData, stateProvince: e.target.value })}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#42aeec]"
+                        placeholder="Enter state/province"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-4 mb-4">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                        Country <span className="text-red-500">*</span>
+                      </label>
+                      <input
+                        type="text"
+                        required
+                        value={formData.country}
+                        onChange={(e) => setFormData({ ...formData, country: e.target.value })}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#42aeec]"
+                        placeholder="Enter country"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                        ZIP / Postal Code <span className="text-red-500">*</span>
+                      </label>
+                      <input
+                        type="text"
+                        required
+                        value={formData.zipPostalCode}
+                        onChange={(e) => setFormData({ ...formData, zipPostalCode: e.target.value })}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#42aeec]"
+                        placeholder="Enter ZIP/postal code"
+                      />
+                    </div>
+                  </div>
+                </div>
+                </div>
+
+                <div className="flex items-center justify-end gap-3 p-6 pt-4 border-t border-gray-200 flex-shrink-0">
                   <button
                     type="button"
                     onClick={handleCloseModal}
