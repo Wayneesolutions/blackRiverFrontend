@@ -11,6 +11,7 @@ import { FaIdCard } from "react-icons/fa";       // Driver Portfolio
 import { FaFolderOpen } from "react-icons/fa";   // Company Documents
 import { FaUsers } from "react-icons/fa";        // Customers
 import { FaFlask } from "react-icons/fa";        // Drug Test
+import { HiLocationMarker } from "react-icons/hi";
 
 
 type DriverSidebarLink = {
@@ -35,6 +36,11 @@ export const DriverSidebarLinks: DriverSidebarLink[] = [
     key: "/admin/Management/employeelist",
     icon: <FaUserTie />,
     label: "Employees",
+  },
+  {
+    key: "/admin/Management/gps-tracking",
+    icon: <HiLocationMarker />,
+    label: "GPS Tracking",
   },
   {
     key: "/admin/Management/customers",

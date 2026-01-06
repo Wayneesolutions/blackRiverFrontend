@@ -265,7 +265,7 @@ const GpsSection = () => {
                         </div>
 
                         {/* Vehicle List */}
-                        <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+                        {/* <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
                             <div className="px-6 py-4 border-b border-gray-100 flex justify-between items-center gap-4">
                                 <h3 className="font-bold text-gray-800">Vehicle Status List</h3>
 
@@ -355,7 +355,7 @@ const GpsSection = () => {
                                     ))}
                                 </tbody>
                             </table>
-                        </div>
+                        </div> */}
                     </div>
                 )}
 

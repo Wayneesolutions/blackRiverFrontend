@@ -3,7 +3,6 @@ import {
   MdOutlineMap,
 } from "react-icons/md";
 import { FaTruck, FaCogs, FaUserTie, FaRoute } from "react-icons/fa";
-import { HiLocationMarker } from "react-icons/hi";
 
 type DispatchSidebarLinks = {
   key: string;
@@ -51,11 +50,6 @@ export const GpsSidebarLinks: DispatchSidebarLinks[] = [
     key: "/admin/gpsvehicle/drivers",
     icon: <FaUserTie />,
     label: "Drivers",
-  },
-  {
-    key: "/admin/gpsvehicle/gps-tracking",
-    icon: <HiLocationMarker />,
-    label: "GPS Tracking",
   },
   // {
   //   key: "/admin/gpsvehicle/productivity",
