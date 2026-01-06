@@ -6,6 +6,7 @@ import { listTrip, deleteTrip, getTripById, startTrip as startTripAPI, completeT
 import ConfirmationModal from "../../../../../components/common/ConfirmationModal";
 import { FLEET_COLORS, getFocusStyles } from "../../../fleetMaintenance/colorUtils";
 import TripChat from "../../../../../components/chat/TripChat";
+import OrderChat from "../../../../../components/chat/OrderChat";
 import { getUnreadMessageCount } from "../../../../../axios/api/chat";
 import { useLocation, useNavigate } from "react-router-dom";
 
@@ -246,6 +247,11 @@ const ToastNotification = ({ notification, onClose, onChatClick }: {
 };
 
 const Trips = () => {
+  // Log component render
+  useEffect(() => {
+    console.log('🚀 Trips component mounted/rendered');
+  }, []);
+  
   const [trips, setTrips] = useState<Trip[]>([]);
   const [loading, setLoading] = useState(true);
   const [notifications, setNotifications] = useState<ToastNotification[]>([]);
@@ -253,6 +259,7 @@ const Trips = () => {
   const [editingTrip, setEditingTrip] = useState<Trip | null>(null);
   const [viewingTrip, setViewingTrip] = useState<Trip | null>(null);
   const [showChat, setShowChat] = useState(false);
+  const [isOrderChat, setIsOrderChat] = useState(false);
   const [deleteConfirm, setDeleteConfirm] = useState<{ show: boolean; trip: Trip | null }>({ show: false, trip: null });
   const [startConfirm, setStartConfirm] = useState<{ show: boolean; trip: Trip | null }>({ show: false, trip: null });
   const [completeConfirm, setCompleteConfirm] = useState<{ show: boolean; trip: Trip | null }>({ show: false, trip: null });
@@ -260,9 +267,79 @@ const Trips = () => {
   const location = useLocation();
   const navigate = useNavigate();
   const pendingOpenChatTripIdRef = useRef<string | null>(null);
+  const handleChatNotificationClickRef = useRef<((tripId: string) => Promise<void>) | null>(null);
+  
+  // Initialize global store immediately (runs on every render before handler is defined)
+  if (!(window as any).__tripsChatHandlers) {
+    (window as any).__tripsChatHandlers = {};
+    console.log('🌐 Global chat handler store initialized');
+  }
+  
+  // Store handler in ref immediately (runs on every render)
+  handleChatNotificationClickRef.current = handleChatNotificationClick;
+  
+  // Update global store whenever handler changes
+  useEffect(() => {
+    (window as any).__tripsChatHandlers.openChat = handleChatNotificationClick;
+    console.log('🌐 Global store updated with handler:', !!handleChatNotificationClick, 'Type:', typeof handleChatNotificationClick);
+  }, [handleChatNotificationClick]); // Update when handler changes
+
+  // Set up global function IMMEDIATELY (before event listeners)
+  useEffect(() => {
+    console.log('🌐 Setting up global openTripChat function');
+    
+    // Expose global function - this will be called from GlobalChatNotifications
+    (window as any).openTripChat = async (tripId: string) => {
+      console.log('🌐 Global openTripChat called with:', tripId);
+      
+      // Try to get handler from ref first
+      let handler = handleChatNotificationClickRef.current;
+      
+      // If not available, try to get from global store
+      if (!handler && (window as any).__tripsChatHandlers) {
+        handler = (window as any).__tripsChatHandlers.openChat;
+      }
+      
+      if (handler) {
+        try {
+          console.log('✅ Handler available, calling it directly');
+          await handler(tripId);
+          console.log('✅ Chat opened successfully via global function');
+        } catch (error) {
+          console.error('❌ Error calling handler:', error);
+        }
+      } else {
+        console.warn('⚠️ Handler not available, will retry...');
+        // Wait and retry
+        setTimeout(async () => {
+          let retryHandler = handleChatNotificationClickRef.current;
+          if (!retryHandler && (window as any).__tripsChatHandlers) {
+            retryHandler = (window as any).__tripsChatHandlers.openChat;
+          }
+          if (retryHandler) {
+            console.log('🔄 Retry: Handler now available');
+            try {
+              await retryHandler(tripId);
+              console.log('✅ Chat opened via retry');
+            } catch (error) {
+              console.error('❌ Error in retry:', error);
+            }
+          } else {
+            console.error('❌ Handler still not available after retry');
+          }
+        }, 300);
+      }
+    };
+    
+    console.log('🌐 Global function registered:', typeof (window as any).openTripChat);
+  }, []); // Empty deps - function uses ref which is always current
+  
+  // This is now handled above - removed duplicate
 
   // Real-time unread count updates from global socket notifications
   useEffect(() => {
+    console.log('🔧 Setting up event listeners...');
+    
     const onChatNewMessage = async (event: Event) => {
       const detail = (event as CustomEvent<{ tripId?: string }>).detail;
       const tripId = detail?.tripId;
@@ -278,11 +355,77 @@ const Trips = () => {
       }
     };
 
-    window.addEventListener('chat:newMessage', onChatNewMessage as EventListener);
-    return () => {
-      window.removeEventListener('chat:newMessage', onChatNewMessage as EventListener);
+    // Listen for direct chat opening from notifications (when already on trips page)
+    const onOpenChatFromNotification = async (event: Event) => {
+      console.log('🎯 openChatFromNotification event received!');
+      const detail = (event as CustomEvent<{ tripId?: string; orderId?: string }>).detail;
+      console.log('🎯 Event detail:', detail);
+      
+      const chatId = detail?.orderId || detail?.tripId;
+      if (!chatId) {
+        console.warn('⚠️ No chatId in event detail');
+        return;
+      }
+
+      console.log('🔔 Opening chat for:', chatId);
+      
+      // Get handler from ref (always current)
+      let handler = handleChatNotificationClickRef.current;
+      console.log('🔔 Handler from ref:', !!handler);
+      
+      // If handler not ready, wait and retry
+      if (!handler) {
+        console.log('⏳ Handler not ready, waiting 300ms...');
+        await new Promise(resolve => setTimeout(resolve, 300));
+        handler = handleChatNotificationClickRef.current;
+        console.log('🔔 Handler after wait:', !!handler);
+      }
+      
+      // Also try global store as fallback
+      if (!handler && (window as any).__tripsChatHandlers?.openChat) {
+        handler = (window as any).__tripsChatHandlers.openChat;
+        console.log('🔔 Using handler from global store');
+      }
+      
+      if (handler) {
+        try {
+          console.log('✅ Calling handler to set state directly (no navigation)');
+          await handler(chatId);
+          console.log('✅ Handler called - viewingTrip and showChat set, chatbox should be visible');
+        } catch (error) {
+          console.error('❌ Error opening chat:', error);
+        }
+      } else {
+        console.error('❌ Handler not available after all attempts');
+        console.error('❌ Ref:', !!handleChatNotificationClickRef.current);
+        console.error('❌ Global store:', !!(window as any).__tripsChatHandlers?.openChat);
+      }
     };
-  }, []);
+
+    // Use capture phase to ensure we catch the event
+    // Listen on both window and document
+    window.addEventListener('chat:newMessage', onChatNewMessage as EventListener, true);
+    window.addEventListener('openChatFromNotification', onOpenChatFromNotification as EventListener, true);
+    document.addEventListener('openChatFromNotification', onOpenChatFromNotification as EventListener, true);
+    
+    // Also listen without capture phase (bubbling)
+    window.addEventListener('openChatFromNotification', onOpenChatFromNotification as EventListener, false);
+    document.addEventListener('openChatFromNotification', onOpenChatFromNotification as EventListener, false);
+    
+    console.log('👂 Event listeners set up for chat notifications');
+    console.log('👂 Listening for: chat:newMessage, openChatFromNotification');
+    console.log('👂 Listening on both window and document, with and without capture');
+    
+    return () => {
+      console.log('🧹 Cleaning up event listeners');
+      window.removeEventListener('chat:newMessage', onChatNewMessage as EventListener, true);
+      window.removeEventListener('openChatFromNotification', onOpenChatFromNotification as EventListener, true);
+      document.removeEventListener('openChatFromNotification', onOpenChatFromNotification as EventListener, true);
+      window.removeEventListener('openChatFromNotification', onOpenChatFromNotification as EventListener, false);
+      document.removeEventListener('openChatFromNotification', onOpenChatFromNotification as EventListener, false);
+      // Don't delete global function - keep it available
+    };
+  }, []); // Empty deps - we use ref for handler
 
   // Refs for scrollbar synchronization
   const topScrollRef = useRef<HTMLDivElement>(null);
@@ -329,40 +472,143 @@ const Trips = () => {
     setNotifications(prev => prev.filter(n => n.id !== id));
   }, []);
 
-  const handleChatNotificationClick = useCallback((tripId: string) => {
-    // Find the trip
-    const trip = trips.find(t => t._id === tripId);
+  const handleChatNotificationClick = useCallback(async (tripId: string) => {
+    console.log('🔍 handleChatNotificationClick called with tripId:', tripId);
+    console.log('🔍 Current trips count:', trips.length);
+    
+    // First, try to find in trips
+    let trip = trips.find(t => t._id === tripId);
+    let isOrder = false;
+    
+    console.log('🔍 Found in trips?', !!trip);
+    
+    // If not found, it might be an order - try to fetch it
+    if (!trip) {
+      console.log('🔍 Trip not found, checking orders...');
+      try {
+        const { listOrder } = await import("../../../../../axios/api/distapcher");
+        const orderResponse = await listOrder({ page: 1, limit: 1000 });
+        console.log('🔍 Order response:', orderResponse?.success, orderResponse?.data?.length);
+        
+        if (orderResponse?.success && orderResponse?.data) {
+          const order = orderResponse.data.find((o: any) => o._id === tripId);
+          console.log('🔍 Found order?', !!order, order?._id);
+          
+          if (order) {
+            isOrder = true;
+            // Convert order to trip format for compatibility
+            trip = {
+              _id: order._id,
+              tripNumber: order.orderNumber || order._id,
+              orderNumber: order.orderNumber, // Add orderNumber for OrderChat
+              driver: order.driver,
+              coDriver: order.coDriver,
+              truck: order.truck,
+              trailer: order.trailer,
+              status: order.status === 'ACTIVE' ? 'in-progress' : 
+                      order.status === 'COMPLETED' ? 'completed' : 
+                      order.status === 'CANCELLED' ? 'cancelled' : 'planned',
+              orders: [order],
+            } as Trip & { orderNumber?: string };
+            console.log('✅ Converted order to trip format:', trip._id, trip.tripNumber);
+          }
+        }
+      } catch (error) {
+        console.error('❌ Error fetching order for chat:', error);
+      }
+    } else {
+      // Check if it's an order by looking for orderNumber property
+      isOrder = !!(trip as any).orderNumber;
+    }
+    
     if (trip) {
+      console.log('✅ Setting viewingTrip and opening chat');
+      console.log('✅ Trip data:', { _id: trip._id, tripNumber: trip.tripNumber, isOrder });
+      
+      // Set all states together - React will batch them
       setViewingTrip(trip);
+      setIsOrderChat(isOrder);
       setShowChat(true);
-      // Clear unread count for this trip when opening chat
+      
+      console.log('✅ All states set - viewingTrip:', trip._id, 'showChat: true', 'isOrderChat:', isOrder);
+      
+      // Clear unread count for this trip/order when opening chat
       setUnreadCounts(prev => ({
         ...prev,
         [tripId]: 0
       }));
+    } else {
+      console.warn('❌ Trip/Order not found for chat:', tripId);
     }
   }, [trips]);
 
-  // When navigated here with state { openTripChat: tripId }, open the chat automatically
+  // Store handler in ref IMMEDIATELY (not in useEffect) so it's always current
+  // This runs on every render, ensuring the ref is always up-to-date
+  handleChatNotificationClickRef.current = handleChatNotificationClick;
+  
+  // Also update global store whenever handler changes
+  useEffect(() => {
+    if ((window as any).__tripsChatHandlers) {
+      (window as any).__tripsChatHandlers.openChat = handleChatNotificationClick;
+      console.log('📝 Global store updated with handler');
+    }
+  }, [handleChatNotificationClick]);
+
+  // When navigated here with state { openTripChat: tripId } or query param, open the chat automatically
   useEffect(() => {
     const state = location.state as any;
-    if (state?.openTripChat) {
+    const searchParams = new URLSearchParams(location.search);
+    const chatIdFromQuery = searchParams.get('openChat');
+    
+    console.log('📍 Location changed - state:', state, 'query:', location.search);
+    
+    // Check query parameter first (more reliable)
+    if (chatIdFromQuery) {
+      console.log('📍 Found openChat in query param:', chatIdFromQuery);
+      // Open chat immediately
+      const handler = handleChatNotificationClickRef.current;
+      if (handler) {
+        console.log('📍 Handler available, opening chat directly from query param');
+        handler(chatIdFromQuery).then(() => {
+          // Clear query param after opening
+          navigate(location.pathname, { replace: true, state: {} });
+        }).catch(err => {
+          console.error('❌ Error opening chat from query:', err);
+        });
+      } else {
+        // Store for later
+        pendingOpenChatTripIdRef.current = chatIdFromQuery;
+        // Clear query param
+        navigate(location.pathname, { replace: true, state: {} });
+      }
+    } 
+    // Then check state
+    else if (state?.openTripChat) {
+      console.log('📍 Found openTripChat in state:', state.openTripChat);
       pendingOpenChatTripIdRef.current = state.openTripChat as string;
+      console.log('📍 Set pendingOpenChatTripIdRef from state to:', pendingOpenChatTripIdRef.current);
     }
-  }, [location.state]);
+  }, [location.state, location.search, navigate, location.pathname]);
 
   useEffect(() => {
     const tripId = pendingOpenChatTripIdRef.current;
     if (!tripId) return;
 
-    const tripExists = trips.some(t => t._id === tripId);
-    if (!tripExists) return; // wait until trips load
+    console.log('🔔 Opening chat from navigation state for:', tripId);
+    console.log('🔔 Current trips count:', trips.length);
+    console.log('🔔 Handler available:', !!handleChatNotificationClick);
 
-    handleChatNotificationClick(tripId);
-    pendingOpenChatTripIdRef.current = null;
-
-    // Clear state so it doesn't re-trigger
-    navigate(location.pathname, { replace: true, state: {} });
+    // Try to open chat - handleChatNotificationClick will check both trips and orders
+    handleChatNotificationClick(tripId).then(() => {
+      console.log('✅ Chat opened from navigation state');
+      pendingOpenChatTripIdRef.current = null;
+      // Clear state so it doesn't re-trigger
+      navigate(location.pathname, { replace: true, state: {} });
+    }).catch((error) => {
+      console.error('❌ Error opening chat from navigation state:', error);
+      // If it fails, it might be because trips/orders haven't loaded yet
+      // Keep the pending ref so it can retry
+    });
   }, [trips, handleChatNotificationClick, navigate, location.pathname]);
 
   // Clear unread count when chat is opened
@@ -1114,11 +1360,26 @@ const Trips = () => {
             </div>
             {showChat ? (
               <div className="flex-1 overflow-hidden min-h-0 flex flex-col">
-                <TripChat
-                  tripId={viewingTrip._id}
-                  tripNumber={viewingTrip.tripNumber}
-                  onClose={() => setShowChat(false)}
-                />
+                {isOrderChat ? (
+                  <OrderChat
+                    orderId={viewingTrip._id}
+                    orderNumber={(viewingTrip as any).orderNumber || viewingTrip.tripNumber || viewingTrip._id}
+                    onClose={() => {
+                      setShowChat(false);
+                      setIsOrderChat(false);
+                      setViewingTrip(null);
+                    }}
+                  />
+                ) : (
+                  <TripChat
+                    tripId={viewingTrip._id}
+                    tripNumber={viewingTrip.tripNumber}
+                    onClose={() => {
+                      setShowChat(false);
+                      setViewingTrip(null);
+                    }}
+                  />
+                )}
               </div>
             ) : (
               <div className="p-6 space-y-6 overflow-y-auto flex-1">

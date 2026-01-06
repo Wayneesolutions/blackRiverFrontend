@@ -57,6 +57,17 @@ export interface Trip {
             address: string;
             updatedAt: string;
         } | null;
+        yard: {
+            yardName: string;
+            yardCode: string;
+            address: string;
+            city: string;
+            stateProvince: string;
+            coordinates: {
+                latitude: number | null;
+                longitude: number | null;
+            } | null;
+        } | null;
     } | null;
     status: string;
     eta: string;
@@ -87,6 +98,11 @@ export interface Truck {
     longitude: number;
     address: string;
     updatedAt: string;
+    isYardLocation?: boolean;
+    yard?: {
+        yardName: string;
+        yardCode: string;
+    } | null;
 }
 
 export interface AdminDashboardResponse {

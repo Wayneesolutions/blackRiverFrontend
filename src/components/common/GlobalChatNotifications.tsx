@@ -21,18 +21,38 @@ const GlobalChatNotifications = () => {
   const isInitialized = useRef(false);
   const navigate = useNavigate();
 
-  // Fetch all trips for context
+  // Fetch all orders (and trips for backward compatibility) for context
   const fetchTrips = useCallback(async () => {
     try {
+      // Fetch orders (primary)
+      const { listOrder } = await import('../../axios/api/distapcher');
+      const orderResponse = await listOrder({ page: 1, limit: 1000 });
+      
+      // Also fetch trips for backward compatibility
       const { listTrip } = await import('../../axios/api/distapcher');
-      const response = await listTrip({ page: 1, limit: 1000 });
-      if (response?.success && response?.data) {
-        setAllTrips(response.data);
-        allTripsRef.current = response.data;
-        console.log(`📋 Loaded ${response.data.length} trips for global notifications`);
+      const tripResponse = await listTrip({ page: 1, limit: 1000 });
+      
+      const allItems = [
+        ...(orderResponse?.success && orderResponse?.data ? orderResponse.data.map((o: any) => ({
+          _id: o._id,
+          tripNumber: o.orderNumber || o._id,
+          orderNumber: o.orderNumber || o._id,
+          isOrder: true
+        })) : []),
+        ...(tripResponse?.success && tripResponse?.data ? tripResponse.data.map((t: any) => ({
+          _id: t._id,
+          tripNumber: t.tripNumber || t._id,
+          isOrder: false
+        })) : [])
+      ];
+      
+      if (allItems.length > 0) {
+        setAllTrips(allItems);
+        allTripsRef.current = allItems;
+        console.log(`📋 Loaded ${allItems.length} orders/trips for global notifications`);
       }
     } catch (error) {
-      console.error('Error fetching trips:', error);
+      console.error('Error fetching orders/trips:', error);
     }
   }, []);
 
@@ -64,34 +84,73 @@ const GlobalChatNotifications = () => {
         // Global message handler
         const handleNewMessage = (message: any) => {
           console.log('📨 Global notification - New message:', message);
+          console.log('📨 Current user ID:', currentUserId);
+          console.log('📨 Message sender ID:', message.senderId?._id, message.senderId?._id?.toString());
 
           // Only show if message is NOT from current user
-          if (message.senderId?._id !== currentUserId) {
+          // Check both string and object ID formats
+          const senderId = message.senderId?._id?.toString() || message.senderId?._id || message.senderId;
+          const currentUserIdStr = currentUserId?.toString() || currentUserId;
+          
+          console.log('🔍 Comparing sender IDs:', {
+            senderId,
+            currentUserIdStr,
+            areEqual: senderId === currentUserIdStr,
+            senderIdType: typeof senderId,
+            currentUserIdType: typeof currentUserIdStr
+          });
+          
+          if (senderId === currentUserIdStr) {
+            console.log('⚠️ Message is from current user, skipping notification');
+            return;
+          }
+          
+          console.log('✅ Message is from another user, proceeding with notification');
+
+          // Get orderId or tripId (backend sends both for orders)
+          const messageId = message.orderId || message.tripId;
+          if (!messageId) {
+            console.log('⚠️ Message has no orderId or tripId, skipping');
+            return;
+          }
+          
+          console.log('✅ Message is from another user, showing notification for:', messageId);
+
             // Let any page (e.g. Trips list) update unread counts in real time
             try {
               window.dispatchEvent(
-                new CustomEvent('chat:newMessage', { detail: { tripId: message.tripId } })
+                new CustomEvent('chat:newMessage', { detail: { tripId: messageId, orderId: message.orderId } })
               );
             } catch (e) {
               // no-op (older browsers / non-DOM contexts)
             }
 
-            // Use ref to get latest trips
-            const trip = allTripsRef.current.find(t => t._id === message.tripId);
+            // Use ref to get latest trips (check both tripId and orderId)
+            const trip = allTripsRef.current.find(t => 
+              t._id === messageId || 
+              t._id === message.tripId || 
+              t._id === message.orderId
+            );
             const driverName = message.senderId?.name || 'Driver';
-            const tripNumber = trip?.tripNumber || message.tripNumber || 'Unknown';
+            const tripNumber = trip?.tripNumber || trip?.orderNumber || message.tripNumber || message.orderNumber || 'Unknown';
 
             // Add notification
             const notification: ChatNotification = {
               id: Date.now(),
-              tripId: message.tripId,
+              tripId: messageId, // Use as tripId for navigation (works for both trips and orders)
               tripNumber: tripNumber,
               driverName: driverName,
               message: message.message || 'New message',
               timestamp: Date.now(),
             };
 
-            setNotifications(prev => [...prev, notification]);
+            console.log('📢 Adding notification:', notification);
+            setNotifications(prev => {
+              console.log('📢 Current notifications count:', prev.length);
+              const updated = [...prev, notification];
+              console.log('📢 Updated notifications count:', updated.length);
+              return updated;
+            });
 
             // Play sound
             try {
@@ -106,11 +165,25 @@ const GlobalChatNotifications = () => {
             setTimeout(() => {
               setNotifications(prev => prev.filter(n => n.id !== notification.id));
             }, 8000);
-          }
         };
 
         socketService.onNewMessage(handleNewMessage);
         console.log('👂 Global chat notification listener active');
+        
+        // Test: Log all socket events to debug
+        const socket = socketService.getSocket();
+        if (socket) {
+          console.log('🔌 Socket instance:', socket.id, 'connected:', socket.connected);
+          
+          // Listen to all events for debugging
+          socket.onAny((eventName, ...args) => {
+            if (eventName === 'newChatMessage') {
+              console.log('🎯 Received newChatMessage event:', args);
+            }
+          });
+        } else {
+          console.error('❌ Socket instance is null!');
+        }
       })
       .catch(error => {
         console.error('❌ Global socket connection error:', error);
@@ -155,36 +228,161 @@ const GlobalChatNotifications = () => {
         return;
       }
 
-      console.log(`🌍 Joining ${allTrips.length} trip rooms globally...`);
+      console.log(`🌍 Joining ${allTrips.length} order/trip rooms globally...`);
       
       // Join rooms with delay to avoid overwhelming the server
-      for (const trip of allTrips) {
+      for (const item of allTrips) {
         try {
-          await socketService.joinTripChat(trip._id);
-          console.log(`✅ Joined room: ${trip.tripNumber}`);
+          // Backend uses joinTripChat for both orders and trips
+          await socketService.joinTripChat(item._id);
+          console.log(`✅ Joined room: ${item.tripNumber || item.orderNumber}`);
         } catch (error) {
-          console.error(`❌ Failed to join trip ${trip.tripNumber}:`, error);
+          console.error(`❌ Failed to join ${item.isOrder ? 'order' : 'trip'} ${item.tripNumber || item.orderNumber}:`, error);
         }
         // Small delay between joins
         await new Promise(resolve => setTimeout(resolve, 10));
       }
       
-      console.log(`✅ Successfully joined ${allTrips.length} trip rooms`);
+      console.log(`✅ Successfully joined ${allTrips.length} order/trip rooms`);
     };
 
     joinRooms();
   }, [allTrips, isSocketReady]);
 
-  const handleNotificationClick = (notification: ChatNotification) => {
+  const handleNotificationClick = async (notification: ChatNotification) => {
     // Determine correct route based on current path (admin vs dispatcher)
     const currentPath = window.location.pathname;
     const isAdmin = currentPath.startsWith('/admin');
     const tripsPath = isAdmin ? '/admin/dispatch/trips' : '/dispatch/trips';
     
-    console.log(`🔗 Navigating to ${tripsPath} for trip ${notification.tripNumber}`);
+    console.log(`🔗 Clicked notification for ${notification.tripNumber}, ID: ${notification.tripId}`);
+    console.log(`🔗 Current path: ${currentPath}, Target path: ${tripsPath}`);
     
-    // Navigate to trips page with the trip selected
-    navigate(tripsPath, { state: { openTripChat: notification.tripId } });
+    // If already on trips page, directly call the handler to set state (no navigation needed)
+    if (currentPath === tripsPath || currentPath.endsWith('/trips')) {
+      console.log('🔗 Already on trips page, opening chat directly via state');
+      console.log('🔗 Trip ID:', notification.tripId);
+      
+      // Method 1: Try direct handler from global store FIRST (most reliable)
+      console.log('🔍 Checking global store:', !!(window as any).__tripsChatHandlers);
+      console.log('🔍 Handler in store:', !!(window as any).__tripsChatHandlers?.openChat);
+      console.log('🔍 Handler type:', typeof (window as any).__tripsChatHandlers?.openChat);
+      
+      if ((window as any).__tripsChatHandlers?.openChat) {
+        console.log('🔗 Method 1: Using handler from global store');
+        try {
+          const handler = (window as any).__tripsChatHandlers.openChat;
+          console.log('🔗 Handler function:', typeof handler, !!handler);
+          if (handler && typeof handler === 'function') {
+            await handler(notification.tripId);
+            console.log('✅ Chat opened via global store handler');
+            return;
+          } else {
+            console.warn('⚠️ Handler is not a function:', typeof handler);
+          }
+        } catch (error) {
+          console.error('❌ Error with global store handler:', error);
+        }
+      }
+      
+      // Method 2: Try global function (calls handler which sets state)
+      console.log('🔍 Checking global function:', typeof (window as any).openTripChat);
+      if ((window as any).openTripChat) {
+        console.log('🔗 Method 2: Calling global function');
+        try {
+          await (window as any).openTripChat(notification.tripId);
+          console.log('✅ Chat opened via global function');
+          return;
+        } catch (error) {
+          console.error('❌ Error with global function:', error);
+        }
+      }
+      
+      // Wait a bit and retry global store (handler might not be set up yet)
+      console.log('⏳ Handlers not ready, waiting 500ms and retrying...');
+      await new Promise(resolve => setTimeout(resolve, 500));
+      
+      console.log('🔍 Retry - Checking global store:', !!(window as any).__tripsChatHandlers);
+      console.log('🔍 Retry - Handler in store:', !!(window as any).__tripsChatHandlers?.openChat);
+      
+      if ((window as any).__tripsChatHandlers?.openChat) {
+        console.log('🔗 Retry: Using handler from global store');
+        try {
+          const handler = (window as any).__tripsChatHandlers.openChat;
+          if (handler && typeof handler === 'function') {
+            await handler(notification.tripId);
+            console.log('✅ Chat opened via global store handler (retry)');
+            return;
+          }
+        } catch (error) {
+          console.error('❌ Error with global store handler (retry):', error);
+        }
+      }
+      
+      // Also retry global function
+      if ((window as any).openTripChat) {
+        console.log('🔗 Retry: Calling global function');
+        try {
+          await (window as any).openTripChat(notification.tripId);
+          console.log('✅ Chat opened via global function (retry)');
+          return;
+        } catch (error) {
+          console.error('❌ Error with global function (retry):', error);
+        }
+      }
+      
+      // Method 3: Dispatch custom event (trips page will listen and set state)
+      console.log('🔗 Method 3: Dispatching custom event');
+      const event = new CustomEvent('openChatFromNotification', { 
+        detail: { tripId: notification.tripId, orderId: notification.tripId },
+        bubbles: true,
+        cancelable: true,
+        composed: true // Allow event to cross shadow DOM boundaries
+      });
+      
+      // Dispatch to window (multiple times to ensure it's caught)
+      window.dispatchEvent(event);
+      window.dispatchEvent(event); // Dispatch twice to ensure
+      
+      // Also dispatch to document
+      document.dispatchEvent(event);
+      document.dispatchEvent(event);
+      
+      // Also dispatch to document.body
+      if (document.body) {
+        document.body.dispatchEvent(event);
+      }
+      
+      console.log('🔗 Event dispatched to window, document, and body');
+      
+      // Give event listeners time to process
+      await new Promise(resolve => setTimeout(resolve, 100));
+      
+      // Method 4: Retry global function after a delay (in case it wasn't set up yet)
+      setTimeout(async () => {
+        if ((window as any).openTripChat) {
+          console.log('🔗 Method 4: Retrying global function');
+          try {
+            await (window as any).openTripChat(notification.tripId);
+            console.log('✅ Chat opened via retry');
+          } catch (error) {
+            console.error('❌ Error in retry:', error);
+          }
+        } else if ((window as any).__tripsChatHandlers?.openChat) {
+          console.log('🔗 Method 4: Retrying global store handler');
+          try {
+            await (window as any).__tripsChatHandlers.openChat(notification.tripId);
+            console.log('✅ Chat opened via store handler retry');
+          } catch (error) {
+            console.error('❌ Error in store handler retry:', error);
+          }
+        }
+      }, 500);
+    } else {
+      // Navigate to trips page with the trip selected
+      console.log(`🔗 Navigating to ${tripsPath} with state`);
+      navigate(tripsPath, { state: { openTripChat: notification.tripId } });
+    }
     
     // Remove notification
     removeNotification(notification.id);
@@ -194,7 +392,18 @@ const GlobalChatNotifications = () => {
     setNotifications(prev => prev.filter(n => n.id !== id));
   };
 
-  if (notifications.length === 0) return null;
+  // Debug: Log notifications state
+  useEffect(() => {
+    console.log('🔔 Notifications state updated:', notifications.length, 'notifications');
+    if (notifications.length > 0) {
+      console.log('🔔 Notification details:', notifications);
+    }
+  }, [notifications]);
+
+  if (notifications.length === 0) {
+    console.log('🔔 No notifications to display');
+    return null;
+  }
 
   return (
     <div className="fixed top-4 right-4 z-[10000] flex flex-col gap-3" style={{ pointerEvents: 'none' }}>

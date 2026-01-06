@@ -11,18 +11,88 @@ import {
     DollarSign,
     Heart
 } from 'lucide-react';
-import { GoogleMap, useJsApiLoader, Marker } from '@react-google-maps/api';
-import type { Libraries } from '@react-google-maps/api';
+import { MapContainer, TileLayer, Marker, Popup, useMap } from 'react-leaflet';
+import L from 'leaflet';
+import 'leaflet/dist/leaflet.css';
 import { getAdminDashboard, type Trip, type Truck, type DashboardStats } from '../../../axios/api/main.dashboard';
+import { getActiveOrdersWithTracking } from '../../../axios/api/distapcher';
 
-declare global {
-    interface Window {
-        google: any;
-    }
+// Fix for default marker icons in Leaflet
+delete (L.Icon.Default.prototype as any)._getIconUrl;
+L.Icon.Default.mergeOptions({
+    iconRetinaUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon-2x.png',
+    iconUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon.png',
+    shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-shadow.png',
+});
+
+// Component to handle map center updates
+const MapController: React.FC<{ center: [number, number]; zoom: number }> = ({ center, zoom }) => {
+    const map = useMap();
+    
+    useEffect(() => {
+        map.setView(center, zoom);
+    }, [map, center, zoom]);
+    
+    return null;
+};
+
+// Create custom truck icon for Leaflet
+const createTruckIcon = (color: string = '#ef4444') => {
+    const svg = `
+        <svg width="32" height="32" viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg">
+            <circle cx="16" cy="16" r="14" fill="white" stroke="${color}" stroke-width="2"/>
+            <g transform="translate(6, 8)">
+                <rect x="2" y="5" width="12" height="6" fill="${color}" rx="1"/>
+                <rect x="2" y="3" width="6" height="5" fill="${color}" rx="1"/>
+                <rect x="3" y="4" width="4" height="2" fill="white" opacity="0.8"/>
+                <circle cx="5" cy="13" r="2" fill="#333"/>
+                <circle cx="11" cy="13" r="2" fill="#333"/>
+            </g>
+        </svg>
+    `;
+    
+    return L.divIcon({
+        html: svg,
+        className: 'custom-truck-icon',
+        iconSize: [32, 32],
+        iconAnchor: [16, 16],
+    });
+};
+
+interface ActiveOrderGroup {
+    _id: string;
+    driverId: string;
+    driver: {
+        _id: string;
+        name: string;
+        email: string;
+        phone: string;
+    };
+    truck?: {
+        _id: string;
+        plateNumber: string;
+        make: string;
+        model: string;
+        unitNumber: string;
+        internalId: string;
+        trackingKey?: string;
+    };
+    orders: Array<{
+        _id: string;
+        orderNumber: string;
+        customerOrderNo?: string;
+        tripNo?: string;
+        status: string;
+    }>;
+    currentLocation?: {
+        lat: number;
+        lng: number;
+        address: string;
+    };
+    speed: number;
+    engineOn: boolean;
+    orderCount: number;
 }
-
-const GOOGLE_MAPS_API_KEY = import.meta.env.VITE_GOOGLE_MAPS_API_KEY || "AIzaSyBE6Ii-ZxHsICvzD2Fp3m3iMPYX-Vie1N4";
-const GOOGLE_MAPS_LIBRARIES: Libraries = ["marker", "places"];
 
 interface FeatureCard {
     id: string;
@@ -41,11 +111,6 @@ interface FeatureCard {
 
 const Index = () => {
     const navigate = useNavigate();
-    const { isLoaded, loadError } = useJsApiLoader({
-        id: 'google-maps-api',
-        googleMapsApiKey: GOOGLE_MAPS_API_KEY,
-        libraries: GOOGLE_MAPS_LIBRARIES,
-    });
 
     const [loading, setLoading] = useState(true);
     const [dashboardData, setDashboardData] = useState<{
@@ -53,10 +118,19 @@ const Index = () => {
         trips: Trip[];
         trucks: Truck[];
     } | null>(null);
+    const [activeOrders, setActiveOrders] = useState<ActiveOrderGroup[]>([]);
     const [error, setError] = useState<string | null>(null);
 
     useEffect(() => {
         fetchDashboardData();
+        fetchActiveOrders();
+        
+        // Refresh active orders every 30 seconds to update tracking locations
+        const interval = setInterval(() => {
+            fetchActiveOrders();
+        }, 30000);
+        
+        return () => clearInterval(interval);
     }, []);
 
     const fetchDashboardData = async () => {
@@ -99,44 +173,90 @@ const Index = () => {
         }
     };
 
-    // Calculate map center based on active trips and trucks
-    const mapCenter = useMemo(() => {
-        if (!dashboardData) {
-            return { lat: 39.8283, lng: -98.5795 }; // Center of USA
+    const fetchActiveOrders = async () => {
+        try {
+            const response = await getActiveOrdersWithTracking();
+            if (response?.success && response?.data) {
+                const ordersData = Array.isArray(response.data) ? response.data : [];
+                // Filter orders that have trucks with tracking keys and current locations
+                const ordersWithTracking = ordersData.filter((order: ActiveOrderGroup) => 
+                    order.truck?.trackingKey && 
+                    order.currentLocation && 
+                    order.currentLocation.lat && 
+                    order.currentLocation.lng &&
+                    order.currentLocation.lat !== 0 && 
+                    order.currentLocation.lng !== 0
+                );
+                setActiveOrders(ordersWithTracking);
+                console.log('📍 Active orders with tracking:', ordersWithTracking.length);
+            }
+        } catch (err: any) {
+            console.error('Error fetching active orders with tracking:', err);
         }
+    };
 
-        // Filter active orders - match backend filter (only 'planned' and 'in-delivery')
-        const activeTrips = dashboardData.trips.filter(t =>
-            t.status === 'in-delivery' || t.status === 'in-progress' || t.status === 'planned'
-        );
-
-        // Collect all valid coordinates
+    // Calculate map center based on active orders with tracking and trips with trucks
+    const mapCenter = useMemo((): [number, number] => {
         const coordinates: { lat: number; lng: number }[] = [];
 
-        // Add trip current locations
-        activeTrips.forEach(trip => {
-            if (trip.currentLat && trip.currentLng) {
-                coordinates.push({ lat: trip.currentLat, lng: trip.currentLng });
-            } else if (trip.originLat && trip.originLng) {
-                coordinates.push({ lat: trip.originLat, lng: trip.originLng });
+        // Add active orders with tracking
+        activeOrders.forEach(order => {
+            if (order.currentLocation && order.currentLocation.lat && order.currentLocation.lng &&
+                order.currentLocation.lat !== 0 && order.currentLocation.lng !== 0) {
+                coordinates.push({ lat: order.currentLocation.lat, lng: order.currentLocation.lng });
             }
         });
 
-        // Add truck locations
-        dashboardData.trucks.forEach(truck => {
-            if (truck.latitude && truck.longitude) {
-                coordinates.push({ lat: truck.latitude, lng: truck.longitude });
-            }
-        });
+        // Add trips with trucks that have current locations or yard locations
+        if (dashboardData) {
+            dashboardData.trips.forEach(trip => {
+                if (!trip.truckInfo) return;
+                
+                // Don't add if already in activeOrders
+                const alreadyAdded = activeOrders.some(order => 
+                    order.truck?.plateNumber === trip.truckInfo?.licensePlate ||
+                    order.truck?.unitNumber === trip.truckInfo?.unitNo
+                );
+                if (alreadyAdded) return;
+                
+                // Prefer current location, fallback to yard location
+                if (trip.currentLat && trip.currentLng &&
+                    trip.currentLat !== 0 && trip.currentLng !== 0) {
+                    coordinates.push({ lat: trip.currentLat, lng: trip.currentLng });
+                } else if (trip.truckInfo.yard?.coordinates?.latitude &&
+                          trip.truckInfo.yard?.coordinates?.longitude) {
+                    coordinates.push({ 
+                        lat: trip.truckInfo.yard.coordinates.latitude, 
+                        lng: trip.truckInfo.yard.coordinates.longitude 
+                    });
+                } else if (trip.originLat && trip.originLng) {
+                    // Fallback to origin if no current location or yard
+                    coordinates.push({ lat: trip.originLat, lng: trip.originLng });
+                }
+            });
 
-        if (coordinates.length === 0) {
-            return { lat: 39.8283, lng: -98.5795 }; // Center of USA
+            // Add standalone trucks (both with current location and yard location)
+            dashboardData.trucks.forEach(truck => {
+                if (truck.latitude && truck.longitude) {
+                    coordinates.push({ lat: truck.latitude, lng: truck.longitude });
+                }
+            });
         }
 
-        const avgLat = coordinates.reduce((sum, coord) => sum + coord.lat, 0) / coordinates.length;
-        const avgLng = coordinates.reduce((sum, coord) => sum + coord.lng, 0) / coordinates.length;
-        return { lat: avgLat, lng: avgLng };
-    }, [dashboardData]);
+        if (coordinates.length > 0) {
+            const avgLat = coordinates.reduce((sum, coord) => sum + coord.lat, 0) / coordinates.length;
+            const avgLng = coordinates.reduce((sum, coord) => sum + coord.lng, 0) / coordinates.length;
+            return [avgLat, avgLng];
+        }
+
+        return [39.8283, -98.5795]; // Center of USA
+    }, [activeOrders, dashboardData]);
+
+    const mapZoom = useMemo(() => {
+        if (activeOrders.length > 0) return 6;
+        if (dashboardData && (dashboardData.trips.length > 0 || dashboardData.trucks.length > 0)) return 6;
+        return 5;
+    }, [activeOrders, dashboardData]);
 
     // Build features cards with real data
     const features: FeatureCard[] = useMemo(() => {
@@ -250,11 +370,6 @@ const Index = () => {
     const handleCardClick = (route: string) => {
         navigate(route);
     };
-
-    // Filter active orders - match backend filter (only 'planned' and 'in-delivery')
-    const activeTrips = dashboardData?.trips.filter(t =>
-        t.status === 'in-delivery' || t.status === 'in-progress' || t.status === 'planned'
-    ) || [];
 
     if (loading) {
         return (
@@ -391,95 +506,223 @@ const Index = () => {
                             </div>
                         </div>
 
-                        {/* Real Google Map */}
+                        {/* OpenStreetMap */}
                         <div className="relative h-52">
-                            {loadError ? (
-                                <div className="w-full h-full bg-gradient-to-br from-gray-50 via-gray-100 to-gray-200 flex items-center justify-center border border-gray-300 rounded-lg">
-                                    <div className="text-center p-4">
-                                        <MapPin className="text-gray-400 mx-auto mb-2" size={32} />
-                                        <p className="text-gray-600 font-medium text-sm mb-1">Map unavailable</p>
-                                        <p className="text-gray-500 text-xs">Google Maps could not be loaded</p>
-                                    </div>
-                                </div>
-                            ) : isLoaded ? (
-                                <GoogleMap
-                                    mapContainerStyle={{ width: '100%', height: '100%' }}
-                                    center={mapCenter}
-                                    zoom={activeTrips.length > 0 || (dashboardData?.trucks.length || 0) > 0 ? 6 : 5}
-                                    options={{
-                                        zoomControl: true,
-                                        streetViewControl: false,
-                                        mapTypeControl: false,
-                                        fullscreenControl: false,
-                                        styles: [
-                                            {
-                                                featureType: 'poi',
-                                                elementType: 'labels',
-                                                stylers: [{ visibility: 'off' }]
-                                            }
-                                        ]
-                                    }}
-                                >
-                                    {/* Trip Markers - Only show current location (truck) for active trips */}
-                                    {activeTrips.map((trip) => {
-                                        // Only show truck current location marker, not origin/destination
-                                        if (trip.currentLat && trip.currentLng && trip.truckInfo) {
-                                            return (
-                                                <Marker
-                                                    key={`${trip.id}-truck`}
-                                                    position={{ lat: trip.currentLat, lng: trip.currentLng }}
-                                                    icon={{
-                                                        url: 'data:image/svg+xml;charset=UTF-8,' + encodeURIComponent(`
-                                                            <svg width="24" height="24" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                                                                <path d="M18.92 6.01C18.72 5.42 18.16 5 17.5 5h-11c-.66 0-1.21.42-1.42 1.01L3 12v8c0 .55.45 1 1 1h1c.55 0 1-.45 1-1v-1h12v1c0 .55.45 1 1 1h1c.55 0 1-.45 1-1v-8l-2.08-5.99zM6.5 16c-.83 0-1.5-.67-1.5-1.5S5.67 13 6.5 13s1.5.67 1.5 1.5S7.33 16 6.5 16zm11 0c-.83 0-1.5-.67-1.5-1.5S16.67 13 17.5 13s1.5.67 1.5 1.5-.67 1.5-1.5 1.5zM5 11l1.5-4.5h11L19 11H5z" fill="#ef4444"/>
-                                                            </svg>
-                                                        `),
-                                                        scaledSize: new window.google.maps.Size(24, 24),
-                                                        anchor: new window.google.maps.Point(12, 12),
-                                                    }}
-                                                    title={`Trip: ${trip.tripNumber || trip.id} - Truck: ${trip.truck} - Driver: ${trip.driver}`}
-                                                />
-                                            );
-                                        }
+                            <MapContainer
+                                center={mapCenter}
+                                zoom={mapZoom}
+                                style={{ height: '100%', width: '100%' }}
+                                scrollWheelZoom={false}
+                            >
+                                <TileLayer
+                                    attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+                                    url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+                                />
+                                <MapController center={mapCenter} zoom={mapZoom} />
+                                
+                                {/* Markers for active orders with tracking keys */}
+                                {activeOrders.map((orderGroup) => {
+                                    if (!orderGroup.currentLocation) {
                                         return null;
-                                    })}
+                                    }
 
-                                    {/* All trucks current locations */}
-                                    {dashboardData?.trucks.map((truck) => {
-                                        // Skip if this truck is already shown as part of a trip
-                                        const isTripTruck = activeTrips.some(t =>
-                                            t.truckInfo?.id === truck.id ||
-                                            t.truckInfo?.licensePlate === truck.licensePlate
+                                    const lat = orderGroup.currentLocation.lat;
+                                    const lng = orderGroup.currentLocation.lng;
+
+                                    if (isNaN(lat) || isNaN(lng) || lat === 0 || lng === 0) {
+                                        return null;
+                                    }
+
+                                    return (
+                                        <Marker
+                                            key={`order-${orderGroup._id}`}
+                                            position={[lat, lng]}
+                                            icon={createTruckIcon('#ef4444')}
+                                        >
+                                            <Popup>
+                                                <div className="p-2 min-w-[200px]">
+                                                    <h3 className="font-bold text-sm mb-2">
+                                                        {orderGroup.truck?.plateNumber || orderGroup.truck?.unitNumber || 'Truck'}
+                                                    </h3>
+                                                    <div className="space-y-1 text-xs">
+                                                        <div className="flex items-center justify-between">
+                                                            <span className="text-gray-600">Driver:</span>
+                                                            <span className="font-medium">{orderGroup.driver.name}</span>
+                                                        </div>
+                                                        <div className="flex items-center justify-between">
+                                                            <span className="text-gray-600">Orders:</span>
+                                                            <span className="font-medium">{orderGroup.orderCount}</span>
+                                                        </div>
+                                                        {orderGroup.currentLocation.address && (
+                                                            <div className="mt-2 pt-2 border-t">
+                                                                <p className="text-gray-600 text-xs">
+                                                                    {orderGroup.currentLocation.address}
+                                                                </p>
+                                                            </div>
+                                                        )}
+                                                        {orderGroup.speed > 0 && (
+                                                            <div className="flex items-center justify-between mt-1">
+                                                                <span className="text-gray-600">Speed:</span>
+                                                                <span className="font-medium">{Math.round(orderGroup.speed)} mph</span>
+                                                            </div>
+                                                        )}
+                                                        <div className="flex items-center justify-between mt-1">
+                                                            <span className="text-gray-600">Engine:</span>
+                                                            <span className={`font-medium ${orderGroup.engineOn ? 'text-green-600' : 'text-gray-400'}`}>
+                                                                {orderGroup.engineOn ? 'On' : 'Off'}
+                                                            </span>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </Popup>
+                                        </Marker>
+                                    );
+                                })}
+
+                                {/* Markers for trips/orders with trucks that have current locations or yard locations (from dashboard data) */}
+                                {dashboardData?.trips
+                                    .filter(trip => {
+                                        if (!trip.truckInfo) return false;
+                                        
+                                        // Check if already shown in activeOrders
+                                        const alreadyShown = activeOrders.some(order => 
+                                            order.truck?.plateNumber === trip.truckInfo?.licensePlate ||
+                                            order.truck?.unitNumber === trip.truckInfo?.unitNo
                                         );
+                                        if (alreadyShown) return false;
+                                        
+                                        // Check if has current location
+                                        const hasCurrentLocation = trip.currentLat && 
+                                            trip.currentLng &&
+                                            trip.currentLat !== 0 && 
+                                            trip.currentLng !== 0;
+                                        
+                                        // Check if has yard location as fallback
+                                        const hasYardLocation = trip.truckInfo.yard?.coordinates?.latitude &&
+                                            trip.truckInfo.yard?.coordinates?.longitude &&
+                                            trip.truckInfo.yard.coordinates.latitude !== 0 &&
+                                            trip.truckInfo.yard.coordinates.longitude !== 0;
+                                        
+                                        return hasCurrentLocation || hasYardLocation;
+                                    })
+                                    .map((trip) => {
+                                        // Prefer current location, fallback to yard location
+                                        const hasCurrentLocation = trip.currentLat && 
+                                            trip.currentLng &&
+                                            trip.currentLat !== 0 && 
+                                            trip.currentLng !== 0;
+                                        
+                                        const useYardLocation = !hasCurrentLocation && 
+                                            trip.truckInfo?.yard?.coordinates?.latitude &&
+                                            trip.truckInfo?.yard?.coordinates?.longitude;
+                                        
+                                        const lat = hasCurrentLocation ? trip.currentLat! : 
+                                                    (useYardLocation ? trip.truckInfo!.yard!.coordinates!.latitude! : 0);
+                                        const lng = hasCurrentLocation ? trip.currentLng! : 
+                                                   (useYardLocation ? trip.truckInfo!.yard!.coordinates!.longitude! : 0);
 
-                                        if (isTripTruck) return null;
+                                        if (isNaN(lat) || isNaN(lng) || lat === 0 || lng === 0) {
+                                            return null;
+                                        }
+
+                                        const truckDisplay = trip.truckInfo?.licensePlate || trip.truckInfo?.unitNo || 'Truck';
+                                        const driverDisplay = trip.driver || trip.driverInfo?.name || 'Unassigned';
+                                        const locationAddress = hasCurrentLocation 
+                                            ? (trip.truckInfo?.currentLocation?.address || '')
+                                            : (useYardLocation 
+                                                ? `${trip.truckInfo.yard?.yardName || 'Yard'} - ${trip.truckInfo.yard?.address || ''}, ${trip.truckInfo.yard?.city || ''}, ${trip.truckInfo.yard?.stateProvince || ''}`
+                                                : '');
 
                                         return (
                                             <Marker
-                                                key={`truck-${truck.id}`}
-                                                position={{ lat: truck.latitude, lng: truck.longitude }}
-                                                icon={{
-                                                    url: 'data:image/svg+xml;charset=UTF-8,' + encodeURIComponent(`
-                                                        <svg width="24" height="24" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                                                            <path d="M18.92 6.01C18.72 5.42 18.16 5 17.5 5h-11c-.66 0-1.21.42-1.42 1.01L3 12v8c0 .55.45 1 1 1h1c.55 0 1-.45 1-1v-1h12v1c0 .55.45 1 1 1h1c.55 0 1-.45 1-1v-8l-2.08-5.99zM6.5 16c-.83 0-1.5-.67-1.5-1.5S5.67 13 6.5 13s1.5.67 1.5 1.5S7.33 16 6.5 16zm11 0c-.83 0-1.5-.67-1.5-1.5S16.67 13 17.5 13s1.5.67 1.5 1.5-.67 1.5-1.5 1.5zM5 11l1.5-4.5h11L19 11H5z" fill="#6366f1"/>
-                                                        </svg>
-                                                    `),
-                                                    scaledSize: new window.google.maps.Size(24, 24),
-                                                    anchor: new window.google.maps.Point(12, 12),
-                                                }}
-                                                title={`Truck: ${truck.licensePlate || truck.unitNo} - Status: ${truck.operationStatus}`}
-                                            />
+                                                key={`trip-${trip.id}`}
+                                                position={[lat, lng]}
+                                                icon={createTruckIcon(useYardLocation ? '#f59e0b' : '#6366f1')}
+                                            >
+                                                <Popup>
+                                                    <div className="p-2 min-w-[200px]">
+                                                        <h3 className="font-bold text-sm mb-2">{truckDisplay}</h3>
+                                                        {useYardLocation && (
+                                                            <div className="mb-2 px-2 py-1 bg-yellow-100 text-yellow-800 rounded text-xs font-medium">
+                                                                📍 Yard Location
+                                                            </div>
+                                                        )}
+                                                        <div className="space-y-1 text-xs">
+                                                            <div className="flex items-center justify-between">
+                                                                <span className="text-gray-600">Driver:</span>
+                                                                <span className="font-medium">{driverDisplay}</span>
+                                                            </div>
+                                                            <div className="flex items-center justify-between">
+                                                                <span className="text-gray-600">Trip:</span>
+                                                                <span className="font-medium">{trip.tripNumber}</span>
+                                                            </div>
+                                                            {locationAddress && (
+                                                                <div className="mt-2 pt-2 border-t">
+                                                                    <p className="text-gray-600 text-xs">
+                                                                        {locationAddress}
+                                                                    </p>
+                                                                </div>
+                                                            )}
+                                                            <div className="flex items-center justify-between mt-1">
+                                                                <span className="text-gray-600">Status:</span>
+                                                                <span className="font-medium capitalize">{trip.status}</span>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </Popup>
+                                            </Marker>
                                         );
                                     })}
-                                </GoogleMap>
-                            ) : (
-                                <div className="w-full h-full bg-gradient-to-br from-blue-50 via-cyan-50 to-blue-100 flex items-center justify-center">
-                                    <div className="text-center">
-                                        <MapPin className="text-[#42aeec] mx-auto mb-2 animate-pulse" size={32} />
-                                        <p className="text-gray-600 font-medium text-xs">Loading map...</p>
-                                    </div>
-                                </div>
-                            )}
+
+                                {/* Markers for standalone trucks with yard locations */}
+                                {dashboardData?.trucks
+                                    .filter(truck => 
+                                        truck.isYardLocation && 
+                                        truck.latitude && 
+                                        truck.longitude &&
+                                        truck.latitude !== 0 && 
+                                        truck.longitude !== 0
+                                    )
+                                    .map((truck) => {
+                                        return (
+                                            <Marker
+                                                key={`truck-yard-${truck.id}`}
+                                                position={[truck.latitude, truck.longitude]}
+                                                icon={createTruckIcon('#f59e0b')}
+                                            >
+                                                <Popup>
+                                                    <div className="p-2 min-w-[200px]">
+                                                        <h3 className="font-bold text-sm mb-2">
+                                                            {truck.licensePlate || truck.unitNo || 'Truck'}
+                                                        </h3>
+                                                        <div className="mb-2 px-2 py-1 bg-yellow-100 text-yellow-800 rounded text-xs font-medium">
+                                                            📍 Yard Location
+                                                        </div>
+                                                        <div className="space-y-1 text-xs">
+                                                            {truck.yard && (
+                                                                <div className="flex items-center justify-between">
+                                                                    <span className="text-gray-600">Yard:</span>
+                                                                    <span className="font-medium">{truck.yard.yardName}</span>
+                                                                </div>
+                                                            )}
+                                                            {truck.address && (
+                                                                <div className="mt-2 pt-2 border-t">
+                                                                    <p className="text-gray-600 text-xs">
+                                                                        {truck.address}
+                                                                    </p>
+                                                                </div>
+                                                            )}
+                                                            <div className="flex items-center justify-between mt-1">
+                                                                <span className="text-gray-600">Status:</span>
+                                                                <span className="font-medium capitalize">{truck.operationStatus}</span>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </Popup>
+                                            </Marker>
+                                        );
+                                    })}
+                            </MapContainer>
                         </div>
 
                         {/* Trips List */}
@@ -530,14 +773,16 @@ const Index = () => {
                                                     <div className="flex items-center gap-2.5 text-[10px] text-gray-500" style={{ fontSize: '0.625rem' }}>
                                                         <span className="flex items-center gap-1">
                                                             <Users size={11} />
-                                                            {trip.driver}
+                                                            {trip.driver || 'Unassigned'}
                                                         </span>
-                                                        {trip.truck && (
+                                                        {(trip.truck && trip.truck !== 'No Truck') || trip.truckInfo ? (
                                                             <span className="flex items-center gap-1">
                                                                 <TruckIcon size={11} />
-                                                                {trip.truck}
+                                                                {trip.truck && trip.truck !== 'No Truck' 
+                                                                    ? trip.truck 
+                                                                    : trip.truckInfo?.licensePlate || trip.truckInfo?.unitNo || 'Truck Assigned'}
                                                             </span>
-                                                        )}
+                                                        ) : null}
                                                         {trip.route?.totalDistance && trip.route.totalDistance > 0 && (
                                                             <span className="flex items-center gap-1">
                                                                 <Navigation size={11} />

@@ -76,62 +76,74 @@ const OrderChat: React.FC<OrderChatProps> = ({ orderId, orderNumber, onClose }) 
 
     console.log("🔌 Connecting to socket for order:", orderId);
 
+    // Load messages immediately (don't wait for socket)
+    loadMessages();
+
     // Connect and authenticate socket
     socketService
       .connect(token)
       .then(() => {
         console.log("✅ Socket connected");
-        // Join order chat room
-        return socketService.joinOrderChat(orderId);
+        // Join order chat room (backend uses joinTripChat for both trips and orders)
+        return socketService.joinTripChat(orderId);
       })
       .then(() => {
         console.log("✅ Joined order chat room");
-        // Load messages
-        loadMessages();
         // Mark messages as read
         markOrderMessagesAsRead(orderId);
       })
       .catch((error) => {
         console.error("❌ Socket connection error:", error);
-        setLoading(false);
+        // Don't set loading to false here - messages might have loaded
       });
 
     // Listen for new messages
     const handleNewMessage = (message: ChatMessage) => {
       console.log("📩 New message received:", message);
-      if (message.orderId === orderId) {
+      // Check both orderId and tripId (since backend might send either)
+      const messageOrderId = message.orderId || message.tripId;
+      if (messageOrderId === orderId) {
         console.log("✅ Message is for this order, adding to list");
-        setMessages((prev) => [...prev, message]);
+        // Check if message already exists (avoid duplicates)
+        setMessages((prev) => {
+          const exists = prev.some(m => m._id === message._id);
+          if (exists) {
+            console.log("⚠️ Message already exists, skipping");
+            return prev;
+          }
+          return [...prev, message];
+        });
         scrollToBottom();
         // Mark as read immediately
         markOrderMessagesAsRead(orderId);
       } else {
-        console.log("⚠️ Message is for different order:", message.orderId, "vs", orderId);
+        console.log("⚠️ Message is for different order:", messageOrderId, "vs", orderId);
       }
     };
 
-    // Listen for typing indicators
-    const handleTyping = (data: { userId: string; userName: string; orderId: string }) => {
-      if (data.orderId === orderId) {
-        setTypingUsers((prev) => new Set(prev).add(data.userName));
-        // Clear typing indicator after 3 seconds
-        setTimeout(() => {
-          setTypingUsers((prev) => {
-            const newSet = new Set(prev);
-            newSet.delete(data.userName);
-            return newSet;
-          });
-        }, 3000);
-      }
-    };
 
-    socketService.onOrderChatMessage(handleNewMessage);
-    socketService.onOrderTyping(handleTyping);
+    // Listen for new messages (backend emits newChatMessage for both trips and orders)
+    socketService.onNewMessage(handleNewMessage);
+    socketService.onUserTyping((data) => {
+      // Handle typing for orders (check orderId or tripId - backend sends tripId for both)
+      const messageId = data.orderId || data.tripId;
+      if (messageId === orderId) {
+        setTypingUsers((prev) => {
+          const newSet = new Set(prev);
+          if (data.isTyping) {
+            newSet.add(data.userName || 'Someone');
+          } else {
+            newSet.delete(data.userName || 'Someone');
+          }
+          return newSet;
+        });
+      }
+    });
 
     return () => {
-      socketService.leaveOrderChat(orderId);
-      socketService.offOrderChatMessage(handleNewMessage);
-      socketService.offOrderTyping(handleTyping);
+      socketService.leaveTripChat(orderId);
+      socketService.offNewMessage(handleNewMessage);
+      socketService.offUserTyping();
     };
   }, [orderId]);
 
@@ -179,16 +191,17 @@ const OrderChat: React.FC<OrderChatProps> = ({ orderId, orderNumber, onClose }) 
 
   // Handle typing indicator
   const handleTyping = () => {
-    socketService.emitOrderTyping(orderId);
+    // Backend uses typing event for both trips and orders
+    socketService.setTyping(orderId, true);
     
     // Clear existing timeout
     if (typingTimeoutRef.current) {
       clearTimeout(typingTimeoutRef.current);
     }
     
-    // Set new timeout
+    // Set new timeout to stop typing indicator
     typingTimeoutRef.current = setTimeout(() => {
-      // Typing stopped
+      socketService.setTyping(orderId, false);
     }, 1000);
   };
 
