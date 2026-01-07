@@ -18,6 +18,7 @@ const DriverProfiles = lazy(() => import("../../pages/admin/driverManagement/dri
 const Profile = lazy(() => import("../../pages/admin/dashboard/Profile/index"));
 const TrainingCertificates = lazy(() => import("../../pages/admin/driverManagement/trainingCertificates/index"));
 const DrugTest = lazy(() => import("../../pages/admin/driverManagement/drugTest/index"));
+const GpsTracking = lazy(() => import("../../pages/admin/gpsvehicle/gps/GpsSection"))
 
 function DriverManagementRoutes() {
     return (
@@ -37,7 +38,7 @@ function DriverManagementRoutes() {
                     <Route path="/attendence" element={<Attendence />} />
                     <Route path="/issues" element={<Issues />} />
                     <Route path="/employee-profiles" element={<UserProfilesPortfolio />} />
-
+                    <Route path="gps-tracking" element={<GpsTracking />} />
                     <Route path="/driver-profiles" element={<DriverProfiles />} />
                     <Route path="/training-certificates" element={<TrainingCertificates />} />
                     <Route path="/drug-test" element={<DrugTest />} />

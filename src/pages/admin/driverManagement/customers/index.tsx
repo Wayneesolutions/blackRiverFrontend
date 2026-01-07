@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { Plus, Download, Trash2, ChevronUp, ChevronDown, X, HelpCircle, Edit } from 'lucide-react';
+import { FaTimes, FaCheckCircle, FaExclamationTriangle } from 'react-icons/fa';
 import * as customerApi from '../../../../axios/api/customer';
 import AddressSearch from '../../../../components/common/AddressSearch';
 
@@ -19,6 +20,48 @@ interface Customer {
     phonePrimary?: string;
   };
 }
+
+interface ToastNotification {
+  id: number;
+  type: 'success' | 'error' | 'warning';
+  message: string;
+}
+
+const ToastNotificationComponent = ({ notification, onClose }: { notification: ToastNotification; onClose: (id: number) => void }) => {
+  const icons = {
+    success: <FaCheckCircle className="text-green-500" size={24} />,
+    error: <FaExclamationTriangle className="text-red-500" size={24} />,
+    warning: <FaExclamationTriangle className="text-yellow-500" size={24} />
+  };
+
+  const bgColors = {
+    success: 'bg-green-50 border-green-200',
+    error: 'bg-red-50 border-red-200',
+    warning: 'bg-yellow-50 border-yellow-200'
+  };
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      onClose(notification.id);
+    }, 6000);
+    return () => clearTimeout(timer);
+  }, [notification.id, onClose]);
+
+  return (
+    <div className={`fixed top-4 right-4 flex items-start gap-3 p-4 rounded-lg border-2 shadow-lg z-[10003] ${bgColors[notification.type]} min-w-[320px] max-w-[520px] animate-slide-in`}>
+      <div className="flex-shrink-0 mt-0.5">
+        {icons[notification.type]}
+      </div>
+      <p className="flex-1 text-sm font-medium text-gray-800">{notification.message}</p>
+      <button
+        onClick={() => onClose(notification.id)}
+        className="flex-shrink-0 text-gray-400 hover:text-gray-600 transition-colors"
+      >
+        <FaTimes size={16} />
+      </button>
+    </div>
+  );
+};
 
 const CustomersPage = () => {
   const [customers, setCustomers] = useState<Customer[]>([]);
@@ -113,6 +156,51 @@ const CustomersPage = () => {
         setSecondaryPhoneCountry('US');
       });
   }, []);
+
+  // Toast notifications state
+  const [notifications, setNotifications] = useState<ToastNotification[]>([]);
+
+  const showNotification = (type: 'success' | 'error' | 'warning', message: string) => {
+    const id = Date.now();
+    setNotifications(prev => [...prev, { id, type, message }]);
+  };
+
+  const closeNotification = (id: number) => {
+    setNotifications(prev => prev.filter(n => n.id !== id));
+  };
+
+  // Delete confirmation modal state
+  const [deleteConfirmation, setDeleteConfirmation] = useState<{ show: boolean; customerId: string | null; customerName: string }>({
+    show: false,
+    customerId: null,
+    customerName: ''
+  });
+
+  // Helper function to parse MongoDB duplicate key errors
+  const parseDuplicateKeyError = (errorMessage: string): string => {
+    // Check if it's a MongoDB duplicate key error
+    if (errorMessage.includes('E11000') && errorMessage.includes('dup key')) {
+      // Extract field name and value
+      const match = errorMessage.match(/dup key: \{ ([^:]+): "([^"]+)" \}/);
+      if (match) {
+        const fieldName = match[1];
+        const fieldValue = match[2];
+        
+        // Convert field names to user-friendly names
+        const fieldDisplayNames: { [key: string]: string } = {
+          'internalId': 'Customer ID',
+          'email': 'Email',
+          'phone': 'Phone Number',
+          'customerId': 'Customer ID'
+        };
+        
+        const displayName = fieldDisplayNames[fieldName] || fieldName;
+        return `${displayName} "${fieldValue}" already exists. Please use a different value.`;
+      }
+      return 'This value already exists in the system. Please use a different value.';
+    }
+    return errorMessage;
+  };
 
   // Close dropdowns when clicking outside
   useEffect(() => {
@@ -229,24 +317,78 @@ const CustomersPage = () => {
     );
   };
 
-  const handleDelete = async (customerId: string) => {
-    if (window.confirm('Are you sure you want to delete this customer?')) {
-      try {
-        const response = await customerApi.deleteCustomer(customerId);
-        if (response?.success) {
-          await fetchCustomers();
-          alert('Customer deleted successfully!');
-        } else {
-          alert(response?.message || 'Failed to delete customer');
-        }
-      } catch (error: any) {
-        console.error('Error deleting customer:', error);
-        alert(error.response?.data?.message || 'Failed to delete customer');
+  const handleConfirmDelete = async () => {
+    if (!deleteConfirmation.customerId) return;
+    
+    try {
+      const response = await customerApi.deleteCustomer(deleteConfirmation.customerId);
+      if (response?.success) {
+        await fetchCustomers();
+        showNotification('success', 'Customer deleted successfully!');
+        setDeleteConfirmation({ show: false, customerId: null, customerName: '' });
+      } else {
+        showNotification('error', response?.message || 'Failed to delete customer');
       }
+    } catch (error: any) {
+      console.error('Error deleting customer:', error);
+      showNotification('error', error.response?.data?.message || error.message || 'Failed to delete customer');
     }
   };
 
   const handleSaveCustomer = async () => {
+    // Client-side validation for required fields
+    if (!formData.customer || !formData.customer.trim()) {
+      showNotification('error', 'Customer name is required');
+      return;
+    }
+
+    if (!formData.customerId || !formData.customerId.trim()) {
+      showNotification('error', 'Customer ID is required');
+      return;
+    }
+
+    if (!formData.emailAddress || !formData.emailAddress.trim()) {
+      showNotification('error', 'Email address is required');
+      return;
+    }
+
+    if (!formData.primaryPhone || !formData.primaryPhone.trim()) {
+      showNotification('error', 'Primary phone number is required');
+      return;
+    }
+
+    // Validate email format
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(formData.emailAddress)) {
+      showNotification('error', 'Please provide a valid email address');
+      return;
+    }
+
+    // Validate phone number (minimum 10 digits)
+    const phoneDigits = formData.primaryPhone.replace(/\D/g, '');
+    if (phoneDigits.length < 10) {
+      showNotification('error', 'Primary phone number must be at least 10 digits');
+      return;
+    }
+
+    // Validate secondary email format if provided
+    if (formData.secondaryEmail && formData.secondaryEmail.trim()) {
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      if (!emailRegex.test(formData.secondaryEmail)) {
+        showNotification('error', 'Please provide a valid secondary email address');
+        return;
+      }
+    }
+
+    // Validate tracking email format if provided
+    if (formData.trackingEmail && formData.trackingEmail.trim()) {
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      if (!emailRegex.test(formData.trackingEmail)) {
+        showNotification('error', 'Please provide a valid tracking email address');
+        return;
+      }
+    }
+
     try {
       // Prepare phone numbers with country code prefix
       let phonePrimary = formData.primaryPhone;
@@ -322,13 +464,15 @@ const CustomersPage = () => {
         await fetchCustomers();
         setShowNewCustomerModal(false);
         resetForm();
-        alert(editingId ? 'Customer updated successfully!' : 'Customer created successfully!');
+        showNotification('success', editingId ? 'Customer updated successfully!' : 'Customer created successfully!');
       } else {
-        alert(response?.message || 'Failed to save customer');
+        const errorMessage = parseDuplicateKeyError(response?.message || 'Failed to save customer');
+        showNotification('error', errorMessage);
       }
     } catch (error: any) {
       console.error('Error saving customer:', error);
-      alert(error.response?.data?.message || 'Failed to save customer');
+      const errorMessage = parseDuplicateKeyError(error.response?.data?.message || error.message || 'Failed to save customer');
+      showNotification('error', errorMessage);
     }
   };
 
@@ -426,6 +570,51 @@ const CustomersPage = () => {
 
   return (
     <div className="min-h-screen bg-[#EDF8FF] p-6">
+      {/* Toast Notifications */}
+      {notifications.map(notification => (
+        <ToastNotificationComponent
+          key={notification.id}
+          notification={notification}
+          onClose={closeNotification}
+        />
+      ))}
+
+      {/* Delete Confirmation Modal */}
+      {deleteConfirmation.show && (
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-lg shadow-2xl w-full max-w-md overflow-hidden">
+            <div className="p-6 border-b border-gray-200">
+              <h3 className="text-xl font-bold text-gray-900">Delete Customer</h3>
+            </div>
+            <div className="p-6">
+              <p className="text-gray-700 mb-2">
+                Are you sure you want to delete this customer?
+              </p>
+              <p className="text-gray-900 font-semibold">
+                {deleteConfirmation.customerName}
+              </p>
+              <p className="text-sm text-red-600 mt-4">
+                This action cannot be undone.
+              </p>
+            </div>
+            <div className="p-6 border-t border-gray-200 flex items-center justify-end gap-3">
+              <button
+                onClick={() => setDeleteConfirmation({ show: false, customerId: null, customerName: '' })}
+                className="px-6 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors font-medium"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleConfirmDelete}
+                className="px-6 py-2 bg-red-600 !text-white rounded-lg hover:bg-red-700 transition-colors font-medium"
+              >
+                Delete
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       <div className="max-w-full mx-auto">
         {/* Header Section */}
         <div className="mb-6">
@@ -628,7 +817,11 @@ const CustomersPage = () => {
                           <button
                             onClick={() => {
                               if (customer._id) {
-                                handleDelete(customer._id);
+                                setDeleteConfirmation({
+                                  show: true,
+                                  customerId: customer._id,
+                                  customerName: customer.name || customer.customerDetails?.customerId || 'this customer'
+                                });
                               }
                             }}
                             className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
@@ -788,7 +981,9 @@ const CustomersPage = () => {
 
                     {/* Customer ID */}
                     <div className="mb-4">
-                      <label className="block text-sm font-medium text-gray-700 mb-1">Customer ID</label>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                        Customer ID<span className="text-red-500">*</span>
+                      </label>
                       <input
                         type="text"
                         placeholder="E.G., CUST001, ABC123"
@@ -1368,7 +1563,13 @@ const CustomersPage = () => {
             <div className="bg-[#0ea3d8] px-6 py-4 flex justify-center">
               <button 
                 onClick={handleSaveCustomer}
-                className="px-8 py-2 bg-[#42aeec] !text-white rounded-lg hover:bg-[#1db5f5] transition-colors font-medium"
+                disabled={
+                  !formData.customer || !formData.customer.trim() ||
+                  !formData.customerId || !formData.customerId.trim() ||
+                  !formData.emailAddress || !formData.emailAddress.trim() ||
+                  !formData.primaryPhone || !formData.primaryPhone.trim()
+                }
+                className="px-8 py-2 bg-[#42aeec] !text-white rounded-lg hover:bg-[#1db5f5] transition-colors font-medium disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-[#42aeec]"
               >
                 {editingId ? 'Update' : 'Save'}
               </button>
