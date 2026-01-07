@@ -8,6 +8,7 @@ import { getAllTrailers } from '../../../../axios/api/trailer';
 import { getAllEmployees } from '../../../../axios/api/employee';
 import { getAllYards, type Yard } from '../../../../axios/api/fleet.yards';
 import apiClient from '../../../../axios/apiClient';
+import ConfirmationModal from '../../../../components/common/ConfirmationModal';
 
 interface Truck {
     _id?: string;
@@ -77,6 +78,11 @@ const Trucks: React.FC = () => {
     const [activeStep, setActiveStep] = useState<'Details' | 'Inspections' | 'Documents' | 'Incidents' | 'Notes' | 'Payroll' | 'Deductions' | 'Additions'>('Details');
     const [inspectionType, setInspectionType] = useState<'One Time' | 'Recurring'>('One Time');
     const [selectedImage, setSelectedImage] = useState<string | null>(null);
+
+    // Confirmation modal states
+    const [showDeleteConfirmation, setShowDeleteConfirmation] = useState(false);
+    const [deleteTargetId, setDeleteTargetId] = useState<string | null>(null);
+    const [validationErrors, setValidationErrors] = useState<string[]>([]);
 
     // Inspections data
     const [oneTimeInspections, setOneTimeInspections] = useState<Array<{
@@ -746,10 +752,29 @@ const Trucks: React.FC = () => {
         return categoryCounts[category] || 0;
     };
 
+    // Validate required fields
+    const validateTruckForm = (): boolean => {
+        const errors: string[] = [];
+        
+        if (!formData.unitNumber.trim()) errors.push('Unit # is required');
+        if (!formData.plateNumber.trim()) errors.push('Plate # is required');
+        if (!formData.vinNumber.trim()) errors.push('VIN is required');
+        if (!formData.make.trim()) errors.push('Make is required');
+        if (!formData.model.trim()) errors.push('Model is required');
+        if (!formData.year.trim()) errors.push('Year is required');
+        if (!formData.type.trim()) errors.push('Type is required');
+        if (!formData.registrationCountry.trim()) errors.push('Registration Country is required');
+        if (!formData.ownership.trim()) errors.push('Ownership is required');
+        if (!formData.weight || formData.weight === '0') errors.push('Weight is required');
+        
+        setValidationErrors(errors);
+        return errors.length === 0;
+    };
+
     // Handle create/update truck
     const handleSaveTruck = async () => {
-        if (!formData.unitNumber || !formData.plateNumber || !formData.vinNumber) {
-            alert('Please fill in all required fields (Unit #, Plate #, VIN #)');
+        // Validate before saving
+        if (!validateTruckForm()) {
             return;
         }
 
@@ -841,7 +866,6 @@ const Trucks: React.FC = () => {
                 
                 const response = await updateVehicle(editingId, formDataToSend);
                 if (response?.success) {
-                    alert('Truck updated successfully!');
                     // Refresh trucks list
                     const refreshResponse = await getAllVehicles(1, 1000);
                     if (refreshResponse?.success && refreshResponse?.data) {
@@ -961,7 +985,6 @@ const Trucks: React.FC = () => {
                 const response = await createVehicle(formDataToSend);
                 if (response?.success) {
                     const newTruckId = response?.data?._id || response?.data?.id;
-                    alert('Truck created successfully!');
                     
                     // Handle documents for newly created truck
                     if (newTruckId) {
@@ -1152,18 +1175,22 @@ const Trucks: React.FC = () => {
         }
     };
 
-    // Handle delete truck
-    const handleDeleteTruck = async (id: string) => {
-        if (!window.confirm('Are you sure you want to delete this truck?')) {
-            return;
-        }
+    // Handle delete click - show confirmation modal
+    const handleDeleteClick = (id: string) => {
+        setDeleteTargetId(id);
+        setShowDeleteConfirmation(true);
+    };
 
+    // Handle delete truck after confirmation
+    const handleDeleteTruck = async () => {
+        if (!deleteTargetId) return;
+        
+        setShowDeleteConfirmation(false);
         setLoading(true);
         try {
-            const response = await deleteVehicle(id);
+            const response = await deleteVehicle(deleteTargetId);
             if (response?.success) {
-                alert('Truck deleted successfully!');
-                setTrucks(trucks.filter(t => (t._id || t.id) !== id));
+                setTrucks(trucks.filter(t => (t._id || t.id) !== deleteTargetId));
             } else {
                 alert(response?.message || 'Failed to delete truck. Please try again.');
             }
@@ -1172,6 +1199,7 @@ const Trucks: React.FC = () => {
             alert('Failed to delete truck. Please try again.');
         } finally {
             setLoading(false);
+            setDeleteTargetId(null);
         }
     };
 
@@ -1658,7 +1686,9 @@ const Trucks: React.FC = () => {
                                     </tr>
                                 ) : (
                                     filteredTrucks.map((truck) => (
-                                        <tr key={truck.id} className="hover:bg-gray-50 transition-colors">
+                                        <tr 
+                                        onClick={() => handleEditTruck((truck._id || truck.id) ?? '')}
+                                        key={truck.id} className="hover:bg-gray-50 transition-colors">
                                             <td className="px-4 py-3 text-sm text-gray-900">{truck.unitNumber}</td>
                                             <td className="px-4 py-3 text-sm text-gray-900">{truck.plateNumber}</td>
                                             <td className="px-4 py-3 text-sm text-gray-900">{truck.ownership}</td>
@@ -1698,7 +1728,7 @@ const Trucks: React.FC = () => {
                                                         <Edit className="w-4 h-4" />
                                                     </button>
                                                     <button
-                                                        onClick={() => handleDeleteTruck((truck._id || truck.id) ?? '')}
+                                                        onClick={() => handleDeleteClick((truck._id || truck.id) ?? '')}
                                                         className="p-1.5 text-red-600 hover:bg-red-50 rounded transition-colors"
                                                         title="Delete"
                                                     >
@@ -1839,7 +1869,7 @@ const Trucks: React.FC = () => {
                                             </div>
                                             <div>
                                                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                                                    VIN
+                                                    VIN<span className="text-red-500">*</span>
                                                 </label>
                                                 <input
                                                     type="text"
@@ -1918,7 +1948,7 @@ const Trucks: React.FC = () => {
                                             </div>
                                             <div>
                                                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                                                    Year
+                                                    Year<span className="text-red-500">*</span>
                                                 </label>
                                                 <input
                                                     type="text"
@@ -3245,6 +3275,48 @@ const Trucks: React.FC = () => {
                         </div>
                     </div>
                 </>
+            )}
+
+            {/* Delete Confirmation Modal */}
+            <ConfirmationModal
+                isOpen={showDeleteConfirmation}
+                onClose={() => {
+                    setShowDeleteConfirmation(false);
+                    setDeleteTargetId(null);
+                }}
+                onConfirm={handleDeleteTruck}
+                title="Confirm Deletion"
+                message="Are you sure you want to delete this truck? This action cannot be undone and will permanently remove all truck data including documents, inspections, and history."
+                confirmText="Delete"
+                type="danger"
+                isLoading={loading}
+            />
+
+            {/* Validation Errors Display */}
+            {validationErrors.length > 0 && (
+                <div className="fixed bottom-4 right-4 bg-red-50 border-l-4 border-red-500 p-4 rounded-lg shadow-lg max-w-md z-[10001]">
+                    <div className="flex items-start">
+                        <div className="flex-shrink-0">
+                            <svg className="h-5 w-5 text-red-400" viewBox="0 0 20 20" fill="currentColor">
+                                <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
+                            </svg>
+                        </div>
+                        <div className="ml-3 flex-1">
+                            <h3 className="text-sm font-medium text-red-800">Please fix the following errors:</h3>
+                            <ul className="mt-2 text-sm text-red-700 list-disc list-inside">
+                                {validationErrors.map((error, index) => (
+                                    <li key={index}>{error}</li>
+                                ))}
+                            </ul>
+                        </div>
+                        <button
+                            onClick={() => setValidationErrors([])}
+                            className="ml-3 flex-shrink-0 text-red-400 hover:text-red-600"
+                        >
+                            <X className="w-5 h-5" />
+                        </button>
+                    </div>
+                </div>
             )}
         </div>
     );

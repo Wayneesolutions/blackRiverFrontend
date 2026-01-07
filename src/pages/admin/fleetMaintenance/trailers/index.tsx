@@ -5,6 +5,7 @@ import { getAllDrivers, type Driver } from '../../../../axios/api/driver';
 import { createVehicleDocument, updateVehicleDocument } from '../../../../axios/api/compilance.vehicledoc';
 import { getAllYards, type Yard } from '../../../../axios/api/fleet.yards';
 import apiClient from '../../../../axios/apiClient';
+import ConfirmationModal from '../../../../components/common/ConfirmationModal';
 
 interface Trailer {
     _id?: string;
@@ -59,6 +60,11 @@ const TrailersPage: React.FC = () => {
     const [inspectionType, setInspectionType] = useState<'One Time' | 'Recurring'>('One Time');
     const [documentType, setDocumentType] = useState<'General' | 'Ownership' | 'Plate' | 'Safety' | 'Insurance'>('General');
     const [selectedImage, setSelectedImage] = useState<string | null>(null);
+
+    // Confirmation modal states
+    const [showDeleteConfirmation, setShowDeleteConfirmation] = useState(false);
+    const [deleteTargetId, setDeleteTargetId] = useState<string | null>(null);
+    const [validationErrors, setValidationErrors] = useState<string[]>([]);
 
     // Form data
     const [formData, setFormData] = useState({
@@ -383,9 +389,28 @@ const TrailersPage: React.FC = () => {
     }, [yards]);
 
     // Handle create/update trailer
+    // Validate required fields
+    const validateTrailerForm = (): boolean => {
+        const errors: string[] = [];
+        
+        if (!formData.unitNumber.trim()) errors.push('Unit # is required');
+        if (!formData.plateNumber.trim()) errors.push('Plate # is required');
+        if (!formData.vinNumber.trim()) errors.push('VIN is required');
+        if (!formData.make.trim()) errors.push('Make is required');
+        if (!formData.model.trim()) errors.push('Model is required');
+        if (!formData.year.trim()) errors.push('Year is required');
+        if (!formData.type.trim()) errors.push('Type is required');
+        if (!formData.registrationCountry.trim()) errors.push('Registration Country is required');
+        if (!formData.ownership.trim()) errors.push('Ownership is required');
+        if (!formData.weight || formData.weight === '0') errors.push('Weight is required');
+        
+        setValidationErrors(errors);
+        return errors.length === 0;
+    };
+
     const handleSaveTrailer = async () => {
-        if (!formData.unitNumber || !formData.plateNumber || !formData.vinNumber) {
-            alert('Please fill in all required fields (Unit #, Plate #, VIN #)');
+        // Validate before saving
+        if (!validateTrailerForm()) {
             return;
         }
 
@@ -587,7 +612,6 @@ const TrailersPage: React.FC = () => {
                     }
                 }
                 
-                alert(editingId ? 'Trailer updated successfully!' : 'Trailer created successfully!');
                 setShowSidebar(false);
                 setEditingId(null);
                 setFormData({
@@ -676,18 +700,22 @@ const TrailersPage: React.FC = () => {
         }
     };
 
-    // Handle delete trailer
-    const handleDeleteTrailer = async (id: string) => {
-        if (!window.confirm('Are you sure you want to delete this trailer?')) {
-            return;
-        }
+    // Handle delete click - show confirmation modal
+    const handleDeleteClick = (id: string) => {
+        setDeleteTargetId(id);
+        setShowDeleteConfirmation(true);
+    };
 
+    // Handle delete trailer after confirmation
+    const handleDeleteTrailer = async () => {
+        if (!deleteTargetId) return;
+        
+        setShowDeleteConfirmation(false);
         setLoading(true);
         try {
-            const response = await deleteTrailer(id);
+            const response = await deleteTrailer(deleteTargetId);
             if (response?.success) {
-                alert('Trailer deleted successfully!');
-                setTrailers(trailers.filter(t => (t._id || t.id) !== id));
+                setTrailers(trailers.filter(t => (t._id || t.id) !== deleteTargetId));
                 // Refresh count for current tab and All tab
                 setFetchedCounts(prev => {
                     const updated = new Set(prev);
@@ -707,6 +735,7 @@ const TrailersPage: React.FC = () => {
             alert('Failed to delete trailer. Please try again.');
         } finally {
             setLoading(false);
+            setDeleteTargetId(null);
         }
     };
 
@@ -1414,7 +1443,9 @@ const TrailersPage: React.FC = () => {
                                     </tr>
                                 ) : (
                                     filteredTrailers.map((trailer) => (
-                                        <tr key={trailer._id || trailer.id} className="hover:bg-gray-50 transition-colors">
+                                        <tr
+                                        onClick={() => handleEditTrailer(trailer._id || trailer.id || '')}
+                                        key={trailer._id || trailer.id} className="hover:bg-gray-50 transition-colors">
                                             <td className="px-4 py-3 text-sm text-gray-900">{trailer.trailerNumber || trailer.trailer || trailer.unitNumber}</td>
                                             <td className="px-4 py-3 text-sm text-gray-900">{trailer.plateNumber}</td>
                                             <td className="px-4 py-3 text-sm text-gray-900">{trailer.type}</td>
@@ -1464,7 +1495,7 @@ const TrailersPage: React.FC = () => {
                                                         <Edit className="w-4 h-4" />
                                                     </button>
                                                     <button
-                                                        onClick={() => handleDeleteTrailer(trailer._id || trailer.id || '')}
+                                                        onClick={() => handleDeleteClick(trailer._id || trailer.id || '')}
                                                         className="p-1.5 text-red-600 hover:bg-red-50 rounded transition-colors"
                                                         title="Delete"
                                                     >
@@ -1653,7 +1684,7 @@ const TrailersPage: React.FC = () => {
                                                 />
                                             </div>
                                             <div>
-                                                <label className="block text-sm font-medium text-gray-700 mb-1">Model</label>
+                                                <label className="block text-sm font-medium text-gray-700 mb-1">Model<span className="text-red-500">*</span></label>
                                                 <input
                                                     type="text"
                                                     placeholder="Model"
@@ -2533,6 +2564,48 @@ const TrailersPage: React.FC = () => {
                         </div>
                     </div>
                 </>
+            )}
+
+            {/* Delete Confirmation Modal */}
+            <ConfirmationModal
+                isOpen={showDeleteConfirmation}
+                onClose={() => {
+                    setShowDeleteConfirmation(false);
+                    setDeleteTargetId(null);
+                }}
+                onConfirm={handleDeleteTrailer}
+                title="Confirm Deletion"
+                message="Are you sure you want to delete this trailer? This action cannot be undone and will permanently remove all trailer data including documents, inspections, and history."
+                confirmText="Delete"
+                type="danger"
+                isLoading={loading}
+            />
+
+            {/* Validation Errors Display */}
+            {validationErrors.length > 0 && (
+                <div className="fixed bottom-4 right-4 bg-red-50 border-l-4 border-red-500 p-4 rounded-lg shadow-lg max-w-md z-[10001]">
+                    <div className="flex items-start">
+                        <div className="flex-shrink-0">
+                            <svg className="h-5 w-5 text-red-400" viewBox="0 0 20 20" fill="currentColor">
+                                <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
+                            </svg>
+                        </div>
+                        <div className="ml-3 flex-1">
+                            <h3 className="text-sm font-medium text-red-800">Please fix the following errors:</h3>
+                            <ul className="mt-2 text-sm text-red-700 list-disc list-inside">
+                                {validationErrors.map((error, index) => (
+                                    <li key={index}>{error}</li>
+                                ))}
+                            </ul>
+                        </div>
+                        <button
+                            onClick={() => setValidationErrors([])}
+                            className="ml-3 flex-shrink-0 text-red-400 hover:text-red-600"
+                        >
+                            <X className="w-5 h-5" />
+                        </button>
+                    </div>
+                </div>
             )}
         </div>
     );
