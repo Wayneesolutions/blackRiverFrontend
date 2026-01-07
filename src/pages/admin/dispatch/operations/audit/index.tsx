@@ -187,7 +187,7 @@ const AuditTrail = () => {
   };
 
   return (
-    <div className="p-6 bg-gray-50 min-h-screen">
+    <div className="p-6 min-h-screen" style={{ backgroundColor: '#EDF8FF' }}>
       <div className="max-w-7xl mx-auto">
         {/* Header */}
         <div className="mb-6">

@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
-import { Plus, Info, ChevronUp, ChevronDown, X, User, FileText, Calendar, Upload, Edit, Trash2, Save } from 'lucide-react';
+import { Plus, Info, ChevronUp, ChevronDown, X, User, FileText, Upload, Edit, Trash2, Save } from 'lucide-react';
+import { FaTimes, FaCheckCircle, FaExclamationTriangle } from 'react-icons/fa';
 import * as employeeApi from '../../../../axios/api/employee';
 import { getDocumentsByEmployee, updateEmployeeDocument, deleteEmployeeDocument } from '../../../../axios/api/employeeDocument';
 import AddressSearch from '../../../../components/common/AddressSearch';
@@ -16,6 +17,48 @@ interface Employee {
   phone?: string;
   profileImage?: string; // Alternative field name
 }
+
+interface ToastNotification {
+  id: number;
+  type: 'success' | 'error' | 'warning';
+  message: string;
+}
+
+const ToastNotificationComponent = ({ notification, onClose }: { notification: ToastNotification; onClose: (id: number) => void }) => {
+  const icons = {
+    success: <FaCheckCircle className="text-green-500" size={24} />,
+    error: <FaExclamationTriangle className="text-red-500" size={24} />,
+    warning: <FaExclamationTriangle className="text-yellow-500" size={24} />
+  };
+
+  const bgColors = {
+    success: 'bg-green-50 border-green-200',
+    error: 'bg-red-50 border-red-200',
+    warning: 'bg-yellow-50 border-yellow-200'
+  };
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      onClose(notification.id);
+    }, 6000); // 6 seconds for validation errors
+    return () => clearTimeout(timer);
+  }, [notification.id, onClose]);
+
+  return (
+    <div className={`fixed top-4 right-4 flex items-start gap-3 p-4 rounded-lg border-2 shadow-lg z-[10003] ${bgColors[notification.type]} min-w-[320px] max-w-[520px] animate-slide-in`}>
+      <div className="flex-shrink-0 mt-0.5">
+        {icons[notification.type]}
+      </div>
+      <p className="flex-1 text-sm font-medium text-gray-800">{notification.message}</p>
+      <button
+        onClick={() => onClose(notification.id)}
+        className="flex-shrink-0 text-gray-400 hover:text-gray-600 transition-colors"
+      >
+        <FaTimes size={16} />
+      </button>
+    </div>
+  );
+};
 
 // Current roles from the system
 const roleBadges = [
@@ -75,7 +118,7 @@ const EmployeesPage = () => {
     department: '',
     jobType: '',
     jobTime: 'FULL-TIME' as 'FULL-TIME' | 'PART-TIME',
-    phone: '1', // Store phone without country code prefix
+    phone: '', // Store phone without country code prefix
     searchAddress: '',
     address: '',
     hireDate: '',
@@ -184,6 +227,25 @@ const EmployeesPage = () => {
 
   // Form state for Notes / Benefits
   const [notesBenefits, setNotesBenefits] = useState('');
+
+  // Toast notifications state
+  const [notifications, setNotifications] = useState<ToastNotification[]>([]);
+
+  const showNotification = (type: 'success' | 'error' | 'warning', message: string) => {
+    const id = Date.now();
+    setNotifications(prev => [...prev, { id, type, message }]);
+  };
+
+  const closeNotification = (id: number) => {
+    setNotifications(prev => prev.filter(n => n.id !== id));
+  };
+
+  // Delete confirmation modal state
+  const [deleteConfirmation, setDeleteConfirmation] = useState<{ show: boolean; employeeId: string | null; employeeName: string }>({
+    show: false,
+    employeeId: null,
+    employeeName: ''
+  });
 
   // Departments list
   const departments = [
@@ -333,9 +395,34 @@ const EmployeesPage = () => {
 
   // Handle save employee
   const handleSaveEmployee = async () => {
+    // Client-side validation
     if (!basicData.firstName || !basicData.lastName || !basicData.email) {
-      alert('Please fill in all required fields');
+      showNotification('error', 'Please fill in all required fields (First Name, Last Name, Email)');
       return;
+    }
+
+    // Validate name format (only letters and spaces)
+    const fullName = `${basicData.firstName} ${basicData.lastName}`.trim();
+    const nameRegex = /^[a-zA-Z\s]+$/;
+    if (!nameRegex.test(fullName)) {
+      showNotification('error', 'Name can only contain letters and spaces (no numbers or special characters)');
+      return;
+    }
+
+    // Validate email format
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(basicData.email)) {
+      showNotification('error', 'Please provide a valid email address');
+      return;
+    }
+
+    // Validate phone number if provided (minimum 10 digits)
+    if (personalData.phone && personalData.phone.trim()) {
+      const phoneDigits = personalData.phone.replace(/\D/g, '');
+      if (phoneDigits.length < 10) {
+        showNotification('error', 'Please provide a valid phone number (minimum 10 digits)');
+        return;
+      }
     }
 
     // Check if password is required for this role
@@ -343,7 +430,7 @@ const EmployeesPage = () => {
     const isNonSigninRole = nonSigninRoles.includes(basicData.role);
     
     if (!isNonSigninRole && !editingId && !basicData.password) {
-      alert('Password is required for this role');
+      showNotification('error', 'Password is required for this role');
       return;
     }
 
@@ -479,16 +566,38 @@ const EmployeesPage = () => {
         console.log('✅ Employee saved successfully, employeeId:', employeeId);
         console.log('✅ Documents were included in the employee creation/update request');
 
-        alert(`Employee ${editingId ? 'updated' : 'created'} successfully!`);
+        showNotification('success', `Employee ${editingId ? 'updated' : 'created'} successfully!`);
         setShowNewEmployeeModal(false);
         resetForm();
         fetchEmployees();
       } else {
-        alert(response?.message || `Failed to ${editingId ? 'update' : 'create'} employee`);
+        // Handle validation errors from backend
+        if (response?.errors && Array.isArray(response.errors)) {
+          // Show each validation error
+          response.errors.forEach((error: any, index: number) => {
+            setTimeout(() => {
+              showNotification('error', error.msg || error.message || 'Validation error');
+            }, index * 100); // Stagger notifications slightly
+          });
+        } else {
+          showNotification('error', response?.message || `Failed to ${editingId ? 'update' : 'create'} employee`);
+        }
       }
     } catch (error: any) {
       console.error(`Error ${editingId ? 'updating' : 'creating'} employee:`, error);
-      alert(error.response?.data?.message || error.message || `Failed to ${editingId ? 'update' : 'create'} employee`);
+      
+      // Handle validation errors from catch block
+      const errorData = error.response?.data;
+      if (errorData?.errors && Array.isArray(errorData.errors)) {
+        // Show each validation error
+        errorData.errors.forEach((err: any, index: number) => {
+          setTimeout(() => {
+            showNotification('error', err.msg || err.message || 'Validation error');
+          }, index * 100); // Stagger notifications slightly
+        });
+      } else {
+        showNotification('error', errorData?.message || error.message || `Failed to ${editingId ? 'update' : 'create'} employee`);
+      }
     } finally {
       setIsSubmitting(false);
     }
@@ -510,7 +619,7 @@ const EmployeesPage = () => {
       department: '',
       jobType: '',
       jobTime: 'FULL-TIME',
-      phone: '+1',
+      phone: '',
       searchAddress: '',
       address: '',
       hireDate: '',
@@ -569,7 +678,7 @@ const EmployeesPage = () => {
           department: emp.details?.department || emp.department || '',
           jobType: emp.details?.jobType || emp.jobType || '',
           jobTime: (emp.details?.jobTime || emp.jobTime || 'FULL-TIME') as 'FULL-TIME' | 'PART-TIME',
-          phone: parsedPhone.phoneNumber || '1',
+          phone: parsedPhone.phoneNumber || '',
           searchAddress: '',
           address: emp.location?.address || emp.address || '',
           hireDate: emp.joinDate ? new Date(emp.joinDate).toISOString().split('T')[0] : (emp.details?.hireDate ? new Date(emp.details.hireDate).toISOString().split('T')[0] : ''),
@@ -622,23 +731,35 @@ const EmployeesPage = () => {
     }
   };
 
-  const handleDelete = async (id: string) => {
+  const handleConfirmDelete = async () => {
+    if (!deleteConfirmation.employeeId) return;
+    
     try {
-      const response = await employeeApi.deleteEmployee(id);
+      const response = await employeeApi.deleteEmployee(deleteConfirmation.employeeId);
       if (response?.success) {
-        alert('Employee deleted successfully!');
+        showNotification('success', 'Employee deleted successfully!');
+        setDeleteConfirmation({ show: false, employeeId: null, employeeName: '' });
         fetchEmployees();
       } else {
-        alert(response?.message || 'Failed to delete employee');
+        showNotification('error', response?.message || 'Failed to delete employee');
       }
     } catch (error: any) {
       console.error('Error deleting employee:', error);
-      alert(error.response?.data?.message || error.message || 'Failed to delete employee');
+      showNotification('error', error.response?.data?.message || error.message || 'Failed to delete employee');
     }
   };
 
   return (
     <div className="min-h-screen bg-[#EDF8FF] p-6">
+      {/* Toast Notifications */}
+      {notifications.map(notification => (
+        <ToastNotificationComponent
+          key={notification.id}
+          notification={notification}
+          onClose={closeNotification}
+        />
+      ))}
+
       <div className="max-w-full mx-auto">
         {/* Header Section */}
         <div className="mb-6">
@@ -902,8 +1023,12 @@ const EmployeesPage = () => {
                           <button
                             onClick={(e) => {
                               e.stopPropagation(); // Prevent row click from triggering
-                              if (employee._id && window.confirm('Are you sure you want to delete this employee?')) {
-                                handleDelete(employee._id);
+                              if (employee._id) {
+                                setDeleteConfirmation({
+                                  show: true,
+                                  employeeId: employee._id,
+                                  employeeName: `${employee.firstName || ''} ${employee.lastName || ''}`.trim() || employee.email
+                                });
                               }
                             }}
                             className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
@@ -923,6 +1048,42 @@ const EmployeesPage = () => {
 
         {/* Non Signin Employees and Advanced Permissions use the same table */}
       </div>
+
+      {/* Delete Confirmation Modal */}
+      {deleteConfirmation.show && (
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-lg shadow-2xl w-full max-w-md overflow-hidden">
+            <div className="p-6 border-b border-gray-200">
+              <h3 className="text-xl font-bold text-gray-900">Delete Employee</h3>
+            </div>
+            <div className="p-6">
+              <p className="text-gray-700 mb-2">
+                Are you sure you want to delete this employee?
+              </p>
+              <p className="text-gray-900 font-semibold">
+                {deleteConfirmation.employeeName}
+              </p>
+              <p className="text-sm text-red-600 mt-4">
+                This action cannot be undone.
+              </p>
+            </div>
+            <div className="p-6 border-t border-gray-200 flex items-center justify-end gap-3">
+              <button
+                onClick={() => setDeleteConfirmation({ show: false, employeeId: null, employeeName: '' })}
+                className="px-6 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors font-medium"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleConfirmDelete}
+                className="px-6 py-2 bg-red-600 !text-white rounded-lg hover:bg-red-700 transition-colors font-medium"
+              >
+                Delete
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* New Employee Modal */}
       {showNewEmployeeModal && (
@@ -1042,13 +1203,13 @@ const EmployeesPage = () => {
               </div>
 
               {/* Form Content */}
-              <div className="flex-1 overflow-y-auto p-6 bg-white">
+              <div className="flex-1 overflow-y-auto overflow-x-hidden p-6 bg-white">
                 {activeFormTab === 'basic' && (
-                  <div className="space-y-6">
+                  <div className="space-y-6 max-w-full">
                     <h3 className="text-lg font-bold text-gray-900 mb-4">Basic Information</h3>
 
                     {/* First Row */}
-                    <div className="grid grid-cols-4 gap-4">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
                       <div>
                         <label className="block text-sm font-medium text-gray-700 mb-1">
                           First Name<span className="text-red-500">*</span>
@@ -1149,10 +1310,11 @@ const EmployeesPage = () => {
                 )}
 
                 {activeFormTab === 'personal' && (
-                  <div className="space-y-6">
+                  <div className="space-y-6 max-w-full">
                     <h3 className="text-lg font-bold text-gray-900 mb-4">Personal Information</h3>
 
-                    <div className="grid grid-cols-4 gap-4">
+                    {/* First Row */}
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
                       <div>
                         <label className="block text-sm font-medium text-gray-700 mb-1">Title</label>
                         <input
@@ -1201,7 +1363,8 @@ const EmployeesPage = () => {
                       </div>
                     </div>
 
-                    <div className="grid grid-cols-4 gap-4">
+                    {/* Second Row */}
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                       <div>
                         <label className="block text-sm font-medium text-gray-700 mb-1">Job Type</label>
                         <input
@@ -1237,7 +1400,7 @@ const EmployeesPage = () => {
                           </button>
                         </div>
                       </div>
-                      <div className="col-span-2">
+                      <div>
                         <label className="block text-sm font-medium text-gray-700 mb-1">Phone #</label>
                         <div className="flex items-center border border-gray-300 rounded-lg focus-within:ring-2 focus-within:ring-[#42aeec] focus-within:border-transparent">
                           <div className="relative" ref={phoneCountryDropdownRef}>
@@ -1334,8 +1497,9 @@ const EmployeesPage = () => {
                       </div>
                     </div>
 
-                    <div className="grid grid-cols-4 gap-4">
-                      <div className="col-span-2">
+                    {/* Third Row - Address Fields */}
+                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                      <div>
                         <AddressSearch
                           label="Search Address"
                           placeholder="Search For An Address..."
@@ -1350,7 +1514,7 @@ const EmployeesPage = () => {
                           className=""
                         />
                       </div>
-                      <div className="col-span-2">
+                      <div>
                         <label className="block text-sm font-medium text-gray-700 mb-1">Address</label>
                         <input
                           type="text"
@@ -1362,7 +1526,8 @@ const EmployeesPage = () => {
                       </div>
                     </div>
 
-                    <div className="grid grid-cols-4 gap-4">
+                    {/* Fourth Row - Date Fields */}
+                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
                       <div>
                         <label className="block text-sm font-medium text-gray-700 mb-1">Hire Date</label>
                         <input
@@ -1402,34 +1567,31 @@ const EmployeesPage = () => {
                 )}
 
                 {activeFormTab === 'documents' && (
-                  <div className="space-y-6">
+                  <div className="space-y-6 max-w-full">
                     <h3 className="text-lg font-bold text-gray-900 mb-4">Documents</h3>
 
                     {/* Document Input Row */}
-                    <div className="border border-gray-200 rounded-lg overflow-hidden">
-                      <table className="w-full">
-                        <thead className="bg-gray-50">
+                    <div className="border border-gray-200 rounded-lg overflow-x-auto">
+                      <table className="w-full table-fixed">
+                        <thead className="bg-gray-50 border-b border-gray-200">
                           <tr>
-                            <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase">EXPIRY DATE</th>
+                            <th className="w-[200px] px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase">EXPIRY DATE</th>
                             <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase">DESCRIPTION</th>
-                            <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase">SELECT FILE</th>
-                            <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase">IGNORE EXPIRATION</th>
-                            <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase"></th>
+                            <th className="w-[200px] px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase">SELECT FILE</th>
+                            <th className="w-[180px] px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase">IGNORE EXPIRATION</th>
+                            <th className="w-[80px] px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase"></th>
                           </tr>
                         </thead>
                         <tbody>
                           {/* Input Row */}
-                          <tr className="bg-gray-50">
+                          <tr className="bg-white border-b border-gray-200">
                             <td className="px-4 py-3">
-                              <div className="relative">
-                                <input
-                                  type="date"
-                                  value={newDocument.expiryDate}
-                                  onChange={(e) => setNewDocument({ ...newDocument, expiryDate: e.target.value })}
-                                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#42aeec] focus:border-transparent"
-                                />
-                                <Calendar className="absolute right-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
-                              </div>
+                              <input
+                                type="date"
+                                value={newDocument.expiryDate}
+                                onChange={(e) => setNewDocument({ ...newDocument, expiryDate: e.target.value })}
+                                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#42aeec] focus:border-transparent text-sm"
+                              />
                             </td>
                             <td className="px-4 py-3">
                               <input
@@ -1437,7 +1599,7 @@ const EmployeesPage = () => {
                                 placeholder="Description"
                                 value={newDocument.description}
                                 onChange={(e) => setNewDocument({ ...newDocument, description: e.target.value })}
-                                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#42aeec] focus:border-transparent"
+                                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#42aeec] focus:border-transparent text-sm"
                               />
                             </td>
                             <td className="px-4 py-3">
@@ -1453,7 +1615,7 @@ const EmployeesPage = () => {
                                     };
                                     input.click();
                                   }}
-                                  className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors flex items-center gap-2"
+                                  className="w-full px-3 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors flex items-center justify-center gap-2 text-sm"
                                 >
                                   <Upload className="w-4 h-4" />
                                   Select File
@@ -1461,7 +1623,7 @@ const EmployeesPage = () => {
 
                                 {/* Show selected file name */}
                                 {newDocument?.file && (
-                                  <span className="text-sm text-gray-600 truncate max-w-[220px]">
+                                  <span className="text-xs text-gray-600 truncate" title={newDocument.file.name}>
                                     {newDocument.file.name}
                                   </span>
                                 )}
@@ -1508,15 +1670,15 @@ const EmployeesPage = () => {
 
                     {/* Documents Table */}
                     {documents.length > 0 && (
-                      <div className="border border-gray-200 rounded-lg overflow-hidden">
-                        <table className="w-full">
-                          <thead className="bg-gray-50">
+                      <div className="border border-gray-200 rounded-lg overflow-x-auto">
+                        <table className="w-full table-fixed">
+                          <thead className="bg-gray-50 border-b border-gray-200">
                             <tr>
-                              <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase">EXPIRY DATE</th>
+                              <th className="w-[200px] px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase">EXPIRY DATE</th>
                               <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase">DESCRIPTION</th>
-                              <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase">FILE</th>
-                              <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase">IGNORE EXPIRATION</th>
-                              <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase">ACTIONS</th>
+                              <th className="w-[200px] px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase">FILE</th>
+                              <th className="w-[180px] px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase">IGNORE EXPIRATION</th>
+                              <th className="w-[120px] px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase">ACTIONS</th>
                             </tr>
                           </thead>
                           <tbody className="bg-white divide-y divide-gray-200">
@@ -1733,8 +1895,10 @@ const EmployeesPage = () => {
                     )}
 
                     {documents.length === 0 && (
-                      <div className="border border-gray-200 rounded-lg p-8 text-center text-gray-500">
-                        No Data
+                      <div className="border border-gray-200 rounded-lg p-12 text-center bg-gray-50">
+                        <FileText className="w-12 h-12 text-gray-400 mx-auto mb-3" />
+                        <p className="text-gray-500 font-medium">No Documents Added</p>
+                        <p className="text-sm text-gray-400 mt-1">Add documents using the form above</p>
                       </div>
                     )}
 
@@ -1757,7 +1921,7 @@ const EmployeesPage = () => {
                 )}
 
                 {activeFormTab === 'notes' && (
-                  <div className="space-y-6">
+                  <div className="space-y-6 max-w-full">
                     <div className="flex items-center justify-between mb-4">
                       <h3 className="text-lg font-bold text-gray-900">Notes / Benefits</h3>
                     </div>

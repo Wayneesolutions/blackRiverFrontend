@@ -23,6 +23,7 @@ import {
   Sheet,
   X
 } from 'lucide-react';
+import { FaTimes, FaCheckCircle, FaExclamationTriangle } from 'react-icons/fa';
 import { FLEET_COLORS, getFocusStyles } from '../../fleetMaintenance/colorUtils';
 
 interface Document {
@@ -36,6 +37,48 @@ interface Document {
   url: string;
   description?: string;
 }
+
+interface ToastNotification {
+  id: number;
+  type: 'success' | 'error' | 'warning';
+  message: string;
+}
+
+const ToastNotificationComponent = ({ notification, onClose }: { notification: ToastNotification; onClose: (id: number) => void }) => {
+  const icons = {
+    success: <FaCheckCircle className="text-green-500" size={24} />,
+    error: <FaExclamationTriangle className="text-red-500" size={24} />,
+    warning: <FaExclamationTriangle className="text-yellow-500" size={24} />
+  };
+
+  const bgColors = {
+    success: 'bg-green-50 border-green-200',
+    error: 'bg-red-50 border-red-200',
+    warning: 'bg-yellow-50 border-yellow-200'
+  };
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      onClose(notification.id);
+    }, 5000);
+    return () => clearTimeout(timer);
+  }, [notification.id, onClose]);
+
+  return (
+    <div className={`fixed top-4 right-4 flex items-start gap-3 p-4 rounded-lg border-2 shadow-lg z-[10003] ${bgColors[notification.type]} min-w-[300px] max-w-[500px] animate-slide-in`}>
+      <div className="flex-shrink-0 mt-0.5">
+        {icons[notification.type]}
+      </div>
+      <p className="flex-1 text-sm font-medium text-gray-800">{notification.message}</p>
+      <button
+        onClick={() => onClose(notification.id)}
+        className="flex-shrink-0 text-gray-400 hover:text-gray-600 transition-colors"
+      >
+        <FaTimes size={16} />
+      </button>
+    </div>
+  );
+};
 
 const DocumentManagement: React.FC = () => {
   const [documents, setDocuments] = useState<Document[]>([]);
@@ -70,6 +113,7 @@ const DocumentManagement: React.FC = () => {
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [requiresCompanySetup, setRequiresCompanySetup] = useState(false);
   const [uploadModalError, setUploadModalError] = useState<string | null>(null);
+  const [notifications, setNotifications] = useState<ToastNotification[]>([]);
   const focusHandlers = getFocusStyles();
   const primaryButtonStyle: React.CSSProperties = {
     background: `linear-gradient(
@@ -138,6 +182,15 @@ const DocumentManagement: React.FC = () => {
     legal: FileText,
     other: Folder,
   }), []);
+
+  const showNotification = (type: 'success' | 'error' | 'warning', message: string) => {
+    const id = Date.now();
+    setNotifications(prev => [...prev, { id, type, message }]);
+  };
+
+  const closeNotification = (id: number) => {
+    setNotifications(prev => prev.filter(n => n.id !== id));
+  };
 
   const fetchCategories = async () => {
     try {
@@ -209,14 +262,14 @@ const DocumentManagement: React.FC = () => {
   const handleCreateCategory = async () => {
     const name = newCategoryName.trim();
     if (!name) {
-      message.error('Category name is required');
+      showNotification('error', 'Category name is required');
       return;
     }
     setCreatingCategory(true);
     try {
       const res = await createCompanyDocumentCategory(name);
       if (res?.success) {
-        message.success('Category created');
+        showNotification('success', 'Category created successfully');
         const createdKey = res?.data?.key;
         setNewCategoryName('');
         setShowCreateCategory(false);
@@ -226,7 +279,8 @@ const DocumentManagement: React.FC = () => {
           setUploadForm(prev => ({ ...prev, category: createdKey }));
         }
       } else {
-        message.error(res?.message || 'Failed to create category');
+        // Show toast notification for errors like "Category already exists"
+        showNotification('error', res?.message || 'Failed to create category');
       }
     } finally {
       setCreatingCategory(false);
@@ -490,6 +544,15 @@ const DocumentManagement: React.FC = () => {
     <div
       className="min-h-screen bg-[#EDF8FF]  p-5 space-y-5 overflow-hidden"
     >
+      {/* Toast Notifications */}
+      {notifications.map(notification => (
+        <ToastNotificationComponent
+          key={notification.id}
+          notification={notification}
+          onClose={closeNotification}
+        />
+      ))}
+
       {/* Create Category Modal */}
       {showCreateCategory && (
         <div className="fixed inset-0 z-[10002] bg-gray-900/50 backdrop-blur-sm flex items-center justify-center p-4">
@@ -1637,7 +1700,7 @@ const DocumentManagement: React.FC = () => {
             </div>
             <div className="p-4 flex items-center justify-end gap-3">
               <button onClick={() => setConfirmDelete({ open: false, id: null })} className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors font-medium">Cancel</button>
-              <button onClick={handleConfirmDelete} className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors font-medium">Delete</button>
+              <button onClick={handleConfirmDelete} className="px-4 py-2 bg-red-600 !text-white rounded-lg hover:bg-red-700 transition-colors font-medium">Delete</button>
             </div>
           </div>
         </div>

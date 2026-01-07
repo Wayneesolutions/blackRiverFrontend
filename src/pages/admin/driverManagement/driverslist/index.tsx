@@ -406,6 +406,7 @@ const DriverManagement = () => {
     result: '',
     ignoreExpiration: false
   });
+  const [confirmDeleteCertification, setConfirmDeleteCertification] = useState<{ open: boolean; cert: any | null }>({ open: false, cert: null });
   const [selectedCertificate, setSelectedCertificate] = useState<{
     id: string;
     expiryDate: string;
@@ -1340,8 +1341,42 @@ const DriverManagement = () => {
       setIsSubmitting(true);
       
       // Validate required fields
-      if (!formData.firstName || !formData.lastName) {
-        alert('Please fill in all required fields (First Name, Last Name)');
+      if (!formData.firstName || !formData.firstName.trim()) {
+        addNotification('error', 'First Name is required');
+        setIsSubmitting(false);
+        return;
+      }
+
+      if (!formData.lastName || !formData.lastName.trim()) {
+        addNotification('error', 'Last Name is required');
+        setIsSubmitting(false);
+        return;
+      }
+
+      if (!formData.emailAddress || !formData.emailAddress.trim()) {
+        addNotification('error', 'Email Address is required');
+        setIsSubmitting(false);
+        return;
+      }
+
+      if (!formData.primaryPhone || !formData.primaryPhone.trim()) {
+        addNotification('error', 'Primary Phone Number is required');
+        setIsSubmitting(false);
+        return;
+      }
+
+      // Validate email format
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      if (!emailRegex.test(formData.emailAddress)) {
+        addNotification('error', 'Please provide a valid email address');
+        setIsSubmitting(false);
+        return;
+      }
+
+      // Validate phone number (minimum 10 digits)
+      const phoneDigits = formData.primaryPhone.replace(/\D/g, '');
+      if (phoneDigits.length < 10) {
+        addNotification('error', 'Primary phone number must be at least 10 digits');
         setIsSubmitting(false);
         return;
       }
@@ -1753,8 +1788,8 @@ const DriverManagement = () => {
       dateOfBirth: '',
       mobileApp: false,
       pin: '',
-      primaryPhone: '+1',
-      secondaryPhone: '+1',
+      primaryPhone: '',
+      secondaryPhone: '',
       searchAddress: '',
       address: '',
       unit: '',
@@ -1896,6 +1931,47 @@ const DriverManagement = () => {
     resetAllFormState();
   };
 
+  // Handle certification deletion confirmation
+  const handleConfirmDeleteCertification = async () => {
+    if (!confirmDeleteCertification.cert) return;
+    
+    const cert = confirmDeleteCertification.cert;
+    try {
+      // Check if it's an existing certification (ID starts with "existing-")
+      if (cert.id && cert.id.toString().startsWith('existing-')) {
+        const actualId = cert.id.toString().replace('existing-', '');
+        const response = await driverApi.deleteTrainingCertificate(actualId);
+        if (response?.success) {
+          addNotification('success', 'Certification deleted successfully!');
+        } else {
+          addNotification('error', response?.message || 'Failed to delete certification');
+        }
+      }
+      // Remove from local state
+      setCertifications(certifications.filter(c => c.id !== cert.id));
+      // Clear editing state if this was the certification being edited
+      if (editingCertificationId === cert.id) {
+        setEditingCertificationId(null);
+        setNewCertification({
+          expiryDate: '',
+          title: '',
+          subCategory: '',
+          result: '',
+          ignoreExpiration: false
+        });
+      }
+      // Clear selected certificate if it was this one
+      if (selectedCertificate?.id === cert.id) {
+        setSelectedCertificate(null);
+      }
+    } catch (error: any) {
+      console.error('Error deleting certification:', error);
+      addNotification('error', error.response?.data?.message || error.message || 'Failed to delete certification');
+    } finally {
+      setConfirmDeleteCertification({ open: false, cert: null });
+    }
+  };
+
   // Helper function to check if a value has changed
   const hasValueChanged = (current: any, original: any): boolean => {
     // Handle null/undefined
@@ -1920,8 +1996,42 @@ const DriverManagement = () => {
       setIsSubmitting(true);
       
       // Validate required fields
-      if (!formData.firstName || !formData.lastName) {
-        alert('Please fill in all required fields (First Name, Last Name)');
+      if (!formData.firstName || !formData.firstName.trim()) {
+        addNotification('error', 'First Name is required');
+        setIsSubmitting(false);
+        return;
+      }
+
+      if (!formData.lastName || !formData.lastName.trim()) {
+        addNotification('error', 'Last Name is required');
+        setIsSubmitting(false);
+        return;
+      }
+
+      if (!formData.emailAddress || !formData.emailAddress.trim()) {
+        addNotification('error', 'Email Address is required');
+        setIsSubmitting(false);
+        return;
+      }
+
+      if (!formData.primaryPhone || !formData.primaryPhone.trim()) {
+        addNotification('error', 'Primary Phone Number is required');
+        setIsSubmitting(false);
+        return;
+      }
+
+      // Validate email format
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      if (!emailRegex.test(formData.emailAddress)) {
+        addNotification('error', 'Please provide a valid email address');
+        setIsSubmitting(false);
+        return;
+      }
+
+      // Validate phone number (minimum 10 digits)
+      const phoneDigits = formData.primaryPhone.replace(/\D/g, '');
+      if (phoneDigits.length < 10) {
+        addNotification('error', 'Primary phone number must be at least 10 digits');
         setIsSubmitting(false);
         return;
       }
@@ -2753,24 +2863,29 @@ const DriverManagement = () => {
                       setEditingDriver(null);
                       setOriginalDriverData(null);
                       resetAllFormState();
+                      
+                      // Parse phone number to extract country code and number
+                      const parsedPhone = parsePhoneNumber(driver.phone || driver.mobile);
+                      setPrimaryPhoneCountry(parsedPhone.countryCode);
+                      
                       // Populate form data with driver data
                       setFormData({
                         driverId: driver.driverId,
                         firstName: driver.firstName,
                         middle: '',
                         lastName: driver.lastName,
-                        emailAddress: '',
+                        emailAddress: driver.email || '',
                         dateOfBirth: driver.dateOfBirth,
                         mobileApp: false,
                         pin: '',
-                        primaryPhone: '+1',
-                        secondaryPhone: '+1',
+                        primaryPhone: parsedPhone.phoneNumber,
+                        secondaryPhone: '',
                         searchAddress: '',
                         address: '',
                         unit: '',
                         city: '',
                         postalCode: '',
-                        country: '',
+                        country: driver.country || '',
                         stateProvince: '',
                         profileImage: null
                       });
@@ -2809,23 +2924,28 @@ const DriverManagement = () => {
                               setEditingDriver(driver);
                               setOriginalDriverData(null);
                               resetAllFormState();
+                              
+                              // Parse phone number to extract country code and number
+                              const parsedPhone = parsePhoneNumber(driver.phone || driver.mobile);
+                              setPrimaryPhoneCountry(parsedPhone.countryCode);
+                              
                               setFormData({
                                 driverId: driver.driverId,
                                 firstName: driver.firstName,
                                 middle: '',
                                 lastName: driver.lastName,
-                                emailAddress: '',
+                                emailAddress: driver.email || '',
                                 dateOfBirth: driver.dateOfBirth,
                                 mobileApp: false,
                                 pin: '',
-                                primaryPhone: '+1',
-                                secondaryPhone: '+1',
+                                primaryPhone: parsedPhone.phoneNumber,
+                                secondaryPhone: '',
                                 searchAddress: '',
                                 address: '',
                                 unit: '',
                                 city: '',
                                 postalCode: '',
-                                country: '',
+                                country: driver.country || '',
                                 stateProvince: '',
                                 profileImage: null
                               });
@@ -2905,14 +3025,14 @@ const DriverManagement = () => {
                     const file = e.target.files?.[0];
                     if (file) {
                       if (file.size > 20 * 1024 * 1024) {
-                        alert('File size must be less than 20MB');
+                        addNotification('error', 'File size must be less than 20MB');
                         if (fileInputRef.current) {
                           fileInputRef.current.value = '';
                         }
                         return;
                       }
                       if (!file.type.startsWith('image/')) {
-                        alert('Please select an image file');
+                        addNotification('error', 'Please select an image file');
                         if (fileInputRef.current) {
                           fileInputRef.current.value = '';
                         }
@@ -3051,7 +3171,9 @@ const DriverManagement = () => {
                     {/* Second Row */}
                     <div className="grid grid-cols-4 gap-2">
                       <div>
-                        <label className="block text-xs font-medium text-gray-700 mb-0.5">Email Address</label>
+                        <label className="block text-xs font-medium text-gray-700 mb-0.5">
+                          Email Address<span className="text-red-500">*</span>
+                        </label>
                         <input
                           type="email"
                           placeholder="Email Address"
@@ -3163,9 +3285,8 @@ const DriverManagement = () => {
                                           setPrimaryPhoneCountry(country.code);
                                           setPrimaryCountryDropdownOpen(false);
                                           setPrimaryCountrySearch('');
-                                          // Auto-fill dial code in the phone input field (without + sign)
-                                          const dialCodeWithoutPlus = country.dialCode.replace('+', '');
-                                          setFormData({ ...formData, primaryPhone: dialCodeWithoutPlus });
+                                          // Don't auto-fill dial code - keep the input field clean
+                                          // User will enter only their phone number
                                         }}
                                         className={`w-full flex items-center gap-2 px-3 py-2 text-xs text-left hover:bg-gray-100 transition-colors ${
                                           primaryPhoneCountry === country.code ? 'bg-blue-50' : ''
@@ -3260,9 +3381,8 @@ const DriverManagement = () => {
                                           setSecondaryPhoneCountry(country.code);
                                           setSecondaryCountryDropdownOpen(false);
                                           setSecondaryCountrySearch('');
-                                          // Auto-fill dial code in the phone input field (without + sign)
-                                          const dialCodeWithoutPlus = country.dialCode.replace('+', '');
-                                          setFormData({ ...formData, secondaryPhone: dialCodeWithoutPlus });
+                                          // Don't auto-fill dial code - keep the input field clean
+                                          // User will enter only their phone number
                                         }}
                                         className={`w-full flex items-center gap-2 px-3 py-2 text-xs text-left hover:bg-gray-100 transition-colors ${
                                           secondaryPhoneCountry === country.code ? 'bg-blue-50' : ''
@@ -4735,42 +4855,9 @@ const DriverManagement = () => {
                                       <Edit className="w-4 h-4" />
                                     </button>
                                     <button
-                                      onClick={async (e) => {
+                                      onClick={(e) => {
                                         e.stopPropagation();
-                                        if (window.confirm('Are you sure you want to delete this certification?')) {
-                                          try {
-                                            // Check if it's an existing certification (ID starts with "existing-")
-                                            if (cert.id && cert.id.toString().startsWith('existing-')) {
-                                              const actualId = cert.id.toString().replace('existing-', '');
-                                              const response = await driverApi.deleteTrainingCertificate(actualId);
-                                              if (response?.success) {
-                                                addNotification('success', 'Certification deleted successfully!');
-                                              } else {
-                                                addNotification('error', response?.message || 'Failed to delete certification');
-                                              }
-                                            }
-                                            // Remove from local state
-                                            setCertifications(certifications.filter(c => c.id !== cert.id));
-                                            // Clear editing state if this was the certification being edited
-                                            if (editingCertificationId === cert.id) {
-                                              setEditingCertificationId(null);
-                                              setNewCertification({
-                                                expiryDate: '',
-                                                title: '',
-                                                subCategory: '',
-                                                result: '',
-                                                ignoreExpiration: false
-                                              });
-                                            }
-                                            // Clear selected certificate if it was this one
-                                            if (selectedCertificate?.id === cert.id) {
-                                              setSelectedCertificate(null);
-                                            }
-                                          } catch (error: any) {
-                                            console.error('Error deleting certification:', error);
-                                            addNotification('error', error.response?.data?.message || error.message || 'Failed to delete certification');
-                                          }
-                                        }
+                                        setConfirmDeleteCertification({ open: true, cert });
                                       }}
                                       className="p-1.5 text-red-600 hover:bg-red-50 rounded transition-colors"
                                       title="Delete certification"
@@ -5698,6 +5785,42 @@ const DriverManagement = () => {
                 <button
                   onClick={confirmDeleteDriver}
                   className="px-4 py-2 bg-red-600 !text-white rounded-lg hover:bg-red-700 transition-colors"
+                >
+                  Delete
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Delete Certification Confirmation Modal */}
+      {confirmDeleteCertification.open && (
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-[10001] p-4">
+          <div className="bg-white rounded-xl shadow-2xl w-full max-w-md">
+            <div className="p-6">
+              <div className="flex items-center gap-4 mb-4">
+                <div className="flex-shrink-0 w-12 h-12 bg-red-100 rounded-full flex items-center justify-center">
+                  <Trash2 className="w-6 h-6 text-red-600" />
+                </div>
+                <div>
+                  <h3 className="text-lg font-semibold text-gray-900">Delete Certification</h3>
+                  <p className="text-sm text-gray-500">This action cannot be undone</p>
+                </div>
+              </div>
+              <p className="text-gray-700 mb-6">
+                Are you sure you want to delete the certification <span className="font-medium text-gray-900">{confirmDeleteCertification.cert?.title || 'this item'}</span>? This will permanently remove the certification and all associated data.
+              </p>
+              <div className="flex items-center justify-end gap-3">
+                <button
+                  onClick={() => setConfirmDeleteCertification({ open: false, cert: null })}
+                  className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors font-medium"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={handleConfirmDeleteCertification}
+                  className="px-4 py-2 bg-red-600 !text-white rounded-lg hover:bg-red-700 transition-colors font-medium"
                 >
                   Delete
                 </button>
