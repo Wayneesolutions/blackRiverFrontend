@@ -18,6 +18,7 @@ import {
   type CreateYardData
 } from '../../../../axios/api/fleet.yards';
 import AddressSearch from '../../../../components/common/AddressSearch';
+import ConfirmationModal from '../../../../components/common/ConfirmationModal';
 
 type NotificationType = 'success' | 'error' | 'info';
 
@@ -46,6 +47,11 @@ const YardManagement = () => {
     country: '',
     zipPostalCode: ''
   });
+  
+  // Delete confirmation modal state
+  const [showDeleteConfirmation, setShowDeleteConfirmation] = useState(false);
+  const [deleteTargetId, setDeleteTargetId] = useState<string | null>(null);
+  const [deleteTargetName, setDeleteTargetName] = useState<string>('');
 
   const yardTypes = ['parking', 'drop yard', 'terminal', 'maintenance', 'warehouse'];
   const statusOptions = ['active', 'inactive'];
@@ -163,13 +169,21 @@ const YardManagement = () => {
     }
   };
 
-  const handleDelete = async (id: string) => {
-    if (!window.confirm('Are you sure you want to delete this yard?')) {
-      return;
-    }
+  // Show delete confirmation modal
+  const handleDeleteClick = (id: string, yardName: string) => {
+    setDeleteTargetId(id);
+    setDeleteTargetName(yardName);
+    setShowDeleteConfirmation(true);
+  };
 
+  // Handle actual deletion after confirmation
+  const handleDelete = async () => {
+    if (!deleteTargetId) return;
+
+    setShowDeleteConfirmation(false);
+    
     try {
-      const response = await deleteYard(id);
+      const response = await deleteYard(deleteTargetId);
       if (response.success) {
         addNotification('success', response.message || 'Yard deleted successfully');
         fetchYards();
@@ -178,6 +192,9 @@ const YardManagement = () => {
       }
     } catch (error: any) {
       addNotification('error', error.message || 'Failed to delete yard');
+    } finally {
+      setDeleteTargetId(null);
+      setDeleteTargetName('');
     }
   };
 
@@ -352,7 +369,10 @@ const YardManagement = () => {
                             <FaEdit />
                           </button>
                           <button
-                            onClick={() => handleDelete(yard._id!)}
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleDeleteClick(yard._id!, yard.yardName);
+                            }}
                             className="text-red-600 hover:text-red-800"
                             title="Delete"
                           >
@@ -579,6 +599,22 @@ const YardManagement = () => {
             </div>
           </div>
         )}
+
+        {/* Delete Confirmation Modal */}
+        <ConfirmationModal
+          isOpen={showDeleteConfirmation}
+          onClose={() => {
+            setShowDeleteConfirmation(false);
+            setDeleteTargetId(null);
+            setDeleteTargetName('');
+          }}
+          onConfirm={handleDelete}
+          title="Confirm Yard Deletion"
+          message={`Are you sure you want to delete "${deleteTargetName}"? This action cannot be undone and will permanently remove all yard data. Any trucks or trailers assigned to this yard will need to be reassigned.`}
+          confirmText="Delete Yard"
+          type="danger"
+          isLoading={false}
+        />
       </div>
     </div>
   );
