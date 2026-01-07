@@ -92,6 +92,7 @@ interface Trip {
   actualEndDate?: string;
   notes?: string;
 }
+ type PaymentStatus = 'PENDING' | 'PAID' | 'OVERDUE';
 
 interface Order {
   id: string;
@@ -116,18 +117,12 @@ interface Order {
   coDriver?: string;
   truckNo?: string;
   trailerNo?: string;
+  paymentStatus?: PaymentStatus; 
   // Keep original fields if needed for broader compatibility, or just use the mapped ones. 
   // For this component, we only use the mapped ones.
 }
 
-const getStatusColor = (status: string) => {
-  const s = status?.toLowerCase() || '';
-  if (['planned', 'dispatched'].includes(s)) return 'bg-blue-100 text-blue-800';
-  if (['in-progress', 'in-delivery', 'quoted', 'confirmed'].includes(s)) return 'bg-yellow-100 text-yellow-800';
-  if (['completed', 'delivered'].includes(s)) return 'bg-green-100 text-green-800';
-  if (['cancelled'].includes(s)) return 'bg-red-100 text-red-800';
-  return 'bg-gray-100 text-gray-800';
-};
+
 
 
 

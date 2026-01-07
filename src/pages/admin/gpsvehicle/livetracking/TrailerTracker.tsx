@@ -383,9 +383,7 @@ const ProfessionalTrailerTracker: React.FC = () => {
                     center={mapCenter}
                     zoom={mapZoom}
                     style={{ height: '100%', width: '100%', zIndex: 0 }}
-                    whenCreated={(mapInstance) => {
-                        mapRef.current = mapInstance;
-                    }}
+                    ref={mapRef}
                 >
                     <TileLayer
                         attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'

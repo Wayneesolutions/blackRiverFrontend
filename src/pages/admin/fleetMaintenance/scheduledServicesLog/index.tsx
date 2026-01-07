@@ -117,7 +117,7 @@ const ScheduledServicesLog: React.FC = () => {
   const [samsaraServices, setSamsaraServices] = useState<ScheduledService[]>([]);
   const [units, setUnits] = useState<UnitOption[]>([]);
   const [loading, setLoading] = useState(false);
-  const [loadingSamsara, setLoadingSamsara] = useState(false);
+  const [, setLoadingSamsara] = useState(false);
   const [showServiceDetails, setShowServiceDetails] = useState(false);
   
   // Refs for scrollbar synchronization

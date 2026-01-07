@@ -125,9 +125,8 @@ const OrderChat: React.FC<OrderChatProps> = ({ orderId, orderNumber, onClose }) 
     // Listen for new messages (backend emits newChatMessage for both trips and orders)
     socketService.onNewMessage(handleNewMessage);
     socketService.onUserTyping((data) => {
-      // Handle typing for orders (check orderId or tripId - backend sends tripId for both)
-      const messageId = data.orderId || data.tripId;
-      if (messageId === orderId) {
+    
+      if (data.tripId === orderId) {
         setTypingUsers((prev) => {
           const newSet = new Set(prev);
           if (data.isTyping) {

@@ -34,13 +34,29 @@ interface AddressResult {
   address?: {
     house_number?: string;
     road?: string;
+    street?: string;
+    street_name?: string;
+
     city?: string;
+    town?: string;
+    village?: string;
+    municipality?: string;
+    county?: string;
+    city_district?: string;
+
     state?: string;
+    state_district?: string;
+    province?: string;
+    region?: string;
+
     postcode?: string;
+    postal_code?: string;
+
     country?: string;
     country_code?: string;
   };
 }
+
 
 interface AddressSearchProps {
   placeholder?: string;
@@ -85,11 +101,11 @@ const AddressSearch: React.FC<AddressSearchProps> = ({
     }
 
     setIsSearching(true);
-    
+
     try {
       // Use Photon API (Komoot) - free, faster than Nominatim, better rate limits
       const url = `https://photon.komoot.io/api/?q=${encodeURIComponent(query)}&limit=10`;
-      
+
       const response = await fetch(url, {
         headers: {
           'Accept': 'application/json',
@@ -113,12 +129,12 @@ const AddressSearch: React.FC<AddressSearchProps> = ({
       // Clear any previous errors
       setErrorMessage(null);
       const data: PhotonResponse = await response.json();
-      
+
       // Convert Photon format to our AddressResult format
       const convertedResults: AddressResult[] = data.features.map((feature, index) => {
         const props = feature.properties;
         const [lon, lat] = feature.geometry.coordinates;
-        
+
         // Build display name from available properties
         const nameParts = [
           props.housenumber,
@@ -157,7 +173,7 @@ const AddressSearch: React.FC<AddressSearchProps> = ({
 
     } catch (error: any) {
       console.error('Error searching addresses:', error);
-      
+
       // Only set error message if not already set
       if (!errorMessage) {
         if (error.message && error.message.includes('Rate limit')) {
@@ -196,35 +212,35 @@ const AddressSearch: React.FC<AddressSearchProps> = ({
   // Handle address selection
   const handleAddressSelect = (result: AddressResult) => {
     const address = result.address || {};
-    
+
     // Extract address components with better fallbacks
     const houseNumber = address.house_number || '';
     const road = address.road || address.street || address.street_name || '';
     const streetAddress = [houseNumber, road].filter(Boolean).join(' ').trim() || result.display_name.split(',')[0];
-    
+
     // Try multiple fields for city
-    const city = address.city || 
-                 address.town || 
-                 address.village || 
-                 address.municipality || 
-                 address.county || 
-                 address.city_district || 
-                 '';
-    
+    const city = address.city ||
+      address.town ||
+      address.village ||
+      address.municipality ||
+      address.county ||
+      address.city_district ||
+      '';
+
     // Try multiple fields for state/province
-    const state = address.state || 
-                  address.province || 
-                  address.region || 
-                  address.state_district || 
-                  '';
-    
+    const state = address.state ||
+      address.province ||
+      address.region ||
+      address.state_district ||
+      '';
+
     const postalCode = address.postcode || address.postal_code || '';
-    
+
     // Get country name or code
-    const country = address.country || 
-                    (address.country_code ? address.country_code.toUpperCase() : '') || 
-                    '';
-    
+    const country = address.country ||
+      (address.country_code ? address.country_code.toUpperCase() : '') ||
+      '';
+
     // Call the callback with structured address data
     onAddressSelect({
       fullAddress: result.display_name,
@@ -251,7 +267,7 @@ const AddressSearch: React.FC<AddressSearchProps> = ({
     switch (e.key) {
       case 'ArrowDown':
         e.preventDefault();
-        setSelectedIndex(prev => 
+        setSelectedIndex(prev =>
           prev < results.length - 1 ? prev + 1 : prev
         );
         break;
@@ -347,9 +363,8 @@ const AddressSearch: React.FC<AddressSearchProps> = ({
                 key={`${result.lat}_${result.lon}_${index}`}
                 type="button"
                 onClick={() => handleAddressSelect(result)}
-                className={`w-full text-left px-4 py-3 hover:bg-blue-50 transition-colors border-b border-gray-100 last:border-b-0 ${
-                  selectedIndex === index ? 'bg-blue-50' : ''
-                }`}
+                className={`w-full text-left px-4 py-3 hover:bg-blue-50 transition-colors border-b border-gray-100 last:border-b-0 ${selectedIndex === index ? 'bg-blue-50' : ''
+                  }`}
                 onMouseEnter={() => setSelectedIndex(index)}
               >
                 <div className="flex items-start gap-2">

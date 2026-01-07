@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import {
-    Truck, MapPin, Activity, Clock, Wifi, AlertTriangle, 
-    Wrench, Navigation, Search, RefreshCw, Zap
+    Truck, Activity, Clock, Wifi, AlertTriangle, 
+    Wrench, Navigation, RefreshCw, Zap
 } from 'lucide-react';
 import {
     BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, 
@@ -45,7 +45,7 @@ interface VehicleLocation {
 
 const GpsSection = () => {
   const [activeTab, setActiveTab] = useState<'overview' | 'gps' | 'maintenance'>('overview');
-  const [searchTerm, setSearchTerm] = useState('');
+ 
   const [, setLoading] = useState(false);
   const [vehicles, setVehicles] = useState<any[]>([]);
   const [summary, setSummary] = useState({
@@ -134,11 +134,7 @@ const GpsSection = () => {
     fetchHOSData();
   }, []);
 
-  const filteredVehicles = vehicles.filter((vehicle: any) =>
-      vehicle.id?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      vehicle.driver?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      vehicle.location?.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+
 
   // Calculate engine hours data for chart
   const engineHoursData = vehicles

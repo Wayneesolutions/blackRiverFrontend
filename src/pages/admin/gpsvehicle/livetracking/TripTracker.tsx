@@ -118,10 +118,8 @@ const RoutePolyline: React.FC<{
 }> = ({ waypoints, yardLocation, currentLocation }) => {
     const [routeCoordinates, setRouteCoordinates] = useState<[number, number][]>([]);
     const [yardToTruckRoute, setYardToTruckRoute] = useState<[number, number][]>([]);
-    const [isLoading, setIsLoading] = useState<boolean>(true);
 
     useEffect(() => {
-        setIsLoading(true);
         setRouteCoordinates([]);
         setYardToTruckRoute([]);
         
@@ -209,11 +207,8 @@ const RoutePolyline: React.FC<{
         if (allPoints.length < 2) {
             console.warn('⚠️ Not enough points for route:', allPoints.length);
             setRouteCoordinates([]);
-            setIsLoading(false);
             return;
         }
-
-        setIsLoading(true);
 
         // Use OSRM routing service (free, no API key required)
         const fetchRoute = async () => {
@@ -227,7 +222,6 @@ const RoutePolyline: React.FC<{
 
                 if (validWaypoints.length < 2) {
                     setRouteCoordinates([]);
-                    setIsLoading(false);
                     return;
                 }
 
@@ -262,7 +256,6 @@ const RoutePolyline: React.FC<{
                         );
                         console.log('✅ Route fetched successfully:', coords.length, 'points');
                         setRouteCoordinates(coords);
-                        setIsLoading(false);
                         return;
                     }
                 }
@@ -394,8 +387,6 @@ const RoutePolyline: React.FC<{
                     }
                 }
                 setRouteCoordinates(fallbackCoords);
-            } finally {
-                setIsLoading(false);
             }
         };
 

@@ -1,5 +1,6 @@
-import { type AxiosResponse } from "axios";
+
 import apiClient from "../apiClient";
+import { type AxiosResponse } from 'axios';
 
 export type VehicleServiceType =
   | 'oil-change'
@@ -200,13 +201,26 @@ export const getIncomingMaintenanceCount = async () => {
   }
 };
 
-// ✅ GET SAMSARA UPCOMING SERVICES
-export const getSamsaraUpcomingServices = async (): Promise<{ success: boolean; count: number; data: VehicleServiceResponse[] }> => {
+export const getSamsaraUpcomingServices = async (): Promise<{
+  success: boolean;
+  count: number;
+  data: VehicleServiceResponse[];
+}> => {
   try {
-    const res: AxiosResponse = await apiClient.get('admin/vehicle-service/samsara-upcoming');
+    const res: AxiosResponse<{
+      success: boolean;
+      count: number;
+      data: VehicleServiceResponse[];
+    }> = await apiClient.get('admin/vehicle-service/samsara-upcoming');
+
     return res.data;
   } catch (error) {
     console.error('Error fetching Samsara upcoming services:', error);
-    return (error as Error).response?.data || { success: false, count: 0, data: [] };
+
+    return {
+      success: false,
+      count: 0,
+      data: [],
+    };
   }
 };

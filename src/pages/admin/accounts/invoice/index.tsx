@@ -1166,9 +1166,9 @@ const InvoiceManagement: React.FC = () => {
                                         <td className="py-4 px-6">
                                             {trip ? (
                                                 <div className="space-y-1">
-                                                    {tripNumber && (
+                                                    {trip?.tripNumber && (
                                                         <div className="font-medium text-gray-900 text-sm">
-                                                            {trip.tripNumber}
+                                                            {trip?.tripNumber}
                                                         </div>
                                                     )}
                                                     <div className="text-xs text-gray-600">

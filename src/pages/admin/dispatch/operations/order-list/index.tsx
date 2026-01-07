@@ -175,7 +175,8 @@ interface Order {
   deliveryRefNo: string;
   totalAmount: string;
   currency: string;
-  status: "QUOTED" | "CONFIRMED" | "IN_PROGRESS" | "COMPLETED";
+  status: string;
+  accountingStatus?: string;
   driver: string;
   coDriver: string;
   truckNo: string;
@@ -1191,9 +1192,8 @@ const OrderList = () => {
                   const shipDateTime = formatDateAndTime(order.pickupDate || '');
                   const receiveDateTime = formatDateAndTime(order.deliveryDate || '');
 
-                  // Determine if status should be UNASSIGNED
-                  const displayStatus = (!order.driver && !order.truckNo) ? 'UNASSIGNED' : (order.status || 'UNASSIGNED');
-                  const isUnassigned = displayStatus === 'UNASSIGNED';
+
+                 
 
                   // Get load number
                   const loadNumber = getLoadNumber(order);
@@ -1285,7 +1285,7 @@ const OrderList = () => {
                       </td>
                       <td className="px-4 py-4 whitespace-nowrap">
                         <select
-                          value={order.status || 'QUOTED'}
+                          value={order.status || 'quoted'}
                           onChange={async (e) => {
                             e.stopPropagation();
                             const newStatus = e.target.value;
@@ -1303,12 +1303,12 @@ const OrderList = () => {
                             }
                           }}
                           onClick={(e) => e.stopPropagation()}
-                          className={`text-xs font-medium rounded-full px-2 py-1 border-0 ring-1 ring-inset focus:ring-2 focus:ring-inset sm:text-sm sm:leading-6 cursor-pointer outline-none ${order.status === 'quoted' ? 'bg-orange-100 text-orange-800 ring-orange-600/20' :
-                            order.status === 'planned' ? 'bg-blue-100 text-blue-800 ring-blue-600/20' :
-                              order.status === 'completed' ? 'bg-gray-100 text-gray-800 ring-gray-600/20' :
-                                order.status === 'delivered' ? 'bg-purple-100 text-purple-800 ring-purple-600/20' :
-                                  order.status === 'in-delivery' ? 'bg-yellow-100 text-yellow-800 ring-yellow-600/20' :
-                                    order.status === 'canceled' ? 'bg-red-100 text-red-800 ring-red-600/20' :
+                          className={`text-xs font-medium rounded-full px-2 py-1 border-0 ring-1 ring-inset focus:ring-2 focus:ring-inset sm:text-sm sm:leading-6 cursor-pointer outline-none ${order.status?.toLowerCase() === 'quoted' ? 'bg-orange-100 text-orange-800 ring-orange-600/20' :
+                            order.status?.toLowerCase() === 'planned' ? 'bg-blue-100 text-blue-800 ring-blue-600/20' :
+                              order.status?.toLowerCase() === 'completed' ? 'bg-gray-100 text-gray-800 ring-gray-600/20' :
+                                order.status?.toLowerCase() === 'delivered' ? 'bg-purple-100 text-purple-800 ring-purple-600/20' :
+                                  order.status?.toLowerCase() === 'in-delivery' ? 'bg-yellow-100 text-yellow-800 ring-yellow-600/20' :
+                                    order.status?.toLowerCase() === 'canceled' ? 'bg-red-100 text-red-800 ring-red-600/20' :
                                       'bg-gray-100 text-gray-800 ring-gray-500/10'
                             }`}
                         >

@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback, useRef } from "react";
 import { Plus, Edit, Trash2, Eye, Search, X, File, Download, MessageCircle } from "lucide-react";
 import { FaCheckCircle, FaExclamationCircle, FaTimes, FaTruck, FaUser, FaTrailer } from "react-icons/fa";
 import NewTripSidebar from "./NewTripSidebar";
-import { listTrip, deleteTrip, getTripById, startTrip as startTripAPI, completeTrip as completeTripAPI, listDriver, listVehicle, getTripDocumentSignedUrl, updateOrder, updateTrip } from "../../../../../axios/api/distapcher";
+import { listTrip, deleteTrip, getTripById, startTrip as startTripAPI, completeTrip as completeTripAPI, listDriver, listVehicle, getTripDocumentSignedUrl, updateTrip } from "../../../../../axios/api/distapcher";
 import ConfirmationModal from "../../../../../components/common/ConfirmationModal";
 import { FLEET_COLORS, getFocusStyles } from "../../../fleetMaintenance/colorUtils";
 import TripChat from "../../../../../components/chat/TripChat";
@@ -274,15 +274,6 @@ const Trips = () => {
     (window as any).__tripsChatHandlers = {};
     console.log('🌐 Global chat handler store initialized');
   }
-  
-  // Store handler in ref immediately (runs on every render)
-  handleChatNotificationClickRef.current = handleChatNotificationClick;
-  
-  // Update global store whenever handler changes
-  useEffect(() => {
-    (window as any).__tripsChatHandlers.openChat = handleChatNotificationClick;
-    console.log('🌐 Global store updated with handler:', !!handleChatNotificationClick, 'Type:', typeof handleChatNotificationClick);
-  }, [handleChatNotificationClick]); // Update when handler changes
 
   // Set up global function IMMEDIATELY (before event listeners)
   useEffect(() => {
