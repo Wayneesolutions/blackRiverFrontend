@@ -288,7 +288,7 @@ const Trips = () => {
   useEffect(() => {
     console.log('🌐 Setting up global openTripChat function');
     
-    // Expose global function - this will be called from GlobalChatNotifications
+    // Expose global function for opening chat from external navigation
     (window as any).openTripChat = async (tripId: string) => {
       console.log('🌐 Global openTripChat called with:', tripId);
       
@@ -559,11 +559,32 @@ const Trips = () => {
     const state = location.state as any;
     const searchParams = new URLSearchParams(location.search);
     const chatIdFromQuery = searchParams.get('openChat');
+    const orderIdFromQuery = searchParams.get('orderId'); // Check for orderId query parameter
     
     console.log('📍 Location changed - state:', state, 'query:', location.search);
     
-    // Check query parameter first (more reliable)
-    if (chatIdFromQuery) {
+    // Check orderId query parameter first (for chat notifications)
+    if (orderIdFromQuery) {
+      console.log('📍 Found orderId in query param:', orderIdFromQuery);
+      // Open chat immediately
+      const handler = handleChatNotificationClickRef.current;
+      if (handler) {
+        console.log('📍 Handler available, opening chat directly from orderId query param');
+        handler(orderIdFromQuery).then(() => {
+          // Clear query param after opening
+          navigate(location.pathname, { replace: true, state: {} });
+        }).catch(err => {
+          console.error('❌ Error opening chat from orderId query:', err);
+        });
+      } else {
+        // Store for later
+        pendingOpenChatTripIdRef.current = orderIdFromQuery;
+        // Clear query param
+        navigate(location.pathname, { replace: true, state: {} });
+      }
+    }
+    // Check query parameter (openChat for backward compatibility)
+    else if (chatIdFromQuery) {
       console.log('📍 Found openChat in query param:', chatIdFromQuery);
       // Open chat immediately
       const handler = handleChatNotificationClickRef.current;
@@ -637,8 +658,7 @@ const Trips = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // Note: Socket notifications are now handled globally by GlobalChatNotifications component
-  // This page only manages unread counts locally
+  // This page manages unread counts locally and opens chat via orderId query parameter
 
   // Sync scroll between top and bottom scrollbars
   useEffect(() => {

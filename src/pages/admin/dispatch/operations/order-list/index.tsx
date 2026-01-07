@@ -1,6 +1,7 @@
 import { useState, useMemo, useEffect, useCallback, useRef } from "react";
 import { Edit, Plus, X, Package, DollarSign, Route, Truck, MessageCircle } from "lucide-react";
-import { FaCheckCircle, FaExclamationCircle, FaTimes } from "react-icons/fa";
+import { FaCheckCircle, FaExclamationCircle, FaTimes, FaTruck } from "react-icons/fa";
+import { useNavigate, useLocation } from "react-router-dom";
 import NewOrderSidebar from "./NewOrderSidebar";
 import { listOrder, deleteOrder, getOrderById, updateOrder } from "../../../../../axios/api/distapcher";
 import { listPlace } from "../../../../../axios/api/dispatcher.places";
@@ -8,6 +9,7 @@ import ConfirmationModal from "../../../../../components/common/ConfirmationModa
 import OrderChat from "../../../../../components/chat/OrderChat";
 import { getOrderUnreadMessageCount } from "../../../../../axios/api/chat";
 import { createPortal } from "react-dom";
+import { socketService } from "../../../../../services/socketService";
 
 // Color constants
 const PRIMARY_GRADIENT = 'linear-gradient(90deg, #42aeec 0%, #1db5f5 40%, #0ea3d8 100%)';
@@ -27,33 +29,117 @@ interface Place {
   };
 }
 
-type NotificationType = 'success' | 'error' | 'warning';
+type NotificationType = 'success' | 'error' | 'warning' | 'chat';
 
 interface ToastNotification {
   id: number;
   type: NotificationType;
   message: string;
+  orderId?: string;
+  orderNumber?: string;
+  driverName?: string;
 }
 
-const ToastNotification = ({ notification, onClose }: { notification: ToastNotification; onClose: (id: number) => void }) => {
+const ToastNotification = ({ notification, onClose, onChatClick }: { 
+  notification: ToastNotification; 
+  onClose: (id: number) => void;
+  onChatClick?: (orderId: string) => void;
+}) => {
+  const [progress, setProgress] = useState(100);
+  const duration = notification.type === 'chat' ? 8000 : 5000;
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      onClose(notification.id);
+    }, duration);
+
+    const progressInterval = setInterval(() => {
+      setProgress((prev) => {
+        const decrement = (100 / duration) * 50;
+        return Math.max(0, prev - decrement);
+      });
+    }, 50);
+
+    return () => {
+      clearTimeout(timer);
+      clearInterval(progressInterval);
+    };
+  }, [notification.id, onClose, duration]);
+
+  const handleClick = () => {
+    if (notification.type === 'chat' && notification.orderId && onChatClick) {
+      onChatClick(notification.orderId);
+      onClose(notification.id);
+    }
+  };
+
+  // Chat notification (Advanced UI)
+  if (notification.type === 'chat') {
+    return (
+      <div
+        onClick={handleClick}
+        className="fixed top-4 right-4 w-[400px] bg-white rounded-2xl shadow-2xl z-[10000] animate-slide-in cursor-pointer hover:shadow-3xl transition-all duration-300 hover:scale-[1.02] border border-gray-100 overflow-hidden"
+      >
+        <div className="h-1 bg-gradient-to-r from-blue-500 to-purple-500 transition-all duration-100" style={{ width: `${progress}%` }}></div>
+        <div className="p-5">
+          <div className="flex items-start gap-4">
+            <div className="flex-shrink-0">
+              <div className="w-12 h-12 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center text-white font-bold text-lg shadow-lg">
+                {notification.driverName?.charAt(0) || 'D'}
+              </div>
+              <div className="w-4 h-4 bg-green-500 rounded-full border-2 border-white absolute ml-8 -mt-3"></div>
+            </div>
+            <div className="flex-1 min-w-0">
+              <div className="flex items-center gap-2 mb-1">
+                <h4 className="font-bold text-gray-900 text-base">
+                  {notification.driverName || 'Driver'}
+                </h4>
+                <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-blue-100 text-blue-700 text-xs font-semibold rounded-full">
+                  <FaTruck className="w-3 h-3" />
+                  {notification.orderNumber}
+                </span>
+              </div>
+              <p className="text-gray-700 text-sm leading-relaxed line-clamp-2 mb-3">
+                {notification.message}
+              </p>
+              <div className="flex items-center gap-3">
+                <div className="flex items-center gap-2 text-blue-600 text-xs font-semibold">
+                  <MessageCircle className="w-4 h-4" />
+                  <span>Click to reply</span>
+                </div>
+                <div className="flex-1"></div>
+                <span className="text-gray-400 text-xs">Just now</span>
+              </div>
+            </div>
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                onClose(notification.id);
+              }}
+              className="flex-shrink-0 w-8 h-8 rounded-full hover:bg-gray-100 flex items-center justify-center text-gray-400 hover:text-gray-600 transition-all"
+            >
+              <X size={18} />
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Standard notifications
   const icons = {
     success: <FaCheckCircle className="text-green-500" size={24} />,
     error: <FaExclamationCircle className="text-red-500" size={24} />,
     warning: <FaExclamationCircle className="text-yellow-500" size={24} />,
+    chat: <MessageCircle className="text-blue-500" size={24} />,
   };
 
   const bgColors = {
     success: 'bg-green-50 border-green-200',
     error: 'bg-red-50 border-red-200',
     warning: 'bg-yellow-50 border-yellow-200',
+    chat: 'bg-blue-50 border-blue-200',
   };
-
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      onClose(notification.id);
-    }, 5000);
-    return () => clearTimeout(timer);
-  }, [notification.id, onClose]);
 
   return (
     <div className={`flex items-start gap-3 p-4 rounded-lg border-2 shadow-lg ${bgColors[notification.type]} animate-slide-in min-w-[300px] max-w-[500px]`}>
@@ -117,6 +203,10 @@ const OrderList = () => {
   const [chatOrderNumber, setChatOrderNumber] = useState<string>("");
   const [unreadCounts, setUnreadCounts] = useState<Record<string, number>>({});
 
+  // Navigation
+  const navigate = useNavigate();
+  const location = useLocation();
+
   // Refs for scrollbar synchronization
   const topScrollRef = useRef<HTMLDivElement>(null);
   const bottomScrollRef = useRef<HTMLDivElement>(null);
@@ -130,14 +220,79 @@ const OrderList = () => {
   const pickupLocationDropdownRef = useRef<HTMLDivElement>(null);
   const deliveryLocationDropdownRef = useRef<HTMLDivElement>(null);
 
-  const addNotification = useCallback((type: NotificationType, message: string) => {
+  const addNotification = useCallback((type: NotificationType, message: string, extra?: { orderId?: string; orderNumber?: string; driverName?: string }) => {
     const id = Date.now();
-    setNotifications(prev => [...prev, { id, type, message }]);
+    setNotifications(prev => [...prev, { id, type, message, ...extra }]);
   }, []);
 
   const removeNotification = useCallback((id: number) => {
     setNotifications(prev => prev.filter(n => n.id !== id));
   }, []);
+
+  // Handle chat notification click - open chat without updating URL if already open
+  const handleChatNotificationClick = useCallback((orderId: string) => {
+    const order = orders.find(o => o.id === orderId);
+    if (order) {
+      // If chat is already open for this order, just ensure it's visible (don't update URL)
+      if (showChat && chatOrderId === orderId) {
+        return; // Chat already open, no need to do anything
+      }
+      
+      // Open chat (URL will be updated by useEffect only if needed)
+      setChatOrderId(order.id);
+      setChatOrderNumber(order.orderNo);
+      setShowChat(true);
+    }
+  }, [orders, showChat, chatOrderId]);
+
+  // Handle orderId query parameter to open chat
+  useEffect(() => {
+    const searchParams = new URLSearchParams(location.search);
+    const orderIdFromQuery = searchParams.get('orderId');
+    
+    if (orderIdFromQuery && orders.length > 0) {
+      const order = orders.find(o => o.id === orderIdFromQuery);
+      if (order) {
+        setChatOrderId(order.id);
+        setChatOrderNumber(order.orderNo);
+        setShowChat(true);
+        // Clear query param after opening
+        navigate(location.pathname, { replace: true });
+      }
+    }
+  }, [location.search, orders, navigate, location.pathname]);
+
+  // Update URL only when chat state changes (not on every render to prevent blinking)
+  const prevChatStateRef = useRef({ showChat: false, chatOrderId: null as string | null });
+  
+  useEffect(() => {
+    const prevState = prevChatStateRef.current;
+    const currentState = { showChat, chatOrderId };
+    
+    // Only update URL if state actually changed
+    if (prevState.showChat !== currentState.showChat || prevState.chatOrderId !== currentState.chatOrderId) {
+      if (showChat && chatOrderId) {
+        // Only update URL if chat is opening (not already open)
+        if (!prevState.showChat || prevState.chatOrderId !== chatOrderId) {
+          const currentParams = new URLSearchParams(location.search);
+          const currentOrderId = currentParams.get('orderId');
+          
+          // Only navigate if URL doesn't already have the correct orderId
+          if (currentOrderId !== chatOrderId) {
+            navigate(`${location.pathname}?orderId=${encodeURIComponent(chatOrderId)}`, { replace: true });
+          }
+        }
+      } else if (!showChat && !chatOrderId) {
+        // Remove orderId from URL when chat is closed
+        const currentParams = new URLSearchParams(location.search);
+        if (currentParams.has('orderId')) {
+          navigate(location.pathname, { replace: true });
+        }
+      }
+      
+      prevChatStateRef.current = currentState;
+    }
+  }, [showChat, chatOrderId, navigate, location.pathname, location.search]);
 
   useEffect(() => {
     try {
@@ -151,6 +306,190 @@ const OrderList = () => {
     fetchOrders();
     fetchPlaces();
   }, []);
+
+  // Use refs to always have latest values in socket handler
+  const ordersRef = useRef(orders);
+  const showChatRef = useRef(showChat);
+  const chatOrderIdRef = useRef(chatOrderId);
+  
+  useEffect(() => {
+    ordersRef.current = orders;
+  }, [orders]);
+  
+  useEffect(() => {
+    showChatRef.current = showChat;
+    chatOrderIdRef.current = chatOrderId;
+  }, [showChat, chatOrderId]);
+
+  // Socket listener for new chat messages (popup notifications)
+  useEffect(() => {
+    const token = localStorage.getItem('token');
+    const currentUserId = localStorage.getItem('userId');
+    
+    if (!token) {
+      console.log('⚠️ No token found for socket connection');
+      return;
+    }
+    
+    if (orders.length === 0) {
+      console.log('⏳ Waiting for orders to load...');
+      return;
+    }
+
+    let isMounted = true;
+    let messageHandler: ((message: any) => void) | null = null;
+
+    socketService
+      .connect(token)
+      .then(async () => {
+        if (!isMounted) return;
+        
+        console.log('✅ Socket connected for order chat notifications');
+        
+        // Wait for socket to be authenticated
+        let retries = 0;
+        while (!socketService.getIsAuthenticated() && retries < 20 && isMounted) {
+          await new Promise(resolve => setTimeout(resolve, 100));
+          retries++;
+        }
+
+        if (!isMounted) return;
+
+        if (!socketService.getIsAuthenticated()) {
+          console.warn('⚠️ Socket not authenticated after retries');
+          return;
+        }
+
+        console.log('✅ Socket authenticated');
+
+        // Join all order chat rooms to receive messages
+        const ordersToJoin = ordersRef.current;
+        console.log(`🔌 Joining ${ordersToJoin.length} order chat rooms...`);
+        
+        let joinedCount = 0;
+        for (const order of ordersToJoin) {
+          if (!isMounted) break;
+          
+          try {
+            await socketService.joinTripChat(order.id);
+            joinedCount++;
+            console.log(`✅ Joined order chat room: ${order.orderNo} (${joinedCount}/${ordersToJoin.length})`);
+            // Small delay to avoid overwhelming the server
+            await new Promise(resolve => setTimeout(resolve, 10));
+          } catch (error) {
+            console.error(`❌ Failed to join order ${order.orderNo}:`, error);
+          }
+        }
+        console.log(`✅ Successfully joined ${joinedCount}/${ordersToJoin.length} order chat rooms`);
+        
+        messageHandler = (message: any) => {
+          if (!isMounted) return;
+          
+          console.log('📨 New message received:', {
+            messageId: message._id,
+            orderId: message.orderId,
+            tripId: message.tripId,
+            senderId: message.senderId?._id,
+            senderName: message.senderId?.name,
+            message: message.message?.substring(0, 50)
+          });
+          
+          // Only show notification if message is NOT from current user
+          const senderId = message.senderId?._id?.toString() || message.senderId?._id || message.senderId;
+          const currentUserIdStr = currentUserId?.toString() || currentUserId;
+          
+          console.log('🔍 Checking sender:', { senderId, currentUserIdStr, areEqual: senderId === currentUserIdStr });
+          
+          if (senderId === currentUserIdStr) {
+            console.log('⚠️ Message is from current user, skipping notification');
+            return; // Don't show notification for own messages
+          }
+
+          // Get orderId from message
+          const messageOrderId = message.orderId || message.tripId;
+          if (!messageOrderId) {
+            console.log('⚠️ Message has no orderId or tripId');
+            return;
+          }
+
+          console.log('🔍 Looking for order:', messageOrderId);
+          
+          // Use ref to get latest orders
+          const currentOrders = ordersRef.current;
+          const order = currentOrders.find(o => o.id === messageOrderId);
+          
+          if (!order) {
+            console.log('⚠️ Order not found in current orders list:', messageOrderId, 'Total orders:', currentOrders.length);
+            return;
+          }
+
+          console.log('✅ Order found:', order.orderNo);
+
+          // Use refs to check current chat state
+          const currentShowChat = showChatRef.current;
+          const currentChatOrderId = chatOrderIdRef.current;
+          
+          // Don't show popup if chat is already open for this order
+          if (currentShowChat && currentChatOrderId === messageOrderId) {
+            console.log('ℹ️ Chat already open for this order, just updating unread count');
+            // Just update unread count
+            setUnreadCounts(prev => ({
+              ...prev,
+              [messageOrderId]: (prev[messageOrderId] || 0) + 1
+            }));
+            return;
+          }
+
+          // Show popup notification
+          const driverName = message.senderId?.name || message.senderName || 'Driver';
+          console.log('📢 Showing popup notification for:', { 
+            orderId: messageOrderId, 
+            orderNumber: order.orderNo, 
+            driverName,
+            message: message.message?.substring(0, 50)
+          });
+          
+          addNotification('chat', message.message || 'New message', {
+            orderId: messageOrderId,
+            orderNumber: order.orderNo,
+            driverName: driverName
+          });
+
+          // Update unread count
+          setUnreadCounts(prev => ({
+            ...prev,
+            [messageOrderId]: (prev[messageOrderId] || 0) + 1
+          }));
+
+          // Play notification sound
+          try {
+            const audio = new Audio('/notification.mp3');
+            audio.volume = 0.5;
+            audio.play().catch(e => console.log('Sound play failed:', e));
+          } catch (e) {
+            console.log('Audio not available');
+          }
+        };
+
+        socketService.onNewMessage(messageHandler);
+        console.log('👂 Socket message listener registered');
+
+        return () => {
+          isMounted = false;
+          if (messageHandler) {
+            socketService.offNewMessage(messageHandler);
+          }
+          console.log('🧹 Cleaned up socket listener');
+        };
+      })
+      .catch(error => {
+        console.error('❌ Socket connection error:', error);
+      });
+
+    return () => {
+      isMounted = false;
+    };
+  }, [orders.length, addNotification]);
 
   // Sync scroll between top and bottom scrollbars
   useEffect(() => {
@@ -1076,9 +1415,13 @@ const OrderList = () => {
                         <button
                           onClick={(e) => {
                             e.stopPropagation(); // Prevent row click event
-                            setChatOrderId(order.id);
-                            setChatOrderNumber(order.orderNo);
-                            setShowChat(true);
+                            // Only update URL if chat is not already open for this order
+                            if (!showChat || chatOrderId !== order.id) {
+                              setChatOrderId(order.id);
+                              setChatOrderNumber(order.orderNo);
+                              setShowChat(true);
+                              // URL will be updated by useEffect only if needed
+                            }
                           }}
                           className="relative inline-flex items-center justify-center text-[#42aeec] hover:text-[#1db5f5] transition-colors"
                           title="Open chat"
@@ -1144,6 +1487,7 @@ const OrderList = () => {
             key={notification.id}
             notification={notification}
             onClose={removeNotification}
+            onChatClick={handleChatNotificationClick}
           />
         ))}
       </div>
@@ -1448,6 +1792,8 @@ const OrderList = () => {
                 setShowChat(false);
                 setChatOrderId(null);
                 setChatOrderNumber("");
+                // Remove orderId from URL
+                navigate(location.pathname, { replace: true });
               }}
             />
             <div
@@ -1461,6 +1807,8 @@ const OrderList = () => {
                   setShowChat(false);
                   setChatOrderId(null);
                   setChatOrderNumber("");
+                  // Remove orderId from URL
+                  navigate(location.pathname, { replace: true });
                   // Refresh unread count for this order
                   getOrderUnreadMessageCount(chatOrderId).then((response: any) => {
                     if (response?.success && response?.data) {

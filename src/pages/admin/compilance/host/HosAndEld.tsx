@@ -5,7 +5,7 @@ import {
 } from 'lucide-react';
 import { 
     getHOSEldData, 
-    syncHOSFromGeotab, 
+    syncHOSFromSamsara, 
     submitHOSAudit,
     uploadELogFile,
     getELogs,
@@ -123,20 +123,20 @@ const VehicleEldMonitor = () => {
     }
   };
 
-  // Sync HOS data from Geotab
+  // Sync HOS data from Samsara
   const handleSyncHOS = async () => {
     setSyncing(true);
     try {
-      const response = await syncHOSFromGeotab();
+      const response = await syncHOSFromSamsara();
       if (response?.success) {
         await fetchHOSData();
-        alert('HOS data synced successfully!');
+        alert('HOS data synced successfully from Samsara!');
       } else {
-        alert(response?.message || 'Failed to sync HOS data');
+        alert(response?.message || 'Failed to sync HOS data from Samsara');
       }
     } catch (error) {
-      console.error('Error syncing HOS data:', error);
-      alert('Error syncing HOS data');
+      console.error('Error syncing HOS data from Samsara:', error);
+      alert('Error syncing HOS data from Samsara');
     } finally {
       setSyncing(false);
     }
@@ -343,7 +343,7 @@ const VehicleEldMonitor = () => {
                                       }}
                                       className="flex items-center gap-2 text-sm font-semibold !text-white px-4 py-2 rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed">
                                       <RefreshCw size={16} className={syncing ? 'animate-spin' : ''} /> 
-                                      {syncing ? 'Syncing...' : 'Sync from Geotab'}
+                                      {syncing ? 'Syncing...' : 'Sync from Samsara'}
                                   </button>
                                   <button 
                                      style={{
@@ -380,7 +380,7 @@ const VehicleEldMonitor = () => {
                                   ) : auditLogs.length === 0 ? (
                                       <tr>
                                           <td colSpan={7} className="px-6 py-8 text-center text-gray-500">
-                                              No HOS logs found. Click "Sync from Geotab" to fetch data.
+                                              No HOS logs found. Click "Sync from Samsara" to fetch data.
                                           </td>
                                       </tr>
                                   ) : (

@@ -28,8 +28,8 @@ export const getHOSEldData = async (params?: {
     }
 };
 
-// Sync HOS data from Geotab
-export const syncHOSFromGeotab = async () => {
+// Sync HOS data from Samsara
+export const syncHOSFromSamsara = async () => {
     try {
         const res: AxiosResponse = await apiClient.post(`compliance/hos-eld/sync`);
         return res.data;
@@ -38,6 +38,9 @@ export const syncHOSFromGeotab = async () => {
         return err.response?.data;
     }
 };
+
+// Keep old function name for backward compatibility
+export const syncHOSFromGeotab = syncHOSFromSamsara;
 
 // Get HOS data for a specific driver
 export const getDriverHOS = async (driverId: string, params?: {
