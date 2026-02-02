@@ -114,6 +114,7 @@ const EmployeesPage = () => {
   const [personalData, setPersonalData] = useState({
     title: '',
     payType: '',
+    payRate: '',
     vacationPay: '',
     department: '',
     jobType: '',
@@ -121,6 +122,8 @@ const EmployeesPage = () => {
     phone: '', // Store phone without country code prefix
     searchAddress: '',
     address: '',
+    country: '',
+    stateProvince: '',
     hireDate: '',
     terminationDate: ''
   });
@@ -487,6 +490,12 @@ const EmployeesPage = () => {
       if (personalData.address) {
         formData.append('address', personalData.address);
       }
+      if (personalData.country) {
+        formData.append('country', personalData.country);
+      }
+      if (personalData.stateProvince) {
+        formData.append('state', personalData.stateProvince);
+      }
       if (personalData.hireDate) {
         formData.append('hireDate', personalData.hireDate);
       }
@@ -500,6 +509,9 @@ const EmployeesPage = () => {
       }
       if (personalData.payType) {
         formData.append('payType', personalData.payType);
+      }
+      if (personalData.payRate) {
+        formData.append('payRate', personalData.payRate);
       }
       if (personalData.vacationPay) {
         formData.append('vacationPay', personalData.vacationPay);
@@ -615,6 +627,7 @@ const EmployeesPage = () => {
     setPersonalData({
       title: '',
       payType: '',
+      payRate: '',
       vacationPay: '',
       department: '',
       jobType: '',
@@ -622,6 +635,8 @@ const EmployeesPage = () => {
       phone: '',
       searchAddress: '',
       address: '',
+      country: '',
+      stateProvince: '',
       hireDate: '',
       terminationDate: ''
     });
@@ -674,6 +689,7 @@ const EmployeesPage = () => {
         const personalDataToSet = {
           title: emp.details?.title || emp.title || '',
           payType: emp.details?.payType || emp.payType || '',
+          payRate: emp.details?.payRate || emp.payRate || '',
           vacationPay: emp.details?.vacationPay || emp.vacationPay || '',
           department: emp.details?.department || emp.department || '',
           jobType: emp.details?.jobType || emp.jobType || '',
@@ -681,6 +697,8 @@ const EmployeesPage = () => {
           phone: parsedPhone.phoneNumber || '',
           searchAddress: '',
           address: emp.location?.address || emp.address || '',
+          country: emp.country || emp.location?.country || '',
+          stateProvince: emp.state || emp.location?.state || '',
           hireDate: emp.joinDate ? new Date(emp.joinDate).toISOString().split('T')[0] : (emp.details?.hireDate ? new Date(emp.details.hireDate).toISOString().split('T')[0] : ''),
           terminationDate: emp.details?.termDate ? new Date(emp.details.termDate).toISOString().split('T')[0] : ''
         };
@@ -1334,9 +1352,32 @@ const EmployeesPage = () => {
                         >
                           <option value="">Select</option>
                           <option value="Hourly">Hourly</option>
-                          <option value="Salary">Salary</option>
-                          <option value="Commission">Commission</option>
+                          <option value="Salary">Weekly</option>
+                          <option value="Commission">Monthly</option>
                         </select>
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                          Pay Rate <span className="text-gray-500 text-xs font-normal">(per hour)</span>
+                        </label>
+                        <div className="relative">
+                          <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500 text-sm font-medium">$</span>
+                          <input
+                            type="number"
+                            step="0.01"
+                            min="0"
+                            placeholder="0.00"
+                            value={personalData.payRate}
+                            onChange={(e) => {
+                              const value = e.target.value;
+                              // Allow empty, numbers, and one decimal point
+                              if (value === '' || /^\d*\.?\d*$/.test(value)) {
+                                setPersonalData({ ...personalData, payRate: value });
+                              }
+                            }}
+                            className="w-full pl-7 pr-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#42aeec] focus:border-transparent"
+                          />
+                        </div>
                       </div>
                       <div>
                         <label className="block text-sm font-medium text-gray-700 mb-1">Vacation Pay %</label>
@@ -1348,6 +1389,10 @@ const EmployeesPage = () => {
                           className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#42aeec] focus:border-transparent"
                         />
                       </div>
+                    </div>
+
+                    {/* Second Row */}
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
                       <div>
                         <label className="block text-sm font-medium text-gray-700 mb-1">Department</label>
                         <select
@@ -1361,10 +1406,6 @@ const EmployeesPage = () => {
                           ))}
                         </select>
                       </div>
-                    </div>
-
-                    {/* Second Row */}
-                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                       <div>
                         <label className="block text-sm font-medium text-gray-700 mb-1">Job Type</label>
                         <input
@@ -1522,6 +1563,51 @@ const EmployeesPage = () => {
                           value={personalData.address}
                           onChange={(e) => setPersonalData({ ...personalData, address: e.target.value })}
                           className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#42aeec] focus:border-transparent"
+                        />
+                      </div>
+                    </div>
+
+                    {/* Country and Province Row */}
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                          Country<span className="text-red-500">*</span>
+                        </label>
+                        <select
+                          value={(() => {
+                            // Find country by name (personalData.country stores the name)
+                            const foundCountry = countries.find(c => c.name === personalData.country);
+                            return foundCountry ? foundCountry.code : '';
+                          })()}
+                          onChange={(e) => {
+                            const selectedCountry = countries.find(c => c.code === e.target.value);
+                            setPersonalData({ 
+                              ...personalData, 
+                              country: selectedCountry ? selectedCountry.name : '', 
+                              stateProvince: '' 
+                            });
+                          }}
+                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#42aeec] focus:border-transparent"
+                        >
+                          <option value="">Select Country</option>
+                          {countries.map((country) => (
+                            <option key={country.code} value={country.code}>
+                              {country.flag} {country.name}
+                            </option>
+                          ))}
+                        </select>
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                          Province/State<span className="text-red-500">*</span>
+                        </label>
+                        <input
+                          type="text"
+                          value={personalData.stateProvince}
+                          onChange={(e) => setPersonalData({ ...personalData, stateProvince: e.target.value })}
+                          disabled={!personalData.country}
+                          placeholder={personalData.country ? "Enter Province/State" : "Select country first"}
+                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#42aeec] focus:border-transparent disabled:bg-gray-100 disabled:cursor-not-allowed"
                         />
                       </div>
                     </div>

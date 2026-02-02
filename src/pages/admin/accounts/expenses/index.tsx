@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
-import { Plus, Receipt, DollarSign, Calendar, User, FileText, Filter, Edit, Trash2, Eye, Building2, Users } from 'lucide-react';
+import { Plus, Receipt, DollarSign, Calendar, User, FileText, Filter, Edit, Trash2, Eye, Building2, Users, Settings, X } from 'lucide-react';
 import { FaCheckCircle, FaExclamationCircle, FaInfoCircle, FaTimes } from 'react-icons/fa';
-import { createExpense, listExpenses, updateExpense, deleteExpense, getExpenseReceiptSignedUrl, extractReceiptData } from "../../../../axios/api/account.expense";
+import { createExpense, listExpenses, updateExpense, deleteExpense, getExpenseReceiptSignedUrl, extractReceiptData, listExpenseCategories, createExpenseCategory, updateExpenseCategory, deleteExpenseCategory, listExpenseTypes, createExpenseType, updateExpenseType, deleteExpenseType } from "../../../../axios/api/account.expense";
 import { getEmployees } from "../../../../axios/api/account.payroll";
 import ConfirmationModal from "../../../../components/common/ConfirmationModal";
 
@@ -16,12 +16,32 @@ interface Expense {
   _id: string;
   userId?: Employee | string;
   type: string;
+  categoryId?: string;
+  category?: ExpenseCategory;
   amount: number;
   description?: string;
   date?: string | Date;
   receiptUrl?: string;
   createdAt?: string | Date;
   updatedAt?: string | Date;
+}
+
+interface ExpenseCategory {
+  _id: string;
+  name: string;
+  status: 'active' | 'inactive';
+  createdAt?: string;
+  updatedAt?: string;
+}
+
+interface ExpenseType {
+  _id: string;
+  name: string;
+  categoryId: string;
+  category?: ExpenseCategory;
+  status: 'active' | 'inactive';
+  createdAt?: string;
+  updatedAt?: string;
 }
 
 type NotificationType = 'success' | 'error' | 'info';
@@ -72,9 +92,13 @@ const Notification = ({ notification, onClose }: { notification: Notification; o
 const ExpensesPage = () => {
   const [activeTab, setActiveTab] = useState('list');
   const [filterType, setFilterType] = useState('all');
+  const [selectedCategoryTab, setSelectedCategoryTab] = useState<string>('all');
   const [expenses, setExpenses] = useState<Expense[]>([]);
   const [employees, setEmployees] = useState<Employee[]>([]);
+  const [categories, setCategories] = useState<ExpenseCategory[]>([]);
+  const [expenseTypes, setExpenseTypes] = useState<ExpenseType[]>([]);
   const [loading, setLoading] = useState(false);
+  const [loadingTypes, setLoadingTypes] = useState(false);
   const [editingExpense, setEditingExpense] = useState<Expense | null>(null);
   const [viewingExpense, setViewingExpense] = useState<Expense | null>(null);
   const [receiptSignedUrl, setReceiptSignedUrl] = useState<string | null>(null);
@@ -85,8 +109,21 @@ const ExpensesPage = () => {
   const [extractingReceipt, setExtractingReceipt] = useState(false);
   const [totalPayroll, setTotalPayroll] = useState<number>(0);
 
+  // Category Management States
+  const [showCategoryModal, setShowCategoryModal] = useState(false);
+  const [showTypeModal, setShowTypeModal] = useState(false);
+  const [editingCategory, setEditingCategory] = useState<ExpenseCategory | null>(null);
+  const [editingType, setEditingType] = useState<ExpenseType | null>(null);
+  const [categoryFormData, setCategoryFormData] = useState({ name: '', status: 'active' as 'active' | 'inactive' });
+  const [typeFormData, setTypeFormData] = useState({ name: '', categoryId: '', status: 'active' as 'active' | 'inactive' });
+  const [savingCategory, setSavingCategory] = useState(false);
+  const [savingType, setSavingType] = useState(false);
+  const [deleteCategoryConfirm, setDeleteCategoryConfirm] = useState<{ show: boolean; category: ExpenseCategory | null }>({ show: false, category: null });
+  const [deleteTypeConfirm, setDeleteTypeConfirm] = useState<{ show: boolean; type: ExpenseType | null }>({ show: false, type: null });
+
   const [formData, setFormData] = useState<{
     userId: string;
+    categoryId: string;
     type: string;
     amount: string;
     description: string;
@@ -94,6 +131,7 @@ const ExpensesPage = () => {
     receiptFile: File | null;
   }>({
     userId: '',
+    categoryId: '',
     type: '',
     amount: '',
     description: '',
@@ -106,7 +144,18 @@ const ExpensesPage = () => {
     fetchExpenses();
     fetchEmployees();
     fetchDashboardData();
+    fetchCategories();
   }, []);
+
+  // Fetch expense types when category is selected
+  useEffect(() => {
+    if (formData.categoryId) {
+      fetchExpenseTypes(formData.categoryId);
+    } else {
+      setExpenseTypes([]);
+      setFormData(prev => ({ ...prev, type: '' }));
+    }
+  }, [formData.categoryId]);
 
   const fetchDashboardData = async () => {
     try {
@@ -117,6 +166,225 @@ const ExpensesPage = () => {
       }
     } catch (error) {
       console.error('Error fetching dashboard data:', error);
+    }
+  };
+
+  const fetchCategories = async () => {
+    try {
+      const response = await listExpenseCategories();
+      if (response?.success && Array.isArray(response.data)) {
+        setCategories(response.data.filter((cat: ExpenseCategory) => cat.status === 'active'));
+      } else {
+        // If API doesn't exist yet, use default categories
+        setCategories([
+          { _id: 'vehicle', name: 'Vehicle Expenses', status: 'active' },
+          { _id: 'office', name: 'Office Expenses', status: 'active' },
+          { _id: 'rental', name: 'Rental Expenses', status: 'active' },
+          { _id: 'misc', name: 'Miscellaneous Expenses', status: 'active' }
+        ]);
+      }
+    } catch (error: any) {
+      console.error('Error fetching categories:', error);
+      // Use default categories on error
+      setCategories([
+        { _id: 'vehicle', name: 'Vehicle Expenses', status: 'active' },
+        { _id: 'office', name: 'Office Expenses', status: 'active' },
+        { _id: 'rental', name: 'Rental Expenses', status: 'active' },
+        { _id: 'misc', name: 'Miscellaneous Expenses', status: 'active' }
+      ]);
+    }
+  };
+
+  const fetchExpenseTypes = async (categoryId: string) => {
+    setLoadingTypes(true);
+    try {
+      const response = await listExpenseTypes(categoryId);
+      if (response?.success && Array.isArray(response.data)) {
+        setExpenseTypes(response.data.filter((type: ExpenseType) => type.status === 'active'));
+      } else {
+        // If API doesn't exist yet, use default types based on category
+        const defaultTypes: Record<string, ExpenseType[]> = {
+          'office': [
+            { _id: 'office-rent', name: 'Office Rent', categoryId: 'office', status: 'active' },
+            { _id: 'electricity', name: 'Electricity', categoryId: 'office', status: 'active' },
+            { _id: 'internet', name: 'Internet', categoryId: 'office', status: 'active' },
+            { _id: 'stationery', name: 'Stationery', categoryId: 'office', status: 'active' }
+          ],
+          'rental': [
+            { _id: 'warehouse-rent', name: 'Warehouse Rent', categoryId: 'rental', status: 'active' },
+            { _id: 'equipment-rent', name: 'Equipment Rent', categoryId: 'rental', status: 'active' }
+          ],
+          'misc': [
+            { _id: 'misc-expense', name: 'Misc Expense', categoryId: 'misc', status: 'active' },
+            { _id: 'one-time-cost', name: 'One-time Cost', categoryId: 'misc', status: 'active' }
+          ],
+          'vehicle': [
+            { _id: 'fuel', name: 'Fuel', categoryId: 'vehicle', status: 'active' },
+            { _id: 'maintenance', name: 'Maintenance', categoryId: 'vehicle', status: 'active' },
+            { _id: 'repair', name: 'Repair', categoryId: 'vehicle', status: 'active' }
+          ]
+        };
+        setExpenseTypes(defaultTypes[categoryId] || []);
+      }
+    } catch (error: any) {
+      console.error('Error fetching expense types:', error);
+      setExpenseTypes([]);
+    } finally {
+      setLoadingTypes(false);
+    }
+  };
+
+  // Category Management Functions
+  const handleOpenCategoryModal = (category?: ExpenseCategory) => {
+    if (category) {
+      setEditingCategory(category);
+      setCategoryFormData({ name: category.name, status: category.status });
+    } else {
+      setEditingCategory(null);
+      setCategoryFormData({ name: '', status: 'active' });
+    }
+    setShowCategoryModal(true);
+  };
+
+  const handleSaveCategory = async () => {
+    const name = categoryFormData.name.trim();
+    if (!name) {
+      addNotification('error', 'Category name is required');
+      return;
+    }
+
+    setSavingCategory(true);
+    try {
+      let response;
+      if (editingCategory) {
+        response = await updateExpenseCategory(editingCategory._id, { name, status: categoryFormData.status });
+      } else {
+        response = await createExpenseCategory({ name, status: categoryFormData.status });
+      }
+
+      if (response?.success) {
+        addNotification('success', editingCategory ? 'Category updated successfully' : 'Category created successfully');
+        setShowCategoryModal(false);
+        setEditingCategory(null);
+        setCategoryFormData({ name: '', status: 'active' });
+        await fetchCategories();
+      } else {
+        addNotification('error', response?.message || 'Failed to save category');
+      }
+    } catch (error: any) {
+      console.error('Error saving category:', error);
+      addNotification('error', error?.message || 'Failed to save category');
+    } finally {
+      setSavingCategory(false);
+    }
+  };
+
+  const handleDeleteCategory = async () => {
+    if (!deleteCategoryConfirm.category) return;
+
+    setLoading(true);
+    try {
+      const response = await deleteExpenseCategory(deleteCategoryConfirm.category._id);
+      if (response?.success) {
+        addNotification('success', 'Category deleted successfully');
+        setDeleteCategoryConfirm({ show: false, category: null });
+        await fetchCategories();
+      } else {
+        addNotification('error', response?.message || 'Failed to delete category');
+      }
+    } catch (error: any) {
+      console.error('Error deleting category:', error);
+      addNotification('error', error?.message || 'Failed to delete category');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Expense Type Management Functions
+  const handleOpenTypeModal = async (type?: ExpenseType) => {
+    if (type) {
+      setEditingType(type);
+      setTypeFormData({ name: type.name, categoryId: type.categoryId, status: type.status });
+      // Fetch types for the category
+      if (type.categoryId) {
+        await fetchExpenseTypes(type.categoryId);
+      }
+    } else {
+      setEditingType(null);
+      setTypeFormData({ name: '', categoryId: '', status: 'active' });
+    }
+    setShowTypeModal(true);
+  };
+
+  const handleSaveType = async () => {
+    const name = typeFormData.name.trim();
+    if (!name) {
+      addNotification('error', 'Expense type name is required');
+      return;
+    }
+    if (!typeFormData.categoryId) {
+      addNotification('error', 'Please select a category');
+      return;
+    }
+
+    setSavingType(true);
+    try {
+      let response;
+      if (editingType) {
+        response = await updateExpenseType(editingType._id, { 
+          name, 
+          categoryId: typeFormData.categoryId, 
+          status: typeFormData.status 
+        });
+      } else {
+        response = await createExpenseType({ 
+          name, 
+          categoryId: typeFormData.categoryId, 
+          status: typeFormData.status 
+        });
+      }
+
+      if (response?.success) {
+        addNotification('success', editingType ? 'Expense type updated successfully' : 'Expense type created successfully');
+        setShowTypeModal(false);
+        setEditingType(null);
+        setTypeFormData({ name: '', categoryId: '', status: 'active' });
+        // Refresh types if we're viewing a category
+        if (formData.categoryId) {
+          await fetchExpenseTypes(formData.categoryId);
+        }
+        await fetchCategories();
+      } else {
+        addNotification('error', response?.message || 'Failed to save expense type');
+      }
+    } catch (error: any) {
+      console.error('Error saving expense type:', error);
+      addNotification('error', error?.message || 'Failed to save expense type');
+    } finally {
+      setSavingType(false);
+    }
+  };
+
+  const handleDeleteType = async () => {
+    if (!deleteTypeConfirm.type) return;
+
+    setLoading(true);
+    try {
+      const response = await deleteExpenseType(deleteTypeConfirm.type._id);
+      if (response?.success) {
+        addNotification('success', 'Expense type deleted successfully');
+        setDeleteTypeConfirm({ show: false, type: null });
+        if (formData.categoryId) {
+          await fetchExpenseTypes(formData.categoryId);
+        }
+      } else {
+        addNotification('error', response?.message || 'Failed to delete expense type');
+      }
+    } catch (error: any) {
+      console.error('Error deleting expense type:', error);
+      addNotification('error', error?.message || 'Failed to delete expense type');
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -261,6 +529,7 @@ const ExpensesPage = () => {
     try {
       const formDataToSend = new FormData();
       formDataToSend.append('userId', formData.userId);
+      formDataToSend.append('categoryId', formData.categoryId);
       formDataToSend.append('type', formData.type);
       formDataToSend.append('amount', formData.amount);
       formDataToSend.append('description', formData.description);
@@ -278,6 +547,7 @@ const ExpensesPage = () => {
           // Reset form and refresh list
           setFormData({
             userId: '',
+            categoryId: '',
             type: '',
             amount: '',
             description: '',
@@ -296,6 +566,7 @@ const ExpensesPage = () => {
           // Reset form and refresh list
           setFormData({
             userId: '',
+            categoryId: '',
             type: '',
             amount: '',
             description: '',
@@ -321,14 +592,20 @@ const ExpensesPage = () => {
     const userIdValue = typeof expense.userId === 'object' && expense.userId !== null
       ? expense.userId._id
       : expense.userId || '';
+    const categoryId = expense.categoryId || (expense.category?._id) || '';
     setFormData({
       userId: userIdValue,
+      categoryId: categoryId,
       type: expense.type,
       amount: expense.amount.toString(),
       description: expense.description || '',
       date: expense.date ? new Date(expense.date).toISOString().split('T')[0] : new Date().toISOString().split('T')[0],
       receiptFile: null
     });
+    // Fetch types for the category
+    if (categoryId) {
+      fetchExpenseTypes(categoryId);
+    }
     setActiveTab('create');
   };
 
@@ -388,12 +665,14 @@ const ExpensesPage = () => {
     setEditingExpense(null);
     setFormData({
       userId: '',
+      categoryId: '',
       type: '',
       amount: '',
       description: '',
       date: new Date().toISOString().split('T')[0],
       receiptFile: null
     });
+    setExpenseTypes([]);
     setActiveTab('list');
   };
 
@@ -436,13 +715,18 @@ const ExpensesPage = () => {
     return employee?.role || employee?.position;
   };
 
-  const filteredExpenses = expenses.filter(expense =>
-    filterType === 'all' || expense.type === filterType
-  );
+  const filteredExpenses = expenses.filter(expense => {
+    const matchesCategory = selectedCategoryTab === 'all' || 
+      expense.categoryId === selectedCategoryTab || 
+      expense.category?._id === selectedCategoryTab;
+    const matchesType = filterType === 'all' || expense.type === filterType;
+    return matchesCategory && matchesType;
+  });
 
   const totalAmount = filteredExpenses.reduce((sum, expense) => sum + (expense.amount || 0), 0);
 
-  const expenseTypes = [
+  // Legacy expense types for filtering (will be replaced by dynamic types)
+  const legacyExpenseTypes = [
     'Additives',
     'Cash',
     'Cash Advance',
@@ -474,6 +758,15 @@ const ExpensesPage = () => {
 
   return (
     <div className="min-h-screen p-6 bg-[#EDF8FF]">
+      <style>{`
+        .scrollbar-hide::-webkit-scrollbar {
+          display: none;
+        }
+        .scrollbar-hide {
+          -ms-overflow-style: none;
+          scrollbar-width: none;
+        }
+      `}</style>
       <div className="w-full mx-auto p-2">
         {emptyStateMessage && (
           <div className="mb-6">
@@ -505,12 +798,16 @@ const ExpensesPage = () => {
                 setEditingExpense(null);
                 setFormData({
                   userId: '',
+                  categoryId: selectedCategoryTab !== 'all' ? selectedCategoryTab : '',
                   type: '',
                   amount: '',
                   description: '',
                   date: new Date().toISOString().split('T')[0],
                   receiptFile: null
                 });
+                if (selectedCategoryTab !== 'all') {
+                  fetchExpenseTypes(selectedCategoryTab);
+                }
                 setActiveTab('create');
               }}
               className="!text-white px-4 py-2 rounded-lg hover:shadow-lg flex items-center gap-2 transition-all transform hover:scale-105"
@@ -593,27 +890,95 @@ const ExpensesPage = () => {
           </div>
         </div>
 
+        {/* Category Tabs */}
+        <div className="bg-white rounded-xl border border-gray-200 shadow-sm mb-6 overflow-hidden">
+          <div className="px-6 py-4 flex items-center justify-between gap-4">
+            {/* Scrollable Category Tabs */}
+            <div className="flex-1 overflow-x-auto scrollbar-hide">
+              <div className="flex gap-2 min-w-max pb-1">
+                <button
+                  onClick={() => setSelectedCategoryTab('all')}
+                  className={`px-4 py-2.5 rounded-lg text-sm font-semibold whitespace-nowrap transition-all duration-200 ${
+                    selectedCategoryTab === 'all'
+                      ? 'bg-blue-50 text-blue-700 border-2 border-blue-400 shadow-sm'
+                      : 'bg-gray-50 text-gray-600 hover:bg-gray-100 border-2 border-transparent hover:border-gray-200'
+                  }`}
+                >
+                  All Expenses <span className="font-normal">({expenses.length})</span>
+                </button>
+                {categories.map((category) => {
+                  const categoryExpenseCount = expenses.filter(
+                    e => e.categoryId === category._id || e.category?._id === category._id
+                  ).length;
+                  return (
+                    <button
+                      key={category._id}
+                      onClick={() => setSelectedCategoryTab(category._id)}
+                      className={`px-4 py-2.5 rounded-lg text-sm font-semibold whitespace-nowrap transition-all duration-200 ${
+                        selectedCategoryTab === category._id
+                          ? 'bg-blue-50 text-blue-700 border-2 border-blue-400 shadow-sm'
+                          : 'bg-gray-50 text-gray-600 hover:bg-gray-100 border-2 border-transparent hover:border-gray-200'
+                      }`}
+                    >
+                      {category.name} <span className="font-normal">({categoryExpenseCount})</span>
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+            
+            {/* Action Buttons */}
+            <div className="flex items-center gap-2 flex-shrink-0">
+              <button
+                onClick={() => handleOpenTypeModal()}
+                className="px-4 py-2.5 text-sm font-medium text-gray-700 bg-white border border-gray-300 hover:bg-gray-50 hover:border-gray-400 rounded-lg transition-all duration-200 flex items-center gap-2 shadow-sm"
+                title="Add Expense Type"
+              >
+                <Plus size={16} />
+                Add Type
+              </button>
+              <button
+                onClick={() => handleOpenCategoryModal()}
+                className="px-4 py-2.5 text-sm font-medium !text-white rounded-lg transition-all duration-200 flex items-center gap-2 shadow-md hover:shadow-lg"
+                style={{ background: 'linear-gradient(90deg, #42aeec 0%, #1db5f5 40%, #0ea3d8 100%)' }}
+                title="Manage Categories"
+              >
+                <Settings size={16} />
+                Manage Categories
+              </button>
+            </div>
+          </div>
+        </div>
+
         {/* Tabs */}
-        <div className="bg-white rounded-xl border-gray-200 shadow-sm border">
+        <div className="bg-white rounded-xl border border-gray-200 shadow-sm">
           <div className="border-b border-gray-200">
             <div className="flex">
               <button
                 onClick={() => setActiveTab('list')}
-                className={`px-6 py-4 text-sm font-medium ${activeTab === 'list'
-                  ? 'text-blue-600 border-b-2 border-blue-600'
-                  : 'text-gray-500 hover:text-gray-700'
-                  }`}
+                className={`px-6 py-4 text-sm font-semibold transition-all duration-200 relative ${
+                  activeTab === 'list'
+                    ? 'text-blue-600'
+                    : 'text-gray-500 hover:text-gray-700'
+                }`}
               >
                 Expense List
+                {activeTab === 'list' && (
+                  <span className="absolute bottom-0 left-0 right-0 h-0.5 bg-blue-600 rounded-t-full"></span>
+                )}
               </button>
               <button
                 onClick={() => setActiveTab('create')}
-                className={`px-6 py-4 text-sm font-medium ${activeTab === 'create'
-                  ? 'text-blue-600 border-b-2 border-blue-600'
-                  : '!text-gray-500 hover:text-gray-700'
-                  }`}
+                className={`px-6 py-4 text-sm font-semibold transition-all duration-200 relative ${
+                  activeTab === 'create'
+                    ? 'text-blue-600'
+                    : 'text-gray-500 hover:text-gray-700'
+                }`}
               >
                 {editingExpense ? 'Edit Expense' : 'Add Expense'}
+                {activeTab === 'create' && (
+                  <span className="absolute bottom-0 left-0 right-0 h-0.5 bg-blue-600 rounded-t-full"></span>
+                )}
               </button>
             </div>
           </div>
@@ -632,7 +997,7 @@ const ExpensesPage = () => {
                         className="border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                       >
                         <option value="all">All Types</option>
-                        {expenseTypes.map(type => (
+                        {legacyExpenseTypes.map(type => (
                           <option key={type} value={type}>{type}</option>
                         ))}
                       </select>
@@ -753,21 +1118,55 @@ const ExpensesPage = () => {
 
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-2">
-                        Expense Type *
+                        Expense Category *
                       </label>
                       <select
-                        name="type"
-                        value={formData.type}
+                        name="categoryId"
+                        value={formData.categoryId}
                         onChange={handleInputChange}
                         required
                         className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                       >
-                        <option value="">Select Type</option>
-                        {expenseTypes.map(type => (
-                          <option key={type} value={type}>{type}</option>
+                        <option value="">Select Category</option>
+                        {categories.map(category => (
+                          <option key={category._id} value={category._id}>
+                            {category.name}
+                          </option>
                         ))}
                       </select>
                     </div>
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Expense Type *
+                    </label>
+                    <select
+                      name="type"
+                      value={formData.type}
+                      onChange={handleInputChange}
+                      required
+                      disabled={!formData.categoryId || loadingTypes}
+                      className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 disabled:bg-gray-100 disabled:cursor-not-allowed"
+                    >
+                      <option value="">
+                        {loadingTypes 
+                          ? 'Loading types...' 
+                          : !formData.categoryId 
+                            ? 'Select a category first' 
+                            : 'Select Type'}
+                      </option>
+                      {expenseTypes.map((type: ExpenseType) => (
+                        <option key={type._id} value={type.name}>
+                          {type.name}
+                        </option>
+                      ))}
+                    </select>
+                    {!formData.categoryId && (
+                      <p className="mt-1 text-xs text-gray-500">
+                        Please select an expense category first to see available types
+                      </p>
+                    )}
                   </div>
 
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -1114,6 +1513,316 @@ const ExpensesPage = () => {
         onConfirm={confirmDeleteExpense}
         title="Delete Expense"
         message="Are you sure you want to delete this expense? This action cannot be undone."
+        confirmText="Delete"
+        cancelText="Cancel"
+        type="danger"
+      />
+
+      {/* Category Management Modal */}
+      {showCategoryModal && (
+        <div className="fixed inset-0 bg-gray-900/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+          <div className="bg-white rounded-2xl shadow-2xl max-w-2xl w-full max-h-[90vh] flex flex-col">
+            {/* Header */}
+            <div className="sticky top-0 bg-white border-b border-gray-200 px-6 py-5 rounded-t-2xl flex items-center justify-between z-10">
+              <div>
+                <h2 className="text-2xl font-bold text-gray-900">
+                  {editingCategory ? 'Edit Category' : 'Add New Category'}
+                </h2>
+                <p className="text-sm text-gray-500 mt-1">
+                  {editingCategory ? 'Update category details' : 'Create a new expense category'}
+                </p>
+              </div>
+              <button
+                onClick={() => {
+                  setShowCategoryModal(false);
+                  setEditingCategory(null);
+                  setCategoryFormData({ name: '', status: 'active' });
+                }}
+                className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg transition-colors"
+              >
+                <X size={20} />
+              </button>
+            </div>
+
+            {/* Content */}
+            <div className="flex-1 overflow-y-auto p-6">
+              <div className="space-y-6">
+                {/* Form Section */}
+                <div className="bg-gray-50 rounded-xl p-5 space-y-4">
+                  <div>
+                    <label className="block text-sm font-semibold text-gray-700 mb-2">
+                      Category Name <span className="text-red-500">*</span>
+                    </label>
+                    <input
+                      type="text"
+                      value={categoryFormData.name}
+                      onChange={(e) => setCategoryFormData(prev => ({ ...prev, name: e.target.value }))}
+                      placeholder="e.g., Office Expenses, Vehicle Expenses, Rental Expenses"
+                      className="w-full border border-gray-300 rounded-lg px-4 py-2.5 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all"
+                      autoFocus
+                    />
+                  </div>
+
+              
+                </div>
+
+                {/* Categories List */}
+                <div>
+                  <div className="flex items-center justify-between mb-4">
+                    <h3 className="text-lg font-semibold text-gray-900">Existing Categories</h3>
+                    <span className="text-sm text-gray-500">{categories.length} {categories.length === 1 ? 'category' : 'categories'}</span>
+                  </div>
+                  <div className="space-y-2 max-h-64 overflow-y-auto pr-2">
+                    {categories.map((category) => (
+                      <div
+                        key={category._id}
+                        className="flex items-center justify-between p-4 bg-white border border-gray-200 rounded-lg hover:border-gray-300 hover:shadow-sm transition-all"
+                      >
+                        <div className="flex-1">
+                          <p className="text-sm font-semibold text-gray-900">{category.name}</p>
+                          <div className="flex items-center gap-2 mt-1">
+                           
+                            <span className="text-xs text-gray-500">
+                              {expenses.filter(e => e.categoryId === category._id || e.category?._id === category._id).length} expenses
+                            </span>
+                          </div>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <button
+                            onClick={() => handleOpenCategoryModal(category)}
+                            className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
+                            title="Edit Category"
+                          >
+                            <Edit size={18} />
+                          </button>
+                          <button
+                            onClick={() => setDeleteCategoryConfirm({ show: true, category })}
+                            className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                            title="Delete Category"
+                          >
+                            <Trash2 size={18} />
+                          </button>
+                        </div>
+                      </div>
+                    ))}
+                    {categories.length === 0 && (
+                      <div className="text-center py-8 bg-gray-50 rounded-lg border-2 border-dashed border-gray-300">
+                        <FileText className="mx-auto mb-2 text-gray-400" size={32} />
+                        <p className="text-sm text-gray-500">No categories yet</p>
+                        <p className="text-xs text-gray-400 mt-1">Create your first category above</p>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Footer */}
+            <div className="sticky bottom-0 bg-gray-50 border-t border-gray-200 px-6 py-4 rounded-b-2xl flex items-center justify-end gap-3">
+              <button
+                onClick={() => {
+                  setShowCategoryModal(false);
+                  setEditingCategory(null);
+                  setCategoryFormData({ name: '', status: 'active' });
+                }}
+                className="px-5 py-2.5 text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors font-medium"
+                disabled={savingCategory}
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleSaveCategory}
+                disabled={savingCategory || !categoryFormData.name.trim()}
+                className="px-5 py-2.5 !text-white rounded-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed font-medium shadow-md hover:shadow-lg"
+                style={{ background: 'linear-gradient(90deg, #42aeec 0%, #1db5f5 40%, #0ea3d8 100%)' }}
+              >
+                {savingCategory ? 'Saving...' : editingCategory ? 'Update Category' : 'Create Category'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Expense Type Management Modal */}
+      {showTypeModal && (
+        <div className="fixed inset-0 bg-gray-900/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+          <div className="bg-white rounded-2xl shadow-2xl max-w-2xl w-full max-h-[90vh] flex flex-col">
+            {/* Header */}
+            <div className="sticky top-0 bg-white border-b border-gray-200 px-6 py-5 rounded-t-2xl flex items-center justify-between z-10">
+              <div>
+                <h2 className="text-2xl font-bold text-gray-900">
+                  {editingType ? 'Edit Expense Type' : 'Add New Expense Type'}
+                </h2>
+                <p className="text-sm text-gray-500 mt-1">
+                  {editingType ? 'Update expense type details' : 'Create a new expense type under a category'}
+                </p>
+              </div>
+              <button
+                onClick={() => {
+                  setShowTypeModal(false);
+                  setEditingType(null);
+                  setTypeFormData({ name: '', categoryId: '', status: 'active' });
+                }}
+                className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg transition-colors"
+              >
+                <X size={20} />
+              </button>
+            </div>
+
+            {/* Content */}
+            <div className="flex-1 overflow-y-auto p-6">
+              <div className="space-y-6">
+                {/* Form Section */}
+                <div className="bg-gray-50 rounded-xl p-5 space-y-4">
+                  <div>
+                    <label className="block text-sm font-semibold text-gray-700 mb-2">
+                      Category <span className="text-red-500">*</span>
+                    </label>
+                    <select
+                      value={typeFormData.categoryId}
+                      onChange={async (e) => {
+                        const categoryId = e.target.value;
+                        setTypeFormData(prev => ({ ...prev, categoryId }));
+                        // Fetch types when category is selected
+                        if (categoryId) {
+                          await fetchExpenseTypes(categoryId);
+                        } else {
+                          setExpenseTypes([]);
+                        }
+                      }}
+                      className="w-full border border-gray-300 rounded-lg px-4 py-2.5 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all"
+                      required
+                    >
+                      <option value="">Select Category</option>
+                      {categories.map(category => (
+                        <option key={category._id} value={category._id}>
+                          {category.name}
+                        </option>
+                      ))}
+                    </select>
+                    {!typeFormData.categoryId && (
+                      <p className="text-xs text-gray-500 mt-1.5">Please select a category first to see existing types</p>
+                    )}
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-semibold text-gray-700 mb-2">
+                      Expense Type Name <span className="text-red-500">*</span>
+                    </label>
+                    <input
+                      type="text"
+                      value={typeFormData.name}
+                      onChange={(e) => setTypeFormData(prev => ({ ...prev, name: e.target.value }))}
+                      placeholder="e.g., Office Rent, Electricity, Fuel, Maintenance"
+                      className="w-full border border-gray-300 rounded-lg px-4 py-2.5 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all"
+                      autoFocus
+                    />
+                  </div>
+
+                  <div>
+                 
+                  </div>
+                </div>
+
+                {/* Types List for Selected Category */}
+                {typeFormData.categoryId && (
+                  <div>
+                    <div className="flex items-center justify-between mb-4">
+                      <h3 className="text-lg font-semibold text-gray-900">
+                        Types in {categories.find(c => c._id === typeFormData.categoryId)?.name || 'Selected Category'}
+                      </h3>
+                      <span className="text-sm text-gray-500">
+                        {expenseTypes.filter(type => type.categoryId === typeFormData.categoryId).length} {expenseTypes.filter(type => type.categoryId === typeFormData.categoryId).length === 1 ? 'type' : 'types'}
+                      </span>
+                    </div>
+                    <div className="space-y-2 max-h-64 overflow-y-auto pr-2">
+                      {expenseTypes
+                        .filter(type => type.categoryId === typeFormData.categoryId)
+                        .map((type) => (
+                          <div
+                            key={type._id}
+                            className="flex items-center justify-between p-4 bg-white border border-gray-200 rounded-lg hover:border-gray-300 hover:shadow-sm transition-all"
+                          >
+                            <div className="flex-1">
+                              <p className="text-sm font-semibold text-gray-900">{type.name}</p>
+                             
+                            </div>
+                            <div className="flex items-center gap-2">
+                              <button
+                                onClick={() => handleOpenTypeModal(type)}
+                                className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
+                                title="Edit Type"
+                              >
+                                <Edit size={18} />
+                              </button>
+                              <button
+                                onClick={() => setDeleteTypeConfirm({ show: true, type })}
+                                className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                                title="Delete Type"
+                              >
+                                <Trash2 size={18} />
+                              </button>
+                            </div>
+                          </div>
+                        ))}
+                      {expenseTypes.filter(type => type.categoryId === typeFormData.categoryId).length === 0 && (
+                        <div className="text-center py-8 bg-gray-50 rounded-lg border-2 border-dashed border-gray-300">
+                          <FileText className="mx-auto mb-2 text-gray-400" size={32} />
+                          <p className="text-sm text-gray-500">No types in this category yet</p>
+                          <p className="text-xs text-gray-400 mt-1">Create your first type above</p>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* Footer */}
+            <div className="sticky bottom-0 bg-gray-50 border-t border-gray-200 px-6 py-4 rounded-b-2xl flex items-center justify-end gap-3">
+              <button
+                onClick={() => {
+                  setShowTypeModal(false);
+                  setEditingType(null);
+                  setTypeFormData({ name: '', categoryId: '', status: 'active' });
+                }}
+                className="px-5 py-2.5 text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors font-medium"
+                disabled={savingType}
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleSaveType}
+                disabled={savingType || !typeFormData.name.trim() || !typeFormData.categoryId}
+                className="px-5 py-2.5 !text-white rounded-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed font-medium shadow-md hover:shadow-lg"
+                style={{ background: 'linear-gradient(90deg, #42aeec 0%, #1db5f5 40%, #0ea3d8 100%)' }}
+              >
+                {savingType ? 'Saving...' : editingType ? 'Update Type' : 'Create Type'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Delete Category Confirmation */}
+      <ConfirmationModal
+        isOpen={deleteCategoryConfirm.show}
+        onClose={() => setDeleteCategoryConfirm({ show: false, category: null })}
+        onConfirm={handleDeleteCategory}
+        title="Delete Category"
+        message={`Are you sure you want to delete "${deleteCategoryConfirm.category?.name}"? This will also delete all expense types under this category. This action cannot be undone.`}
+        confirmText="Delete"
+        cancelText="Cancel"
+        type="danger"
+      />
+
+      {/* Delete Type Confirmation */}
+      <ConfirmationModal
+        isOpen={deleteTypeConfirm.show}
+        onClose={() => setDeleteTypeConfirm({ show: false, type: null })}
+        onConfirm={handleDeleteType}
+        title="Delete Expense Type"
+        message={`Are you sure you want to delete "${deleteTypeConfirm.type?.name}"? This action cannot be undone.`}
         confirmText="Delete"
         cancelText="Cancel"
         type="danger"

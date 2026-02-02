@@ -18,7 +18,11 @@ import {
   FaChevronLeft,
   FaChevronRight,
   FaFlag,
-  FaFlagUsa
+  FaFlagUsa,
+  FaImage,
+  FaVideo,
+  FaFileAlt,
+  FaUpload
 } from 'react-icons/fa';
 import {
   getIncidents,
@@ -148,12 +152,15 @@ interface IncidentForm {
     city: string;
     stateProvince: string;
     country: 'usa' | 'canada';
+    streetAddress?: string;
   };
   incidentType: string;
   incidentStatus: 'open' | 'under-review' | 'closed';
+  incidentId?: string;
   caseFileNumber?: string;
   supportingMedia?: string[];
   driver: string;
+  coDriver?: string;
   driversLicense?: string;
   reportingParty?: string;
   unitNumber?: string;
@@ -171,6 +178,9 @@ interface IncidentForm {
   fmcsaReportable?: boolean;
   fmcsaNotes?: string;
   notes?: string;
+  accidentReport?: string;
+  accidentPictures?: File[];
+  accidentVideo?: File;
 }
 
 // Toast Notification Component
@@ -237,7 +247,8 @@ const Incidents: React.FC = () => {
     location: {
       city: '',
       stateProvince: '',
-      country: 'usa'
+      country: 'usa',
+      streetAddress: ''
     },
     incidentType: '',
     incidentStatus: 'open',
@@ -520,12 +531,18 @@ const Incidents: React.FC = () => {
       location: {
         city: '',
         stateProvince: '',
-        country: 'usa'
+        country: 'usa',
+        streetAddress: ''
       },
       incidentType: '',
       incidentStatus: 'open',
       driver: '',
-      alsoCreateAsAccident: false
+      alsoCreateAsAccident: false,
+      incidentId: '',
+      coDriver: '',
+      accidentReport: '',
+      accidentPictures: [],
+      accidentVideo: undefined
     });
   };
 
@@ -541,12 +558,15 @@ const Incidents: React.FC = () => {
       location: {
         city: incident.location?.city || '',
         stateProvince: incident.location?.stateProvince || '',
-        country: incident.location?.country || 'usa'
+        country: incident.location?.country || 'usa',
+        streetAddress: (incident.location as any)?.streetAddress || ''
       },
       incidentType: incident.incidentType || '',
       incidentStatus: incident.incidentStatus || 'open',
+      incidentId: (incident as any).incidentId || '',
       caseFileNumber: incident.caseFileNumber || '',
       driver: typeof incident.driver === 'string' ? incident.driver : incident.driver?._id || '',
+      coDriver: (incident as any).coDriver || '',
       driversLicense: incident.driversLicense || '',
       reportingParty: incident.reportingParty || '',
       unitNumber: incident.unitNumber || '',
@@ -562,7 +582,10 @@ const Incidents: React.FC = () => {
       cvsaDotImpact: incident.cvsaDotImpact || false,
       fmcsaReportable: incident.fmcsaReportable || false,
       fmcsaNotes: incident.fmcsaNotes || '',
-      notes: incident.notes || ''
+      notes: incident.notes || '',
+      accidentReport: (incident as any).accidentReport || '',
+      accidentPictures: [],
+      accidentVideo: undefined
     });
     setShowEditModal(true);
   };
@@ -610,7 +633,9 @@ const Incidents: React.FC = () => {
         location: incidentForm.location,
         incidentType: incidentForm.incidentType,
         incidentStatus: incidentForm.incidentStatus,
+        incidentId: incidentForm.incidentId || '',
         driver: incidentForm.driver,
+        coDriver: incidentForm.coDriver || '',
         caseFileNumber: incidentForm.caseFileNumber || '',
         driversLicense: incidentForm.driversLicense || '',
         reportingParty: incidentForm.reportingParty || '',
@@ -627,7 +652,10 @@ const Incidents: React.FC = () => {
         cvsaDotImpact: incidentForm.cvsaDotImpact || false,
         fmcsaReportable: incidentForm.fmcsaReportable || false,
         fmcsaNotes: incidentForm.fmcsaNotes || '',
-        notes: incidentForm.notes || ''
+        notes: incidentForm.notes || '',
+        accidentReport: incidentForm.accidentReport || '',
+        accidentPictures: incidentForm.accidentPictures?.map(f => f.name).join(',') || '',
+        accidentVideo: incidentForm.accidentVideo?.name || ''
       };
 
       const res = await createIncident(payload);
@@ -654,6 +682,7 @@ const Incidents: React.FC = () => {
 
             // Build address string from location
             const addressParts = [];
+            if (incidentForm.location.streetAddress) addressParts.push(incidentForm.location.streetAddress);
             if (incidentForm.location.city) addressParts.push(incidentForm.location.city);
             if (incidentForm.location.stateProvince) addressParts.push(incidentForm.location.stateProvince);
             const address = addressParts.join(', ') || undefined;
@@ -721,7 +750,9 @@ const Incidents: React.FC = () => {
         location: incidentForm.location,
         incidentType: incidentForm.incidentType,
         incidentStatus: incidentForm.incidentStatus,
+        incidentId: incidentForm.incidentId || '',
         driver: incidentForm.driver,
+        coDriver: incidentForm.coDriver || '',
         caseFileNumber: incidentForm.caseFileNumber || '',
         driversLicense: incidentForm.driversLicense || '',
         reportingParty: incidentForm.reportingParty || '',
@@ -738,7 +769,10 @@ const Incidents: React.FC = () => {
         cvsaDotImpact: incidentForm.cvsaDotImpact || false,
         fmcsaReportable: incidentForm.fmcsaReportable || false,
         fmcsaNotes: incidentForm.fmcsaNotes || '',
-        notes: incidentForm.notes || ''
+        notes: incidentForm.notes || '',
+        accidentReport: incidentForm.accidentReport || '',
+        accidentPictures: incidentForm.accidentPictures?.map(f => f.name).join(',') || '',
+        accidentVideo: incidentForm.accidentVideo?.name || ''
       };
 
       const res = await updateIncident(selectedIncident._id, payload);
@@ -1313,6 +1347,16 @@ const Incidents: React.FC = () => {
                       />
                     </div>
                     <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">Incident ID</label>
+                      <input
+                        type="text"
+                        placeholder="Incident ID (optional, auto-generated if left blank)"
+                        value={incidentForm.incidentId || ''}
+                        onChange={(e) => setIncidentForm(prev => ({ ...prev, incidentId: e.target.value }))}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[var(--accent-color)] focus:border-transparent"
+                      />
+                    </div>
+                    <div>
                       <label className="block text-sm font-medium text-gray-700 mb-1">Case/File Number</label>
                       <input
                         type="text"
@@ -1364,6 +1408,19 @@ const Incidents: React.FC = () => {
                         className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[var(--accent-color)] focus:border-transparent"
                       />
                     </div>
+                    <div className="col-span-2">
+                      <label className="block text-sm font-medium text-gray-700 mb-1">Full Street Address</label>
+                      <input
+                        type="text"
+                        placeholder="Complete street address (street number, street name, etc.)"
+                        value={incidentForm.location?.streetAddress || ''}
+                        onChange={(e) => setIncidentForm(prev => ({
+                          ...prev,
+                          location: { ...prev.location, streetAddress: e.target.value }
+                        }))}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[var(--accent-color)] focus:border-transparent"
+                      />
+                    </div>
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-1">Incident Type <span className="text-red-500">*</span></label>
                       <input
@@ -1409,6 +1466,109 @@ const Incidents: React.FC = () => {
                         className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[var(--accent-color)] focus:border-transparent"
                       />
                     </div>
+                    <div className="col-span-2">
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                        <FaImage className="inline mr-2" /> Upload Accident Pictures
+                      </label>
+                      <div className="mt-1">
+                        <input
+                          type="file"
+                          accept="image/*"
+                          multiple
+                          onChange={(e) => {
+                            const files = Array.from(e.target.files || []);
+                            setIncidentForm(prev => ({
+                              ...prev,
+                              accidentPictures: [...(prev.accidentPictures || []), ...files]
+                            }));
+                          }}
+                          className="hidden"
+                          id="accident-pictures-upload"
+                        />
+                        <label
+                          htmlFor="accident-pictures-upload"
+                          className="flex items-center justify-center gap-2 px-4 py-3 border-2 border-dashed border-gray-300 rounded-lg cursor-pointer hover:border-[var(--accent-color)] hover:bg-[var(--accent-soft)] transition-colors"
+                        >
+                          <FaUpload className="text-gray-400" size={18} />
+                          <span className="text-sm text-gray-600">
+                            {incidentForm.accidentPictures && incidentForm.accidentPictures.length > 0
+                              ? `${incidentForm.accidentPictures.length} file(s) selected`
+                              : 'Click to upload pictures'}
+                          </span>
+                        </label>
+                        {incidentForm.accidentPictures && incidentForm.accidentPictures.length > 0 && (
+                          <div className="mt-2 space-y-1">
+                            {incidentForm.accidentPictures.map((file, index) => (
+                              <div key={index} className="flex items-center justify-between bg-gray-50 px-3 py-2 rounded text-sm">
+                                <span className="text-gray-700 flex items-center gap-2">
+                                  <FaImage className="text-blue-500" size={14} />
+                                  {file.name}
+                                </span>
+                                <button
+                                  type="button"
+                                  onClick={() => {
+                                    setIncidentForm(prev => ({
+                                      ...prev,
+                                      accidentPictures: prev.accidentPictures?.filter((_, i) => i !== index) || []
+                                    }));
+                                  }}
+                                  className="text-red-500 hover:text-red-700"
+                                >
+                                  <FaTimes size={14} />
+                                </button>
+                              </div>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                    <div className="col-span-2">
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                        <FaVideo className="inline mr-2" /> Upload Accident Video
+                      </label>
+                      <div className="mt-1">
+                        <input
+                          type="file"
+                          accept="video/*"
+                          onChange={(e) => {
+                            const file = e.target.files?.[0];
+                            if (file) {
+                              setIncidentForm(prev => ({ ...prev, accidentVideo: file }));
+                            }
+                          }}
+                          className="hidden"
+                          id="accident-video-upload"
+                        />
+                        <label
+                          htmlFor="accident-video-upload"
+                          className="flex items-center justify-center gap-2 px-4 py-3 border-2 border-dashed border-gray-300 rounded-lg cursor-pointer hover:border-[var(--accent-color)] hover:bg-[var(--accent-soft)] transition-colors"
+                        >
+                          <FaUpload className="text-gray-400" size={18} />
+                          <span className="text-sm text-gray-600">
+                            {incidentForm.accidentVideo
+                              ? incidentForm.accidentVideo.name
+                              : 'Click to upload video'}
+                          </span>
+                        </label>
+                        {incidentForm.accidentVideo && (
+                          <div className="mt-2 flex items-center justify-between bg-gray-50 px-3 py-2 rounded text-sm">
+                            <span className="text-gray-700 flex items-center gap-2">
+                              <FaVideo className="text-red-500" size={14} />
+                              {incidentForm.accidentVideo.name}
+                            </span>
+                            <button
+                              type="button"
+                              onClick={() => {
+                                setIncidentForm(prev => ({ ...prev, accidentVideo: undefined }));
+                              }}
+                              className="text-red-500 hover:text-red-700"
+                            >
+                              <FaTimes size={14} />
+                            </button>
+                          </div>
+                        )}
+                      </div>
+                    </div>
                   </div>
                 </div>
 
@@ -1427,6 +1587,21 @@ const Incidents: React.FC = () => {
                         {drivers.map((driver) => (
                           <option key={driver._id} value={driver._id}>{driver.name}</option>
                         ))}
+                      </select>
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">Co-Driver</label>
+                      <select
+                        value={incidentForm.coDriver || ''}
+                        onChange={(e) => setIncidentForm(prev => ({ ...prev, coDriver: e.target.value }))}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[var(--accent-color)] focus:border-transparent"
+                      >
+                        <option value="">Select Co-Driver</option>
+                        {drivers
+                          .filter((driver) => driver._id !== incidentForm.driver) // Exclude the selected driver
+                          .map((driver) => (
+                            <option key={driver._id} value={driver._id}>{driver.name}</option>
+                          ))}
                       </select>
                     </div>
                     <div>
@@ -1603,6 +1778,55 @@ const Incidents: React.FC = () => {
                         className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[var(--accent-color)] focus:border-transparent"
                         rows={3}
                       />
+                    </div>
+                    <div className="col-span-2">
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                        <FaFileAlt className="inline mr-2" /> Accident Report
+                      </label>
+                      <div className="mt-1">
+                        <input
+                          type="file"
+                          accept=".pdf,.doc,.docx,.txt"
+                          onChange={(e) => {
+                            const file = e.target.files?.[0];
+                            if (file) {
+                              // Store file name or convert to text if needed
+                              setIncidentForm(prev => ({ ...prev, accidentReport: file.name }));
+                            }
+                          }}
+                          className="hidden"
+                          id="accident-report-upload"
+                        />
+                        <label
+                          htmlFor="accident-report-upload"
+                          className="flex items-center justify-center gap-2 px-4 py-3 border-2 border-dashed border-gray-300 rounded-lg cursor-pointer hover:border-[var(--accent-color)] hover:bg-[var(--accent-soft)] transition-colors"
+                        >
+                          <FaUpload className="text-gray-400" size={18} />
+                          <span className="text-sm text-gray-600">
+                            {incidentForm.accidentReport
+                              ? incidentForm.accidentReport
+                              : 'Click to upload accident report (PDF, DOC, DOCX, TXT)'}
+                          </span>
+                        </label>
+                        {incidentForm.accidentReport && (
+                          <div className="mt-2 flex items-center justify-between bg-gray-50 px-3 py-2 rounded text-sm">
+                            <span className="text-gray-700 flex items-center gap-2">
+                              <FaFileAlt className="text-green-500" size={14} />
+                              {incidentForm.accidentReport}
+                            </span>
+                            <button
+                              type="button"
+                              onClick={() => {
+                                setIncidentForm(prev => ({ ...prev, accidentReport: '' }));
+                              }}
+                              className="text-red-500 hover:text-red-700"
+                            >
+                              <FaTimes size={14} />
+                            </button>
+                          </div>
+                        )}
+                      </div>
+                      <p className="mt-1 text-xs text-gray-500">Upload accident report document from safety system</p>
                     </div>
                   </div>
                 </div>

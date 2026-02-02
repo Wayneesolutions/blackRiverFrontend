@@ -95,3 +95,88 @@ export const extractReceiptData = async (file: File) => {
         return err.response?.data;
     }
 };
+
+// Expense Categories API
+export const listExpenseCategories = async () => {
+    try {
+        const res: AxiosResponse = await apiClient.get(`hr/expense-categories`);
+        return res.data;
+    } catch (error: any) {
+        const err = error as Error;
+        return err.response?.data;
+    }
+};
+
+export const createExpenseCategory = async (data: { name: string; status?: string }) => {
+    try {
+        const res: AxiosResponse = await apiClient.post(`hr/expense-categories`, data);
+        return res.data;
+    } catch (error: any) {
+        const err = error as Error;
+        return err.response?.data;
+    }
+};
+
+export const updateExpenseCategory = async (id: string, data: { name?: string; status?: string }) => {
+    try {
+        const res: AxiosResponse = await apiClient.put(`hr/expense-categories/${id}`, data);
+        return res.data;
+    } catch (error: any) {
+        const err = error as Error;
+        return err.response?.data;
+    }
+};
+
+export const deleteExpenseCategory = async (id: string) => {
+    try {
+        const res: AxiosResponse = await apiClient.delete(`hr/expense-categories/${id}`);
+        return res.data;
+    } catch (error: any) {
+        const err = error as Error;
+        return err.response?.data;
+    }
+};
+
+// Expense Types API
+export const listExpenseTypes = async (categoryId?: string) => {
+    try {
+        const url = categoryId 
+            ? `hr/expense-types?categoryId=${categoryId}`
+            : `hr/expense-types`;
+        const res: AxiosResponse = await apiClient.get(url);
+        return res.data;
+    } catch (error: any) {
+        const err = error as Error;
+        return err.response?.data;
+    }
+};
+
+export const createExpenseType = async (data: { name: string; categoryId: string; status?: string }) => {
+    try {
+        const res: AxiosResponse = await apiClient.post(`hr/expense-types`, data);
+        return res.data;
+    } catch (error: any) {
+        const err = error as Error;
+        return err.response?.data;
+    }
+};
+
+export const updateExpenseType = async (id: string, data: { name?: string; categoryId?: string; status?: string }) => {
+    try {
+        const res: AxiosResponse = await apiClient.put(`hr/expense-types/${id}`, data);
+        return res.data;
+    } catch (error: any) {
+        const err = error as Error;
+        return err.response?.data;
+    }
+};
+
+export const deleteExpenseType = async (id: string) => {
+    try {
+        const res: AxiosResponse = await apiClient.delete(`hr/expense-types/${id}`);
+        return res.data;
+    } catch (error: any) {
+        const err = error as Error;
+        return err.response?.data;
+    }
+};
