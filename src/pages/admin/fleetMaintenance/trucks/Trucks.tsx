@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useParams } from 'react-router-dom';
 import { Plus, Upload, ChevronUp, ChevronDown, Clock, X, Image as ImageIcon, Calendar, ChevronLeft, ChevronRight, Edit, Trash2, FileText, Check } from 'lucide-react';
 import { getAllVehicles, createVehicle, updateVehicle, deleteVehicle, getVehicleById } from '../../../../axios/api/vehicle';
@@ -41,6 +41,13 @@ interface Truck {
     yard?: string | { _id: string; yardName: string; yardCode: string };
 }
 
+interface Country {
+    name: string;
+    code: string;
+    flag: string;
+    dialCode: string;
+}
+
 // Static truck data - removed, now using API
 
 const Trucks: React.FC = () => {
@@ -75,7 +82,7 @@ const Trucks: React.FC = () => {
 
     // Sidebar modal state
     const [showSidebar, setShowSidebar] = useState(false);
-    const [activeStep, setActiveStep] = useState<'Details' | 'Inspections' | 'Documents' | 'Incidents' | 'Notes' | 'Payroll' | 'Deductions' | 'Additions'>('Details');
+    const [activeStep, setActiveStep] = useState<'Details' | 'Inspections' | 'Documents' | 'Invoice' | 'Notes' | 'Payroll' | 'Deductions' | 'Additions'>('Details');
     const [inspectionType, setInspectionType] = useState<'One Time' | 'Recurring'>('One Time');
     const [selectedImage, setSelectedImage] = useState<string | null>(null);
 
@@ -258,34 +265,32 @@ const Trucks: React.FC = () => {
         ignoreExpiration: false
     });
 
-    // Incidents data
-    const [incidents, setIncidents] = useState<Array<{
+    // Invoices data
+    const [invoices, setInvoices] = useState<Array<{
         id: string;
-        accidentNumber: string;
-        driver: string;
-        coDriver: string;
-        location: string;
-        date: string;
-        time: string;
-        weather: string;
-        policeReport: string;
-        accidentReport: string;
-        thirdPartyInfo: string;
-        files: File[];
+        _id?: string;
+        invoiceNumber: string;
+        vendorWorkshop: string;
+        amount: string;
+        invoiceDate: string;
+        file: File | null;
+        fileUrl?: string | null;
+        fileName?: string | null;
+        notes: string;
+        isExisting?: boolean;
     }>>([]);
-    const [incidentForm, setIncidentForm] = useState({
-        accidentNumber: '',
-        driver: '',
-        coDriver: '',
-        location: '',
-        date: '',
-        time: '',
-        weather: '',
-        policeReport: '',
-        accidentReport: '',
-        thirdPartyInfo: '',
-        files: [] as File[]
+
+    const [invoiceForm, setInvoiceForm] = useState({
+        invoiceNumber: '',
+        vendorWorkshop: '',
+        amount: '',
+        invoiceDate: '',
+        file: null as File | null,
+        notes: ''
     });
+
+    const [editingInvoiceId, setEditingInvoiceId] = useState<string | null>(null);
+    const invoiceFileInputRef = useRef<HTMLInputElement>(null);
 
     // Notes data
     const [notes, setNotes] = useState<Array<{
@@ -401,12 +406,37 @@ const Trucks: React.FC = () => {
         direction: 'asc'
     });
 
-    // Country and State data
-    const countriesWithStates: Record<string, string[]> = {
-        'United States': ['Alabama', 'Alaska', 'Arizona', 'Arkansas', 'California', 'Colorado', 'Connecticut', 'Delaware', 'Florida', 'Georgia', 'Hawaii', 'Idaho', 'Illinois', 'Indiana', 'Iowa', 'Kansas', 'Kentucky', 'Louisiana', 'Maine', 'Maryland', 'Massachusetts', 'Michigan', 'Minnesota', 'Mississippi', 'Missouri', 'Montana', 'Nebraska', 'Nevada', 'New Hampshire', 'New Jersey', 'New Mexico', 'New York', 'North Carolina', 'North Dakota', 'Ohio', 'Oklahoma', 'Oregon', 'Pennsylvania', 'Rhode Island', 'South Carolina', 'South Dakota', 'Tennessee', 'Texas', 'Utah', 'Vermont', 'Virginia', 'Washington', 'West Virginia', 'Wisconsin', 'Wyoming'],
-        'Canada': ['Alberta', 'British Columbia', 'Manitoba', 'New Brunswick', 'Newfoundland and Labrador', 'Northwest Territories', 'Nova Scotia', 'Nunavut', 'Ontario', 'Prince Edward Island', 'Quebec', 'Saskatchewan', 'Yukon'],
-        'Mexico': ['Aguascalientes', 'Baja California', 'Baja California Sur', 'Campeche', 'Chiapas', 'Chihuahua', 'Coahuila', 'Colima', 'Durango', 'Guanajuato', 'Guerrero', 'Hidalgo', 'Jalisco', 'México', 'Michoacán', 'Morelos', 'Nayarit', 'Nuevo León', 'Oaxaca', 'Puebla', 'Querétaro', 'Quintana Roo', 'San Luis Potosí', 'Sinaloa', 'Sonora', 'Tabasco', 'Tamaulipas', 'Tlaxcala', 'Veracruz', 'Yucatán', 'Zacatecas']
-    };
+    // Countries data
+    const [countries, setCountries] = useState<Country[]>([]);
+
+    // Fetch countries data
+    useEffect(() => {
+        fetch('https://restcountries.com/v3.1/all?fields=name,flag,idd,cca2')
+            .then(res => res.json())
+            .then(data => {
+                const sortedCountries = data
+                    .filter((c: any) => c.idd && c.idd.root)
+                    .map((c: any) => ({
+                        name: c.name.common,
+                        code: c.cca2,
+                        flag: c.flag,
+                        dialCode: c.idd.root + (c.idd.suffixes ? c.idd.suffixes[0] : ''),
+                    }))
+                    .sort((a: Country, b: Country) => a.name.localeCompare(b.name));
+
+                setCountries(sortedCountries);
+            })
+            .catch(() => {
+                const fallback = [
+                    { name: 'United States', code: 'US', flag: '🇺🇸', dialCode: '+1' },
+                    { name: 'Canada', code: 'CA', flag: '🇨🇦', dialCode: '+1' },
+                    { name: 'India', code: 'IN', flag: '🇮🇳', dialCode: '+91' },
+                    { name: 'United Kingdom', code: 'GB', flag: '🇬🇧', dialCode: '+44' },
+                    { name: 'Australia', code: 'AU', flag: '🇦🇺', dialCode: '+61' },
+                ];
+                setCountries(fallback);
+            });
+    }, []);
 
     // Fetch yards from API
     useEffect(() => {
@@ -771,25 +801,6 @@ const Trucks: React.FC = () => {
                         setRecurringInspections([]);
                     }
                     
-                    // Load incidents
-                    if (truck.incidents && Array.isArray(truck.incidents) && truck.incidents.length > 0) {
-                        setIncidents(truck.incidents.map((inc: any, index: number) => ({
-                            id: inc._id || `incident-${index}`,
-                            accidentNumber: inc.accidentNumber || '',
-                            driver: inc.driver?._id?.toString() || inc.driver?.toString() || '',
-                            coDriver: inc.coDriver?._id?.toString() || inc.coDriver?.toString() || '',
-                            location: inc.location || '',
-                            date: inc.date ? new Date(inc.date).toISOString().split('T')[0] : '',
-                            time: inc.time || '',
-                            weather: inc.weather || '',
-                            policeReport: inc.policeReport || '',
-                            accidentReport: inc.accidentReport || '',
-                            thirdPartyInfo: inc.thirdPartyInfo || '',
-                            files: inc.files || []
-                        })));
-                    } else {
-                        setIncidents([]);
-                    }
                     
                     // Load notes
                     if (truck.notesArray && Array.isArray(truck.notesArray) && truck.notesArray.length > 0) {
@@ -1028,7 +1039,7 @@ const Trucks: React.FC = () => {
                     formDataToSend.append('image', selectedImageFile);
                 }
                 
-                // Add inspections, incidents, and notes
+                // Add inspections and notes
                 // Handle one-time inspections with files
                 console.log('🔍 [UPDATE] Processing oneTimeInspections:', oneTimeInspections);
                 oneTimeInspections.forEach((insp, index) => {
@@ -1077,34 +1088,6 @@ const Trucks: React.FC = () => {
                     };
                 })));
 
-                // Handle incident files separately
-                console.log('📋 [UPDATE] Processing incidents with files');
-                incidents.forEach((inc, index) => {
-                    if (inc.files && inc.files.length > 0) {
-                        console.log(`📎 [UPDATE] Incident ${index} has ${inc.files.length} files`);
-                        inc.files.forEach((file: any, fileIndex: number) => {
-                            if (file instanceof File) {
-                                console.log(`📎 [UPDATE] Appending file ${fileIndex} for incident ${index}:`, file.name);
-                                formDataToSend.append(`incidentFiles_${index}`, file);
-                            }
-                        });
-                    }
-                });
-
-                formDataToSend.append('incidents', JSON.stringify(incidents.map((inc, index) => ({
-                    accidentNumber: inc.accidentNumber,
-                    driver: inc.driver,
-                    coDriver: inc.coDriver,
-                    location: inc.location,
-                    date: inc.date ? new Date(inc.date).toISOString() : null,
-                    time: inc.time,
-                    weather: inc.weather,
-                    policeReport: inc.policeReport,
-                    accidentReport: inc.accidentReport,
-                    thirdPartyInfo: inc.thirdPartyInfo,
-                    fileCount: (inc.files && inc.files.length) || 0,
-                    fileNames: inc.files ? inc.files.map((f: any) => f.name || f.fileName).filter(Boolean) : []
-                }))));
                 formDataToSend.append('notesArray', JSON.stringify(notes.map(note => ({
                     note: note.note,
                     category: note.category
@@ -1197,7 +1180,7 @@ const Trucks: React.FC = () => {
                     formDataToSend.append('image', selectedImageFile);
                 }
                 
-                // Add inspections, incidents, and notes
+                // Add inspections and notes
                 // Handle one-time inspections with files
                 console.log('🔍 [CREATE] Processing oneTimeInspections:', oneTimeInspections);
                 oneTimeInspections.forEach((insp, index) => {
@@ -1240,34 +1223,6 @@ const Trucks: React.FC = () => {
                     };
                 })));
 
-                // Handle incident files separately
-                console.log('📋 [CREATE] Processing incidents with files');
-                incidents.forEach((inc, index) => {
-                    if (inc.files && inc.files.length > 0) {
-                        console.log(`📎 [CREATE] Incident ${index} has ${inc.files.length} files`);
-                        inc.files.forEach((file: any, fileIndex: number) => {
-                            if (file instanceof File) {
-                                console.log(`📎 [CREATE] Appending file ${fileIndex} for incident ${index}:`, file.name);
-                                formDataToSend.append(`incidentFiles_${index}`, file);
-                            }
-                        });
-                    }
-                });
-
-                formDataToSend.append('incidents', JSON.stringify(incidents.map((inc, index) => ({
-                    accidentNumber: inc.accidentNumber,
-                    driver: inc.driver,
-                    coDriver: inc.coDriver,
-                    location: inc.location,
-                    date: inc.date ? new Date(inc.date).toISOString() : null,
-                    time: inc.time,
-                    weather: inc.weather,
-                    policeReport: inc.policeReport,
-                    accidentReport: inc.accidentReport,
-                    thirdPartyInfo: inc.thirdPartyInfo,
-                    fileCount: (inc.files && inc.files.length) || 0,
-                    fileNames: inc.files ? inc.files.map((f: any) => f.name || f.fileName).filter(Boolean) : []
-                }))));
                 formDataToSend.append('notesArray', JSON.stringify(notes.map(note => ({
                     note: note.note,
                     category: note.category
@@ -1455,7 +1410,6 @@ const Trucks: React.FC = () => {
             });
             setOneTimeInspections([]);
             setRecurringInspections([]);
-            setIncidents([]);
             setNotes([]);
             setShowSidebar(false);
         } catch (error) {
@@ -1575,7 +1529,7 @@ const Trucks: React.FC = () => {
     };
 
     // Navigation helper functions for sidebar steps
-    const steps: Array<'Details' | 'Inspections' | 'Documents' | 'Incidents' | 'Notes'> = ['Details', 'Inspections', 'Documents', 'Incidents', 'Notes'];
+    const steps: Array<'Details' | 'Inspections' | 'Documents' | 'Invoice' | 'Notes'> = ['Details', 'Inspections', 'Documents', 'Invoice', 'Notes'];
     
     const getNextStep = () => {
         // If on a conditional step (Payroll, Deductions, Additions), return null (no next step)
@@ -1667,7 +1621,6 @@ const Trucks: React.FC = () => {
                                     });
                                     setOneTimeInspections([]);
                                     setRecurringInspections([]);
-                                    setIncidents([]);
                                     setNotes([]);
                                     setEditingId(null);
                                     setOriginalTruckData(null);
@@ -2101,7 +2054,7 @@ const Trucks: React.FC = () => {
                             {/* Navigation Tabs */}
                             <div className="flex-1 overflow-y-auto p-2">
                                 <nav className="flex flex-col gap-1.5">
-                                    {(['Details', 'Inspections', 'Documents', 'Incidents', 'Notes'] as const).map((step) => (
+                                    {(['Details', 'Inspections', 'Documents', 'Invoice', 'Notes'] as const).map((step) => (
                                         <button
                                             key={step}
                                             onClick={() => setActiveStep(step)}
@@ -2209,8 +2162,10 @@ const Trucks: React.FC = () => {
                                                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#42aeec]"
                                                 >
                                                     <option value="">Select Registration Country</option>
-                                                    {Object.keys(countriesWithStates).map((country) => (
-                                                        <option key={country} value={country}>{country}</option>
+                                                    {countries.map((country) => (
+                                                        <option key={country.code} value={country.name}>
+                                                            {country.flag} {country.name}
+                                                        </option>
                                                     ))}
                                                 </select>
                                             </div>
@@ -2218,17 +2173,14 @@ const Trucks: React.FC = () => {
                                                 <label className="block text-sm font-medium text-gray-700 mb-1">
                                                     Registration Province/State
                                                 </label>
-                                                <select
+                                                <input
+                                                    type="text"
                                                     value={formData.registrationProvince}
                                                     onChange={(e) => setFormData({ ...formData, registrationProvince: e.target.value })}
-                                                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#42aeec]"
                                                     disabled={!formData.registrationCountry}
-                                                >
-                                                    <option value="">Select Registration Province/State</option>
-                                                    {formData.registrationCountry && countriesWithStates[formData.registrationCountry]?.map((state) => (
-                                                        <option key={state} value={state}>{state}</option>
-                                                    ))}
-                                                </select>
+                                                    placeholder={formData.registrationCountry ? "Enter Province/State" : "Select country first"}
+                                                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#42aeec] focus:border-transparent disabled:bg-gray-100 disabled:cursor-not-allowed"
+                                                />
                                             </div>
                                             <div>
                                                 <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -2699,34 +2651,40 @@ const Trucks: React.FC = () => {
                                                         </div>
                                                         <div>
                                                             <label className="block text-sm font-medium text-gray-700 mb-1">File</label>
-                                                            <button
-                                                                type="button"
-                                                                onClick={() => {
-                                                                    const input = document.createElement('input');
-                                                                    input.type = 'file';
-                                                                    input.onchange = (e: any) => {
-                                                                        setInspectionForm({ ...inspectionForm, file: e.target.files[0] });
-                                                                    };
-                                                                    input.click();
-                                                                }}
-                                                                className="w-full px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 text-sm font-medium bg-white flex items-center justify-center gap-2"
-                                                            >
-                                                                {inspectionForm.file ? (
-                                                                    <>
-                                                                        <FileText className="w-4 h-4" />
-                                                                        <span className="truncate max-w-[200px]">
-                                                                            {inspectionForm.file.name.length > 20 
-                                                                                ? inspectionForm.file.name.substring(0, 20) + '...' 
-                                                                                : inspectionForm.file.name}
-                                                                        </span>
-                                                                    </>
-                                                                ) : (
-                                                                    <>
-                                                                        <Upload className="w-4 h-4" />
-                                                                        <span>Select File</span>
-                                                                    </>
-                                                                )}
-                                                            </button>
+                                                            {inspectionForm.file ? (
+                                                                <div className="flex items-center gap-2 px-3 py-2 border border-gray-300 rounded-lg bg-white">
+                                                                    <FileText className="w-4 h-4 text-gray-600 flex-shrink-0" />
+                                                                    <span className="text-sm text-gray-700 truncate flex-1">
+                                                                        {inspectionForm.file.name.length > 20 
+                                                                            ? inspectionForm.file.name.substring(0, 20) + '...' 
+                                                                            : inspectionForm.file.name}
+                                                                    </span>
+                                                                    <button
+                                                                        type="button"
+                                                                        onClick={() => setInspectionForm({ ...inspectionForm, file: null })}
+                                                                        className="text-gray-400 hover:text-red-600 transition-colors flex-shrink-0"
+                                                                        title="Remove file"
+                                                                    >
+                                                                        <X className="w-4 h-4" />
+                                                                    </button>
+                                                                </div>
+                                                            ) : (
+                                                                <button
+                                                                    type="button"
+                                                                    onClick={() => {
+                                                                        const input = document.createElement('input');
+                                                                        input.type = 'file';
+                                                                        input.onchange = (e: any) => {
+                                                                            setInspectionForm({ ...inspectionForm, file: e.target.files[0] });
+                                                                        };
+                                                                        input.click();
+                                                                    }}
+                                                                    className="w-full px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 text-sm font-medium bg-white flex items-center justify-center gap-2"
+                                                                >
+                                                                    <Upload className="w-4 h-4" />
+                                                                    <span>Select File</span>
+                                                                </button>
+                                                            )}
                                                         </div>
                                                     </div>
 
@@ -2906,32 +2864,38 @@ const Trucks: React.FC = () => {
                                             {/* Row 2: File Upload */}
                                             <div>
                                                 <label className="block text-sm font-medium text-gray-700 mb-1">File</label>
-                                                <button
-                                                    type="button"
-                                                    onClick={() => {
-                                                        const input = document.createElement('input');
-                                                        input.type = 'file';
-                                                        input.onchange = (e: any) => {
-                                                            setDocumentForm({ ...documentForm, file: e.target.files[0] });
-                                                        };
-                                                        input.click();
-                                                    }}
-                                                    className="w-full px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 text-sm font-medium bg-white flex items-center justify-center gap-2"
-                                                >
-                                                    {documentForm.file ? (
-                                                        <>
-                                                            <FileText className="w-4 h-4" />
-                                                            <span className="truncate max-w-[300px]">
-                                                                {documentForm.file.name}
-                                                            </span>
-                                                        </>
-                                                    ) : (
-                                                        <>
-                                                            <Upload className="w-4 h-4" />
-                                                            <span>Select File</span>
-                                                        </>
-                                                    )}
-                                                </button>
+                                                {documentForm.file ? (
+                                                    <div className="flex items-center gap-2 px-3 py-2 border border-gray-300 rounded-lg bg-white">
+                                                        <FileText className="w-4 h-4 text-gray-600 flex-shrink-0" />
+                                                        <span className="text-sm text-gray-700 truncate flex-1">
+                                                            {documentForm.file.name}
+                                                        </span>
+                                                        <button
+                                                            type="button"
+                                                            onClick={() => setDocumentForm({ ...documentForm, file: null })}
+                                                            className="text-gray-400 hover:text-red-600 transition-colors flex-shrink-0"
+                                                            title="Remove file"
+                                                        >
+                                                            <X className="w-4 h-4" />
+                                                        </button>
+                                                    </div>
+                                                ) : (
+                                                    <button
+                                                        type="button"
+                                                        onClick={() => {
+                                                            const input = document.createElement('input');
+                                                            input.type = 'file';
+                                                            input.onchange = (e: any) => {
+                                                                setDocumentForm({ ...documentForm, file: e.target.files[0] });
+                                                            };
+                                                            input.click();
+                                                        }}
+                                                        className="w-full px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 text-sm font-medium bg-white flex items-center justify-center gap-2"
+                                                    >
+                                                        <Upload className="w-4 h-4" />
+                                                        <span>Select File</span>
+                                                    </button>
+                                                )}
                                             </div>
 
                                             {/* Row 3: Checkbox and Action Button */}
@@ -3050,253 +3014,297 @@ const Trucks: React.FC = () => {
                                     </div>
                                 )}
 
-                                {/* Incidents Step */}
-                                {activeStep === 'Incidents' && (
+                                {/* Invoice Step */}
+                                {activeStep === 'Invoice' && (
                                     <div className="space-y-4">
-                                        <h3 className="text-base font-semibold text-gray-900">Claims / Accidents</h3>
 
-                                        {/* Incident Form */}
-                                        <div className="bg-gray-100 p-4 rounded-lg">
-                                            <div className="grid grid-cols-2 gap-4 mb-4">
-                                                <div>
-                                                    <label className="block text-sm font-medium text-gray-700 mb-1">Accident Number</label>
-                                                    <input
-                                                        type="text"
-                                                        placeholder="Accident Number"
-                                                        value={incidentForm.accidentNumber}
-                                                        onChange={(e) => setIncidentForm({ ...incidentForm, accidentNumber: e.target.value })}
-                                                        className="w-full px-3 py-2 bg-white border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#42aeec] text-sm"
-                                                    />
-                                                </div>
-                                                <div>
-                                                    <label className="block text-sm font-medium text-gray-700 mb-1">Driver</label>
-                                                    <select
-                                                        value={incidentForm.driver}
-                                                        onChange={(e) => setIncidentForm({ ...incidentForm, driver: e.target.value })}
-                                                        className="w-full px-3 py-2 bg-white border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#42aeec] text-sm"
-                                                    >
-                                                        <option value="">Select Driver</option>
-                                                        {drivers.map((driver) => (
-                                                            <option key={driver._id} value={driver._id}>
-                                                                {driver.name || driver.email} {driver.email && driver.name !== driver.email ? `(${driver.email})` : ''}
-                                                            </option>
-                                                        ))}
-                                                    </select>
-                                                </div>
-                                                <div>
-                                                    <label className="block text-sm font-medium text-gray-700 mb-1">Co-Driver</label>
-                                                    <select
-                                                        value={incidentForm.coDriver}
-                                                        onChange={(e) => setIncidentForm({ ...incidentForm, coDriver: e.target.value })}
-                                                        className="w-full px-3 py-2 bg-white border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#42aeec] text-sm"
-                                                    >
-                                                        <option value="">Select Co-Driver</option>
-                                                        {drivers.map((driver) => (
-                                                            <option key={driver._id} value={driver._id}>
-                                                                {driver.name || driver.email} {driver.email && driver.name !== driver.email ? `(${driver.email})` : ''}
-                                                            </option>
-                                                        ))}
-                                                    </select>
-                                                </div>
-                                                <div>
-                                                    <label className="block text-sm font-medium text-gray-700 mb-1">Location</label>
-                                                    <input
-                                                        type="text"
-                                                        placeholder="Location"
-                                                        value={incidentForm.location}
-                                                        onChange={(e) => setIncidentForm({ ...incidentForm, location: e.target.value })}
-                                                        className="w-full px-3 py-2 bg-white border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#42aeec] text-sm"
-                                                    />
-                                                </div>
-                                                <div>
-                                                    <label className="block text-sm font-medium text-gray-700 mb-1">Date</label>
-                                                    <div className="relative">
-                                                        <Calendar className="absolute left-2 top-2.5 w-4 h-4 text-gray-400 pointer-events-none" />
+                                            {/* Invoice Form */}
+                                            <div className="bg-gray-100 p-4 rounded-lg">
+                                                <div className="grid grid-cols-2 gap-4 mb-4">
+                                                    <div>
+                                                        <label className="block text-sm font-medium text-gray-700 mb-1">Invoice Number<span className="text-red-500">*</span></label>
                                                         <input
-                                                            type="date"
-                                                            value={incidentForm.date}
-                                                            onChange={(e) => setIncidentForm({ ...incidentForm, date: e.target.value })}
-                                                            className="w-full pl-8 pr-3 py-2 bg-white border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#42aeec] text-sm"
+                                                            type="text"
+                                                            placeholder="Invoice Number"
+                                                            value={invoiceForm.invoiceNumber}
+                                                            onChange={(e) => setInvoiceForm({ ...invoiceForm, invoiceNumber: e.target.value })}
+                                                            className="w-full px-3 py-2 bg-white border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#42aeec] text-sm"
                                                         />
                                                     </div>
-                                                </div>
-                                                <div>
-                                                    <label className="block text-sm font-medium text-gray-700 mb-1">Time</label>
-                                                    <input
-                                                        type="time"
-                                                        value={incidentForm.time}
-                                                        onChange={(e) => setIncidentForm({ ...incidentForm, time: e.target.value })}
-                                                        className="w-full px-3 py-2 bg-white border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#42aeec] text-sm"
-                                                    />
-                                                </div>
-                                                <div>
-                                                    <label className="block text-sm font-medium text-gray-700 mb-1">Select Weather</label>
-                                                    <div className="relative">
-                                                        <select
-                                                            value={incidentForm.weather}
-                                                            onChange={(e) => setIncidentForm({ ...incidentForm, weather: e.target.value })}
-                                                            className="w-full px-3 py-2 bg-white border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#42aeec] text-sm appearance-none pr-8"
-                                                        >
-                                                            <option value="">Select Weather</option>
-                                                            <option value="Clear">Clear</option>
-                                                            <option value="Rainy">Rainy</option>
-                                                            <option value="Snowy">Snowy</option>
-                                                            <option value="Foggy">Foggy</option>
-                                                            <option value="Windy">Windy</option>
-                                                        </select>
-                                                        <ChevronDown className="absolute right-3 top-2.5 w-4 h-4 text-gray-400 pointer-events-none" />
+                                                    <div>
+                                                        <label className="block text-sm font-medium text-gray-700 mb-1">Vendor / Workshop<span className="text-red-500">*</span></label>
+                                                        <input
+                                                            type="text"
+                                                            placeholder="Vendor / Workshop"
+                                                            value={invoiceForm.vendorWorkshop}
+                                                            onChange={(e) => setInvoiceForm({ ...invoiceForm, vendorWorkshop: e.target.value })}
+                                                            className="w-full px-3 py-2 bg-white border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#42aeec] text-sm"
+                                                        />
+                                                    </div>
+                                                    <div>
+                                                        <label className="block text-sm font-medium text-gray-700 mb-1">Amount<span className="text-red-500">*</span></label>
+                                                        <div className="relative">
+                                                            <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400">$</span>
+                                                            <input
+                                                                type="number"
+                                                                placeholder="0.00"
+                                                                value={invoiceForm.amount}
+                                                                onChange={(e) => {
+                                                                    const value = e.target.value;
+                                                                    if (value === '' || /^\d*\.?\d{0,2}$/.test(value)) {
+                                                                        setInvoiceForm({ ...invoiceForm, amount: value });
+                                                                    }
+                                                                }}
+                                                                min="0"
+                                                                step="0.01"
+                                                                className="w-full pl-7 pr-3 py-2 bg-white border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#42aeec] text-sm"
+                                                            />
+                                                        </div>
+                                                    </div>
+                                                    <div>
+                                                        <label className="block text-sm font-medium text-gray-700 mb-1">Invoice Date<span className="text-red-500">*</span></label>
+                                                        <div className="relative">
+                                                            <Calendar className="absolute left-2 top-2.5 w-4 h-4 text-gray-400 pointer-events-none" />
+                                                            <input
+                                                                type="date"
+                                                                value={invoiceForm.invoiceDate}
+                                                                onChange={(e) => setInvoiceForm({ ...invoiceForm, invoiceDate: e.target.value })}
+                                                                className="w-full pl-8 pr-3 py-2 bg-white border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#42aeec] text-sm"
+                                                            />
+                                                        </div>
                                                     </div>
                                                 </div>
-                                                <div>
-                                                    <label className="block text-sm font-medium text-gray-700 mb-1">Police Report #</label>
-                                                    <input
-                                                        type="text"
-                                                        placeholder="Police Report #"
-                                                        value={incidentForm.policeReport}
-                                                        onChange={(e) => setIncidentForm({ ...incidentForm, policeReport: e.target.value })}
-                                                        className="w-full px-3 py-2 bg-white border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#42aeec] text-sm"
-                                                    />
-                                                </div>
-                                                <div>
-                                                    <label className="block text-sm font-medium text-gray-700 mb-1">Accident Report #</label>
-                                                    <input
-                                                        type="text"
-                                                        placeholder="Accident Report #"
-                                                        value={incidentForm.accidentReport}
-                                                        onChange={(e) => setIncidentForm({ ...incidentForm, accidentReport: e.target.value })}
-                                                        className="w-full px-3 py-2 bg-white border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#42aeec] text-sm"
-                                                    />
-                                                </div>
-                                            </div>
-                                            <div className="mb-4">
-                                                <label className="block text-sm font-medium text-gray-700 mb-1">Third Party Info</label>
-                                                <textarea
-                                                    placeholder="Third Party Info"
-                                                    value={incidentForm.thirdPartyInfo}
-                                                    onChange={(e) => setIncidentForm({ ...incidentForm, thirdPartyInfo: e.target.value })}
-                                                    className="w-full px-3 py-2 bg-white border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#42aeec] min-h-[100px] text-sm resize-none"
-                                                />
-                                            </div>
-                                            <div className="mb-4">
-                                                <label className="block text-sm font-medium text-gray-700 mb-1">Select files</label>
-                                                <button
-                                                    type="button"
-                                                    onClick={() => {
-                                                        const input = document.createElement('input');
-                                                        input.type = 'file';
-                                                        input.multiple = true;
-                                                        input.onchange = (e: any) => {
-                                                            const files = Array.from(e.target.files || []);
-                                                            setIncidentForm({ ...incidentForm, files });
-                                                        };
-                                                        input.click();
-                                                    }}
-                                                    className="w-full px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 text-sm font-medium bg-white flex items-center justify-center gap-2"
-                                                >
-                                                    {incidentForm.files && incidentForm.files.length > 0 ? (
-                                                        <>
-                                                            <FileText className="w-4 h-4" />
-                                                            <span>{incidentForm.files.length} file(s) selected: {incidentForm.files.map((f: any) => f.name).join(', ')}</span>
-                                                        </>
+                                                <div className="mb-4">
+                                                    <label className="block text-sm font-medium text-gray-700 mb-1">Upload Invoice (PDF / Image)</label>
+                                                    {invoiceForm.file ? (
+                                                        <div className="flex items-center gap-2 px-3 py-2 border border-gray-300 rounded-lg bg-white">
+                                                            <FileText className="w-4 h-4 text-gray-600 flex-shrink-0" />
+                                                            <span className="text-sm text-gray-700 truncate flex-1">
+                                                                {invoiceForm.file.name}
+                                                            </span>
+                                                            <button
+                                                                type="button"
+                                                                onClick={() => {
+                                                                    setInvoiceForm({ ...invoiceForm, file: null });
+                                                                    if (invoiceFileInputRef.current) {
+                                                                        invoiceFileInputRef.current.value = '';
+                                                                    }
+                                                                }}
+                                                                className="text-gray-400 hover:text-red-600 transition-colors flex-shrink-0"
+                                                                title="Remove file"
+                                                            >
+                                                                <X className="w-4 h-4" />
+                                                            </button>
+                                                        </div>
                                                     ) : (
                                                         <>
-                                                            <Upload className="w-4 h-4" />
-                                                            <span>Select Files</span>
+                                                            <input
+                                                                ref={invoiceFileInputRef}
+                                                                type="file"
+                                                                accept=".pdf,.jpg,.jpeg,.png,.gif"
+                                                                onChange={(e) => {
+                                                                    if (e.target.files && e.target.files[0]) {
+                                                                        setInvoiceForm({ ...invoiceForm, file: e.target.files[0] });
+                                                                    }
+                                                                }}
+                                                                className="hidden"
+                                                            />
+                                                            <button
+                                                                type="button"
+                                                                onClick={() => invoiceFileInputRef.current?.click()}
+                                                                className="w-full px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 text-sm font-medium bg-white flex items-center justify-center gap-2"
+                                                            >
+                                                                <Upload className="w-4 h-4" />
+                                                                <span>Select File</span>
+                                                            </button>
                                                         </>
                                                     )}
-                                                </button>
+                                                </div>
+                                                <div className="mb-4">
+                                                    <label className="block text-sm font-medium text-gray-700 mb-1">Notes</label>
+                                                    <textarea
+                                                        placeholder="Notes"
+                                                        value={invoiceForm.notes}
+                                                        onChange={(e) => setInvoiceForm({ ...invoiceForm, notes: e.target.value })}
+                                                        className="w-full px-3 py-2 bg-white border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#42aeec] min-h-[80px] text-sm resize-none"
+                                                    />
+                                                </div>
+                                                <div className="flex justify-end gap-2">
+                                                    {editingInvoiceId && (
+                                                        <button
+                                                            onClick={() => {
+                                                                setEditingInvoiceId(null);
+                                                                setInvoiceForm({
+                                                                    invoiceNumber: '',
+                                                                    vendorWorkshop: '',
+                                                                    amount: '',
+                                                                    invoiceDate: '',
+                                                                    file: null,
+                                                                    notes: ''
+                                                                });
+                                                                if (invoiceFileInputRef.current) {
+                                                                    invoiceFileInputRef.current.value = '';
+                                                                }
+                                                            }}
+                                                            className="px-4 py-2 bg-gray-500 !text-white rounded-lg flex items-center gap-2 hover:bg-gray-600 transition-colors"
+                                                        >
+                                                            <X className="w-4 h-4" />
+                                                            <span>Cancel</span>
+                                                        </button>
+                                                    )}
+                                                    <button
+                                                        onClick={() => {
+                                                            if (invoiceForm.invoiceNumber && invoiceForm.vendorWorkshop && invoiceForm.amount && invoiceForm.invoiceDate) {
+                                                                if (editingInvoiceId) {
+                                                                    setInvoices(invoices.map(inv =>
+                                                                        inv.id === editingInvoiceId
+                                                                            ? {
+                                                                                ...inv,
+                                                                                invoiceNumber: invoiceForm.invoiceNumber,
+                                                                                vendorWorkshop: invoiceForm.vendorWorkshop,
+                                                                                amount: invoiceForm.amount,
+                                                                                invoiceDate: invoiceForm.invoiceDate,
+                                                                                file: invoiceForm.file || inv.file,
+                                                                                fileName: invoiceForm.file?.name || inv.fileName,
+                                                                                notes: invoiceForm.notes
+                                                                            }
+                                                                            : inv
+                                                                    ));
+                                                                    setEditingInvoiceId(null);
+                                                                } else {
+                                                                    setInvoices([...invoices, {
+                                                                        id: Date.now().toString(),
+                                                                        invoiceNumber: invoiceForm.invoiceNumber,
+                                                                        vendorWorkshop: invoiceForm.vendorWorkshop,
+                                                                        amount: invoiceForm.amount,
+                                                                        invoiceDate: invoiceForm.invoiceDate,
+                                                                        file: invoiceForm.file,
+                                                                        fileName: invoiceForm.file?.name || '',
+                                                                        notes: invoiceForm.notes
+                                                                    }]);
+                                                                }
+                                                                setInvoiceForm({
+                                                                    invoiceNumber: '',
+                                                                    vendorWorkshop: '',
+                                                                    amount: '',
+                                                                    invoiceDate: '',
+                                                                    file: null,
+                                                                    notes: ''
+                                                                });
+                                                                if (invoiceFileInputRef.current) {
+                                                                    invoiceFileInputRef.current.value = '';
+                                                                }
+                                                            }
+                                                        }}
+                                                        className="px-4 py-2 bg-gray-700 !text-white rounded-lg flex items-center gap-2 hover:bg-gray-800 transition-colors"
+                                                    >
+                                                        <Plus className="w-4 h-4" />
+                                                        <span>{editingInvoiceId ? 'Update' : 'Add'} Invoice</span>
+                                                    </button>
+                                                </div>
                                             </div>
-                                            <div className="flex justify-end">
-                                                <button
-                                                    onClick={() => {
-                                                        if (incidentForm.accidentNumber && incidentForm.location && incidentForm.date) {
-                                                            setIncidents([...incidents, {
-                                                                id: Date.now().toString(),
-                                                                ...incidentForm
-                                                            }]);
-                                                            setIncidentForm({
-                                                                accidentNumber: '',
-                                                                driver: '',
-                                                                coDriver: '',
-                                                                location: '',
-                                                                date: '',
-                                                                time: '',
-                                                                weather: '',
-                                                                policeReport: '',
-                                                                accidentReport: '',
-                                                                thirdPartyInfo: '',
-                                                                files: []
-                                                            });
-                                                        }
-                                                    }}
-                                                    className="px-4 py-2 bg-gray-700 !text-white rounded-lg flex items-center gap-2 hover:bg-gray-800 transition-colors"
-                                                >
-                                                    <Plus className="w-4 h-4" />
-                                                    <span>Add</span>
-                                                </button>
-                                            </div>
-                                        </div>
 
-                                        {/* Incidents Table */}
-                                        <div className="bg-white rounded-lg border border-gray-200 overflow-x-auto">
-                                            <table className="w-full min-w-[1000px]">
-                                                <thead className="bg-gray-50 border-b border-gray-200">
-                                                    <tr>
-                                                        <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase">Claim/Accident No.</th>
-                                                        <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase">Driver/Co-Driver</th>
-                                                        <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase">Location</th>
-                                                        <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase">Date Time</th>
-                                                        <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase">Weather</th>
-                                                        <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase">Files</th>
-                                                        <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase">Actions</th>
-                                                    </tr>
-                                                </thead>
-                                                <tbody className="divide-y divide-gray-200">
-                                                    {incidents.length === 0 ? (
+                                            {/* Invoices Table */}
+                                            <div className="bg-white rounded-lg border border-gray-200 overflow-x-auto">
+                                                <table className="w-full min-w-[1000px]">
+                                                    <thead className="bg-gray-50 border-b border-gray-200">
                                                         <tr>
-                                                            <td colSpan={7} className="px-4 py-12 text-center text-gray-500 text-sm">No Data</td>
+                                                            <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase">Invoice Number</th>
+                                                            <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase">Vendor / Workshop</th>
+                                                            <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase">Amount</th>
+                                                            <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase">Invoice Date</th>
+                                                            <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase">File</th>
+                                                            <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase">Notes</th>
+                                                            <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase">Actions</th>
                                                         </tr>
-                                                    ) : (
-                                                        incidents.map((incident) => (
-                                                            <tr key={incident.id} className="hover:bg-gray-50 transition-colors">
-                                                                <td className="px-4 py-3 text-sm text-gray-900">{incident.accidentNumber}</td>
-                                                                <td className="px-4 py-3 text-sm text-gray-900">
-                                                                    {incident.driver || '-'}{incident.coDriver ? ` / ${incident.coDriver}` : ''}
-                                                                </td>
-                                                                <td className="px-4 py-3 text-sm text-gray-900">{incident.location}</td>
-                                                                <td className="px-4 py-3 text-sm text-gray-900">
-                                                                    {incident.date ? `${incident.date}${incident.time ? ` ${incident.time}` : ''}` : '-'}
-                                                                </td>
-                                                                <td className="px-4 py-3 text-sm text-gray-900">{incident.weather || '-'}</td>
-                                                                <td className="px-4 py-3 text-sm text-gray-900">
-                                                                    {incident.files && incident.files.length > 0 ? (
-                                                                        <div className="flex items-center gap-2 text-blue-600">
-                                                                            <FileText className="w-4 h-4" />
-                                                                            <span className="truncate max-w-[150px]">
-                                                                                {incident.files.length} file(s): {incident.files.map((f: any) => f.name || f.fileName).join(', ')}
-                                                                            </span>
-                                                                        </div>
-                                                                    ) : (
-                                                                        <span className="text-gray-400">No files</span>
-                                                                    )}
-                                                                </td>
-                                                                <td className="px-4 py-3 text-sm text-gray-900">
-                                                                    <button
-                                                                        onClick={() => {
-                                                                            setIncidents(incidents.filter(i => i.id !== incident.id));
-                                                                        }}
-                                                                        className="p-1 text-red-600 hover:bg-red-50 rounded"
-                                                                        title="Delete"
-                                                                    >
-                                                                        <Trash2 className="w-4 h-4" />
-                                                                    </button>
-                                                                </td>
+                                                    </thead>
+                                                    <tbody className="divide-y divide-gray-200">
+                                                        {invoices.length === 0 ? (
+                                                            <tr>
+                                                                <td colSpan={7} className="px-4 py-12 text-center text-gray-500 text-sm">No Invoices</td>
                                                             </tr>
-                                                        ))
-                                                    )}
-                                                </tbody>
-                                            </table>
-                                        </div>
+                                                        ) : (
+                                                            invoices.map((invoice) => (
+                                                                <tr key={invoice.id} className="hover:bg-gray-50 transition-colors">
+                                                                    <td className="px-4 py-3 text-sm text-gray-900">{invoice.invoiceNumber}</td>
+                                                                    <td className="px-4 py-3 text-sm text-gray-900">{invoice.vendorWorkshop}</td>
+                                                                    <td className="px-4 py-3 text-sm text-gray-900">${parseFloat(invoice.amount || '0').toFixed(2)}</td>
+                                                                    <td className="px-4 py-3 text-sm text-gray-900">{invoice.invoiceDate || '-'}</td>
+                                                                    <td className="px-4 py-3 text-sm text-gray-900">
+                                                                        {invoice.fileUrl ? (
+                                                                            <a
+                                                                                href={invoice.fileUrl}
+                                                                                target="_blank"
+                                                                                rel="noopener noreferrer"
+                                                                                className="flex items-center gap-2 text-blue-600 hover:text-blue-800 hover:underline"
+                                                                                onClick={(e) => e.stopPropagation()}
+                                                                            >
+                                                                                <FileText className="w-4 h-4" />
+                                                                                <span>{invoice.fileName || 'View File'}</span>
+                                                                            </a>
+                                                                        ) : invoice.fileName || invoice.file ? (
+                                                                            <div className="flex items-center gap-2 text-blue-600">
+                                                                                <FileText className="w-4 h-4" />
+                                                                                <span className="truncate max-w-[150px]">
+                                                                                    {invoice.fileName || (invoice.file instanceof File ? invoice.file.name : 'File attached')}
+                                                                                </span>
+                                                                            </div>
+                                                                        ) : (
+                                                                            <span className="text-gray-400">No file</span>
+                                                                        )}
+                                                                    </td>
+                                                                    <td className="px-4 py-3 text-sm text-gray-900">
+                                                                        <span className="truncate max-w-[200px] block" title={invoice.notes}>
+                                                                            {invoice.notes || '-'}
+                                                                        </span>
+                                                                    </td>
+                                                                    <td className="px-4 py-3 text-sm text-gray-900">
+                                                                        <div className="flex items-center gap-2">
+                                                                            <button
+                                                                                onClick={() => {
+                                                                                    setEditingInvoiceId(invoice.id);
+                                                                                    setInvoiceForm({
+                                                                                        invoiceNumber: invoice.invoiceNumber,
+                                                                                        vendorWorkshop: invoice.vendorWorkshop,
+                                                                                        amount: invoice.amount,
+                                                                                        invoiceDate: invoice.invoiceDate,
+                                                                                        file: invoice.file,
+                                                                                        notes: invoice.notes
+                                                                                    });
+                                                                                }}
+                                                                                className="p-1 text-blue-600 hover:bg-blue-50 rounded"
+                                                                                title="Edit"
+                                                                            >
+                                                                                <Edit className="w-4 h-4" />
+                                                                            </button>
+                                                                            <button
+                                                                                onClick={() => {
+                                                                                    setInvoices(invoices.filter(i => i.id !== invoice.id));
+                                                                                    if (editingInvoiceId === invoice.id) {
+                                                                                        setEditingInvoiceId(null);
+                                                                                        setInvoiceForm({
+                                                                                            invoiceNumber: '',
+                                                                                            vendorWorkshop: '',
+                                                                                            amount: '',
+                                                                                            invoiceDate: '',
+                                                                                            file: null,
+                                                                                            notes: ''
+                                                                                        });
+                                                                                    }
+                                                                                }}
+                                                                                className="p-1 text-red-600 hover:bg-red-50 rounded"
+                                                                                title="Delete"
+                                                                            >
+                                                                                <Trash2 className="w-4 h-4" />
+                                                                            </button>
+                                                                        </div>
+                                                                    </td>
+                                                                </tr>
+                                                            ))
+                                                        )}
+                                                    </tbody>
+                                                </table>
+                                            </div>
                                     </div>
                                 )}
 
