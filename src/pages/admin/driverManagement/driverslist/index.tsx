@@ -176,6 +176,9 @@ const DriverManagement = () => {
   const topScrollRef = useRef<HTMLDivElement>(null);
   const topScrollContentRef = useRef<HTMLDivElement>(null);
   
+  // Validation errors state
+  const [validationErrors, setValidationErrors] = useState<Record<string, string>>({});
+  
   // Store original driver data for comparison (to detect changes)
   const [originalDriverData, setOriginalDriverData] = useState<{
     formData: typeof formData;
@@ -371,7 +374,6 @@ const DriverManagement = () => {
   });
 
   // Form state for Documents
-  const [documentsTab, setDocumentsTab] = useState<'general' | 'driving-violations' | 'other-violations' | 'other' | 'warning-letters'>('general');
   const [documents, setDocuments] = useState<Array<{
     id: string;
     expiryDate: string;
@@ -382,12 +384,14 @@ const DriverManagement = () => {
     documentId?: string;
     fileUrl?: string;
     fileName?: string;
+    documentType?: string;
   }>>([]);
   const [newDocument, setNewDocument] = useState({
     expiryDate: '',
     description: '',
     ignoreExpiration: false,
-    file: null as File | null
+    file: null as File | null,
+    documentType: 'Other' // Default document type
   });
 
   // Form state for Safety Certifications
@@ -398,14 +402,19 @@ const DriverManagement = () => {
     subCategory: string;
     result: string;
     ignoreExpiration: boolean;
+    file?: File | null;
+    fileUrl?: string | null;
+    fileName?: string | null;
   }>>([]);
   const [newCertification, setNewCertification] = useState({
     expiryDate: '',
     title: '',
     subCategory: '',
     result: '',
-    ignoreExpiration: false
+    ignoreExpiration: false,
+    file: null as File | null
   });
+  const [certificationFile, setCertificationFile] = useState<File | null>(null);
   const [confirmDeleteCertification, setConfirmDeleteCertification] = useState<{ open: boolean; cert: any | null }>({ open: false, cert: null });
   const [selectedCertificate, setSelectedCertificate] = useState<{
     id: string;
@@ -425,6 +434,7 @@ const DriverManagement = () => {
     id: string;
     paymentDueDate: string;
     ticket: string;
+    violationType?: string;
     file?: File | null;
     fileUrl?: string | null;
     fileName?: string | null;
@@ -432,6 +442,7 @@ const DriverManagement = () => {
   const [newViolation, setNewViolation] = useState({
     paymentDueDate: '',
     ticket: '',
+    violationType: '',
     file: null as File | null
   });
   const [violationFile, setViolationFile] = useState<File | null>(null);
@@ -762,12 +773,8 @@ const DriverManagement = () => {
               }
               
               if (documentsToUse.length > 0) {
-                const currentDocumentType = getDocumentTypeFromTab(documentsTab);
-                // Filter documents by the current tab's document type
-                const filteredDocuments = documentsToUse.filter((doc: EmployeeDocument) => 
-                  doc.documentType === currentDocumentType
-                );
-                const existingDocuments = filteredDocuments.map((doc: EmployeeDocument) => ({
+                // Show all documents without filtering by tab
+                const existingDocuments = documentsToUse.map((doc: EmployeeDocument) => ({
                   id: `existing-${doc._id}`,
                   expiryDate: doc.expiryDate ? new Date(doc.expiryDate).toISOString().split('T')[0] : '',
                   description: doc.description || doc.documentType || '',
@@ -776,10 +783,11 @@ const DriverManagement = () => {
                   isExisting: true,
                   documentId: doc._id,
                   fileUrl: doc.fileUrl || '',
-                  fileName: doc.fileName || ''
+                  fileName: doc.fileName || '',
+                  documentType: doc.documentType || 'Other'
                 }));
                 setDocuments(existingDocuments);
-                console.log(`✅ Documents loaded (${existingDocuments.length} documents for ${documentsTab} tab)`);
+                console.log(`✅ Documents loaded (${existingDocuments.length} documents)`);
               } else {
                 console.log('⚠️ No documents found for this driver');
                 setDocuments([]);
@@ -798,7 +806,10 @@ const DriverManagement = () => {
                   title: cert.certificateName || cert.title || '',
                   subCategory: cert.certificateType || cert.subCategory || cert.description || '',
                   result: cert.notes || cert.result || 'pass', // Use notes field, not status (status is auto-calculated)
-                  ignoreExpiration: false // TrainingCertificate doesn't have ignoreExpiration, but we can add it
+                  ignoreExpiration: cert.ignoreExpiration || false,
+                  file: cert.fileName ? { name: cert.fileName, size: cert.fileSize || 0 } : null,
+                  fileUrl: cert.fileUrl || null,
+                  fileName: cert.fileName || null
                 }));
                 setCertifications(existingCertifications);
                 console.log(`✅ Certifications loaded (${existingCertifications.length} certifications)`);
@@ -818,6 +829,7 @@ const DriverManagement = () => {
                   id: `existing-${vio._id}`,
                   paymentDueDate: vio.date ? new Date(vio.date).toISOString().split('T')[0] : '',
                   ticket: vio.ticketInfo?.ticketNumber || vio.ticket || vio.description || '',
+                  violationType: vio.violationType || vio.type || '',
                   file: vio.fileName ? { name: vio.fileName, size: vio.fileSize || 0 } : null
                 }));
                 setViolations(existingViolations);
@@ -1105,63 +1117,7 @@ const DriverManagement = () => {
     loadDriverForEdit();
   }, [editingId]);
 
-  // Reload documents when documentsTab changes
-  useEffect(() => {
-    const reloadDocumentsForTab = async () => {
-      if (editingId) {
-        try {
-          console.log(`🔄 Tab changed to "${documentsTab}", reloading documents...`);
-          // Use getDriverById to get all documents
-          const driverResponse = await driverApi.getDriverById(editingId);
-          let documentsToUse: EmployeeDocument[] = [];
-          
-          if (driverResponse?.success && driverResponse.data?.documents) {
-            documentsToUse = driverResponse.data.documents;
-            console.log(`✅ Using ${documentsToUse.length} documents from getDriverById response`);
-          } else {
-            console.log('⚠️ No documents found in getDriverById response');
-            documentsToUse = [];
-          }
-          
-          if (documentsToUse.length > 0) {
-            const currentDocumentType = getDocumentTypeFromTab(documentsTab);
-            console.log(`🔍 Filtering by document type: ${currentDocumentType} (tab: ${documentsTab})`);
-            
-            // Filter documents by the current tab's document type
-            const filteredDocuments = documentsToUse.filter((doc: EmployeeDocument) => {
-              const matches = doc.documentType === currentDocumentType;
-              return matches;
-            });
-            
-            console.log(`✅ Filtered to ${filteredDocuments.length} documents matching tab "${documentsTab}"`);
-            
-            const existingDocuments = filteredDocuments.map((doc: EmployeeDocument) => ({
-              id: `existing-${doc._id}`,
-              expiryDate: doc.expiryDate ? new Date(doc.expiryDate).toISOString().split('T')[0] : '',
-              description: doc.description || doc.documentType || '',
-              ignoreExpiration: doc.ignoreExpiration || false,
-              file: null,
-              isExisting: true,
-              documentId: doc._id,
-              fileUrl: doc.fileUrl || '',
-              fileName: doc.fileName || ''
-            }));
-            
-            setDocuments(existingDocuments);
-          } else {
-            setDocuments([]);
-          }
-        } catch (error) {
-          console.error('Error reloading documents for tab:', error);
-        }
-      }
-    };
-
-    // Only reload if editingId exists (driver is being edited)
-    if (editingId) {
-      reloadDocumentsForTab();
-    }
-  }, [documentsTab, editingId]);
+  // Note: Removed documentsTab reload effect since we're showing all documents together
 
   // Filter drivers based on active tab
   const getFilteredDrivers = () => {
@@ -1321,62 +1277,140 @@ const DriverManagement = () => {
 
  
 
-  // Helper function to map documentsTab to documentType
-  const getDocumentTypeFromTab = (tab: string): string => {
-    const mapping: Record<string, string> = {
-      'general': 'Other',
-      'driving-violations': 'Driving Record (MVR)',
-      'other-violations': 'Other',
-      'other': 'Other',
-      'warning-letters': 'Company Policy'
-    };
-    return mapping[tab] || 'Other';
-  };
+  // Note: Removed getDocumentTypeFromTab function since we're not using tabs anymore
 
  
 
+
+  // Validation function
+  const validateForm = (): boolean => {
+    const errors: Record<string, string> = {};
+
+    // Basic Information Tab Validation
+    if (!formData.firstName || !formData.firstName.trim()) {
+      errors.firstName = 'First Name is required';
+    }
+
+    if (!formData.lastName || !formData.lastName.trim()) {
+      errors.lastName = 'Last Name is required';
+    }
+
+    if (!formData.emailAddress || !formData.emailAddress.trim()) {
+      errors.emailAddress = 'Email Address is required';
+    } else {
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      if (!emailRegex.test(formData.emailAddress)) {
+        errors.emailAddress = 'Please provide a valid email address';
+      }
+    }
+
+    if (!formData.dateOfBirth) {
+      errors.dateOfBirth = 'Date of Birth is required';
+    }
+
+    if (!formData.primaryPhone || !formData.primaryPhone.trim()) {
+      errors.primaryPhone = 'Primary Phone Number is required';
+    } else {
+      const phoneDigits = formData.primaryPhone.replace(/\D/g, '');
+      if (phoneDigits.length < 10) {
+        errors.primaryPhone = 'Primary phone number must be at least 10 digits';
+      }
+    }
+
+    if (!formData.country) {
+      errors.country = 'Country is required';
+    }
+
+    if (!formData.stateProvince) {
+      errors.stateProvince = 'Province/State is required';
+    }
+
+    // Personal Information Tab Validation
+    if (!personalData.status) {
+      errors.status = 'Status is required';
+    }
+
+    // Travel Information Tab Validation
+    if (!travelData.driversLicenseNumber || !travelData.driversLicenseNumber.trim()) {
+      errors.driversLicenseNumber = 'Drivers License Number is required';
+    }
+
+    if (!travelData.driversLicenseExpiry) {
+      errors.driversLicenseExpiry = 'Drivers License Expiry Date is required';
+    }
+
+    if (!travelData.passportNumber || !travelData.passportNumber.trim()) {
+      errors.passportNumber = 'Passport Number is required';
+    }
+
+    if (!travelData.passportExpiry) {
+      errors.passportExpiry = 'Passport Expiry Date is required';
+    }
+
+    // Violations Tab Validation
+    violations.forEach((violation, index) => {
+      if (!violation.violationType || !violation.violationType.trim()) {
+        errors[`violationType_${index}`] = 'Type of Violation is required';
+      }
+    });
+
+    // Set validation errors
+    setValidationErrors(errors);
+
+    // If there are errors, show detailed notification and switch to the first tab with errors
+    if (Object.keys(errors).length > 0) {
+      const errorCount = Object.keys(errors).length;
+      
+      // Create a detailed error message listing all missing fields
+      const errorFields: string[] = [];
+      
+      if (errors.firstName) errorFields.push('First Name');
+      if (errors.lastName) errorFields.push('Last Name');
+      if (errors.emailAddress) errorFields.push('Email Address');
+      if (errors.dateOfBirth) errorFields.push('Date of Birth');
+      if (errors.primaryPhone) errorFields.push('Primary Phone');
+      if (errors.country) errorFields.push('Country');
+      if (errors.stateProvince) errorFields.push('Province/State');
+      if (errors.status) errorFields.push('Status');
+      if (errors.driversLicenseNumber) errorFields.push('Drivers License Number');
+      if (errors.driversLicenseExpiry) errorFields.push('Drivers License Expiry Date');
+      if (errors.passportNumber) errorFields.push('Passport Number');
+      if (errors.passportExpiry) errorFields.push('Passport Expiry Date');
+      
+      // Create detailed error message
+      let errorMessage = `Please complete the following required field${errorCount > 1 ? 's' : ''}: ${errorFields.join(', ')}`;
+      
+      // If message is too long, show summary
+      if (errorMessage.length > 100) {
+        errorMessage = `Please fix ${errorCount} required field${errorCount > 1 ? 's' : ''} before submitting. Missing: ${errorFields.slice(0, 3).join(', ')}${errorFields.length > 3 ? ` and ${errorFields.length - 3} more` : ''}`;
+      }
+      
+      addNotification('error', errorMessage);
+      
+      // Switch to the tab with the first error
+      if (errors.firstName || errors.lastName || errors.emailAddress || errors.dateOfBirth || errors.primaryPhone || errors.country || errors.stateProvince) {
+        setActiveFormTab('basic');
+      } else if (errors.status) {
+        setActiveFormTab('personal');
+      } else if (errors.driversLicenseNumber || errors.driversLicenseExpiry || errors.passportNumber || errors.passportExpiry) {
+        setActiveFormTab('travel');
+      }
+      
+      return false;
+    }
+
+    return true;
+  };
 
   const handleSaveDriver = async () => {
     try {
       setIsSubmitting(true);
       
-      // Validate required fields
-      if (!formData.firstName || !formData.firstName.trim()) {
-        addNotification('error', 'First Name is required');
-        setIsSubmitting(false);
-        return;
-      }
-
-      if (!formData.lastName || !formData.lastName.trim()) {
-        addNotification('error', 'Last Name is required');
-        setIsSubmitting(false);
-        return;
-      }
-
-      if (!formData.emailAddress || !formData.emailAddress.trim()) {
-        addNotification('error', 'Email Address is required');
-        setIsSubmitting(false);
-        return;
-      }
-
-      if (!formData.primaryPhone || !formData.primaryPhone.trim()) {
-        addNotification('error', 'Primary Phone Number is required');
-        setIsSubmitting(false);
-        return;
-      }
-
-      // Validate email format
-      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-      if (!emailRegex.test(formData.emailAddress)) {
-        addNotification('error', 'Please provide a valid email address');
-        setIsSubmitting(false);
-        return;
-      }
-
-      // Validate phone number (minimum 10 digits)
-      const phoneDigits = formData.primaryPhone.replace(/\D/g, '');
-      if (phoneDigits.length < 10) {
-        addNotification('error', 'Primary phone number must be at least 10 digits');
+      // Clear previous validation errors
+      setValidationErrors({});
+      
+      // Validate form
+      if (!validateForm()) {
         setIsSubmitting(false);
         return;
       }
@@ -1587,7 +1621,7 @@ const DriverManagement = () => {
           expiryDate: doc.expiryDate || '',
           description: doc.description || '',
           ignoreExpiration: doc.ignoreExpiration || false,
-          documentType: getDocumentTypeFromTab(documentsTab),
+          documentType: doc.documentType || 'Other',
           hasFile: !!doc.file,
           documentId: doc.documentId || '',
           index: index // Track index for file matching
@@ -1598,7 +1632,7 @@ const DriverManagement = () => {
         documents.forEach((doc) => {
           if (doc.file) {
             driverFormData.append('documentFiles', doc.file);
-            driverFormData.append('documentTypes', getDocumentTypeFromTab(documentsTab));
+            driverFormData.append('documentTypes', doc.documentType || 'Other');
           }
         });
       }
@@ -1611,9 +1645,18 @@ const DriverManagement = () => {
           title: cert.title || '',
           subCategory: cert.subCategory || '',
           result: cert.result || '',
-          ignoreExpiration: cert.ignoreExpiration || false
+          ignoreExpiration: cert.ignoreExpiration || false,
+          hasFile: !!(cert.file instanceof File) // Only true if it's a new File object
         }));
         driverFormData.append('certifications', JSON.stringify(certificationsData));
+        
+        // Append certification files directly (only new File objects)
+        certifications.forEach((cert) => {
+          if (cert.file instanceof File) {
+            driverFormData.append('certificationFiles', cert.file);
+            console.log('📎 Appending certification file:', cert.file.name, cert.file.size, 'bytes');
+          }
+        });
       }
       
       // Violations - send as JSON array
@@ -1622,6 +1665,7 @@ const DriverManagement = () => {
           id: viol.id,
           paymentDueDate: viol.paymentDueDate || '',
           ticket: viol.ticket || '',
+          violationType: viol.violationType || '',
           hasFile: !!(viol.file instanceof File) // Only true if it's a new File object
         }));
         driverFormData.append('violations', JSON.stringify(violationsData));
@@ -1778,6 +1822,9 @@ const DriverManagement = () => {
 
   // Helper function to reset all form state
   const resetAllFormState = () => {
+    // Clear validation errors
+    setValidationErrors({});
+    
     // Reset all form data
     setFormData({
       driverId: '',
@@ -1860,8 +1907,10 @@ const DriverManagement = () => {
       title: '',
       subCategory: '',
       result: '',
-      ignoreExpiration: false
+      ignoreExpiration: false,
+      file: null
     });
+    setCertificationFile(null);
     setSelectedCertificate(null);
     setEditingCertificationId(null);
     setUploadedFiles({});
@@ -1872,6 +1921,7 @@ const DriverManagement = () => {
     setNewViolation({
       paymentDueDate: '',
       ticket: '',
+      violationType: '',
       file: null
     });
     setViolationFile(null);
@@ -1914,7 +1964,6 @@ const DriverManagement = () => {
     // Reset other states
     setProfileImagePreview(null);
     setActiveFormTab('basic');
-    setDocumentsTab('general');
     setPrimaryPhoneCountry('US');
     setSecondaryPhoneCountry('US');
     setPrimaryCountryDropdownOpen(false);
@@ -1925,6 +1974,7 @@ const DriverManagement = () => {
 
   const handleCloseModal = () => {
     setShowNewDriverModal(false);
+    setValidationErrors({});
     setEditingId(null);
     setEditingDriver(null);
     setOriginalDriverData(null); // Clear original data when closing
@@ -1957,8 +2007,10 @@ const DriverManagement = () => {
           title: '',
           subCategory: '',
           result: '',
-          ignoreExpiration: false
+          ignoreExpiration: false,
+          file: null
         });
+        setCertificationFile(null);
       }
       // Clear selected certificate if it was this one
       if (selectedCertificate?.id === cert.id) {
@@ -1995,43 +2047,11 @@ const DriverManagement = () => {
     try {
       setIsSubmitting(true);
       
-      // Validate required fields
-      if (!formData.firstName || !formData.firstName.trim()) {
-        addNotification('error', 'First Name is required');
-        setIsSubmitting(false);
-        return;
-      }
-
-      if (!formData.lastName || !formData.lastName.trim()) {
-        addNotification('error', 'Last Name is required');
-        setIsSubmitting(false);
-        return;
-      }
-
-      if (!formData.emailAddress || !formData.emailAddress.trim()) {
-        addNotification('error', 'Email Address is required');
-        setIsSubmitting(false);
-        return;
-      }
-
-      if (!formData.primaryPhone || !formData.primaryPhone.trim()) {
-        addNotification('error', 'Primary Phone Number is required');
-        setIsSubmitting(false);
-        return;
-      }
-
-      // Validate email format
-      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-      if (!emailRegex.test(formData.emailAddress)) {
-        addNotification('error', 'Please provide a valid email address');
-        setIsSubmitting(false);
-        return;
-      }
-
-      // Validate phone number (minimum 10 digits)
-      const phoneDigits = formData.primaryPhone.replace(/\D/g, '');
-      if (phoneDigits.length < 10) {
-        addNotification('error', 'Primary phone number must be at least 10 digits');
+      // Clear previous validation errors
+      setValidationErrors({});
+      
+      // Validate form
+      if (!validateForm()) {
         setIsSubmitting(false);
         return;
       }
@@ -2279,10 +2299,19 @@ const DriverManagement = () => {
           title: cert.title || '',
           subCategory: cert.subCategory || '',
           result: cert.result || '',
-          ignoreExpiration: cert.ignoreExpiration || false
+          ignoreExpiration: cert.ignoreExpiration || false,
+          hasFile: !!(cert.file instanceof File) // Only true if it's a new File object
         }));
         driverFormData.append('certifications', JSON.stringify(certificationsData));
         console.log('📜 Sending certifications:', certificationsData.length, 'certifications');
+        
+        // Append certification files directly (only new File objects)
+        certifications.forEach((cert) => {
+          if (cert.file instanceof File) {
+            driverFormData.append('certificationFiles', cert.file);
+            console.log('📎 Appending certification file:', cert.file.name, cert.file.size, 'bytes');
+          }
+        });
       }
       
       // Documents - send as JSON array and append files
@@ -2292,7 +2321,7 @@ const DriverManagement = () => {
           expiryDate: doc.expiryDate || '',
           description: doc.description || '',
           ignoreExpiration: doc.ignoreExpiration || false,
-          documentType: getDocumentTypeFromTab(documentsTab),
+          documentType: doc.documentType || 'Other',
           hasFile: !!doc.file,
           documentId: doc.documentId || '',
           index: index // Track index for file matching
@@ -2303,7 +2332,7 @@ const DriverManagement = () => {
         documents.forEach((doc) => {
           if (doc.file) {
             driverFormData.append('documentFiles', doc.file);
-            driverFormData.append('documentTypes', getDocumentTypeFromTab(documentsTab));
+            driverFormData.append('documentTypes', doc.documentType || 'Other');
           }
         });
         console.log('📄 Sending documents:', documentsData.length, 'documents');
@@ -2315,6 +2344,7 @@ const DriverManagement = () => {
           id: vio.id,
           paymentDueDate: vio.paymentDueDate || '',
           ticket: vio.ticket || '',
+          violationType: vio.violationType || '',
           hasFile: !!(vio.file instanceof File) // Only true if it's a new File object
         }));
         driverFormData.append('violations', JSON.stringify(violationsData));
@@ -2404,10 +2434,8 @@ const DriverManagement = () => {
               
               // Update documents from response
               if (driver.documents && Array.isArray(driver.documents)) {
-                const currentDocumentType = getDocumentTypeFromTab(documentsTab);
-                const filteredDocuments = driver.documents.filter((doc: EmployeeDocument) => 
-                  doc.documentType === currentDocumentType
-                );
+                // Show all documents without filtering
+                const filteredDocuments = driver.documents;
                 const existingDocuments = filteredDocuments.map((doc: EmployeeDocument) => ({
                   id: `existing-${doc._id}`,
                   expiryDate: doc.expiryDate ? new Date(doc.expiryDate).toISOString().split('T')[0] : '',
@@ -2417,7 +2445,8 @@ const DriverManagement = () => {
                   isExisting: true,
                   documentId: doc._id,
                   fileUrl: doc.fileUrl || '',
-                  fileName: doc.fileName || ''
+                  fileName: doc.fileName || '',
+                  documentType: doc.documentType || 'Other'
                 }));
                 setDocuments(existingDocuments);
               }
@@ -2441,6 +2470,7 @@ const DriverManagement = () => {
                   id: `existing-${vio._id}`,
                   paymentDueDate: vio.date ? new Date(vio.date).toISOString().split('T')[0] : '',
                   ticket: vio.ticketInfo?.ticketNumber || vio.ticket || vio.description || '',
+                  violationType: vio.violationType || vio.type || '',
                   file: vio.fileName ? { name: vio.fileName, size: vio.fileSize || 0 } : null
                 }));
                 setViolations(existingViolations);
@@ -2898,7 +2928,26 @@ const DriverManagement = () => {
                     <td className="px-4 py-3 text-sm text-gray-900">{driver.lastName}</td>
                     <td className="px-4 py-3 text-sm text-gray-900">{driver.driversLicence}</td>
                     <td className="px-4 py-3 text-sm text-gray-900">{driver.passport}</td>
-                    <td className="px-4 py-3 text-sm text-gray-900">{driver.dateOfBirth}</td>
+                    <td className="px-4 py-3 text-sm text-gray-900">
+                      {driver.dateOfBirth ? (() => {
+                        try {
+                          // Handle ISO string format (e.g., "2026-02-02T00:00:00.000Z")
+                          if (driver.dateOfBirth.includes('T')) {
+                            const date = new Date(driver.dateOfBirth);
+                            return date.toLocaleDateString('en-US', { year: 'numeric', month: '2-digit', day: '2-digit' });
+                          }
+                          // Handle date string format (e.g., "2026-02-02")
+                          if (driver.dateOfBirth.match(/^\d{4}-\d{2}-\d{2}$/)) {
+                            const [year, month, day] = driver.dateOfBirth.split('-');
+                            return `${month}/${day}/${year}`;
+                          }
+                          // Return as is if already formatted
+                          return driver.dateOfBirth;
+                        } catch (e) {
+                          return driver.dateOfBirth;
+                        }
+                      })() : '-'}
+                    </td>
                     <td className="px-4 py-3 text-sm text-gray-500">{driver.notes || '-'}</td>
                     <td className="px-4 py-3 text-sm text-gray-900">{driver.ticketYTD}</td>
                     <td className="px-4 py-3 text-sm text-gray-900">{driver.status}</td>
@@ -3140,9 +3189,19 @@ const DriverManagement = () => {
                           type="text"
                           placeholder="First Name"
                           value={formData.firstName}
-                          onChange={(e) => setFormData({ ...formData, firstName: e.target.value })}
-                          className="w-full px-2 py-1 text-xs border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-[#42aeec] focus:border-transparent"
+                          onChange={(e) => {
+                            setFormData({ ...formData, firstName: e.target.value });
+                            if (validationErrors.firstName) {
+                              setValidationErrors({ ...validationErrors, firstName: '' });
+                            }
+                          }}
+                          className={`w-full px-2 py-1 text-xs border rounded focus:outline-none focus:ring-2 focus:ring-[#42aeec] focus:border-transparent ${
+                            validationErrors.firstName ? 'border-red-500' : 'border-gray-300'
+                          }`}
                         />
+                        {validationErrors.firstName && (
+                          <p className="text-xs text-red-500 mt-0.5">{validationErrors.firstName}</p>
+                        )}
                       </div>
                       <div>
                         <label className="block text-xs font-medium text-gray-700 mb-0.5">Middle</label>
@@ -3162,9 +3221,19 @@ const DriverManagement = () => {
                           type="text"
                           placeholder="Last Name"
                           value={formData.lastName}
-                          onChange={(e) => setFormData({ ...formData, lastName: e.target.value })}
-                          className="w-full px-2 py-1 text-xs border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-[#42aeec] focus:border-transparent"
+                          onChange={(e) => {
+                            setFormData({ ...formData, lastName: e.target.value });
+                            if (validationErrors.lastName) {
+                              setValidationErrors({ ...validationErrors, lastName: '' });
+                            }
+                          }}
+                          className={`w-full px-2 py-1 text-xs border rounded focus:outline-none focus:ring-2 focus:ring-[#42aeec] focus:border-transparent ${
+                            validationErrors.lastName ? 'border-red-500' : 'border-gray-300'
+                          }`}
                         />
+                        {validationErrors.lastName && (
+                          <p className="text-xs text-red-500 mt-0.5">{validationErrors.lastName}</p>
+                        )}
                       </div>
                     </div>
 
@@ -3178,9 +3247,19 @@ const DriverManagement = () => {
                           type="email"
                           placeholder="Email Address"
                           value={formData.emailAddress}
-                          onChange={(e) => setFormData({ ...formData, emailAddress: e.target.value })}
-                          className="w-full px-2 py-1 text-xs border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-[#42aeec] focus:border-transparent"
+                          onChange={(e) => {
+                            setFormData({ ...formData, emailAddress: e.target.value });
+                            if (validationErrors.emailAddress) {
+                              setValidationErrors({ ...validationErrors, emailAddress: '' });
+                            }
+                          }}
+                          className={`w-full px-2 py-1 text-xs border rounded focus:outline-none focus:ring-2 focus:ring-[#42aeec] focus:border-transparent ${
+                            validationErrors.emailAddress ? 'border-red-500' : 'border-gray-300'
+                          }`}
                         />
+                        {validationErrors.emailAddress && (
+                          <p className="text-xs text-red-500 mt-0.5">{validationErrors.emailAddress}</p>
+                        )}
                       </div>
                       <div>
                         <label className="block text-xs font-medium text-gray-700 mb-0.5">
@@ -3191,12 +3270,22 @@ const DriverManagement = () => {
                           <input
                             type="date"
                             value={formData.dateOfBirth}
-                            onChange={(e) => setFormData({ ...formData, dateOfBirth: e.target.value })}
-                            className="w-full pl-7 pr-2 py-1 text-xs border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-[#42aeec] focus:border-transparent"
+                            onChange={(e) => {
+                              setFormData({ ...formData, dateOfBirth: e.target.value });
+                              if (validationErrors.dateOfBirth) {
+                                setValidationErrors({ ...validationErrors, dateOfBirth: '' });
+                              }
+                            }}
+                            className={`w-full pl-7 pr-2 py-1 text-xs border rounded focus:outline-none focus:ring-2 focus:ring-[#42aeec] focus:border-transparent ${
+                              validationErrors.dateOfBirth ? 'border-red-500' : 'border-gray-300'
+                            }`}
                             placeholder="Select"
                             max={new Date().toISOString().split('T')[0]}
                           />
                         </div>
+                        {validationErrors.dateOfBirth && (
+                          <p className="text-xs text-red-500 mt-0.5">{validationErrors.dateOfBirth}</p>
+                        )}
                       </div>
                       <div>
                         <label className="block text-xs font-medium text-gray-700 mb-0.5">Mobile App</label>
@@ -3232,7 +3321,9 @@ const DriverManagement = () => {
                         <label className="block text-xs font-medium text-gray-700 mb-0.5">
                           Primary Phone #<span className="text-red-500">*</span>
                         </label>
-                        <div className="flex items-center border border-gray-300 rounded focus-within:ring-2 focus-within:ring-[#42aeec] focus-within:border-transparent">
+                        <div className={`flex items-center border rounded focus-within:ring-2 focus-within:ring-[#42aeec] focus-within:border-transparent ${
+                          validationErrors.primaryPhone ? 'border-red-500' : 'border-gray-300'
+                        }`}>
                           <div className="relative" ref={primaryCountryDropdownRef}>
                             <button
                               type="button"
@@ -3612,37 +3703,62 @@ const DriverManagement = () => {
                           Country<span className="text-red-500">*</span>
                         </label>
                         <select
-                          value={formData.country}
-                          onChange={(e) => setFormData({ ...formData, country: e.target.value, stateProvince: '' })}
-                          className="w-full px-2 py-1 text-xs border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-[#42aeec] focus:border-transparent"
+                          value={(() => {
+                            // Find country by name (formData.country stores the name)
+                            const foundCountry = countries.find(c => c.name === formData.country);
+                            return foundCountry ? foundCountry.code : '';
+                          })()}
+                          onChange={(e) => {
+                            const selectedCountry = countries.find(c => c.code === e.target.value);
+                            setFormData({ 
+                              ...formData, 
+                              country: selectedCountry ? selectedCountry.name : '', 
+                              stateProvince: '' 
+                            });
+                            if (validationErrors.country) {
+                              setValidationErrors({ ...validationErrors, country: '' });
+                            }
+                            if (validationErrors.stateProvince) {
+                              setValidationErrors({ ...validationErrors, stateProvince: '' });
+                            }
+                          }}
+                          className={`w-full px-2 py-1 text-xs border rounded focus:outline-none focus:ring-2 focus:ring-[#42aeec] focus:border-transparent ${
+                            validationErrors.country ? 'border-red-500' : 'border-gray-300'
+                          }`}
                         >
-                          <option value="">Country</option>
-                          <option value="CA">Canada</option>
-                          <option value="US">United States</option>
+                          <option value="">Select Country</option>
+                          {countries.map((country) => (
+                            <option key={country.code} value={country.code}>
+                              {country.flag} {country.name}
+                            </option>
+                          ))}
                         </select>
+                        {validationErrors.country && (
+                          <p className="text-xs text-red-500 mt-0.5">{validationErrors.country}</p>
+                        )}
                       </div>
                       <div>
                         <label className="block text-xs font-medium text-gray-700 mb-0.5">
-                          {formData.country === 'CA' ? 'Province' : formData.country === 'US' ? 'State' : 'State/Province'}<span className="text-red-500">*</span>
+                          Province/State<span className="text-red-500">*</span>
                         </label>
-                        <select
+                        <input
+                          type="text"
                           value={formData.stateProvince}
-                          onChange={(e) => setFormData({ ...formData, stateProvince: e.target.value })}
+                          onChange={(e) => {
+                            setFormData({ ...formData, stateProvince: e.target.value });
+                            if (validationErrors.stateProvince) {
+                              setValidationErrors({ ...validationErrors, stateProvince: '' });
+                            }
+                          }}
                           disabled={!formData.country}
-                          className="w-full px-2 py-1 text-xs border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-[#42aeec] focus:border-transparent disabled:bg-gray-100 disabled:cursor-not-allowed"
-                        >
-                          <option value="">Select {formData.country === 'CA' ? 'Province' : formData.country === 'US' ? 'State' : 'State/Province'}</option>
-                          {formData.country === 'US' && US_STATES.map((state) => (
-                            <option key={state.value} value={state.value}>
-                              {state.label}
-                            </option>
-                          ))}
-                          {formData.country === 'CA' && CANADIAN_PROVINCES.map((province) => (
-                            <option key={province.value} value={province.value}>
-                              {province.label}
-                            </option>
-                          ))}
-                        </select>
+                          placeholder={formData.country ? "Enter Province/State" : "Select country first"}
+                          className={`w-full px-2 py-1 text-xs border rounded focus:outline-none focus:ring-2 focus:ring-[#42aeec] focus:border-transparent disabled:bg-gray-100 disabled:cursor-not-allowed ${
+                            validationErrors.stateProvince ? 'border-red-500' : 'border-gray-300'
+                          }`}
+                        />
+                        {validationErrors.stateProvince && (
+                          <p className="text-xs text-red-500 mt-0.5">{validationErrors.stateProvince}</p>
+                        )}
                       </div>
                     </div>
 
@@ -3707,13 +3823,24 @@ const DriverManagement = () => {
                         </label>
                         <select
                           value={personalData.status}
-                          onChange={(e) => setPersonalData({ ...personalData, status: e.target.value })}
-                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#42aeec] focus:border-transparent"
+                          onChange={(e) => {
+                            setPersonalData({ ...personalData, status: e.target.value });
+                            if (validationErrors.status) {
+                              setValidationErrors({ ...validationErrors, status: '' });
+                            }
+                          }}
+                          className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#42aeec] focus:border-transparent ${
+                            validationErrors.status ? 'border-red-500' : 'border-gray-300'
+                          }`}
                         >
+                          <option value="">Select Status</option>
                           <option value="Active">Active</option>
                           <option value="Inactive">Inactive</option>
                           <option value="Terminated">Terminated</option>
                         </select>
+                        {validationErrors.status && (
+                          <p className="text-xs text-red-500 mt-0.5">{validationErrors.status}</p>
+                        )}
                       </div>
                       <div>
                         <label className="block text-sm font-medium text-gray-700 mb-1">Vacation %</label>
@@ -4116,136 +4243,177 @@ const DriverManagement = () => {
                   <div className="space-y-6">
                     <h3 className="text-lg font-bold text-gray-900 mb-4">Travel Information</h3>
 
-                    {/* Travel Information Section */}
-                    <div className="grid grid-cols-4 gap-4">
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">
-                          Drivers License #<span className="text-red-500">*</span>
-                        </label>
-                        <input
-                          type="text"
-                          placeholder="Drivers License #"
-                          value={travelData.driversLicenseNumber}
-                          onChange={(e) => setTravelData({ ...travelData, driversLicenseNumber: e.target.value })}
-                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#42aeec] focus:border-transparent"
-                        />
-                      </div>
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">
-                          Date Of Expiry<span className="text-red-500">*</span>
-                        </label>
-                        <div className="relative">
-                          <Calendar className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
+                    {/* Driver's License Row */}
+                    <div className="bg-gray-50 p-4 rounded-lg border border-gray-200">
+                      <h4 className="text-sm font-semibold text-gray-700 mb-4">Driver's License</h4>
+                      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700 mb-1">
+                            Drivers License #<span className="text-red-500">*</span>
+                          </label>
                           <input
-                            type="date"
-                            value={travelData.driversLicenseExpiry}
-                            onChange={(e) => setTravelData({ ...travelData, driversLicenseExpiry: e.target.value })}
-                            className="w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#42aeec] focus:border-transparent"
-                            placeholder="Select"
+                            type="text"
+                            placeholder="Drivers License #"
+                            value={travelData.driversLicenseNumber}
+                            onChange={(e) => {
+                              setTravelData({ ...travelData, driversLicenseNumber: e.target.value });
+                              if (validationErrors.driversLicenseNumber) {
+                                setValidationErrors({ ...validationErrors, driversLicenseNumber: '' });
+                              }
+                            }}
+                            className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#42aeec] focus:border-transparent ${
+                              validationErrors.driversLicenseNumber ? 'border-red-500' : 'border-gray-300'
+                            }`}
                           />
+                          {validationErrors.driversLicenseNumber && (
+                            <p className="text-xs text-red-500 mt-0.5">{validationErrors.driversLicenseNumber}</p>
+                          )}
                         </div>
-                      </div>
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">License State/Province</label>
-                        <select
-                          value={travelData.licenseStateProvince}
-                          onChange={(e) => setTravelData({ ...travelData, licenseStateProvince: e.target.value })}
-                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#42aeec] focus:border-transparent"
-                        >
-                          <option value="">Select</option>
-                          <optgroup label="Canada">
-                            {CANADIAN_PROVINCES.map((province) => (
-                              <option key={province.value} value={province.value}>
-                                {province.label}
-                              </option>
-                            ))}
-                          </optgroup>
-                          <optgroup label="United States">
-                            {US_STATES.map((state) => (
-                              <option key={state.value} value={state.value}>
-                                {state.label}
-                              </option>
-                            ))}
-                          </optgroup>
-                        </select>
-                      </div>
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">
-                          Passport #<span className="text-red-500">*</span>
-                        </label>
-                        <input
-                          type="text"
-                          placeholder="Passport #"
-                          value={travelData.passportNumber}
-                          onChange={(e) => setTravelData({ ...travelData, passportNumber: e.target.value })}
-                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#42aeec] focus:border-transparent"
-                        />
-                      </div>
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">Passport Country</label>
-                        <select
-                          value={travelData.passportCountry}
-                          onChange={(e) => setTravelData({ ...travelData, passportCountry: e.target.value })}
-                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#42aeec] focus:border-transparent"
-                        >
-                          <option value="">Select</option>
-                          <option value="US">United States</option>
-                          <option value="CA">Canada</option>
-                          <option value="IN">India</option>
-                          <option value="UK">United Kingdom</option>
-                        </select>
-                      </div>
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">
-                          Date Of Expiry<span className="text-red-500">*</span>
-                        </label>
-                        <div className="relative">
-                          <Calendar className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
-                          <input
-                            type="date"
-                            value={travelData.passportExpiry}
-                            onChange={(e) => setTravelData({ ...travelData, passportExpiry: e.target.value })}
-                            className="w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#42aeec] focus:border-transparent"
-                            placeholder="Select"
-                          />
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700 mb-1">
+                            Date Of Expiry<span className="text-red-500">*</span>
+                          </label>
+                          <div className="relative">
+                            <Calendar className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
+                            <input
+                              type="date"
+                              value={travelData.driversLicenseExpiry}
+                              onChange={(e) => {
+                                setTravelData({ ...travelData, driversLicenseExpiry: e.target.value });
+                                if (validationErrors.driversLicenseExpiry) {
+                                  setValidationErrors({ ...validationErrors, driversLicenseExpiry: '' });
+                                }
+                              }}
+                              className={`w-full pl-10 pr-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#42aeec] focus:border-transparent ${
+                                validationErrors.driversLicenseExpiry ? 'border-red-500' : 'border-gray-300'
+                              }`}
+                              placeholder="Select"
+                            />
+                          </div>
+                          {validationErrors.driversLicenseExpiry && (
+                            <p className="text-xs text-red-500 mt-0.5">{validationErrors.driversLicenseExpiry}</p>
+                          )}
                         </div>
-                      </div>
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">Fast Card #</label>
-                        <input
-                          type="text"
-                          placeholder="Fast Card #"
-                          value={travelData.fastCardNumber}
-                          onChange={(e) => setTravelData({ ...travelData, fastCardNumber: e.target.value })}
-                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#42aeec] focus:border-transparent"
-                        />
-                      </div>
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">Date Of Expiry</label>
-                        <div className="relative">
-                          <Calendar className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700 mb-1">License State/Province</label>
                           <input
-                            type="date"
-                            value={travelData.fastCardExpiry}
-                            onChange={(e) => setTravelData({ ...travelData, fastCardExpiry: e.target.value })}
-                            className="w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#42aeec] focus:border-transparent"
-                            placeholder="Select"
+                            type="text"
+                            value={travelData.licenseStateProvince}
+                            onChange={(e) => setTravelData({ ...travelData, licenseStateProvince: e.target.value })}
+                            placeholder="Enter State/Province"
+                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#42aeec] focus:border-transparent"
                           />
                         </div>
                       </div>
                     </div>
 
-                    {/* Fast Card Valid Checkbox */}
-                    <div className="mt-4">
-                      <label className="flex items-center gap-2 cursor-pointer">
-                        <input
-                          type="checkbox"
-                          checked={travelData.fastCardValid}
-                          onChange={(e) => setTravelData({ ...travelData, fastCardValid: e.target.checked })}
-                          className="w-4 h-4 text-[#42aeec] border-gray-300 rounded focus:ring-[#42aeec]"
-                        />
-                        <span className="text-sm font-medium text-gray-700">Fast Card Valid</span>
-                      </label>
+                    {/* Passport Row */}
+                    <div className="bg-gray-50 p-4 rounded-lg border border-gray-200">
+                      <h4 className="text-sm font-semibold text-gray-700 mb-4">Passport</h4>
+                      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700 mb-1">
+                            Passport #<span className="text-red-500">*</span>
+                          </label>
+                          <input
+                            type="text"
+                            placeholder="Passport #"
+                            value={travelData.passportNumber}
+                            onChange={(e) => {
+                              setTravelData({ ...travelData, passportNumber: e.target.value });
+                              if (validationErrors.passportNumber) {
+                                setValidationErrors({ ...validationErrors, passportNumber: '' });
+                              }
+                            }}
+                            className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#42aeec] focus:border-transparent ${
+                              validationErrors.passportNumber ? 'border-red-500' : 'border-gray-300'
+                            }`}
+                          />
+                          {validationErrors.passportNumber && (
+                            <p className="text-xs text-red-500 mt-0.5">{validationErrors.passportNumber}</p>
+                          )}
+                        </div>
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700 mb-1">Passport Country</label>
+                          <select
+                            value={travelData.passportCountry}
+                            onChange={(e) => setTravelData({ ...travelData, passportCountry: e.target.value })}
+                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#42aeec] focus:border-transparent"
+                          >
+                            <option value="">Select</option>
+                            <option value="US">United States</option>
+                            <option value="CA">Canada</option>
+                            <option value="IN">India</option>
+                            <option value="UK">United Kingdom</option>
+                          </select>
+                        </div>
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700 mb-1">
+                            Date Of Expiry<span className="text-red-500">*</span>
+                          </label>
+                          <div className="relative">
+                            <Calendar className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
+                            <input
+                              type="date"
+                              value={travelData.passportExpiry}
+                              onChange={(e) => {
+                                setTravelData({ ...travelData, passportExpiry: e.target.value });
+                                if (validationErrors.passportExpiry) {
+                                  setValidationErrors({ ...validationErrors, passportExpiry: '' });
+                                }
+                              }}
+                              className={`w-full pl-10 pr-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#42aeec] focus:border-transparent ${
+                                validationErrors.passportExpiry ? 'border-red-500' : 'border-gray-300'
+                              }`}
+                              placeholder="Select"
+                            />
+                          </div>
+                          {validationErrors.passportExpiry && (
+                            <p className="text-xs text-red-500 mt-0.5">{validationErrors.passportExpiry}</p>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Fast Card Row */}
+                    <div className="bg-gray-50 p-4 rounded-lg border border-gray-200">
+                      <h4 className="text-sm font-semibold text-gray-700 mb-4">Fast Card</h4>
+                      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700 mb-1">Fast Card #</label>
+                          <input
+                            type="text"
+                            placeholder="Fast Card #"
+                            value={travelData.fastCardNumber}
+                            onChange={(e) => setTravelData({ ...travelData, fastCardNumber: e.target.value })}
+                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#42aeec] focus:border-transparent"
+                          />
+                        </div>
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700 mb-1">Date Of Expiry</label>
+                          <div className="relative">
+                            <Calendar className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
+                            <input
+                              type="date"
+                              value={travelData.fastCardExpiry}
+                              onChange={(e) => setTravelData({ ...travelData, fastCardExpiry: e.target.value })}
+                              className="w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#42aeec] focus:border-transparent"
+                              placeholder="Select"
+                            />
+                          </div>
+                        </div>
+                        <div className="flex items-end">
+                          <label className="flex items-center gap-2 cursor-pointer">
+                            <input
+                              type="checkbox"
+                              checked={travelData.fastCardValid}
+                              onChange={(e) => setTravelData({ ...travelData, fastCardValid: e.target.checked })}
+                              className="w-4 h-4 text-[#42aeec] border-gray-300 rounded focus:ring-[#42aeec]"
+                            />
+                            <span className="text-sm font-medium text-gray-700">Fast Card Valid</span>
+                          </label>
+                        </div>
+                      </div>
                     </div>
 
                     {/* Canadian Worker Status Section */}
@@ -4352,28 +4520,6 @@ const DriverManagement = () => {
                 {activeFormTab === 'documents' && (
                   <div className="space-y-6">
                     <h3 className="text-lg font-bold text-gray-900 mb-4">Documents</h3>
-
-                    {/* Documents Sub-tabs */}
-                    <div className="flex gap-2 border-b border-gray-200">
-                      {[
-                        { id: 'general', label: 'General' },
-                        { id: 'driving-violations', label: 'Driving Violations' },
-                        { id: 'other-violations', label: 'Other Violations' },
-                        { id: 'other', label: 'Other' },
-                        { id: 'warning-letters', label: 'Warning Letters' }
-                      ].map((tab) => (
-                        <button
-                          key={tab.id}
-                          onClick={() => setDocumentsTab(tab.id as any)}
-                          className={`px-4 py-2 font-medium text-sm transition-colors border-b-2 -mb-[1px] ${documentsTab === tab.id
-                              ? 'border-gray-900 text-gray-900 bg-white'
-                              : 'border-transparent text-gray-600 hover:text-gray-900'
-                            }`}
-                        >
-                          {tab.label}
-                        </button>
-                      ))}
-                    </div>
 
                     {/* Documents Table with Headers */}
                     <div className="border border-gray-200 rounded-lg overflow-hidden">
@@ -4487,7 +4633,8 @@ const DriverManagement = () => {
                                         expiryDate: '',
                                         description: '',
                                         ignoreExpiration: false,
-                                        file: null
+                                        file: null,
+                                        documentType: 'Other'
                                       });
                                       setDocumentFile(null);
                                     }
@@ -4588,7 +4735,8 @@ const DriverManagement = () => {
                                           expiryDate: doc.expiryDate || '',
                                           description: doc.description || '',
                                           ignoreExpiration: doc.ignoreExpiration || false,
-                                          file: doc.file || null
+                                          file: doc.file || null,
+                                          documentType: doc.documentType || 'Other'
                                         });
                                         setEditingDocumentId(doc.id);
                                         if (doc.file instanceof File) {
@@ -4625,7 +4773,8 @@ const DriverManagement = () => {
                                                 expiryDate: '',
                                                 description: '',
                                                 ignoreExpiration: false,
-                                                file: null
+                                                file: null,
+                                                documentType: 'Other'
                                               });
                                               setDocumentFile(null);
                                             }
@@ -4687,6 +4836,7 @@ const DriverManagement = () => {
                             <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase">SUBCATEGORY</th>
                             <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase">RESULT</th>
                             <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase">IGNORE EXPIRATION</th>
+                            <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase">DOCUMENT</th>
                           </tr>
                         </thead>
                         <tbody className="bg-white">
@@ -4747,6 +4897,42 @@ const DriverManagement = () => {
                                   />
                                   <span className="text-sm text-gray-700">Ignore Expiration</span>
                                 </label>
+                              </div>
+                            </td>
+                            <td className="px-4 py-3">
+                              <div className="flex items-center gap-2">
+                                {certificationFile ? (
+                                  <div className="flex items-center gap-2 px-3 py-2 border border-gray-300 rounded-lg bg-white">
+                                    <FileText className="w-4 h-4 text-gray-600" />
+                                    <span className="text-sm text-gray-700 truncate max-w-[120px]">{certificationFile.name}</span>
+                                    <button
+                                      onClick={() => {
+                                        setCertificationFile(null);
+                                        setNewCertification({ ...newCertification, file: null });
+                                      }}
+                                      className="text-gray-400 hover:text-red-600 transition-colors"
+                                      title="Remove file"
+                                    >
+                                      <X className="w-4 h-4" />
+                                    </button>
+                                  </div>
+                                ) : (
+                                  <label className="flex items-center gap-2 px-3 py-2 border border-gray-300 rounded-lg bg-white hover:bg-gray-50 cursor-pointer transition-colors">
+                                    <Upload className="w-4 h-4 text-gray-600" />
+                                    <span className="text-sm text-gray-700">Select File</span>
+                                    <input
+                                      type="file"
+                                      className="hidden"
+                                      onChange={(e) => {
+                                        const file = e.target.files?.[0];
+                                        if (file) {
+                                          setCertificationFile(file);
+                                          setNewCertification({ ...newCertification, file: file });
+                                        }
+                                      }}
+                                    />
+                                  </label>
+                                )}
                                 <button
                                   onClick={() => {
                                     if (newCertification.expiryDate || newCertification.title) {
@@ -4760,7 +4946,8 @@ const DriverManagement = () => {
                                                 title: newCertification.title,
                                                 subCategory: newCertification.subCategory,
                                                 result: newCertification.result,
-                                                ignoreExpiration: newCertification.ignoreExpiration
+                                                ignoreExpiration: newCertification.ignoreExpiration,
+                                                file: newCertification.file
                                               }
                                             : c
                                         ));
@@ -4773,7 +4960,8 @@ const DriverManagement = () => {
                                           title: newCertification.title,
                                           subCategory: newCertification.subCategory,
                                           result: newCertification.result,
-                                          ignoreExpiration: newCertification.ignoreExpiration
+                                          ignoreExpiration: newCertification.ignoreExpiration,
+                                          file: newCertification.file
                                         }]);
                                       }
                                       setNewCertification({
@@ -4781,8 +4969,10 @@ const DriverManagement = () => {
                                         title: '',
                                         subCategory: '',
                                         result: '',
-                                        ignoreExpiration: false
+                                        ignoreExpiration: false,
+                                        file: null
                                       });
+                                      setCertificationFile(null);
                                     }
                                   }}
                                   className="w-10 h-10 bg-black !text-white rounded-lg flex items-center justify-center hover:bg-gray-800 transition-colors"
@@ -4806,13 +4996,14 @@ const DriverManagement = () => {
                             <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase">SUBCATEGORY</th>
                             <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase">RESULT</th>
                             <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase">IGNORE EXPIRATION</th>
+                            <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase">DOCUMENT</th>
                             <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase">ACTIONS</th>
                           </tr>
                         </thead>
                         <tbody className="bg-white divide-y divide-gray-200">
                           {certifications.length === 0 ? (
                             <tr>
-                              <td colSpan={6} className="px-4 py-8 text-center text-gray-500">
+                              <td colSpan={7} className="px-4 py-8 text-center text-gray-500">
                                 No Data
                               </td>
                             </tr>
@@ -4834,6 +5025,18 @@ const DriverManagement = () => {
                                   )}
                                 </td>
                                 <td className="px-4 py-3 text-sm text-gray-900">
+                                  {(cert.file instanceof File || cert.fileUrl || cert.fileName) ? (
+                                    <div className="flex items-center gap-2">
+                                      <FileText className="w-4 h-4 text-blue-500" />
+                                      <span className="text-sm text-gray-700 truncate max-w-[150px]" title={cert.file instanceof File ? cert.file.name : (cert.fileName || 'File attached')}>
+                                        {cert.file instanceof File ? cert.file.name : (cert.fileName || 'File attached')}
+                                      </span>
+                                    </div>
+                                  ) : (
+                                    <span className="text-gray-400">-</span>
+                                  )}
+                                </td>
+                                <td className="px-4 py-3 text-sm text-gray-900">
                                   <div className="flex items-center gap-2">
                                     <button
                                       onClick={(e) => {
@@ -4844,10 +5047,16 @@ const DriverManagement = () => {
                                           title: cert.title || '',
                                           subCategory: cert.subCategory || '',
                                           result: cert.result || '',
-                                          ignoreExpiration: cert.ignoreExpiration || false
+                                          ignoreExpiration: cert.ignoreExpiration || false,
+                                          file: cert.file || null
                                         });
                                         setEditingCertificationId(cert.id);
                                         setSelectedCertificate(null); // Close side panel if open
+                                        if (cert.file instanceof File) {
+                                          setCertificationFile(cert.file);
+                                        } else {
+                                          setCertificationFile(null);
+                                        }
                                       }}
                                       className="p-1.5 text-blue-600 hover:bg-blue-50 rounded transition-colors"
                                       title="Edit certification"
@@ -4969,85 +5178,149 @@ const DriverManagement = () => {
                     <h3 className="text-lg font-bold text-gray-900 mb-4">Tickets / Violations</h3>
 
                     {/* Violations Input Row */}
-                    <div className="flex items-center gap-3 p-4 bg-gray-50 rounded-lg">
-                      <div className="flex-1">
-                        <label className="block text-sm font-medium text-gray-700 mb-1">Payment Due Date</label>
-                        <div className="relative">
-                          <Calendar className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
+                    <div className="space-y-4 p-4 bg-gray-50 rounded-lg">
+                      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700 mb-1">Type of Violation <span className="text-red-500">*</span></label>
+                          <select
+                            value={newViolation.violationType}
+                            onChange={(e) => {
+                              setNewViolation({ ...newViolation, violationType: e.target.value });
+                              if (validationErrors.violationType) {
+                                setValidationErrors({ ...validationErrors, violationType: '' });
+                              }
+                            }}
+                            className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#42aeec] focus:border-transparent ${
+                              validationErrors.violationType ? 'border-red-500' : 'border-gray-300'
+                            }`}
+                          >
+                            <option value="">Select Type</option>
+                            <option value="HOs">HOs</option>
+                            <option value="speeding">Speeding</option>
+                            <option value="accident">Accident</option>
+                            <option value="ticket">Ticket</option>
+                            <option value="behaviour issue">Behaviour Issue</option>
+                            <option value="general">General</option>
+                            <option value="warning letters">Warning Letters</option>
+                            <option value="other violation">Other Violation</option>
+                          </select>
+                          {validationErrors.violationType && (
+                            <p className="text-xs text-red-500 mt-0.5">{validationErrors.violationType}</p>
+                          )}
+                        </div>
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700 mb-1">Payment Due Date</label>
+                          <div className="relative">
+                            <Calendar className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
+                            <input
+                              type="date"
+                              value={newViolation.paymentDueDate}
+                              onChange={(e) => setNewViolation({ ...newViolation, paymentDueDate: e.target.value })}
+                              className="w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#42aeec] focus:border-transparent"
+                            />
+                          </div>
+                        </div>
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700 mb-1">Ticket</label>
                           <input
-                            type="date"
-                            value={newViolation.paymentDueDate}
-                            onChange={(e) => setNewViolation({ ...newViolation, paymentDueDate: e.target.value })}
-                            className="w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#42aeec] focus:border-transparent"
+                            type="text"
+                            placeholder="Ticket"
+                            value={newViolation.ticket}
+                            onChange={(e) => setNewViolation({ ...newViolation, ticket: e.target.value })}
+                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#42aeec] focus:border-transparent"
                           />
                         </div>
                       </div>
-                      <div className="flex-1">
-                        <label className="block text-sm font-medium text-gray-700 mb-1">Ticket</label>
-                        <input
-                          type="text"
-                          placeholder="Ticket"
-                          value={newViolation.ticket}
-                          onChange={(e) => setNewViolation({ ...newViolation, ticket: e.target.value })}
-                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#42aeec] focus:border-transparent"
-                        />
-                      </div>
-                      <div className="flex items-end">
-                        {violationFile ? (
-                          <div className="flex items-center gap-2 px-3 py-2 border border-gray-300 rounded-lg bg-white">
-                            <FileText className="w-4 h-4 text-gray-600" />
-                            <span className="text-sm text-gray-700 truncate max-w-[100px]">{violationFile.name}</span>
-                            <button
-                              onClick={() => {
-                                setViolationFile(null);
-                                setNewViolation({ ...newViolation, file: null });
-                              }}
-                              className="text-gray-400 hover:text-gray-600"
-                            >
-                              <X className="w-4 h-4" />
-                            </button>
-                          </div>
-                        ) : (
-                          <label className="flex items-center gap-2 px-3 py-2 border border-gray-300 rounded-lg bg-white hover:bg-gray-50 cursor-pointer">
-                            <Upload className="w-4 h-4 text-gray-600" />
-                            <span className="text-sm text-gray-700">Select File</span>
-                            <input
-                              type="file"
-                              className="hidden"
-                              onChange={(e) => {
-                                const file = e.target.files?.[0];
-                                if (file) {
-                                  setViolationFile(file);
-                                  setNewViolation({ ...newViolation, file: file });
+                      <div className="flex items-center gap-3">
+                        <div className="flex items-end">
+                          {violationFile ? (
+                            <div className="flex items-center gap-2 px-3 py-2 border border-gray-300 rounded-lg bg-white">
+                              <FileText className="w-4 h-4 text-gray-600" />
+                              <span className="text-sm text-gray-700 truncate max-w-[100px]">{violationFile.name}</span>
+                              <button
+                                onClick={() => {
+                                  setViolationFile(null);
+                                  setNewViolation({ ...newViolation, file: null });
+                                }}
+                                className="text-gray-400 hover:text-gray-600"
+                              >
+                                <X className="w-4 h-4" />
+                              </button>
+                            </div>
+                          ) : (
+                            <label className="flex items-center gap-2 px-3 py-2 border border-gray-300 rounded-lg bg-white hover:bg-gray-50 cursor-pointer">
+                              <Upload className="w-4 h-4 text-gray-600" />
+                              <span className="text-sm text-gray-700">Select File</span>
+                              <input
+                                type="file"
+                                className="hidden"
+                                onChange={(e) => {
+                                  const file = e.target.files?.[0];
+                                  if (file) {
+                                    setViolationFile(file);
+                                    setNewViolation({ ...newViolation, file: file });
+                                  }
+                                }}
+                              />
+                            </label>
+                          )}
+                        </div>
+                        <div className="flex items-end">
+                          <button
+                            onClick={() => {
+                              if (editingViolationId) {
+                                // Update existing violation
+                                if (!newViolation.violationType || !newViolation.violationType.trim()) {
+                                  setValidationErrors({ ...validationErrors, violationType: 'Type of Violation is required' });
+                                  addNotification('error', 'Please select a Type of Violation');
+                                  return;
                                 }
-                              }}
-                            />
-                          </label>
-                        )}
-                      </div>
-                      <div className="flex items-end">
-                        <button
-                          onClick={() => {
-                            if (newViolation.paymentDueDate || newViolation.ticket) {
-                              const violationId = Date.now().toString();
-                              setViolations([...violations, {
-                                id: violationId,
-                                paymentDueDate: newViolation.paymentDueDate,
-                                ticket: newViolation.ticket,
-                                file: newViolation.file
-                              }]);
+                                setViolations(violations.map(v => 
+                                  v.id === editingViolationId 
+                                    ? { ...v, ...newViolation }
+                                    : v
+                                ));
+                                setEditingViolationId(null);
+                                if (validationErrors.violationType) {
+                                  setValidationErrors({ ...validationErrors, violationType: '' });
+                                }
+                              } else {
+                                // Add new violation - validate violation type is required
+                                if (!newViolation.violationType || !newViolation.violationType.trim()) {
+                                  setValidationErrors({ ...validationErrors, violationType: 'Type of Violation is required' });
+                                  addNotification('error', 'Please select a Type of Violation');
+                                  return;
+                                }
+                                
+                                // Add new violation
+                                const violationId = Date.now().toString();
+                                setViolations([...violations, {
+                                  id: violationId,
+                                  paymentDueDate: newViolation.paymentDueDate,
+                                  ticket: newViolation.ticket,
+                                  violationType: newViolation.violationType,
+                                  file: newViolation.file
+                                }]);
+                                
+                                // Clear validation error if it exists
+                                if (validationErrors.violationType) {
+                                  setValidationErrors({ ...validationErrors, violationType: '' });
+                                }
+                              }
                               setNewViolation({
                                 paymentDueDate: '',
                                 ticket: '',
+                                violationType: '',
                                 file: null
                               });
                               setViolationFile(null);
-                            }
-                          }}
-                          className="w-10 h-10 bg-black !text-white rounded-lg flex items-center justify-center hover:bg-gray-800 transition-colors"
-                        >
-                          <Plus className="w-5 h-5" />
-                        </button>
+                            }}
+                            className="px-4 py-2 bg-black !text-white rounded-lg flex items-center justify-center gap-2 hover:bg-gray-800 transition-colors font-medium"
+                          >
+                            <Plus className="w-4 h-4" />
+                            {editingViolationId ? 'Update' : 'Add'} Violation
+                          </button>
+                        </div>
                       </div>
                     </div>
 
@@ -5056,6 +5329,7 @@ const DriverManagement = () => {
                       <table className="w-full">
                         <thead className="bg-gray-50">
                           <tr>
+                            <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase">Type of Violation</th>
                             <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase">Payment Due Date</th>
                             <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase">Ticket</th>
                             <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase">ACTIONS</th>
@@ -5064,13 +5338,18 @@ const DriverManagement = () => {
                         <tbody className="bg-white divide-y divide-gray-200">
                           {violations.length === 0 ? (
                             <tr>
-                              <td colSpan={3} className="px-4 py-8 text-center text-gray-500">
+                              <td colSpan={4} className="px-4 py-8 text-center text-gray-500">
                                 No Data
                               </td>
                             </tr>
                           ) : (
                             violations.map((violation) => (
                               <tr key={violation.id} className="hover:bg-gray-50">
+                                <td className="px-4 py-3 text-sm text-gray-900">
+                                  <span className="px-2 py-1 bg-blue-50 text-blue-700 rounded-md text-xs font-medium">
+                                    {violation.violationType || '-'}
+                                  </span>
+                                </td>
                                 <td className="px-4 py-3 text-sm text-gray-900">{violation.paymentDueDate || '-'}</td>
                                 <td className="px-4 py-3 text-sm text-gray-900">
                                   <div className="flex items-center gap-2">
@@ -5091,6 +5370,7 @@ const DriverManagement = () => {
                                         setNewViolation({
                                           paymentDueDate: violation.paymentDueDate || '',
                                           ticket: violation.ticket || '',
+                                          violationType: violation.violationType || '',
                                           file: violation.file || null
                                         });
                                         setEditingViolationId(violation.id);
@@ -5128,6 +5408,7 @@ const DriverManagement = () => {
                                               setNewViolation({
                                                 paymentDueDate: '',
                                                 ticket: '',
+                                                violationType: '',
                                                 file: null
                                               });
                                               setViolationFile(null);

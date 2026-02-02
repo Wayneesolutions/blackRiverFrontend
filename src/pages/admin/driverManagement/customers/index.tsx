@@ -1377,33 +1377,45 @@ const CustomersPage = () => {
 
                     <div className="mb-4">
                       <label className="block text-sm font-medium text-gray-700 mb-1">
-                        State/Province<span className="text-red-500">*</span>
+                        Country<span className="text-red-500">*</span>
                       </label>
                       <select
-                        value={formData.stateProvince}
-                        onChange={(e) => setFormData({ ...formData, stateProvince: e.target.value })}
+                        value={(() => {
+                          // Find country by name (formData.country stores the name)
+                          const foundCountry = countries.find(c => c.name === formData.country);
+                          return foundCountry ? foundCountry.code : '';
+                        })()}
+                        onChange={(e) => {
+                          const selectedCountry = countries.find(c => c.code === e.target.value);
+                          setFormData({ 
+                            ...formData, 
+                            country: selectedCountry ? selectedCountry.name : '', 
+                            stateProvince: '' 
+                          });
+                        }}
                         className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#42aeec] focus:border-transparent"
                       >
-                        <option value="">Select</option>
-                        <option value="ON">Ontario</option>
-                        <option value="BC">British Columbia</option>
-                        <option value="AB">Alberta</option>
+                        <option value="">Select Country</option>
+                        {countries.map((country) => (
+                          <option key={country.code} value={country.code}>
+                            {country.flag} {country.name}
+                          </option>
+                        ))}
                       </select>
                     </div>
 
                     <div className="mb-4">
                       <label className="block text-sm font-medium text-gray-700 mb-1">
-                        Country<span className="text-red-500">*</span>
+                        Province/State<span className="text-red-500">*</span>
                       </label>
-                      <select
-                        value={formData.country}
-                        onChange={(e) => setFormData({ ...formData, country: e.target.value })}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#42aeec] focus:border-transparent"
-                      >
-                        <option value="">Country</option>
-                        <option value="CA">Canada</option>
-                        <option value="US">United States</option>
-                      </select>
+                      <input
+                        type="text"
+                        value={formData.stateProvince}
+                        onChange={(e) => setFormData({ ...formData, stateProvince: e.target.value })}
+                        disabled={!formData.country}
+                        placeholder={formData.country ? "Enter Province/State" : "Select country first"}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#42aeec] focus:border-transparent disabled:bg-gray-100 disabled:cursor-not-allowed"
+                      />
                     </div>
 
                     <div className="mb-4">
