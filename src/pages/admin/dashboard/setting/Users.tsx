@@ -552,9 +552,14 @@ const EmployeesPage = () => {
   };
 
   const fetchEmployeeDocuments = async () => {
-    if (!editingEmployee) return;
+    if (!editingEmployee) {
+      console.log('⚠️ No editingEmployee, cannot fetch documents');
+      return;
+    }
     try {
+      console.log('🔄 Fetching documents for employee:', editingEmployee._id);
       const docsResponse = await getDocumentsByEmployee(editingEmployee._id);
+      console.log('📄 Documents response:', docsResponse);
       if (docsResponse.success && Array.isArray(docsResponse.data)) {
         const docs = docsResponse.data.map((doc: EmployeeDocument) => ({
           documentType: doc.documentType,
@@ -566,10 +571,15 @@ const EmployeesPage = () => {
           file: null,
           _id: doc._id
         }));
+        console.log('✅ Setting employee documents:', docs);
         setEmployeeDocuments(docs);
+      } else {
+        console.warn('⚠️ No documents found or invalid response:', docsResponse);
+        setEmployeeDocuments([]);
       }
     } catch (error) {
-      console.error('Error fetching employee documents:', error);
+      console.error('❌ Error fetching employee documents:', error);
+      setEmployeeDocuments([]);
     }
   };
 
@@ -837,10 +847,12 @@ const EmployeesPage = () => {
       if (response && response.success === true) {
         // Update documents
         if (employeeDocuments.length > 0) {
+          console.log('📄 Processing documents:', employeeDocuments.length, 'documents');
           try {
             for (const doc of employeeDocuments) {
               if (doc._id) {
                 // Update existing document
+                console.log('🔄 Updating existing document:', doc._id);
                 if (doc.file || doc.documentType) {
                   const docFormData = new FormData();
                   docFormData.append('documentType', doc.documentType);
@@ -851,10 +863,12 @@ const EmployeesPage = () => {
                   if (doc.description) docFormData.append('description', doc.description);
                   if (doc.file) docFormData.append('documentFile', doc.file);
 
-                  await updateEmployeeDocument(doc._id, docFormData);
+                  const updateResponse = await updateEmployeeDocument(doc._id, docFormData);
+                  console.log('✅ Document updated:', updateResponse);
                 }
               } else if (doc.file && doc.documentType) {
                 // Create new document
+                console.log('➕ Creating new document:', doc.documentType, 'for employee:', editingEmployee._id);
                 const docFormData = new FormData();
                 docFormData.append('employee', editingEmployee._id);
                 docFormData.append('documentType', doc.documentType);
@@ -865,16 +879,24 @@ const EmployeesPage = () => {
                 if (doc.description) docFormData.append('description', doc.description);
                 docFormData.append('documentFile', doc.file);
 
-                await createEmployeeDocument(docFormData);
+                const createResponse = await createEmployeeDocument(docFormData);
+                console.log('✅ Document created:', createResponse);
+              } else {
+                console.warn('⚠️ Skipping document - missing file or documentType:', doc);
               }
             }
+            console.log('✅ All documents processed successfully');
           } catch (docError) {
-            console.error('Error updating documents:', docError);
+            console.error('❌ Error updating documents:', docError);
             addNotification('error', 'Employee updated but some documents failed to update. Please try again.');
           }
+        } else {
+          console.log('ℹ️ No documents to process');
         }
 
         addNotification('success', response.message || `${activeTab === 'contacts' ? 'Contact' : activeTab === 'customers' ? 'Customer' : 'Employee'} updated successfully`);
+        
+        // Refetch the employee list to get updated data
         if (activeTab === 'employees') {
           await fetchEmployees();
         } else if (activeTab === 'contacts') {
@@ -882,6 +904,39 @@ const EmployeesPage = () => {
         } else if (activeTab === 'customers') {
           await fetchCustomers();
         }
+        
+        // Refetch documents for the edited employee to show updated documents
+        // Add a small delay to ensure database has saved the documents
+        if (editingEmployee?._id) {
+          try {
+            // Wait a bit for database to save documents
+            await new Promise(resolve => setTimeout(resolve, 500));
+            console.log('🔄 Refetching documents for employee:', editingEmployee._id);
+            const docsResponse = await getDocumentsByEmployee(editingEmployee._id);
+            console.log('📄 Documents response:', docsResponse);
+            if (docsResponse.success && Array.isArray(docsResponse.data)) {
+              const docs = docsResponse.data.map((doc: EmployeeDocument) => ({
+                documentType: doc.documentType,
+                documentNumber: doc.documentNumber || '',
+                issueDate: doc.issueDate ? doc.issueDate.split('T')[0] : '',
+                expiryDate: doc.expiryDate ? doc.expiryDate.split('T')[0] : '',
+                description: doc.description || '',
+                status: doc.status,
+                file: null,
+                _id: doc._id
+              }));
+              console.log('✅ Setting employee documents:', docs);
+              setEmployeeDocuments(docs);
+            } else {
+              console.warn('⚠️ No documents found or invalid response:', docsResponse);
+              setEmployeeDocuments([]);
+            }
+          } catch (error) {
+            console.error('❌ Error refetching employee documents after update:', error);
+            setEmployeeDocuments([]);
+          }
+        }
+        
         setShowAddModal(false);
         resetForm();
       } else {

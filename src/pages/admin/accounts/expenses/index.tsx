@@ -15,7 +15,8 @@ interface Employee {
 interface Expense {
   _id: string;
   userId?: Employee | string;
-  type: string;
+  type: string | ExpenseType; // Can be string (backward compatibility) or populated ExpenseType object
+  typeId?: string | ExpenseType; // New field for dynamic types
   categoryId?: string;
   category?: ExpenseCategory;
   amount: number;
@@ -124,7 +125,8 @@ const ExpensesPage = () => {
   const [formData, setFormData] = useState<{
     userId: string;
     categoryId: string;
-    type: string;
+    type: string; // Keep for backward compatibility
+    typeId: string; // New field for dynamic types
     amount: string;
     description: string;
     date: string;
@@ -133,6 +135,7 @@ const ExpensesPage = () => {
     userId: '',
     categoryId: '',
     type: '',
+    typeId: '',
     amount: '',
     description: '',
     date: new Date().toISOString().split('T')[0],
@@ -153,7 +156,7 @@ const ExpensesPage = () => {
       fetchExpenseTypes(formData.categoryId);
     } else {
       setExpenseTypes([]);
-      setFormData(prev => ({ ...prev, type: '' }));
+      setFormData(prev => ({ ...prev, type: '', typeId: '' }));
     }
   }, [formData.categoryId]);
 
@@ -530,7 +533,12 @@ const ExpensesPage = () => {
       const formDataToSend = new FormData();
       formDataToSend.append('userId', formData.userId);
       formDataToSend.append('categoryId', formData.categoryId);
-      formDataToSend.append('type', formData.type);
+      // Use typeId if available (dynamic type), otherwise use type (backward compatibility)
+      if (formData.typeId) {
+        formDataToSend.append('typeId', formData.typeId);
+      } else if (formData.type) {
+        formDataToSend.append('type', formData.type);
+      }
       formDataToSend.append('amount', formData.amount);
       formDataToSend.append('description', formData.description);
       formDataToSend.append('date', formData.date);
@@ -549,6 +557,7 @@ const ExpensesPage = () => {
             userId: '',
             categoryId: '',
             type: '',
+            typeId: '',
             amount: '',
             description: '',
             date: new Date().toISOString().split('T')[0],
@@ -568,6 +577,7 @@ const ExpensesPage = () => {
             userId: '',
             categoryId: '',
             type: '',
+            typeId: '',
             amount: '',
             description: '',
             date: new Date().toISOString().split('T')[0],
@@ -593,10 +603,13 @@ const ExpensesPage = () => {
       ? expense.userId._id
       : expense.userId || '';
     const categoryId = expense.categoryId || (expense.category?._id) || '';
+    // Get typeId if available (from typeId field or from type object)
+    const typeId = (expense as any).typeId || (typeof (expense as any).type === 'object' && (expense as any).type?._id) || '';
     setFormData({
       userId: userIdValue,
       categoryId: categoryId,
-      type: expense.type,
+      type: typeof expense.type === 'string' ? expense.type : (expense.type as any)?.name || '',
+      typeId: typeId,
       amount: expense.amount.toString(),
       description: expense.description || '',
       date: expense.date ? new Date(expense.date).toISOString().split('T')[0] : new Date().toISOString().split('T')[0],
@@ -676,7 +689,37 @@ const ExpensesPage = () => {
     setActiveTab('list');
   };
 
-  const getTypeColor = (type: string) => {
+  const getTypeName = (expense: Expense): string => {
+    // Check if type is populated object (from typeId)
+    if (typeof expense.type === 'object' && expense.type !== null) {
+      return (expense.type as any).name || 'Unknown Type';
+    }
+    // Check if typeId is populated
+    if ((expense as any).typeId && typeof (expense as any).typeId === 'object') {
+      return (expense as any).typeId.name || 'Unknown Type';
+    }
+    // Fallback to type string
+    return expense.type || 'Unknown Type';
+  };
+
+  const getCategoryName = (expense: Expense): string => {
+    // Check if category is populated object
+    if (expense.category && typeof expense.category === 'object') {
+      return expense.category.name || 'Unknown Category';
+    }
+    // Check if categoryId is populated
+    if ((expense as any).categoryId && typeof (expense as any).categoryId === 'object') {
+      return (expense as any).categoryId.name || 'Unknown Category';
+    }
+    // Try to find category from categories list
+    if (expense.categoryId) {
+      const category = categories.find(cat => cat._id === expense.categoryId);
+      return category?.name || 'Unknown Category';
+    }
+    return 'Unknown Category';
+  };
+
+  const getTypeColor = (typeName: string) => {
     const typeMap: Record<string, string> = {
       'Fuel Expense (Fuel)': 'bg-blue-100 text-blue-800',
       'Tractor Fuel (Fuel)': 'bg-blue-100 text-blue-800',
@@ -689,13 +732,13 @@ const ExpensesPage = () => {
       'Cash': 'bg-purple-100 text-purple-800',
       'Cash Advance': 'bg-purple-100 text-purple-800',
     };
-    return typeMap[type] || 'bg-gray-100 text-gray-800';
+    return typeMap[typeName] || 'bg-gray-100 text-gray-800';
   };
 
-  const getTypeIcon = (type: string) => {
-    if (type && type.includes('Fuel')) return '⛽';
-    if (type && type.includes('Repair')) return '🔧';
-    if (type && type.includes('Cash')) return '💰';
+  const getTypeIcon = (typeName: string) => {
+    if (typeName && typeName.includes('Fuel')) return '⛽';
+    if (typeName && typeName.includes('Repair')) return '🔧';
+    if (typeName && typeName.includes('Cash')) return '💰';
     return '📄';
   };
 
@@ -716,11 +759,53 @@ const ExpensesPage = () => {
   };
 
   const filteredExpenses = expenses.filter(expense => {
-    const matchesCategory = selectedCategoryTab === 'all' || 
-      expense.categoryId === selectedCategoryTab || 
-      expense.category?._id === selectedCategoryTab;
-    const matchesType = filterType === 'all' || expense.type === filterType;
-    return matchesCategory && matchesType;
+    // Category matching - handle both string and object categoryId
+    if (selectedCategoryTab !== 'all') {
+      const selectedCategoryIdStr = String(selectedCategoryTab);
+      
+      // Get expense category ID - handle both string and populated object
+      let expenseCategoryId: string | null = null;
+      if (expense.categoryId) {
+        if (typeof expense.categoryId === 'string') {
+          expenseCategoryId = expense.categoryId;
+        } else if (typeof expense.categoryId === 'object' && expense.categoryId !== null) {
+          expenseCategoryId = String((expense.categoryId as any)._id || expense.categoryId);
+        }
+      }
+      
+      // Get populated category object ID
+      let expenseCategoryObjId: string | null = null;
+      if (expense.category) {
+        if (typeof expense.category === 'object' && expense.category !== null) {
+          expenseCategoryObjId = String(expense.category._id || (expense.category as any)._id);
+        }
+      }
+      
+      // Compare normalized strings
+      const categoryMatch = (expenseCategoryId && String(expenseCategoryId) === selectedCategoryIdStr) ||
+                           (expenseCategoryObjId && String(expenseCategoryObjId) === selectedCategoryIdStr);
+      
+      if (!categoryMatch) {
+        return false;
+      }
+    }
+    
+    // Type matching - handle both string and object type (legacy filter)
+    if (filterType !== 'all') {
+      const expenseTypeName = typeof expense.type === 'string' 
+        ? expense.type 
+        : (expense.type as any)?.name;
+      const expenseTypeIdName = typeof expense.typeId === 'object' && expense.typeId !== null
+        ? (expense.typeId as any)?.name
+        : null;
+      
+      const typeMatch = expenseTypeName === filterType || expenseTypeIdName === filterType;
+      if (!typeMatch) {
+        return false;
+      }
+    }
+    
+    return true;
   });
 
   const totalAmount = filteredExpenses.reduce((sum, expense) => sum + (expense.amount || 0), 0);
@@ -800,6 +885,7 @@ const ExpensesPage = () => {
                   userId: '',
                   categoryId: selectedCategoryTab !== 'all' ? selectedCategoryTab : '',
                   type: '',
+                  typeId: '',
                   amount: '',
                   description: '',
                   date: new Date().toISOString().split('T')[0],
@@ -907,9 +993,33 @@ const ExpensesPage = () => {
                   All Expenses <span className="font-normal">({expenses.length})</span>
                 </button>
                 {categories.map((category) => {
-                  const categoryExpenseCount = expenses.filter(
-                    e => e.categoryId === category._id || e.category?._id === category._id
-                  ).length;
+                  const categoryExpenseCount = expenses.filter(e => {
+                    // Check if expense belongs to this category
+                    // Normalize all IDs to strings for comparison
+                    const categoryIdStr = String(category._id);
+                    
+                    // Get expense category ID - handle both string and populated object
+                    let expenseCategoryId: string | null = null;
+                    if (e.categoryId) {
+                      if (typeof e.categoryId === 'string') {
+                        expenseCategoryId = e.categoryId;
+                      } else if (typeof e.categoryId === 'object' && e.categoryId !== null) {
+                        expenseCategoryId = String((e.categoryId as any)._id || e.categoryId);
+                      }
+                    }
+                    
+                    // Get populated category object ID
+                    let expenseCategoryObjId: string | null = null;
+                    if (e.category) {
+                      if (typeof e.category === 'object' && e.category !== null) {
+                        expenseCategoryObjId = String(e.category._id || (e.category as any)._id);
+                      }
+                    }
+                    
+                    // Compare normalized strings
+                    return (expenseCategoryId && String(expenseCategoryId) === categoryIdStr) ||
+                           (expenseCategoryObjId && String(expenseCategoryObjId) === categoryIdStr);
+                  }).length;
                   return (
                     <button
                       key={category._id}
@@ -1020,11 +1130,14 @@ const ExpensesPage = () => {
                       >
                         <div className="flex items-center justify-between">
                           <div className="flex items-center gap-4">
-                            <div className="text-2xl">{getTypeIcon(expense.type)}</div>
+                            <div className="text-2xl">{getTypeIcon(getTypeName(expense))}</div>
                             <div>
-                              <div className="flex items-center gap-2 mb-1">
-                                <span className={`px-2 py-1 rounded-full text-xs font-medium ${getTypeColor(expense.type)}`}>
-                                  {expense.type}
+                              <div className="flex items-center gap-2 mb-1 flex-wrap">
+                                <span className="px-2 py-1 rounded-full text-xs font-medium bg-indigo-100 text-indigo-800">
+                                  {getCategoryName(expense)}
+                                </span>
+                                <span className={`px-2 py-1 rounded-full text-xs font-medium ${getTypeColor(getTypeName(expense))}`}>
+                                  {getTypeName(expense)}
                                 </span>
                                 <span className="text-lg font-semibold text-gray-900">
                                   ${(expense.amount || 0).toLocaleString()}
@@ -1142,9 +1255,17 @@ const ExpensesPage = () => {
                       Expense Type *
                     </label>
                     <select
-                      name="type"
-                      value={formData.type}
-                      onChange={handleInputChange}
+                      name="typeId"
+                      value={formData.typeId}
+                      onChange={(e) => {
+                        const selectedTypeId = e.target.value;
+                        const selectedType = expenseTypes.find(t => t._id === selectedTypeId);
+                        setFormData(prev => ({ 
+                          ...prev, 
+                          typeId: selectedTypeId,
+                          type: selectedType?.name || '' // Keep type for backward compatibility
+                        }));
+                      }}
                       required
                       disabled={!formData.categoryId || loadingTypes}
                       className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 disabled:bg-gray-100 disabled:cursor-not-allowed"
@@ -1157,7 +1278,7 @@ const ExpensesPage = () => {
                             : 'Select Type'}
                       </option>
                       {expenseTypes.map((type: ExpenseType) => (
-                        <option key={type._id} value={type.name}>
+                        <option key={type._id} value={type._id}>
                           {type.name}
                         </option>
                       ))}
@@ -1310,11 +1431,14 @@ const ExpensesPage = () => {
             <div className="p-6 space-y-6">
               {/* Expense Type and Amount */}
               <div className="flex items-center justify-between pb-4 border-b border-gray-200">
-                <div className="flex items-center gap-3">
-                  <div className="text-4xl">{getTypeIcon(viewingExpense.type)}</div>
-                  <div>
-                    <span className={`px-3 py-1 rounded-full text-sm font-medium ${getTypeColor(viewingExpense.type)}`}>
-                      {viewingExpense.type || 'N/A'}
+                <div className="flex items-center gap-3 flex-wrap">
+                  <div className="text-4xl">{getTypeIcon(getTypeName(viewingExpense))}</div>
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <span className="px-3 py-1 rounded-full text-sm font-medium bg-indigo-100 text-indigo-800">
+                      {getCategoryName(viewingExpense)}
+                    </span>
+                    <span className={`px-3 py-1 rounded-full text-sm font-medium ${getTypeColor(getTypeName(viewingExpense))}`}>
+                      {getTypeName(viewingExpense)}
                     </span>
                   </div>
                 </div>
