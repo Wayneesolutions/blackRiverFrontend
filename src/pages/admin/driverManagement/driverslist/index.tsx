@@ -830,10 +830,12 @@ const DriverManagement = () => {
                   paymentDueDate: vio.date ? new Date(vio.date).toISOString().split('T')[0] : '',
                   ticket: vio.ticketInfo?.ticketNumber || vio.ticket || vio.description || '',
                   violationType: vio.violationType || vio.type || '',
-                  file: vio.fileName ? { name: vio.fileName, size: vio.fileSize || 0 } : null
+                  file: null, // Don't set file for existing violations (it's a File object, not needed for display)
+                  fileUrl: vio.fileUrl || null, // Include fileUrl for displaying existing files
+                  fileName: vio.fileName || null // Include fileName for displaying existing files
                 }));
                 setViolations(existingViolations);
-                console.log(`✅ Violations loaded (${existingViolations.length} violations)`);
+                console.log(`✅ Violations loaded (${existingViolations.length} violations)`, existingViolations.map((v: any) => ({ id: v.id, hasFile: !!v.fileUrl, fileName: v.fileName })));
               } else {
                 console.log('⚠️ No violations found for this driver');
                 setViolations([]);
@@ -2471,9 +2473,12 @@ const DriverManagement = () => {
                   paymentDueDate: vio.date ? new Date(vio.date).toISOString().split('T')[0] : '',
                   ticket: vio.ticketInfo?.ticketNumber || vio.ticket || vio.description || '',
                   violationType: vio.violationType || vio.type || '',
-                  file: vio.fileName ? { name: vio.fileName, size: vio.fileSize || 0 } : null
+                  file: null, // Don't set file for existing violations (it's a File object, not needed for display)
+                  fileUrl: vio.fileUrl || null, // Include fileUrl for displaying existing files
+                  fileName: vio.fileName || null // Include fileName for displaying existing files
                 }));
                 setViolations(existingViolations);
+                console.log('✅ Violations reloaded after update:', existingViolations.map((v: any) => ({ id: v.id, hasFile: !!v.fileUrl, fileName: v.fileName })));
               }
               
               // Update deductions from response
@@ -2886,41 +2891,56 @@ const DriverManagement = () => {
                   <tr 
                     key={index} 
                     className="hover:bg-gray-50 transition-colors cursor-pointer"
-                    onClick={() => {
-                      setEditingDriver(driver);
-                      // Reset all state first, then populate with driver data
-                      setEditingId(null);
-                      setEditingDriver(null);
-                      setOriginalDriverData(null);
-                      resetAllFormState();
+                    onClick={(e) => {
+                      // Prevent triggering if clicking on interactive elements (buttons, links, inputs, selects)
+                      const target = e.target as HTMLElement;
+                      if (target.tagName === 'BUTTON' || target.tagName === 'A' || 
+                          target.tagName === 'INPUT' || target.tagName === 'SELECT' ||
+                          target.closest('button') || target.closest('a') || 
+                          target.closest('input') || target.closest('select')) {
+                        return;
+                      }
                       
-                      // Parse phone number to extract country code and number
-                      const parsedPhone = parsePhoneNumber(driver.phone || driver.mobile);
-                      setPrimaryPhoneCountry(parsedPhone.countryCode);
-                      
-                      // Populate form data with driver data
-                      setFormData({
-                        driverId: driver.driverId,
-                        firstName: driver.firstName,
-                        middle: '',
-                        lastName: driver.lastName,
-                        emailAddress: driver.email || '',
-                        dateOfBirth: driver.dateOfBirth,
-                        mobileApp: false,
-                        pin: '',
-                        primaryPhone: parsedPhone.phoneNumber,
-                        secondaryPhone: '',
-                        searchAddress: '',
-                        address: '',
-                        unit: '',
-                        city: '',
-                        postalCode: '',
-                        country: driver.country || '',
-                        stateProvince: '',
-                        profileImage: null
-                      });
-                      setActiveFormTab('basic');
-                      setShowNewDriverModal(true);
+                      // Set editingId to trigger API call (same as edit button)
+                      if (driver._id) {
+                        console.log('🔄 Row clicked for driver:', driver._id);
+                        setEditingId(driver._id);
+                        setShowNewDriverModal(true);
+                      } else {
+                        // Fallback for drivers without _id
+                        setEditingDriver(driver);
+                        setEditingId(null);
+                        setOriginalDriverData(null);
+                        resetAllFormState();
+                        
+                        // Parse phone number to extract country code and number
+                        const parsedPhone = parsePhoneNumber(driver.phone || driver.mobile);
+                        setPrimaryPhoneCountry(parsedPhone.countryCode);
+                        
+                        // Populate form data with driver data
+                        setFormData({
+                          driverId: driver.driverId,
+                          firstName: driver.firstName,
+                          middle: '',
+                          lastName: driver.lastName,
+                          emailAddress: driver.email || '',
+                          dateOfBirth: driver.dateOfBirth,
+                          mobileApp: false,
+                          pin: '',
+                          primaryPhone: parsedPhone.phoneNumber,
+                          secondaryPhone: '',
+                          searchAddress: '',
+                          address: '',
+                          unit: '',
+                          city: '',
+                          postalCode: '',
+                          country: driver.country || '',
+                          stateProvince: '',
+                          profileImage: null
+                        });
+                        setActiveFormTab('basic');
+                        setShowNewDriverModal(true);
+                      }
                     }}
                   >
                     <td className="px-4 py-3 text-sm text-gray-900">{driver.driverId}</td>
@@ -4599,7 +4619,8 @@ const DriverManagement = () => {
                                   onClick={() => {
                                     if (newDocument.expiryDate || newDocument.description) {
                                       if (editingDocumentId) {
-                                        // Update existing document in the list
+                                        // Update existing document in the list - preserve all existing fields
+                                        const existingDoc = documents.find(d => d.id === editingDocumentId);
                                         setDocuments(documents.map(d => 
                                           d.id === editingDocumentId 
                                             ? {
@@ -4607,7 +4628,11 @@ const DriverManagement = () => {
                                                 expiryDate: newDocument.expiryDate,
                                                 description: newDocument.description,
                                                 ignoreExpiration: newDocument.ignoreExpiration,
-                                                file: newDocument.file
+                                                documentType: newDocument.documentType || d.documentType || 'Other',
+                                                file: newDocument.file || null, // Only set if new file is uploaded
+                                                // Preserve existing file info if no new file
+                                                fileUrl: newDocument.file ? undefined : (d.fileUrl || undefined),
+                                                fileName: newDocument.file ? undefined : (d.fileName || undefined)
                                               }
                                             : d
                                         ));
@@ -4615,6 +4640,7 @@ const DriverManagement = () => {
                                           setUploadedFiles({ ...uploadedFiles, [editingDocumentId]: documentFile });
                                         }
                                         setEditingDocumentId(null);
+                                        console.log('✅ Document updated in list:', editingDocumentId);
                                       } else {
                                         // Add new document
                                         const docId = Date.now().toString();
@@ -4623,7 +4649,9 @@ const DriverManagement = () => {
                                           expiryDate: newDocument.expiryDate,
                                           description: newDocument.description,
                                           ignoreExpiration: newDocument.ignoreExpiration,
-                                          file: newDocument.file
+                                          documentType: newDocument.documentType || 'Other',
+                                          file: newDocument.file || null,
+                                          isExisting: false
                                         }]);
                                         if (newDocument.file && documentFile) {
                                           setUploadedFiles({ ...uploadedFiles, [docId]: documentFile });
@@ -4672,7 +4700,20 @@ const DriverManagement = () => {
                           ) : (
                             documents.map((doc) => (
                               <tr key={doc.id} className="hover:bg-gray-50">
-                                <td className="px-4 py-3 text-sm text-gray-900">{doc.expiryDate || '-'}</td>
+                                <td className="px-4 py-3 text-sm text-gray-900">
+                                  {doc.expiryDate ? (() => {
+                                    try {
+                                      // Format date for display (YYYY-MM-DD to readable format)
+                                      const date = new Date(doc.expiryDate);
+                                      if (!isNaN(date.getTime())) {
+                                        return date.toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' });
+                                      }
+                                      return doc.expiryDate;
+                                    } catch (e) {
+                                      return doc.expiryDate;
+                                    }
+                                  })() : '-'}
+                                </td>
                                 <td className="px-4 py-3 text-sm text-gray-900">
                                   {doc.description || '-'}
                                 </td>
@@ -4731,16 +4772,18 @@ const DriverManagement = () => {
                                       onClick={(e) => {
                                         e.stopPropagation();
                                         // Load document data into form for editing
+                                        console.log('✏️ Editing document:', doc);
                                         setNewDocument({
                                           expiryDate: doc.expiryDate || '',
                                           description: doc.description || '',
                                           ignoreExpiration: doc.ignoreExpiration || false,
-                                          file: doc.file || null,
+                                          file: null, // Don't set file for existing documents (it's a File object, not needed for display)
                                           documentType: doc.documentType || 'Other'
                                         });
                                         setEditingDocumentId(doc.id);
-                                        if (doc.file instanceof File) {
-                                          setDocumentFile(doc.file);
+                                        // Show existing file info if available
+                                        if (doc.fileName) {
+                                          setDocumentFile({ name: doc.fileName, size: 0 });
                                         } else {
                                           setDocumentFile(null);
                                         }
@@ -5332,13 +5375,14 @@ const DriverManagement = () => {
                             <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase">Type of Violation</th>
                             <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase">Payment Due Date</th>
                             <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase">Ticket</th>
+                            <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase">File</th>
                             <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase">ACTIONS</th>
                           </tr>
                         </thead>
                         <tbody className="bg-white divide-y divide-gray-200">
                           {violations.length === 0 ? (
                             <tr>
-                              <td colSpan={4} className="px-4 py-8 text-center text-gray-500">
+                              <td colSpan={5} className="px-4 py-8 text-center text-gray-500">
                                 No Data
                               </td>
                             </tr>
@@ -5352,14 +5396,31 @@ const DriverManagement = () => {
                                 </td>
                                 <td className="px-4 py-3 text-sm text-gray-900">{violation.paymentDueDate || '-'}</td>
                                 <td className="px-4 py-3 text-sm text-gray-900">
-                                  <div className="flex items-center gap-2">
-                                    {violation.ticket || '-'}
-                                    {(violation.file instanceof File || violation.fileUrl || violation.fileName) && (
-                                      <span title={violation.file instanceof File ? violation.file.name : (violation.fileName || 'File attached')}>
+                                  {violation.ticket || '-'}
+                                </td>
+                                <td className="px-4 py-3 text-sm text-gray-900">
+                                  {(violation.file instanceof File || violation.fileUrl || violation.fileName) ? (
+                                    violation.fileUrl ? (
+                                      <a
+                                        href={violation.fileUrl}
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        className="flex items-center gap-1 text-blue-600 hover:text-blue-800 hover:underline"
+                                        title={violation.file instanceof File ? violation.file.name : (violation.fileName || 'View File')}
+                                        onClick={(e) => e.stopPropagation()}
+                                      >
+                                        <FileText className="w-4 h-4" />
+                                        <span className="text-xs">{violation.fileName || 'View File'}</span>
+                                      </a>
+                                    ) : (
+                                      <span className="flex items-center gap-1 text-gray-600" title={violation.file instanceof File ? violation.file.name : (violation.fileName || 'File attached')}>
                                         <FileText className="w-4 h-4 text-blue-500" />
+                                        <span className="text-xs">{violation.file instanceof File ? violation.file.name : (violation.fileName || 'File attached')}</span>
                                       </span>
-                                    )}
-                                  </div>
+                                    )
+                                  ) : (
+                                    <span className="text-gray-400">-</span>
+                                  )}
                                 </td>
                                 <td className="px-4 py-3 text-sm text-gray-900">
                                   <div className="flex items-center gap-2">
