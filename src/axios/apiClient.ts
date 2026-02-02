@@ -119,6 +119,21 @@ apiClient.interceptors.response.use(
         });
       }
       
+      // Check if it's a trial expiration or subscription required issue
+      const errorData = error.response?.data || {};
+      const isTrialExpired = errorData.trialExpired === true || errorData.subscriptionRequired === true;
+      const isSubscriptionPage = window.location.pathname.includes('/admin/subscription') || 
+                                 window.location.pathname.includes('/subscription');
+      
+      if (isTrialExpired && !isSubscriptionPage && !isBackgroundRequest && !isLoginPage) {
+        console.warn('⚠️ Trial expired or subscription required. Redirecting to subscription page...');
+        // Don't logout - just redirect to subscription page
+        setTimeout(() => {
+          window.location.href = '/admin/subscription';
+        }, 100);
+        return Promise.reject(error);
+      }
+      
       // Check if it's a token issue (invalid/expired token)
       if ((errorMessage.includes('Invalid token') || errorMessage.includes('token')) && !isLoginPage && !isBackgroundRequest) {
         console.warn('⚠️ Token issue detected. Clearing token and redirecting to login...');

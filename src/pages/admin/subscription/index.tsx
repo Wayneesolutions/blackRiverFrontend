@@ -19,7 +19,7 @@ import {
   Package,
   Star,
 } from 'lucide-react';
-import { message, Modal, Button, Tag, Card, Spin, Tabs, Progress } from 'antd';
+import { message, Modal, Button, Tag, Card, Spin, Tabs, Progress, Alert } from 'antd';
 import { getAllPlans, getMySubscription, getMySubscriptions, createCheckoutSession, cancelSubscription, getTrialStatus } from '../../../axios/api/subscription';
 import { FLEET_COLORS } from '../fleetMaintenance/colorUtils';
 
@@ -63,6 +63,7 @@ interface Subscription {
   endDate?: string;
   nextBillingDate?: string;
   cancelledAt?: string;
+  stripeSessionId?: string;
   installments?: {
     total: number;
     paid: number;
@@ -308,6 +309,37 @@ const SubscriptionPage = () => {
             </div>
           </div>
         </div>
+
+        {/* Prominent Alert Banner for Expired Trial or No Subscription */}
+        {((trialStatus && trialStatus.isTrialExpired && !trialStatus.hasActiveSubscription) || 
+          (trialStatus && !trialStatus.hasActiveSubscription && !trialStatus.hasTrial)) && (
+          <div className="mb-6">
+            <Alert
+              message={
+                <div className="flex items-center gap-3">
+                  <AlertCircle className="w-6 h-6" />
+                  <div>
+                    <div className="font-bold text-lg">Subscription Required</div>
+                    <div className="text-sm mt-1">
+                      {trialStatus?.isTrialExpired 
+                        ? "Your free trial has expired. You don't have an active subscription plan to use this software. Please subscribe to a plan to continue."
+                        : "You don't have an active subscription plan to use this software. Please subscribe to a plan to continue."}
+                    </div>
+                  </div>
+                </div>
+              }
+              type="error"
+              showIcon={false}
+              closable={false}
+              className="border-2 border-red-500"
+              style={{
+                backgroundColor: '#fef2f2',
+                borderColor: '#ef4444',
+                padding: '20px'
+              }}
+            />
+          </div>
+        )}
 
         {/* Trial Status Card */}
         {trialStatus && !trialStatus.hasActiveSubscription && trialStatus.hasTrial && (

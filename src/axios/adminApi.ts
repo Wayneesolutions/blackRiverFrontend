@@ -109,6 +109,24 @@ adminApi.interceptors.response.use(
       return Promise.reject(error);
     }
     
+    // Handle 403 Forbidden errors
+    if (error.response && error.response.status === 403) {
+      // Check if it's a trial expiration or subscription required issue
+      const errorData = error.response?.data || {};
+      const isTrialExpired = errorData.trialExpired === true || errorData.subscriptionRequired === true;
+      const isSubscriptionPage = window.location.pathname.includes('/admin/subscription') || 
+                                 window.location.pathname.includes('/subscription');
+      
+      if (isTrialExpired && !isSubscriptionPage && !isBackgroundRequest && !isLoginPage) {
+        console.warn('⚠️ Trial expired or subscription required. Redirecting to subscription page...');
+        // Don't logout - just redirect to subscription page
+        setTimeout(() => {
+          window.location.href = '/admin/subscription';
+        }, 100);
+        return Promise.reject(error);
+      }
+    }
+    
     // Handle 401 Unauthorized errors
     if (error.response && error.response.status === 401 && !isLoginPage && !isBackgroundRequest) {
       console.warn('⚠️ Unauthorized. Token may be expired. Clearing storage...');

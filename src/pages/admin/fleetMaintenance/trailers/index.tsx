@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Plus, Upload, ChevronUp, ChevronDown, HelpCircle, Clock, X, Image as ImageIcon, Edit, Trash2, Calendar, ChevronLeft, ChevronRight, FileText } from 'lucide-react';
 import { getAllTrailers, createTrailer, updateTrailer, deleteTrailer, getTrailerById } from '../../../../axios/api/trailer';
 import { getAllDrivers, type Driver } from '../../../../axios/api/driver';
@@ -94,6 +94,10 @@ const TrailersPage: React.FC = () => {
         expiryDate: string;
         description: string;
         ignoreExpiration: boolean;
+        file?: File | null;
+        fileUrl?: string | null;
+        fileName?: string | null;
+        isExisting?: boolean;
     }>>([]);
 
     const [recurringInspections, setRecurringInspections] = useState<Array<{
@@ -103,6 +107,10 @@ const TrailersPage: React.FC = () => {
         unit: string;
         description: string;
         ignoreExpiration: boolean;
+        file?: File | null;
+        fileUrl?: string | null;
+        fileName?: string | null;
+        isExisting?: boolean;
     }>>([]);
 
     const [inspectionForm, setInspectionForm] = useState({
@@ -111,8 +119,13 @@ const TrailersPage: React.FC = () => {
         ignoreExpiration: false,
         scheduledOn: '',
         after: '',
-        unit: ''
+        unit: '',
+        file: null as File | null
     });
+
+    const [editingInspectionId, setEditingInspectionId] = useState<string | null>(null);
+    const [editingInspectionType, setEditingInspectionType] = useState<'oneTime' | 'recurring' | null>(null);
+    const fileInputRef = useRef<HTMLInputElement>(null);
 
     // Documents data
     const [documents, setDocuments] = useState<Record<string, Array<{
@@ -139,6 +152,10 @@ const TrailersPage: React.FC = () => {
         file: null as File | null,
         ignoreExpiration: false
     });
+
+    const [editingDocumentId, setEditingDocumentId] = useState<string | null>(null);
+    const [editingDocumentType, setEditingDocumentType] = useState<string | null>(null);
+    const documentFileInputRef = useRef<HTMLInputElement>(null);
 
     // Incidents data
     const [incidents, setIncidents] = useState<Array<{
@@ -169,6 +186,9 @@ const TrailersPage: React.FC = () => {
         thirdPartyInfo: '',
         files: [] as File[]
     });
+
+    const [editingIncidentId, setEditingIncidentId] = useState<string | null>(null);
+    const incidentFileInputRef = useRef<HTMLInputElement>(null);
 
     // Notes data
     const [notes, setNotes] = useState<Array<{
@@ -388,6 +408,277 @@ const TrailersPage: React.FC = () => {
         }
     }, [yards]);
 
+    // Inspection handlers
+    const handleEditInspection = (inspection: any, type: 'oneTime' | 'recurring') => {
+        setEditingInspectionId(inspection.id);
+        setEditingInspectionType(type);
+        
+        if (type === 'oneTime') {
+            setInspectionType('One Time');
+            setInspectionForm({
+                expiryDate: inspection.expiryDate,
+                description: inspection.description,
+                ignoreExpiration: inspection.ignoreExpiration,
+                scheduledOn: '',
+                after: '',
+                unit: '',
+                file: inspection.file || null
+            });
+        } else {
+            setInspectionType('Recurring');
+            setInspectionForm({
+                expiryDate: '',
+                description: inspection.description,
+                ignoreExpiration: inspection.ignoreExpiration,
+                scheduledOn: inspection.scheduledOn,
+                after: inspection.after,
+                unit: inspection.unit,
+                file: inspection.file || null
+            });
+        }
+    };
+
+    const handleDeleteInspection = (id: string, type: 'oneTime' | 'recurring') => {
+        if (type === 'oneTime') {
+            setOneTimeInspections(oneTimeInspections.filter(insp => insp.id !== id));
+        } else {
+            setRecurringInspections(recurringInspections.filter(insp => insp.id !== id));
+        }
+        if (editingInspectionId === id) {
+            setEditingInspectionId(null);
+            setEditingInspectionType(null);
+            setInspectionForm({
+                expiryDate: '',
+                description: '',
+                ignoreExpiration: false,
+                scheduledOn: '',
+                after: '',
+                unit: '',
+                file: null
+            });
+            if (fileInputRef.current) {
+                fileInputRef.current.value = '';
+            }
+        }
+    };
+
+    const handleCancelEditInspection = () => {
+        setEditingInspectionId(null);
+        setEditingInspectionType(null);
+        setInspectionForm({
+            expiryDate: '',
+            description: '',
+            ignoreExpiration: false,
+            scheduledOn: '',
+            after: '',
+            unit: '',
+            file: null
+        });
+        if (fileInputRef.current) {
+            fileInputRef.current.value = '';
+        }
+    };
+
+    // Document handlers
+    const handleEditDocument = (doc: any, docType: string) => {
+        setEditingDocumentId(doc.id);
+        setEditingDocumentType(docType);
+        setDocumentForm({
+            expiryDate: doc.expiryDate,
+            description: doc.description,
+            file: doc.file || null,
+            ignoreExpiration: doc.ignoreExpiration
+        });
+    };
+
+    const handleSaveDocument = () => {
+        if (!documentForm.description) {
+            alert('Please enter a description');
+            return;
+        }
+
+        if (editingDocumentId && editingDocumentType) {
+            // Update existing document
+            setDocuments(prev => ({
+                ...prev,
+                [editingDocumentType]: prev[editingDocumentType].map(doc =>
+                    doc.id === editingDocumentId
+                        ? {
+                            ...doc,
+                            expiryDate: documentForm.expiryDate,
+                            description: documentForm.description,
+                            ignoreExpiration: documentForm.ignoreExpiration,
+                            file: documentForm.file || doc.file,
+                            fileName: documentForm.file?.name || doc.fileName
+                        }
+                        : doc
+                )
+            }));
+            setEditingDocumentId(null);
+            setEditingDocumentType(null);
+        } else {
+            // Add new document
+            const newDoc = {
+                id: Date.now().toString(),
+                expiryDate: documentForm.expiryDate,
+                description: documentForm.description,
+                file: documentForm.file,
+                fileName: documentForm.file?.name,
+                ignoreExpiration: documentForm.ignoreExpiration,
+                isExisting: false
+            };
+            setDocuments(prev => ({
+                ...prev,
+                [documentType]: [...prev[documentType], newDoc]
+            }));
+        }
+
+        setDocumentForm({
+            expiryDate: '',
+            description: '',
+            file: null,
+            ignoreExpiration: false
+        });
+        if (documentFileInputRef.current) {
+            documentFileInputRef.current.value = '';
+        }
+    };
+
+    const handleDeleteDocument = (docId: string, docType: string) => {
+        setDocuments(prev => ({
+            ...prev,
+            [docType]: prev[docType].filter(doc => doc.id !== docId)
+        }));
+        if (editingDocumentId === docId) {
+            setEditingDocumentId(null);
+            setEditingDocumentType(null);
+            setDocumentForm({
+                expiryDate: '',
+                description: '',
+                file: null,
+                ignoreExpiration: false
+            });
+            if (documentFileInputRef.current) {
+                documentFileInputRef.current.value = '';
+            }
+        }
+    };
+
+    const handleCancelEditDocument = () => {
+        setEditingDocumentId(null);
+        setEditingDocumentType(null);
+        setDocumentForm({
+            expiryDate: '',
+            description: '',
+            file: null,
+            ignoreExpiration: false
+        });
+        if (documentFileInputRef.current) {
+            documentFileInputRef.current.value = '';
+        }
+    };
+
+    // Incident handlers
+    const handleEditIncident = (incident: any) => {
+        setEditingIncidentId(incident.id);
+        setIncidentForm({
+            accidentNumber: incident.accidentNumber,
+            driver: incident.driver,
+            coDriver: incident.coDriver,
+            location: incident.location,
+            date: incident.date,
+            time: incident.time,
+            weather: incident.weather,
+            policeReport: incident.policeReport,
+            accidentReport: incident.accidentReport,
+            thirdPartyInfo: incident.thirdPartyInfo,
+            files: incident.files || []
+        });
+    };
+
+    const handleSaveIncident = () => {
+        if (!incidentForm.accidentNumber || !incidentForm.location || !incidentForm.date) {
+            alert('Please fill in required fields: Accident Number, Location, and Date');
+            return;
+        }
+
+        if (editingIncidentId) {
+            // Update existing incident
+            setIncidents(prev => prev.map(inc =>
+                inc.id === editingIncidentId
+                    ? { ...inc, ...incidentForm }
+                    : inc
+            ));
+            setEditingIncidentId(null);
+        } else {
+            // Add new incident
+            setIncidents([...incidents, {
+                id: Date.now().toString(),
+                ...incidentForm
+            }]);
+        }
+
+        setIncidentForm({
+            accidentNumber: '',
+            driver: '',
+            coDriver: '',
+            location: '',
+            date: '',
+            time: '',
+            weather: '',
+            policeReport: '',
+            accidentReport: '',
+            thirdPartyInfo: '',
+            files: []
+        });
+        if (incidentFileInputRef.current) {
+            incidentFileInputRef.current.value = '';
+        }
+    };
+
+    const handleDeleteIncident = (incidentId: string) => {
+        setIncidents(prev => prev.filter(inc => inc.id !== incidentId));
+        if (editingIncidentId === incidentId) {
+            setEditingIncidentId(null);
+            setIncidentForm({
+                accidentNumber: '',
+                driver: '',
+                coDriver: '',
+                location: '',
+                date: '',
+                time: '',
+                weather: '',
+                policeReport: '',
+                accidentReport: '',
+                thirdPartyInfo: '',
+                files: []
+            });
+            if (incidentFileInputRef.current) {
+                incidentFileInputRef.current.value = '';
+            }
+        }
+    };
+
+    const handleCancelEditIncident = () => {
+        setEditingIncidentId(null);
+        setIncidentForm({
+            accidentNumber: '',
+            driver: '',
+            coDriver: '',
+            location: '',
+            date: '',
+            time: '',
+            weather: '',
+            policeReport: '',
+            accidentReport: '',
+            thirdPartyInfo: '',
+            files: []
+        });
+        if (incidentFileInputRef.current) {
+            incidentFileInputRef.current.value = '';
+        }
+    };
+
     // Handle create/update trailer
     // Validate required fields
     const validateTrailerForm = (): boolean => {
@@ -495,6 +786,92 @@ const TrailersPage: React.FC = () => {
                     formDataToSend.append('image', selectedImageFile);
                 }
             }
+
+            // Append inspection files and data
+            console.log('📋 [FRONTEND] Preparing inspections for save:', {
+                oneTimeInspections: oneTimeInspections.length,
+                recurringInspections: recurringInspections.length
+            });
+
+            // Process one-time inspections
+            oneTimeInspections.forEach((inspection, index) => {
+                if (inspection.file && inspection.file instanceof File) {
+                    console.log(`📎 [FRONTEND] Appending oneTimeInspectionFile ${index}:`, inspection.file.name);
+                    formDataToSend.append('oneTimeInspectionFiles', inspection.file);
+                }
+            });
+
+            // Process recurring inspections
+            recurringInspections.forEach((inspection, index) => {
+                if (inspection.file && inspection.file instanceof File) {
+                    console.log(`📎 [FRONTEND] Appending recurringInspectionFile ${index}:`, inspection.file.name);
+                    formDataToSend.append('recurringInspectionFiles', inspection.file);
+                }
+            });
+
+            // Append inspection metadata (without File objects)
+            const oneTimeInspectionsData = oneTimeInspections.map((insp) => ({
+                expiryDate: insp.expiryDate,
+                description: insp.description,
+                ignoreExpiration: insp.ignoreExpiration,
+                fileName: insp.fileName,
+                fileUrl: insp.fileUrl,
+                hasFile: insp.file instanceof File ? true : false
+            }));
+
+            const recurringInspectionsData = recurringInspections.map((insp) => ({
+                scheduledOn: insp.scheduledOn,
+                after: insp.after,
+                unit: insp.unit,
+                description: insp.description,
+                ignoreExpiration: insp.ignoreExpiration,
+                fileName: insp.fileName,
+                fileUrl: insp.fileUrl,
+                hasFile: insp.file instanceof File ? true : false
+            }));
+
+            formDataToSend.append('oneTimeInspections', JSON.stringify(oneTimeInspectionsData));
+            formDataToSend.append('recurringInspections', JSON.stringify(recurringInspectionsData));
+
+            // Append incidents files and data
+            incidents.forEach((incident, index) => {
+                if (incident.files && incident.files.length > 0) {
+                    incident.files.forEach((file) => {
+                        formDataToSend.append(`incidentFiles_${index}`, file);
+                    });
+                }
+            });
+
+            const incidentsData = incidents.map((inc) => ({
+                accidentNumber: inc.accidentNumber,
+                driver: inc.driver || null,
+                coDriver: inc.coDriver || null,
+                location: inc.location,
+                date: inc.date,
+                time: inc.time,
+                weather: inc.weather,
+                policeReport: inc.policeReport,
+                accidentReport: inc.accidentReport,
+                thirdPartyInfo: inc.thirdPartyInfo,
+                fileCount: inc.files?.length || 0,
+                fileNames: inc.files?.map(f => f.name) || []
+            }));
+
+            formDataToSend.append('incidents', JSON.stringify(incidentsData));
+
+            // Append notes
+            const notesData = notes.map((note) => ({
+                note: note.note,
+                category: note.category
+            }));
+            formDataToSend.append('notesArray', JSON.stringify(notesData));
+
+            console.log('📦 [FRONTEND] Sending to backend:', {
+                oneTimeInspections: oneTimeInspectionsData,
+                recurringInspections: recurringInspectionsData,
+                incidents: incidentsData,
+                notes: notesData
+            });
 
             let response;
             if (editingId) {
@@ -641,6 +1018,20 @@ const TrailersPage: React.FC = () => {
                     Safety: [],
                     Insurance: []
                 });
+                // Clear inspection state
+                setOneTimeInspections([]);
+                setRecurringInspections([]);
+                setInspectionForm({
+                    expiryDate: '',
+                    description: '',
+                    ignoreExpiration: false,
+                    scheduledOn: '',
+                    after: '',
+                    unit: '',
+                    file: null
+                });
+                setEditingInspectionId(null);
+                setEditingInspectionType(null);
                 // Refresh trailers list with current filter (same logic as fetchTrailers)
                 let yardFilter: string | undefined = undefined;
                 let ownershipFilter: string | undefined = undefined;
@@ -844,6 +1235,48 @@ const TrailersPage: React.FC = () => {
                         Safety: [],
                         Insurance: []
                     });
+                }
+                
+                // Load inspections from trailer response
+                console.log('📋 [FRONTEND] Loading inspections from trailer:', {
+                    oneTimeInspections: trailer.oneTimeInspections?.length || 0,
+                    recurringInspections: trailer.recurringInspections?.length || 0
+                });
+
+                if (trailer.oneTimeInspections && Array.isArray(trailer.oneTimeInspections)) {
+                    const loadedOneTimeInspections = trailer.oneTimeInspections.map((insp: any) => ({
+                        id: insp._id || Date.now().toString(),
+                        expiryDate: insp.expiryDate ? new Date(insp.expiryDate).toISOString().split('T')[0] : '',
+                        description: insp.description || '',
+                        ignoreExpiration: insp.ignoreExpiration || false,
+                        file: null,
+                        fileUrl: insp.fileUrl || null,
+                        fileName: insp.fileName || null,
+                        isExisting: true
+                    }));
+                    setOneTimeInspections(loadedOneTimeInspections);
+                    console.log('✅ Loaded one-time inspections:', loadedOneTimeInspections);
+                } else {
+                    setOneTimeInspections([]);
+                }
+
+                if (trailer.recurringInspections && Array.isArray(trailer.recurringInspections)) {
+                    const loadedRecurringInspections = trailer.recurringInspections.map((insp: any) => ({
+                        id: insp._id || Date.now().toString(),
+                        scheduledOn: insp.scheduledOn ? new Date(insp.scheduledOn).toISOString().split('T')[0] : '',
+                        after: insp.after || '',
+                        unit: insp.unit || '',
+                        description: insp.description || '',
+                        ignoreExpiration: insp.ignoreExpiration || false,
+                        file: null,
+                        fileUrl: insp.fileUrl || null,
+                        fileName: insp.fileName || null,
+                        isExisting: true
+                    }));
+                    setRecurringInspections(loadedRecurringInspections);
+                    console.log('✅ Loaded recurring inspections:', loadedRecurringInspections);
+                } else {
+                    setRecurringInspections([]);
                 }
                 
                 setShowSidebar(true);
@@ -1925,6 +2358,19 @@ const TrailersPage: React.FC = () => {
                                                             className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#42aeec]"
                                                         />
                                                     </div>
+                                                    <div className="flex-1">
+                                                        <label className="block text-sm font-medium text-gray-700 mb-1">File</label>
+                                                        <input
+                                                            type="file"
+                                                            onChange={(e) => {
+                                                                if (e.target.files && e.target.files[0]) {
+                                                                    setInspectionForm({ ...inspectionForm, file: e.target.files[0] });
+                                                                }
+                                                            }}
+                                                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#42aeec] text-sm"
+                                                            accept=".pdf,.doc,.docx,.jpg,.jpeg,.png"
+                                                        />
+                                                    </div>
                                                     <div className="flex items-center gap-2">
                                                         <input
                                                             type="checkbox"
@@ -1934,20 +2380,60 @@ const TrailersPage: React.FC = () => {
                                                         />
                                                         <label className="text-sm text-gray-700">Ignore Expiration</label>
                                                     </div>
-                                                    <button
-                                                        onClick={() => {
-                                                            if (inspectionForm.expiryDate && inspectionForm.description) {
-                                                                setOneTimeInspections([...oneTimeInspections, {
-                                                                    id: Date.now().toString(),
-                                                                    ...inspectionForm
-                                                                }]);
-                                                                setInspectionForm({ expiryDate: '', description: '', ignoreExpiration: false, scheduledOn: '', after: '', unit: '' });
-                                                            }
-                                                        }}
-                                                        className="w-10 h-10 bg-gray-700 !text-white rounded-lg flex items-center justify-center hover:bg-gray-800"
-                                                    >
-                                                        <Plus className="w-5 h-5" />
-                                                    </button>
+                                                    {editingInspectionId && editingInspectionType === 'oneTime' ? (
+                                                        <>
+                                                            <button
+                                                                onClick={() => {
+                                                                    if (inspectionForm.expiryDate && inspectionForm.description) {
+                                                                        setOneTimeInspections(oneTimeInspections.map(insp =>
+                                                                            insp.id === editingInspectionId
+                                                                                ? {
+                                                                                    ...insp,
+                                                                                    expiryDate: inspectionForm.expiryDate,
+                                                                                    description: inspectionForm.description,
+                                                                                    ignoreExpiration: inspectionForm.ignoreExpiration,
+                                                                                    file: inspectionForm.file || insp.file,
+                                                                                    fileName: inspectionForm.file?.name || insp.fileName
+                                                                                }
+                                                                                : insp
+                                                                        ));
+                                                                        handleCancelEditInspection();
+                                                                    }
+                                                                }}
+                                                                className="w-10 h-10 bg-green-600 !text-white rounded-lg flex items-center justify-center hover:bg-green-700"
+                                                                title="Save"
+                                                            >
+                                                                <Plus className="w-5 h-5" />
+                                                            </button>
+                                                            <button
+                                                                onClick={handleCancelEditInspection}
+                                                                className="w-10 h-10 bg-gray-500 !text-white rounded-lg flex items-center justify-center hover:bg-gray-600"
+                                                                title="Cancel"
+                                                            >
+                                                                <X className="w-5 h-5" />
+                                                            </button>
+                                                        </>
+                                                    ) : (
+                                                        <button
+                                                            onClick={() => {
+                                                                if (inspectionForm.expiryDate && inspectionForm.description) {
+                                                                    setOneTimeInspections([...oneTimeInspections, {
+                                                                        id: Date.now().toString(),
+                                                                        ...inspectionForm,
+                                                                        fileName: inspectionForm.file?.name || null
+                                                                    }]);
+                                                                    setInspectionForm({ expiryDate: '', description: '', ignoreExpiration: false, scheduledOn: '', after: '', unit: '', file: null });
+                                                                    if (fileInputRef.current) {
+                                                                        fileInputRef.current.value = '';
+                                                                    }
+                                                                }
+                                                            }}
+                                                            className="w-10 h-10 bg-gray-700 !text-white rounded-lg flex items-center justify-center hover:bg-gray-800"
+                                                            title="Add"
+                                                        >
+                                                            <Plus className="w-5 h-5" />
+                                                        </button>
+                                                    )}
                                                 </div>
                                                 <p className="text-sm text-gray-500">Click row to edit • Drag to reorder</p>
                                                 <div className="bg-white rounded-lg border border-gray-200 overflow-hidden">
@@ -1956,20 +2442,65 @@ const TrailersPage: React.FC = () => {
                                                             <tr>
                                                                 <th className="px-4 py-2 text-left text-xs font-medium text-gray-700">Expiry Date</th>
                                                                 <th className="px-4 py-2 text-left text-xs font-medium text-gray-700">Description</th>
+                                                                <th className="px-4 py-2 text-left text-xs font-medium text-gray-700">File</th>
                                                                 <th className="px-4 py-2 text-left text-xs font-medium text-gray-700">Ignore Expiration</th>
+                                                                <th className="px-4 py-2 text-left text-xs font-medium text-gray-700">Actions</th>
                                                             </tr>
                                                         </thead>
                                                         <tbody>
                                                             {oneTimeInspections.length === 0 ? (
                                                                 <tr>
-                                                                    <td colSpan={3} className="px-4 py-8 text-center text-gray-500">No Data</td>
+                                                                    <td colSpan={5} className="px-4 py-8 text-center text-gray-500">No Data</td>
                                                                 </tr>
                                                             ) : (
                                                                 oneTimeInspections.map((inspection) => (
-                                                                    <tr key={inspection.id} className="border-t border-gray-200 hover:bg-gray-50">
+                                                                    <tr 
+                                                                        key={inspection.id} 
+                                                                        onClick={() => handleEditInspection(inspection, 'oneTime')}
+                                                                        className="border-t border-gray-200 hover:bg-gray-50 cursor-pointer"
+                                                                    >
                                                                         <td className="px-4 py-2 text-sm text-gray-900">{inspection.expiryDate}</td>
                                                                         <td className="px-4 py-2 text-sm text-gray-900">{inspection.description}</td>
+                                                                        <td className="px-4 py-2 text-sm">
+                                                                            {inspection.fileName ? (
+                                                                                inspection.fileUrl ? (
+                                                                                    <a
+                                                                                        href={inspection.fileUrl}
+                                                                                        target="_blank"
+                                                                                        rel="noopener noreferrer"
+                                                                                        onClick={(e) => e.stopPropagation()}
+                                                                                        className="text-blue-600 hover:underline flex items-center gap-1"
+                                                                                    >
+                                                                                        <FileText className="w-4 h-4" />
+                                                                                        {inspection.fileName.length > 20
+                                                                                            ? inspection.fileName.substring(0, 20) + '...'
+                                                                                            : inspection.fileName}
+                                                                                    </a>
+                                                                                ) : (
+                                                                                    <span className="text-gray-600 flex items-center gap-1">
+                                                                                        <FileText className="w-4 h-4" />
+                                                                                        {inspection.fileName.length > 20
+                                                                                            ? inspection.fileName.substring(0, 20) + '...'
+                                                                                            : inspection.fileName}
+                                                                                    </span>
+                                                                                )
+                                                                            ) : (
+                                                                                <span className="text-gray-400">No file</span>
+                                                                            )}
+                                                                        </td>
                                                                         <td className="px-4 py-2 text-sm text-gray-900">{inspection.ignoreExpiration ? 'Yes' : 'No'}</td>
+                                                                        <td className="px-4 py-2 text-sm">
+                                                                            <button
+                                                                                onClick={(e) => {
+                                                                                    e.stopPropagation();
+                                                                                    handleDeleteInspection(inspection.id, 'oneTime');
+                                                                                }}
+                                                                                className="text-red-600 hover:text-red-800"
+                                                                                title="Delete"
+                                                                            >
+                                                                                <Trash2 className="w-4 h-4" />
+                                                                            </button>
+                                                                        </td>
                                                                     </tr>
                                                                 ))
                                                             )}
@@ -2028,6 +2559,19 @@ const TrailersPage: React.FC = () => {
                                                             className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#42aeec]"
                                                         />
                                                     </div>
+                                                    <div className="flex-1">
+                                                        <label className="block text-sm font-medium text-gray-700 mb-1">File</label>
+                                                        <input
+                                                            type="file"
+                                                            onChange={(e) => {
+                                                                if (e.target.files && e.target.files[0]) {
+                                                                    setInspectionForm({ ...inspectionForm, file: e.target.files[0] });
+                                                                }
+                                                            }}
+                                                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#42aeec] text-sm"
+                                                            accept=".pdf,.doc,.docx,.jpg,.jpeg,.png"
+                                                        />
+                                                    </div>
                                                     <div className="flex items-center gap-2">
                                                         <input
                                                             type="checkbox"
@@ -2037,24 +2581,67 @@ const TrailersPage: React.FC = () => {
                                                         />
                                                         <label className="text-sm text-gray-700">Ignore Expiration</label>
                                                     </div>
-                                                    <button
-                                                        onClick={() => {
-                                                            if (inspectionForm.scheduledOn && inspectionForm.description) {
-                                                                setRecurringInspections([...recurringInspections, {
-                                                                    id: Date.now().toString(),
-                                                                    scheduledOn: inspectionForm.scheduledOn,
-                                                                    after: inspectionForm.after,
-                                                                    unit: inspectionForm.unit,
-                                                                    description: inspectionForm.description,
-                                                                    ignoreExpiration: inspectionForm.ignoreExpiration
-                                                                }]);
-                                                                setInspectionForm({ expiryDate: '', description: '', ignoreExpiration: false, scheduledOn: '', after: '', unit: '' });
-                                                            }
-                                                        }}
-                                                        className="w-10 h-10 bg-gray-700 !text-white rounded-lg flex items-center justify-center hover:bg-gray-800"
-                                                    >
-                                                        <Plus className="w-5 h-5" />
-                                                    </button>
+                                                    {editingInspectionId && editingInspectionType === 'recurring' ? (
+                                                        <>
+                                                            <button
+                                                                onClick={() => {
+                                                                    if (inspectionForm.scheduledOn && inspectionForm.description) {
+                                                                        setRecurringInspections(recurringInspections.map(insp =>
+                                                                            insp.id === editingInspectionId
+                                                                                ? {
+                                                                                    ...insp,
+                                                                                    scheduledOn: inspectionForm.scheduledOn,
+                                                                                    after: inspectionForm.after,
+                                                                                    unit: inspectionForm.unit,
+                                                                                    description: inspectionForm.description,
+                                                                                    ignoreExpiration: inspectionForm.ignoreExpiration,
+                                                                                    file: inspectionForm.file || insp.file,
+                                                                                    fileName: inspectionForm.file?.name || insp.fileName
+                                                                                }
+                                                                                : insp
+                                                                        ));
+                                                                        handleCancelEditInspection();
+                                                                    }
+                                                                }}
+                                                                className="w-10 h-10 bg-green-600 !text-white rounded-lg flex items-center justify-center hover:bg-green-700"
+                                                                title="Save"
+                                                            >
+                                                                <Plus className="w-5 h-5" />
+                                                            </button>
+                                                            <button
+                                                                onClick={handleCancelEditInspection}
+                                                                className="w-10 h-10 bg-gray-500 !text-white rounded-lg flex items-center justify-center hover:bg-gray-600"
+                                                                title="Cancel"
+                                                            >
+                                                                <X className="w-5 h-5" />
+                                                            </button>
+                                                        </>
+                                                    ) : (
+                                                        <button
+                                                            onClick={() => {
+                                                                if (inspectionForm.scheduledOn && inspectionForm.description) {
+                                                                    setRecurringInspections([...recurringInspections, {
+                                                                        id: Date.now().toString(),
+                                                                        scheduledOn: inspectionForm.scheduledOn,
+                                                                        after: inspectionForm.after,
+                                                                        unit: inspectionForm.unit,
+                                                                        description: inspectionForm.description,
+                                                                        ignoreExpiration: inspectionForm.ignoreExpiration,
+                                                                        file: inspectionForm.file,
+                                                                        fileName: inspectionForm.file?.name || null
+                                                                    }]);
+                                                                    setInspectionForm({ expiryDate: '', description: '', ignoreExpiration: false, scheduledOn: '', after: '', unit: '', file: null });
+                                                                    if (fileInputRef.current) {
+                                                                        fileInputRef.current.value = '';
+                                                                    }
+                                                                }
+                                                            }}
+                                                            className="w-10 h-10 bg-gray-700 !text-white rounded-lg flex items-center justify-center hover:bg-gray-800"
+                                                            title="Add"
+                                                        >
+                                                            <Plus className="w-5 h-5" />
+                                                        </button>
+                                                    )}
                                                 </div>
                                                 <div className="bg-white rounded-lg border border-gray-200 overflow-hidden">
                                                     <table className="w-full">
@@ -2064,22 +2651,67 @@ const TrailersPage: React.FC = () => {
                                                                 <th className="px-4 py-2 text-left text-xs font-medium text-gray-700">After</th>
                                                                 <th className="px-4 py-2 text-left text-xs font-medium text-gray-700">Unit</th>
                                                                 <th className="px-4 py-2 text-left text-xs font-medium text-gray-700">Description</th>
+                                                                <th className="px-4 py-2 text-left text-xs font-medium text-gray-700">File</th>
                                                                 <th className="px-4 py-2 text-left text-xs font-medium text-gray-700">Ignore Expiration</th>
+                                                                <th className="px-4 py-2 text-left text-xs font-medium text-gray-700">Actions</th>
                                                             </tr>
                                                         </thead>
                                                         <tbody>
                                                             {recurringInspections.length === 0 ? (
                                                                 <tr>
-                                                                    <td colSpan={5} className="px-4 py-8 text-center text-gray-500">No Data</td>
+                                                                    <td colSpan={7} className="px-4 py-8 text-center text-gray-500">No Data</td>
                                                                 </tr>
                                                             ) : (
                                                                 recurringInspections.map((inspection) => (
-                                                                    <tr key={inspection.id} className="border-t border-gray-200 hover:bg-gray-50">
+                                                                    <tr 
+                                                                        key={inspection.id} 
+                                                                        onClick={() => handleEditInspection(inspection, 'recurring')}
+                                                                        className="border-t border-gray-200 hover:bg-gray-50 cursor-pointer"
+                                                                    >
                                                                         <td className="px-4 py-2 text-sm text-gray-900">{inspection.scheduledOn}</td>
                                                                         <td className="px-4 py-2 text-sm text-gray-900">{inspection.after}</td>
                                                                         <td className="px-4 py-2 text-sm text-gray-900">{inspection.unit}</td>
                                                                         <td className="px-4 py-2 text-sm text-gray-900">{inspection.description}</td>
+                                                                        <td className="px-4 py-2 text-sm">
+                                                                            {inspection.fileName ? (
+                                                                                inspection.fileUrl ? (
+                                                                                    <a
+                                                                                        href={inspection.fileUrl}
+                                                                                        target="_blank"
+                                                                                        rel="noopener noreferrer"
+                                                                                        onClick={(e) => e.stopPropagation()}
+                                                                                        className="text-blue-600 hover:underline flex items-center gap-1"
+                                                                                    >
+                                                                                        <FileText className="w-4 h-4" />
+                                                                                        {inspection.fileName.length > 20
+                                                                                            ? inspection.fileName.substring(0, 20) + '...'
+                                                                                            : inspection.fileName}
+                                                                                    </a>
+                                                                                ) : (
+                                                                                    <span className="text-gray-600 flex items-center gap-1">
+                                                                                        <FileText className="w-4 h-4" />
+                                                                                        {inspection.fileName.length > 20
+                                                                                            ? inspection.fileName.substring(0, 20) + '...'
+                                                                                            : inspection.fileName}
+                                                                                    </span>
+                                                                                )
+                                                                            ) : (
+                                                                                <span className="text-gray-400">No file</span>
+                                                                            )}
+                                                                        </td>
                                                                         <td className="px-4 py-2 text-sm text-gray-900">{inspection.ignoreExpiration ? 'Yes' : 'No'}</td>
+                                                                        <td className="px-4 py-2 text-sm">
+                                                                            <button
+                                                                                onClick={(e) => {
+                                                                                    e.stopPropagation();
+                                                                                    handleDeleteInspection(inspection.id, 'recurring');
+                                                                                }}
+                                                                                className="text-red-600 hover:text-red-800"
+                                                                                title="Delete"
+                                                                            >
+                                                                                <Trash2 className="w-4 h-4" />
+                                                                            </button>
+                                                                        </td>
                                                                     </tr>
                                                                 ))
                                                             )}
@@ -2139,19 +2771,27 @@ const TrailersPage: React.FC = () => {
                                             </div>
                                             <div>
                                                 <label className="block text-sm font-medium text-gray-700 mb-1">File</label>
+                                                <input
+                                                    ref={documentFileInputRef}
+                                                    type="file"
+                                                    onChange={(e) => {
+                                                        if (e.target.files && e.target.files[0]) {
+                                                            setDocumentForm({ ...documentForm, file: e.target.files[0] });
+                                                        }
+                                                    }}
+                                                    className="hidden"
+                                                />
                                                 <button
                                                     type="button"
-                                                    onClick={() => {
-                                                        const input = document.createElement('input');
-                                                        input.type = 'file';
-                                                        input.onchange = (e: any) => {
-                                                            setDocumentForm({ ...documentForm, file: e.target.files[0] });
-                                                        };
-                                                        input.click();
-                                                    }}
-                                                    className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 text-sm font-medium"
+                                                    onClick={() => documentFileInputRef.current?.click()}
+                                                    className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 text-sm font-medium flex items-center gap-2"
                                                 >
-                                                    Select File <Upload className="w-4 h-4 inline ml-1" />
+                                                    <Upload className="w-4 h-4" />
+                                                    {documentForm.file?.name ? (
+                                                        documentForm.file.name.length > 15 
+                                                            ? documentForm.file.name.substring(0, 15) + '...' 
+                                                            : documentForm.file.name
+                                                    ) : 'Select File'}
                                                 </button>
                                             </div>
                                             <div className="flex items-center gap-2">
@@ -2163,32 +2803,38 @@ const TrailersPage: React.FC = () => {
                                                 />
                                                 <label className="text-sm text-gray-700">Ignore Expiration</label>
                                             </div>
-                                            <button
-                                                type="button"
-                                                onClick={() => {
-                                                    if (documentForm.expiryDate && documentForm.description) {
-                                                        const newDoc = {
-                                                            id: Date.now().toString(),
-                                                            expiryDate: documentForm.expiryDate,
-                                                            description: documentForm.description,
-                                                            file: documentForm.file,
-                                                            fileName: documentForm.file?.name || 'Document',
-                                                            fileUrl: documentForm.file ? URL.createObjectURL(documentForm.file) : null,
-                                                            ignoreExpiration: documentForm.ignoreExpiration,
-                                                            isExisting: false
-                                                        };
-                                                        setDocuments({
-                                                            ...documents,
-                                                            [documentType]: [...documents[documentType], newDoc]
-                                                        });
-                                                        setDocumentForm({ expiryDate: '', description: '', file: null, ignoreExpiration: false });
-                                                    }
-                                                }}
-                                                className="w-10 h-10 bg-gray-700 !text-white rounded-lg flex items-center justify-center hover:bg-gray-800"
-                                            >
-                                                <Plus className="w-5 h-5" />
-                                            </button>
+                                            {editingDocumentId ? (
+                                                <>
+                                                    <button
+                                                        type="button"
+                                                        onClick={handleSaveDocument}
+                                                        className="w-10 h-10 bg-green-600 !text-white rounded-lg flex items-center justify-center hover:bg-green-700"
+                                                        title="Save"
+                                                    >
+                                                        <Plus className="w-5 h-5" />
+                                                    </button>
+                                                    <button
+                                                        type="button"
+                                                        onClick={handleCancelEditDocument}
+                                                        className="w-10 h-10 bg-gray-500 !text-white rounded-lg flex items-center justify-center hover:bg-gray-600"
+                                                        title="Cancel"
+                                                    >
+                                                        <X className="w-5 h-5" />
+                                                    </button>
+                                                </>
+                                            ) : (
+                                                <button
+                                                    type="button"
+                                                    onClick={handleSaveDocument}
+                                                    className="w-10 h-10 bg-gray-700 !text-white rounded-lg flex items-center justify-center hover:bg-gray-800"
+                                                    title="Add"
+                                                >
+                                                    <Plus className="w-5 h-5" />
+                                                </button>
+                                            )}
                                         </div>
+
+                                        <p className="text-sm text-gray-500">Click row to edit • Drag to reorder</p>
 
                                         {/* Documents Table */}
                                         <div className="bg-white rounded-lg border border-gray-200 overflow-hidden">
@@ -2199,16 +2845,21 @@ const TrailersPage: React.FC = () => {
                                                         <th className="px-4 py-2 text-left text-xs font-medium text-gray-700">Description</th>
                                                         <th className="px-4 py-2 text-left text-xs font-medium text-gray-700">File</th>
                                                         <th className="px-4 py-2 text-left text-xs font-medium text-gray-700">Ignore Expiration</th>
+                                                        <th className="px-4 py-2 text-left text-xs font-medium text-gray-700">Actions</th>
                                                     </tr>
                                                 </thead>
                                                 <tbody>
                                                     {documents[documentType].length === 0 ? (
                                                         <tr>
-                                                            <td colSpan={4} className="px-4 py-8 text-center text-gray-500">No Data</td>
+                                                            <td colSpan={5} className="px-4 py-8 text-center text-gray-500">No Data</td>
                                                         </tr>
                                                     ) : (
                                                         documents[documentType].map((doc) => (
-                                                            <tr key={doc.id} className="border-t border-gray-200 hover:bg-gray-50">
+                                                            <tr 
+                                                                key={doc.id} 
+                                                                onClick={() => handleEditDocument(doc, documentType)}
+                                                                className="border-t border-gray-200 hover:bg-gray-50 cursor-pointer"
+                                                            >
                                                                 <td className="px-4 py-2 text-sm text-gray-900">{doc.expiryDate}</td>
                                                                 <td className="px-4 py-2 text-sm text-gray-900">{doc.description}</td>
                                                                 <td className="px-4 py-2 text-sm text-gray-900">
@@ -2217,6 +2868,7 @@ const TrailersPage: React.FC = () => {
                                                                             href={doc.fileUrl}
                                                                             target="_blank"
                                                                             rel="noopener noreferrer"
+                                                                            onClick={(e) => e.stopPropagation()}
                                                                             className="flex items-center gap-2 text-blue-600 hover:text-blue-800"
                                                                         >
                                                                             <FileText className="w-4 h-4" />
@@ -2232,6 +2884,18 @@ const TrailersPage: React.FC = () => {
                                                                     )}
                                                                 </td>
                                                                 <td className="px-4 py-2 text-sm text-gray-900">{doc.ignoreExpiration ? 'Yes' : 'No'}</td>
+                                                                <td className="px-4 py-2 text-sm">
+                                                                    <button
+                                                                        onClick={(e) => {
+                                                                            e.stopPropagation();
+                                                                            handleDeleteDocument(doc.id, documentType);
+                                                                        }}
+                                                                        className="text-red-600 hover:text-red-800 p-1"
+                                                                        title="Delete"
+                                                                    >
+                                                                        <Trash2 className="w-4 h-4" />
+                                                                    </button>
+                                                                </td>
                                                             </tr>
                                                         ))
                                                     )}
@@ -2370,52 +3034,76 @@ const TrailersPage: React.FC = () => {
                                             </div>
                                             <div className="flex items-end gap-4">
                                                 <div className="flex-1">
-                                                    <label className="block text-sm font-medium text-gray-700 mb-1">Select files</label>
-                                                    <div className="relative">
-                                                        <Upload className="absolute left-2 top-2.5 w-4 h-4 text-gray-400 pointer-events-none" />
-                                                        <input
-                                                            type="file"
-                                                            multiple
-                                                            onChange={(e) => {
-                                                                const files = Array.from(e.target.files || []);
-                                                                setIncidentForm({ ...incidentForm, files });
-                                                            }}
-                                                            className="w-full pl-8 pr-3 py-2 bg-white border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#42aeec] text-sm cursor-pointer"
-                                                        />
-                                                    </div>
+                                                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                                                        Select files 
+                                                        {incidentForm.files.length > 0 && (
+                                                            <span className="ml-2 text-xs text-gray-500">
+                                                                ({incidentForm.files.length} file{incidentForm.files.length > 1 ? 's' : ''} selected)
+                                                            </span>
+                                                        )}
+                                                    </label>
+                                                    <input
+                                                        ref={incidentFileInputRef}
+                                                        type="file"
+                                                        multiple
+                                                        onChange={(e) => {
+                                                            const files = Array.from(e.target.files || []);
+                                                            setIncidentForm({ ...incidentForm, files });
+                                                        }}
+                                                        className="hidden"
+                                                    />
+                                                    <button
+                                                        type="button"
+                                                        onClick={() => incidentFileInputRef.current?.click()}
+                                                        className="w-full px-4 py-2 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 text-sm font-medium flex items-center gap-2"
+                                                    >
+                                                        <Upload className="w-4 h-4" />
+                                                        {incidentForm.files.length > 0 ? (
+                                                            <div className="flex-1 text-left truncate">
+                                                                {incidentForm.files.map(f => f.name).join(', ')}
+                                                            </div>
+                                                        ) : (
+                                                            'Select Files'
+                                                        )}
+                                                    </button>
                                                 </div>
-                                                <button
-                                                    onClick={() => {
-                                                        if (incidentForm.accidentNumber && incidentForm.location && incidentForm.date) {
-                                                            setIncidents([...incidents, {
-                                                                id: Date.now().toString(),
-                                                                ...incidentForm
-                                                            }]);
-                                                            setIncidentForm({
-                                                                accidentNumber: '',
-                                                                driver: '',
-                                                                coDriver: '',
-                                                                location: '',
-                                                                date: '',
-                                                                time: '',
-                                                                weather: '',
-                                                                policeReport: '',
-                                                                accidentReport: '',
-                                                                thirdPartyInfo: '',
-                                                                files: []
-                                                            });
-                                                        }
-                                                    }}
-                                                    className="w-10 h-10 bg-gray-700 !text-white rounded-lg flex items-center justify-center hover:bg-gray-800 transition-colors flex-shrink-0"
-                                                >
-                                                    <Plus className="w-5 h-5" />
-                                                </button>
+                                                {editingIncidentId ? (
+                                                    <>
+                                                        <button
+                                                            type="button"
+                                                            onClick={handleSaveIncident}
+                                                            className="w-10 h-10 bg-green-600 !text-white rounded-lg flex items-center justify-center hover:bg-green-700 transition-colors flex-shrink-0"
+                                                            title="Save"
+                                                        >
+                                                            <Plus className="w-5 h-5" />
+                                                        </button>
+                                                        <button
+                                                            type="button"
+                                                            onClick={handleCancelEditIncident}
+                                                            className="w-10 h-10 bg-gray-500 !text-white rounded-lg flex items-center justify-center hover:bg-gray-600 transition-colors flex-shrink-0"
+                                                            title="Cancel"
+                                                        >
+                                                            <X className="w-5 h-5" />
+                                                        </button>
+                                                    </>
+                                                ) : (
+                                                    <button
+                                                        type="button"
+                                                        onClick={handleSaveIncident}
+                                                        className="w-10 h-10 bg-gray-700 !text-white rounded-lg flex items-center justify-center hover:bg-gray-800 transition-colors flex-shrink-0"
+                                                        title="Add"
+                                                    >
+                                                        <Plus className="w-5 h-5" />
+                                                    </button>
+                                                )}
                                             </div>
                                         </div>
 
+                                        <p className="text-sm text-gray-500">Click row to edit • Drag to reorder</p>
+
                                         {/* Incidents Table */}
-                                        <div className="bg-white rounded-lg border border-gray-200 overflow-hidden">
-                                            <table className="w-full">
+                                        <div className="bg-white rounded-lg border border-gray-200 overflow-hidden overflow-x-auto">
+                                            <table className="w-full min-w-[1000px]">
                                                 <thead className="bg-gray-50 border-b border-gray-200">
                                                     <tr>
                                                         <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase">Claim/Accident No.</th>
@@ -2423,16 +3111,22 @@ const TrailersPage: React.FC = () => {
                                                         <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase">Location</th>
                                                         <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase">Date Time</th>
                                                         <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase">Weather</th>
+                                                        <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase">Files</th>
+                                                        <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase">Actions</th>
                                                     </tr>
                                                 </thead>
                                                 <tbody className="divide-y divide-gray-200">
                                                     {incidents.length === 0 ? (
                                                         <tr>
-                                                            <td colSpan={5} className="px-4 py-12 text-center text-gray-500 text-sm">No Data</td>
+                                                            <td colSpan={7} className="px-4 py-12 text-center text-gray-500 text-sm">No Data</td>
                                                         </tr>
                                                     ) : (
                                                         incidents.map((incident) => (
-                                                            <tr key={incident.id} className="hover:bg-gray-50 transition-colors">
+                                                            <tr 
+                                                                key={incident.id} 
+                                                                onClick={() => handleEditIncident(incident)}
+                                                                className="hover:bg-gray-50 transition-colors cursor-pointer"
+                                                            >
                                                                 <td className="px-4 py-3 text-sm text-gray-900">{incident.accidentNumber}</td>
                                                                 <td className="px-4 py-3 text-sm text-gray-900">
                                                                     {incident.driver || '-'}{incident.coDriver ? ` / ${incident.coDriver}` : ''}
@@ -2442,6 +3136,36 @@ const TrailersPage: React.FC = () => {
                                                                     {incident.date ? `${incident.date}${incident.time ? ` ${incident.time}` : ''}` : '-'}
                                                                 </td>
                                                                 <td className="px-4 py-3 text-sm text-gray-900">{incident.weather || '-'}</td>
+                                                                <td className="px-4 py-3 text-sm text-gray-900">
+                                                                    {incident.files && incident.files.length > 0 ? (
+                                                                        <div className="flex flex-col gap-1">
+                                                                            {incident.files.map((file, idx) => (
+                                                                                <span key={idx} className="flex items-center gap-1 text-gray-600">
+                                                                                    <FileText className="w-3 h-3" />
+                                                                                    <span className="text-xs">
+                                                                                        {file.name.length > 20 
+                                                                                            ? file.name.substring(0, 20) + '...' 
+                                                                                            : file.name}
+                                                                                    </span>
+                                                                                </span>
+                                                                            ))}
+                                                                        </div>
+                                                                    ) : (
+                                                                        <span className="text-gray-400">No files</span>
+                                                                    )}
+                                                                </td>
+                                                                <td className="px-4 py-3 text-sm">
+                                                                    <button
+                                                                        onClick={(e) => {
+                                                                            e.stopPropagation();
+                                                                            handleDeleteIncident(incident.id);
+                                                                        }}
+                                                                        className="text-red-600 hover:text-red-800 p-1"
+                                                                        title="Delete"
+                                                                    >
+                                                                        <Trash2 className="w-4 h-4" />
+                                                                    </button>
+                                                                </td>
                                                             </tr>
                                                         ))
                                                     )}
