@@ -408,6 +408,116 @@ const TrailersPage: React.FC = () => {
         }
     }, [yards]);
 
+    // Load trailer data when editing
+    useEffect(() => {
+        const loadTrailerForEdit = async () => {
+            if (!editingId) return;
+
+            try {
+                console.log('📥 Loading trailer for edit:', editingId);
+                const response = await getTrailerById(editingId);
+                
+                if (response?.success && response?.data) {
+                    const trailer = response.data;
+                    console.log('📋 Loaded trailer data:', trailer);
+
+                    // Load basic form data
+                    setFormData({
+                        unitNumber: trailer.unitNumber || '',
+                        trailer: trailer.trailer || '',
+                        vinNumber: trailer.vinNumber || '',
+                        plateNumber: trailer.plateNumber || '',
+                        make: trailer.make || '',
+                        model: trailer.model || '',
+                        year: trailer.year || '',
+                        weight: trailer.weight || '',
+                        uom: trailer.uom || 'Kg',
+                        registrationCountry: trailer.registrationCountry || '',
+                        registrationProvince: trailer.registrationProvince || '',
+                        type: trailer.type || '',
+                        status: trailer.status || 'In Service',
+                        ownership: trailer.ownership || 'COMPANY ASSET',
+                        subType: trailer.subType || '',
+                        yard: trailer.yard?._id || trailer.yard || ''
+                    });
+
+                    // Load image
+                    if (trailer.imageUrl || trailer.trailerImageUrl) {
+                        setSelectedImage(trailer.imageUrl || trailer.trailerImageUrl);
+                    }
+
+                    // Load inspections
+                    if (trailer.oneTimeInspections && Array.isArray(trailer.oneTimeInspections)) {
+                        const loadedInspections = trailer.oneTimeInspections.map((insp: any) => ({
+                            id: insp._id || Date.now().toString(),
+                            expiryDate: insp.expiryDate ? new Date(insp.expiryDate).toISOString().split('T')[0] : '',
+                            description: insp.description || '',
+                            ignoreExpiration: insp.ignoreExpiration || false,
+                            file: null,
+                            fileUrl: insp.fileUrl || null,
+                            fileName: insp.fileName || null,
+                            isExisting: true
+                        }));
+                        setOneTimeInspections(loadedInspections);
+                        console.log('✅ Loaded one-time inspections:', loadedInspections.length);
+                    }
+
+                    if (trailer.recurringInspections && Array.isArray(trailer.recurringInspections)) {
+                        const loadedInspections = trailer.recurringInspections.map((insp: any) => ({
+                            id: insp._id || Date.now().toString(),
+                            scheduledOn: insp.scheduledOn ? new Date(insp.scheduledOn).toISOString().split('T')[0] : '',
+                            after: insp.after || '',
+                            unit: insp.unit || '',
+                            description: insp.description || '',
+                            ignoreExpiration: insp.ignoreExpiration || false,
+                            file: null,
+                            fileUrl: insp.fileUrl || null,
+                            fileName: insp.fileName || null,
+                            isExisting: true
+                        }));
+                        setRecurringInspections(loadedInspections);
+                        console.log('✅ Loaded recurring inspections:', loadedInspections.length);
+                    }
+
+                    // Load incidents
+                    if (trailer.incidents && Array.isArray(trailer.incidents)) {
+                        const loadedIncidents = trailer.incidents.map((incident: any) => ({
+                            id: incident._id || Date.now().toString(),
+                            accidentNumber: incident.accidentNumber || '',
+                            driver: incident.driver?._id || incident.driver || '',
+                            coDriver: incident.coDriver?._id || incident.coDriver || '',
+                            location: incident.location || '',
+                            date: incident.date ? new Date(incident.date).toISOString().split('T')[0] : '',
+                            time: incident.time || '',
+                            weather: incident.weather || '',
+                            policeReport: incident.policeReport || '',
+                            accidentReport: incident.accidentReport || '',
+                            thirdPartyInfo: incident.thirdPartyInfo || '',
+                            files: incident.files || []
+                        }));
+                        setIncidents(loadedIncidents);
+                        console.log('✅ Loaded incidents:', loadedIncidents.length);
+                    }
+
+                    // Load notes
+                    if (trailer.notesArray && Array.isArray(trailer.notesArray)) {
+                        const loadedNotes = trailer.notesArray.map((note: any) => ({
+                            id: note._id || Date.now().toString(),
+                            note: note.note || '',
+                            category: note.category || ''
+                        }));
+                        setNotes(loadedNotes);
+                        console.log('✅ Loaded notes:', loadedNotes.length);
+                    }
+                }
+            } catch (error) {
+                console.error('❌ Error loading trailer for edit:', error);
+            }
+        };
+
+        loadTrailerForEdit();
+    }, [editingId]);
+
     // Inspection handlers
     const handleEditInspection = (inspection: any, type: 'oneTime' | 'recurring') => {
         setEditingInspectionId(inspection.id);
@@ -837,7 +947,10 @@ const TrailersPage: React.FC = () => {
             incidents.forEach((incident, index) => {
                 if (incident.files && incident.files.length > 0) {
                     incident.files.forEach((file) => {
-                        formDataToSend.append(`incidentFiles_${index}`, file);
+                        // Only append if it's a new File object, not an existing DB file
+                        if (file instanceof File) {
+                            formDataToSend.append(`incidentFiles_${index}`, file);
+                        }
                     });
                 }
             });
@@ -854,7 +967,8 @@ const TrailersPage: React.FC = () => {
                 accidentReport: inc.accidentReport,
                 thirdPartyInfo: inc.thirdPartyInfo,
                 fileCount: inc.files?.length || 0,
-                fileNames: inc.files?.map(f => f.name) || []
+                // Handle both File objects (new uploads) and DB file objects (existing)
+                fileNames: inc.files?.map(f => f instanceof File ? f.name : (f.fileName || '')) || []
             }));
 
             formDataToSend.append('incidents', JSON.stringify(incidentsData));
@@ -3139,16 +3253,39 @@ const TrailersPage: React.FC = () => {
                                                                 <td className="px-4 py-3 text-sm text-gray-900">
                                                                     {incident.files && incident.files.length > 0 ? (
                                                                         <div className="flex flex-col gap-1">
-                                                                            {incident.files.map((file, idx) => (
-                                                                                <span key={idx} className="flex items-center gap-1 text-gray-600">
-                                                                                    <FileText className="w-3 h-3" />
-                                                                                    <span className="text-xs">
-                                                                                        {file.name.length > 20 
-                                                                                            ? file.name.substring(0, 20) + '...' 
-                                                                                            : file.name}
+                                                                            {incident.files.map((file: any, idx: number) => {
+                                                                                // Handle both File objects (new uploads) and DB file objects (existing)
+                                                                                const fileName = file instanceof File ? file.name : (file.fileName || 'File');
+                                                                                const fileUrl = file.fileUrl || null;
+                                                                                
+                                                                                return fileUrl ? (
+                                                                                    <a
+                                                                                        key={idx}
+                                                                                        href={fileUrl}
+                                                                                        target="_blank"
+                                                                                        rel="noopener noreferrer"
+                                                                                        onClick={(e) => e.stopPropagation()}
+                                                                                        className="flex items-center gap-1 text-blue-600 hover:underline"
+                                                                                    >
+                                                                                        <FileText className="w-3 h-3" />
+                                                                                        <span className="text-xs">
+                                                                                            {fileName.length > 20 
+                                                                                                ? fileName.substring(0, 20) + '...' 
+                                                                                                : fileName}
+                                                                                        </span>
+                                                                                    </a>
+                                                                                ) : (
+                                                                                    <span key={idx} className="flex items-center gap-1 text-gray-600">
+                                                                                        <FileText className="w-3 h-3" />
+                                                                                        <span className="text-xs text-gray-500">
+                                                                                            {fileName.length > 20 
+                                                                                                ? fileName.substring(0, 20) + '...' 
+                                                                                                : fileName}
+                                                                                            {' (pending save)'}
+                                                                                        </span>
                                                                                     </span>
-                                                                                </span>
-                                                                            ))}
+                                                                                );
+                                                                            })}
                                                                         </div>
                                                                     ) : (
                                                                         <span className="text-gray-400">No files</span>
