@@ -3961,6 +3961,7 @@ const DriverManagement = () => {
                         </div>
                       </div>
 
+
                       {/* Configure Payroll Text - shown when OWNER OPERATOR is selected */}
                       {personalData.driverType === 'OWNER OPERATOR' && (
                         <p className="text-xs font-medium text-gray-900 mt-1.5">
