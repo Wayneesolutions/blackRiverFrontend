@@ -690,6 +690,20 @@ const EmployeesPage = () => {
         const parsedPhone = parsePhoneNumber(emp.phone || '', countries);
         setPhoneCountry(parsedPhone.countryCode);
 
+        // Helper function to safely convert date to YYYY-MM-DD format
+        const formatDateForInput = (dateValue: any): string => {
+          if (!dateValue) return '';
+          try {
+            const date = new Date(dateValue);
+            // Check if date is valid
+            if (isNaN(date.getTime())) return '';
+            return date.toISOString().split('T')[0];
+          } catch (error) {
+            console.error('Error formatting date:', error);
+            return '';
+          }
+        };
+
         // Load personal data - check both top-level and details object
         const personalDataToSet = {
           title: emp.details?.title || emp.title || '',
@@ -704,9 +718,9 @@ const EmployeesPage = () => {
           address: emp.location?.address || emp.address || '',
           country: emp.country || emp.location?.country || '',
           stateProvince: emp.state || emp.location?.state || '',
-          dateOfBirth: emp.details?.dateOfBirth ? new Date(emp.details.dateOfBirth).toISOString().split('T')[0] : (emp.dateOfBirth ? new Date(emp.dateOfBirth).toISOString().split('T')[0] : ''),
-          hireDate: emp.joinDate ? new Date(emp.joinDate).toISOString().split('T')[0] : (emp.details?.hireDate ? new Date(emp.details.hireDate).toISOString().split('T')[0] : ''),
-          terminationDate: emp.details?.termDate ? new Date(emp.details.termDate).toISOString().split('T')[0] : ''
+          dateOfBirth: formatDateForInput(emp.details?.dateOfBirth || emp.details?.dob || emp.dateOfBirth || emp.dob || ''),
+          hireDate: formatDateForInput(emp.joinDate || emp.details?.hireDate || ''),
+          terminationDate: formatDateForInput(emp.details?.termDate || '')
         };
 
         console.log('📋 Personal data to set:', personalDataToSet);
