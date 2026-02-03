@@ -81,14 +81,21 @@ interface Incident {
     city: string;
     stateProvince: string;
     country: 'usa' | 'canada';
+    streetAddress?: string;
   };
   incidentType: string;
   incidentStatus: 'open' | 'under-review' | 'closed';
+  incidentId?: string;
   caseFileNumber?: string;
   supportingMedia?: string[];
 
   // Personnel Details
   driver: {
+    _id: string;
+    name?: string;
+    email?: string;
+  } | string;
+  coDriver?: {
     _id: string;
     name?: string;
     email?: string;
@@ -115,6 +122,10 @@ interface Incident {
   witnessInfo?: string;
   policeReportNumber?: string;
   notes?: string;
+  // Accident-related fields
+  accidentReport?: string | { fileName: string; signedUrl: string | null };
+  accidentPictures?: string[] | Array<{ fileName: string; signedUrl: string | null }>;
+  accidentVideo?: string | { fileName: string; signedUrl: string | null };
   createdAt: string;
 }
 
@@ -486,6 +497,15 @@ const Incidents: React.FC = () => {
     return driver?.name || 'N/A';
   };
 
+  const getCoDriverName = (coDriver: Incident['coDriver']): string => {
+    if (!coDriver) return 'N/A';
+    if (typeof coDriver === 'string') {
+      const found = drivers.find(d => d._id === coDriver);
+      return found?.name || coDriver;
+    }
+    return coDriver?.name || 'N/A';
+  };
+
   const getStatusIcon = (status: string) => {
     switch (status) {
       case 'open':
@@ -559,14 +579,14 @@ const Incidents: React.FC = () => {
         city: incident.location?.city || '',
         stateProvince: incident.location?.stateProvince || '',
         country: incident.location?.country || 'usa',
-        streetAddress: (incident.location as any)?.streetAddress || ''
+        streetAddress: incident.location?.streetAddress || ''
       },
       incidentType: incident.incidentType || '',
       incidentStatus: incident.incidentStatus || 'open',
-      incidentId: (incident as any).incidentId || '',
+      incidentId: incident.incidentId || '',
       caseFileNumber: incident.caseFileNumber || '',
       driver: typeof incident.driver === 'string' ? incident.driver : incident.driver?._id || '',
-      coDriver: (incident as any).coDriver || '',
+      coDriver: typeof incident.coDriver === 'string' ? incident.coDriver : incident.coDriver?._id || '',
       driversLicense: incident.driversLicense || '',
       reportingParty: incident.reportingParty || '',
       unitNumber: incident.unitNumber || '',
@@ -583,9 +603,9 @@ const Incidents: React.FC = () => {
       fmcsaReportable: incident.fmcsaReportable || false,
       fmcsaNotes: incident.fmcsaNotes || '',
       notes: incident.notes || '',
-      accidentReport: (incident as any).accidentReport || '',
+      accidentReport: typeof incident.accidentReport === 'string' ? incident.accidentReport : (incident.accidentReport?.fileName || ''),
       accidentPictures: [],
-      accidentVideo: undefined
+      accidentVideo: typeof incident.accidentVideo === 'string' ? (incident.accidentVideo ? { name: incident.accidentVideo } as File : undefined) : (incident.accidentVideo?.fileName ? { name: incident.accidentVideo.fileName } as File : undefined)
     });
     setShowEditModal(true);
   };
@@ -1913,66 +1933,377 @@ const Incidents: React.FC = () => {
         {showViewModal && selectedIncident && (
           <>
             <div className="fixed inset-0 bg-gray-900/50 backdrop-blur-sm z-[100] transition-all duration-300" onClick={() => setShowViewModal(false)} />
-            <div className="fixed top-0 right-0 h-full w-full sm:w-[500px] bg-white shadow-2xl transform transition-transform duration-300 ease-out z-[101] border-l border-gray-200 overflow-y-auto">
-              <div className="sticky top-0 bg-white border-b px-4 py-3 z-10">
+            <div className="fixed top-0 right-0 h-full w-full sm:w-[600px] lg:w-[700px] bg-white shadow-2xl transform transition-transform duration-300 ease-out z-[101] border-l border-gray-200 overflow-y-auto">
+              <div className="sticky top-0 bg-white border-b px-6 py-4 z-10 shadow-sm">
                 <div className="flex justify-between items-center">
-                  <h3 className="text-base font-bold text-gray-800">{selectedIncident.incidentNumber || 'N/A'}</h3>
-                  <button onClick={() => setShowViewModal(false)} className="p-1.5 hover:bg-gray-100 rounded transition-colors">
-                    <FaTimesCircle className="text-gray-500" size={18} />
+                  <div>
+                    <h3 className="text-lg font-bold text-gray-800">{selectedIncident.incidentNumber || 'N/A'}</h3>
+                    <p className="text-xs text-gray-500 mt-1">{selectedIncident.incidentType || 'N/A'}</p>
+                  </div>
+                  <button onClick={() => setShowViewModal(false)} className="p-2 hover:bg-gray-100 rounded-full transition-colors">
+                    <FaTimesCircle className="text-gray-500" size={20} />
                   </button>
                 </div>
               </div>
 
-              <div className="p-3 space-y-2">
-                {/* Display all incident fields in read-only mode */}
-                <div className="bg-gray-50 rounded-lg p-3">
-                  <h4 className="text-sm font-bold text-gray-800 mb-2">Incident Info</h4>
-                  <div className="grid grid-cols-1 gap-2">
+              <div className="p-6 space-y-4">
+                {/* Essential Incident Details */}
+                <div className="bg-gray-50 rounded-lg p-4 border border-gray-200">
+                  <h4 className="text-sm font-bold text-gray-800 mb-3 flex items-center gap-2">
+                    <FaInfoCircle className="text-[var(--accent-color)]" size={16} />
+                    Essential Incident Details
+                  </h4>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                     <div>
-                      <label className="block text-xs font-medium text-gray-600 mb-0.5">Incident Number</label>
+                      <label className="block text-xs font-medium text-gray-600 mb-1">Incident Number</label>
                       <p className="text-sm font-semibold text-gray-800">{selectedIncident.incidentNumber || 'N/A'}</p>
                     </div>
                     <div>
-                      <label className="block text-xs font-medium text-gray-600 mb-0.5">Date/Time</label>
+                      <label className="block text-xs font-medium text-gray-600 mb-1">Incident ID</label>
+                      <p className="text-sm font-semibold text-gray-800">{selectedIncident.incidentId || 'N/A'}</p>
+                    </div>
+                    <div>
+                      <label className="block text-xs font-medium text-gray-600 mb-1">Date/Time</label>
                       <p className="text-sm font-semibold text-gray-800">{selectedIncident.incidentDateTime ? formatDate(selectedIncident.incidentDateTime) : 'N/A'}</p>
                     </div>
                     <div>
-                      <label className="block text-xs font-medium text-gray-600 mb-0.5">Type</label>
-                      <p className="text-sm font-semibold text-gray-800">{selectedIncident.incidentType || 'N/A'}</p>
-                    </div>
-                    <div>
-                      <label className="block text-xs font-medium text-gray-600 mb-0.5">Status</label>
+                      <label className="block text-xs font-medium text-gray-600 mb-1">Status</label>
                       <div className="flex items-center gap-2">
                         {getStatusIcon(selectedIncident.incidentStatus)}
-                        <span className={`text-xs px-2 py-0.5 rounded-full font-semibold border ${getStatusBadgeColor(selectedIncident.incidentStatus)}`}>
+                        <span className={`text-xs px-2 py-1 rounded-full font-semibold border ${getStatusBadgeColor(selectedIncident.incidentStatus)}`}>
                           {selectedIncident.incidentStatus?.toUpperCase().replace('-', ' ') || 'N/A'}
                         </span>
                       </div>
                     </div>
                     <div>
-                      <label className="block text-xs font-medium text-gray-600 mb-0.5">Location</label>
-                      <p className="text-sm font-semibold text-gray-800">
-                        {selectedIncident.location?.city || ''}{selectedIncident.location?.city && selectedIncident.location?.stateProvince ? ', ' : ''}
-                        {selectedIncident.location?.stateProvince || ''}
-                        {selectedIncident.location?.country ? ` (${selectedIncident.location.country.toUpperCase()})` : ''}
-                      </p>
+                      <label className="block text-xs font-medium text-gray-600 mb-1">Case/File Number</label>
+                      <p className="text-sm font-semibold text-gray-800">{selectedIncident.caseFileNumber || 'N/A'}</p>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Location Details */}
+                <div className="bg-gray-50 rounded-lg p-4 border border-gray-200">
+                  <h4 className="text-sm font-bold text-gray-800 mb-3 flex items-center gap-2">
+                    <FaMapMarkerAlt className="text-[var(--accent-color)]" size={16} />
+                    Location Details
+                  </h4>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                    <div>
+                      <label className="block text-xs font-medium text-gray-600 mb-1">Street Address</label>
+                      <p className="text-sm text-gray-800">{selectedIncident.location?.streetAddress || 'N/A'}</p>
                     </div>
                     <div>
-                      <label className="block text-xs font-medium text-gray-600 mb-0.5">Driver</label>
+                      <label className="block text-xs font-medium text-gray-600 mb-1">City</label>
+                      <p className="text-sm text-gray-800">{selectedIncident.location?.city || 'N/A'}</p>
+                    </div>
+                    <div>
+                      <label className="block text-xs font-medium text-gray-600 mb-1">
+                        {selectedIncident.location?.country === 'canada' ? 'Province' : 'State'}
+                      </label>
+                      <p className="text-sm text-gray-800">{selectedIncident.location?.stateProvince || 'N/A'}</p>
+                    </div>
+                    <div>
+                      <label className="block text-xs font-medium text-gray-600 mb-1">Country</label>
+                      <p className="text-sm text-gray-800">{selectedIncident.location?.country?.toUpperCase() || 'N/A'}</p>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Personnel Details */}
+                <div className="bg-gray-50 rounded-lg p-4 border border-gray-200">
+                  <h4 className="text-sm font-bold text-gray-800 mb-3 flex items-center gap-2">
+                    <FaUser className="text-[var(--accent-color)]" size={16} />
+                    Personnel Details
+                  </h4>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                    <div>
+                      <label className="block text-xs font-medium text-gray-600 mb-1">Driver</label>
                       <p className="text-sm font-semibold text-gray-800">{getDriverName(selectedIncident.driver)}</p>
                     </div>
-                    {selectedIncident.description && (
-                      <div>
-                        <label className="block text-xs font-medium text-gray-600 mb-0.5">Description</label>
-                        <p className="text-xs text-gray-800">{selectedIncident.description}</p>
+                    <div>
+                      <label className="block text-xs font-medium text-gray-600 mb-1">Co-Driver</label>
+                      <p className="text-sm font-semibold text-gray-800">{getCoDriverName(selectedIncident.coDriver)}</p>
+                    </div>
+                    <div>
+                      <label className="block text-xs font-medium text-gray-600 mb-1">Driver's License</label>
+                      <p className="text-sm text-gray-800">{selectedIncident.driversLicense || 'N/A'}</p>
+                    </div>
+                    <div>
+                      <label className="block text-xs font-medium text-gray-600 mb-1">Reporting Party</label>
+                      <p className="text-sm text-gray-800">{selectedIncident.reportingParty || 'N/A'}</p>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Equipment Details */}
+                <div className="bg-gray-50 rounded-lg p-4 border border-gray-200">
+                  <h4 className="text-sm font-bold text-gray-800 mb-3">Equipment Details</h4>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                    <div>
+                      <label className="block text-xs font-medium text-gray-600 mb-1">Unit Number</label>
+                      <p className="text-sm text-gray-800">{selectedIncident.unitNumber || 'N/A'}</p>
+                    </div>
+                    <div>
+                      <label className="block text-xs font-medium text-gray-600 mb-1">Trailer Number</label>
+                      <p className="text-sm text-gray-800">{selectedIncident.trailerNumber || 'N/A'}</p>
+                    </div>
+                    <div>
+                      <label className="block text-xs font-medium text-gray-600 mb-1">VIN/Plate Number</label>
+                      <p className="text-sm text-gray-800">{selectedIncident.vinPlateNumber || 'N/A'}</p>
+                    </div>
+                    {selectedIncident.damageDescription && (
+                      <div className="md:col-span-2">
+                        <label className="block text-xs font-medium text-gray-600 mb-1">Damage Description</label>
+                        <p className="text-sm text-gray-800 whitespace-pre-wrap">{selectedIncident.damageDescription}</p>
                       </div>
+                    )}
+                  </div>
+                </div>
+
+                {/* Description */}
+                {selectedIncident.description && (
+                  <div className="bg-gray-50 rounded-lg p-4 border border-gray-200">
+                    <h4 className="text-sm font-bold text-gray-800 mb-2">Description</h4>
+                    <p className="text-sm text-gray-800 whitespace-pre-wrap">{selectedIncident.description}</p>
+                  </div>
+                )}
+
+                {/* Witness Information */}
+                {selectedIncident.witnessInfo && (
+                  <div className="bg-gray-50 rounded-lg p-4 border border-gray-200">
+                    <h4 className="text-sm font-bold text-gray-800 mb-2">Witness Information</h4>
+                    <p className="text-sm text-gray-800 whitespace-pre-wrap">{selectedIncident.witnessInfo}</p>
+                  </div>
+                )}
+
+                {/* Police Report */}
+                {selectedIncident.policeReportNumber && (
+                  <div className="bg-gray-50 rounded-lg p-4 border border-gray-200">
+                    <h4 className="text-sm font-bold text-gray-800 mb-2">Police Report</h4>
+                    <p className="text-sm text-gray-800">Report Number: {selectedIncident.policeReportNumber}</p>
+                  </div>
+                )}
+
+                {/* Accident-Related Fields */}
+                {(selectedIncident.accidentReport || selectedIncident.accidentPictures?.length || selectedIncident.accidentVideo) && (
+                  <div className="bg-gray-50 rounded-lg p-4 border border-gray-200">
+                    <h4 className="text-sm font-bold text-gray-800 mb-3 flex items-center gap-2">
+                      <FaExclamationTriangle className="text-red-600" size={16} />
+                      Accident Details
+                    </h4>
+                    {selectedIncident.accidentReport && (() => {
+                      const report = typeof selectedIncident.accidentReport === 'string' 
+                        ? { fileName: selectedIncident.accidentReport, signedUrl: null }
+                        : selectedIncident.accidentReport;
+                      return (
+                        <div className="mb-3">
+                          <label className="block text-xs font-medium text-gray-600 mb-1">Accident Report</label>
+                          {report.signedUrl ? (
+                            <a
+                              href={report.signedUrl}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="flex items-center gap-2 text-blue-600 hover:text-blue-800 hover:underline"
+                            >
+                              <FaFileAlt className="text-blue-500" size={14} />
+                              <span className="text-sm">{report.fileName}</span>
+                            </a>
+                          ) : (
+                            <div className="flex items-center gap-2">
+                              <FaFileAlt className="text-blue-500" size={14} />
+                              <span className="text-sm text-gray-800">{report.fileName}</span>
+                            </div>
+                          )}
+                        </div>
+                      );
+                    })()}
+                    {selectedIncident.accidentPictures && selectedIncident.accidentPictures.length > 0 && (
+                      <div className="mb-3">
+                        <label className="block text-xs font-medium text-gray-600 mb-2">Accident Pictures</label>
+                        <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
+                          {selectedIncident.accidentPictures.map((picture, idx) => {
+                            const pic = typeof picture === 'string' 
+                              ? { fileName: picture, signedUrl: null }
+                              : picture;
+                            return (
+                              <div key={idx} className="relative group">
+                                {pic.signedUrl ? (
+                                  <a
+                                    href={pic.signedUrl}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="block aspect-square bg-gray-200 rounded-lg overflow-hidden hover:opacity-90 transition-opacity cursor-pointer"
+                                  >
+                                    <img
+                                      src={pic.signedUrl}
+                                      alt={pic.fileName}
+                                      className="w-full h-full object-cover"
+                                      onError={(e) => {
+                                        e.currentTarget.style.display = 'none';
+                                        e.currentTarget.nextElementSibling?.classList.remove('hidden');
+                                      }}
+                                    />
+                                    <div className="hidden aspect-square bg-gray-200 rounded-lg flex items-center justify-center">
+                                      <FaImage className="text-gray-400" size={24} />
+                                    </div>
+                                  </a>
+                                ) : (
+                                  <div className="aspect-square bg-gray-200 rounded-lg flex items-center justify-center overflow-hidden">
+                                    <FaImage className="text-gray-400" size={24} />
+                                  </div>
+                                )}
+                                <p className="text-xs text-gray-600 mt-1 truncate">{pic.fileName}</p>
+                              </div>
+                            );
+                          })}
+                        </div>
+                      </div>
+                    )}
+                    {selectedIncident.accidentVideo && (() => {
+                      const video = typeof selectedIncident.accidentVideo === 'string' 
+                        ? { fileName: selectedIncident.accidentVideo, signedUrl: null }
+                        : selectedIncident.accidentVideo;
+                      return (
+                        <div>
+                          <label className="block text-xs font-medium text-gray-600 mb-1">Accident Video</label>
+                          {video.signedUrl ? (
+                            <a
+                              href={video.signedUrl}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="flex items-center gap-2 text-blue-600 hover:text-blue-800 hover:underline"
+                            >
+                              <FaVideo className="text-red-500" size={14} />
+                              <span className="text-sm">{video.fileName}</span>
+                            </a>
+                          ) : (
+                            <div className="flex items-center gap-2">
+                              <FaVideo className="text-red-500" size={14} />
+                              <span className="text-sm text-gray-800">{video.fileName}</span>
+                            </div>
+                          )}
+                        </div>
+                      );
+                    })()}
+                  </div>
+                )}
+
+                {/* Supporting Media */}
+                {selectedIncident.supportingMedia && selectedIncident.supportingMedia.length > 0 && (
+                  <div className="bg-gray-50 rounded-lg p-4 border border-gray-200">
+                    <h4 className="text-sm font-bold text-gray-800 mb-3 flex items-center gap-2">
+                      <FaImage className="text-[var(--accent-color)]" size={16} />
+                      Supporting Media
+                    </h4>
+                    <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
+                      {selectedIncident.supportingMedia.map((media, idx) => (
+                        <div key={idx} className="relative group">
+                          <div className="aspect-square bg-gray-200 rounded-lg flex items-center justify-center overflow-hidden">
+                            <FaImage className="text-gray-400" size={24} />
+                          </div>
+                          <p className="text-xs text-gray-600 mt-1 truncate">{media}</p>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* Investigation & Follow-up */}
+                {(selectedIncident.actionTakenLog?.length || selectedIncident.preventativeMeasures || selectedIncident.costTracking?.length || selectedIncident.cvsaDotImpact || selectedIncident.fmcsaReportable) && (
+                  <div className="bg-gray-50 rounded-lg p-4 border border-gray-200">
+                    <h4 className="text-sm font-bold text-gray-800 mb-3">Investigation & Follow-up</h4>
+                    {selectedIncident.actionTakenLog && selectedIncident.actionTakenLog.length > 0 && (
+                      <div className="mb-3">
+                        <label className="block text-xs font-medium text-gray-600 mb-2">Action Taken Log</label>
+                        <div className="space-y-2">
+                          {selectedIncident.actionTakenLog.map((action, idx) => (
+                            <div key={idx} className="bg-white p-2 rounded border border-gray-200">
+                              <div className="flex justify-between items-start mb-1">
+                                <span className="text-xs font-semibold text-gray-800">{new Date(action.date).toLocaleDateString()}</span>
+                                <span className="text-xs text-gray-600">By: {action.takenBy}</span>
+                              </div>
+                              <p className="text-xs text-gray-800">{action.action}</p>
+                              {action.notes && <p className="text-xs text-gray-600 mt-1">{action.notes}</p>}
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                    {selectedIncident.preventativeMeasures && (
+                      <div className="mb-3">
+                        <label className="block text-xs font-medium text-gray-600 mb-1">Preventative Measures</label>
+                        <p className="text-sm text-gray-800 whitespace-pre-wrap">{selectedIncident.preventativeMeasures}</p>
+                      </div>
+                    )}
+                    {selectedIncident.costTracking && selectedIncident.costTracking.length > 0 && (
+                      <div className="mb-3">
+                        <label className="block text-xs font-medium text-gray-600 mb-2">Cost Tracking</label>
+                        <div className="space-y-2">
+                          {selectedIncident.costTracking.map((cost, idx) => (
+                            <div key={idx} className="bg-white p-2 rounded border border-gray-200">
+                              <div className="flex justify-between items-center mb-1">
+                                <span className="text-xs font-semibold text-gray-800">{cost.category}</span>
+                                <span className="text-xs text-gray-600">
+                                  Est: ${cost.estimated?.toLocaleString() || '0'}
+                                  {cost.actual !== undefined && ` | Actual: $${cost.actual.toLocaleString()}`}
+                                </span>
+                              </div>
+                              {cost.notes && <p className="text-xs text-gray-600">{cost.notes}</p>}
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                    <div className="grid grid-cols-2 gap-3">
+                      <div>
+                        <label className="block text-xs font-medium text-gray-600 mb-1">CVSA/DOT Impact</label>
+                        <p className="text-sm text-gray-800">{selectedIncident.cvsaDotImpact ? 'Yes' : 'No'}</p>
+                      </div>
+                      <div>
+                        <label className="block text-xs font-medium text-gray-600 mb-1">FMCSA Reportable</label>
+                        <p className="text-sm text-gray-800">{selectedIncident.fmcsaReportable ? 'Yes' : 'No'}</p>
+                      </div>
+                    </div>
+                    {selectedIncident.fmcsaNotes && (
+                      <div className="mt-3">
+                        <label className="block text-xs font-medium text-gray-600 mb-1">FMCSA Notes</label>
+                        <p className="text-sm text-gray-800 whitespace-pre-wrap">{selectedIncident.fmcsaNotes}</p>
+                      </div>
+                    )}
+                  </div>
+                )}
+
+                {/* Notes */}
+                {selectedIncident.notes && (
+                  <div className="bg-gray-50 rounded-lg p-4 border border-gray-200">
+                    <h4 className="text-sm font-bold text-gray-800 mb-2">Additional Notes</h4>
+                    <p className="text-sm text-gray-800 whitespace-pre-wrap">{selectedIncident.notes}</p>
+                  </div>
+                )}
+
+                {/* Created At */}
+                <div className="bg-gray-50 rounded-lg p-4 border border-gray-200">
+                  <div className="flex justify-between items-center text-xs text-gray-600">
+                    <span>Created: {selectedIncident.createdAt ? new Date(selectedIncident.createdAt).toLocaleString() : 'N/A'}</span>
+                    {(selectedIncident as any).updatedAt && (
+                      <span>Updated: {new Date((selectedIncident as any).updatedAt).toLocaleString()}</span>
                     )}
                   </div>
                 </div>
               </div>
 
-              <div className="sticky bottom-0 bg-gray-50 px-3 py-2 flex justify-end gap-2 border-t">
-                <button onClick={() => setShowViewModal(false)} className="px-4 py-1.5 text-xs bg-white border border-gray-300 text-gray-700 rounded hover:bg-gray-50 font-medium transition-colors">
+              <div className="sticky bottom-0 bg-white px-6 py-4 flex justify-end gap-3 border-t shadow-lg">
+                <button 
+                  onClick={() => {
+                    setShowViewModal(false);
+                    handleEditIncident(selectedIncident);
+                  }} 
+                  className="px-4 py-2 bg-[var(--accent-color)] !text-white rounded-lg hover:bg-[var(--accent-dark)] font-medium transition-colors text-sm"
+                >
+                  Edit
+                </button>
+                <button onClick={() => setShowViewModal(false)} className="px-4 py-2 bg-white border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 font-medium transition-colors text-sm">
                   Close
                 </button>
               </div>
