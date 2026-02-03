@@ -203,7 +203,13 @@ const ExpensesPage = () => {
     try {
       const response = await listExpenseTypes(categoryId);
       if (response?.success && Array.isArray(response.data)) {
-        setExpenseTypes(response.data.filter((type: ExpenseType) => type.status === 'active'));
+        // Normalize categoryId to string for all types
+        const normalizedTypes = response.data.map((type: any) => ({
+          ...type,
+          categoryId: type.categoryId?._id || type.categoryId?.toString() || type.categoryId || ''
+        }));
+        // Show all types (both active and inactive) for management, but filter active ones for selection
+        setExpenseTypes(normalizedTypes);
       } else {
         // If API doesn't exist yet, use default types based on category
         const defaultTypes: Record<string, ExpenseType[]> = {
@@ -306,15 +312,18 @@ const ExpensesPage = () => {
   // Expense Type Management Functions
   const handleOpenTypeModal = async (type?: ExpenseType) => {
     if (type) {
+      // Normalize categoryId to string
+      const categoryId = type.categoryId?.toString() || type.categoryId || '';
       setEditingType(type);
-      setTypeFormData({ name: type.name, categoryId: type.categoryId, status: type.status });
+      setTypeFormData({ name: type.name, categoryId: categoryId, status: type.status });
       // Fetch types for the category
-      if (type.categoryId) {
-        await fetchExpenseTypes(type.categoryId);
+      if (categoryId) {
+        await fetchExpenseTypes(categoryId);
       }
     } else {
       setEditingType(null);
       setTypeFormData({ name: '', categoryId: '', status: 'active' });
+      setExpenseTypes([]);
     }
     setShowTypeModal(true);
   };
@@ -349,14 +358,21 @@ const ExpensesPage = () => {
 
       if (response?.success) {
         addNotification('success', editingType ? 'Expense type updated successfully' : 'Expense type created successfully');
-        setShowTypeModal(false);
-        setEditingType(null);
-        setTypeFormData({ name: '', categoryId: '', status: 'active' });
-        // Refresh types if we're viewing a category
+        // Refresh types for the category that was just modified
+        if (typeFormData.categoryId) {
+          await fetchExpenseTypes(typeFormData.categoryId);
+        }
+        // Also refresh types if we're viewing a category in the expense form
         if (formData.categoryId) {
           await fetchExpenseTypes(formData.categoryId);
         }
         await fetchCategories();
+        // Keep modal open if editing, close if creating new
+        if (!editingType) {
+          setShowTypeModal(false);
+          setEditingType(null);
+          setTypeFormData({ name: '', categoryId: '', status: 'active' });
+        }
       } else {
         addNotification('error', response?.message || 'Failed to save expense type');
       }
@@ -373,10 +389,19 @@ const ExpensesPage = () => {
 
     setLoading(true);
     try {
-      const response = await deleteExpenseType(deleteTypeConfirm.type._id);
+      const deletedType = deleteTypeConfirm.type;
+      const categoryId = deletedType.categoryId?.toString() || deletedType.categoryId || '';
+      
+      const response = await deleteExpenseType(deletedType._id);
       if (response?.success) {
         addNotification('success', 'Expense type deleted successfully');
         setDeleteTypeConfirm({ show: false, type: null });
+        
+        // Refresh types for the category that had the deleted type
+        if (categoryId) {
+          await fetchExpenseTypes(categoryId);
+        }
+        // Also refresh types if we're viewing a category in the expense form
         if (formData.categoryId) {
           await fetchExpenseTypes(formData.categoryId);
         }
@@ -1844,7 +1869,17 @@ const ExpensesPage = () => {
                   </div>
 
                   <div>
-                 
+                    <label className="block text-sm font-semibold text-gray-700 mb-2">
+                      Status
+                    </label>
+                    <select
+                      value={typeFormData.status}
+                      onChange={(e) => setTypeFormData(prev => ({ ...prev, status: e.target.value as 'active' | 'inactive' }))}
+                      className="w-full border border-gray-300 rounded-lg px-4 py-2.5 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all"
+                    >
+                      <option value="active">Active</option>
+                      <option value="inactive">Inactive</option>
+                    </select>
                   </div>
                 </div>
 
@@ -1853,23 +1888,47 @@ const ExpensesPage = () => {
                   <div>
                     <div className="flex items-center justify-between mb-4">
                       <h3 className="text-lg font-semibold text-gray-900">
-                        Types in {categories.find(c => c._id === typeFormData.categoryId)?.name || 'Selected Category'}
+                        Types in {categories.find(c => {
+                          const catId = c._id?.toString() || c._id || '';
+                          const formCatId = typeFormData.categoryId?.toString() || typeFormData.categoryId || '';
+                          return catId === formCatId;
+                        })?.name || 'Selected Category'}
                       </h3>
                       <span className="text-sm text-gray-500">
-                        {expenseTypes.filter(type => type.categoryId === typeFormData.categoryId).length} {expenseTypes.filter(type => type.categoryId === typeFormData.categoryId).length === 1 ? 'type' : 'types'}
+                        {expenseTypes.filter(type => {
+                          const typeCategoryId = type.categoryId?.toString() || type.categoryId || '';
+                          const formCategoryId = typeFormData.categoryId?.toString() || typeFormData.categoryId || '';
+                          return typeCategoryId === formCategoryId;
+                        }).length} {expenseTypes.filter(type => {
+                          const typeCategoryId = type.categoryId?.toString() || type.categoryId || '';
+                          const formCategoryId = typeFormData.categoryId?.toString() || typeFormData.categoryId || '';
+                          return typeCategoryId === formCategoryId;
+                        }).length === 1 ? 'type' : 'types'}
                       </span>
                     </div>
                     <div className="space-y-2 max-h-64 overflow-y-auto pr-2">
                       {expenseTypes
-                        .filter(type => type.categoryId === typeFormData.categoryId)
+                        .filter(type => {
+                          const typeCategoryId = type.categoryId?.toString() || type.categoryId || '';
+                          const formCategoryId = typeFormData.categoryId?.toString() || typeFormData.categoryId || '';
+                          return typeCategoryId === formCategoryId;
+                        })
                         .map((type) => (
                           <div
                             key={type._id}
                             className="flex items-center justify-between p-4 bg-white border border-gray-200 rounded-lg hover:border-gray-300 hover:shadow-sm transition-all"
                           >
                             <div className="flex-1">
-                              <p className="text-sm font-semibold text-gray-900">{type.name}</p>
-                             
+                              <div className="flex items-center gap-2">
+                                <p className="text-sm font-semibold text-gray-900">{type.name}</p>
+                                <span className={`px-2 py-0.5 text-xs rounded-full ${
+                                  type.status === 'active' 
+                                    ? 'bg-green-100 text-green-700' 
+                                    : 'bg-gray-100 text-gray-600'
+                                }`}>
+                                  {type.status === 'active' ? 'Active' : 'Inactive'}
+                                </span>
+                              </div>
                             </div>
                             <div className="flex items-center gap-2">
                               <button
@@ -1889,7 +1948,11 @@ const ExpensesPage = () => {
                             </div>
                           </div>
                         ))}
-                      {expenseTypes.filter(type => type.categoryId === typeFormData.categoryId).length === 0 && (
+                      {expenseTypes.filter(type => {
+                        const typeCategoryId = type.categoryId?.toString() || type.categoryId || '';
+                        const formCategoryId = typeFormData.categoryId?.toString() || typeFormData.categoryId || '';
+                        return typeCategoryId === formCategoryId;
+                      }).length === 0 && (
                         <div className="text-center py-8 bg-gray-50 rounded-lg border-2 border-dashed border-gray-300">
                           <FileText className="mx-auto mb-2 text-gray-400" size={32} />
                           <p className="text-sm text-gray-500">No types in this category yet</p>

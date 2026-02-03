@@ -302,7 +302,7 @@ const TrailersPage: React.FC = () => {
                         note: trailer.note || trailer.notes || '',
                         operatingStatus: (trailer.operationStatus || trailer.operatingStatus || 'IN SERVICE') as 'IN SERVICE' | 'OUT OF SERVICE' | 'MAINTENANCE',
                         loadedStatus: (trailer.loadedStatus || 'IDLE') as 'LOADED' | 'IDLE' | 'SCHEDULED',
-                        compliance: (trailer.compliance || 'COMPLIANT') as 'COMPLIANT' | 'NON-COMPLIANT' | 'EXPIRING SOON',
+                        compliance: (trailer.compliance || 'NON-COMPLIANT') as 'COMPLIANT' | 'NON-COMPLIANT' | 'EXPIRING SOON',
                         category: trailer.category,
                         imageUrl: trailer.imageUrl || trailer.trailerImageUrl,
                         make: trailer.make,
@@ -523,6 +523,26 @@ const TrailersPage: React.FC = () => {
                         }));
                         setNotes(loadedNotes);
                         console.log('✅ Loaded notes:', loadedNotes.length);
+                    }
+
+                    // Load invoices
+                    if (trailer.invoices && Array.isArray(trailer.invoices) && trailer.invoices.length > 0) {
+                        const loadedInvoices = trailer.invoices.map((invoice: any, index: number) => ({
+                            id: invoice._id || `invoice-${index}`,
+                            _id: invoice._id,
+                            invoiceNumber: invoice.invoiceNumber || '',
+                            vendorWorkshop: invoice.vendorWorkshop || '',
+                            amount: invoice.amount || '',
+                            invoiceDate: invoice.invoiceDate ? new Date(invoice.invoiceDate).toISOString().split('T')[0] : '',
+                            file: null,
+                            fileUrl: invoice.fileUrl || null,
+                            fileName: invoice.fileName || null,
+                            notes: invoice.notes || ''
+                        }));
+                        setInvoices(loadedInvoices);
+                        console.log('✅ Loaded invoices:', loadedInvoices.length);
+                    } else {
+                        setInvoices([]);
                     }
                 }
             } catch (error) {
@@ -859,6 +879,27 @@ const TrailersPage: React.FC = () => {
             formDataToSend.append('oneTimeInspections', JSON.stringify(oneTimeInspectionsData));
             formDataToSend.append('recurringInspections', JSON.stringify(recurringInspectionsData));
 
+            // Handle invoices with files
+            console.log('🔍 [TRAILER] Processing invoices:', invoices);
+            invoices.forEach((invoice, index) => {
+                if (invoice.file) {
+                    console.log(`📎 [TRAILER] Appending file for invoice ${index}:`, invoice.file.name);
+                    formDataToSend.append(`invoiceFiles`, invoice.file);
+                }
+            });
+            formDataToSend.append('invoices', JSON.stringify(invoices.map((invoice) => {
+                const hasNewFile = !!invoice.file;
+                return {
+                    invoiceNumber: invoice.invoiceNumber,
+                    vendorWorkshop: invoice.vendorWorkshop,
+                    amount: invoice.amount,
+                    invoiceDate: invoice.invoiceDate,
+                    notes: invoice.notes,
+                    fileName: invoice.fileName,
+                    fileUrl: invoice.fileUrl,
+                    hasFile: hasNewFile
+                };
+            })));
 
             // Append notes
             const notesData = notes.map((note) => ({
@@ -1062,7 +1103,7 @@ const TrailersPage: React.FC = () => {
                         notes: trailer.notes || trailer.note || '',
                         operatingStatus: trailer.operationStatus || 'IN SERVICE',
                         loadedStatus: trailer.loadedStatus || 'IDLE',
-                        compliance: trailer.compliance || 'COMPLIANT',
+                        compliance: trailer.compliance || 'NON-COMPLIANT',
                         category: trailer.category,
                         imageUrl: trailer.imageUrl || trailer.trailerImageUrl,
                         yard: trailer.yard || null

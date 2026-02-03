@@ -519,7 +519,7 @@ const Trucks: React.FC = () => {
                         ownership: truck.ownership || truck.ownerShip || 'COMPANY ASSET',
                         notes: truck.notes || truck.note || '',
                         operatingStatus: (truck.operationStatus || truck.operatingStatus || 'IN SERVICE') as 'IN SERVICE' | 'OUT OF SERVICE' | 'MAINTENANCE',
-                        compliance: (truck.compliance || 'COMPLIANT') as 'COMPLIANT' | 'NON-COMPLIANT' | 'EXPIRING SOON',
+                        compliance: (truck.compliance || 'NON-COMPLIANT') as 'COMPLIANT' | 'NON-COMPLIANT' | 'EXPIRING SOON',
                         category: truck.category,
                         imageUrl: truck.imageUrl,
                         make: truck.make,
@@ -813,6 +813,24 @@ const Trucks: React.FC = () => {
                         setNotes([]);
                     }
                     
+                    // Load invoices
+                    if (truck.invoices && Array.isArray(truck.invoices) && truck.invoices.length > 0) {
+                        setInvoices(truck.invoices.map((invoice: any, index: number) => ({
+                            id: invoice._id || `invoice-${index}`,
+                            _id: invoice._id,
+                            invoiceNumber: invoice.invoiceNumber || '',
+                            vendorWorkshop: invoice.vendorWorkshop || '',
+                            amount: invoice.amount || '',
+                            invoiceDate: invoice.invoiceDate ? new Date(invoice.invoiceDate).toISOString().split('T')[0] : '',
+                            file: null,
+                            fileUrl: invoice.fileUrl || null,
+                            fileName: invoice.fileName || null,
+                            notes: invoice.notes || ''
+                        })));
+                    } else {
+                        setInvoices([]);
+                    }
+                    
                     console.log('✅ Opening sidebar with truck data');
                     setShowSidebar(true);
                     setActiveStep('Details');
@@ -1093,6 +1111,28 @@ const Trucks: React.FC = () => {
                     category: note.category
                 }))));
                 
+                // Handle invoices with files
+                console.log('🔍 [UPDATE] Processing invoices:', invoices);
+                invoices.forEach((invoice, index) => {
+                    if (invoice.file) {
+                        console.log(`📎 [UPDATE] Appending file for invoice ${index}:`, invoice.file.name);
+                        formDataToSend.append(`invoiceFiles`, invoice.file);
+                    }
+                });
+                formDataToSend.append('invoices', JSON.stringify(invoices.map((invoice) => {
+                    const hasNewFile = !!invoice.file;
+                    return {
+                        invoiceNumber: invoice.invoiceNumber,
+                        vendorWorkshop: invoice.vendorWorkshop,
+                        amount: invoice.amount,
+                        invoiceDate: invoice.invoiceDate,
+                        notes: invoice.notes,
+                        fileName: invoice.fileName,
+                        fileUrl: invoice.fileUrl,
+                        hasFile: hasNewFile
+                    };
+                })));
+                
                 const response = await updateVehicle(editingId, formDataToSend);
                 if (response?.success) {
                     // Refresh trucks list
@@ -1106,7 +1146,7 @@ const Trucks: React.FC = () => {
                             ownership: truck.ownership || truck.ownerShip || 'COMPANY ASSET',
                             notes: truck.notes || truck.note || '',
                             operatingStatus: (truck.operationStatus || truck.operatingStatus || 'IN SERVICE') as 'IN SERVICE' | 'OUT OF SERVICE' | 'MAINTENANCE',
-                            compliance: (truck.compliance || 'COMPLIANT') as 'COMPLIANT' | 'NON-COMPLIANT' | 'EXPIRING SOON',
+                            compliance: (truck.compliance || 'NON-COMPLIANT') as 'COMPLIANT' | 'NON-COMPLIANT' | 'EXPIRING SOON',
                             category: truck.category,
                             imageUrl: truck.imageUrl,
                             make: truck.make,
@@ -1227,6 +1267,28 @@ const Trucks: React.FC = () => {
                     note: note.note,
                     category: note.category
                 }))));
+                
+                // Handle invoices with files
+                console.log('🔍 [CREATE] Processing invoices:', invoices);
+                invoices.forEach((invoice, index) => {
+                    if (invoice.file) {
+                        console.log(`📎 [CREATE] Appending file for invoice ${index}:`, invoice.file.name);
+                        formDataToSend.append(`invoiceFiles`, invoice.file);
+                    }
+                });
+                formDataToSend.append('invoices', JSON.stringify(invoices.map((invoice) => {
+                    const hasNewFile = !!invoice.file;
+                    return {
+                        invoiceNumber: invoice.invoiceNumber,
+                        vendorWorkshop: invoice.vendorWorkshop,
+                        amount: invoice.amount,
+                        invoiceDate: invoice.invoiceDate,
+                        notes: invoice.notes,
+                        fileName: invoice.fileName,
+                        fileUrl: invoice.fileUrl,
+                        hasFile: hasNewFile
+                    };
+                })));
 
                 const response = await createVehicle(formDataToSend);
                 if (response?.success) {
@@ -1279,7 +1341,7 @@ const Trucks: React.FC = () => {
                             ownership: truck.ownership || truck.ownerShip || 'COMPANY ASSET',
                             notes: truck.notes || truck.note || '',
                             operatingStatus: (truck.operationStatus || truck.operatingStatus || 'IN SERVICE') as 'IN SERVICE' | 'OUT OF SERVICE' | 'MAINTENANCE',
-                            compliance: (truck.compliance || 'COMPLIANT') as 'COMPLIANT' | 'NON-COMPLIANT' | 'EXPIRING SOON',
+                            compliance: (truck.compliance || 'NON-COMPLIANT') as 'COMPLIANT' | 'NON-COMPLIANT' | 'EXPIRING SOON',
                             category: truck.category,
                             imageUrl: truck.imageUrl,
                             make: truck.make,
