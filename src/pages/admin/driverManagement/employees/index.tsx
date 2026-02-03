@@ -124,6 +124,7 @@ const EmployeesPage = () => {
     address: '',
     country: '',
     stateProvince: '',
+    dateOfBirth: '',
     hireDate: '',
     terminationDate: ''
   });
@@ -496,6 +497,9 @@ const EmployeesPage = () => {
       if (personalData.stateProvince) {
         formData.append('state', personalData.stateProvince);
       }
+      if (personalData.dateOfBirth) {
+        formData.append('dateOfBirth', personalData.dateOfBirth);
+      }
       if (personalData.hireDate) {
         formData.append('hireDate', personalData.hireDate);
       }
@@ -637,6 +641,7 @@ const EmployeesPage = () => {
       address: '',
       country: '',
       stateProvince: '',
+      dateOfBirth: '',
       hireDate: '',
       terminationDate: ''
     });
@@ -699,6 +704,7 @@ const EmployeesPage = () => {
           address: emp.location?.address || emp.address || '',
           country: emp.country || emp.location?.country || '',
           stateProvince: emp.state || emp.location?.state || '',
+          dateOfBirth: emp.details?.dateOfBirth ? new Date(emp.details.dateOfBirth).toISOString().split('T')[0] : (emp.dateOfBirth ? new Date(emp.dateOfBirth).toISOString().split('T')[0] : ''),
           hireDate: emp.joinDate ? new Date(emp.joinDate).toISOString().split('T')[0] : (emp.details?.hireDate ? new Date(emp.details.hireDate).toISOString().split('T')[0] : ''),
           terminationDate: emp.details?.termDate ? new Date(emp.details.termDate).toISOString().split('T')[0] : ''
         };
@@ -1613,7 +1619,16 @@ const EmployeesPage = () => {
                     </div>
 
                     {/* Fourth Row - Date Fields */}
-                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                    <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">Date of Birth</label>
+                        <input
+                          type="date"
+                          value={personalData.dateOfBirth}
+                          onChange={(e) => setPersonalData({ ...personalData, dateOfBirth: e.target.value })}
+                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#42aeec] focus:border-transparent"
+                        />
+                      </div>
                       <div>
                         <label className="block text-sm font-medium text-gray-700 mb-1">Hire Date</label>
                         <input
