@@ -705,6 +705,7 @@ const ExpensesPage = () => {
       userId: '',
       categoryId: '',
       type: '',
+      typeId: '',
       amount: '',
       description: '',
       date: new Date().toISOString().split('T')[0],
@@ -949,7 +950,10 @@ const ExpensesPage = () => {
               <div className="flex-1 min-w-0 pr-2">
                 <p className="text-[#063f6f] text-sm">Fuel Expenses</p>
                 <p className="text-2xl font-bold" style={{ color: '#016ab2' }}>
-                  ${expenses.filter(e => e.type && e.type.includes('Fuel')).reduce((sum, e) => sum + (e.amount || 0), 0).toLocaleString()}
+                  ${expenses.filter(e => {
+                    const typeName = typeof e.type === 'string' ? e.type : e.type?.name || '';
+                    return typeName && typeName.includes('Fuel');
+                  }).reduce((sum, e) => sum + (e.amount || 0), 0).toLocaleString()}
                 </p>
               </div>
               <div className="bg-white p-2.5 rounded-full shadow-sm flex-shrink-0">
@@ -963,7 +967,10 @@ const ExpensesPage = () => {
               <div className="flex-1 min-w-0 pr-2">
                 <p className="text-[#063f6f] text-sm">Maintenance</p>
                 <p className="text-2xl font-bold" style={{ color: '#016ab2' }}>
-                  ${expenses.filter(e => e.type && (e.type.includes('Repair') || e.type.includes('Maintenance'))).reduce((sum, e) => sum + (e.amount || 0), 0).toLocaleString()}
+                  ${expenses.filter(e => {
+                    const typeName = typeof e.type === 'string' ? e.type : e.type?.name || '';
+                    return typeName && (typeName.includes('Repair') || typeName.includes('Maintenance'));
+                  }).reduce((sum, e) => sum + (e.amount || 0), 0).toLocaleString()}
                 </p>
               </div>
               <div className="bg-white p-2.5 rounded-full shadow-sm flex-shrink-0">
@@ -977,7 +984,10 @@ const ExpensesPage = () => {
               <div className="flex-1 min-w-0 pr-2">
                 <p className="text-[#063f6f] text-sm">Cash Expenses</p>
                 <p className="text-2xl font-bold" style={{ color: '#016ab2' }}>
-                  ${expenses.filter(e => e.type && e.type.includes('Cash')).reduce((sum, e) => sum + (e.amount || 0), 0).toLocaleString()}
+                  ${expenses.filter(e => {
+                    const typeName = typeof e.type === 'string' ? e.type : e.type?.name || '';
+                    return typeName && typeName.includes('Cash');
+                  }).reduce((sum, e) => sum + (e.amount || 0), 0).toLocaleString()}
                 </p>
               </div>
               <div className="bg-white p-2.5 rounded-full shadow-sm flex-shrink-0">

@@ -189,7 +189,7 @@ interface IncidentForm {
   fmcsaReportable?: boolean;
   fmcsaNotes?: string;
   notes?: string;
-  accidentReport?: string;
+  accidentReport?: File;
   accidentPictures?: File[];
   accidentVideo?: File;
 }
@@ -560,7 +560,7 @@ const Incidents: React.FC = () => {
       alsoCreateAsAccident: false,
       incidentId: '',
       coDriver: '',
-      accidentReport: '',
+      accidentReport: undefined,
       accidentPictures: [],
       accidentVideo: undefined
     });
@@ -603,7 +603,7 @@ const Incidents: React.FC = () => {
       fmcsaReportable: incident.fmcsaReportable || false,
       fmcsaNotes: incident.fmcsaNotes || '',
       notes: incident.notes || '',
-      accidentReport: typeof incident.accidentReport === 'string' ? incident.accidentReport : (incident.accidentReport?.fileName || ''),
+      accidentReport: undefined, // File objects are not preserved when editing, user needs to re-upload
       accidentPictures: [],
       accidentVideo: typeof incident.accidentVideo === 'string' ? (incident.accidentVideo ? { name: incident.accidentVideo } as File : undefined) : (incident.accidentVideo?.fileName ? { name: incident.accidentVideo.fileName } as File : undefined)
     });
@@ -648,37 +648,53 @@ const Incidents: React.FC = () => {
 
     setLoading(true);
     try {
-      const payload: any = {
-        incidentDateTime: incidentForm.incidentDateTime,
-        location: incidentForm.location,
-        incidentType: incidentForm.incidentType,
-        incidentStatus: incidentForm.incidentStatus,
-        incidentId: incidentForm.incidentId || '',
-        driver: incidentForm.driver,
-        coDriver: incidentForm.coDriver || '',
-        caseFileNumber: incidentForm.caseFileNumber || '',
-        driversLicense: incidentForm.driversLicense || '',
-        reportingParty: incidentForm.reportingParty || '',
-        unitNumber: incidentForm.unitNumber || '',
-        trailerNumber: incidentForm.trailerNumber || '',
-        vinPlateNumber: incidentForm.vinPlateNumber || '',
-        damageDescription: incidentForm.damageDescription || '',
-        description: incidentForm.description || '',
-        witnessInfo: incidentForm.witnessInfo || '',
-        policeReportNumber: incidentForm.policeReportNumber || '',
-        actionTakenLog: incidentForm.actionTakenLog || [],
-        preventativeMeasures: incidentForm.preventativeMeasures || '',
-        costTracking: incidentForm.costTracking || [],
-        cvsaDotImpact: incidentForm.cvsaDotImpact || false,
-        fmcsaReportable: incidentForm.fmcsaReportable || false,
-        fmcsaNotes: incidentForm.fmcsaNotes || '',
-        notes: incidentForm.notes || '',
-        accidentReport: incidentForm.accidentReport || '',
-        accidentPictures: incidentForm.accidentPictures?.map(f => f.name).join(',') || '',
-        accidentVideo: incidentForm.accidentVideo?.name || ''
-      };
+      // Create FormData to handle file uploads
+      const formData = new FormData();
+      
+      // Add all form fields
+      formData.append('incidentDateTime', incidentForm.incidentDateTime);
+      formData.append('location', JSON.stringify(incidentForm.location));
+      formData.append('incidentType', incidentForm.incidentType);
+      formData.append('incidentStatus', incidentForm.incidentStatus);
+      if (incidentForm.incidentId) formData.append('incidentId', incidentForm.incidentId);
+      formData.append('driver', incidentForm.driver);
+      if (incidentForm.coDriver) formData.append('coDriver', incidentForm.coDriver);
+      if (incidentForm.caseFileNumber) formData.append('caseFileNumber', incidentForm.caseFileNumber);
+      if (incidentForm.driversLicense) formData.append('driversLicense', incidentForm.driversLicense);
+      if (incidentForm.reportingParty) formData.append('reportingParty', incidentForm.reportingParty);
+      if (incidentForm.unitNumber) formData.append('unitNumber', incidentForm.unitNumber);
+      if (incidentForm.trailerNumber) formData.append('trailerNumber', incidentForm.trailerNumber);
+      if (incidentForm.vinPlateNumber) formData.append('vinPlateNumber', incidentForm.vinPlateNumber);
+      if (incidentForm.damageDescription) formData.append('damageDescription', incidentForm.damageDescription);
+      if (incidentForm.description) formData.append('description', incidentForm.description);
+      if (incidentForm.witnessInfo) formData.append('witnessInfo', incidentForm.witnessInfo);
+      if (incidentForm.policeReportNumber) formData.append('policeReportNumber', incidentForm.policeReportNumber);
+      if (incidentForm.actionTakenLog && incidentForm.actionTakenLog.length > 0) {
+        formData.append('actionTakenLog', JSON.stringify(incidentForm.actionTakenLog));
+      }
+      if (incidentForm.preventativeMeasures) formData.append('preventativeMeasures', incidentForm.preventativeMeasures);
+      if (incidentForm.costTracking && incidentForm.costTracking.length > 0) {
+        formData.append('costTracking', JSON.stringify(incidentForm.costTracking));
+      }
+      formData.append('cvsaDotImpact', String(incidentForm.cvsaDotImpact || false));
+      formData.append('fmcsaReportable', String(incidentForm.fmcsaReportable || false));
+      if (incidentForm.fmcsaNotes) formData.append('fmcsaNotes', incidentForm.fmcsaNotes);
+      if (incidentForm.notes) formData.append('notes', incidentForm.notes);
+      
+      // Add files if they exist
+      if (incidentForm.accidentReport instanceof File) {
+        formData.append('accidentReport', incidentForm.accidentReport);
+      }
+      if (incidentForm.accidentPictures && incidentForm.accidentPictures.length > 0) {
+        incidentForm.accidentPictures.forEach((file) => {
+          formData.append('accidentPictures', file);
+        });
+      }
+      if (incidentForm.accidentVideo) {
+        formData.append('accidentVideo', incidentForm.accidentVideo);
+      }
 
-      const res = await createIncident(payload);
+      const res = await createIncident(formData);
       if (res && res.success && res.data) {
         // If "Also create as accident" is checked, create an Issue with issueType='accident'
         if (incidentForm.alsoCreateAsAccident) {
@@ -765,37 +781,68 @@ const Incidents: React.FC = () => {
 
     setLoading(true);
     try {
-      const payload: any = {
-        incidentDateTime: incidentForm.incidentDateTime,
-        location: incidentForm.location,
-        incidentType: incidentForm.incidentType,
-        incidentStatus: incidentForm.incidentStatus,
-        incidentId: incidentForm.incidentId || '',
-        driver: incidentForm.driver,
-        coDriver: incidentForm.coDriver || '',
-        caseFileNumber: incidentForm.caseFileNumber || '',
-        driversLicense: incidentForm.driversLicense || '',
-        reportingParty: incidentForm.reportingParty || '',
-        unitNumber: incidentForm.unitNumber || '',
-        trailerNumber: incidentForm.trailerNumber || '',
-        vinPlateNumber: incidentForm.vinPlateNumber || '',
-        damageDescription: incidentForm.damageDescription || '',
-        description: incidentForm.description || '',
-        witnessInfo: incidentForm.witnessInfo || '',
-        policeReportNumber: incidentForm.policeReportNumber || '',
-        actionTakenLog: incidentForm.actionTakenLog || [],
-        preventativeMeasures: incidentForm.preventativeMeasures || '',
-        costTracking: incidentForm.costTracking || [],
-        cvsaDotImpact: incidentForm.cvsaDotImpact || false,
-        fmcsaReportable: incidentForm.fmcsaReportable || false,
-        fmcsaNotes: incidentForm.fmcsaNotes || '',
-        notes: incidentForm.notes || '',
-        accidentReport: incidentForm.accidentReport || '',
-        accidentPictures: incidentForm.accidentPictures?.map(f => f.name).join(',') || '',
-        accidentVideo: incidentForm.accidentVideo?.name || ''
-      };
+      // Create FormData to handle file uploads
+      const formData = new FormData();
+      
+      // Add all form fields
+      formData.append('incidentDateTime', incidentForm.incidentDateTime);
+      formData.append('location', JSON.stringify(incidentForm.location));
+      formData.append('incidentType', incidentForm.incidentType);
+      formData.append('incidentStatus', incidentForm.incidentStatus);
+      if (incidentForm.incidentId) formData.append('incidentId', incidentForm.incidentId);
+      formData.append('driver', incidentForm.driver);
+      if (incidentForm.coDriver) formData.append('coDriver', incidentForm.coDriver);
+      if (incidentForm.caseFileNumber) formData.append('caseFileNumber', incidentForm.caseFileNumber);
+      if (incidentForm.driversLicense) formData.append('driversLicense', incidentForm.driversLicense);
+      if (incidentForm.reportingParty) formData.append('reportingParty', incidentForm.reportingParty);
+      if (incidentForm.unitNumber) formData.append('unitNumber', incidentForm.unitNumber);
+      if (incidentForm.trailerNumber) formData.append('trailerNumber', incidentForm.trailerNumber);
+      if (incidentForm.vinPlateNumber) formData.append('vinPlateNumber', incidentForm.vinPlateNumber);
+      if (incidentForm.damageDescription) formData.append('damageDescription', incidentForm.damageDescription);
+      if (incidentForm.description) formData.append('description', incidentForm.description);
+      if (incidentForm.witnessInfo) formData.append('witnessInfo', incidentForm.witnessInfo);
+      if (incidentForm.policeReportNumber) formData.append('policeReportNumber', incidentForm.policeReportNumber);
+      if (incidentForm.actionTakenLog && incidentForm.actionTakenLog.length > 0) {
+        formData.append('actionTakenLog', JSON.stringify(incidentForm.actionTakenLog));
+      }
+      if (incidentForm.preventativeMeasures) formData.append('preventativeMeasures', incidentForm.preventativeMeasures);
+      if (incidentForm.costTracking && incidentForm.costTracking.length > 0) {
+        formData.append('costTracking', JSON.stringify(incidentForm.costTracking));
+      }
+      formData.append('cvsaDotImpact', String(incidentForm.cvsaDotImpact || false));
+      formData.append('fmcsaReportable', String(incidentForm.fmcsaReportable || false));
+      if (incidentForm.fmcsaNotes) formData.append('fmcsaNotes', incidentForm.fmcsaNotes);
+      if (incidentForm.notes) formData.append('notes', incidentForm.notes);
+      
+      // Add files if they exist (only new files, existing file names are preserved)
+      if (incidentForm.accidentReport instanceof File) {
+        formData.append('accidentReport', incidentForm.accidentReport);
+      } else if (incidentForm.accidentReport) {
+        // Keep existing file name
+        formData.append('accidentReport', incidentForm.accidentReport);
+      }
+      if (incidentForm.accidentPictures && incidentForm.accidentPictures.length > 0) {
+        incidentForm.accidentPictures.forEach((file) => {
+          if (file instanceof File) {
+            formData.append('accidentPictures', file);
+          }
+        });
+        // Also append existing file names if any are strings
+        const existingPictures = incidentForm.accidentPictures
+          .filter(f => typeof f === 'string')
+          .join(',');
+        if (existingPictures) {
+          formData.append('accidentPictures', existingPictures);
+        }
+      }
+      if (incidentForm.accidentVideo instanceof File) {
+        formData.append('accidentVideo', incidentForm.accidentVideo);
+      } else if (incidentForm.accidentVideo) {
+        // Keep existing file name
+        formData.append('accidentVideo', incidentForm.accidentVideo);
+      }
 
-      const res = await updateIncident(selectedIncident._id, payload);
+      const res = await updateIncident(selectedIncident._id, formData);
       if (res && res.success && res.data) {
         addNotification('success', 'Incident updated successfully');
         setShowEditModal(false);
@@ -1810,8 +1857,8 @@ const Incidents: React.FC = () => {
                           onChange={(e) => {
                             const file = e.target.files?.[0];
                             if (file) {
-                              // Store file name or convert to text if needed
-                              setIncidentForm(prev => ({ ...prev, accidentReport: file.name }));
+                              // Store the File object
+                              setIncidentForm(prev => ({ ...prev, accidentReport: file }));
                             }
                           }}
                           className="hidden"
@@ -1824,7 +1871,7 @@ const Incidents: React.FC = () => {
                           <FaUpload className="text-gray-400" size={18} />
                           <span className="text-sm text-gray-600">
                             {incidentForm.accidentReport
-                              ? incidentForm.accidentReport
+                              ? incidentForm.accidentReport.name
                               : 'Click to upload accident report (PDF, DOC, DOCX, TXT)'}
                           </span>
                         </label>
@@ -1832,12 +1879,12 @@ const Incidents: React.FC = () => {
                           <div className="mt-2 flex items-center justify-between bg-gray-50 px-3 py-2 rounded text-sm">
                             <span className="text-gray-700 flex items-center gap-2">
                               <FaFileAlt className="text-green-500" size={14} />
-                              {incidentForm.accidentReport}
+                              {incidentForm.accidentReport.name}
                             </span>
                             <button
                               type="button"
                               onClick={() => {
-                                setIncidentForm(prev => ({ ...prev, accidentReport: '' }));
+                                setIncidentForm(prev => ({ ...prev, accidentReport: undefined }));
                               }}
                               className="text-red-500 hover:text-red-700"
                             >
@@ -2141,10 +2188,11 @@ const Incidents: React.FC = () => {
                                       className="w-full h-full object-cover"
                                       onError={(e) => {
                                         e.currentTarget.style.display = 'none';
-                                        e.currentTarget.nextElementSibling?.classList.remove('hidden');
+                                        const fallback = e.currentTarget.parentElement?.querySelector('.image-fallback');
+                                        if (fallback) fallback.classList.remove('hidden');
                                       }}
                                     />
-                                    <div className="hidden aspect-square bg-gray-200 rounded-lg flex items-center justify-center">
+                                    <div className="hidden image-fallback aspect-square bg-gray-200 rounded-lg flex items-center justify-center">
                                       <FaImage className="text-gray-400" size={24} />
                                     </div>
                                   </a>
@@ -2172,7 +2220,7 @@ const Incidents: React.FC = () => {
                               href={video.signedUrl}
                               target="_blank"
                               rel="noopener noreferrer"
-                              className="flex items-center gap-2 text-blue-600 hover:text-blue-800 hover:underline"
+                              className="flex items-center gap-2 text-blue-600 hover:text-blue-800 hover:underline cursor-pointer"
                             >
                               <FaVideo className="text-red-500" size={14} />
                               <span className="text-sm">{video.fileName}</span>
@@ -2348,6 +2396,7 @@ const Incidents: React.FC = () => {
             </div>
           </div>
         )}
+
       </div>
     </div>
   );

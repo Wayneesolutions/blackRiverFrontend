@@ -56,7 +56,7 @@ const TrailersPage: React.FC = () => {
     const [loading, setLoading] = useState(false);
     const [editingId, setEditingId] = useState<string | null>(null);
     const [selectedImageFile, setSelectedImageFile] = useState<File | null>(null);
-    const [drivers, setDrivers] = useState<Driver[]>([]);
+    const [, setDrivers] = useState<Driver[]>([]);
     const [yards, setYards] = useState<Yard[]>([]);
     const [yardCounts, setYardCounts] = useState<{ [key: string]: number }>({});
     const [assignedTrailerIds, setAssignedTrailerIds] = useState<Set<string>>(new Set());
@@ -458,7 +458,6 @@ const TrailersPage: React.FC = () => {
                     // Load basic form data
                     setFormData({
                         unitNumber: trailer.unitNumber || '',
-                        trailer: trailer.trailer || '',
                         vinNumber: trailer.vinNumber || '',
                         plateNumber: trailer.plateNumber || '',
                         make: trailer.make || '',

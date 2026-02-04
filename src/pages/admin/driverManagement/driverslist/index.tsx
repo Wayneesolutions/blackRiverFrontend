@@ -4621,7 +4621,6 @@ const DriverManagement = () => {
                                     if (newDocument.expiryDate || newDocument.description) {
                                       if (editingDocumentId) {
                                         // Update existing document in the list - preserve all existing fields
-                                        const existingDoc = documents.find(d => d.id === editingDocumentId);
                                         setDocuments(documents.map(d => 
                                           d.id === editingDocumentId 
                                             ? {

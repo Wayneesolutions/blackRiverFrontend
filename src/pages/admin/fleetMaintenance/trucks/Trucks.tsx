@@ -74,7 +74,7 @@ const Trucks: React.FC = () => {
     const [loading, setLoading] = useState(false);
     const [editingId, setEditingId] = useState<string | null>(null);
     const [selectedImageFile, setSelectedImageFile] = useState<File | null>(null);
-    const [drivers, setDrivers] = useState<Driver[]>([]);
+    const [, setDrivers] = useState<Driver[]>([]);
     const [operators, setOperators] = useState<Array<{ _id: string; name: string; email: string }>>([]);
     const [trailers, setTrailers] = useState<Array<{ _id: string; unitNumber: string; trailer?: string }>>([]);
     const [yards, setYards] = useState<Yard[]>([]);
@@ -1068,9 +1068,8 @@ const Trucks: React.FC = () => {
                         console.log(`✅ [UPDATE] Preserving existing file for oneTime inspection ${index}:`, insp.fileName);
                     }
                 });
-                formDataToSend.append('oneTimeInspections', JSON.stringify(oneTimeInspections.map((insp, index) => {
+                formDataToSend.append('oneTimeInspections', JSON.stringify(oneTimeInspections.map((insp) => {
                     const hasNewFile = !!insp.file;
-                    const hasExistingFile = !!(insp.fileUrl || insp.fileName);
                     return {
                         expiryDate: insp.expiryDate ? new Date(insp.expiryDate).toISOString() : null,
                         description: insp.description,
@@ -1091,9 +1090,8 @@ const Trucks: React.FC = () => {
                         console.log(`✅ [UPDATE] Preserving existing file for recurring inspection ${index}:`, insp.fileName);
                     }
                 });
-                formDataToSend.append('recurringInspections', JSON.stringify(recurringInspections.map((insp, index) => {
+                formDataToSend.append('recurringInspections', JSON.stringify(recurringInspections.map((insp) => {
                     const hasNewFile = !!insp.file;
-                    const hasExistingFile = !!(insp.fileUrl || insp.fileName);
                     return {
                         scheduledOn: insp.scheduledOn,
                         after: insp.after,
@@ -1229,7 +1227,7 @@ const Trucks: React.FC = () => {
                         formDataToSend.append(`oneTimeInspectionFiles`, insp.file);
                     }
                 });
-                formDataToSend.append('oneTimeInspections', JSON.stringify(oneTimeInspections.map((insp, index) => {
+                formDataToSend.append('oneTimeInspections', JSON.stringify(oneTimeInspections.map((insp) => {
                     const hasNewFile = !!insp.file;
                     return {
                         expiryDate: insp.expiryDate ? new Date(insp.expiryDate).toISOString() : null,
@@ -1249,7 +1247,7 @@ const Trucks: React.FC = () => {
                         formDataToSend.append(`recurringInspectionFiles`, insp.file);
                     }
                 });
-                formDataToSend.append('recurringInspections', JSON.stringify(recurringInspections.map((insp, index) => {
+                formDataToSend.append('recurringInspections', JSON.stringify(recurringInspections.map((insp) => {
                     const hasNewFile = !!insp.file;
                     return {
                         scheduledOn: insp.scheduledOn,

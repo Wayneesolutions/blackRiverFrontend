@@ -346,9 +346,13 @@ export const getIncidentStats = async () => {
   }
 };
 
-export const createIncident = async (data: any) => {
+export const createIncident = async (data: FormData | any) => {
   try {
-    const res: AxiosResponse = await apiClient.post('admin/incidents', data);
+    const headers = data instanceof FormData 
+      ? { 'Content-Type': 'multipart/form-data' }
+      : { 'Content-Type': 'application/json' };
+    
+    const res: AxiosResponse = await apiClient.post('admin/incidents', data, { headers });
     return res.data;
   } catch (error) {
     console.log(error);
@@ -356,9 +360,13 @@ export const createIncident = async (data: any) => {
   }
 };
 
-export const updateIncident = async (id: string, data: any) => {
+export const updateIncident = async (id: string, data: FormData | any) => {
   try {
-    const res: AxiosResponse = await apiClient.put(`admin/incidents/${id}`, data);
+    const headers = data instanceof FormData 
+      ? { 'Content-Type': 'multipart/form-data' }
+      : { 'Content-Type': 'application/json' };
+    
+    const res: AxiosResponse = await apiClient.put(`admin/incidents/${id}`, data, { headers });
     return res.data;
   } catch (error) {
     console.log(error);
