@@ -133,10 +133,15 @@ const DrugTest = () => {
                         _id: d._id,
                         name: d.name || `${d.firstName || ''} ${d.lastName || ''}`.trim() || 'Unknown Driver'
                     })));
+                } else {
+                    // If no drivers returned (likely no company), set empty array
+                    setDrivers([]);
                 }
             }
         } catch (error) {
             console.error('Error fetching users for drug test:', error);
+            // On error, set empty array to prevent issues
+            setDrivers([]);
         }
     };
 
@@ -152,13 +157,24 @@ const DrugTest = () => {
             const response = await getDrugTests(params);
             if (response?.success && Array.isArray(response.data)) {
                 setDrugTestRequests(response.data);
+                
+                // If no drug tests and message indicates no company, show info notification
+                if (response.data.length === 0 && response.message && response.message.includes('company')) {
+                    // Don't show error, just set empty array - the empty state will show the message
+                }
             } else {
-                showNotification('error', response?.message || 'Failed to load drug test requests');
+                // Only show error if it's not a "no company" message
+                if (response?.message && !response.message.includes('company')) {
+                    showNotification('error', response.message || 'Failed to load drug test requests');
+                }
                 setDrugTestRequests([]);
             }
         } catch (error: any) {
             console.error('Error fetching drug test requests:', error);
-            showNotification('error', error?.message || 'Failed to load drug test requests');
+            // Only show error if it's not a "no company" related error
+            if (error?.message && !error.message.includes('company')) {
+                showNotification('error', error.message || 'Failed to load drug test requests');
+            }
             setDrugTestRequests([]);
         } finally {
             setLoading(false);
@@ -444,7 +460,19 @@ const DrugTest = () => {
                     <div className="p-12 text-center">
                         <FlaskConical className="mx-auto text-gray-400 mb-4" size={48} />
                         <p className="text-gray-600 text-lg mb-2">No drug test requests found</p>
-                        <p className="text-gray-500 text-sm">Click "Create Drug Test Request" to get started</p>
+                        <p className="text-gray-500 text-sm mb-4">
+                            {drugTestRequests.length === 0 
+                                ? "No drug test requests are available. This may be because no company is assigned to your account."
+                                : "No drug test requests match your current filters."}
+                        </p>
+                        {drugTestRequests.length === 0 && (
+                            <p className="text-gray-400 text-xs">
+                                Please contact your administrator to assign a company.
+                            </p>
+                        )}
+                        {drugTestRequests.length > 0 && (
+                            <p className="text-gray-500 text-sm">Click "Create Drug Test Request" to get started</p>
+                        )}
                     </div>
                 ) : (
                     <div className="overflow-x-auto">

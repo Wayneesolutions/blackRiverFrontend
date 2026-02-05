@@ -1,11 +1,46 @@
-import React, { useState, useEffect, useCallback, useMemo } from "react";
+import React, { useState, useEffect,useMemo } from "react";
 import { getSocket } from "../../../../socket/socketClient";
 import { listVehicle } from "../../../../axios/api/distapcher";
-import { GoogleMap, useJsApiLoader, Marker } from "@react-google-maps/api";
-import type { Libraries } from '@react-google-maps/api';
-import { ChevronLeft, ChevronRight, ExternalLink, X, Search, Fuel, Gauge, MapPin, User, Activity, RefreshCw } from "lucide-react";
+import { MapContainer, TileLayer, Marker, Popup, useMap } from 'react-leaflet';
+import L from 'leaflet';
+import 'leaflet/dist/leaflet.css';
+import { ChevronLeft, ChevronRight, ExternalLink, X, Search, Fuel, Gauge, MapPin, User, Activity} from "lucide-react";
 
-const containerStyle = { width: "100%", height: "100vh" };
+// Fix for default marker icons in Leaflet
+delete (L.Icon.Default.prototype as any)._getIconUrl;
+L.Icon.Default.mergeOptions({
+    iconRetinaUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon-2x.png',
+    iconUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon.png',
+    shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-shadow.png',
+});
+
+// Component to handle map center updates
+const MapController: React.FC<{ center: [number, number]; zoom: number }> = ({ center, zoom }) => {
+    const map = useMap();
+    
+    useEffect(() => {
+        map.setView(center, zoom);
+    }, [map, center, zoom]);
+    
+    return null;
+};
+
+// Create custom vehicle icon for Leaflet
+const createVehicleIcon = (color: string) => {
+    const svg = `
+        <svg width="40" height="40" viewBox="0 0 40 40" xmlns="http://www.w3.org/2000/svg">
+            <circle cx="20" cy="20" r="18" fill="white" stroke="${color}" stroke-width="2"/>
+            <circle cx="20" cy="20" r="10" fill="${color}"/>
+        </svg>
+    `;
+    
+    return L.divIcon({
+        html: svg,
+        className: 'custom-vehicle-icon',
+        iconSize: [40, 40],
+        iconAnchor: [20, 20],
+    });
+};
 
 interface Vehicle {
   _id: string;
@@ -30,9 +65,6 @@ interface Vehicle {
   };
 }
 
-const GOOGLE_MAPS_API_KEY = "AIzaSyBE6Ii-ZxHsICvzD2Fp3m3iMPYX-Vie1N4";
-const GOOGLE_MAPS_LIBRARIES: Libraries = ["marker", "places"];
-
 const statusColors: Record<string, string> = {
   moving: "#10b981",
   idle: "#f59e0b",
@@ -48,15 +80,10 @@ const statusBgColors: Record<string, string> = {
 };
 
 const ProfessionalFleetTracker: React.FC = () => {
-  const { isLoaded, loadError } = useJsApiLoader({
-    id: 'google-maps-api',
-    googleMapsApiKey: GOOGLE_MAPS_API_KEY,
-    libraries: GOOGLE_MAPS_LIBRARIES,
-  });
-
   const [vehicles, setVehicles] = useState<Vehicle[]>([]);
   const [selectedVehicle, setSelectedVehicle] = useState<Vehicle | null>(null);
-  const [location, setLocation] = useState<{ lat: number; lng: number } | null>(null);
+  const [location, setLocation] = useState<[number, number] | null>(null);
+  const [mapZoom, setMapZoom] = useState<number>(12);
   const [search, setSearch] = useState<string>("");
   const [isSidebarOpen, setIsSidebarOpen] = useState<boolean>(true);
   const [isInfoPanelOpen, setIsInfoPanelOpen] = useState<boolean>(true);
@@ -95,7 +122,10 @@ const ProfessionalFleetTracker: React.FC = () => {
     const lat = Number(vehicle.currentLocation?.latitude);
     const lng = Number(vehicle.currentLocation?.longitude);
 
-    if (!isNaN(lat) && !isNaN(lng)) setLocation({ lat, lng });
+    if (!isNaN(lat) && !isNaN(lng)) {
+      setLocation([lat, lng]);
+      setMapZoom(12);
+    }
 
     // Leave previous vehicle updates
     socket.emit("leaveVehicle");
@@ -111,10 +141,11 @@ const ProfessionalFleetTracker: React.FC = () => {
       );
 
       if (vehicle._id === data._id) {
-        setLocation({
-          lat: Number(data.currentLocation.latitude),
-          lng: Number(data.currentLocation.longitude),
-        });
+        const lat = Number(data.currentLocation.latitude);
+        const lng = Number(data.currentLocation.longitude);
+        if (!isNaN(lat) && !isNaN(lng)) {
+          setLocation([lat, lng]);
+        }
         setSelectedVehicle({ ...vehicle, ...data });
       }
     });
@@ -126,13 +157,6 @@ const ProfessionalFleetTracker: React.FC = () => {
     openVehicleInNewTab(selectedVehicle);
   };
 
-  // Map pan
-  const onLoad = useCallback(
-    (map: google.maps.Map) => {
-      if (location) map.panTo(location);
-    },
-    [location]
-  );
 
   // Filter vehicles by search
   const filteredVehicles = vehicles.filter((v) =>
@@ -323,9 +347,6 @@ const ProfessionalFleetTracker: React.FC = () => {
     }
   };
 
-  if (loadError) {
-    return <div>Error loading maps</div>;
-  }
 
   return (
     <div className="flex h-screen bg-gray-100">
@@ -452,32 +473,47 @@ const ProfessionalFleetTracker: React.FC = () => {
 
       {/* Right Map */}
       <div className="flex-1 relative">
-        {!isLoaded ? (
-          <div className="flex items-center justify-center h-full">
-            <RefreshCw className="w-8 h-8 animate-spin text-blue-600" />
-          </div>
-        ) : (
-          <GoogleMap
-            mapContainerStyle={containerStyle}
-            center={location || { lat: 20.5937, lng: 78.9629 }}
-            zoom={location ? 12 : 5}
-            onLoad={onLoad}
-          >
-            {selectedVehicle && location && (
-              <Marker
-                position={location}
-                icon={{
-                  path: google.maps.SymbolPath.CIRCLE,
-                  scale: 10,
-                  fillColor: statusColors[selectedVehicle.status] || "blue",
-                  fillOpacity: 0.9,
-                  strokeWeight: 2,
-                  strokeColor: "white",
-                }}
-              />
-            )}
-          </GoogleMap>
-        )}
+        <MapContainer
+          center={location || [20.5937, 78.9629]}
+          zoom={mapZoom}
+          style={{ width: '100%', height: '100%' }}
+          scrollWheelZoom={true}
+        >
+          <TileLayer
+            attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+            url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+          />
+          {location && (
+            <MapController center={location} zoom={mapZoom} />
+          )}
+          {selectedVehicle && location && (
+            <Marker
+              position={location}
+              icon={createVehicleIcon(statusColors[selectedVehicle.status] || "#3b82f6")}
+            >
+              <Popup>
+                <div className="p-2">
+                  <p className="font-semibold text-sm">{selectedVehicle.plateNumber}</p>
+                  <p className="text-xs text-gray-600">{selectedVehicle.make} {selectedVehicle.model} ({selectedVehicle.year})</p>
+                  <p className="text-xs text-gray-500 mt-1">{selectedVehicle.currentLocation?.address || 'Location unknown'}</p>
+                  {selectedVehicle.driver && (
+                    <p className="text-xs text-blue-600 mt-1">Driver: {selectedVehicle.driver.name}</p>
+                  )}
+                  <div className="flex gap-4 mt-2 text-xs">
+                    <span className="flex items-center gap-1">
+                      <Gauge className="w-3 h-3" />
+                      {selectedVehicle.speed} km/h
+                    </span>
+                    <span className="flex items-center gap-1">
+                      <Fuel className="w-3 h-3" />
+                      {selectedVehicle.fuelLevel}%
+                    </span>
+                  </div>
+                </div>
+              </Popup>
+            </Marker>
+          )}
+        </MapContainer>
 
         {/* Advanced Info Panel */}
         {selectedVehicle && isInfoPanelOpen && (

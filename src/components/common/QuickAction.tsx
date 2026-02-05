@@ -1,5 +1,5 @@
 // hooks/useQuickActions.ts
-import { Users, Settings, FileText, Truck, AlertCircle,  Briefcase, LayoutDashboard, AlertOctagon, FileCheck, Package, DollarSign, UserCheck, ShieldCheck, Wrench, Plus, User } from "lucide-react";
+import { Users, Settings, FileText, Truck, AlertCircle,  Briefcase, LayoutDashboard, AlertOctagon, FileCheck, Package, DollarSign, UserCheck, ShieldCheck, Wrench, Plus, User, BarChart3, CreditCard } from "lucide-react";
 
 export interface QuickActionOption {
     id: string;
@@ -9,7 +9,7 @@ export interface QuickActionOption {
     path?: string;
     icon: React.ReactNode;
     keywords: string[];
-    roles?: ('admin' | 'hr' | 'compliance' | 'fleet' | 'dispatch' | 'safety')[];
+    roles?: ('admin' | 'hr' | 'compliance' | 'fleet' | 'dispatch' | 'safety' | 'superadmin')[];
 }
 
 
@@ -926,10 +926,75 @@ export const useQuickActions = () => {
             keywords: ['create expense', 'new expense'],
             roles: ['admin']
         },
+        // SuperAdmin Navigation
+        {
+            id: 'superadmin-dashboard',
+            type: 'navigation',
+            title: 'SuperAdmin Dashboard',
+            description: 'View overview and statistics',
+            path: '/superadmin/dashboard',
+            icon: <LayoutDashboard size={16} />,
+            keywords: ['dashboard', 'overview', 'statistics', 'superadmin'],
+            roles: ['superadmin']
+        },
+        {
+            id: 'superadmin-admin-accounts',
+            type: 'navigation',
+            title: 'Admin Accounts',
+            description: 'View and manage all admin accounts',
+            path: '/superadmin/viewalladmins',
+            icon: <Users size={16} />,
+            keywords: ['admin accounts', 'admins', 'users', 'accounts', 'manage admins'],
+            roles: ['superadmin']
+        },
+        {
+            id: 'superadmin-billing',
+            type: 'navigation',
+            title: 'Plan Management',
+            description: 'Manage subscription plans and billing',
+            path: '/superadmin/billing',
+            icon: <CreditCard size={16} />,
+            keywords: ['billing', 'plans', 'subscription', 'plan management', 'pricing'],
+            roles: ['superadmin']
+        },
+        {
+            id: 'superadmin-revenue',
+            type: 'navigation',
+            title: 'Revenue Generated',
+            description: 'View revenue and financial reports',
+            path: '/superadmin/revenue',
+            icon: <BarChart3 size={16} />,
+            keywords: ['revenue', 'financial', 'reports', 'money', 'income', 'earnings'],
+            roles: ['superadmin']
+        },
+        {
+            id: 'superadmin-settings',
+            type: 'navigation',
+            title: 'System Settings',
+            description: 'Configure system settings',
+            path: '/superadmin/systemsetting',
+            icon: <Settings size={16} />,
+            keywords: ['settings', 'system', 'configuration', 'preferences'],
+            roles: ['superadmin']
+        },
     ];
 
-    const filterActions = (query: string, role: 'admin' | 'hr' | 'compliance' | 'fleet' | 'dispatch' | 'safety' = 'admin'): QuickActionOption[] => {
+    const filterActions = (query: string, role: 'admin' | 'hr' | 'compliance' | 'fleet' | 'dispatch' | 'safety' | 'superadmin' = 'admin'): QuickActionOption[] => {
         const searchQuery = query.toLowerCase();
+
+        // For superadmin, only show superadmin actions
+        if (role === 'superadmin') {
+            return availableActions.filter(action => {
+                // Only show actions with superadmin role
+                if (!action.roles?.includes('superadmin')) {
+                    return false;
+                }
+
+                return action.keywords.some(keyword => keyword.toLowerCase().includes(searchQuery)) ||
+                    action.title.toLowerCase().includes(searchQuery) ||
+                    action.description.toLowerCase().includes(searchQuery);
+            });
+        }
 
         // Ensure admin has access to all actions
         let actionsToFilter = availableActions;
@@ -943,6 +1008,11 @@ export const useQuickActions = () => {
             actionsToFilter = availableActions.map(action => {
                 // If it's an admin action, keep as is
                 if (action.roles?.includes('admin')) return action;
+
+                // Skip superadmin actions for regular admin
+                if (action.roles?.includes('superadmin')) {
+                    return null;
+                }
 
                 // If it's a module action (hr, dispatch, etc) and doesn't start with /admin
                 // We need to prepend /admin (unless it's an absolute external URL or similar, but here they are internal)
@@ -960,13 +1030,18 @@ export const useQuickActions = () => {
                 }
 
                 return action;
-            });
+            }).filter(Boolean) as QuickActionOption[];
         }
 
         return actionsToFilter.filter(action => {
             // Filter by role - if admin, allow everything (we verified/mapped above)
             // If specific role, restrict
             if (role !== 'admin' && action.roles && !action.roles.includes(role)) {
+                return false;
+            }
+
+            // Exclude superadmin actions for non-superadmin roles
+            if (role !== 'superadmin' && action.roles?.includes('superadmin')) {
                 return false;
             }
 

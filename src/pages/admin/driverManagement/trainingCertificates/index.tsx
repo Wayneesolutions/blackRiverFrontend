@@ -103,9 +103,14 @@ const TrainingCertificates = () => {
                     _id: d._id,
                     name: d.name || `${d.firstName || ''} ${d.lastName || ''}`.trim() || 'Unknown Driver'
                 })));
+            } else {
+                // If no drivers returned (likely no company), set empty array
+                setDrivers([]);
             }
         } catch (error) {
             console.error('Error fetching drivers:', error);
+            // On error, set empty array to prevent issues
+            setDrivers([]);
         }
     };
 
@@ -121,13 +126,24 @@ const TrainingCertificates = () => {
             const response = await getTrainingCertificates(params);
             if (response?.success && Array.isArray(response.data)) {
                 setCertificates(response.data);
+                
+                // If no certificates and message indicates no company, show info notification
+                if (response.data.length === 0 && response.message && response.message.includes('company')) {
+                    // Don't show error, just set empty array - the empty state will show the message
+                }
             } else {
-                showNotification('error', response?.message || 'Failed to load training certificates');
+                // Only show error if it's not a "no company" message
+                if (response?.message && !response.message.includes('company')) {
+                    showNotification('error', response.message || 'Failed to load training certificates');
+                }
                 setCertificates([]);
             }
         } catch (error: any) {
             console.error('Error fetching certificates:', error);
-            showNotification('error', error?.message || 'Failed to load training certificates');
+            // Only show error if it's not a "no company" related error
+            if (error?.message && !error.message.includes('company')) {
+                showNotification('error', error.message || 'Failed to load training certificates');
+            }
             setCertificates([]);
         } finally {
             setLoading(false);
@@ -444,7 +460,19 @@ const TrainingCertificates = () => {
                     <div className="p-12 text-center">
                         <FileText className="mx-auto text-gray-400 mb-4" size={48} />
                         <p className="text-gray-600 text-lg mb-2">No certificates found</p>
-                        <p className="text-gray-500 text-sm">Click "Add Certificate" to get started</p>
+                        <p className="text-gray-500 text-sm mb-4">
+                            {certificates.length === 0 
+                                ? "No training certificates are available. This may be because no company is assigned to your account."
+                                : "No certificates match your current filters."}
+                        </p>
+                        {certificates.length === 0 && (
+                            <p className="text-gray-400 text-xs">
+                                Please contact your administrator to assign a company.
+                            </p>
+                        )}
+                        {certificates.length > 0 && (
+                            <p className="text-gray-500 text-sm">Click "Add Certificate" to get started</p>
+                        )}
                     </div>
                 ) : (
                     <div className="overflow-x-auto">

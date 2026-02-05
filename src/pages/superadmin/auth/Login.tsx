@@ -168,7 +168,7 @@ export default function SuperAdminLogin() {
                      
                         {/* Email Field */}
                         <div className="space-y-2">
-                            <label className="block text-sm font-semibold text-gray-700">Administrator Email</label>
+                            <label className="block text-sm font-semibold text-gray-700">Super Administrator Email</label>
                             <div className="relative">
                                 <Mail className="absolute left-4 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
                                 <input
@@ -177,7 +177,7 @@ export default function SuperAdminLogin() {
                                     onChange={(e) => setEmail(e.target.value)}
                                     className={`block w-full rounded-xl border pl-12 pr-4 py-4 text-sm transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent ${errors.email ? "border-red-400 bg-red-50" : "border-gray-200 hover:border-gray-300 bg-gray-50/50"
                                         }`}
-                                    placeholder="admin@logistics.com"
+                                    placeholder="superadmin@logistics.com"
                                 />
                             </div>
                             {errors.email && <div className="text-xs text-red-500 flex items-center gap-1">{errors.email}</div>}
@@ -185,7 +185,7 @@ export default function SuperAdminLogin() {
 
                         {/* Password Field */}
                         <div className="space-y-2">
-                            <label className="block text-sm font-semibold text-gray-700">Administrator Password</label>
+                            <label className="block text-sm font-semibold text-gray-700">Super Administrator Password</label>
                             <div className="relative">
                                 <Lock className="absolute left-4 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
                                 <input

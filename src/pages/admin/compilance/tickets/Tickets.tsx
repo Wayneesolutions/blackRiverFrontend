@@ -652,7 +652,11 @@ const Tickets: React.FC = () => {
     });
   };
 
-  const formatCurrency = (amount: number) => {
+  const formatCurrency = (amount: number | undefined | null) => {
+    // Handle undefined, null, NaN, or invalid numbers
+    if (amount === undefined || amount === null || isNaN(amount) || typeof amount !== 'number') {
+      return '$0.00';
+    }
     return new Intl.NumberFormat('en-US', {
       style: 'currency',
       currency: 'USD'

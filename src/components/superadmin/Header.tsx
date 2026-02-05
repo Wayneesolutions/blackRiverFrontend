@@ -23,7 +23,7 @@ const Header = () => {
     const navigate = useNavigate();
     const { filterActions } = useQuickActions();
 
-    const filteredActions = filterActions(searchQuery);
+    const filteredActions = filterActions(searchQuery, 'superadmin');
 
     // Close dropdowns when clicking outside
     useEffect(() => {

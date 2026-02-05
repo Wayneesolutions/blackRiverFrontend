@@ -87,6 +87,16 @@ const FinanceReport = () => {
     totalTrips: 0,
     activeTrucks: 0
   });
+  const [invoiceSummary, setInvoiceSummary] = useState({
+    paidInvoices: 0,
+    pendingInvoices: 0,
+    overdueInvoices: 0
+  });
+  const [expenseBreakdown, setExpenseBreakdown] = useState({
+    fuelCosts: 0,
+    maintenance: 0,
+    otherExpenses: 0
+  });
   const [truckFinancialData, setTruckFinancialData] = useState<TruckFinancialData[]>([]);
   const [tripFinancialData, setTripFinancialData] = useState<TripFinancialData[]>([]);
   const [timeBasedData, setTimeBasedData] = useState<TimeBasedReport[]>([]);
@@ -198,6 +208,34 @@ const FinanceReport = () => {
           setOverview(overviewData);
         } else {
           console.warn('📊 [Finance Report Frontend] No overview data in response');
+        }
+
+        // Set invoice summary data
+        if (response.data.invoiceSummary) {
+          const invoiceSummaryData = {
+            paidInvoices: Number(response.data.invoiceSummary.paidInvoices) || 0,
+            pendingInvoices: Number(response.data.invoiceSummary.pendingInvoices) || 0,
+            overdueInvoices: Number(response.data.invoiceSummary.overdueInvoices) || 0
+          };
+          console.log('📊 [Finance Report Frontend] Setting invoice summary:', invoiceSummaryData);
+          setInvoiceSummary(invoiceSummaryData);
+        } else {
+          console.warn('📊 [Finance Report Frontend] No invoice summary data in response');
+          setInvoiceSummary({ paidInvoices: 0, pendingInvoices: 0, overdueInvoices: 0 });
+        }
+
+        // Set expense breakdown data
+        if (response.data.expenseBreakdown) {
+          const expenseBreakdownData = {
+            fuelCosts: Number(response.data.expenseBreakdown.fuelCosts) || 0,
+            maintenance: Number(response.data.expenseBreakdown.maintenance) || 0,
+            otherExpenses: Number(response.data.expenseBreakdown.otherExpenses) || 0
+          };
+          console.log('📊 [Finance Report Frontend] Setting expense breakdown:', expenseBreakdownData);
+          setExpenseBreakdown(expenseBreakdownData);
+        } else {
+          console.warn('📊 [Finance Report Frontend] No expense breakdown data in response');
+          setExpenseBreakdown({ fuelCosts: 0, maintenance: 0, otherExpenses: 0 });
         }
 
         setTruckFinancialData(response.data.truckWise || []);
@@ -435,7 +473,11 @@ const FinanceReport = () => {
     }
   ];
 
-  const formatCurrency = (amount: number) => {
+  const formatCurrency = (amount: number | undefined | null) => {
+    // Handle undefined, null, NaN, or invalid numbers
+    if (amount === undefined || amount === null || isNaN(amount) || typeof amount !== 'number') {
+      return '$0.00';
+    }
     return new Intl.NumberFormat('en-US', {
       style: 'currency',
       currency: 'USD',
@@ -511,7 +553,7 @@ const FinanceReport = () => {
       bgColor: 'bg-green-100',
       iconColor: 'text-green-700',
       cardBg: 'bg-gradient-to-br from-green-50 to-green-100',
-      trend: '+12.5%'
+      trend: '—' // No trend data available from backend
     },
     {
       title: 'Total Expenses',
@@ -521,7 +563,7 @@ const FinanceReport = () => {
       bgColor: 'bg-red-100',
       iconColor: 'text-red-700',
       cardBg: 'bg-gradient-to-br from-red-50 to-red-100',
-      trend: '-3.2%'
+      trend: '—' // No trend data available from backend
     },
     {
       title: 'Total Payroll',
@@ -531,7 +573,7 @@ const FinanceReport = () => {
       bgColor: 'bg-blue-100',
       iconColor: 'text-blue-700',
       cardBg: 'bg-gradient-to-br from-blue-50 to-blue-100',
-      trend: '+5.8%'
+      trend: '—' // No trend data available from backend
     },
     {
       title: 'Net Profit',
@@ -541,7 +583,7 @@ const FinanceReport = () => {
       bgColor: 'bg-purple-100',
       iconColor: 'text-purple-700',
       cardBg: 'bg-gradient-to-br from-purple-50 to-purple-100',
-      trend: '+18.3%'
+      trend: '—' // No trend data available from backend
     },
     {
       title: 'Total Trips',
@@ -551,7 +593,7 @@ const FinanceReport = () => {
       bgColor: 'bg-cyan-100',
       iconColor: 'text-cyan-700',
       cardBg: 'bg-gradient-to-br from-cyan-50 to-cyan-100',
-      trend: '+8.1%'
+      trend: '—' // No trend data available from backend
     },
     {
       title: 'Active Trucks',
@@ -725,10 +767,12 @@ const FinanceReport = () => {
                     <div className="space-y-2">
                       <div className="flex items-center justify-between">
                         <span className="text-xs text-gray-600">Revenue</span>
-                        <span className="text-sm font-bold text-green-600">100%</span>
+                        <span className="text-sm font-bold text-green-600">
+                          {totalRevenue > 0 ? '100.0' : '0.0'}%
+                        </span>
                       </div>
                       <div className="w-full bg-gray-200 rounded-full h-2">
-                        <div className="bg-green-500 h-2 rounded-full" style={{ width: '100%' }}></div>
+                        <div className="bg-green-500 h-2 rounded-full" style={{ width: totalRevenue > 0 ? '100%' : '0%' }}></div>
                       </div>
                     </div>
                   </div>
@@ -738,13 +782,13 @@ const FinanceReport = () => {
                       <div className="flex items-center justify-between">
                         <span className="text-xs text-gray-600">Expenses + Payroll</span>
                         <span className="text-sm font-bold text-red-600">
-                          {(((totalExpenses + totalPayroll) / totalRevenue) * 100).toFixed(1)}%
+                          {totalRevenue > 0 ? (((totalExpenses + totalPayroll) / totalRevenue) * 100).toFixed(1) : '0.0'}%
                         </span>
                       </div>
                       <div className="w-full bg-gray-200 rounded-full h-2">
                         <div
                           className="bg-red-500 h-2 rounded-full"
-                          style={{ width: `${((totalExpenses + totalPayroll) / totalRevenue) * 100}%` }}
+                          style={{ width: `${totalRevenue > 0 ? ((totalExpenses + totalPayroll) / totalRevenue) * 100 : 0}%` }}
                         ></div>
                       </div>
                     </div>
@@ -755,13 +799,13 @@ const FinanceReport = () => {
                       <div className="flex items-center justify-between">
                         <span className="text-xs text-gray-600">Net Profit</span>
                         <span className="text-sm font-bold text-purple-600">
-                          {((totalNetProfit / totalRevenue) * 100).toFixed(1)}%
+                          {totalRevenue > 0 ? ((totalNetProfit / totalRevenue) * 100).toFixed(1) : '0.0'}%
                         </span>
                       </div>
                       <div className="w-full bg-gray-200 rounded-full h-2">
                         <div
                           className="bg-purple-500 h-2 rounded-full"
-                          style={{ width: `${(totalNetProfit / totalRevenue) * 100}%` }}
+                          style={{ width: `${totalRevenue > 0 ? (totalNetProfit / totalRevenue) * 100 : 0}%` }}
                         ></div>
                       </div>
                     </div>
@@ -779,17 +823,20 @@ const FinanceReport = () => {
                   <div className="space-y-3">
                     <div className="flex justify-between items-center p-3 bg-green-50 rounded-lg">
                       <span className="text-sm font-medium text-gray-700">Paid Invoices</span>
-                      <span className="text-lg font-bold text-green-600">{formatCurrency(580000)}</span>
+                      <span className="text-lg font-bold text-green-600">{formatCurrency(invoiceSummary.paidInvoices)}</span>
                     </div>
                     <div className="flex justify-between items-center p-3 bg-yellow-50 rounded-lg">
                       <span className="text-sm font-medium text-gray-700">Pending Invoices</span>
-                      <span className="text-lg font-bold text-yellow-600">{formatCurrency(45000)}</span>
+                      <span className="text-lg font-bold text-yellow-600">{formatCurrency(invoiceSummary.pendingInvoices)}</span>
                     </div>
                     <div className="flex justify-between items-center p-3 bg-red-50 rounded-lg">
                       <span className="text-sm font-medium text-gray-700">Overdue Invoices</span>
-                      <span className="text-lg font-bold text-red-600">{formatCurrency(12000)}</span>
+                      <span className="text-lg font-bold text-red-600">{formatCurrency(invoiceSummary.overdueInvoices)}</span>
                     </div>
                   </div>
+                  {dataLoaded && invoiceSummary.paidInvoices === 0 && invoiceSummary.pendingInvoices === 0 && invoiceSummary.overdueInvoices === 0 && (
+                    <p className="text-xs text-gray-400 mt-2 text-center">No invoice data available</p>
+                  )}
                 </div>
 
                 <div className="bg-white rounded-lg shadow-sm border border-gray-100 p-6">
@@ -800,17 +847,20 @@ const FinanceReport = () => {
                   <div className="space-y-3">
                     <div className="flex justify-between items-center p-3 bg-blue-50 rounded-lg">
                       <span className="text-sm font-medium text-gray-700">Fuel Costs</span>
-                      <span className="text-lg font-bold text-blue-600">{formatCurrency(141500)}</span>
+                      <span className="text-lg font-bold text-blue-600">{formatCurrency(expenseBreakdown.fuelCosts)}</span>
                     </div>
                     <div className="flex justify-between items-center p-3 bg-orange-50 rounded-lg">
                       <span className="text-sm font-medium text-gray-700">Maintenance</span>
-                      <span className="text-lg font-bold text-orange-600">{formatCurrency(61000)}</span>
+                      <span className="text-lg font-bold text-orange-600">{formatCurrency(expenseBreakdown.maintenance)}</span>
                     </div>
                     <div className="flex justify-between items-center p-3 bg-purple-50 rounded-lg">
                       <span className="text-sm font-medium text-gray-700">Other Expenses</span>
-                      <span className="text-lg font-bold text-purple-600">{formatCurrency(22500)}</span>
+                      <span className="text-lg font-bold text-purple-600">{formatCurrency(expenseBreakdown.otherExpenses)}</span>
                     </div>
                   </div>
+                  {dataLoaded && expenseBreakdown.fuelCosts === 0 && expenseBreakdown.maintenance === 0 && expenseBreakdown.otherExpenses === 0 && (
+                    <p className="text-xs text-gray-400 mt-2 text-center">No expense data available</p>
+                  )}
                 </div>
               </div>
             </div>
@@ -1062,7 +1112,7 @@ const FinanceReport = () => {
                         <td className="px-4 py-3 text-sm text-right text-blue-600">{formatCurrency(totalPayroll)}</td>
                         <td className="px-4 py-3 text-sm text-right text-gray-900">{formatCurrency(totalNetProfit)}</td>
                         <td className="px-4 py-3 text-sm text-center text-gray-700">
-                          {((totalNetProfit / totalRevenue) * 100).toFixed(1)}%
+                          {totalRevenue > 0 ? ((totalNetProfit / totalRevenue) * 100).toFixed(1) : '0.0'}%
                         </td>
                         <td className="px-4 py-3 text-sm text-center text-gray-700">{totalTrips}</td>
                         <td className="px-4 py-3 text-sm text-right text-gray-700">

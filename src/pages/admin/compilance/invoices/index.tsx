@@ -313,8 +313,8 @@ const ComplianceInvoices = () => {
   return (
     <div className="min-h-screen pb-10" style={{ backgroundColor: '#EDF8FF' }}>
       <div className="relative w-full mx-auto p-2">
-
-        <div className="relative px-4 pt-3 pb-6" style={{ zIndex: showInvoiceDetails ? 0 : 10 }}>
+        {/* Header Section - Always visible */}
+        <div className="relative px-4 pt-3 pb-6" style={{ backgroundColor: '#EDF8FF', position: 'relative' }}>
           <div className="mb-4 relative">
             <div className="flex items-center justify-between">
               <div>
@@ -498,33 +498,40 @@ const ComplianceInvoices = () => {
                       }}
                     >
                       <td className="px-6 py-2 text-xs font-semibold text-gray-900">
-                        {invoice.serviceDate ? new Date(invoice.serviceDate).toLocaleDateString() : 'N/A'}
-                        <div className="text-[10px] text-gray-500">{invoice.location}</div>
+                        {invoice.serviceDate ? new Date(invoice.serviceDate).toLocaleDateString() : '—'}
                       </td>
                       <td className="px-6 py-2 text-xs text-gray-900">
-                        <div className="font-semibold">{invoice.unitNumber}</div>
-                        <div className="text-[10px] text-gray-500">{invoice.makeModel}</div>
-                        <div className="text-[10px] text-gray-400">{invoice.vinOrPlate}</div>
+                        <div className="font-semibold">{invoice.unitNumber && invoice.unitNumber !== 'N/A' ? invoice.unitNumber : '—'}</div>
+                        {invoice.makeModel && invoice.makeModel !== 'N/A' && (
+                          <div className="text-[10px] text-gray-500">{invoice.makeModel}</div>
+                        )}
+                        {invoice.vinOrPlate && invoice.vinOrPlate !== 'N/A' && (
+                          <div className="text-[10px] text-gray-400">{invoice.vinOrPlate}</div>
+                        )}
                       </td>
                       <td className="px-6 py-2 text-xs text-gray-900">
-                        {invoice.driver}
-                        <div className="text-[10px] text-gray-500">{invoice.serviceCategory}</div>
+                        {invoice.driver && invoice.driver !== 'N/A' ? invoice.driver : '—'}
+                        {invoice.serviceCategory && invoice.serviceCategory !== 'N/A' && (
+                          <div className="text-[10px] text-gray-500">{invoice.serviceCategory}</div>
+                        )}
                       </td>
                       <td className="px-6 py-2 text-xs text-gray-900">
                         <span className="inline-flex items-center rounded-full border border-blue-100 bg-blue-50 px-2 py-0.5 text-[10px] font-semibold text-blue-700">
-                          {invoice.serviceProvider}
+                          {invoice.serviceProvider && invoice.serviceProvider !== 'N/A' ? invoice.serviceProvider : '—'}
                         </span>
-                        <div className="text-[10px] text-gray-500 mt-0.5">{invoice.location}</div>
+                        {invoice.location && invoice.location !== 'N/A' && (
+                          <div className="text-[10px] text-gray-500 mt-0.5">{invoice.location}</div>
+                        )}
                       </td>
                       <td className="px-6 py-2 text-xs text-gray-700">
-                        <div className="font-medium text-gray-900">{invoice.description}</div>
+                        <div className="font-medium text-gray-900">{invoice.description || '—'}</div>
                       </td>
                       <td className="px-6 py-2 text-xs text-gray-900">
-                        <div className="font-semibold">{invoice.serviceCategory}</div>
+                        <div className="font-semibold">{invoice.serviceCategory && invoice.serviceCategory !== 'N/A' ? invoice.serviceCategory : '—'}</div>
                         <div className="text-[10px] text-gray-400 mt-0.5">Captured via fleet log</div>
                       </td>
                       <td className="px-6 py-2 text-xs text-gray-900">
-                        {invoice.odometer ? `${invoice.odometer.toLocaleString()} km` : "N/A"}
+                        {invoice.odometer && invoice.odometer > 0 ? `${invoice.odometer.toLocaleString()} km` : "—"}
                       </td>
                       <td className="px-6 py-2 text-xs text-gray-900">
                         {invoice.parts && invoice.parts.length > 0 ? (
@@ -543,10 +550,16 @@ const ComplianceInvoices = () => {
                         )}
                       </td>
                       <td className="px-6 py-2 text-xs font-semibold text-gray-900">
-                        {invoice.invoiceNumber}
+                        {invoice.invoiceNumber && invoice.invoiceNumber !== 'N/A' ? invoice.invoiceNumber : '—'}
                       </td>
                       <td className="px-6 py-2 text-xs text-gray-900">
-                        <div className="font-semibold">{invoice.location}</div>
+                        {invoice.location && invoice.location !== 'N/A' ? (
+                          <div className="font-semibold">{invoice.location}</div>
+                        ) : invoice.notes ? (
+                          <div className="font-semibold">{invoice.notes}</div>
+                        ) : (
+                          <div className="font-semibold text-gray-400">—</div>
+                        )}
                       </td>
                       <td className="px-6 py-2 text-xs">
                         <span

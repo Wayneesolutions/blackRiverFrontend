@@ -87,6 +87,7 @@ const EmployeesPage = () => {
   // Modal state
   const [showNewEmployeeModal, setShowNewEmployeeModal] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
+  const [originalEmployeeData, setOriginalEmployeeData] = useState<any>(null);
   const [activeFormTab, setActiveFormTab] = useState<'basic' | 'personal' | 'documents' | 'notes'>('basic');
   const [profileImage, setProfileImage] = useState<File | null>(null);
   const [profileImagePreview, setProfileImagePreview] = useState<string | null>(null);
@@ -442,92 +443,229 @@ const EmployeesPage = () => {
     try {
       const formData = new FormData();
 
-      // Basic data - always include required fields
-      formData.append('name', `${basicData.firstName} ${basicData.lastName}`.trim());
-      formData.append('email', basicData.email);
-      
-      // Only include password if it's provided or if it's a non-signin role
-      if (basicData.password) {
-        formData.append('password', basicData.password);
-      } else if (isNonSigninRole) {
-        // For non-signin roles, send a placeholder password if none provided
-        formData.append('password', 'NonSignin123!');
-      } else {
-        // Default password if somehow we get here
-        formData.append('password', 'TempPassword123!');
-      }
-      
-      formData.append('status', basicData.status.toLowerCase());
-      if (basicData.role) formData.append('role', basicData.role);
+      // Helper function to compare values (handles null/undefined/empty strings)
+      const hasChanged = (newValue: any, oldValue: any): boolean => {
+        const normalizedNew = newValue === null || newValue === undefined || newValue === '' ? null : String(newValue).trim();
+        const normalizedOld = oldValue === null || oldValue === undefined || oldValue === '' ? null : String(oldValue).trim();
+        return normalizedNew !== normalizedOld;
+      };
 
-      // Personal data - include all fields (even if empty)
-      // Phone - include country code prefix
-      if (personalData.phone) {
+      // Helper function to format phone number with country code
+      const formatPhoneWithCountryCode = (phone: string): string => {
+        if (!phone) return '';
         const phoneCountryObj = countries.find(c => c.code === phoneCountry);
         if (phoneCountryObj) {
-          // Remove + from dial code for comparison
           const dialCodeWithoutPlus = phoneCountryObj.dialCode.replace('+', '');
-          let phoneNumber = personalData.phone.trim();
-
-          // Remove any existing + prefix
+          let phoneNumber = phone.trim();
           if (phoneNumber.startsWith('+')) {
             phoneNumber = phoneNumber.substring(1);
           }
-
-          // Check if phone number already starts with the dial code (without +)
           if (phoneNumber.startsWith(dialCodeWithoutPlus)) {
-            // Phone already includes dial code, just add + prefix
-            formData.append('phone', `+${phoneNumber}`);
+            return `+${phoneNumber}`;
           } else {
-            // Phone doesn't start with dial code, prepend it
-            formData.append('phone', `${phoneCountryObj.dialCode}${phoneNumber}`);
+            return `${phoneCountryObj.dialCode}${phoneNumber}`;
           }
         } else {
-          // Fallback if country not found - add + if not present
-          const phoneValue = personalData.phone.startsWith('+') ? personalData.phone : `+${personalData.phone}`;
-          formData.append('phone', phoneValue);
+          return phone.startsWith('+') ? phone : `+${phone}`;
         }
-      }
-      if (personalData.address) {
-        formData.append('address', personalData.address);
-      }
-      if (personalData.country) {
-        formData.append('country', personalData.country);
-      }
-      if (personalData.stateProvince) {
-        formData.append('state', personalData.stateProvince);
-      }
-      if (personalData.dateOfBirth) {
-        formData.append('dateOfBirth', personalData.dateOfBirth);
-      }
-      if (personalData.hireDate) {
-        formData.append('hireDate', personalData.hireDate);
-      }
-      if (personalData.terminationDate) {
-        formData.append('termDate', personalData.terminationDate);
-      }
+      };
 
-      // Additional personal data fields
-      if (personalData.title) {
-        formData.append('title', personalData.title);
-      }
-      if (personalData.payType) {
-        formData.append('payType', personalData.payType);
-      }
-      if (personalData.payRate) {
-        formData.append('payRate', personalData.payRate);
-      }
-      if (personalData.vacationPay) {
-        formData.append('vacationPay', personalData.vacationPay);
-      }
-      if (personalData.department) {
-        formData.append('department', personalData.department);
-      }
-      if (personalData.jobType) {
-        formData.append('jobType', personalData.jobType);
-      }
-      if (personalData.jobTime) {
-        formData.append('jobTime', personalData.jobTime);
+      if (editingId && originalEmployeeData) {
+        // UPDATE MODE - Only send changed values
+        
+        // Basic data - only if changed
+        const currentName = `${basicData.firstName} ${basicData.lastName}`.trim();
+        const originalName = originalEmployeeData.name || '';
+        if (hasChanged(currentName, originalName)) {
+          formData.append('name', currentName);
+        }
+
+        const currentEmail = basicData.email || '';
+        const originalEmail = originalEmployeeData.email || '';
+        if (hasChanged(currentEmail, originalEmail)) {
+          formData.append('email', currentEmail);
+        }
+
+        // Password - only if provided (changed)
+        if (basicData.password && basicData.password.trim()) {
+          formData.append('password', basicData.password);
+        }
+
+        const currentStatus = basicData.status.toLowerCase();
+        const originalStatus = (originalEmployeeData.status || '').toLowerCase();
+        if (hasChanged(currentStatus, originalStatus)) {
+          formData.append('status', currentStatus);
+        }
+
+        const currentRole = basicData.role || '';
+        const originalRole = originalEmployeeData.role || '';
+        if (hasChanged(currentRole, originalRole)) {
+          formData.append('role', currentRole);
+        }
+
+        // Personal data - only if changed
+        const currentPhone = formatPhoneWithCountryCode(personalData.phone || '');
+        const originalPhone = originalEmployeeData.phone || '';
+        if (hasChanged(currentPhone, originalPhone)) {
+          formData.append('phone', currentPhone);
+        }
+
+        const currentAddress = personalData.address || '';
+        const originalAddress = originalEmployeeData.location?.address || originalEmployeeData.address || '';
+        if (hasChanged(currentAddress, originalAddress)) {
+          formData.append('address', currentAddress);
+        }
+
+        const currentCountry = personalData.country || '';
+        const originalCountry = originalEmployeeData.country || originalEmployeeData.location?.country || '';
+        if (hasChanged(currentCountry, originalCountry)) {
+          formData.append('country', currentCountry);
+        }
+
+        const currentState = personalData.stateProvince || '';
+        const originalState = originalEmployeeData.state || originalEmployeeData.location?.state || '';
+        if (hasChanged(currentState, originalState)) {
+          formData.append('state', currentState);
+        }
+
+        const currentDateOfBirth = personalData.dateOfBirth || '';
+        const originalDateOfBirth = originalEmployeeData.details?.dateOfBirth || originalEmployeeData.details?.dob || originalEmployeeData.dateOfBirth || originalEmployeeData.dob || '';
+        const formattedOriginalDob = originalDateOfBirth ? new Date(originalDateOfBirth).toISOString().split('T')[0] : '';
+        if (hasChanged(currentDateOfBirth, formattedOriginalDob)) {
+          formData.append('dateOfBirth', currentDateOfBirth);
+        }
+
+        const currentHireDate = personalData.hireDate || '';
+        const originalHireDate = originalEmployeeData.joinDate || originalEmployeeData.details?.hireDate || '';
+        const formattedOriginalHireDate = originalHireDate ? new Date(originalHireDate).toISOString().split('T')[0] : '';
+        if (hasChanged(currentHireDate, formattedOriginalHireDate)) {
+          formData.append('hireDate', currentHireDate);
+        }
+
+        const currentTermDate = personalData.terminationDate || '';
+        const originalTermDate = originalEmployeeData.details?.termDate || '';
+        const formattedOriginalTermDate = originalTermDate ? new Date(originalTermDate).toISOString().split('T')[0] : '';
+        if (hasChanged(currentTermDate, formattedOriginalTermDate)) {
+          formData.append('termDate', currentTermDate);
+        }
+
+        // Additional personal data fields - only if changed
+        const currentTitle = personalData.title || '';
+        const originalTitle = originalEmployeeData.details?.title || originalEmployeeData.title || '';
+        if (hasChanged(currentTitle, originalTitle)) {
+          formData.append('title', currentTitle);
+        }
+
+        const currentPayType = personalData.payType || '';
+        const originalPayType = originalEmployeeData.details?.payType || originalEmployeeData.payType || '';
+        if (hasChanged(currentPayType, originalPayType)) {
+          formData.append('payType', currentPayType);
+        }
+
+        const currentPayRate = personalData.payRate || '';
+        const originalPayRate = originalEmployeeData.details?.payRate || originalEmployeeData.payRate || '';
+        if (hasChanged(currentPayRate, originalPayRate)) {
+          formData.append('payRate', currentPayRate);
+        }
+
+        const currentVacationPay = personalData.vacationPay || '';
+        const originalVacationPay = originalEmployeeData.details?.vacationPay || originalEmployeeData.vacationPay || '';
+        if (hasChanged(currentVacationPay, originalVacationPay)) {
+          formData.append('vacationPay', currentVacationPay);
+        }
+
+        const currentDepartment = personalData.department || '';
+        const originalDepartment = originalEmployeeData.details?.department || originalEmployeeData.department || '';
+        if (hasChanged(currentDepartment, originalDepartment)) {
+          formData.append('department', currentDepartment);
+        }
+
+        const currentJobType = personalData.jobType || '';
+        const originalJobType = originalEmployeeData.details?.jobType || originalEmployeeData.jobType || '';
+        if (hasChanged(currentJobType, originalJobType)) {
+          formData.append('jobType', currentJobType);
+        }
+
+        const currentJobTime = personalData.jobTime || '';
+        const originalJobTime = originalEmployeeData.details?.jobTime || originalEmployeeData.jobTime || '';
+        if (hasChanged(currentJobTime, originalJobTime)) {
+          formData.append('jobTime', currentJobTime);
+        }
+
+        // Notes - only if changed
+        const currentNotes = notesBenefits || '';
+        const originalNotes = originalEmployeeData.notes || originalEmployeeData.details?.notes || '';
+        if (hasChanged(currentNotes, originalNotes)) {
+          formData.append('notes', currentNotes.trim());
+        }
+
+      } else {
+        // CREATE MODE - Send all required fields
+        formData.append('name', `${basicData.firstName} ${basicData.lastName}`.trim());
+        formData.append('email', basicData.email);
+        
+        // Only include password if it's provided or if it's a non-signin role
+        if (basicData.password) {
+          formData.append('password', basicData.password);
+        } else if (isNonSigninRole) {
+          formData.append('password', 'NonSignin123!');
+        } else {
+          formData.append('password', 'TempPassword123!');
+        }
+        
+        formData.append('status', basicData.status.toLowerCase());
+        if (basicData.role) formData.append('role', basicData.role);
+
+        // Personal data - include all fields
+        if (personalData.phone) {
+          formData.append('phone', formatPhoneWithCountryCode(personalData.phone));
+        }
+        if (personalData.address) {
+          formData.append('address', personalData.address);
+        }
+        if (personalData.country) {
+          formData.append('country', personalData.country);
+        }
+        if (personalData.stateProvince) {
+          formData.append('state', personalData.stateProvince);
+        }
+        if (personalData.dateOfBirth) {
+          formData.append('dateOfBirth', personalData.dateOfBirth);
+        }
+        if (personalData.hireDate) {
+          formData.append('hireDate', personalData.hireDate);
+        }
+        if (personalData.terminationDate) {
+          formData.append('termDate', personalData.terminationDate);
+        }
+
+        // Additional personal data fields
+        if (personalData.title) {
+          formData.append('title', personalData.title);
+        }
+        if (personalData.payType) {
+          formData.append('payType', personalData.payType);
+        }
+        if (personalData.payRate) {
+          formData.append('payRate', personalData.payRate);
+        }
+        if (personalData.vacationPay) {
+          formData.append('vacationPay', personalData.vacationPay);
+        }
+        if (personalData.department) {
+          formData.append('department', personalData.department);
+        }
+        if (personalData.jobType) {
+          formData.append('jobType', personalData.jobType);
+        }
+        if (personalData.jobTime) {
+          formData.append('jobTime', personalData.jobTime);
+        }
+
+        // Notes
+        if (notesBenefits && notesBenefits.trim()) {
+          formData.append('notes', notesBenefits.trim());
+        }
       }
 
       // Documents - send as JSON array and files
@@ -553,11 +691,6 @@ const EmployeesPage = () => {
           }
         });
         console.log(`📄 Total documents: ${documents.length}, New files: ${newDocuments.length}`);
-      }
-
-      // Notes / Benefits - send as text
-      if (notesBenefits && notesBenefits.trim()) {
-        formData.append('notes', notesBenefits.trim());
       }
 
       // Profile image
@@ -656,6 +789,7 @@ const EmployeesPage = () => {
     setProfileImage(null);
     setProfileImagePreview(null);
     setEditingId(null);
+    setOriginalEmployeeData(null);
     setEditingDocumentId(null);
     setEditingDocument(null);
     setActiveFormTab('basic');
@@ -676,6 +810,9 @@ const EmployeesPage = () => {
         const emp = response.data;
         console.log('📋 Loading employee for edit:', emp);
         console.log('📋 Employee details:', emp.details);
+        
+        // Store original employee data for comparison
+        setOriginalEmployeeData(emp);
 
         const nameParts = (emp.name || '').split(' ');
         setBasicData({

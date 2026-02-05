@@ -278,6 +278,10 @@ const PolicyManagementModule = () => {
       return (p.acknowledged / p.totalEmployees) < 0.95;
     });
 
+    // Calculate unique categories from actual policies data
+    const uniqueCategories = new Set(policies.map(p => p.category).filter(Boolean));
+    const policyCategoriesCount = uniqueCategories.size;
+
     return (
       <div className="space-y-6">
         <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
@@ -308,7 +312,7 @@ const PolicyManagementModule = () => {
           <div className="bg-white p-5 rounded-xl shadow-md border-l-4 border-blue-500">
             <p className="text-sm font-medium text-gray-500">Policy Categories Tracked</p>
             <p className="text-3xl font-bold text-blue-700">
-              {ALL_CATEGORIES.length}
+              {policyCategoriesCount}
             </p>
             <span className='text-xs text-gray-500'>Includes Safety, HR, Driver, Wellness, Shop/Yard.</span>
           </div>

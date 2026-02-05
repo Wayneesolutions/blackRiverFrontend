@@ -393,7 +393,6 @@ const Trucks: React.FC = () => {
         unitNumber: '',
         plateNumber: '',
         ownership: 'All',
-        notes: '',
         operatingStatus: 'All',
         dispatchStatus: 'All',
         dispatchInfo: '',
@@ -886,9 +885,6 @@ const Trucks: React.FC = () => {
         }
         if (filters.ownership !== 'All') {
             filtered = filtered.filter(t => t.ownership === filters.ownership);
-        }
-        if (filters.notes) {
-            filtered = filtered.filter(t => t.notes.toLowerCase().includes(filters.notes.toLowerCase()));
         }
         if (filters.operatingStatus !== 'All') {
             filtered = filtered.filter(t => t.operatingStatus === filters.operatingStatus);
@@ -1514,12 +1510,15 @@ const Trucks: React.FC = () => {
         console.log('🔍 Current editingId:', editingId);
         console.log('🔍 Current showSidebar:', showSidebar);
         
-        // If already editing this truck and sidebar is open, don't do anything
+        // If clicking the same truck and sidebar is already open, just return (don't reload)
         if (editingId === id && showSidebar) {
-            console.log('⚠️ Already editing this truck, skipping...');
+            console.log('⚠️ Already editing this truck with sidebar open, skipping...');
             return;
         }
         
+        // Always set the new editingId - this will trigger the useEffect to load the truck
+        // If sidebar is closed, it will be opened by the useEffect
+        // If sidebar is open for a different truck, it will reload with the new truck
         console.log('✅ Setting editingId to:', id);
         setEditingId(id);
     };
@@ -1905,20 +1904,6 @@ const Trucks: React.FC = () => {
                                         </select>
                                     </th>
 
-                                    {/* Notes */}
-                                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase">
-                                        <div className="flex items-center gap-2">
-                                            <span>Notes</span>
-                                        </div>
-                                        <input
-                                            type="text"
-                                            placeholder="Filter..."
-                                            value={filters.notes}
-                                            onChange={(e) => setFilters({ ...filters, notes: e.target.value })}
-                                            className="mt-2 w-full px-2 py-1 text-xs border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-[#42aeec] bg-white"
-                                        />
-                                    </th>
-
                                     {/* Operating Status */}
                                     <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase">
                                         <div className="flex items-center gap-2">
@@ -1995,7 +1980,7 @@ const Trucks: React.FC = () => {
                             <tbody className="bg-white divide-y divide-gray-200">
                                 {filteredTrucks.length === 0 ? (
                                     <tr>
-                                        <td colSpan={9} className="px-4 py-8 text-center text-gray-500">
+                                        <td colSpan={8} className="px-4 py-8 text-center text-gray-500">
                                             No trucks found
                                         </td>
                                     </tr>
@@ -2007,15 +1992,6 @@ const Trucks: React.FC = () => {
                                             <td className="px-4 py-3 text-sm text-gray-900">{truck.unitNumber}</td>
                                             <td className="px-4 py-3 text-sm text-gray-900">{truck.plateNumber}</td>
                                             <td className="px-4 py-3 text-sm text-gray-900">{truck.ownership}</td>
-                                            <td className="px-4 py-3 text-sm text-gray-900">
-                                                {truck.notes ? (
-                                                    <div className="w-6 h-6 rounded-full bg-gray-300 flex items-center justify-center">
-                                                        <span className="text-xs">!</span>
-                                                    </div>
-                                                ) : (
-                                                    ''
-                                                )}
-                                            </td>
                                             <td className="px-4 py-3">
                                                 <span className={`inline-block px-2.5 py-1.5 text-xs font-semibold rounded text-center min-w-[60px] ${getStatusBadgeColor(truck.operatingStatus, 'operating')}`}>
                                                     {formatStatusText(truck.operatingStatus, 'operating')}
@@ -2071,7 +2047,13 @@ const Trucks: React.FC = () => {
                 <>
                     <div
                         className="fixed inset-0 bg-black/50 backdrop-blur-sm z-[100] transition-all duration-300"
-                        onClick={() => setShowSidebar(false)}
+                        onClick={() => {
+                            setShowSidebar(false);
+                            // Reset editingId after a short delay to allow sidebar to close
+                            setTimeout(() => {
+                                setEditingId(null);
+                            }, 300);
+                        }}
                     />
                     <div className="fixed top-0 right-0 h-full w-full sm:w-[75vw] lg:w-[70vw] xl:w-[65vw] bg-white shadow-2xl z-[101] flex overflow-hidden">
                         {/* Left Sidebar - Image Upload & Navigation */}
@@ -2161,7 +2143,13 @@ const Trucks: React.FC = () => {
                                         {loading ? 'SAVING...' : 'SAVE'}
                                     </button>
                                     <button
-                                        onClick={() => setShowSidebar(false)}
+                                        onClick={() => {
+                            setShowSidebar(false);
+                            // Reset editingId after a short delay to allow sidebar to close
+                            setTimeout(() => {
+                                setEditingId(null);
+                            }, 300);
+                        }}
                                         className="p-1.5 text-gray-400 hover:text-gray-600 transition-colors"
                                     >
                                         <X className="w-5 h-5" />

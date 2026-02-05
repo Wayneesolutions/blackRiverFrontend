@@ -73,7 +73,13 @@ interface Customer {
         zipCode?: string;
         city?: string;
         state?: string;
+        stateProvince?: string;
         country?: string;
+        phonePrimary?: string;
+        phoneSecondary?: string;
+        contact?: string;
+        emailPrimary?: string;
+        emailSecondary?: string;
     };
 }
 
@@ -1132,7 +1138,7 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
         return {
             address: customer.customerDetails?.address || customer.address || '',
             city: customer.customerDetails?.city || customer.city || '',
-            state: customer.customerDetails?.state || customer.state || '',
+            state: customer.customerDetails?.state || customer.customerDetails?.stateProvince || customer.state || '',
             country: customer.customerDetails?.country || customer.country || '',
             zipCode: customer.customerDetails?.zipCode || '',
             unit: customer.customerDetails?.unit || ''
@@ -1249,15 +1255,33 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
         setCustomerSearch("");
         setCustomerDropdownOpen(false);
         
-        // Auto-fill customer fields
-        if (customer.name) {
-            // Customer name is already set via selectedCustomer
-        }
-        if (customer.phone) {
+        // Auto-fill phone fields
+        if (customer.customerDetails?.phonePrimary) {
+            setCustomerPrimaryPhone(customer.customerDetails.phonePrimary);
+        } else if (customer.phone) {
             setCustomerPrimaryPhone(customer.phone);
         }
-        if (customer.email) {
+        
+        // Auto-fill secondary phone
+        if (customer.customerDetails?.phoneSecondary) {
+            setCustomerSecondaryPhone(customer.customerDetails.phoneSecondary);
+        }
+        
+        // Auto-fill email fields
+        if (customer.customerDetails?.emailPrimary) {
+            setPayableEmail(customer.customerDetails.emailPrimary);
+        } else if (customer.email) {
             setPayableEmail(customer.email);
+        }
+        
+        // Auto-fill secondary payable email
+        if (customer.customerDetails?.emailSecondary) {
+            setSecondaryPayableEmail(customer.customerDetails.emailSecondary);
+        }
+        
+        // Auto-fill contact
+        if (customer.customerDetails?.contact) {
+            setCustomerContact(customer.customerDetails.contact);
         }
         
         // Auto-fill address fields
