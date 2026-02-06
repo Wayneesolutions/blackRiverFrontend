@@ -95,6 +95,16 @@ export const updateCompany = async (data: any) =>{
   }
 }
 
+export const updateApiCredentials = async (data: { samsaraConfig: any; thermokingConfig: any }) => {
+  try {
+    const res: AxiosResponse = await apiClient.put('admin/company/api-credentials', data);
+    return res.data;
+  } catch (error) {
+    console.log(error);
+    return (error as Error).response?.data;
+  }
+}
+
 // CVSA Inspection API Functions
 export const getCvsaInspections = async (params?: { country?: string; status?: string; search?: string; page?: number; limit?: number }) => {
   try {

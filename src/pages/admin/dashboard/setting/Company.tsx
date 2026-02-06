@@ -1,7 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { Building, Mail, Phone, MapPin, Bell, Upload, Save, Edit, Check, X, AlertCircle } from 'lucide-react';
-import { getCompany } from '../../../../axios/api/admin';
-import { updateCompany } from '../../../../axios/api/admin';
+import { Building, Mail, Phone, MapPin, Upload, Save, Edit, X, AlertCircle, Settings, Key, Check } from 'lucide-react';
+import { getCompany, updateCompany, updateApiCredentials } from '../../../../axios/api/admin';
 import { useDispatch } from 'react-redux';
 import { setUserCredentials } from '../../../../redux/slices/userSlice';
 
@@ -14,19 +13,28 @@ interface CompanyInfo {
   logoUrl?: string;
 }
 
-interface NotificationPreferences {
-  sms: boolean;
-  email: boolean;
-  appAlerts: boolean;
+interface SamsaraConfig {
+  apiBaseUrl: string;
+  apiToken: string;
+}
+
+interface ThermoKingConfig {
+  apiBaseUrl: string;
+  apiKey: string;
+  apiSecret: string;
+  apiVersion: string;
 }
 
 const Company = () => {
   const dispatch = useDispatch();
   const [isEditing, setIsEditing] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [apiLoading, setApiLoading] = useState(false);
   const [fetchLoading, setFetchLoading] = useState(true);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
+  const [apiError, setApiError] = useState('');
+  const [apiSuccess, setApiSuccess] = useState('');
   
   const [companyInfo, setCompanyInfo] = useState<CompanyInfo>({
     companyName: '',
@@ -37,10 +45,16 @@ const Company = () => {
     logoUrl: ''
   });
 
-  const [notifications, setNotifications] = useState<NotificationPreferences>({
-    sms: true,
-    email: true,
-    appAlerts: false
+  const [samsaraConfig, setSamsaraConfig] = useState<SamsaraConfig>({
+    apiBaseUrl: '',
+    apiToken: ''
+  });
+
+  const [thermokingConfig, setThermokingConfig] = useState<ThermoKingConfig>({
+    apiBaseUrl: '',
+    apiKey: '',
+    apiSecret: '',
+    apiVersion: 'v1'
   });
 
   const [editForm, setEditForm] = useState<CompanyInfo>(companyInfo);
@@ -108,12 +122,20 @@ const Company = () => {
           updateStoredUserCompany({ _id: data._id, companyName: data.companyName || '' });
         }
         
-        // Handle notification preferences
-        if (data.notificationPreferences) {
-          setNotifications({
-            sms: data.notificationPreferences.sms || false,
-            email: data.notificationPreferences.email || false,
-            appAlerts: data.notificationPreferences.appAlerts || false
+        // Handle API configurations
+        if (data.samsaraConfig) {
+          setSamsaraConfig({
+            apiBaseUrl: data.samsaraConfig.apiBaseUrl || '',
+            apiToken: data.samsaraConfig.apiToken || ''
+          });
+        }
+        
+        if (data.thermokingConfig) {
+          setThermokingConfig({
+            apiBaseUrl: data.thermokingConfig.apiBaseUrl || '',
+            apiKey: data.thermokingConfig.apiKey || '',
+            apiSecret: data.thermokingConfig.apiSecret || '',
+            apiVersion: data.thermokingConfig.apiVersion || 'v1'
           });
         }
         
@@ -142,10 +164,17 @@ const Company = () => {
     }));
   };
 
-  const handleNotificationChange = (type: keyof NotificationPreferences) => {
-    setNotifications(prev => ({
+  const handleSamsaraChange = (field: keyof SamsaraConfig, value: string) => {
+    setSamsaraConfig(prev => ({
       ...prev,
-      [type]: !prev[type]
+      [field]: value
+    }));
+  };
+
+  const handleThermokingChange = (field: keyof ThermoKingConfig, value: string) => {
+    setThermokingConfig(prev => ({
+      ...prev,
+      [field]: value
     }));
   };
 
@@ -158,16 +187,13 @@ const Company = () => {
       // Create FormData for file upload
       const formData = new FormData();
       
-      // Add company info fields
+      // Add company info fields only (no API configs)
       (Object.keys(editForm) as Array<keyof CompanyInfo>).forEach((key) => {
         const value = editForm[key];
         if (value && key !== 'logoUrl') {
           formData.append(key, value);
         }
       });
-      
-      // Add notification preferences
-      formData.append('notificationPreferences', JSON.stringify(notifications));
       
       // Add logo file if selected
       if (selectedFile) {
@@ -215,6 +241,32 @@ const Company = () => {
     setPreviewUrl(companyInfo.logoUrl || '');
     setIsEditing(false);
     setError('');
+  };
+
+  const handleSaveApiCredentials = async () => {
+    setApiLoading(true);
+    setApiError('');
+    setApiSuccess('');
+    
+    try {
+      const response = await updateApiCredentials({
+        samsaraConfig,
+        thermokingConfig
+      });
+      
+      if (response?.success) {
+        setApiSuccess('API credentials updated successfully!');
+        // Clear success message after 3 seconds
+        setTimeout(() => setApiSuccess(''), 3000);
+      } else {
+        setApiError(response?.message || 'Failed to update API credentials. Please try again.');
+      }
+    } catch (error) {
+      console.error('Error saving API credentials:', error);
+      setApiError('Failed to update API credentials. Please try again.');
+    } finally {
+      setApiLoading(false);
+    }
   };
 
   const handleLogoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -271,6 +323,20 @@ const Company = () => {
           <div className="fixed top-6 right-6 bg-red-500 text-white px-6 py-4 rounded-lg shadow-lg flex items-center gap-3 animate-slide-in z-50 max-w-md">
             <AlertCircle className="w-5 h-5 flex-shrink-0" />
             <span className="text-sm font-medium">{error}</span>
+          </div>
+        )}
+        
+        {apiSuccess && (
+          <div className="fixed top-6 right-6 bg-green-500 text-white px-6 py-4 rounded-lg shadow-lg flex items-center gap-3 animate-slide-in z-50 max-w-md">
+            <Check className="w-5 h-5 flex-shrink-0" />
+            <span className="text-sm font-medium">{apiSuccess}</span>
+          </div>
+        )}
+        
+        {apiError && (
+          <div className="fixed top-6 right-6 bg-red-500 text-white px-6 py-4 rounded-lg shadow-lg flex items-center gap-3 animate-slide-in z-50 max-w-md">
+            <AlertCircle className="w-5 h-5 flex-shrink-0" />
+            <span className="text-sm font-medium">{apiError}</span>
           </div>
         )}
 
@@ -473,118 +539,121 @@ const Company = () => {
             </div>
           </div>
 
-          {/* Notification Preferences */}
+          {/* API Configuration */}
           <div className="bg-white rounded-xl shadow-sm border border-gray-200">
             <div className="p-6 border-b border-gray-200">
-              <div className="flex items-center gap-3">
-                <Bell className="text-green-600" size={24} />
-                <h2 className="text-xl font-bold text-gray-900">Notification Preferences</h2>
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <Settings className="text-blue-600" size={24} />
+                  <h2 className="text-xl font-bold text-gray-900">API Configuration</h2>
+                </div>
+                <button
+                  onClick={handleSaveApiCredentials}
+                  disabled={apiLoading}
+                  className="px-4 py-2 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 !text-white rounded-lg transition-all font-medium flex items-center gap-2 disabled:opacity-50"
+                >
+                  {apiLoading ? (
+                    <>
+                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                      Saving...
+                    </>
+                  ) : (
+                    <>
+                      <Save size={16} />
+                      Save API Credentials
+                    </>
+                  )}
+                </button>
               </div>
             </div>
             
-            <div className="p-6">
-              <p className="text-gray-600 mb-6">Choose how you want to receive notifications about your company activities.</p>
-              
-              <div className="space-y-6">
-                {/* SMS Notifications */}
-                <div className="flex items-center justify-between p-4 bg-gradient-to-r from-blue-50 to-blue-100 rounded-lg border border-blue-200">
-                  <div className="flex items-center gap-3">
-                    <div className="p-2 bg-blue-600 rounded-lg">
-                      <Phone size={20} className="text-white" />
-                    </div>
-                    <div>
-                      <h3 className="font-semibold text-gray-900">SMS Notifications</h3>
-                      <p className="text-sm text-gray-600">Receive important updates via SMS</p>
-                    </div>
-                  </div>
-                  <label className="relative inline-flex items-center cursor-pointer">
-                    <input
-                      type="checkbox"
-                      checked={notifications.sms}
-                      onChange={() => handleNotificationChange('sms')}
-                      disabled={!isEditing}
-                      className="sr-only peer"
-                    />
-                    <div className={`w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600 ${!isEditing ? 'opacity-50 cursor-not-allowed' : ''}`}></div>
-                  </label>
+            <div className="p-6 space-y-8">
+              {/* Samsara Configuration */}
+              <div>
+                <div className="flex items-center gap-2 mb-4">
+                  <Key className="text-blue-600" size={20} />
+                  <h3 className="text-lg font-semibold text-gray-900">Samsara API</h3>
                 </div>
-
-                {/* Email Notifications */}
-                <div className="flex items-center justify-between p-4 bg-gradient-to-r from-green-50 to-green-100 rounded-lg border border-green-200">
-                  <div className="flex items-center gap-3">
-                    <div className="p-2 bg-green-600 rounded-lg">
-                      <Mail size={20} className="text-white" />
-                    </div>
-                    <div>
-                      <h3 className="font-semibold text-gray-900">Email Notifications</h3>
-                      <p className="text-sm text-gray-600">Receive detailed reports via email</p>
-                    </div>
-                  </div>
-                  <label className="relative inline-flex items-center cursor-pointer">
+                <div className="space-y-4">
+                  <div>
+                    <label className="block text-sm font-semibold text-gray-700 mb-2">API Base URL</label>
                     <input
-                      type="checkbox"
-                      checked={notifications.email}
-                      onChange={() => handleNotificationChange('email')}
-                      disabled={!isEditing}
-                      className="sr-only peer"
+                      type="text"
+                      value={samsaraConfig.apiBaseUrl}
+                      onChange={(e) => handleSamsaraChange('apiBaseUrl', e.target.value)}
+                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+                      placeholder="https://api.samsara.com"
                     />
-                    <div className={`w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-green-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-green-600 ${!isEditing ? 'opacity-50 cursor-not-allowed' : ''}`}></div>
-                  </label>
-                </div>
-
-                {/* App Alerts */}
-                <div className="flex items-center justify-between p-4 bg-gradient-to-r from-purple-50 to-purple-100 rounded-lg border border-purple-200">
-                  <div className="flex items-center gap-3">
-                    <div className="p-2 bg-purple-600 rounded-lg">
-                      <Bell size={20} className="text-white" />
-                    </div>
-                    <div>
-                      <h3 className="font-semibold text-gray-900">App Alerts</h3>
-                      <p className="text-sm text-gray-600">Push notifications in the app</p>
-                    </div>
                   </div>
-                  <label className="relative inline-flex items-center cursor-pointer">
+                  <div>
+                    <label className="block text-sm font-semibold text-gray-700 mb-2">API Token</label>
                     <input
-                      type="checkbox"
-                      checked={notifications.appAlerts}
-                      onChange={() => handleNotificationChange('appAlerts')}
-                      disabled={!isEditing}
-                      className="sr-only peer"
+                      type="password"
+                      value={samsaraConfig.apiToken}
+                      onChange={(e) => handleSamsaraChange('apiToken', e.target.value)}
+                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+                      placeholder="Enter Samsara API token"
                     />
-                    <div className={`w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-purple-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-purple-600 ${!isEditing ? 'opacity-50 cursor-not-allowed' : ''}`}></div>
-                  </label>
+                  </div>
                 </div>
               </div>
 
-              {/* Notification Summary */}
-              <div className="mt-8 p-4 bg-gray-50 rounded-lg">
-                <h4 className="font-semibold text-gray-900 mb-3">Current Notification Status</h4>
-                <div className="space-y-2">
-                  <div className="flex items-center gap-2">
-                    {notifications.sms ? (
-                      <Check size={16} className="text-green-600" />
-                    ) : (
-                      <X size={16} className="text-red-600" />
-                    )}
-                    <span className="text-sm text-gray-700">SMS notifications are {notifications.sms ? 'enabled' : 'disabled'}</span>
+              {/* ThermoKing Configuration */}
+              <div className="border-t border-gray-200 pt-6">
+                <div className="flex items-center gap-2 mb-4">
+                  <Key className="text-orange-600" size={20} />
+                  <h3 className="text-lg font-semibold text-gray-900">ThermoKing API</h3>
+                </div>
+                <div className="space-y-4">
+                  <div>
+                    <label className="block text-sm font-semibold text-gray-700 mb-2">API Base URL</label>
+                    <input
+                      type="text"
+                      value={thermokingConfig.apiBaseUrl}
+                      onChange={(e) => handleThermokingChange('apiBaseUrl', e.target.value)}
+                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all"
+                      placeholder="https://api.thermoking.com"
+                    />
                   </div>
-                  <div className="flex items-center gap-2">
-                    {notifications.email ? (
-                      <Check size={16} className="text-green-600" />
-                    ) : (
-                      <X size={16} className="text-red-600" />
-                    )}
-                    <span className="text-sm text-gray-700">Email notifications are {notifications.email ? 'enabled' : 'disabled'}</span>
+                  <div>
+                    <label className="block text-sm font-semibold text-gray-700 mb-2">API Key</label>
+                    <input
+                      type="password"
+                      value={thermokingConfig.apiKey}
+                      onChange={(e) => handleThermokingChange('apiKey', e.target.value)}
+                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all"
+                      placeholder="Enter ThermoKing API key"
+                    />
                   </div>
-                  <div className="flex items-center gap-2">
-                    {notifications.appAlerts ? (
-                      <Check size={16} className="text-green-600" />
-                    ) : (
-                      <X size={16} className="text-red-600" />
-                    )}
-                    <span className="text-sm text-gray-700">App alerts are {notifications.appAlerts ? 'enabled' : 'disabled'}</span>
+                  <div>
+                    <label className="block text-sm font-semibold text-gray-700 mb-2">API Secret</label>
+                    <input
+                      type="password"
+                      value={thermokingConfig.apiSecret}
+                      onChange={(e) => handleThermokingChange('apiSecret', e.target.value)}
+                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all"
+                      placeholder="Enter ThermoKing API secret"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-semibold text-gray-700 mb-2">API Version</label>
+                    <input
+                      type="text"
+                      value={thermokingConfig.apiVersion}
+                      onChange={(e) => handleThermokingChange('apiVersion', e.target.value)}
+                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all"
+                      placeholder="v1"
+                    />
                   </div>
                 </div>
+              </div>
+
+              {/* Info Note */}
+              <div className="mt-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+                <p className="text-sm text-blue-800">
+                  <strong>Note:</strong> API configurations are stored securely and linked to your company. 
+                  These settings are required for integrating with Samsara and ThermoKing services.
+                </p>
               </div>
             </div>
           </div>

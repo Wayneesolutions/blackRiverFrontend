@@ -27,10 +27,19 @@ interface ELogFile {
   fileName: string;
   fileUrl: string;
   fileSize: number;
-  driverId?: string;
+  driverId?: string | {
+    _id: string;
+    name: string;
+    email?: string;
+    phone?: string;
+  };
   driverName?: string;
   uploadedAt: string;
-  uploadedBy?: string;
+  uploadedBy?: string | {
+    _id: string;
+    name: string;
+    email?: string;
+  };
 }
 
 const VehicleEldMonitor = () => {
@@ -732,7 +741,9 @@ const VehicleEldMonitor = () => {
                                                       {log.fileName}
                                                   </td>
                                                   <td className="px-6 py-4 text-gray-600">
-                                                      {log.driverName || 'N/A'}
+                                                      {typeof log.driverId === 'object' && log.driverId?.name 
+                                                        ? log.driverId.name 
+                                                        : log.driverName || 'N/A'}
                                                   </td>
                                                   <td className="px-6 py-4 text-gray-600">
                                                       {(log.fileSize / 1024 / 1024).toFixed(2)} MB

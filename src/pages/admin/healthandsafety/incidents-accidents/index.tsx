@@ -20,6 +20,7 @@ import {
   FaVideo,
   FaSave,
   FaChevronDown,
+  FaEdit,
 
 } from 'react-icons/fa';
 import { FaInfoCircle } from 'react-icons/fa';
@@ -1110,194 +1111,350 @@ const IncidentManagement: React.FC = () => {
     </div>
   );
 
-  const renderInjuryRTW = () => (
-    <div className="bg-white rounded-2xl p-8 shadow-lg">
-      <h2 className="text-3xl font-bold mb-6 text-gray-900">
-        Injury Management & Return-to-Work
-      </h2>
+  const renderInjuryRTW = () => {
+    const injuryIncidents = incidents.filter((i) => i.hasInjury);
+    const selectedIncident = injuryIncidents.find((i) => i._id === selectedInjuryIncidentId);
 
-      <form onSubmit={handleSubmitInjuryRTW} className="space-y-6">
-        <div>
-          <label className="block text-sm font-semibold text-gray-700 mb-2">
-            Select Incident with Injury *
-          </label>
-          <select
-            required
-            value={selectedInjuryIncidentId}
-            onChange={(e) => setSelectedInjuryIncidentId(e.target.value)}
-            className="w-full border-2 border-gray-200 p-3 rounded-xl focus:ring-2 focus:ring-red-500 focus:border-transparent"
-          >
-            <option value="">Select incident...</option>
-            {incidents
-              .filter((i) => i.hasInjury)
-              .map((i) => (
-                <option key={i._id} value={i._id}>
-                  {i.incidentNumber} - {i.injuryRecord?.injuredWorker || 'Unknown Worker'}
-                </option>
-              ))}
-          </select>
+    return (
+      <div className="space-y-6">
+        {/* List of Incidents with Injuries */}
+        <div className="bg-white rounded-2xl p-6 shadow-lg">
+          <h2 className="text-2xl font-bold mb-4 text-gray-900">
+            Incidents with Injuries
+          </h2>
+          
+          {loading ? (
+            <div className="flex items-center justify-center py-12">
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-red-600" />
+            </div>
+          ) : injuryIncidents.length === 0 ? (
+            <div className="text-center py-12">
+              <FaUserInjured size={48} className="text-gray-300 mx-auto mb-4" />
+              <p className="text-gray-500 font-medium">No incidents with injuries found</p>
+            </div>
+          ) : (
+            <div className="overflow-x-auto">
+              <table className="w-full">
+                <thead>
+                  <tr className="bg-gray-50 border-b border-gray-200">
+                    <th className="px-4 py-3 text-left text-[10px] font-bold text-gray-500 uppercase tracking-wider">
+                      Incident #
+                    </th>
+                    <th className="px-4 py-3 text-left text-[10px] font-bold text-gray-500 uppercase tracking-wider">
+                      Date
+                    </th>
+                    <th className="px-4 py-3 text-left text-[10px] font-bold text-gray-500 uppercase tracking-wider">
+                      Injured Worker
+                    </th>
+                    <th className="px-4 py-3 text-left text-[10px] font-bold text-gray-500 uppercase tracking-wider">
+                      Injury Type
+                    </th>
+                    <th className="px-4 py-3 text-left text-[10px] font-bold text-gray-500 uppercase tracking-wider">
+                      WCB Claim #
+                    </th>
+                    <th className="px-4 py-3 text-left text-[10px] font-bold text-gray-500 uppercase tracking-wider">
+                      Status
+                    </th>
+                    <th className="px-4 py-3 text-center text-[10px] font-bold text-gray-500 uppercase tracking-wider">
+                      Actions
+                    </th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-gray-100">
+                  {injuryIncidents.map((incident) => {
+                    const statusColors = getStatusColor(incident.status);
+                    const isSelected = selectedInjuryIncidentId === incident._id;
+                    
+                    return (
+                      <tr
+                        key={incident._id}
+                        className={`hover:bg-red-50/30 transition-colors cursor-pointer ${
+                          isSelected ? 'bg-red-50 border-l-4 border-red-500' : ''
+                        }`}
+                        onClick={() => {
+                          setSelectedInjuryIncidentId(incident._id);
+                          // Populate form with existing data
+                          if (incident.injuryRecord) {
+                            setWcbClaimNumber(incident.injuryRecord.wcbClaimNumber || '');
+                            setDoctorRestrictions(incident.injuryRecord.doctorRestrictions || '');
+                            setModifiedDutyPlan(incident.injuryRecord.modifiedDutyPlan || '');
+                            setProgressNotes(
+                              incident.injuryRecord.progressNotes && incident.injuryRecord.progressNotes.length > 0
+                                ? incident.injuryRecord.progressNotes.map((note: any) => ({
+                                    date: note.date ? new Date(note.date).toISOString().split('T')[0] : '',
+                                    note: note.note || '',
+                                    enteredBy: note.enteredBy || ''
+                                  }))
+                                : [{ date: '', note: '', enteredBy: '' }]
+                            );
+                          }
+                        }}
+                      >
+                        <td className="px-4 py-3">
+                          <span className="text-xs font-bold text-gray-900">
+                            {incident.incidentNumber}
+                          </span>
+                        </td>
+                        <td className="px-4 py-3">
+                          <div className="text-xs text-gray-700">
+                            {new Date(incident.date).toLocaleDateString()}
+                          </div>
+                        </td>
+                        <td className="px-4 py-3">
+                          <span className="text-xs font-medium text-gray-900">
+                            {incident.injuryRecord?.injuredWorker || 'Unknown Worker'}
+                          </span>
+                        </td>
+                        <td className="px-4 py-3">
+                          <span className="text-xs text-gray-700">
+                            {incident.injuryRecord?.injuryType || incident.type}
+                          </span>
+                        </td>
+                        <td className="px-4 py-3">
+                          <span className="text-xs text-gray-600">
+                            {incident.injuryRecord?.wcbClaimNumber || '—'}
+                          </span>
+                        </td>
+                        <td className="px-4 py-3">
+                          <span
+                            className="px-2 py-0.5 rounded text-[10px] font-bold border"
+                            style={{
+                              backgroundColor: statusColors.bg,
+                              color: statusColors.text,
+                              borderColor: statusColors.bg,
+                            }}
+                          >
+                            {incident.status.replace('-', ' ').toUpperCase()}
+                          </span>
+                        </td>
+                        <td className="px-4 py-3 text-center">
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setSelectedInjuryIncidentId(incident._id);
+                              if (incident.injuryRecord) {
+                                setWcbClaimNumber(incident.injuryRecord.wcbClaimNumber || '');
+                                setDoctorRestrictions(incident.injuryRecord.doctorRestrictions || '');
+                                setModifiedDutyPlan(incident.injuryRecord.modifiedDutyPlan || '');
+                                setProgressNotes(
+                                  incident.injuryRecord.progressNotes && incident.injuryRecord.progressNotes.length > 0
+                                    ? incident.injuryRecord.progressNotes.map((note: any) => ({
+                                        date: note.date ? new Date(note.date).toISOString().split('T')[0] : '',
+                                        note: note.note || '',
+                                        enteredBy: note.enteredBy || ''
+                                      }))
+                                    : [{ date: '', note: '', enteredBy: '' }]
+                                );
+                              }
+                            }}
+                            className="p-1.5 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                            title="Edit Injury Record"
+                          >
+                            <FaEdit size={12} />
+                          </button>
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+          )}
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <div>
-            <label className="block text-sm font-semibold text-gray-700 mb-2">
-              WCB/WSIB Claim Number
-            </label>
-            <input
-              type="text"
-              value={wcbClaimNumber}
-              onChange={(e) => setWcbClaimNumber(e.target.value)}
-              placeholder="WCB-2025-XXXXX"
-              className="w-full border-2 border-gray-200 p-3 rounded-xl focus:ring-2 focus:ring-red-500 focus:border-transparent"
-            />
-          </div>
-        </div>
+        {/* Injury Record Form */}
+        {selectedInjuryIncidentId && (
+          <div className="bg-white rounded-2xl p-8 shadow-lg">
+            <div className="flex items-center justify-between mb-6">
+              <h2 className="text-2xl font-bold text-gray-900">
+                {selectedIncident ? `Edit Injury Record - ${selectedIncident.incidentNumber}` : 'Injury Management & Return-to-Work'}
+              </h2>
+              <button
+                onClick={() => {
+                  setSelectedInjuryIncidentId('');
+                  setWcbClaimNumber('');
+                  setDoctorRestrictions('');
+                  setModifiedDutyPlan('');
+                  setProgressNotes([{ date: '', note: '', enteredBy: '' }]);
+                  setSelectedWcbFiles([]);
+                }}
+                className="text-gray-500 hover:text-gray-700"
+              >
+                <FaTimes size={20} />
+              </button>
+            </div>
 
-        <div>
-          <label className="block text-sm font-semibold text-gray-700 mb-2">
-            Doctor Restrictions *
-          </label>
-          <textarea
-            required
-            rows={3}
-            value={doctorRestrictions}
-            onChange={(e) => setDoctorRestrictions(e.target.value)}
-            placeholder="No lifting over 10 lbs, restricted bending, etc."
-            className="w-full border-2 border-gray-200 p-3 rounded-xl focus:ring-2 focus:ring-red-500 focus:border-transparent resize-none"
-          />
-        </div>
+            <form onSubmit={handleSubmitInjuryRTW} className="space-y-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                  <label className="block text-sm font-semibold text-gray-700 mb-2">
+                    WCB/WSIB Claim Number
+                  </label>
+                  <input
+                    type="text"
+                    value={wcbClaimNumber}
+                    onChange={(e) => setWcbClaimNumber(e.target.value)}
+                    placeholder="WCB-2025-XXXXX"
+                    className="w-full border-2 border-gray-200 p-3 rounded-xl focus:ring-2 focus:ring-red-500 focus:border-transparent"
+                  />
+                </div>
+              </div>
 
-        <div>
-          <label className="block text-sm font-semibold text-gray-700 mb-2">
-            Modified Duty Plan *
-          </label>
-          <textarea
-            required
-            rows={4}
-            value={modifiedDutyPlan}
-            onChange={(e) => setModifiedDutyPlan(e.target.value)}
-            placeholder="Detailed plan for modified work duties..."
-            className="w-full border-2 border-gray-200 p-3 rounded-xl focus:ring-2 focus:ring-red-500 focus:border-transparent resize-none"
-          />
-        </div>
-
-        <div className="border-t-2 border-gray-100 pt-6">
-          <h3 className="text-lg font-bold mb-4 text-gray-900">Progress Notes</h3>
-          {progressNotes.map((note, idx) => (
-            <div key={idx} className="mb-4 p-4 bg-gray-50 rounded-xl">
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <input
-                  type="date"
-                  value={note.date}
-                  onChange={(e) => {
-                    const newNotes = [...progressNotes];
-                    newNotes[idx].date = e.target.value;
-                    setProgressNotes(newNotes);
-                  }}
-                  className="border-2 border-gray-200 p-2 rounded-lg"
-                />
-                <input
-                  type="text"
-                  placeholder="Entered by"
-                  value={note.enteredBy}
-                  onChange={(e) => {
-                    const newNotes = [...progressNotes];
-                    newNotes[idx].enteredBy = e.target.value;
-                    setProgressNotes(newNotes);
-                  }}
-                  className="border-2 border-gray-200 p-2 rounded-lg"
+              <div>
+                <label className="block text-sm font-semibold text-gray-700 mb-2">
+                  Doctor Restrictions *
+                </label>
+                <textarea
+                  required
+                  rows={3}
+                  value={doctorRestrictions}
+                  onChange={(e) => setDoctorRestrictions(e.target.value)}
+                  placeholder="No lifting over 10 lbs, restricted bending, etc."
+                  className="w-full border-2 border-gray-200 p-3 rounded-xl focus:ring-2 focus:ring-red-500 focus:border-transparent resize-none"
                 />
               </div>
-              <textarea
-                rows={2}
-                placeholder="Progress note..."
-                value={note.note}
-                onChange={(e) => {
-                  const newNotes = [...progressNotes];
-                  newNotes[idx].note = e.target.value;
-                  setProgressNotes(newNotes);
-                }}
-                className="w-full mt-2 border-2 border-gray-200 p-2 rounded-lg resize-none"
-              />
-            </div>
-          ))}
-          <button
-            type="button"
-            onClick={() =>
-              setProgressNotes([...progressNotes, { date: '', note: '', enteredBy: '' }])
-            }
-            className="text-red-600 font-semibold hover:text-red-700"
-          >
-            + Add Progress Note
-          </button>
-        </div>
 
-        {/* WCB/WSIB Documents Upload */}
-        <div className="border-t-2 border-gray-100 pt-6">
-          <h3 className="text-lg font-bold mb-4 text-gray-900">WCB/WSIB Documentation</h3>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-2">
-                WCB/WSIB Claim Documents
-              </label>
-              <input
-                type="file"
-                accept=".pdf,.doc,.docx,.jpg,.jpeg,.png"
-                multiple
-                onChange={(e) => {
-                  const files = e.target.files;
-                  if (files) {
-                    setSelectedWcbFiles(Array.from(files));
+              <div>
+                <label className="block text-sm font-semibold text-gray-700 mb-2">
+                  Modified Duty Plan *
+                </label>
+                <textarea
+                  required
+                  rows={4}
+                  value={modifiedDutyPlan}
+                  onChange={(e) => setModifiedDutyPlan(e.target.value)}
+                  placeholder="Detailed plan for modified work duties..."
+                  className="w-full border-2 border-gray-200 p-3 rounded-xl focus:ring-2 focus:ring-red-500 focus:border-transparent resize-none"
+                />
+              </div>
+
+              <div className="border-t-2 border-gray-100 pt-6">
+                <h3 className="text-lg font-bold mb-4 text-gray-900">Progress Notes</h3>
+                {progressNotes.map((note, idx) => (
+                  <div key={idx} className="mb-4 p-4 bg-gray-50 rounded-xl">
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                      <input
+                        type="date"
+                        value={note.date}
+                        onChange={(e) => {
+                          const newNotes = [...progressNotes];
+                          newNotes[idx].date = e.target.value;
+                          setProgressNotes(newNotes);
+                        }}
+                        className="border-2 border-gray-200 p-2 rounded-lg"
+                      />
+                      <input
+                        type="text"
+                        placeholder="Entered by"
+                        value={note.enteredBy}
+                        onChange={(e) => {
+                          const newNotes = [...progressNotes];
+                          newNotes[idx].enteredBy = e.target.value;
+                          setProgressNotes(newNotes);
+                        }}
+                        className="border-2 border-gray-200 p-2 rounded-lg"
+                      />
+                    </div>
+                    <textarea
+                      rows={2}
+                      placeholder="Progress note..."
+                      value={note.note}
+                      onChange={(e) => {
+                        const newNotes = [...progressNotes];
+                        newNotes[idx].note = e.target.value;
+                        setProgressNotes(newNotes);
+                      }}
+                      className="w-full mt-2 border-2 border-gray-200 p-2 rounded-lg resize-none"
+                    />
+                  </div>
+                ))}
+                <button
+                  type="button"
+                  onClick={() =>
+                    setProgressNotes([...progressNotes, { date: '', note: '', enteredBy: '' }])
                   }
-                }}
-                className="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-red-50 file:text-red-700 hover:file:bg-red-100"
-              />
-              <p className="text-xs text-gray-500 mt-1">Upload claim forms, medical reports, doctor notes, etc.</p>
-              {selectedWcbFiles.length > 0 && (
-                <p className="text-xs text-blue-600 mt-1">{selectedWcbFiles.length} file(s) selected</p>
-              )}
-            </div>
-            <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-2">
-                Medical Certificates & Fitness Forms
-              </label>
-              <input
-                type="file"
-                accept=".pdf,.doc,.docx,.jpg,.jpeg,.png"
-                multiple
-                onChange={(e) => {
-                  const files = e.target.files;
-                  if (files) {
-                    setSelectedWcbFiles([...selectedWcbFiles, ...Array.from(files)]);
-                  }
-                }}
-                className="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-red-50 file:text-red-700 hover:file:bg-red-100"
-              />
-              <p className="text-xs text-gray-500 mt-1">Upload fitness certificates, return-to-work forms, etc.</p>
-            </div>
+                  className="text-red-600 font-semibold hover:text-red-700"
+                >
+                  + Add Progress Note
+                </button>
+              </div>
+
+              {/* WCB/WSIB Documents Upload */}
+              <div className="border-t-2 border-gray-100 pt-6">
+                <h3 className="text-lg font-bold mb-4 text-gray-900">WCB/WSIB Documentation</h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div>
+                    <label className="block text-sm font-semibold text-gray-700 mb-2">
+                      WCB/WSIB Claim Documents
+                    </label>
+                    <input
+                      type="file"
+                      accept=".pdf,.doc,.docx,.jpg,.jpeg,.png"
+                      multiple
+                      onChange={(e) => {
+                        const files = e.target.files;
+                        if (files) {
+                          setSelectedWcbFiles(Array.from(files));
+                        }
+                      }}
+                      className="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-red-50 file:text-red-700 hover:file:bg-red-100"
+                    />
+                    <p className="text-xs text-gray-500 mt-1">Upload claim forms, medical reports, doctor notes, etc.</p>
+                    {selectedWcbFiles.length > 0 && (
+                      <p className="text-xs text-blue-600 mt-1">{selectedWcbFiles.length} file(s) selected</p>
+                    )}
+                  </div>
+                  <div>
+                    <label className="block text-sm font-semibold text-gray-700 mb-2">
+                      Medical Certificates & Fitness Forms
+                    </label>
+                    <input
+                      type="file"
+                      accept=".pdf,.doc,.docx,.jpg,.jpeg,.png"
+                      multiple
+                      onChange={(e) => {
+                        const files = e.target.files;
+                        if (files) {
+                          setSelectedWcbFiles([...selectedWcbFiles, ...Array.from(files)]);
+                        }
+                      }}
+                      className="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-red-50 file:text-red-700 hover:file:bg-red-100"
+                    />
+                    <p className="text-xs text-gray-500 mt-1">Upload fitness certificates, return-to-work forms, etc.</p>
+                  </div>
+                </div>
+              </div>
+
+              <div className="flex justify-end gap-4 pt-6 border-t-2 border-gray-100">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setSelectedInjuryIncidentId('');
+                    setWcbClaimNumber('');
+                    setDoctorRestrictions('');
+                    setModifiedDutyPlan('');
+                    setProgressNotes([{ date: '', note: '', enteredBy: '' }]);
+                    setSelectedWcbFiles([]);
+                  }}
+                  className="px-6 py-3 bg-gray-200 text-gray-700 rounded-xl font-semibold hover:bg-gray-300 transition-colors"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  disabled={uploadingFiles}
+                  className="px-6 py-3 bg-gradient-to-r from-red-600 to-pink-600 !text-white rounded-xl font-semibold hover:from-red-700 hover:to-pink-700 transition-all shadow-lg disabled:opacity-50"
+                >
+                  <FaSave className="inline mr-2" />
+                  {uploadingFiles ? 'Saving...' : 'Save RTW Plan'}
+                </button>
+              </div>
+            </form>
           </div>
-        </div>
-
-        <div className="flex justify-end gap-4 pt-6 border-t-2 border-gray-100">
-          <button
-            type="button"
-            onClick={() => setCurrentTab(TABS.INCIDENT_LIST)}
-            className="px-6 py-3 bg-gray-200 text-gray-700 rounded-xl font-semibold hover:bg-gray-300 transition-colors"
-          >
-            Cancel
-          </button>
-          <button
-            type="submit"
-            disabled={uploadingFiles}
-            className="px-6 py-3 bg-gradient-to-r from-red-600 to-pink-600 !text-white rounded-xl font-semibold hover:from-red-700 hover:to-pink-700 transition-all shadow-lg disabled:opacity-50"
-          >
-            <FaSave className="inline mr-2" />
-            {uploadingFiles ? 'Saving...' : 'Save RTW Plan'}
-          </button>
-        </div>
-      </form>
-    </div>
-  );
+        )}
+      </div>
+    );
+  };
 
 
   const renderIncidentDetail = () => {

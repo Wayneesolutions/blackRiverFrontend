@@ -1040,8 +1040,8 @@ export const useQuickActions = () => {
                 return false;
             }
 
-            // Exclude superadmin actions for non-superadmin roles
-            if (role !== 'superadmin' && action.roles?.includes('superadmin')) {
+            // Exclude superadmin actions (superadmin case already handled above)
+            if (action.roles?.includes('superadmin')) {
                 return false;
             }
 
