@@ -956,10 +956,10 @@ const Incidents: React.FC = () => {
             <div className="flex justify-between items-center">
               <div>
                 <h1 className="text-2xl font-bold text-black flex items-center gap-2">
-                  Incidents & Accidents
+                  Accidents
                 </h1>
                 <div className="flex items-center gap-2 text-black/90">
-                  <span className="text-xs">Manage and track all incidents and accidents</span>
+                  <span className="text-xs">Manage and track all accidents</span>
                 </div>
               </div>
               <button

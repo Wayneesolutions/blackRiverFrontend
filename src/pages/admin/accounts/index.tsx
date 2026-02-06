@@ -307,7 +307,7 @@ const Dashboard = () => {
     },
     {
       id: 'paystubs',
-      title: 'Paystubs',
+      title: 'Gross Payroll',
       subtitle: 'View all paystubs',
       value: '—',
       icon: FileText,

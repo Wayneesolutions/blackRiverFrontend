@@ -10,6 +10,7 @@ const CvsaInspection = lazy(() => import('../../pages/admin/compilance/cvsa/Cvsa
 const MonthlyReport = lazy(() => import('../../pages/admin/compilance/reports/MonthlyReport'))
 const Tickets = lazy(() => import('../../pages/admin/compilance/tickets/Tickets'))
 const Incidents = lazy(() => import('../../pages/admin/compilance/incidents/Incidents'))
+const InsuranceClaims = lazy(() => import('../../pages/admin/compilance/insurance-claims/InsuranceClaims'))
 const FuelReports = lazy(() => import('../../pages/admin/dispatch/resources/fuel-reports/index'))
 const Profile = lazy(() => import("../../pages/admin/dashboard/Profile/index"))
 
@@ -25,7 +26,8 @@ function CompilanceRoute() {
           <Route path="cvsa-inspection" element={<ErrorBoundary><CvsaInspection /></ErrorBoundary>} />
           <Route path="monthly-report" element={<ErrorBoundary><MonthlyReport /></ErrorBoundary>} />
           <Route path="tickets" element={<ErrorBoundary><Tickets /></ErrorBoundary>} />
-          <Route path="incidents" element={<ErrorBoundary><Incidents /></ErrorBoundary>} />
+          <Route path="accidents" element={<ErrorBoundary><Incidents /></ErrorBoundary>} />
+          <Route path="insurance-claims" element={<ErrorBoundary><InsuranceClaims /></ErrorBoundary>} />
           <Route path="fuel-reports" element={<ErrorBoundary><FuelReports /></ErrorBoundary>} />
           <Route path="/profile" element={<Profile />} />
 

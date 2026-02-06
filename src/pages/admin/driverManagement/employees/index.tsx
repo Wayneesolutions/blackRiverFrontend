@@ -1,8 +1,9 @@
 import { useState, useEffect, useRef } from 'react';
-import { Plus, Info, ChevronUp, ChevronDown, X, User, FileText, Upload, Edit, Trash2, Save } from 'lucide-react';
+import { Plus, Info, ChevronUp, ChevronDown, X, User, FileText, Upload, Edit, Trash2, Save, Calendar } from 'lucide-react';
 import { FaTimes, FaCheckCircle, FaExclamationTriangle } from 'react-icons/fa';
 import * as employeeApi from '../../../../axios/api/employee';
 import { getDocumentsByEmployee, updateEmployeeDocument, deleteEmployeeDocument } from '../../../../axios/api/employeeDocument';
+import { deleteDeductionAddition } from '../../../../axios/api/account.settlement';
 import AddressSearch from '../../../../components/common/AddressSearch';
 
 interface Employee {
@@ -88,7 +89,7 @@ const EmployeesPage = () => {
   const [showNewEmployeeModal, setShowNewEmployeeModal] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [originalEmployeeData, setOriginalEmployeeData] = useState<any>(null);
-  const [activeFormTab, setActiveFormTab] = useState<'basic' | 'personal' | 'documents' | 'notes'>('basic');
+  const [activeFormTab, setActiveFormTab] = useState<'basic' | 'personal' | 'documents' | 'notes' | 'deductions' | 'additions'>('basic');
   const [profileImage, setProfileImage] = useState<File | null>(null);
   const [profileImagePreview, setProfileImagePreview] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -118,8 +119,7 @@ const EmployeesPage = () => {
     payRate: '',
     vacationPay: '',
     department: '',
-    jobType: '',
-    jobTime: 'FULL-TIME' as 'FULL-TIME' | 'PART-TIME',
+    employmentType: 'FULL-TIME' as 'FULL-TIME' | 'PART-TIME' | 'CONTRACT BASIS',
     phone: '', // Store phone without country code prefix
     searchAddress: '',
     address: '',
@@ -129,6 +129,42 @@ const EmployeesPage = () => {
     hireDate: '',
     terminationDate: ''
   });
+
+  // Form state for Deductions
+  const [deductions, setDeductions] = useState<Array<{
+    id: string;
+    startDate: string;
+    description: string;
+    amount: string;
+    interval: string;
+    currency: string;
+  }>>([]);
+  const [newDeduction, setNewDeduction] = useState({
+    startDate: '',
+    description: '',
+    amount: '0',
+    interval: '',
+    currency: 'CAD'
+  });
+  const [editingDeductionId, setEditingDeductionId] = useState<string | null>(null);
+
+  // Form state for Additions
+  const [additions, setAdditions] = useState<Array<{
+    id: string;
+    startDate: string;
+    description: string;
+    amount: string;
+    interval: string;
+    currency: string;
+  }>>([]);
+  const [newAddition, setNewAddition] = useState({
+    startDate: '',
+    description: '',
+    amount: '0',
+    interval: '',
+    currency: 'CAD'
+  });
+  const [editingAdditionId, setEditingAdditionId] = useState<string | null>(null);
 
   // Country selector state for phone
   interface Country {
@@ -580,16 +616,36 @@ const EmployeesPage = () => {
           formData.append('department', currentDepartment);
         }
 
-        const currentJobType = personalData.jobType || '';
-        const originalJobType = originalEmployeeData.details?.jobType || originalEmployeeData.jobType || '';
-        if (hasChanged(currentJobType, originalJobType)) {
-          formData.append('jobType', currentJobType);
+        const currentEmploymentType = personalData.employmentType || '';
+        const originalEmploymentType = originalEmployeeData.details?.employmentType || originalEmployeeData.details?.jobTime || originalEmployeeData.employmentType || originalEmployeeData.jobTime || '';
+        if (hasChanged(currentEmploymentType, originalEmploymentType)) {
+          formData.append('employmentType', currentEmploymentType);
         }
 
-        const currentJobTime = personalData.jobTime || '';
-        const originalJobTime = originalEmployeeData.details?.jobTime || originalEmployeeData.jobTime || '';
-        if (hasChanged(currentJobTime, originalJobTime)) {
-          formData.append('jobTime', currentJobTime);
+        // Deductions - send as JSON array
+        if (deductions && deductions.length > 0) {
+          const deductionsData = deductions.map(ded => ({
+            id: ded.id,
+            startDate: ded.startDate || '',
+            description: ded.description || '',
+            amount: ded.amount || '0',
+            interval: ded.interval || '',
+            currency: ded.currency || 'CAD'
+          }));
+          formData.append('deductions', JSON.stringify(deductionsData));
+        }
+
+        // Additions - send as JSON array
+        if (additions && additions.length > 0) {
+          const additionsData = additions.map(add => ({
+            id: add.id,
+            startDate: add.startDate || '',
+            description: add.description || '',
+            amount: add.amount || '0',
+            interval: add.interval || '',
+            currency: add.currency || 'CAD'
+          }));
+          formData.append('additions', JSON.stringify(additionsData));
         }
 
         // Notes - only if changed
@@ -655,11 +711,34 @@ const EmployeesPage = () => {
         if (personalData.department) {
           formData.append('department', personalData.department);
         }
-        if (personalData.jobType) {
-          formData.append('jobType', personalData.jobType);
+        if (personalData.employmentType) {
+          formData.append('employmentType', personalData.employmentType);
         }
-        if (personalData.jobTime) {
-          formData.append('jobTime', personalData.jobTime);
+
+        // Deductions - send as JSON array
+        if (deductions && deductions.length > 0) {
+          const deductionsData = deductions.map(ded => ({
+            id: ded.id,
+            startDate: ded.startDate || '',
+            description: ded.description || '',
+            amount: ded.amount || '0',
+            interval: ded.interval || '',
+            currency: ded.currency || 'CAD'
+          }));
+          formData.append('deductions', JSON.stringify(deductionsData));
+        }
+
+        // Additions - send as JSON array
+        if (additions && additions.length > 0) {
+          const additionsData = additions.map(add => ({
+            id: add.id,
+            startDate: add.startDate || '',
+            description: add.description || '',
+            amount: add.amount || '0',
+            interval: add.interval || '',
+            currency: add.currency || 'CAD'
+          }));
+          formData.append('additions', JSON.stringify(additionsData));
         }
 
         // Notes
@@ -767,8 +846,7 @@ const EmployeesPage = () => {
       payRate: '',
       vacationPay: '',
       department: '',
-      jobType: '',
-      jobTime: 'FULL-TIME',
+      employmentType: 'FULL-TIME',
       phone: '',
       searchAddress: '',
       address: '',
@@ -777,6 +855,22 @@ const EmployeesPage = () => {
       dateOfBirth: '',
       hireDate: '',
       terminationDate: ''
+    });
+    setDeductions([]);
+    setNewDeduction({
+      startDate: '',
+      description: '',
+      amount: '0',
+      interval: '',
+      currency: 'CAD'
+    });
+    setAdditions([]);
+    setNewAddition({
+      startDate: '',
+      description: '',
+      amount: '0',
+      interval: '',
+      currency: 'CAD'
     });
     setDocuments([]);
     setNewDocument({
@@ -848,8 +942,7 @@ const EmployeesPage = () => {
           payRate: emp.details?.payRate || emp.payRate || '',
           vacationPay: emp.details?.vacationPay || emp.vacationPay || '',
           department: emp.details?.department || emp.department || '',
-          jobType: emp.details?.jobType || emp.jobType || '',
-          jobTime: (emp.details?.jobTime || emp.jobTime || 'FULL-TIME') as 'FULL-TIME' | 'PART-TIME',
+          employmentType: (emp.details?.employmentType || emp.details?.jobTime || emp.employmentType || emp.jobTime || 'FULL-TIME') as 'FULL-TIME' | 'PART-TIME' | 'CONTRACT BASIS',
           phone: parsedPhone.phoneNumber || '',
           searchAddress: '',
           address: emp.location?.address || emp.address || '',
@@ -859,6 +952,35 @@ const EmployeesPage = () => {
           hireDate: formatDateForInput(emp.joinDate || emp.details?.hireDate || ''),
           terminationDate: formatDateForInput(emp.details?.termDate || '')
         };
+
+        // Load deductions and additions if available
+        if (emp.deductions && Array.isArray(emp.deductions) && emp.deductions.length > 0) {
+          const existingDeductions = emp.deductions.map((ded: any) => ({
+            id: `existing-${ded._id}`,
+            startDate: ded.startDate ? new Date(ded.startDate).toISOString().split('T')[0] : '',
+            description: ded.name || ded.description || '',
+            amount: ded.amount?.toString() || '0',
+            interval: ded.recurrence || ded.interval || '',
+            currency: ded.currency || 'CAD'
+          }));
+          setDeductions(existingDeductions);
+        } else {
+          setDeductions([]);
+        }
+
+        if (emp.additions && Array.isArray(emp.additions) && emp.additions.length > 0) {
+          const existingAdditions = emp.additions.map((add: any) => ({
+            id: `existing-${add._id}`,
+            startDate: add.startDate ? new Date(add.startDate).toISOString().split('T')[0] : '',
+            description: add.name || add.description || '',
+            amount: add.amount?.toString() || '0',
+            interval: add.recurrence || add.interval || '',
+            currency: add.currency || 'CAD'
+          }));
+          setAdditions(existingAdditions);
+        } else {
+          setAdditions([]);
+        }
 
         console.log('📋 Personal data to set:', personalDataToSet);
         setPersonalData(personalDataToSet);
@@ -1332,7 +1454,9 @@ const EmployeesPage = () => {
                     { id: 'basic', label: 'Basic', icon: User },
                     { id: 'personal', label: 'Personal Information', icon: User },
                     { id: 'documents', label: 'Documents', icon: FileText },
-                    { id: 'notes', label: 'Notes / Benefits', icon: FileText }
+                    { id: 'notes', label: 'Notes / Benefits', icon: FileText },
+                    { id: 'deductions', label: 'Deductions', icon: FileText },
+                    { id: 'additions', label: 'Additions', icon: FileText }
                   ].map((tab) => {
                     const Icon = tab.icon;
                     const isActive = activeFormTab === tab.id;
@@ -1564,39 +1688,16 @@ const EmployeesPage = () => {
                         </select>
                       </div>
                       <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">Job Type</label>
-                        <input
-                          type="text"
-                          placeholder="Job Type"
-                          value={personalData.jobType}
-                          onChange={(e) => setPersonalData({ ...personalData, jobType: e.target.value })}
+                        <label className="block text-sm font-medium text-gray-700 mb-1">Employment Type</label>
+                        <select
+                          value={personalData.employmentType}
+                          onChange={(e) => setPersonalData({ ...personalData, employmentType: e.target.value as 'FULL-TIME' | 'PART-TIME' | 'CONTRACT BASIS' })}
                           className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#42aeec] focus:border-transparent"
-                        />
-                      </div>
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">Job Time</label>
-                        <div className="flex gap-2">
-                          <button
-                            type="button"
-                            onClick={() => setPersonalData({ ...personalData, jobTime: 'FULL-TIME' })}
-                            className={`flex-1 px-4 py-2 rounded-lg font-medium transition-colors ${personalData.jobTime === 'FULL-TIME'
-                                ? 'bg-gray-700 !text-white'
-                                : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
-                              }`}
-                          >
-                            FULL-TIME
-                          </button>
-                          <button
-                            type="button"
-                            onClick={() => setPersonalData({ ...personalData, jobTime: 'PART-TIME' })}
-                            className={`flex-1 px-4 py-2 rounded-lg font-medium transition-colors ${personalData.jobTime === 'PART-TIME'
-                                ? 'bg-gray-700 !text-white'
-                                : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
-                              }`}
-                          >
-                            PART-TIME
-                          </button>
-                        </div>
+                        >
+                          <option value="FULL-TIME">Full-time</option>
+                          <option value="PART-TIME">Part-time</option>
+                          <option value="CONTRACT BASIS">Contract Basis</option>
+                        </select>
                       </div>
                       <div>
                         <label className="block text-sm font-medium text-gray-700 mb-1">Phone #</label>
@@ -2193,6 +2294,440 @@ const EmployeesPage = () => {
                         className="text-gray-600 hover:text-gray-900 flex items-center gap-2"
                       >
                         <span>←</span> Documents
+                      </button>
+                      <button
+                        onClick={() => setActiveFormTab('deductions')}
+                        className="text-gray-600 hover:text-gray-900 flex items-center gap-2"
+                      >
+                        Deductions <span>→</span>
+                      </button>
+                    </div>
+                  </div>
+                )}
+
+                {activeFormTab === 'deductions' && (
+                  <div className="space-y-6">
+                    <h3 className="text-lg font-bold text-gray-900 mb-4">Payroll Deductions</h3>
+
+                    {/* Deductions Input Row */}
+                    <div className="flex items-center gap-3 p-4 bg-gray-50 rounded-lg">
+                      <div className="flex-1">
+                        <label className="block text-sm font-medium text-gray-700 mb-1">Start Date</label>
+                        <div className="relative">
+                          <Calendar className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
+                          <input
+                            type="date"
+                            value={newDeduction.startDate}
+                            onChange={(e) => setNewDeduction({ ...newDeduction, startDate: e.target.value })}
+                            className="w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#42aeec] focus:border-transparent"
+                          />
+                        </div>
+                      </div>
+                      <div className="flex-1">
+                        <label className="block text-sm font-medium text-gray-700 mb-1">Description</label>
+                        <input
+                          type="text"
+                          placeholder="Description"
+                          value={newDeduction.description}
+                          onChange={(e) => setNewDeduction({ ...newDeduction, description: e.target.value })}
+                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#42aeec] focus:border-transparent"
+                        />
+                      </div>
+                      <div className="flex-1">
+                        <label className="block text-sm font-medium text-gray-700 mb-1">Amount</label>
+                        <input
+                          type="text"
+                          placeholder="0"
+                          value={newDeduction.amount}
+                          onChange={(e) => setNewDeduction({ ...newDeduction, amount: e.target.value })}
+                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#42aeec] focus:border-transparent"
+                        />
+                      </div>
+                      <div className="flex-1">
+                        <label className="block text-sm font-medium text-gray-700 mb-1">Interval</label>
+                        <select
+                          value={newDeduction.interval}
+                          onChange={(e) => setNewDeduction({ ...newDeduction, interval: e.target.value })}
+                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#42aeec] focus:border-transparent"
+                        >
+                          <option value="">Interval</option>
+                          <option value="Weekly">Weekly</option>
+                          <option value="Bi-Weekly">Bi-Weekly</option>
+                          <option value="Monthly">Monthly</option>
+                          <option value="Yearly">Yearly</option>
+                        </select>
+                      </div>
+                      <div className="flex-1">
+                        <label className="block text-sm font-medium text-gray-700 mb-1">Currency</label>
+                        <select
+                          value={newDeduction.currency}
+                          onChange={(e) => setNewDeduction({ ...newDeduction, currency: e.target.value })}
+                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#42aeec] focus:border-transparent"
+                        >
+                          <option value="CAD">CAD</option>
+                          <option value="USD">USD</option>
+                        </select>
+                      </div>
+                      <div className="flex items-end">
+                        <button
+                          onClick={() => {
+                            if (newDeduction.startDate || newDeduction.description) {
+                              if (editingDeductionId) {
+                                // Update existing deduction in the list
+                                setDeductions(deductions.map(d => 
+                                  d.id === editingDeductionId 
+                                    ? {
+                                        ...d,
+                                        startDate: newDeduction.startDate,
+                                        description: newDeduction.description,
+                                        amount: newDeduction.amount,
+                                        interval: newDeduction.interval,
+                                        currency: newDeduction.currency
+                                      }
+                                    : d
+                                ));
+                                setEditingDeductionId(null);
+                              } else {
+                                // Add new deduction
+                                setDeductions([...deductions, {
+                                  id: Date.now().toString(),
+                                  startDate: newDeduction.startDate,
+                                  description: newDeduction.description,
+                                  amount: newDeduction.amount,
+                                  interval: newDeduction.interval,
+                                  currency: newDeduction.currency
+                                }]);
+                              }
+                              setNewDeduction({
+                                startDate: '',
+                                description: '',
+                                amount: '0',
+                                interval: '',
+                                currency: 'CAD'
+                              });
+                            }
+                          }}
+                          className="w-10 h-10 bg-black !text-white rounded-lg flex items-center justify-center hover:bg-gray-800 transition-colors"
+                        >
+                          {editingDeductionId ? <Save className="w-5 h-5" /> : <Plus className="w-5 h-5" />}
+                        </button>
+                      </div>
+                    </div>
+
+                    {/* Deductions Table */}
+                    <div className="border border-gray-200 rounded-lg overflow-hidden">
+                      <table className="w-full">
+                        <thead className="bg-gray-50">
+                          <tr>
+                            <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase">Start Date</th>
+                            <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase">Description</th>
+                            <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase">Amount</th>
+                            <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase">Interval</th>
+                            <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase">ACTIONS</th>
+                          </tr>
+                        </thead>
+                        <tbody className="bg-white divide-y divide-gray-200">
+                          {deductions.length === 0 ? (
+                            <tr>
+                              <td colSpan={5} className="px-4 py-8 text-center text-gray-500">
+                                No Data
+                              </td>
+                            </tr>
+                          ) : (
+                            deductions.map((deduction) => (
+                              <tr key={deduction.id} className="hover:bg-gray-50">
+                                <td className="px-4 py-3 text-sm text-gray-900">{deduction.startDate || '-'}</td>
+                                <td className="px-4 py-3 text-sm text-gray-900">{deduction.description || '-'}</td>
+                                <td className="px-4 py-3 text-sm text-gray-900">{deduction.amount || '0'} {deduction.currency}</td>
+                                <td className="px-4 py-3 text-sm text-gray-900">{deduction.interval || '-'}</td>
+                                <td className="px-4 py-3 text-sm text-gray-900">
+                                  <div className="flex items-center gap-2">
+                                    <button
+                                      onClick={(e) => {
+                                        e.stopPropagation();
+                                        setNewDeduction({
+                                          startDate: deduction.startDate || '',
+                                          description: deduction.description || '',
+                                          amount: deduction.amount || '0',
+                                          interval: deduction.interval || '',
+                                          currency: deduction.currency || 'CAD'
+                                        });
+                                        setEditingDeductionId(deduction.id);
+                                      }}
+                                      className="p-1.5 text-blue-600 hover:bg-blue-50 rounded transition-colors"
+                                      title="Edit deduction"
+                                    >
+                                      <Edit className="w-4 h-4" />
+                                    </button>
+                                    <button
+                                      onClick={async (e) => {
+                                        e.stopPropagation();
+                                        if (window.confirm('Are you sure you want to delete this deduction?')) {
+                                          try {
+                                            // Check if it's an existing deduction (ID starts with "existing-")
+                                            if (deduction.id && deduction.id.toString().startsWith('existing-')) {
+                                              const actualId = deduction.id.toString().replace('existing-', '');
+                                              const response = await deleteDeductionAddition(actualId);
+                                              if (response?.success) {
+                                                // Notification would be handled by parent component
+                                              }
+                                            }
+                                            // Remove from local state
+                                            setDeductions(deductions.filter(d => d.id !== deduction.id));
+                                            // Clear editing state if this was the deduction being edited
+                                            if (editingDeductionId === deduction.id) {
+                                              setEditingDeductionId(null);
+                                              setNewDeduction({
+                                                startDate: '',
+                                                description: '',
+                                                amount: '0',
+                                                interval: '',
+                                                currency: 'CAD'
+                                              });
+                                            }
+                                          } catch (error: any) {
+                                            console.error('Error deleting deduction:', error);
+                                          }
+                                        }
+                                      }}
+                                      className="p-1.5 text-red-600 hover:bg-red-50 rounded transition-colors"
+                                      title="Delete deduction"
+                                    >
+                                      <Trash2 className="w-4 h-4" />
+                                    </button>
+                                  </div>
+                                </td>
+                              </tr>
+                            ))
+                          )}
+                        </tbody>
+                      </table>
+                    </div>
+
+                    {/* Navigation Footer */}
+                    <div className="flex justify-between items-center pt-4 border-t border-gray-200">
+                      <button
+                        onClick={() => setActiveFormTab('notes')}
+                        className="text-gray-600 hover:text-gray-900 flex items-center gap-2"
+                      >
+                        <span>←</span> Notes / Benefits
+                      </button>
+                      <button
+                        onClick={() => setActiveFormTab('additions')}
+                        className="text-gray-600 hover:text-gray-900 flex items-center gap-2"
+                      >
+                        Additions <span>→</span>
+                      </button>
+                    </div>
+                  </div>
+                )}
+
+                {activeFormTab === 'additions' && (
+                  <div className="space-y-6">
+                    <h3 className="text-lg font-bold text-gray-900 mb-4">Payroll Additions</h3>
+
+                    {/* Additions Input Row */}
+                    <div className="flex items-center gap-3 p-4 bg-gray-50 rounded-lg">
+                      <div className="flex-1">
+                        <label className="block text-sm font-medium text-gray-700 mb-1">Start Date</label>
+                        <div className="relative">
+                          <Calendar className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
+                          <input
+                            type="date"
+                            value={newAddition.startDate}
+                            onChange={(e) => setNewAddition({ ...newAddition, startDate: e.target.value })}
+                            className="w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#42aeec] focus:border-transparent"
+                          />
+                        </div>
+                      </div>
+                      <div className="flex-1">
+                        <label className="block text-sm font-medium text-gray-700 mb-1">Description</label>
+                        <input
+                          type="text"
+                          placeholder="Description"
+                          value={newAddition.description}
+                          onChange={(e) => setNewAddition({ ...newAddition, description: e.target.value })}
+                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#42aeec] focus:border-transparent"
+                        />
+                      </div>
+                      <div className="flex-1">
+                        <label className="block text-sm font-medium text-gray-700 mb-1">Amount</label>
+                        <input
+                          type="text"
+                          placeholder="0"
+                          value={newAddition.amount}
+                          onChange={(e) => setNewAddition({ ...newAddition, amount: e.target.value })}
+                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#42aeec] focus:border-transparent"
+                        />
+                      </div>
+                      <div className="flex-1">
+                        <label className="block text-sm font-medium text-gray-700 mb-1">Interval</label>
+                        <select
+                          value={newAddition.interval}
+                          onChange={(e) => setNewAddition({ ...newAddition, interval: e.target.value })}
+                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#42aeec] focus:border-transparent"
+                        >
+                          <option value="">Interval</option>
+                          <option value="Weekly">Weekly</option>
+                          <option value="Bi-Weekly">Bi-Weekly</option>
+                          <option value="Monthly">Monthly</option>
+                          <option value="Yearly">Yearly</option>
+                        </select>
+                      </div>
+                      <div className="flex-1">
+                        <label className="block text-sm font-medium text-gray-700 mb-1">Currency</label>
+                        <select
+                          value={newAddition.currency}
+                          onChange={(e) => setNewAddition({ ...newAddition, currency: e.target.value })}
+                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#42aeec] focus:border-transparent"
+                        >
+                          <option value="CAD">CAD</option>
+                          <option value="USD">USD</option>
+                        </select>
+                      </div>
+                      <div className="flex items-end">
+                        <button
+                          onClick={() => {
+                            if (newAddition.startDate || newAddition.description) {
+                              if (editingAdditionId) {
+                                // Update existing addition in the list
+                                setAdditions(additions.map(a => 
+                                  a.id === editingAdditionId 
+                                    ? {
+                                        ...a,
+                                        startDate: newAddition.startDate,
+                                        description: newAddition.description,
+                                        amount: newAddition.amount,
+                                        interval: newAddition.interval,
+                                        currency: newAddition.currency
+                                      }
+                                    : a
+                                ));
+                                setEditingAdditionId(null);
+                              } else {
+                                // Add new addition
+                                setAdditions([...additions, {
+                                  id: Date.now().toString(),
+                                  startDate: newAddition.startDate,
+                                  description: newAddition.description,
+                                  amount: newAddition.amount,
+                                  interval: newAddition.interval,
+                                  currency: newAddition.currency
+                                }]);
+                              }
+                              setNewAddition({
+                                startDate: '',
+                                description: '',
+                                amount: '0',
+                                interval: '',
+                                currency: 'CAD'
+                              });
+                            }
+                          }}
+                          className="w-10 h-10 bg-black !text-white rounded-lg flex items-center justify-center hover:bg-gray-800 transition-colors"
+                        >
+                          {editingAdditionId ? <Save className="w-5 h-5" /> : <Plus className="w-5 h-5" />}
+                        </button>
+                      </div>
+                    </div>
+
+                    {/* Additions Table */}
+                    <div className="border border-gray-200 rounded-lg overflow-hidden">
+                      <table className="w-full">
+                        <thead className="bg-gray-50">
+                          <tr>
+                            <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase">Start Date</th>
+                            <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase">Description</th>
+                            <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase">Amount</th>
+                            <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase">Interval</th>
+                            <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase">ACTIONS</th>
+                          </tr>
+                        </thead>
+                        <tbody className="bg-white divide-y divide-gray-200">
+                          {additions.length === 0 ? (
+                            <tr>
+                              <td colSpan={5} className="px-4 py-8 text-center text-gray-500">
+                                No Data
+                              </td>
+                            </tr>
+                          ) : (
+                            additions.map((addition) => (
+                              <tr key={addition.id} className="hover:bg-gray-50">
+                                <td className="px-4 py-3 text-sm text-gray-900">{addition.startDate || '-'}</td>
+                                <td className="px-4 py-3 text-sm text-gray-900">{addition.description || '-'}</td>
+                                <td className="px-4 py-3 text-sm text-gray-900">{addition.amount || '0'} {addition.currency}</td>
+                                <td className="px-4 py-3 text-sm text-gray-900">{addition.interval || '-'}</td>
+                                <td className="px-4 py-3 text-sm text-gray-900">
+                                  <div className="flex items-center gap-2">
+                                    <button
+                                      onClick={(e) => {
+                                        e.stopPropagation();
+                                        setNewAddition({
+                                          startDate: addition.startDate || '',
+                                          description: addition.description || '',
+                                          amount: addition.amount || '0',
+                                          interval: addition.interval || '',
+                                          currency: addition.currency || 'CAD'
+                                        });
+                                        setEditingAdditionId(addition.id);
+                                      }}
+                                      className="p-1.5 text-blue-600 hover:bg-blue-50 rounded transition-colors"
+                                      title="Edit addition"
+                                    >
+                                      <Edit className="w-4 h-4" />
+                                    </button>
+                                    <button
+                                      onClick={async (e) => {
+                                        e.stopPropagation();
+                                        if (window.confirm('Are you sure you want to delete this addition?')) {
+                                          try {
+                                            // Check if it's an existing addition (ID starts with "existing-")
+                                            if (addition.id && addition.id.toString().startsWith('existing-')) {
+                                              const actualId = addition.id.toString().replace('existing-', '');
+                                              const response = await deleteDeductionAddition(actualId);
+                                              if (response?.success) {
+                                                // Notification would be handled by parent component
+                                              }
+                                            }
+                                            // Remove from local state
+                                            setAdditions(additions.filter(a => a.id !== addition.id));
+                                            // Clear editing state if this was the addition being edited
+                                            if (editingAdditionId === addition.id) {
+                                              setEditingAdditionId(null);
+                                              setNewAddition({
+                                                startDate: '',
+                                                description: '',
+                                                amount: '0',
+                                                interval: '',
+                                                currency: 'CAD'
+                                              });
+                                            }
+                                          } catch (error: any) {
+                                            console.error('Error deleting addition:', error);
+                                          }
+                                        }
+                                      }}
+                                      className="p-1.5 text-red-600 hover:bg-red-50 rounded transition-colors"
+                                      title="Delete addition"
+                                    >
+                                      <Trash2 className="w-4 h-4" />
+                                    </button>
+                                  </div>
+                                </td>
+                              </tr>
+                            ))
+                          )}
+                        </tbody>
+                      </table>
+                    </div>
+
+                    {/* Navigation Footer */}
+                    <div className="flex justify-between items-center pt-4 border-t border-gray-200">
+                      <button
+                        onClick={() => setActiveFormTab('deductions')}
+                        className="text-gray-600 hover:text-gray-900 flex items-center gap-2"
+                      >
+                        <span>←</span> Deductions
                       </button>
                     </div>
                   </div>

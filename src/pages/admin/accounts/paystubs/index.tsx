@@ -44,6 +44,7 @@ const PaystubsList = () => {
   const [paystubs, setPaystubs] = useState<Paystub[]>([]);
   const [filteredPaystubs, setFilteredPaystubs] = useState<Paystub[]>([]);
   const [loading, setLoading] = useState<boolean>(false);
+  const [downloadingBulk, setDownloadingBulk] = useState<boolean>(false);
   const [searchQuery, setSearchQuery] = useState<string>('');
   const [startDate, setStartDate] = useState<string>('');
   const [endDate, setEndDate] = useState<string>('');
@@ -441,6 +442,200 @@ const PaystubsList = () => {
     }
   };
 
+  const handleBulkDownload = async () => {
+    if (filteredPaystubs.length === 0) {
+      alert('No paystubs to download.');
+      return;
+    }
+
+    setDownloadingBulk(true);
+    try {
+      // Create a zip-like approach by downloading all PDFs sequentially
+      // Note: For better UX, you might want to use JSZip library to create a single zip file
+      // For now, we'll download them one by one with a small delay
+      
+      for (let i = 0; i < filteredPaystubs.length; i++) {
+        const paystub = filteredPaystubs[i];
+        try {
+          // Fetch full paystub details
+          const response = await getPaystubById(paystub._id);
+          const fullPaystub = response?.success && response.data ? response.data : paystub;
+          
+          // Generate PDF (reuse the same logic from handleDownloadPDF)
+          const doc = new jsPDF('p', 'mm', 'a4');
+          const pageWidth = doc.internal.pageSize.getWidth();
+          const pageHeight = doc.internal.pageSize.getHeight();
+          const margin = 15;
+          const contentWidth = pageWidth - (margin * 2);
+          
+          const checkPageBreak = (requiredSpace: number, currentY: number) => {
+            if (currentY + requiredSpace > pageHeight - margin) {
+              doc.addPage();
+              return margin;
+            }
+            return currentY;
+          };
+
+          const primaryR = 37, primaryG = 99, primaryB = 235;
+          const textR = 31, textG = 41, textB = 55;
+          const lightGrayR = 243, lightGrayG = 244, lightGrayB = 246;
+          const greenR = 34, greenG = 197, greenB = 94;
+          const redR = 239, redG = 68, redB = 68;
+
+          let yPos = margin;
+
+          // Header
+          doc.setFillColor(primaryR, primaryG, primaryB);
+          doc.rect(0, 0, pageWidth, 45, 'F');
+
+          doc.setTextColor(255, 255, 255);
+          doc.setFontSize(14);
+          doc.setFont('helvetica', 'bold');
+          const companyName = fullPaystub.companyDetails?.companyName || fullPaystub.company?.name || 'Company Name';
+          doc.text(companyName, margin, 18);
+          
+          doc.setFontSize(9);
+          doc.setFont('helvetica', 'normal');
+          let companyY = 25;
+          const companyAddress = fullPaystub.companyDetails?.companyAddress || fullPaystub.company?.address;
+          if (companyAddress) {
+            const addressLines = doc.splitTextToSize(companyAddress, 70);
+            doc.text(addressLines, margin, companyY);
+            companyY += addressLines.length * 4.5;
+          }
+          const companyPhone = fullPaystub.companyDetails?.companyPhone || fullPaystub.company?.phone;
+          if (companyPhone) {
+            doc.text(`Phone: ${companyPhone}`, margin, companyY);
+            companyY += 4.5;
+          }
+          const companyEmail = fullPaystub.companyDetails?.companyEmail || fullPaystub.company?.email;
+          if (companyEmail) {
+            doc.text(`Email: ${companyEmail}`, margin, companyY);
+          }
+
+          doc.setFontSize(22);
+          doc.setFont('helvetica', 'bold');
+          doc.text('PAY STUB', pageWidth - margin, 18, { align: 'right' });
+          doc.setFontSize(9);
+          doc.setFont('helvetica', 'normal');
+          doc.text('EARNINGS STATEMENT', pageWidth - margin, 25, { align: 'right' });
+          if (fullPaystub.paystubId) {
+            doc.setFontSize(7);
+            doc.text(`ID: ${fullPaystub.paystubId}`, pageWidth - margin, 32, { align: 'right' });
+          }
+
+          doc.setTextColor(textR, textG, textB);
+          yPos = 55;
+
+          // Pay Period Box
+          const boxWidth = 75;
+          const boxHeight = 25;
+          doc.setFillColor(lightGrayR, lightGrayG, lightGrayB);
+          doc.roundedRect(pageWidth - margin - boxWidth, yPos, boxWidth, boxHeight, 2, 2, 'F');
+          
+          doc.setFontSize(7);
+          doc.setTextColor(107, 114, 128);
+          doc.text('Pay Period Start', pageWidth - margin - boxWidth + 3, yPos + 6);
+          doc.text('Pay Period End', pageWidth - margin - boxWidth + 3, yPos + 12);
+          doc.text('Pay Date', pageWidth - margin - boxWidth + 3, yPos + 18);
+          
+          doc.setFontSize(8);
+          doc.setTextColor(textR, textG, textB);
+          doc.setFont('helvetica', 'bold');
+          const startDate = new Date(fullPaystub.payPeriod.startDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+          const endDate = new Date(fullPaystub.payPeriod.endDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+          const payDate = new Date(fullPaystub.payPeriod.payDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+          doc.text(startDate, pageWidth - margin - 3, yPos + 6, { align: 'right' });
+          doc.text(endDate, pageWidth - margin - 3, yPos + 12, { align: 'right' });
+          doc.text(payDate, pageWidth - margin - 3, yPos + 18, { align: 'right' });
+
+          yPos += boxHeight + 8;
+
+          // Employee Information
+          yPos = checkPageBreak(25, yPos);
+          doc.setFontSize(11);
+          doc.setFont('helvetica', 'bold');
+          doc.text('Employee Information', margin, yPos);
+          yPos += 7;
+          doc.setDrawColor(200, 200, 200);
+          doc.line(margin, yPos, pageWidth - margin, yPos);
+          yPos += 6;
+
+          doc.setFontSize(9);
+          doc.setFont('helvetica', 'normal');
+          doc.text(`Name: ${fullPaystub.employeeName || fullPaystub.userId?.name || 'Unknown'}`, margin, yPos);
+          yPos += 6;
+          const empId = fullPaystub.employeeId || fullPaystub.userId?.internalId;
+          if (empId) {
+            doc.text(`Employee ID: ${empId}`, margin, yPos);
+            yPos += 6;
+          }
+          doc.text(`Role: ${fullPaystub.employeeRole || fullPaystub.userId?.role || 'N/A'}`, margin, yPos);
+          yPos += 6;
+          doc.text(`Work Type: ${fullPaystub.workType || 'Employee'}`, margin, yPos);
+          yPos += 6;
+          if (fullPaystub.employeeAddress) {
+            const addrLines = doc.splitTextToSize(`Address: ${fullPaystub.employeeAddress}`, contentWidth);
+            doc.text(addrLines, margin, yPos);
+            yPos += addrLines.length * 5;
+          }
+          yPos += 8;
+
+          // Summary Section
+          yPos = checkPageBreak(40, yPos);
+          doc.setFillColor(primaryR, primaryG, primaryB);
+          doc.roundedRect(margin, yPos, contentWidth, 32, 2, 2, 'F');
+          yPos += 8;
+          doc.setTextColor(255, 255, 255);
+          doc.setFontSize(11);
+          doc.setFont('helvetica', 'bold');
+          doc.text('Pay Summary', margin + 3, yPos);
+          yPos += 9;
+
+          doc.setFontSize(9);
+          doc.setFont('helvetica', 'normal');
+          doc.text('Gross Earnings:', margin + 3, yPos);
+          doc.setFont('helvetica', 'bold');
+          doc.text(`$${fullPaystub.summary.grossPay.toFixed(2)}`, pageWidth - margin - 3, yPos, { align: 'right' });
+          yPos += 7;
+
+          doc.setFont('helvetica', 'normal');
+          doc.text('Total Deductions:', margin + 3, yPos);
+          doc.setFont('helvetica', 'bold');
+          doc.text(`$${fullPaystub.summary.totalDeductions.toFixed(2)}`, pageWidth - margin - 3, yPos, { align: 'right' });
+          yPos += 6;
+
+          doc.setDrawColor(255, 255, 255);
+          doc.line(margin + 3, yPos, pageWidth - margin - 3, yPos);
+          yPos += 6;
+          doc.setFontSize(11);
+          doc.setFont('helvetica', 'bold');
+          doc.text('Net Pay', margin + 3, yPos);
+          doc.setFontSize(13);
+          doc.text(`$${fullPaystub.summary.netPay.toFixed(2)}`, pageWidth - margin - 3, yPos, { align: 'right' });
+          doc.setTextColor(textR, textG, textB);
+
+          const fileName = `Paystub_${(fullPaystub.employeeName || fullPaystub.userId?.name || 'Unknown').replace(/\s+/g, '_')}_${fullPaystub.paystubId || fullPaystub._id.slice(-8)}.pdf`;
+          doc.save(fileName);
+          
+          // Small delay to prevent browser blocking multiple downloads
+          if (i < filteredPaystubs.length - 1) {
+            await new Promise(resolve => setTimeout(resolve, 500));
+          }
+        } catch (error) {
+          console.error(`Error downloading paystub ${paystub._id}:`, error);
+        }
+      }
+      
+      alert(`Successfully downloaded ${filteredPaystubs.length} paystub(s).`);
+    } catch (error) {
+      console.error('Error in bulk download:', error);
+      alert('Error downloading paystubs. Please try again.');
+    } finally {
+      setDownloadingBulk(false);
+    }
+  };
+
   return (
     <div className="min-h-screen bg-[#EDF8FF] px-6 py-8">
       <div className="max-w-7xl mx-auto">
@@ -450,7 +645,7 @@ const PaystubsList = () => {
             <div>
               <h1 className="text-2xl font-bold text-gray-900 flex items-center gap-2">
                 <FileText className="text-blue-600" size={28} />
-                Paystubs
+                Gross Payroll
               </h1>
               <p className="text-sm text-gray-600 mt-1">View and download paystubs for employees, drivers, and owner operators</p>
             </div>
@@ -462,7 +657,7 @@ const PaystubsList = () => {
               onClick={() => setActiveTab('all')}
               className={`px-6 py-3 font-medium text-sm transition-colors border-b-2 ${
                 activeTab === 'all'
-                  ? 'border-blue-600 text-blue-600'
+                  ? 'border-blue-600 !text-blue-600'
                   : 'border-transparent text-gray-500 hover:text-gray-700'
               }`}
             >
@@ -475,7 +670,7 @@ const PaystubsList = () => {
               onClick={() => setActiveTab('employees')}
               className={`px-6 py-3 font-medium text-sm transition-colors border-b-2 flex items-center gap-2 ${
                 activeTab === 'employees'
-                  ? 'border-blue-600 text-blue-600'
+                  ? 'border-blue-600 !text-blue-600'
                   : 'border-transparent text-gray-500 hover:text-gray-700'
               }`}
             >
@@ -552,6 +747,27 @@ const PaystubsList = () => {
               Date Filter
             </button>
 
+            {/* Bulk Download */}
+            {filteredPaystubs.length > 0 && (
+              <button
+                onClick={handleBulkDownload}
+                disabled={downloadingBulk}
+                className="px-4 py-2 bg-blue-600 hover:bg-blue-700 !text-white rounded-lg flex items-center gap-2 transition-colors disabled:opacity-50 disabled:cursor-not-allowed font-medium"
+              >
+                {downloadingBulk ? (
+                  <>
+                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                    Downloading...
+                  </>
+                ) : (
+                  <>
+                    <Download size={18} />
+                    Download All ({filteredPaystubs.length})
+                  </>
+                )}
+              </button>
+            )}
+
             {/* Clear Filters */}
             {(searchQuery || startDate || endDate) && (
               <button
@@ -588,7 +804,7 @@ const PaystubsList = () => {
                 </div>
                 <button
                   onClick={handleDateFilter}
-                  className="px-6 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium transition-colors"
+                  className="px-6 py-2 bg-blue-600 hover:bg-blue-700 !text-white rounded-lg font-medium transition-colors"
                 >
                   Apply Filter
                 </button>

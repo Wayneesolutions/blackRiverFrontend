@@ -63,9 +63,9 @@ export const AccountSidebarlinks: AccountSidebarlinks[] = [
     },
 
     {
-        key: "/admin/accounts/paystubs",
+        key: "/admin/accounts/gross-pay",
         icon: <FaFileInvoiceDollar />,
-        label: "Paystubs",
+        label: "Gross Payroll",
     },
 
     {

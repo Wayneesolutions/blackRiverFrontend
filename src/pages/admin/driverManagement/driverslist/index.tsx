@@ -399,7 +399,7 @@ const DriverManagement = () => {
     id: string;
     expiryDate: string;
     title: string;
-    subCategory: string;
+    description: string;
     result: string;
     ignoreExpiration: boolean;
     file?: File | null;
@@ -409,7 +409,7 @@ const DriverManagement = () => {
   const [newCertification, setNewCertification] = useState({
     expiryDate: '',
     title: '',
-    subCategory: '',
+    description: '',
     result: '',
     ignoreExpiration: false,
     file: null as File | null
@@ -420,7 +420,7 @@ const DriverManagement = () => {
     id: string;
     expiryDate: string;
     title: string;
-    subCategory: string;
+    description: string;
     result: string;
     ignoreExpiration: boolean;
   } | null>(null);
@@ -434,6 +434,8 @@ const DriverManagement = () => {
     id: string;
     paymentDueDate: string;
     ticket: string;
+    description: string;
+    currency: string;
     violationType?: string;
     file?: File | null;
     fileUrl?: string | null;
@@ -442,6 +444,8 @@ const DriverManagement = () => {
   const [newViolation, setNewViolation] = useState({
     paymentDueDate: '',
     ticket: '',
+    description: '',
+    currency: 'CAD',
     violationType: '',
     file: null as File | null
   });
@@ -804,7 +808,7 @@ const DriverManagement = () => {
                   id: `existing-${cert._id}`,
                   expiryDate: cert.expiryDate ? new Date(cert.expiryDate).toISOString().split('T')[0] : '',
                   title: cert.certificateName || cert.title || '',
-                  subCategory: cert.certificateType || cert.subCategory || cert.description || '',
+                  description: cert.description || cert.certificateType || cert.subCategory || '',
                   result: cert.notes || cert.result || 'pass', // Use notes field, not status (status is auto-calculated)
                   ignoreExpiration: cert.ignoreExpiration || false,
                   file: cert.fileName ? { name: cert.fileName, size: cert.fileSize || 0 } : null,
@@ -828,7 +832,9 @@ const DriverManagement = () => {
                 const existingViolations = driver.violations.map((vio: any) => ({
                   id: `existing-${vio._id}`,
                   paymentDueDate: vio.date ? new Date(vio.date).toISOString().split('T')[0] : '',
-                  ticket: vio.ticketInfo?.ticketNumber || vio.ticket || vio.description || '',
+                  ticket: vio.ticketInfo?.ticketNumber || vio.ticket || '',
+                  description: vio.description || '',
+                  currency: vio.currency || 'CAD',
                   violationType: vio.violationType || vio.type || '',
                   file: null, // Don't set file for existing violations (it's a File object, not needed for display)
                   fileUrl: vio.fileUrl || null, // Include fileUrl for displaying existing files
@@ -1645,7 +1651,7 @@ const DriverManagement = () => {
           id: cert.id,
           expiryDate: cert.expiryDate || '',
           title: cert.title || '',
-          subCategory: cert.subCategory || '',
+          description: cert.description || '',
           result: cert.result || '',
           ignoreExpiration: cert.ignoreExpiration || false,
           hasFile: !!(cert.file instanceof File) // Only true if it's a new File object
@@ -1667,6 +1673,8 @@ const DriverManagement = () => {
           id: viol.id,
           paymentDueDate: viol.paymentDueDate || '',
           ticket: viol.ticket || '',
+          description: viol.description || '',
+          currency: viol.currency || 'CAD',
           violationType: viol.violationType || '',
           hasFile: !!(viol.file instanceof File) // Only true if it's a new File object
         }));
@@ -1907,7 +1915,7 @@ const DriverManagement = () => {
     setNewCertification({
       expiryDate: '',
       title: '',
-      subCategory: '',
+      description: '',
       result: '',
       ignoreExpiration: false,
       file: null
@@ -1923,6 +1931,8 @@ const DriverManagement = () => {
     setNewViolation({
       paymentDueDate: '',
       ticket: '',
+      description: '',
+      currency: 'CAD',
       violationType: '',
       file: null
     });
@@ -2007,7 +2017,7 @@ const DriverManagement = () => {
         setNewCertification({
           expiryDate: '',
           title: '',
-          subCategory: '',
+          description: '',
           result: '',
           ignoreExpiration: false,
           file: null
@@ -2275,7 +2285,7 @@ const DriverManagement = () => {
         id: cert.id || '',
         expiryDate: cert.expiryDate || '',
         title: cert.title || '',
-        subCategory: cert.subCategory || '',
+        description: cert.description || '',
         result: cert.result || '',
         ignoreExpiration: cert.ignoreExpiration || false
       });
@@ -2299,7 +2309,7 @@ const DriverManagement = () => {
           id: cert.id,
           expiryDate: cert.expiryDate || '',
           title: cert.title || '',
-          subCategory: cert.subCategory || '',
+          description: cert.description || '',
           result: cert.result || '',
           ignoreExpiration: cert.ignoreExpiration || false,
           hasFile: !!(cert.file instanceof File) // Only true if it's a new File object
@@ -2346,6 +2356,8 @@ const DriverManagement = () => {
           id: vio.id,
           paymentDueDate: vio.paymentDueDate || '',
           ticket: vio.ticket || '',
+          description: vio.description || '',
+          currency: vio.currency || 'CAD',
           violationType: vio.violationType || '',
           hasFile: !!(vio.file instanceof File) // Only true if it's a new File object
         }));
@@ -2459,7 +2471,7 @@ const DriverManagement = () => {
                   id: `existing-${cert._id}`,
                   expiryDate: cert.expiryDate ? new Date(cert.expiryDate).toISOString().split('T')[0] : '',
                   title: cert.certificateName || cert.title || '',
-                  subCategory: cert.description || cert.subCategory || '',
+                  description: cert.description || cert.certificateType || cert.subCategory || '',
                   result: cert.status || cert.result || 'pass',
                   ignoreExpiration: false
                 }));
@@ -2471,7 +2483,9 @@ const DriverManagement = () => {
                 const existingViolations = driver.violations.map((vio: any) => ({
                   id: `existing-${vio._id}`,
                   paymentDueDate: vio.date ? new Date(vio.date).toISOString().split('T')[0] : '',
-                  ticket: vio.ticketInfo?.ticketNumber || vio.ticket || vio.description || '',
+                  ticket: vio.ticketInfo?.ticketNumber || vio.ticket || '',
+                  description: vio.description || '',
+                  currency: vio.currency || 'CAD',
                   violationType: vio.violationType || vio.type || '',
                   file: null, // Don't set file for existing violations (it's a File object, not needed for display)
                   fileUrl: vio.fileUrl || null, // Include fileUrl for displaying existing files
@@ -4874,18 +4888,18 @@ const DriverManagement = () => {
                       <table className="w-full">
                         <thead className="bg-gray-50">
                           <tr>
-                            <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase">EXPIRY DATE</th>
-                            <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase">TITLE</th>
-                            <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase">SUBCATEGORY</th>
-                            <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase">RESULT</th>
-                            <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase">IGNORE EXPIRATION</th>
-                            <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase">DOCUMENT</th>
+                            <th className="px-3 py-2 text-left text-xs font-medium text-gray-700 uppercase">EXPIRY DATE</th>
+                            <th className="px-3 py-2 text-left text-xs font-medium text-gray-700 uppercase">TITLE</th>
+                            <th className="px-3 py-2 text-left text-xs font-medium text-gray-700 uppercase">DESCRIPTION</th>
+                            <th className="px-3 py-2 text-left text-xs font-medium text-gray-700 uppercase">RESULT</th>
+                            <th className="px-3 py-2 text-left text-xs font-medium text-gray-700 uppercase">IGNORE EXPIRATION</th>
+                            <th className="px-3 py-2 text-left text-xs font-medium text-gray-700 uppercase">DOCUMENT</th>
                           </tr>
                         </thead>
                         <tbody className="bg-white">
                           {/* Input Row */}
                           <tr className="bg-gray-50">
-                            <td className="px-4 py-3">
+                            <td className="px-3 py-2">
                               <div className="relative">
                                 <input
                                   type="date"
@@ -4897,7 +4911,7 @@ const DriverManagement = () => {
                                 <Calendar className="absolute right-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
                               </div>
                             </td>
-                            <td className="px-4 py-3">
+                            <td className="px-3 py-2">
                               <input
                                 type="text"
                                 placeholder="Title"
@@ -4906,18 +4920,16 @@ const DriverManagement = () => {
                                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#42aeec] focus:border-transparent"
                               />
                             </td>
-                            <td className="px-4 py-3">
-                              <select
-                                value={newCertification.subCategory}
-                                onChange={(e) => setNewCertification({ ...newCertification, subCategory: e.target.value })}
+                            <td className="px-3 py-2">
+                              <input
+                                type="text"
+                                placeholder="Description"
+                                value={newCertification.description}
+                                onChange={(e) => setNewCertification({ ...newCertification, description: e.target.value })}
                                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#42aeec] focus:border-transparent"
-                              >
-                                <option value="">Sub Category</option>
-                                <option value="Drug Test">Drug Test</option>
-                                <option value="Road Test">Road Test</option>
-                              </select>
+                              />
                             </td>
-                            <td className="px-4 py-3">
+                            <td className="px-3 py-2">
                               <select
                                 value={newCertification.result}
                                 onChange={(e) => setNewCertification({ ...newCertification, result: e.target.value })}
@@ -4929,7 +4941,7 @@ const DriverManagement = () => {
                                 <option value="pending">Pending</option>
                               </select>
                             </td>
-                            <td className="px-4 py-3">
+                            <td className="px-3 py-2">
                               <div className="flex items-center gap-3">
                                 <label className="flex items-center gap-2 cursor-pointer">
                                   <input
@@ -4942,7 +4954,7 @@ const DriverManagement = () => {
                                 </label>
                               </div>
                             </td>
-                            <td className="px-4 py-3">
+                            <td className="px-3 py-2">
                               <div className="flex items-center gap-2">
                                 {certificationFile ? (
                                   <div className="flex items-center gap-2 px-3 py-2 border border-gray-300 rounded-lg bg-white">
@@ -4987,7 +4999,7 @@ const DriverManagement = () => {
                                                 ...c,
                                                 expiryDate: newCertification.expiryDate,
                                                 title: newCertification.title,
-                                                subCategory: newCertification.subCategory,
+                                                description: newCertification.description,
                                                 result: newCertification.result,
                                                 ignoreExpiration: newCertification.ignoreExpiration,
                                                 file: newCertification.file
@@ -5001,7 +5013,7 @@ const DriverManagement = () => {
                                           id: Date.now().toString(),
                                           expiryDate: newCertification.expiryDate,
                                           title: newCertification.title,
-                                          subCategory: newCertification.subCategory,
+                                          description: newCertification.description,
                                           result: newCertification.result,
                                           ignoreExpiration: newCertification.ignoreExpiration,
                                           file: newCertification.file
@@ -5010,7 +5022,7 @@ const DriverManagement = () => {
                                       setNewCertification({
                                         expiryDate: '',
                                         title: '',
-                                        subCategory: '',
+                                        description: '',
                                         result: '',
                                         ignoreExpiration: false,
                                         file: null
@@ -5036,7 +5048,7 @@ const DriverManagement = () => {
                           <tr>
                             <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase">EXPIRY DATE</th>
                             <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase">TITLE</th>
-                            <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase">SUBCATEGORY</th>
+                            <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase">DESCRIPTION</th>
                             <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase">RESULT</th>
                             <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase">IGNORE EXPIRATION</th>
                             <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase">DOCUMENT</th>
@@ -5058,7 +5070,7 @@ const DriverManagement = () => {
                               >
                                 <td className="px-4 py-3 text-sm text-gray-900">{cert.expiryDate || '-'}</td>
                                 <td className="px-4 py-3 text-sm text-gray-900">{cert.title || '-'}</td>
-                                <td className="px-4 py-3 text-sm text-gray-900">{cert.subCategory || '-'}</td>
+                                <td className="px-4 py-3 text-sm text-gray-900">{cert.description || '-'}</td>
                                 <td className="px-4 py-3 text-sm text-gray-900">{cert.result || '-'}</td>
                                 <td className="px-4 py-3 text-sm text-gray-900">
                                   {cert.ignoreExpiration ? (
@@ -5088,7 +5100,7 @@ const DriverManagement = () => {
                                         setNewCertification({
                                           expiryDate: cert.expiryDate || '',
                                           title: cert.title || '',
-                                          subCategory: cert.subCategory || '',
+                                          description: cert.description || '',
                                           result: cert.result || '',
                                           ignoreExpiration: cert.ignoreExpiration || false,
                                           file: cert.file || null
@@ -5155,9 +5167,9 @@ const DriverManagement = () => {
                             </div>
 
                             <div>
-                              <label className="block text-sm font-medium text-gray-700 mb-1">Sub Category</label>
+                              <label className="block text-sm font-medium text-gray-700 mb-1">Description</label>
                               <div className="px-3 py-2 bg-gray-50 border border-gray-200 rounded-lg text-gray-900">
-                                {selectedCertificate.subCategory || '-'}
+                                {selectedCertificate.description || '-'}
                               </div>
                             </div>
 
@@ -5252,26 +5264,36 @@ const DriverManagement = () => {
                           )}
                         </div>
                         <div>
-                          <label className="block text-sm font-medium text-gray-700 mb-1">Payment Due Date</label>
-                          <div className="relative">
-                            <Calendar className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
-                            <input
-                              type="date"
-                              value={newViolation.paymentDueDate}
-                              onChange={(e) => setNewViolation({ ...newViolation, paymentDueDate: e.target.value })}
-                              className="w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#42aeec] focus:border-transparent"
-                            />
-                          </div>
-                        </div>
-                        <div>
-                          <label className="block text-sm font-medium text-gray-700 mb-1">Ticket</label>
+                          <label className="block text-sm font-medium text-gray-700 mb-1">Title</label>
                           <input
                             type="text"
-                            placeholder="Ticket"
+                            placeholder="title"
                             value={newViolation.ticket}
                             onChange={(e) => setNewViolation({ ...newViolation, ticket: e.target.value })}
                             className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#42aeec] focus:border-transparent"
                           />
+                        </div>
+                      
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700 mb-1">Description</label>
+                          <input
+                            type="text"
+                            placeholder="Description"
+                            value={newViolation.description}
+                            onChange={(e) => setNewViolation({ ...newViolation, description: e.target.value })}
+                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#42aeec] focus:border-transparent"
+                          />
+                        </div>
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700 mb-1">Currency</label>
+                          <select
+                            value={newViolation.currency}
+                            onChange={(e) => setNewViolation({ ...newViolation, currency: e.target.value })}
+                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#42aeec] focus:border-transparent"
+                          >
+                            <option value="CAD">Canadian Dollar (CAD)</option>
+                            <option value="USD">American Dollar (USD)</option>
+                          </select>
                         </div>
                       </div>
                       <div className="flex items-center gap-3">
@@ -5320,7 +5342,15 @@ const DriverManagement = () => {
                                 }
                                 setViolations(violations.map(v => 
                                   v.id === editingViolationId 
-                                    ? { ...v, ...newViolation }
+                                    ? { 
+                                        ...v, 
+                                        paymentDueDate: newViolation.paymentDueDate,
+                                        ticket: newViolation.ticket,
+                                        description: newViolation.description,
+                                        currency: newViolation.currency,
+                                        violationType: newViolation.violationType,
+                                        file: newViolation.file
+                                      }
                                     : v
                                 ));
                                 setEditingViolationId(null);
@@ -5341,6 +5371,8 @@ const DriverManagement = () => {
                                   id: violationId,
                                   paymentDueDate: newViolation.paymentDueDate,
                                   ticket: newViolation.ticket,
+                                  description: newViolation.description,
+                                  currency: newViolation.currency,
                                   violationType: newViolation.violationType,
                                   file: newViolation.file
                                 }]);
@@ -5353,6 +5385,8 @@ const DriverManagement = () => {
                               setNewViolation({
                                 paymentDueDate: '',
                                 ticket: '',
+                                description: '',
+                                currency: 'CAD',
                                 violationType: '',
                                 file: null
                               });
@@ -5373,8 +5407,10 @@ const DriverManagement = () => {
                         <thead className="bg-gray-50">
                           <tr>
                             <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase">Type of Violation</th>
-                            <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase">Payment Due Date</th>
                             <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase">Ticket</th>
+                            <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase">Payment Due Date</th>
+                            <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase">Description</th>
+                            <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase">Currency</th>
                             <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase">File</th>
                             <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase">ACTIONS</th>
                           </tr>
@@ -5382,7 +5418,7 @@ const DriverManagement = () => {
                         <tbody className="bg-white divide-y divide-gray-200">
                           {violations.length === 0 ? (
                             <tr>
-                              <td colSpan={5} className="px-4 py-8 text-center text-gray-500">
+                              <td colSpan={7} className="px-4 py-8 text-center text-gray-500">
                                 No Data
                               </td>
                             </tr>
@@ -5394,9 +5430,15 @@ const DriverManagement = () => {
                                     {violation.violationType || '-'}
                                   </span>
                                 </td>
-                                <td className="px-4 py-3 text-sm text-gray-900">{violation.paymentDueDate || '-'}</td>
                                 <td className="px-4 py-3 text-sm text-gray-900">
                                   {violation.ticket || '-'}
+                                </td>
+                                <td className="px-4 py-3 text-sm text-gray-900">{violation.paymentDueDate || '-'}</td>
+                                <td className="px-4 py-3 text-sm text-gray-900">
+                                  {violation.description || '-'}
+                                </td>
+                                <td className="px-4 py-3 text-sm text-gray-900">
+                                  {violation.currency || '-'}
                                 </td>
                                 <td className="px-4 py-3 text-sm text-gray-900">
                                   {(violation.file instanceof File || violation.fileUrl || violation.fileName) ? (
@@ -5431,6 +5473,8 @@ const DriverManagement = () => {
                                         setNewViolation({
                                           paymentDueDate: violation.paymentDueDate || '',
                                           ticket: violation.ticket || '',
+                                          description: violation.description || '',
+                                          currency: violation.currency || 'CAD',
                                           violationType: violation.violationType || '',
                                           file: violation.file || null
                                         });
@@ -5469,6 +5513,8 @@ const DriverManagement = () => {
                                               setNewViolation({
                                                 paymentDueDate: '',
                                                 ticket: '',
+                                                description: '',
+                                                currency: 'CAD',
                                                 violationType: '',
                                                 file: null
                                               });

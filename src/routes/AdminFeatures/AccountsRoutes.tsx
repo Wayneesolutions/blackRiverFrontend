@@ -37,7 +37,7 @@ function AccountsRoutes() {
                     <Route path="/payroll" element={<Payroll />} />
                     <Route path="/payroll/monthly-report" element={<MonthlySalaryReport />} />
                     <Route path="/driverpayroll" element={<DriverPayroll />} />
-                    <Route path="/paystubs" element={<Paystubs />} />
+                    <Route path="/gross-pay" element={<Paystubs />} />
 
                     {/* New Routes */}
                     <Route path="/config" element={<AccountingConfig />} />

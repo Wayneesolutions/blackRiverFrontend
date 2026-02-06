@@ -3,6 +3,7 @@ import { Plus, Receipt, DollarSign, Calendar, User, FileText, Filter, Edit, Tras
 import { FaCheckCircle, FaExclamationCircle, FaInfoCircle, FaTimes } from 'react-icons/fa';
 import { createExpense, listExpenses, updateExpense, deleteExpense, getExpenseReceiptSignedUrl, extractReceiptData, listExpenseCategories, createExpenseCategory, updateExpenseCategory, deleteExpenseCategory, listExpenseTypes, createExpenseType, updateExpenseType, deleteExpenseType } from "../../../../axios/api/account.expense";
 import { getEmployees } from "../../../../axios/api/account.payroll";
+import { listFleetUnits } from "../../../../axios/api/fleet.units";
 import ConfirmationModal from "../../../../components/common/ConfirmationModal";
 
 interface Employee {
@@ -23,8 +24,21 @@ interface Expense {
   description?: string;
   date?: string | Date;
   receiptUrl?: string;
+  truckId?: string;
+  trailerId?: string;
   createdAt?: string | Date;
   updatedAt?: string | Date;
+}
+
+interface FleetUnit {
+  _id: string;
+  unitNo?: string;
+  unitNumber?: string;
+  internalId?: string;
+  plateNumber?: string;
+  unitType?: string;
+  make?: string;
+  model?: string;
 }
 
 interface ExpenseCategory {
@@ -131,6 +145,8 @@ const ExpensesPage = () => {
     description: string;
     date: string;
     receiptFile: File | null;
+    truckId: string;
+    trailerId: string;
   }>({
     userId: '',
     categoryId: '',
@@ -139,8 +155,14 @@ const ExpensesPage = () => {
     amount: '',
     description: '',
     date: new Date().toISOString().split('T')[0],
-    receiptFile: null
+    receiptFile: null,
+    truckId: '',
+    trailerId: ''
   });
+
+  const [trucks, setTrucks] = useState<FleetUnit[]>([]);
+  const [trailers, setTrailers] = useState<FleetUnit[]>([]);
+  const [loadingFleet, setLoadingFleet] = useState(false);
 
   // Fetch expenses on component mount
   useEffect(() => {
@@ -148,7 +170,30 @@ const ExpensesPage = () => {
     fetchEmployees();
     fetchDashboardData();
     fetchCategories();
+    fetchFleetUnits();
   }, []);
+
+  const fetchFleetUnits = async () => {
+    setLoadingFleet(true);
+    try {
+      const [trucksRes, trailersRes] = await Promise.all([
+        listFleetUnits({ category: 'trucks' }),
+        listFleetUnits({ category: 'trailers' })
+      ]);
+
+      if (trucksRes?.success && Array.isArray(trucksRes.data)) {
+        setTrucks(trucksRes.data);
+      }
+
+      if (trailersRes?.success && Array.isArray(trailersRes.data)) {
+        setTrailers(trailersRes.data);
+      }
+    } catch (error: any) {
+      console.error('Error fetching fleet units:', error);
+    } finally {
+      setLoadingFleet(false);
+    }
+  };
 
   // Fetch expense types when category is selected
   useEffect(() => {
@@ -568,6 +613,13 @@ const ExpensesPage = () => {
       formDataToSend.append('description', formData.description);
       formDataToSend.append('date', formData.date);
 
+      if (formData.truckId) {
+        formDataToSend.append('truckId', formData.truckId);
+      }
+      if (formData.trailerId) {
+        formDataToSend.append('trailerId', formData.trailerId);
+      }
+
       if (formData.receiptFile) {
         formDataToSend.append('receipt', formData.receiptFile);
       }
@@ -586,7 +638,9 @@ const ExpensesPage = () => {
             amount: '',
             description: '',
             date: new Date().toISOString().split('T')[0],
-            receiptFile: null
+            receiptFile: null,
+            truckId: '',
+            trailerId: ''
           });
           setActiveTab('list');
           fetchExpenses();
@@ -606,7 +660,9 @@ const ExpensesPage = () => {
             amount: '',
             description: '',
             date: new Date().toISOString().split('T')[0],
-            receiptFile: null
+            receiptFile: null,
+            truckId: '',
+            trailerId: ''
           });
           setActiveTab('list');
           fetchExpenses();
@@ -638,7 +694,9 @@ const ExpensesPage = () => {
       amount: expense.amount.toString(),
       description: expense.description || '',
       date: expense.date ? new Date(expense.date).toISOString().split('T')[0] : new Date().toISOString().split('T')[0],
-      receiptFile: null
+      receiptFile: null,
+      truckId: (expense as any).truckId || '',
+      trailerId: (expense as any).trailerId || ''
     });
     // Fetch types for the category
     if (categoryId) {
@@ -915,7 +973,9 @@ const ExpensesPage = () => {
                   amount: '',
                   description: '',
                   date: new Date().toISOString().split('T')[0],
-                  receiptFile: null
+                  receiptFile: null,
+                  truckId: '',
+                  trailerId: ''
                 });
                 if (selectedCategoryTab !== 'all') {
                   fetchExpenseTypes(selectedCategoryTab);
@@ -931,7 +991,7 @@ const ExpensesPage = () => {
           </div>
         </div>
 
-        {/* Stats Cards */}
+        {/* Stats Cards - Dynamic based on categories */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6 mb-8">
           <div className="bg-[#E3F2FD] p-6 rounded-xl border-blue-100 shadow-sm border hover:shadow-md transition-shadow overflow-hidden relative">
             <div className="flex items-center justify-between gap-3">
@@ -945,56 +1005,51 @@ const ExpensesPage = () => {
             </div>
           </div>
 
-          <div className="bg-[#E1F5FE] p-6 rounded-xl border-cyan-100 shadow-sm border hover:shadow-md transition-shadow overflow-hidden relative">
-            <div className="flex items-center justify-between gap-3">
-              <div className="flex-1 min-w-0 pr-2">
-                <p className="text-[#063f6f] text-sm">Fuel Expenses</p>
-                <p className="text-2xl font-bold" style={{ color: '#016ab2' }}>
-                  ${expenses.filter(e => {
-                    const typeName = typeof e.type === 'string' ? e.type : e.type?.name || '';
-                    return typeName && typeName.includes('Fuel');
-                  }).reduce((sum, e) => sum + (e.amount || 0), 0).toLocaleString()}
-                </p>
-              </div>
-              <div className="bg-white p-2.5 rounded-full shadow-sm flex-shrink-0">
-                <span className="text-xl">⛽</span>
-              </div>
-            </div>
-          </div>
+          {categories.slice(0, 3).map((category, index) => {
+            const categoryExpenses = expenses.filter(e => {
+              const categoryIdStr = String(category._id);
+              let expenseCategoryId: string | null = null;
+              if (e.categoryId) {
+                if (typeof e.categoryId === 'string') {
+                  expenseCategoryId = e.categoryId;
+                } else if (typeof e.categoryId === 'object' && e.categoryId !== null) {
+                  expenseCategoryId = String((e.categoryId as any)._id || e.categoryId);
+                }
+              }
+              let expenseCategoryObjId: string | null = null;
+              if (e.category) {
+                if (typeof e.category === 'object' && e.category !== null) {
+                  expenseCategoryObjId = String(e.category._id || (e.category as any)._id);
+                }
+              }
+              return (expenseCategoryId && String(expenseCategoryId) === categoryIdStr) ||
+                     (expenseCategoryObjId && String(expenseCategoryObjId) === categoryIdStr);
+            });
+            const categoryTotal = categoryExpenses.reduce((sum, e) => sum + (e.amount || 0), 0);
+            
+            const cardColors = [
+              { bg: 'bg-[#E1F5FE]', border: 'border-cyan-100', icon: '⛽' },
+              { bg: 'bg-[#E8F5E9]', border: 'border-green-100', icon: '🔧' },
+              { bg: 'bg-[#F3E5F5]', border: 'border-purple-100', icon: '💰' }
+            ];
+            const colors = cardColors[index] || { bg: 'bg-[#E1F5FE]', border: 'border-cyan-100', icon: '📊' };
 
-          <div className="bg-[#E8F5E9] p-6 rounded-xl border-green-100 shadow-sm border hover:shadow-md transition-shadow overflow-hidden relative">
-            <div className="flex items-center justify-between gap-3">
-              <div className="flex-1 min-w-0 pr-2">
-                <p className="text-[#063f6f] text-sm">Maintenance</p>
-                <p className="text-2xl font-bold" style={{ color: '#016ab2' }}>
-                  ${expenses.filter(e => {
-                    const typeName = typeof e.type === 'string' ? e.type : e.type?.name || '';
-                    return typeName && (typeName.includes('Repair') || typeName.includes('Maintenance'));
-                  }).reduce((sum, e) => sum + (e.amount || 0), 0).toLocaleString()}
-                </p>
+            return (
+              <div key={category._id} className={`${colors.bg} p-6 rounded-xl ${colors.border} shadow-sm border hover:shadow-md transition-shadow overflow-hidden relative`}>
+                <div className="flex items-center justify-between gap-3">
+                  <div className="flex-1 min-w-0 pr-2">
+                    <p className="text-[#063f6f] text-sm">{category.name}</p>
+                    <p className="text-2xl font-bold" style={{ color: '#016ab2' }}>
+                      ${categoryTotal.toLocaleString()}
+                    </p>
+                  </div>
+                  <div className="bg-white p-2.5 rounded-full shadow-sm flex-shrink-0">
+                    <span className="text-xl">{colors.icon}</span>
+                  </div>
+                </div>
               </div>
-              <div className="bg-white p-2.5 rounded-full shadow-sm flex-shrink-0">
-                <span className="text-xl">🔧</span>
-              </div>
-            </div>
-          </div>
-
-          <div className="bg-[#F3E5F5] p-6 rounded-xl border-purple-100 shadow-sm border hover:shadow-md transition-shadow overflow-hidden relative">
-            <div className="flex items-center justify-between gap-3">
-              <div className="flex-1 min-w-0 pr-2">
-                <p className="text-[#063f6f] text-sm">Cash Expenses</p>
-                <p className="text-2xl font-bold" style={{ color: '#016ab2' }}>
-                  ${expenses.filter(e => {
-                    const typeName = typeof e.type === 'string' ? e.type : e.type?.name || '';
-                    return typeName && typeName.includes('Cash');
-                  }).reduce((sum, e) => sum + (e.amount || 0), 0).toLocaleString()}
-                </p>
-              </div>
-              <div className="bg-white p-2.5 rounded-full shadow-sm flex-shrink-0">
-                <span className="text-xl">💰</span>
-              </div>
-            </div>
-          </div>
+            );
+          })}
 
           <div className="bg-[#FFF3E0] p-6 rounded-xl border-orange-100 shadow-sm border hover:shadow-md transition-shadow overflow-hidden relative">
             <div className="flex items-start justify-between gap-3">
@@ -1370,6 +1425,50 @@ const ExpensesPage = () => {
                       className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                       placeholder="Enter expense description..."
                     />
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Select Truck
+                      </label>
+                      <select
+                        name="truckId"
+                        value={formData.truckId}
+                        onChange={handleInputChange}
+                        disabled={loadingFleet}
+                        className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 disabled:bg-gray-100 disabled:cursor-not-allowed"
+                      >
+                        <option value="">Select Truck (Optional)</option>
+                        {trucks.map(truck => (
+                          <option key={truck._id} value={truck._id}>
+                            {truck.unitNo || truck.unitNumber || truck.internalId || truck.plateNumber || truck._id}
+                            {truck.make && truck.model ? ` - ${truck.make} ${truck.model}` : ''}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Select Trailer
+                      </label>
+                      <select
+                        name="trailerId"
+                        value={formData.trailerId}
+                        onChange={handleInputChange}
+                        disabled={loadingFleet}
+                        className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 disabled:bg-gray-100 disabled:cursor-not-allowed"
+                      >
+                        <option value="">Select Trailer (Optional)</option>
+                        {trailers.map(trailer => (
+                          <option key={trailer._id} value={trailer._id}>
+                            {trailer.unitNo || trailer.unitNumber || trailer.internalId || trailer.plateNumber || trailer._id}
+                            {trailer.make && trailer.model ? ` - ${trailer.make} ${trailer.model}` : ''}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
                   </div>
 
                   <div>
