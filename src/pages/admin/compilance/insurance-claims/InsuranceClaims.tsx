@@ -550,7 +550,7 @@ const InsuranceClaims: React.FC = () => {
           </div>
           <button
             onClick={handleAdd}
-            className="flex items-center gap-2 px-4 py-2 bg-[#42aeec] text-white rounded-lg hover:bg-[#0ea3d8] transition-colors font-medium"
+            className="flex items-center gap-2 px-4 py-2 bg-[#42aeec] !text-white rounded-lg hover:bg-[#0ea3d8] transition-colors font-medium"
           >
             <FaPlus size={16} />
             Add Claim
@@ -1090,7 +1090,7 @@ const InsuranceClaims: React.FC = () => {
                 <button
                   type="submit"
                   disabled={loading}
-                  className="px-6 py-2 bg-[#42aeec] text-white rounded-lg hover:bg-[#0ea3d8] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="px-6 py-2 bg-[#42aeec] !text-white rounded-lg hover:bg-[#0ea3d8] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   {loading ? 'Saving...' : (showEditModal ? 'Update' : 'Create')} Claim
                 </button>
