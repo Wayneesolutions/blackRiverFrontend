@@ -544,7 +544,7 @@ const InsuranceClaims: React.FC = () => {
           </div>
           <button
             onClick={handleAdd}
-            className="flex items-center gap-2 px-4 py-2 bg-[#42aeec] text-white rounded-lg hover:bg-[#0ea3d8] transition-colors font-medium"
+            className="flex items-center gap-2 px-4 py-2 bg-[#42aeec] !text-white rounded-lg hover:bg-[#0ea3d8] transition-colors font-medium"
           >
             <FaPlus size={16} />
             Add Claim
@@ -828,7 +828,7 @@ const InsuranceClaims: React.FC = () => {
 
       {/* Add/Edit Modal */}
       {(showAddModal || showEditModal) && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+        <div className="fixed inset-0   bg-gray-900/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-lg shadow-xl max-w-4xl w-full max-h-[90vh] overflow-y-auto">
             <div className="sticky top-0 bg-white border-b border-gray-200 px-6 py-4 flex items-center justify-between">
               <h2 className="text-xl font-bold text-gray-900">
@@ -1084,7 +1084,7 @@ const InsuranceClaims: React.FC = () => {
                 <button
                   type="submit"
                   disabled={loading}
-                  className="px-6 py-2 bg-[#42aeec] text-white rounded-lg hover:bg-[#0ea3d8] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="px-6 py-2 bg-[#42aeec] !text-white rounded-lg hover:bg-[#0ea3d8] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   {loading ? 'Saving...' : (showEditModal ? 'Update' : 'Create')} Claim
                 </button>
