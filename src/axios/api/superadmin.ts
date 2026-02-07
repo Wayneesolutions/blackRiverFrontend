@@ -175,6 +175,19 @@ export const getSuperAdminRevenue = async (status?: string, page: number = 1, li
   }
 };
 
+// ============ INVOICES ============
+
+// ✅ Get Super Admin Invoices
+export const getSuperAdminInvoices = async () => {
+  try {
+    const res: AxiosResponse = await apiClient.get('superadmin/invoices');
+    return res.data;
+  } catch (error) {
+    console.log(error);
+    return (error as Error).response?.data;
+  }
+};
+
 // ============ SYSTEM SETTINGS ============
 
 // ✅ Get Super Admin Settings

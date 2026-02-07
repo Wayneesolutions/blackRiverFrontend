@@ -4,6 +4,7 @@ import {
 } from "react-icons/md";
 import { RiBillLine, RiBarChart2Fill } from "react-icons/ri";
 import { HiOutlineUsers } from "react-icons/hi2";
+import { FaFileInvoice } from "react-icons/fa";
 
 type SuperAdminSidebarLink = {
     key: string;
@@ -32,6 +33,11 @@ export const SuperAdminSidebarLink: SuperAdminSidebarLink[] = [
         key: "/superadmin/revenue",
         icon: <RiBarChart2Fill />,
         label: "Revenue Generated",
+    },
+    {
+        key: "/superadmin/invoices",
+        icon: <FaFileInvoice />,
+        label: "Invoices",
     },
     {
         key: "/superadmin/systemsetting",
