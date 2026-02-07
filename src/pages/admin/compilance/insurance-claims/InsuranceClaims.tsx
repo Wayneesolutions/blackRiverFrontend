@@ -7,9 +7,6 @@ import {
   FaTrash,
   FaEye,
   FaSearch,
-  FaFilter,
-  FaCalendarAlt,
-  FaMapMarkerAlt,
   FaCheckCircle,
   FaTimesCircle,
   FaExclamationCircle,
@@ -21,7 +18,6 @@ import {
   FaTimes,
   FaChevronLeft,
   FaChevronRight,
-  FaFileAlt,
   FaDollarSign
 } from 'react-icons/fa';
 import { FLEET_COLORS } from '../../fleetMaintenance/colorUtils';
@@ -171,7 +167,7 @@ const InsuranceClaims: React.FC = () => {
 
   // Pagination state
   const [currentPage, setCurrentPage] = useState<number>(1);
-  const [pageSize, setPageSize] = useState<number>(10);
+  const [pageSize] = useState<number>(10);
   const [totalPages, setTotalPages] = useState<number>(0);
   const [total, setTotal] = useState<number>(0);
   

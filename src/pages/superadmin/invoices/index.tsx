@@ -3,7 +3,6 @@ import { useNavigate } from 'react-router-dom';
 import {
   FileText,
   Building2,
-  User,
   Calendar,
   DollarSign,
   CreditCard,
@@ -15,7 +14,6 @@ import {
   Eye,
   Copy,
   Search,
-  Filter,
   MoreHorizontal,
   ExternalLink,
   Receipt,
@@ -154,14 +152,6 @@ const InvoicesPage = () => {
       case 'failed': return <XCircle className="w-4 h-4 text-red-500" />;
       case 'refunded': return <AlertCircle className="w-4 h-4 text-gray-500" />;
       default: return <Clock className="w-4 h-4 text-gray-500" />;
-    }
-  };
-
-  const getInvoiceStatusColor = (status: string) => {
-    switch (status) {
-      case 'generated': return 'bg-blue-100 text-blue-800';
-      case 'cancelled': return 'bg-red-100 text-red-800';
-      default: return 'bg-gray-100 text-gray-800';
     }
   };
 
@@ -433,7 +423,7 @@ const InvoicesPage = () => {
       const pstAmount = subtotal * pstRate;
 
       // Use invoice taxAmount if available, otherwise calculate
-      const totalTax = invoice.taxAmount > 0 ? invoice.taxAmount : (gstAmount + pstAmount);
+
       const gst = invoice.taxAmount > 0 ? (invoice.taxAmount * (gstRate / (gstRate + pstRate))) : gstAmount;
       const pst = invoice.taxAmount > 0 ? (invoice.taxAmount * (pstRate / (gstRate + pstRate))) : pstAmount;
 

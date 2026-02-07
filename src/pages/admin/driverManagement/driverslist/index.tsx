@@ -5576,6 +5576,7 @@ const DriverManagement = () => {
                                                 ticket: '',
                                                 description: '',
                                                 currency: 'CAD',
+                                                amount: '',
                                                 violationType: '',
                                                 file: null
                                               });

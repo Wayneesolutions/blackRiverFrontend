@@ -116,6 +116,7 @@ interface PayrollFormData {
     userId: string;
     baseSalary: string;
     bonus: string;
+    deductions: string;
     payDate: string;
     startDate: string;
     endDate: string;
@@ -1457,6 +1458,7 @@ const PayrollManagement = () => {
             userId: '',
             baseSalary: '',
             bonus: '0',
+            deductions: '0',
             payDate: '',
             startDate: '',
             endDate: '',
