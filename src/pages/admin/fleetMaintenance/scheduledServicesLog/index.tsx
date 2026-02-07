@@ -62,6 +62,7 @@ interface ScheduledService {
   dueMileage?: number;
   odometer?: number;
   invoiceNo?: string;
+  amount?: number;
   notes?: string;
   status: 'pending' | 'in-progress' | 'completed';
   priority?: string;
@@ -102,6 +103,7 @@ interface ServiceFormState {
   invoiceNo: string;
   notes: string;
   status: string;
+  amount: string;
 }
 
 const ScheduledServicesLog: React.FC = () => {
@@ -136,7 +138,8 @@ const ScheduledServicesLog: React.FC = () => {
     odometer: '',
     invoiceNo: '',
     notes: '',
-    status: 'pending'
+    status: 'pending',
+    amount: ''
   });
 
   // Check URL query parameter for incoming maintenance filter
@@ -172,6 +175,7 @@ const ScheduledServicesLog: React.FC = () => {
       dueMileage: service.dueMileage ?? undefined,
       odometer: service.odometer ?? undefined,
       invoiceNo: service.invoiceNumber || undefined,
+      amount: service.amount ?? undefined,
       notes: service.notes || undefined,
       status: service.status,
       priority: service.priority,
@@ -611,6 +615,7 @@ const ScheduledServicesLog: React.FC = () => {
         { header: 'Due Date', key: 'dueDate', width: 16 },
         { header: 'Odometer', key: 'odometer', width: 14 },
         { header: 'Invoice #', key: 'invoiceNo', width: 16 },
+        { header: 'Amount', key: 'amount', width: 16 },
         { header: 'Status', key: 'status', width: 14 },
         { header: 'Priority', key: 'priority', width: 14 },
         { header: 'Notes', key: 'notes', width: 32 }
@@ -633,6 +638,12 @@ const ScheduledServicesLog: React.FC = () => {
           dueDate: formatDate(service.dueDate),
           odometer: service.odometer ?? 'N/A',
           invoiceNo: service.invoiceNo || 'N/A',
+          amount: service.amount ? new Intl.NumberFormat('en-CA', {
+            style: 'currency',
+            currency: 'CAD',
+            minimumFractionDigits: 2,
+            maximumFractionDigits: 2,
+          }).format(service.amount) : 'N/A',
           status: service.status.replace(/-/g, ' ').toUpperCase(),
           priority: service.priority || 'Standard',
           notes: service.notes || ''
@@ -670,7 +681,8 @@ const ScheduledServicesLog: React.FC = () => {
       odometer: '',
       invoiceNo: '',
       notes: '',
-      status: 'pending'
+      status: 'pending',
+      amount: ''
     });
     setShowAddModal(true);
   };
@@ -687,7 +699,8 @@ const ScheduledServicesLog: React.FC = () => {
       odometer: service.odometer?.toString() || '',
       invoiceNo: service.invoiceNo || '',
       notes: service.notes || '',
-      status: service.status || 'pending'
+      status: service.status || 'pending',
+      amount: service.amount?.toString() || ''
     });
     setShowEditModal(true);
   };
@@ -726,7 +739,8 @@ const ScheduledServicesLog: React.FC = () => {
       serviceDate: formData.serviceDate,
       odometer: formData.odometer ? Number(formData.odometer) : undefined,
       invoiceNumber: formData.invoiceNo || undefined,
-      notes: formData.notes || undefined
+      notes: formData.notes || undefined,
+      amount: formData.amount ? Number(formData.amount) : undefined
     };
 
     setSaving(true);
@@ -1004,6 +1018,7 @@ const ScheduledServicesLog: React.FC = () => {
                     <th className="px-6 py-4 text-left text-sm font-semibold">Service Type</th>
                     <th className="px-6 py-4 text-left text-sm font-semibold">Odometer/Hour</th>
                     <th className="px-6 py-4 text-left text-sm font-semibold">Invoice No.</th>
+                    <th className="px-6 py-4 text-left text-sm font-semibold">Amount</th>
                     <th className="px-6 py-4 text-left text-sm font-semibold">Status</th>
                     <th className="px-6 py-4 text-left text-sm font-semibold">Notes</th>
                     <th className="px-6 py-4 text-left text-sm font-semibold">Actions</th>
@@ -1012,13 +1027,13 @@ const ScheduledServicesLog: React.FC = () => {
                 <tbody className="divide-y divide-gray-200">
                   {loading ? (
                     <tr>
-                      <td colSpan={10} className="px-6 py-12 text-center text-gray-500">
+                      <td colSpan={11} className="px-6 py-12 text-center text-gray-500">
                         Loading services...
                       </td>
                     </tr>
                   ) : filteredServices.length === 0 ? (
                     <tr>
-                      <td colSpan={10} className="px-6 py-12 text-center">
+                      <td colSpan={11} className="px-6 py-12 text-center">
                         {filterIncoming ? (
                           <div className="flex flex-col items-center gap-3">
                             <AlertCircle className="w-10 h-10 text-orange-500" />
@@ -1084,6 +1099,14 @@ const ScheduledServicesLog: React.FC = () => {
                           {service.odometer !== undefined ? `${service.odometer.toLocaleString()} km` : '—'}
                         </td>
                         <td className="px-6 py-4 text-gray-600 font-mono text-sm">{service.invoiceNo || '—'}</td>
+                        <td className="px-6 py-4 text-gray-900">
+                          {service.amount !== undefined && service.amount !== null ? new Intl.NumberFormat('en-CA', {
+                            style: 'currency',
+                            currency: 'CAD',
+                            minimumFractionDigits: 2,
+                            maximumFractionDigits: 2,
+                          }).format(service.amount) : '—'}
+                        </td>
                         <td className="px-6 py-4">
                           <span
                             className={`inline-flex px-3 py-1 text-xs font-semibold rounded-full ${service.status === 'completed'
@@ -1216,6 +1239,17 @@ const ScheduledServicesLog: React.FC = () => {
                         <div>
                           <p className="text-sm text-gray-500 mb-1">Invoice Number</p>
                           <p className="font-medium text-gray-900">{selectedService.invoiceNo || "—"}</p>
+                        </div>
+                        <div>
+                          <p className="text-sm text-gray-500 mb-1">Amount</p>
+                          <p className="font-medium text-gray-900">
+                            {selectedService.amount ? new Intl.NumberFormat('en-CA', {
+                              style: 'currency',
+                              currency: 'CAD',
+                              minimumFractionDigits: 2,
+                              maximumFractionDigits: 2,
+                            }).format(selectedService.amount) : "—"}
+                          </p>
                         </div>
                         <div>
                           <p className="text-sm text-gray-500 mb-1">Status</p>
@@ -1373,6 +1407,21 @@ const ScheduledServicesLog: React.FC = () => {
                           onFocus={(e) => { e.target.style.borderColor = '#016ab2'; e.target.style.boxShadow = '0 0 0 2px rgba(1, 106, 178, 0.2)'; }}
                           onBlur={(e) => { e.target.style.borderColor = ''; e.target.style.boxShadow = ''; }}
                           placeholder="INV-2024-001 (optional)"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">Amount</label>
+                        <input
+                          type="number"
+                          step="0.01"
+                          min="0"
+                          value={formData.amount}
+                          onChange={(e) => setFormData({ ...formData, amount: e.target.value })}
+                          className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:border-transparent"
+                          style={{ '--tw-ring-color': '#016ab2' } as React.CSSProperties & { '--tw-ring-color': string }}
+                          onFocus={(e) => { e.target.style.borderColor = '#016ab2'; e.target.style.boxShadow = '0 0 0 2px rgba(1, 106, 178, 0.2)'; }}
+                          onBlur={(e) => { e.target.style.borderColor = ''; e.target.style.boxShadow = ''; }}
+                          placeholder="0.00 (optional)"
                         />
                       </div>
                       <div>
