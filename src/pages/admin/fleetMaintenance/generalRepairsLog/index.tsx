@@ -66,6 +66,7 @@ interface FormState {
   serviceProvider: string;
   serviceProviderId?: string;
   invoiceNumber: string;
+  amount: string;
 }
 
 const formatDate = (value?: string) => {
@@ -115,7 +116,8 @@ const GeneralRepairsLog: React.FC = () => {
     notes: '',
     serviceProvider: '',
     serviceProviderId: undefined,
-    invoiceNumber: ''
+    invoiceNumber: '',
+    amount: ''
   });
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
@@ -427,7 +429,8 @@ const GeneralRepairsLog: React.FC = () => {
         { header: 'Parts', key: 'parts', width: 28 },
         { header: 'Notes', key: 'notes', width: 32 },
         { header: 'Service Provider', key: 'serviceProvider', width: 24 },
-        { header: 'Invoice #', key: 'invoiceNumber', width: 18 }
+        { header: 'Invoice #', key: 'invoiceNumber', width: 18 },
+        { header: 'Amount', key: 'amount', width: 16 }
       ];
 
       worksheet.getRow(1).font = { bold: true, color: { argb: 'FFFFFFFF' } };
@@ -447,7 +450,13 @@ const GeneralRepairsLog: React.FC = () => {
           parts: repair.parts || 'N/A',
           notes: repair.notes || '',
           serviceProvider: repair.serviceProvider,
-          invoiceNumber: repair.invoiceNumber || 'N/A'
+          invoiceNumber: repair.invoiceNumber || 'N/A',
+          amount: repair.amount ? new Intl.NumberFormat('en-CA', {
+            style: 'currency',
+            currency: 'CAD',
+            minimumFractionDigits: 2,
+            maximumFractionDigits: 2,
+          }).format(repair.amount) : 'N/A'
         });
       });
 
@@ -489,7 +498,8 @@ const GeneralRepairsLog: React.FC = () => {
       notes: '',
       serviceProvider: '',
       serviceProviderId: undefined,
-      invoiceNumber: ''
+      invoiceNumber: '',
+      amount: ''
     });
     setFormError(null);
     setUseCustomProvider(serviceProviders.length === 0);
@@ -508,7 +518,8 @@ const GeneralRepairsLog: React.FC = () => {
       notes: repair.notes || '',
       serviceProvider: repair.serviceProvider,
       serviceProviderId: serviceProviders.find((provider) => provider.name === repair.serviceProvider)?.id,
-      invoiceNumber: repair.invoiceNumber
+      invoiceNumber: repair.invoiceNumber,
+      amount: repair.amount?.toString() || ''
     });
     setUseCustomProvider(!serviceProviders.find((provider) => provider.name === repair.serviceProvider));
     setShowEditModal(true);
@@ -549,6 +560,7 @@ const GeneralRepairsLog: React.FC = () => {
       notes: formData.notes || undefined,
       serviceProvider: formData.serviceProvider,
       invoiceNumber: formData.invoiceNumber,
+      amount: formData.amount ? Number(formData.amount) : undefined,
       unitSource: selectedUnit?.referenceType,
       unitReference: selectedUnit?._id || selectedUnit?.referenceId // Use Vehicle _id if available, fallback to referenceId
     };
@@ -805,19 +817,20 @@ const GeneralRepairsLog: React.FC = () => {
                     <th className="px-6 py-4 text-left text-sm font-semibold">Parts</th>
                     <th className="px-6 py-4 text-left text-sm font-semibold">Service Provider</th>
                     <th className="px-6 py-4 text-left text-sm font-semibold">Invoice Number</th>
+                    <th className="px-6 py-4 text-left text-sm font-semibold">Amount</th>
                     <th className="px-6 py-4 text-left text-sm font-semibold">Actions</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-200">
                   {loading ? (
                     <tr>
-                      <td colSpan={10} className="px-6 py-12 text-center text-gray-500">
+                      <td colSpan={11} className="px-6 py-12 text-center text-gray-500">
                         Loading repairs...
                       </td>
                     </tr>
                   ) : filteredRepairs.length === 0 ? (
                     <tr>
-                      <td colSpan={10} className="px-6 py-12 text-center text-gray-500">
+                      <td colSpan={11} className="px-6 py-12 text-center text-gray-500">
                         No repairs found
                       </td>
                     </tr>
@@ -850,6 +863,14 @@ const GeneralRepairsLog: React.FC = () => {
                         </td>
                         <td className="px-6 py-4 text-gray-900">{repair.serviceProvider}</td>
                         <td className="px-6 py-4 text-gray-600 font-mono text-sm">{repair.invoiceNumber}</td>
+                        <td className="px-6 py-4 text-gray-900">
+                          {repair.amount ? new Intl.NumberFormat('en-CA', {
+                            style: 'currency',
+                            currency: 'CAD',
+                            minimumFractionDigits: 2,
+                            maximumFractionDigits: 2,
+                          }).format(repair.amount) : '—'}
+                        </td>
                         <td className="px-6 py-4" onClick={(e) => e.stopPropagation()}>
                           <div className="flex items-center gap-2">
                             <button
@@ -953,6 +974,17 @@ const GeneralRepairsLog: React.FC = () => {
                         <div>
                           <p className="text-sm text-gray-500 mb-1">Invoice Number</p>
                           <p className="font-medium text-gray-900">{selectedRepair.invoiceNumber || "—"}</p>
+                        </div>
+                        <div>
+                          <p className="text-sm text-gray-500 mb-1">Amount</p>
+                          <p className="font-medium text-gray-900">
+                            {selectedRepair.amount ? new Intl.NumberFormat('en-CA', {
+                              style: 'currency',
+                              currency: 'CAD',
+                              minimumFractionDigits: 2,
+                              maximumFractionDigits: 2,
+                            }).format(selectedRepair.amount) : "—"}
+                          </p>
                         </div>
                       </div>
                       <div className="mt-4">
@@ -1224,6 +1256,27 @@ const GeneralRepairsLog: React.FC = () => {
                             e.target.style.boxShadow = '';
                           }}
                           placeholder="INV-REP-2024-001"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">Amount</label>
+                        <input
+                          type="number"
+                          step="0.01"
+                          min="0"
+                          value={formData.amount}
+                          onChange={(e) => setFormData({ ...formData, amount: e.target.value })}
+                          className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:border-transparent"
+                          style={{ '--tw-ring-color': '#016ab2' } as React.CSSProperties & { '--tw-ring-color': string }}
+                          onFocus={(e) => {
+                            e.target.style.borderColor = '#016ab2';
+                            e.target.style.boxShadow = '0 0 0 2px rgba(1, 106, 178, 0.2)';
+                          }}
+                          onBlur={(e) => {
+                            e.target.style.borderColor = '';
+                            e.target.style.boxShadow = '';
+                          }}
+                          placeholder="0.00"
                         />
                       </div>
                       <div className="md:col-span-2">

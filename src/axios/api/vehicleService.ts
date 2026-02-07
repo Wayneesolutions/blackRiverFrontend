@@ -92,6 +92,7 @@ export interface VehicleServiceResponse {
   description?: string;
   invoiceNumber?: string;
   notes?: string;
+  amount?: number;
   status: VehicleServiceStatus;
   createdAt: string;
   updatedAt: string;
