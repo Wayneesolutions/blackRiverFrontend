@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { Plus, Search, DollarSign, Users, Calendar, TrendingUp, X, AlertCircle, CheckCircle, Edit2, Trash2, Eye, Building2, Sparkles, Clock, CalendarCheck, FileText, Download } from 'lucide-react';
 import { getEmployees, createPayroll, listPayrolls, updatePayroll, deletePayroll, deleteAllPayrolls, generateAutomatedPayroll, bulkAIGenerateAllPayrolls, getPaystubByPayrollId } from "../../../../axios/api/account.payroll";
 import { listAttendance } from "../../../../axios/api/attendance";
+import { getDeductionAdditions } from "../../../../axios/api/account.settlement";
 import jsPDF from 'jspdf';
 
 interface Employee {
@@ -115,7 +116,6 @@ interface PayrollFormData {
     userId: string;
     baseSalary: string;
     bonus: string;
-    deductions: string;
     payDate: string;
     startDate: string;
     endDate: string;
@@ -335,6 +335,14 @@ const PayrollManagement = () => {
     } | null>(null);
     const [loadingAttendance, setLoadingAttendance] = useState(false);
 
+    // Employee additions and deductions state
+    const [employeeAdditions, setEmployeeAdditions] = useState<any[]>([]);
+    const [employeeDeductions, setEmployeeDeductions] = useState<any[]>([]);
+    const [loadingAdditionsDeductions, setLoadingAdditionsDeductions] = useState<boolean>(false);
+    // Track edited amounts for additions and deductions
+    const [editedAdditionAmounts, setEditedAdditionAmounts] = useState<Record<string, number>>({});
+    const [editedDeductionAmounts, setEditedDeductionAmounts] = useState<Record<string, number>>({});
+
     const showNotification = (type: 'success' | 'error', message: string) => {
         setNotification({ type, message });
         setTimeout(() => setNotification(null), 5000);
@@ -454,6 +462,16 @@ const PayrollManagement = () => {
         return () => clearTimeout(timeoutId);
     }, [searchTerm]);
 
+    // Fetch additions and deductions when employee or date range changes
+    useEffect(() => {
+        if (formData.userId && formData.startDate && formData.endDate) {
+            fetchEmployeeAdditionsDeductions(formData.userId);
+        } else if (!formData.userId) {
+            setEmployeeAdditions([]);
+            setEmployeeDeductions([]);
+        }
+    }, [formData.userId, formData.startDate, formData.endDate]);
+
     // Synchronize scrollbars for payroll table
     useEffect(() => {
         const topScroll = topScrollRef.current;
@@ -497,6 +515,151 @@ const PayrollManagement = () => {
             resizeObserver.disconnect();
         };
     }, [payrollData]);
+
+    // Fetch employee additions and deductions
+    const fetchEmployeeAdditionsDeductions = async (employeeId: string) => {
+        if (!employeeId) {
+            setEmployeeAdditions([]);
+            setEmployeeDeductions([]);
+            return;
+        }
+
+        setLoadingAdditionsDeductions(true);
+        try {
+            const [additionsRes, deductionsRes] = await Promise.all([
+                getDeductionAdditions({ assignedTo: employeeId, type: 'Addition', isActive: true }),
+                getDeductionAdditions({ assignedTo: employeeId, type: 'Deduction', isActive: true })
+            ]);
+
+            if (additionsRes?.success && Array.isArray(additionsRes.data)) {
+                setEmployeeAdditions(additionsRes.data);
+            } else {
+                setEmployeeAdditions([]);
+            }
+
+            if (deductionsRes?.success && Array.isArray(deductionsRes.data)) {
+                setEmployeeDeductions(deductionsRes.data);
+            } else {
+                setEmployeeDeductions([]);
+            }
+
+            // Reset edited amounts when fetching new employee data
+            setEditedAdditionAmounts({});
+            setEditedDeductionAmounts({});
+        } catch (error: any) {
+            console.error('Error fetching employee additions/deductions:', error);
+            setEmployeeAdditions([]);
+            setEmployeeDeductions([]);
+        } finally {
+            setLoadingAdditionsDeductions(false);
+        }
+    };
+
+    // Calculate additions and deductions for the payroll period
+    const calculateAdditionsDeductions = () => {
+        if (!formData.startDate || !formData.endDate) {
+            return { totalAdditions: 0, totalDeductions: 0 };
+        }
+
+        const startDateObj = new Date(formData.startDate);
+        const endDateObj = new Date(formData.endDate);
+        endDateObj.setHours(23, 59, 59, 999);
+
+        // Calculate applicable additions
+        let totalAdditions = 0;
+        for (const addition of employeeAdditions) {
+            if (!addition.isActive) continue;
+
+            const addStartDate = addition.startDate ? new Date(addition.startDate) : null;
+            const addEndDate = addition.endDate ? new Date(addition.endDate) : null;
+
+            // Check if addition period overlaps with payroll period
+            const additionStartsBeforePayrollEnds = !addStartDate || addStartDate <= endDateObj;
+            const additionEndsAfterPayrollStarts = !addEndDate || addEndDate >= startDateObj;
+
+            if (!additionStartsBeforePayrollEnds || !additionEndsAfterPayrollStarts) {
+                continue;
+            }
+
+            // Calculate amount based on recurrence (use edited amount if available)
+            let calculatedAmount = editedAdditionAmounts[addition._id];
+            if (calculatedAmount === undefined) {
+                const effectiveStartDate = addStartDate && addStartDate > startDateObj ? addStartDate : startDateObj;
+                const effectiveEndDate = addEndDate && addEndDate < endDateObj ? addEndDate : endDateObj;
+
+                let amount = addition.amount || 0;
+                if (addition.recurrence === 'Weekly') {
+                    const weeks = Math.ceil((effectiveEndDate.getTime() - effectiveStartDate.getTime()) / (7 * 24 * 60 * 60 * 1000));
+                    amount = amount * Math.max(1, weeks);
+                } else if (addition.recurrence === 'Bi-weekly') {
+                    const biWeeks = Math.ceil((effectiveEndDate.getTime() - effectiveStartDate.getTime()) / (14 * 24 * 60 * 60 * 1000));
+                    amount = amount * Math.max(1, biWeeks);
+                } else if (addition.recurrence === 'Monthly') {
+                    const months = Math.ceil((effectiveEndDate.getTime() - effectiveStartDate.getTime()) / (30 * 24 * 60 * 60 * 1000));
+                    amount = amount * Math.max(1, months);
+                }
+                calculatedAmount = amount;
+            }
+
+            totalAdditions += calculatedAmount;
+        }
+
+        // Calculate applicable deductions
+        let totalDeductions = 0;
+        for (const deduction of employeeDeductions) {
+            if (!deduction.isActive) continue;
+
+            const dedStartDate = deduction.startDate ? new Date(deduction.startDate) : null;
+            const dedEndDate = deduction.endDate ? new Date(deduction.endDate) : null;
+
+            // Check if deduction period overlaps with payroll period
+            let shouldInclude = false;
+
+            if (deduction.recurrence === 'Monthly') {
+                if (!dedStartDate) {
+                    shouldInclude = true;
+                } else {
+                    const payrollStartYear = startDateObj.getFullYear();
+                    const dedStartYear = dedStartDate.getFullYear();
+                    if (payrollStartYear >= dedStartYear) {
+                        shouldInclude = true;
+                    }
+                }
+            } else {
+                const deductionStartsBeforePayrollEnds = !dedStartDate || dedStartDate <= endDateObj;
+                const deductionEndsAfterPayrollStarts = !dedEndDate || dedEndDate >= startDateObj;
+                shouldInclude = deductionStartsBeforePayrollEnds && deductionEndsAfterPayrollStarts;
+            }
+
+            if (!shouldInclude) {
+                continue;
+            }
+
+            // Calculate amount based on recurrence (use edited amount if available)
+            let calculatedAmount = editedDeductionAmounts[deduction._id];
+            if (calculatedAmount === undefined) {
+                const effectiveStartDate = dedStartDate && dedStartDate > startDateObj ? dedStartDate : startDateObj;
+                const effectiveEndDate = dedEndDate && dedEndDate < endDateObj ? dedEndDate : endDateObj;
+
+                let amount = deduction.amount || 0;
+                if (deduction.recurrence === 'Weekly') {
+                    const weeks = Math.ceil((effectiveEndDate.getTime() - effectiveStartDate.getTime()) / (7 * 24 * 60 * 60 * 1000));
+                    amount = amount * Math.max(1, weeks);
+                } else if (deduction.recurrence === 'Bi-weekly') {
+                    const biWeeks = Math.ceil((effectiveEndDate.getTime() - effectiveStartDate.getTime()) / (14 * 24 * 60 * 60 * 1000));
+                    amount = amount * Math.max(1, biWeeks);
+                } else if (deduction.recurrence === 'Monthly') {
+                    const months = Math.ceil((effectiveEndDate.getTime() - effectiveStartDate.getTime()) / (30 * 24 * 60 * 60 * 1000));
+                    amount = amount * Math.max(1, months);
+                }
+                calculatedAmount = amount;
+            }
+
+            totalDeductions += calculatedAmount;
+        }
+
+        return { totalAdditions, totalDeductions };
+    };
 
     // Fetch attendance data for selected employee and date range
     const fetchAttendance = async (employeeId: string, startDate: string, endDate: string) => {
@@ -592,6 +755,13 @@ const PayrollManagement = () => {
                 if (value && prev.startDate && prev.endDate) {
                     fetchAttendance(value, prev.startDate, prev.endDate);
                 }
+                // Fetch additions and deductions for the selected employee
+                if (value) {
+                    fetchEmployeeAdditionsDeductions(value);
+                } else {
+                    setEmployeeAdditions([]);
+                    setEmployeeDeductions([]);
+                }
                 return newFormData;
             });
         } else {
@@ -647,11 +817,21 @@ const PayrollManagement = () => {
         setLoading(true);
 
         try {
+            // Calculate additions and deductions using the helper function (respects edited amounts)
+            const { totalAdditions, totalDeductions } = calculateAdditionsDeductions();
+
+            // Add calculated additions to bonus (same as driver payroll)
+            const calculatedBonus = parseFloat(formData.bonus) || 0;
+            const finalBonus = calculatedBonus + totalAdditions;
+
+            // Use calculated deductions from employee profile (respects edited amounts)
+            const finalDeductions = totalDeductions;
+
             const payload: any = {
                 userId: formData.userId,
                 baseSalary: parseFloat(formData.baseSalary),
-                bonus: parseFloat(formData.bonus) || 0,
-                deductions: parseFloat(formData.deductions) || 0,
+                bonus: finalBonus, // Bonus + edited additions
+                deductions: finalDeductions, // Calculated deductions from employee profile
                 payDate: formData.payDate,
                 startDate: formData.startDate,
                 endDate: formData.endDate,
@@ -707,11 +887,21 @@ const PayrollManagement = () => {
         setLoading(true);
 
         try {
+            // Calculate additions and deductions using the helper function (respects edited amounts)
+            const { totalAdditions, totalDeductions } = calculateAdditionsDeductions();
+
+            // Add calculated additions to bonus (same as driver payroll)
+            const calculatedBonus = parseFloat(formData.bonus) || 0;
+            const finalBonus = calculatedBonus + totalAdditions;
+
+            // Use calculated deductions from employee profile (respects edited amounts)
+            const finalDeductions = totalDeductions;
+
             const payload: any = {
                 userId: formData.userId,
                 baseSalary: parseFloat(formData.baseSalary),
-                bonus: parseFloat(formData.bonus) || 0,
-                deductions: parseFloat(formData.deductions) || 0,
+                bonus: finalBonus, // Bonus + edited additions
+                deductions: finalDeductions, // Calculated deductions from employee profile
                 payDate: formData.payDate,
                 startDate: formData.startDate,
                 endDate: formData.endDate,
@@ -1267,7 +1457,6 @@ const PayrollManagement = () => {
             userId: '',
             baseSalary: '',
             bonus: '0',
-            deductions: '0',
             payDate: '',
             startDate: '',
             endDate: '',
@@ -1319,7 +1508,6 @@ const PayrollManagement = () => {
                     ...prev,
                     baseSalary: response.data.payroll.baseSalary.toString(),
                     bonus: response.data.payroll.bonus.toString(),
-                    deductions: response.data.payroll.deductions.toString(),
                     payDate: new Date().toISOString().split('T')[0]
                 }));
                 showNotification('success', 'AI-generated payroll recommendations ready! Review and create.');
@@ -1338,7 +1526,56 @@ const PayrollManagement = () => {
 
         setLoading(true);
         try {
-            const response = await createPayroll(autoGenerateData.payroll);
+            // Calculate additions and deductions using the helper function (respects edited amounts)
+            const { totalAdditions, totalDeductions } = calculateAdditionsDeductions();
+            
+            // Calculate taxes
+            let totalTax = 0;
+            if (formData.country === 'Canada') {
+                totalTax =
+                    parseFloat(formData.federalIncomeTaxCA || '0') +
+                    parseFloat(formData.provincialIncomeTaxCA || '0') +
+                    parseFloat(formData.cpp || '0') +
+                    parseFloat(formData.ei || '0') +
+                    parseFloat(formData.provincialHealthTaxCA || '0');
+            } else {
+                totalTax =
+                    parseFloat(formData.federalIncomeTaxUS || '0') +
+                    parseFloat(formData.stateIncomeTaxUS || '0') +
+                    parseFloat(formData.socialSecurityTax || '0') +
+                    parseFloat(formData.medicareTax || '0') +
+                    parseFloat(formData.stateDisabilityInsurance || '0') +
+                    parseFloat(formData.localTax || '0');
+            }
+            
+            // Build payroll payload with calculated additions and deductions
+            const baseSalary = autoGenerateData.payroll.baseSalary || 0;
+            const bonus = autoGenerateData.payroll.bonus || 0;
+            const grossEarnings = baseSalary + bonus + totalAdditions;
+            const netPay = grossEarnings - totalDeductions - totalTax;
+            
+            const payload = {
+                ...autoGenerateData.payroll,
+                baseSalary,
+                bonus: bonus + totalAdditions, // Include additions in bonus for backend compatibility
+                deductions: totalDeductions, // Use calculated deductions from employee profile
+                totalSalary: netPay,
+                // Include tax fields if they exist in formData
+                country: formData.country || autoGenerateData.payroll.country || 'USA',
+                federalIncomeTaxCA: formData.federalIncomeTaxCA || autoGenerateData.payroll.federalIncomeTaxCA || '0',
+                provincialIncomeTaxCA: formData.provincialIncomeTaxCA || autoGenerateData.payroll.provincialIncomeTaxCA || '0',
+                cpp: formData.cpp || autoGenerateData.payroll.cpp || '0',
+                ei: formData.ei || autoGenerateData.payroll.ei || '0',
+                provincialHealthTaxCA: formData.provincialHealthTaxCA || autoGenerateData.payroll.provincialHealthTaxCA || '0',
+                federalIncomeTaxUS: formData.federalIncomeTaxUS || autoGenerateData.payroll.federalIncomeTaxUS || '0',
+                stateIncomeTaxUS: formData.stateIncomeTaxUS || autoGenerateData.payroll.stateIncomeTaxUS || '0',
+                socialSecurityTax: formData.socialSecurityTax || autoGenerateData.payroll.socialSecurityTax || '0',
+                medicareTax: formData.medicareTax || autoGenerateData.payroll.medicareTax || '0',
+                stateDisabilityInsurance: formData.stateDisabilityInsurance || autoGenerateData.payroll.stateDisabilityInsurance || '0',
+                localTax: formData.localTax || autoGenerateData.payroll.localTax || '0'
+            };
+            
+            const response = await createPayroll(payload);
             if (response?.success) {
                 showNotification('success', 'Payroll created successfully from AI recommendations!');
                 setShowAutoGenerateModal(false);
@@ -2137,25 +2374,183 @@ const PayrollManagement = () => {
                                         </div>
                                     </div>
 
-                                    <div>
-                                        <label className="block text-sm font-medium text-gray-700 mb-2">
-                                            Deductions ($)
-                                        </label>
-                                        <div className="relative">
-                                            <DollarSign className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={18} />
-                                            <input
-                                                type="number"
-                                                name="deductions"
-                                                value={formData.deductions}
-                                                onChange={handleInputChange}
-                                                min="0"
-                                                step="0.01"
-                                                placeholder="0.00"
-                                                className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
-                                            />
+                                </div>
+
+                                {/* Employee Additions and Deductions */}
+                                {formData.userId && (
+                                    <div className="bg-white border border-gray-200 rounded-lg overflow-hidden">
+                                        <div className="bg-gray-50 px-4 py-3 border-b border-gray-200">
+                                            <h5 className="text-sm font-medium text-gray-700">Employee Additions & Deductions</h5>
+                                            <p className="text-xs text-gray-500 mt-1">These will be automatically included in the payroll calculation</p>
+                                        </div>
+                                        <div className="p-4 space-y-4">
+                                            {loadingAdditionsDeductions ? (
+                                                <div className="text-center py-4">
+                                                    <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-600 mx-auto"></div>
+                                                    <p className="text-xs text-gray-500 mt-2">Loading additions and deductions...</p>
+                                                </div>
+                                            ) : (
+                                                <>
+                                            {employeeAdditions.length > 0 && (
+                                                <div>
+                                                    <h6 className="text-sm font-semibold text-green-700 mb-2 flex items-center gap-2">
+                                                        <TrendingUp size={16} />
+                                                        Additions ({employeeAdditions.length})
+                                                    </h6>
+                                                    <div className="space-y-2">
+                                                        {employeeAdditions.map((addition) => {
+                                                            // Calculate the amount to display (edited or calculated)
+                                                            const calculatedAmount = editedAdditionAmounts[addition._id] !== undefined
+                                                                ? editedAdditionAmounts[addition._id]
+                                                                : (() => {
+                                                                    // Calculate from base amount and recurrence
+                                                                    if (!formData.startDate || !formData.endDate) return addition.amount || 0;
+                                                                    const startDateObj = new Date(formData.startDate);
+                                                                    const endDateObj = new Date(formData.endDate);
+                                                                    endDateObj.setHours(23, 59, 59, 999);
+                                                                    const addStartDate = addition.startDate ? new Date(addition.startDate) : null;
+                                                                    const addEndDate = addition.endDate ? new Date(addition.endDate) : null;
+                                                                    const effectiveStartDate = addStartDate && addStartDate > startDateObj ? addStartDate : startDateObj;
+                                                                    const effectiveEndDate = addEndDate && addEndDate < endDateObj ? addEndDate : endDateObj;
+                                                                    let amount = addition.amount || 0;
+                                                                    if (addition.recurrence === 'Weekly') {
+                                                                        const weeks = Math.ceil((effectiveEndDate.getTime() - effectiveStartDate.getTime()) / (7 * 24 * 60 * 60 * 1000));
+                                                                        amount = amount * Math.max(1, weeks);
+                                                                    } else if (addition.recurrence === 'Bi-weekly') {
+                                                                        const biWeeks = Math.ceil((effectiveEndDate.getTime() - effectiveStartDate.getTime()) / (14 * 24 * 60 * 60 * 1000));
+                                                                        amount = amount * Math.max(1, biWeeks);
+                                                                    } else if (addition.recurrence === 'Monthly') {
+                                                                        const months = Math.ceil((effectiveEndDate.getTime() - effectiveStartDate.getTime()) / (30 * 24 * 60 * 60 * 1000));
+                                                                        amount = amount * Math.max(1, months);
+                                                                    }
+                                                                    return amount;
+                                                                })();
+
+                                                            return (
+                                                                <div key={addition._id} className="bg-green-50 p-3 rounded-lg border border-green-200">
+                                                                    <div className="flex justify-between items-start gap-4">
+                                                                        <div className="flex-1">
+                                                                            <p className="text-sm font-medium text-gray-900">{addition.name || addition.description || 'Addition'}</p>
+                                                                            <p className="text-xs text-gray-600 mt-1">
+                                                                                {addition.recurrence} • Base: ${addition.amount?.toFixed(2) || '0.00'}
+                                                                                {addition.startDate && (
+                                                                                    <span> • From {new Date(addition.startDate).toLocaleDateString()}</span>
+                                                                                )}
+                                                                                {addition.endDate && (
+                                                                                    <span> • Until {new Date(addition.endDate).toLocaleDateString()}</span>
+                                                                                )}
+                                                                            </p>
+                                                                        </div>
+                                                                        <div className="flex items-center gap-2">
+                                                                            <span className="text-xs text-gray-500">Amount:</span>
+                                                                            <input
+                                                                                type="number"
+                                                                                value={calculatedAmount}
+                                                                                onChange={(e) => {
+                                                                                    const newAmount = parseFloat(e.target.value) || 0;
+                                                                                    setEditedAdditionAmounts(prev => ({
+                                                                                        ...prev,
+                                                                                        [addition._id]: newAmount
+                                                                                    }));
+                                                                                }}
+                                                                                step="0.01"
+                                                                                min="0"
+                                                                                className="w-24 px-2 py-1 text-sm border border-green-300 rounded focus:outline-none focus:ring-1 focus:ring-green-500 bg-white"
+                                                                            />
+                                                                            <span className="text-sm font-semibold text-green-700">+${calculatedAmount.toFixed(2)}</span>
+                                                                        </div>
+                                                                    </div>
+                                                                </div>
+                                                            );
+                                                        })}
+                                                    </div>
+                                                </div>
+                                            )}
+                                            {employeeDeductions.length > 0 && (
+                                                <div>
+                                                    <h6 className="text-sm font-semibold text-red-700 mb-2 flex items-center gap-2">
+                                                        <TrendingUp size={16} className="rotate-180" />
+                                                        Deductions ({employeeDeductions.length})
+                                                    </h6>
+                                                    <div className="space-y-2">
+                                                        {employeeDeductions.map((deduction) => {
+                                                            // Calculate the amount to display (edited or calculated)
+                                                            const calculatedAmount = editedDeductionAmounts[deduction._id] !== undefined
+                                                                ? editedDeductionAmounts[deduction._id]
+                                                                : (() => {
+                                                                    // Calculate from base amount and recurrence
+                                                                    if (!formData.startDate || !formData.endDate) return deduction.amount || 0;
+                                                                    const startDateObj = new Date(formData.startDate);
+                                                                    const endDateObj = new Date(formData.endDate);
+                                                                    endDateObj.setHours(23, 59, 59, 999);
+                                                                    const dedStartDate = deduction.startDate ? new Date(deduction.startDate) : null;
+                                                                    const dedEndDate = deduction.endDate ? new Date(deduction.endDate) : null;
+                                                                    const effectiveStartDate = dedStartDate && dedStartDate > startDateObj ? dedStartDate : startDateObj;
+                                                                    const effectiveEndDate = dedEndDate && dedEndDate < endDateObj ? dedEndDate : endDateObj;
+                                                                    let amount = deduction.amount || 0;
+                                                                    if (deduction.recurrence === 'Weekly') {
+                                                                        const weeks = Math.ceil((effectiveEndDate.getTime() - effectiveStartDate.getTime()) / (7 * 24 * 60 * 60 * 1000));
+                                                                        amount = amount * Math.max(1, weeks);
+                                                                    } else if (deduction.recurrence === 'Bi-weekly') {
+                                                                        const biWeeks = Math.ceil((effectiveEndDate.getTime() - effectiveStartDate.getTime()) / (14 * 24 * 60 * 60 * 1000));
+                                                                        amount = amount * Math.max(1, biWeeks);
+                                                                    } else if (deduction.recurrence === 'Monthly') {
+                                                                        const months = Math.ceil((effectiveEndDate.getTime() - effectiveStartDate.getTime()) / (30 * 24 * 60 * 60 * 1000));
+                                                                        amount = amount * Math.max(1, months);
+                                                                    }
+                                                                    return amount;
+                                                                })();
+
+                                                            return (
+                                                                <div key={deduction._id} className="bg-red-50 p-3 rounded-lg border border-red-200">
+                                                                    <div className="flex justify-between items-start gap-4">
+                                                                        <div className="flex-1">
+                                                                            <p className="text-sm font-medium text-gray-900">{deduction.name || deduction.description || 'Deduction'}</p>
+                                                                            <p className="text-xs text-gray-600 mt-1">
+                                                                                {deduction.recurrence} • Base: ${deduction.amount?.toFixed(2) || '0.00'}
+                                                                                {deduction.startDate && (
+                                                                                    <span> • From {new Date(deduction.startDate).toLocaleDateString()}</span>
+                                                                                )}
+                                                                                {deduction.endDate && (
+                                                                                    <span> • Until {new Date(deduction.endDate).toLocaleDateString()}</span>
+                                                                                )}
+                                                                            </p>
+                                                                        </div>
+                                                                        <div className="flex items-center gap-2">
+                                                                            <span className="text-xs text-gray-500">Amount:</span>
+                                                                            <input
+                                                                                type="number"
+                                                                                value={calculatedAmount}
+                                                                                onChange={(e) => {
+                                                                                    const newAmount = parseFloat(e.target.value) || 0;
+                                                                                    setEditedDeductionAmounts(prev => ({
+                                                                                        ...prev,
+                                                                                        [deduction._id]: newAmount
+                                                                                    }));
+                                                                                }}
+                                                                                step="0.01"
+                                                                                min="0"
+                                                                                className="w-24 px-2 py-1 text-sm border border-red-300 rounded focus:outline-none focus:ring-1 focus:ring-red-500 bg-white"
+                                                                            />
+                                                                            <span className="text-sm font-semibold text-red-700">-${calculatedAmount.toFixed(2)}</span>
+                                                                        </div>
+                                                                    </div>
+                                                                </div>
+                                                            );
+                                                        })}
+                                                    </div>
+                                                </div>
+                                            )}
+                                            {employeeAdditions.length === 0 && employeeDeductions.length === 0 && !loadingAdditionsDeductions && (
+                                                <div className="text-center py-4 text-sm text-gray-500">
+                                                    No additions or deductions found for this employee.
+                                                </div>
+                                            )}
+                                                </>
+                                            )}
                                         </div>
                                     </div>
-                                </div>
+                                )}
 
                                 {/* Tax Section */}
                                 <div className="bg-gradient-to-r from-purple-50 to-indigo-50 p-6 rounded-lg border border-purple-200">
@@ -2469,87 +2864,101 @@ const PayrollManagement = () => {
                                     />
                                 </div>
 
-                                {formData.baseSalary && (
-                                    <div className="p-4 rounded-lg border bg-blue-50 border-blue-200">
-                                        <div className="space-y-2">
-                                            <div className="flex justify-between items-center">
-                                                <span className="text-sm font-medium text-gray-700">
-                                                    Gross Salary:
-                                                </span>
-                                                <span className="text-lg font-semibold text-gray-900">
-                                                    ${(
-                                                        parseFloat(formData.baseSalary || '0') +
-                                                        parseFloat(formData.bonus || '0')
-                                                    ).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-                                                </span>
-                                            </div>
-                                            <div className="flex justify-between items-center text-sm">
-                                                <span className="text-gray-600">
-                                                    Deductions:
-                                                </span>
-                                                <span className="text-red-600">
-                                                    -${parseFloat(formData.deductions || '0').toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-                                                </span>
-                                            </div>
-                                            <div className="flex justify-between items-center text-sm">
-                                                <span className="text-gray-600">
-                                                    Taxes:
-                                                </span>
-                                                <span className="text-red-600">
-                                                    -${(() => {
-                                                        let totalTax = 0;
-                                                        if (formData.country === 'Canada') {
-                                                            totalTax =
-                                                                parseFloat(formData.federalIncomeTaxCA || '0') +
-                                                                parseFloat(formData.provincialIncomeTaxCA || '0') +
-                                                                parseFloat(formData.cpp || '0') +
-                                                                parseFloat(formData.ei || '0') +
-                                                                parseFloat(formData.provincialHealthTaxCA || '0');
-                                                        } else {
-                                                            totalTax =
-                                                                parseFloat(formData.federalIncomeTaxUS || '0') +
-                                                                parseFloat(formData.stateIncomeTaxUS || '0') +
-                                                                parseFloat(formData.socialSecurityTax || '0') +
-                                                                parseFloat(formData.medicareTax || '0') +
-                                                                parseFloat(formData.stateDisabilityInsurance || '0') +
-                                                                parseFloat(formData.localTax || '0');
-                                                        }
-                                                        return totalTax.toFixed(2);
-                                                    })()}
-                                                </span>
-                                            </div>
-                                            <div className="pt-2 border-t border-blue-300 flex justify-between items-center">
-                                                <span className="text-sm font-bold text-gray-800">
-                                                    Net Pay:
-                                                </span>
-                                                <span className="text-xl font-bold text-blue-600">
-                                                    ${(() => {
-                                                        const gross = parseFloat(formData.baseSalary || '0') + parseFloat(formData.bonus || '0');
-                                                        const deductions = parseFloat(formData.deductions || '0');
-                                                        let totalTax = 0;
-                                                        if (formData.country === 'Canada') {
-                                                            totalTax =
-                                                                parseFloat(formData.federalIncomeTaxCA || '0') +
-                                                                parseFloat(formData.provincialIncomeTaxCA || '0') +
-                                                                parseFloat(formData.cpp || '0') +
-                                                                parseFloat(formData.ei || '0') +
-                                                                parseFloat(formData.provincialHealthTaxCA || '0');
-                                                        } else {
-                                                            totalTax =
-                                                                parseFloat(formData.federalIncomeTaxUS || '0') +
-                                                                parseFloat(formData.stateIncomeTaxUS || '0') +
-                                                                parseFloat(formData.socialSecurityTax || '0') +
-                                                                parseFloat(formData.medicareTax || '0') +
-                                                                parseFloat(formData.stateDisabilityInsurance || '0') +
-                                                                parseFloat(formData.localTax || '0');
-                                                        }
-                                                        return (gross - deductions - totalTax).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-                                                    })()}
-                                                </span>
+                                {formData.baseSalary && (() => {
+                                    const { totalAdditions, totalDeductions } = calculateAdditionsDeductions();
+                                    const baseSalary = parseFloat(formData.baseSalary || '0');
+                                    const manualBonus = parseFloat(formData.bonus || '0');
+                                    const grossEarnings = baseSalary + manualBonus + totalAdditions;
+                                    
+                                    // Calculate taxes
+                                    let totalTax = 0;
+                                    if (formData.country === 'Canada') {
+                                        totalTax =
+                                            parseFloat(formData.federalIncomeTaxCA || '0') +
+                                            parseFloat(formData.provincialIncomeTaxCA || '0') +
+                                            parseFloat(formData.cpp || '0') +
+                                            parseFloat(formData.ei || '0') +
+                                            parseFloat(formData.provincialHealthTaxCA || '0');
+                                    } else {
+                                        totalTax =
+                                            parseFloat(formData.federalIncomeTaxUS || '0') +
+                                            parseFloat(formData.stateIncomeTaxUS || '0') +
+                                            parseFloat(formData.socialSecurityTax || '0') +
+                                            parseFloat(formData.medicareTax || '0') +
+                                            parseFloat(formData.stateDisabilityInsurance || '0') +
+                                            parseFloat(formData.localTax || '0');
+                                    }
+                                    
+                                    const netPay = grossEarnings - totalDeductions - totalTax;
+                                    
+                                    // Format dates for "Based on" section
+                                    const startDate = formData.startDate ? new Date(formData.startDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : '';
+                                    const endDate = formData.endDate ? new Date(formData.endDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : '';
+                                    const periodText = startDate && endDate ? `${startDate} - ${endDate}` : (startDate || endDate || 'Pay Period');
+                                    
+                                    return (
+                                        <div className="bg-gradient-to-r from-green-600 to-green-700 text-white p-6 rounded-lg">
+                                            <div className="space-y-2">
+                                                <div className="flex justify-between items-center">
+                                                    <p className="text-sm text-green-100">Gross Earnings</p>
+                                                    <p className="text-lg font-semibold">
+                                                        ${grossEarnings.toFixed(2)}
+                                                    </p>
+                                                </div>
+                                                {(baseSalary > 0 || totalAdditions > 0 || manualBonus > 0) && (
+                                                    <div className="pl-4 text-xs text-green-200">
+                                                        {baseSalary > 0 && (
+                                                            <div className="flex justify-between">
+                                                                <span>Base Salary:</span>
+                                                                <span>${baseSalary.toFixed(2)}</span>
+                                                            </div>
+                                                        )}
+                                                        {manualBonus > 0 && (
+                                                            <div className="flex justify-between">
+                                                                <span>Manual Bonus:</span>
+                                                                <span>+${manualBonus.toFixed(2)}</span>
+                                                            </div>
+                                                        )}
+                                                        {totalAdditions > 0 && (
+                                                            <div className="flex justify-between">
+                                                                <span>Additions ({employeeAdditions.length}):</span>
+                                                                <span>+${totalAdditions.toFixed(2)}</span>
+                                                            </div>
+                                                        )}
+                                                    </div>
+                                                )}
+                                                <div className="flex justify-between items-center text-sm">
+                                                    <p className="text-green-100">Deductions</p>
+                                                    <p className="text-red-200">-${totalDeductions.toFixed(2)}</p>
+                                                </div>
+                                                {totalDeductions > 0 && (
+                                                    <div className="pl-4 text-xs text-red-200">
+                                                        <div className="flex justify-between">
+                                                            <span>Deductions ({employeeDeductions.length}):</span>
+                                                            <span>-${totalDeductions.toFixed(2)}</span>
+                                                        </div>
+                                                    </div>
+                                                )}
+                                                <div className="flex justify-between items-center text-sm">
+                                                    <p className="text-green-100">Taxes</p>
+                                                    <p className="text-red-200">-${totalTax.toFixed(2)}</p>
+                                                </div>
+                                                <div className="pt-2 border-t border-green-500 flex justify-between items-center">
+                                                    <div>
+                                                        <p className="text-sm font-medium text-green-100">Net Pay</p>
+                                                        <p className="text-4xl font-bold mt-1">
+                                                            ${netPay.toFixed(2)}
+                                                        </p>
+                                                    </div>
+                                                    <div className="text-right mt-2">
+                                                        <p className="text-xs text-green-100">Based on</p>
+                                                        <p className="text-sm font-bold">{periodText}</p>
+                                                    </div>
+                                                </div>
                                             </div>
                                         </div>
-                                    </div>
-                                )}
+                                    );
+                                })()}
 
                                 <div className="flex justify-end gap-3 pt-4 border-t border-gray-200">
                                     <button
@@ -3315,6 +3724,164 @@ const PayrollManagement = () => {
                                                 </p>
                                             </div>
 
+                                            {/* Employee Additions and Deductions */}
+                                            {formData.userId && (employeeAdditions.length > 0 || employeeDeductions.length > 0) && (
+                                                <div className="bg-white border border-gray-200 rounded-lg overflow-hidden mb-4">
+                                                    <div className="bg-gray-50 px-4 py-3 border-b border-gray-200">
+                                                        <h5 className="text-sm font-medium text-gray-700">Employee Additions & Deductions</h5>
+                                                        <p className="text-xs text-gray-500 mt-1">These will be automatically included in the payroll calculation</p>
+                                                    </div>
+                                                    <div className="p-4 space-y-4">
+                                                        {employeeAdditions.length > 0 && (
+                                                            <div>
+                                                                <h6 className="text-sm font-semibold text-green-700 mb-2 flex items-center gap-2">
+                                                                    <TrendingUp size={16} />
+                                                                    Additions ({employeeAdditions.length})
+                                                                </h6>
+                                                                <div className="space-y-2">
+                                                                    {employeeAdditions.map((addition) => {
+                                                                        const calculatedAmount = editedAdditionAmounts[addition._id] !== undefined
+                                                                            ? editedAdditionAmounts[addition._id]
+                                                                            : (() => {
+                                                                                if (!formData.startDate || !formData.endDate) return addition.amount || 0;
+                                                                                const startDateObj = new Date(formData.startDate);
+                                                                                const endDateObj = new Date(formData.endDate);
+                                                                                endDateObj.setHours(23, 59, 59, 999);
+                                                                                const addStartDate = addition.startDate ? new Date(addition.startDate) : null;
+                                                                                const addEndDate = addition.endDate ? new Date(addition.endDate) : null;
+                                                                                const effectiveStartDate = addStartDate && addStartDate > startDateObj ? addStartDate : startDateObj;
+                                                                                const effectiveEndDate = addEndDate && addEndDate < endDateObj ? addEndDate : endDateObj;
+                                                                                let amount = addition.amount || 0;
+                                                                                if (addition.recurrence === 'Weekly') {
+                                                                                    const weeks = Math.ceil((effectiveEndDate.getTime() - effectiveStartDate.getTime()) / (7 * 24 * 60 * 60 * 1000));
+                                                                                    amount = amount * Math.max(1, weeks);
+                                                                                } else if (addition.recurrence === 'Bi-weekly') {
+                                                                                    const biWeeks = Math.ceil((effectiveEndDate.getTime() - effectiveStartDate.getTime()) / (14 * 24 * 60 * 60 * 1000));
+                                                                                    amount = amount * Math.max(1, biWeeks);
+                                                                                } else if (addition.recurrence === 'Monthly') {
+                                                                                    const months = Math.ceil((effectiveEndDate.getTime() - effectiveStartDate.getTime()) / (30 * 24 * 60 * 60 * 1000));
+                                                                                    amount = amount * Math.max(1, months);
+                                                                                }
+                                                                                return amount;
+                                                                            })();
+                                                                        
+                                                                        return (
+                                                                            <div key={addition._id} className="bg-green-50 p-3 rounded-lg border border-green-200">
+                                                                                <div className="flex justify-between items-start gap-4">
+                                                                                    <div className="flex-1">
+                                                                                        <p className="text-sm font-medium text-gray-900">{addition.name || addition.description || 'Addition'}</p>
+                                                                                        <p className="text-xs text-gray-600 mt-1">
+                                                                                            {addition.recurrence} • Base: ${addition.amount?.toFixed(2) || '0.00'}
+                                                                                            {addition.startDate && (
+                                                                                                <span> • From {new Date(addition.startDate).toLocaleDateString()}</span>
+                                                                                            )}
+                                                                                            {addition.endDate && (
+                                                                                                <span> • Until {new Date(addition.endDate).toLocaleDateString()}</span>
+                                                                                            )}
+                                                                                        </p>
+                                                                                    </div>
+                                                                                    <div className="flex items-center gap-2">
+                                                                                        <span className="text-xs text-gray-500">Amount:</span>
+                                                                                        <input
+                                                                                            type="number"
+                                                                                            value={calculatedAmount}
+                                                                                            onChange={(e) => {
+                                                                                                const newAmount = parseFloat(e.target.value) || 0;
+                                                                                                setEditedAdditionAmounts(prev => ({
+                                                                                                    ...prev,
+                                                                                                    [addition._id]: newAmount
+                                                                                                }));
+                                                                                            }}
+                                                                                            step="0.01"
+                                                                                            min="0"
+                                                                                            className="w-24 px-2 py-1 text-sm border border-green-300 rounded focus:outline-none focus:ring-1 focus:ring-green-500 bg-white"
+                                                                                        />
+                                                                                        <span className="text-sm font-semibold text-green-700">+${calculatedAmount.toFixed(2)}</span>
+                                                                                    </div>
+                                                                                </div>
+                                                                            </div>
+                                                                        );
+                                                                    })}
+                                                                </div>
+                                                            </div>
+                                                        )}
+                                                        {employeeDeductions.length > 0 && (
+                                                            <div>
+                                                                <h6 className="text-sm font-semibold text-red-700 mb-2 flex items-center gap-2">
+                                                                    <TrendingUp size={16} className="rotate-180" />
+                                                                    Deductions ({employeeDeductions.length})
+                                                                </h6>
+                                                                <div className="space-y-2">
+                                                                    {employeeDeductions.map((deduction) => {
+                                                                        const calculatedAmount = editedDeductionAmounts[deduction._id] !== undefined
+                                                                            ? editedDeductionAmounts[deduction._id]
+                                                                            : (() => {
+                                                                                if (!formData.startDate || !formData.endDate) return deduction.amount || 0;
+                                                                                const startDateObj = new Date(formData.startDate);
+                                                                                const endDateObj = new Date(formData.endDate);
+                                                                                endDateObj.setHours(23, 59, 59, 999);
+                                                                                const dedStartDate = deduction.startDate ? new Date(deduction.startDate) : null;
+                                                                                const dedEndDate = deduction.endDate ? new Date(deduction.endDate) : null;
+                                                                                const effectiveStartDate = dedStartDate && dedStartDate > startDateObj ? dedStartDate : startDateObj;
+                                                                                const effectiveEndDate = dedEndDate && dedEndDate < endDateObj ? dedEndDate : endDateObj;
+                                                                                let amount = deduction.amount || 0;
+                                                                                if (deduction.recurrence === 'Weekly') {
+                                                                                    const weeks = Math.ceil((effectiveEndDate.getTime() - effectiveStartDate.getTime()) / (7 * 24 * 60 * 60 * 1000));
+                                                                                    amount = amount * Math.max(1, weeks);
+                                                                                } else if (deduction.recurrence === 'Bi-weekly') {
+                                                                                    const biWeeks = Math.ceil((effectiveEndDate.getTime() - effectiveStartDate.getTime()) / (14 * 24 * 60 * 60 * 1000));
+                                                                                    amount = amount * Math.max(1, biWeeks);
+                                                                                } else if (deduction.recurrence === 'Monthly') {
+                                                                                    const months = Math.ceil((effectiveEndDate.getTime() - effectiveStartDate.getTime()) / (30 * 24 * 60 * 60 * 1000));
+                                                                                    amount = amount * Math.max(1, months);
+                                                                                }
+                                                                                return amount;
+                                                                            })();
+                                                                        
+                                                                        return (
+                                                                            <div key={deduction._id} className="bg-red-50 p-3 rounded-lg border border-red-200">
+                                                                                <div className="flex justify-between items-start gap-4">
+                                                                                    <div className="flex-1">
+                                                                                        <p className="text-sm font-medium text-gray-900">{deduction.name || deduction.description || 'Deduction'}</p>
+                                                                                        <p className="text-xs text-gray-600 mt-1">
+                                                                                            {deduction.recurrence} • Base: ${deduction.amount?.toFixed(2) || '0.00'}
+                                                                                            {deduction.startDate && (
+                                                                                                <span> • From {new Date(deduction.startDate).toLocaleDateString()}</span>
+                                                                                            )}
+                                                                                            {deduction.endDate && (
+                                                                                                <span> • Until {new Date(deduction.endDate).toLocaleDateString()}</span>
+                                                                                            )}
+                                                                                        </p>
+                                                                                    </div>
+                                                                                    <div className="flex items-center gap-2">
+                                                                                        <span className="text-xs text-gray-500">Amount:</span>
+                                                                                        <input
+                                                                                            type="number"
+                                                                                            value={calculatedAmount}
+                                                                                            onChange={(e) => {
+                                                                                                const newAmount = parseFloat(e.target.value) || 0;
+                                                                                                setEditedDeductionAmounts(prev => ({
+                                                                                                    ...prev,
+                                                                                                    [deduction._id]: newAmount
+                                                                                                }));
+                                                                                            }}
+                                                                                            step="0.01"
+                                                                                            min="0"
+                                                                                            className="w-24 px-2 py-1 text-sm border border-red-300 rounded focus:outline-none focus:ring-1 focus:ring-red-500 bg-white"
+                                                                                        />
+                                                                                        <span className="text-sm font-semibold text-red-700">-${calculatedAmount.toFixed(2)}</span>
+                                                                                    </div>
+                                                                                </div>
+                                                                            </div>
+                                                                        );
+                                                                    })}
+                                                                </div>
+                                                            </div>
+                                                        )}
+                                                    </div>
+                                                </div>
+                                            )}
+
                                             {/* Salary Breakdown */}
                                             <div className="bg-white rounded-lg p-4 mb-4">
                                                 <h5 className="font-semibold text-gray-800 mb-3">Calculated Salary</h5>
@@ -3327,13 +3894,35 @@ const PayrollManagement = () => {
                                                         <span className="text-gray-600">Bonus:</span>
                                                         <span className="font-medium text-green-600">+${autoGenerateData.payroll.bonus.toFixed(2)}</span>
                                                     </div>
-                                                    <div className="flex justify-between">
-                                                        <span className="text-gray-600">Deductions:</span>
-                                                        <span className="font-medium text-red-600">-${autoGenerateData.payroll.deductions.toFixed(2)}</span>
-                                                    </div>
+                                                    {(() => {
+                                                        const { totalAdditions, totalDeductions } = calculateAdditionsDeductions();
+                                                        return (
+                                                            <>
+                                                                {totalAdditions > 0 && (
+                                                                    <div className="flex justify-between">
+                                                                        <span className="text-gray-600">Additions ({employeeAdditions.length}):</span>
+                                                                        <span className="font-medium text-green-600">+${totalAdditions.toFixed(2)}</span>
+                                                                    </div>
+                                                                )}
+                                                                {totalDeductions > 0 && (
+                                                                    <div className="flex justify-between">
+                                                                        <span className="text-gray-600">Deductions ({employeeDeductions.length}):</span>
+                                                                        <span className="font-medium text-red-600">-${totalDeductions.toFixed(2)}</span>
+                                                                    </div>
+                                                                )}
+                                                            </>
+                                                        );
+                                                    })()}
                                                     <div className="flex justify-between pt-2 border-t border-gray-200">
                                                         <span className="font-bold text-gray-900">Total Salary:</span>
-                                                        <span className="font-bold text-lg text-gray-900">${autoGenerateData.payroll.totalSalary.toFixed(2)}</span>
+                                                        <span className="font-bold text-lg text-gray-900">
+                                                            ${(() => {
+                                                                const { totalAdditions, totalDeductions } = calculateAdditionsDeductions();
+                                                                const baseSalary = autoGenerateData.payroll.baseSalary || 0;
+                                                                const bonus = autoGenerateData.payroll.bonus || 0;
+                                                                return (baseSalary + bonus + totalAdditions - totalDeductions).toFixed(2);
+                                                            })()}
+                                                        </span>
                                                     </div>
                                                 </div>
                                             </div>

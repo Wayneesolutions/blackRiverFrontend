@@ -46,6 +46,10 @@ const AttendanceTracking = () => {
   const [editingRecord, setEditingRecord] = useState<AttendanceRecord | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [filterStatus, setFilterStatus] = useState('all');
+  const [filterType, setFilterType] = useState<'date' | 'month'>('month');
+  const [filterDate, setFilterDate] = useState<string>(new Date().toISOString().split('T')[0]);
+  const [filterMonth, setFilterMonth] = useState<number>(new Date().getMonth() + 1);
+  const [filterYear, setFilterYear] = useState<number>(new Date().getFullYear());
 
   const getBasePath = () => {
     const role = getUserRole();
@@ -95,17 +99,35 @@ const AttendanceTracking = () => {
   }, [showAddModal]);
 
   const fetchAttendance = async () => {
-    const now = new Date();
     try {
-      const res = await apiListAttendance({ month: now.getMonth() + 1, year: now.getFullYear() });
+      let params: any = {};
+      
+      if (filterType === 'date' && filterDate) {
+        // Filter by specific date
+        params.date = filterDate;
+      } else if (filterType === 'month') {
+        // Filter by month and year
+        params.month = filterMonth;
+        params.year = filterYear;
+      } else {
+        // Default to current month if no filter is set
+        const now = new Date();
+        params.month = now.getMonth() + 1;
+        params.year = now.getFullYear();
+      }
+      
+      const res = await apiListAttendance(params);
       if (res?.success) setAttendanceRecords(res.data || []);
     } catch { }
   };
 
   useEffect(() => {
     fetchEmployees();
-    fetchAttendance();
   }, []);
+
+  useEffect(() => {
+    fetchAttendance();
+  }, [filterType, filterDate, filterMonth, filterYear]);
 
   // Calculate stats
   const today = new Date().toDateString();
@@ -447,6 +469,73 @@ const AttendanceTracking = () => {
                     className="pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                   />
                 </div>
+
+                {/* Filter Type Selector */}
+                <select
+                  value={filterType}
+                  onChange={(e) => {
+                    setFilterType(e.target.value as 'date' | 'month');
+                    if (e.target.value === 'date') {
+                      setFilterDate(new Date().toISOString().split('T')[0]);
+                    } else {
+                      const now = new Date();
+                      setFilterMonth(now.getMonth() + 1);
+                      setFilterYear(now.getFullYear());
+                    }
+                  }}
+                  className="px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                >
+                  <option value="month">Filter by Month</option>
+                  <option value="date">Filter by Date</option>
+                </select>
+
+                {/* Date Filter */}
+                {filterType === 'date' && (
+                  <input
+                    type="date"
+                    value={filterDate}
+                    onChange={(e) => setFilterDate(e.target.value)}
+                    className="px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  />
+                )}
+
+                {/* Month Filter */}
+                {filterType === 'month' && (
+                  <>
+                    <select
+                      value={filterMonth}
+                      onChange={(e) => setFilterMonth(Number(e.target.value))}
+                      className="px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    >
+                      <option value={1}>January</option>
+                      <option value={2}>February</option>
+                      <option value={3}>March</option>
+                      <option value={4}>April</option>
+                      <option value={5}>May</option>
+                      <option value={6}>June</option>
+                      <option value={7}>July</option>
+                      <option value={8}>August</option>
+                      <option value={9}>September</option>
+                      <option value={10}>October</option>
+                      <option value={11}>November</option>
+                      <option value={12}>December</option>
+                    </select>
+                    <select
+                      value={filterYear}
+                      onChange={(e) => setFilterYear(Number(e.target.value))}
+                      className="px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    >
+                      {Array.from({ length: 10 }, (_, i) => {
+                        const year = new Date().getFullYear() - 5 + i;
+                        return (
+                          <option key={year} value={year}>
+                            {year}
+                          </option>
+                        );
+                      })}
+                    </select>
+                  </>
+                )}
 
                 <select
                   value={filterStatus}
