@@ -55,6 +55,7 @@ interface Trip {
   baseRate?: number;
   snowRate?: number;
   highTempRate?: number;
+  rateType?: string;
   weatherConditions?: {
     snow?: boolean;
     highTemperature?: boolean;
@@ -380,7 +381,7 @@ const DriverPayrollManagement = () => {
   } | null>(null);
   const [driverAdditions, setDriverAdditions] = useState<any[]>([]);
   const [driverDeductions, setDriverDeductions] = useState<any[]>([]);
-  const [loadingAdditionsDeductions, setLoadingAdditionsDeductions] = useState<boolean>(false);
+  const [, setLoadingAdditionsDeductions] = useState<boolean>(false);
   // Track edited amounts for additions and deductions
   const [editedAdditionAmounts, setEditedAdditionAmounts] = useState<Record<string, number>>({});
   const [editedDeductionAmounts, setEditedDeductionAmounts] = useState<Record<string, number>>({});
@@ -1154,7 +1155,7 @@ const DriverPayrollManagement = () => {
     });
   };
 
-  const updateBulkSuggestionAddition = (index: number, additionId: string, newAmount: number) => {
+  const updateBulkSuggestionAddition = (index: number, additionId: string, newAmount: number | string) => {
     setBulkPayrollSuggestions(prev => {
       const updated = [...prev];
       const suggestion = updated[index];
@@ -1202,7 +1203,7 @@ const DriverPayrollManagement = () => {
     });
   };
 
-  const updateBulkSuggestionDeduction = (index: number, deductionId: string, newAmount: number) => {
+  const updateBulkSuggestionDeduction = (index: number, deductionId: string, newAmount: number | string) => {
     setBulkPayrollSuggestions(prev => {
       const updated = [...prev];
       const suggestion = updated[index];
@@ -4691,7 +4692,7 @@ const DriverPayrollManagement = () => {
                                 Additions ({suggestion.additions.length})
                               </h6>
                               <div className="space-y-2">
-                                {suggestion.additions.map((addition: any, addIndex: number) => (
+                                {suggestion.additions.map((addition: any) => (
                                   <div key={addition._id} className="bg-green-50 p-3 rounded-lg border border-green-200">
                                     <div className="flex justify-between items-start gap-4">
                                       <div className="flex-1">
@@ -4731,7 +4732,7 @@ const DriverPayrollManagement = () => {
                                 Deductions ({suggestion.deductionsDetails.length})
                               </h6>
                               <div className="space-y-2">
-                                {suggestion.deductionsDetails.map((deduction: any, dedIndex: number) => (
+                                {suggestion.deductionsDetails.map((deduction: any) => (
                                   <div key={deduction._id} className="bg-red-50 p-3 rounded-lg border border-red-200">
                                     <div className="flex justify-between items-start gap-4">
                                       <div className="flex-1">

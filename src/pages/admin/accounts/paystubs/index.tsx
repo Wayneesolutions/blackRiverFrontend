@@ -479,8 +479,6 @@ const PaystubsList = () => {
           const primaryR = 37, primaryG = 99, primaryB = 235;
           const textR = 31, textG = 41, textB = 55;
           const lightGrayR = 243, lightGrayG = 244, lightGrayB = 246;
-          const greenR = 34, greenG = 197, greenB = 94;
-          const redR = 239, redG = 68, redB = 68;
 
           let yPos = margin;
 

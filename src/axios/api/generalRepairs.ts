@@ -12,6 +12,7 @@ export interface GeneralRepairDto {
   notes?: string;
   serviceProvider: string;
   invoiceNumber: string;
+  amount?: number;
   unitSource?: string;
   unitReference?: string;
   createdAt: string;
@@ -29,6 +30,7 @@ export interface GeneralRepairPayload {
   notes?: string;
   serviceProvider: string;
   invoiceNumber: string;
+  amount?: number;
   unitSource?: string;
   unitReference?: string;
 }

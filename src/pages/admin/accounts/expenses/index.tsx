@@ -26,6 +26,8 @@ interface Expense {
   receiptUrl?: string;
   truckId?: string;
   trailerId?: string;
+  vehicle?: any; // Vehicle object from API (for backward compatibility)
+  trailer?: any; // Trailer object from API (for backward compatibility)
   createdAt?: string | Date;
   updatedAt?: string | Date;
 }
@@ -298,7 +300,8 @@ const ExpensesPage = () => {
             { _id: 'repair', name: 'Repair', categoryId: 'vehicle', status: 'active' }
           ]
         };
-        setExpenseTypes(defaultTypes[categoryId] || []);
+        const categoryIdStr = typeof categoryId === 'string' ? categoryId : (categoryId as any)?._id || String(categoryId);
+        setExpenseTypes(defaultTypes[categoryIdStr] || []);
       }
     } catch (error: any) {
       console.error('Error fetching expense types:', error);
@@ -811,7 +814,9 @@ const ExpensesPage = () => {
       amount: '',
       description: '',
       date: new Date().toISOString().split('T')[0],
-      receiptFile: null
+      receiptFile: null,
+      truckId: '',
+      trailerId: ''
     });
     setExpenseTypes([]);
     setActiveTab('list');

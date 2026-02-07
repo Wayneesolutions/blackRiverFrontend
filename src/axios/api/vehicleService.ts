@@ -47,6 +47,7 @@ export interface VehicleServiceData {
   notes?: string;
   serviceProvider?: string;
   invoiceNumber?: string;
+  amount?: number;
   estimatedCost?: number;
   estimatedTime?: string;
 }
