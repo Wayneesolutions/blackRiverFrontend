@@ -267,11 +267,12 @@ const EmployeesPage = () => {
   const roles = [
     'dispatcher', 'hr', 'reporter',
     'Fleet Maintenance Manager', 'Compliance Manager', 'Maintenance Crew (Mechanics)', 'safety officer',
+    'accountant',
     'contact', 'customer'
   ];
 
   // Roles that require login access (ID, username, password)
-  const rolesWithLoginAccess = ['dispatcher', 'hr', 'Fleet Maintenance Manager', 'Compliance Manager', 'safety officer'];
+  const rolesWithLoginAccess = ['dispatcher', 'hr', 'Fleet Maintenance Manager', 'Compliance Manager', 'safety officer', 'accountant'];
 
   // Role display mapping
   const getRoleDisplayName = (role: string) => {
@@ -281,6 +282,9 @@ const EmployeesPage = () => {
     }
     if (role === 'safety officer') {
       return 'Safety Officer';
+    }
+    if (role === 'accountant') {
+      return 'Accountant';
     }
     if (role === 'contact') {
       return 'Contact';

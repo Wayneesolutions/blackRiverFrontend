@@ -808,7 +808,7 @@ const DriverManagement = () => {
                   id: `existing-${cert._id}`,
                   expiryDate: cert.expiryDate ? new Date(cert.expiryDate).toISOString().split('T')[0] : '',
                   title: cert.certificateName || cert.title || '',
-                  description: cert.description || cert.certificateType || cert.subCategory || '',
+                  description: cert.description || '',
                   result: cert.notes || cert.result || 'pass', // Use notes field, not status (status is auto-calculated)
                   ignoreExpiration: cert.ignoreExpiration || false,
                   file: cert.fileName ? { name: cert.fileName, size: cert.fileSize || 0 } : null,
@@ -2471,7 +2471,7 @@ const DriverManagement = () => {
                   id: `existing-${cert._id}`,
                   expiryDate: cert.expiryDate ? new Date(cert.expiryDate).toISOString().split('T')[0] : '',
                   title: cert.certificateName || cert.title || '',
-                  description: cert.description || cert.certificateType || cert.subCategory || '',
+                  description: cert.description || '',
                   result: cert.status || cert.result || 'pass',
                   ignoreExpiration: false
                 }));

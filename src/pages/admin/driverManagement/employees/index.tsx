@@ -70,7 +70,8 @@ const roleBadges = [
   'SAFETY OFFICER',
   'REPORTER',
   'MAINTENANCE CREW (MECHANICS)',
-  'OPERATOR'
+  'OPERATOR',
+  'ACCOUNTANT'
 ];
 
 const EmployeesPage = () => {
@@ -314,7 +315,8 @@ const EmployeesPage = () => {
     'Compliance Manager',
     'Maintenance Crew (Mechanics)',
     'safety officer',
-    'operator'
+    'operator',
+    'accountant'
   ];
 
   // Fetch employees from API
@@ -429,7 +431,9 @@ const EmployeesPage = () => {
       'Compliance Manager': 'Compliance Manager',
       'safety officer': 'Safety Officer',
       'reporter': 'Reporter',
-      'Maintenance Crew (Mechanics)': 'Maintenance Crew (Mechanics)'
+      'Maintenance Crew (Mechanics)': 'Maintenance Crew (Mechanics)',
+      'operator': 'Operator',
+      'accountant': 'Accountant'
     };
     return roleMap[role.toLowerCase()] || role;
   };
