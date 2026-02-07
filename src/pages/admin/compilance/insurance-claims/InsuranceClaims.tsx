@@ -13,6 +13,7 @@ import {
   FaCheckCircle,
   FaTimesCircle,
   FaExclamationCircle,
+  FaExclamationTriangle,
   FaInfoCircle,
   FaSort,
   FaSortUp,
@@ -228,12 +229,15 @@ const InsuranceClaims: React.FC = () => {
   const fetchClaims = async () => {
     setLoading(true);
     try {
-      // TODO: Replace with actual API call
-      // const response = await getInsuranceClaims();
-      // if (response?.success) {
-      //   setClaims(response.data || []);
-      // }
-      setClaims([]);
+      const { getInsuranceClaims } = await import('../../../../axios/api/insuranceClaim');
+      const response = await getInsuranceClaims({
+        status: statusFilter !== 'all' ? statusFilter : undefined,
+        claimType: typeFilter !== 'all' ? typeFilter : undefined,
+        search: searchQuery || undefined
+      });
+      if (response?.success) {
+        setClaims(response.data || []);
+      }
     } catch (error) {
       console.error('Error fetching insurance claims:', error);
       addNotification('error', 'Failed to fetch insurance claims');
@@ -402,6 +406,7 @@ const InsuranceClaims: React.FC = () => {
     e.preventDefault();
     setLoading(true);
     try {
+      const { createInsuranceClaim, updateInsuranceClaim } = await import('../../../../axios/api/insuranceClaim');
       const claimData = {
         ...claimForm,
         amount: parseFloat(claimForm.amount) || 0,
@@ -410,28 +415,28 @@ const InsuranceClaims: React.FC = () => {
       };
 
       if (selectedClaim) {
-        // TODO: Replace with actual API call
-        // const response = await updateInsuranceClaim(selectedClaim._id, claimData);
-        // if (response?.success) {
-        //   addNotification('success', 'Insurance claim updated successfully');
-        //   fetchClaims();
-        //   setShowEditModal(false);
-        //   setSelectedClaim(null);
-        // }
-        addNotification('info', 'Update functionality will be implemented with API integration');
+        const response = await updateInsuranceClaim(selectedClaim._id, claimData);
+        if (response?.success) {
+          addNotification('success', 'Insurance claim updated successfully');
+          fetchClaims();
+          setShowEditModal(false);
+          setSelectedClaim(null);
+        } else {
+          addNotification('error', response?.message || 'Failed to update insurance claim');
+        }
       } else {
-        // TODO: Replace with actual API call
-        // const response = await createInsuranceClaim(claimData);
-        // if (response?.success) {
-        //   addNotification('success', 'Insurance claim created successfully');
-        //   fetchClaims();
-        //   setShowAddModal(false);
-        // }
-        addNotification('info', 'Create functionality will be implemented with API integration');
+        const response = await createInsuranceClaim(claimData);
+        if (response?.success) {
+          addNotification('success', 'Insurance claim created successfully');
+          fetchClaims();
+          setShowAddModal(false);
+        } else {
+          addNotification('error', response?.message || 'Failed to create insurance claim');
+        }
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error saving insurance claim:', error);
-      addNotification('error', 'Failed to save insurance claim');
+      addNotification('error', error?.message || 'Failed to save insurance claim');
     } finally {
       setLoading(false);
     }
@@ -441,18 +446,19 @@ const InsuranceClaims: React.FC = () => {
     if (!claimToDelete) return;
     setLoading(true);
     try {
-      // TODO: Replace with actual API call
-      // const response = await deleteInsuranceClaim(claimToDelete._id);
-      // if (response?.success) {
-      //   addNotification('success', 'Insurance claim deleted successfully');
-      //   fetchClaims();
-      //   setShowDeleteModal(false);
-      //   setClaimToDelete(null);
-      // }
-      addNotification('info', 'Delete functionality will be implemented with API integration');
-    } catch (error) {
+      const { deleteInsuranceClaim } = await import('../../../../axios/api/insuranceClaim');
+      const response = await deleteInsuranceClaim(claimToDelete._id);
+      if (response?.success) {
+        addNotification('success', 'Insurance claim deleted successfully');
+        fetchClaims();
+        setShowDeleteModal(false);
+        setClaimToDelete(null);
+      } else {
+        addNotification('error', response?.message || 'Failed to delete insurance claim');
+      }
+    } catch (error: any) {
       console.error('Error deleting insurance claim:', error);
-      addNotification('error', 'Failed to delete insurance claim');
+      addNotification('error', error?.message || 'Failed to delete insurance claim');
     } finally {
       setLoading(false);
     }
@@ -828,7 +834,7 @@ const InsuranceClaims: React.FC = () => {
 
       {/* Add/Edit Modal */}
       {(showAddModal || showEditModal) && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+        <div className="fixed inset-0 bg-gray-900/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-lg shadow-xl max-w-4xl w-full max-h-[90vh] overflow-y-auto">
             <div className="sticky top-0 bg-white border-b border-gray-200 px-6 py-4 flex items-center justify-between">
               <h2 className="text-xl font-bold text-gray-900">
@@ -1096,7 +1102,7 @@ const InsuranceClaims: React.FC = () => {
 
       {/* View Modal */}
       {showViewModal && selectedClaim && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+        <div className="fixed inset-0 bg-gray-900/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-lg shadow-xl max-w-4xl w-full max-h-[90vh] overflow-y-auto">
             <div className="sticky top-0 bg-white border-b border-gray-200 px-6 py-4 flex items-center justify-between">
               <h2 className="text-xl font-bold text-gray-900">Insurance Claim Details</h2>
@@ -1227,7 +1233,7 @@ const InsuranceClaims: React.FC = () => {
 
       {/* Delete Confirmation Modal */}
       {showDeleteModal && claimToDelete && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+        <div className="fixed inset-0 bg-gray-900/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-lg shadow-xl max-w-md w-full">
             <div className="p-6">
               <div className="flex items-center gap-4 mb-4">

@@ -1365,7 +1365,7 @@ const DriverPayrollManagement = () => {
         endDate: formData.endDate,
         tripIds: selectedTrips.map(trip => trip._id).filter(id => id),
         totalMiles: selectedTotals.totalMiles,
-        ratePerMile: driverPayrollSummary?.ratePerMile || driverPayrollSummary?.baseRate || selectedDriver?.details?.salaryPerMile || 0,
+        ratePerMile: parseFloat(((driverPayrollSummary?.ratePerMile || driverPayrollSummary?.baseRate || selectedDriver?.details?.salaryPerMile || 0).toFixed(2))),
         country: formData.country || 'USA',
         // Canada taxes
         federalIncomeTaxCA: parseFloat(formData.federalIncomeTaxCA || '0'),
@@ -2217,7 +2217,7 @@ const DriverPayrollManagement = () => {
                         {payroll.totalMiles?.toLocaleString() || 0} mi
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                        ${payroll.ratePerMile || 0}/mi
+                        ${(payroll.ratePerMile || 0).toFixed(2)}/mi
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-green-600">
                         ${payroll.baseSalary.toLocaleString()}
@@ -2407,7 +2407,7 @@ const DriverPayrollManagement = () => {
                             <div className="text-sm text-green-100">Total Miles</div>
                           </div>
                           <div className="text-center">
-                            <div className="text-3xl font-bold">${driverPayrollSummary.baseRate || driverPayrollSummary.ratePerMile || 0}</div>
+                            <div className="text-3xl font-bold">${(driverPayrollSummary.baseRate || driverPayrollSummary.ratePerMile || 0).toFixed(2)}</div>
                             <div className="text-sm text-green-100">Base Rate/mi</div>
                           </div>
                           {(driverPayrollSummary.snowRate && driverPayrollSummary.snowRate > 0) && (
@@ -2719,9 +2719,24 @@ const DriverPayrollManagement = () => {
                                     })()}
                                   </td>
                                   <td className="px-3 py-2 text-sm text-gray-600">
-                                    ${trip.baseRate || 0}/mi
-                                    {trip.weatherConditions?.snow && trip.snowRate ? ` + $${trip.snowRate} (snow)` : ''}
-                                    {trip.weatherConditions?.highTemperature && trip.highTempRate ? ` + $${trip.highTempRate} (high temp)` : ''}
+                                    <div className="flex items-center gap-2">
+                                      <span>${trip.baseRate || 0}/mi</span>
+                                      {trip.rateType && (
+                                        <span className={`px-2 py-0.5 text-xs font-medium rounded ${
+                                          trip.rateType === 'TEAM' 
+                                            ? 'bg-blue-100 text-blue-800' 
+                                            : 'bg-gray-100 text-gray-800'
+                                        }`}>
+                                          {trip.rateType}
+                                        </span>
+                                      )}
+                                    </div>
+                                    {trip.weatherConditions?.snow && trip.snowRate ? (
+                                      <div className="text-xs text-gray-500 mt-1">+ ${trip.snowRate} (snow)</div>
+                                    ) : null}
+                                    {trip.weatherConditions?.highTemperature && trip.highTempRate ? (
+                                      <div className="text-xs text-gray-500 mt-1">+ ${trip.highTempRate} (high temp)</div>
+                                    ) : null}
                                   </td>
                                   <td className="px-3 py-2 text-sm font-bold text-green-600">
                                     ${(() => {
@@ -3452,7 +3467,7 @@ const DriverPayrollManagement = () => {
                   </h5>
                   <div className="space-y-3">
                     <div className="flex justify-between items-center p-3 bg-white rounded-lg">
-                      <span className="text-sm font-medium text-gray-700">Trip Earnings ({selectedPayroll.totalMiles?.toLocaleString()} miles @ ${selectedPayroll.ratePerMile}/mi)</span>
+                      <span className="text-sm font-medium text-gray-700">Trip Earnings ({selectedPayroll.totalMiles?.toLocaleString()} miles @ ${(selectedPayroll.ratePerMile || 0).toFixed(2)}/mi)</span>
                       <span className="text-lg font-bold text-gray-900">${selectedPayroll.baseSalary.toLocaleString()}</span>
                     </div>
                     <div className="flex justify-between items-center p-3 bg-white rounded-lg">
