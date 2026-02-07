@@ -357,6 +357,9 @@ const DriverPayrollManagement = () => {
   const [driverAdditions, setDriverAdditions] = useState<any[]>([]);
   const [driverDeductions, setDriverDeductions] = useState<any[]>([]);
   const [loadingAdditionsDeductions, setLoadingAdditionsDeductions] = useState<boolean>(false);
+  // Track edited amounts for additions and deductions
+  const [editedAdditionAmounts, setEditedAdditionAmounts] = useState<Record<string, number>>({});
+  const [editedDeductionAmounts, setEditedDeductionAmounts] = useState<Record<string, number>>({});
 
   const [formData, setFormData] = useState<FormData>({
     userId: '',
@@ -533,6 +536,10 @@ const DriverPayrollManagement = () => {
       } else {
         setDriverDeductions([]);
       }
+      
+      // Reset edited amounts when fetching new driver data
+      setEditedAdditionAmounts({});
+      setEditedDeductionAmounts({});
     } catch (error: any) {
       console.error('Error fetching driver additions/deductions:', error);
       setDriverAdditions([]);
@@ -824,23 +831,28 @@ const DriverPayrollManagement = () => {
       const effectiveStartDate = addStartDate && addStartDate > startDateObj ? addStartDate : startDateObj;
       const effectiveEndDate = addEndDate && addEndDate < endDateObj ? addEndDate : endDateObj;
       
-      // Calculate amount based on recurrence
-      let amount = addition.amount || 0;
-      if (addition.recurrence === 'Weekly') {
-        const weeks = Math.ceil((effectiveEndDate.getTime() - effectiveStartDate.getTime()) / (7 * 24 * 60 * 60 * 1000));
-        amount = amount * Math.max(1, weeks);
-      } else if (addition.recurrence === 'Bi-weekly') {
-        const biWeeks = Math.ceil((effectiveEndDate.getTime() - effectiveStartDate.getTime()) / (14 * 24 * 60 * 60 * 1000));
-        amount = amount * Math.max(1, biWeeks);
-      } else if (addition.recurrence === 'Monthly') {
-        // For monthly, if the addition period overlaps with payroll period, include it
-        // Calculate based on the number of months in the overlap
-        const months = Math.ceil((effectiveEndDate.getTime() - effectiveStartDate.getTime()) / (30 * 24 * 60 * 60 * 1000));
-        amount = amount * Math.max(1, months);
+      // Calculate amount based on recurrence (use edited amount if available)
+      let calculatedAmount = editedAdditionAmounts[addition._id];
+      if (calculatedAmount === undefined) {
+        // Calculate from base amount and recurrence
+        let amount = addition.amount || 0;
+        if (addition.recurrence === 'Weekly') {
+          const weeks = Math.ceil((effectiveEndDate.getTime() - effectiveStartDate.getTime()) / (7 * 24 * 60 * 60 * 1000));
+          amount = amount * Math.max(1, weeks);
+        } else if (addition.recurrence === 'Bi-weekly') {
+          const biWeeks = Math.ceil((effectiveEndDate.getTime() - effectiveStartDate.getTime()) / (14 * 24 * 60 * 60 * 1000));
+          amount = amount * Math.max(1, biWeeks);
+        } else if (addition.recurrence === 'Monthly') {
+          // For monthly, if the addition period overlaps with payroll period, include it
+          // Calculate based on the number of months in the overlap
+          const months = Math.ceil((effectiveEndDate.getTime() - effectiveStartDate.getTime()) / (30 * 24 * 60 * 60 * 1000));
+          amount = amount * Math.max(1, months);
+        }
+        // One-time, Quarterly, Yearly: if period overlaps, use the full amount
+        calculatedAmount = amount;
       }
-      // One-time, Quarterly, Yearly: if period overlaps, use the full amount
       
-      totalAdditions += amount;
+      totalAdditions += calculatedAmount;
     }
 
     // Calculate applicable deductions
@@ -934,67 +946,73 @@ const DriverPayrollManagement = () => {
       const effectiveStartDate = dedStartDate && dedStartDate > startDateObj ? dedStartDate : startDateObj;
       const effectiveEndDate = dedEndDate && dedEndDate < endDateObj ? dedEndDate : endDateObj;
       
-      // Calculate amount based on recurrence
-      let amount = deduction.amount || 0;
-      if (deduction.recurrence === 'Weekly') {
-        const weeks = Math.ceil((effectiveEndDate.getTime() - effectiveStartDate.getTime()) / (7 * 24 * 60 * 60 * 1000));
-        amount = amount * Math.max(1, weeks);
-      } else if (deduction.recurrence === 'Bi-weekly') {
-        const biWeeks = Math.ceil((effectiveEndDate.getTime() - effectiveStartDate.getTime()) / (14 * 24 * 60 * 60 * 1000));
-        amount = amount * Math.max(1, biWeeks);
-      } else if (deduction.recurrence === 'Monthly') {
-        // For monthly deductions, count how many months in the payroll period the deduction applies to
-        const payrollStartMonth = startDateObj.getMonth();
-        const payrollStartYear = startDateObj.getFullYear();
-        const payrollEndMonth = endDateObj.getMonth();
-        const payrollEndYear = endDateObj.getFullYear();
-        const dedStartMonth = dedStartDate ? dedStartDate.getMonth() : 0;
-        const dedStartYear = dedStartDate ? dedStartDate.getFullYear() : payrollStartYear;
-        const dedEndMonth = dedEndDate ? dedEndDate.getMonth() : 11;
-        const dedEndYear = dedEndDate ? dedEndDate.getFullYear() : 9999;
-        
-        let monthsCount = 0;
-        for (let year = payrollStartYear; year <= payrollEndYear; year++) {
-          const startMonth = year === payrollStartYear ? payrollStartMonth : 0;
-          const endMonth = year === payrollEndYear ? payrollEndMonth : 11;
+      // Calculate amount based on recurrence (use edited amount if available)
+      let calculatedAmount = editedDeductionAmounts[deduction._id];
+      if (calculatedAmount === undefined) {
+        // Calculate from base amount and recurrence
+        let amount = deduction.amount || 0;
+        if (deduction.recurrence === 'Weekly') {
+          const weeks = Math.ceil((effectiveEndDate.getTime() - effectiveStartDate.getTime()) / (7 * 24 * 60 * 60 * 1000));
+          amount = amount * Math.max(1, weeks);
+        } else if (deduction.recurrence === 'Bi-weekly') {
+          const biWeeks = Math.ceil((effectiveEndDate.getTime() - effectiveStartDate.getTime()) / (14 * 24 * 60 * 60 * 1000));
+          amount = amount * Math.max(1, biWeeks);
+        } else if (deduction.recurrence === 'Monthly') {
+          // For monthly deductions, count how many months in the payroll period the deduction applies to
+          const payrollStartMonth = startDateObj.getMonth();
+          const payrollStartYear = startDateObj.getFullYear();
+          const payrollEndMonth = endDateObj.getMonth();
+          const payrollEndYear = endDateObj.getFullYear();
+          const dedStartMonth = dedStartDate ? dedStartDate.getMonth() : 0;
+          const dedStartYear = dedStartDate ? dedStartDate.getFullYear() : payrollStartYear;
+          const dedEndMonth = dedEndDate ? dedEndDate.getMonth() : 11;
+          const dedEndYear = dedEndDate ? dedEndDate.getFullYear() : 9999;
           
-          for (let month = startMonth; month <= endMonth; month++) {
-            // Check if this month is within deduction period
-            const monthInRange = 
-              (year > dedStartYear || (year === dedStartYear && month >= dedStartMonth)) &&
-              (year < dedEndYear || (year === dedEndYear && month <= dedEndMonth));
+          let monthsCount = 0;
+          for (let year = payrollStartYear; year <= payrollEndYear; year++) {
+            const startMonth = year === payrollStartYear ? payrollStartMonth : 0;
+            const endMonth = year === payrollEndYear ? payrollEndMonth : 11;
             
-            if (monthInRange) {
-              monthsCount++;
+            for (let month = startMonth; month <= endMonth; month++) {
+              // Check if this month is within deduction period
+              const monthInRange = 
+                (year > dedStartYear || (year === dedStartYear && month >= dedStartMonth)) &&
+                (year < dedEndYear || (year === dedEndYear && month <= dedEndMonth));
+              
+              if (monthInRange) {
+                monthsCount++;
+              }
             }
           }
+          
+          amount = amount * Math.max(1, monthsCount);
+          console.log('💰 Monthly deduction calculated:', {
+            name: deduction.name,
+            baseAmount: deduction.amount,
+            recurrence: deduction.recurrence,
+            startDate: dedStartDate?.toISOString(),
+            endDate: dedEndDate?.toISOString(),
+            payrollStart: startDateObj.toISOString(),
+            payrollEnd: endDateObj.toISOString(),
+            monthsCount,
+            calculatedAmount: amount
+          });
         }
-        
-        amount = amount * Math.max(1, monthsCount);
-        console.log('💰 Monthly deduction calculated:', {
-          name: deduction.name,
-          baseAmount: deduction.amount,
-          recurrence: deduction.recurrence,
-          startDate: dedStartDate?.toISOString(),
-          endDate: dedEndDate?.toISOString(),
-          payrollStart: startDateObj.toISOString(),
-          payrollEnd: endDateObj.toISOString(),
-          monthsCount,
-          calculatedAmount: amount
-        });
+        // One-time, Quarterly, Yearly: if period overlaps, use the full amount
+        calculatedAmount = amount;
       }
-      // One-time, Quarterly, Yearly: if period overlaps, use the full amount
       
       console.log('✅ Deduction included:', {
         name: deduction.name,
         amount: deduction.amount,
         recurrence: deduction.recurrence,
-        calculatedAmount: amount,
+        calculatedAmount: calculatedAmount,
         startDate: dedStartDate?.toISOString(),
-        endDate: dedEndDate?.toISOString()
+        endDate: dedEndDate?.toISOString(),
+        isEdited: editedDeductionAmounts[deduction._id] !== undefined
       });
       
-      totalDeductions += amount;
+      totalDeductions += calculatedAmount;
     }
 
     console.log('📊 Final totals:', {
@@ -1083,8 +1101,13 @@ const DriverPayrollManagement = () => {
       updated[index] = { ...updated[index], [field]: value };
       // Recalculate totalSalary when relevant fields change
       if (['baseSalary', 'bonus', 'deductions', 'country', 'federalIncomeTaxCA', 'provincialIncomeTaxCA', 'cpp', 'ei', 'provincialHealthTaxCA', 'federalIncomeTaxUS', 'stateIncomeTaxUS', 'socialSecurityTax', 'medicareTax', 'stateDisabilityInsurance', 'localTax'].includes(field)) {
-        const grossSalary = parseFloat(updated[index].baseSalary || 0) + parseFloat(updated[index].bonus || 0);
-        const deductions = parseFloat(updated[index].deductions || 0);
+        // Gross Earnings = Trip Earnings + Bonus + Additions (bonus and additions are separate)
+        const baseSalary = parseFloat(updated[index].baseSalary || 0);
+        const bonus = parseFloat(updated[index].bonus || 0);
+        const totalAdditions = parseFloat(updated[index].totalAdditions || 0);
+        const grossSalary = baseSalary + bonus + totalAdditions;
+        // Deductions come from driver profile (updated[index].deductions or updated[index].totalDeductions)
+        const deductions = parseFloat(updated[index].deductions || updated[index].totalDeductions || 0);
         let totalTaxes = 0;
         if (updated[index].country === 'Canada') {
           totalTaxes = parseFloat(updated[index].federalIncomeTaxCA || 0) +
@@ -1100,8 +1123,106 @@ const DriverPayrollManagement = () => {
             parseFloat(updated[index].stateDisabilityInsurance || 0) +
             parseFloat(updated[index].localTax || 0);
         }
+        // Net Pay = Gross Earnings - Deductions - Taxes
         updated[index].totalSalary = Math.round((grossSalary - deductions - totalTaxes) * 100) / 100;
       }
+      return updated;
+    });
+  };
+
+  const updateBulkSuggestionAddition = (index: number, additionId: string, newAmount: number) => {
+    setBulkPayrollSuggestions(prev => {
+      const updated = [...prev];
+      const suggestion = updated[index];
+      
+      // Update the addition's calculatedAmount
+      if (suggestion.additions && Array.isArray(suggestion.additions)) {
+        const additionIndex = suggestion.additions.findIndex((a: any) => a._id === additionId);
+        if (additionIndex !== -1) {
+          suggestion.additions[additionIndex].calculatedAmount = parseFloat(newAmount.toString()) || 0;
+          
+          // Recalculate totalAdditions
+          const totalAdditions = suggestion.additions.reduce((sum: number, a: any) => {
+            return sum + (parseFloat(a.calculatedAmount || a.amount || 0));
+          }, 0);
+          
+          suggestion.totalAdditions = totalAdditions;
+          
+          // Recalculate totalSalary
+          const baseSalary = parseFloat(suggestion.baseSalary || 0);
+          const bonus = parseFloat(suggestion.bonus || 0);
+          const grossSalary = baseSalary + bonus + totalAdditions;
+          const deductions = parseFloat(suggestion.deductions || suggestion.totalDeductions || 0);
+          
+          let totalTaxes = 0;
+          if (suggestion.country === 'Canada') {
+            totalTaxes = parseFloat(suggestion.federalIncomeTaxCA || 0) +
+              parseFloat(suggestion.provincialIncomeTaxCA || 0) +
+              parseFloat(suggestion.cpp || 0) +
+              parseFloat(suggestion.ei || 0) +
+              parseFloat(suggestion.provincialHealthTaxCA || 0);
+          } else {
+            totalTaxes = parseFloat(suggestion.federalIncomeTaxUS || 0) +
+              parseFloat(suggestion.stateIncomeTaxUS || 0) +
+              parseFloat(suggestion.socialSecurityTax || 0) +
+              parseFloat(suggestion.medicareTax || 0) +
+              parseFloat(suggestion.stateDisabilityInsurance || 0) +
+              parseFloat(suggestion.localTax || 0);
+          }
+          
+          suggestion.totalSalary = Math.round((grossSalary - deductions - totalTaxes) * 100) / 100;
+        }
+      }
+      
+      return updated;
+    });
+  };
+
+  const updateBulkSuggestionDeduction = (index: number, deductionId: string, newAmount: number) => {
+    setBulkPayrollSuggestions(prev => {
+      const updated = [...prev];
+      const suggestion = updated[index];
+      
+      // Update the deduction's calculatedAmount
+      if (suggestion.deductionsDetails && Array.isArray(suggestion.deductionsDetails)) {
+        const deductionIndex = suggestion.deductionsDetails.findIndex((d: any) => d._id === deductionId);
+        if (deductionIndex !== -1) {
+          suggestion.deductionsDetails[deductionIndex].calculatedAmount = parseFloat(newAmount.toString()) || 0;
+          
+          // Recalculate totalDeductions
+          const totalDeductions = suggestion.deductionsDetails.reduce((sum: number, d: any) => {
+            return sum + (parseFloat(d.calculatedAmount || d.amount || 0));
+          }, 0);
+          
+          suggestion.totalDeductions = totalDeductions;
+          suggestion.deductions = totalDeductions; // Also update deductions field for compatibility
+          
+          // Recalculate totalSalary
+          const baseSalary = parseFloat(suggestion.baseSalary || 0);
+          const bonus = parseFloat(suggestion.bonus || 0);
+          const totalAdditions = parseFloat(suggestion.totalAdditions || 0);
+          const grossSalary = baseSalary + bonus + totalAdditions;
+          
+          let totalTaxes = 0;
+          if (suggestion.country === 'Canada') {
+            totalTaxes = parseFloat(suggestion.federalIncomeTaxCA || 0) +
+              parseFloat(suggestion.provincialIncomeTaxCA || 0) +
+              parseFloat(suggestion.cpp || 0) +
+              parseFloat(suggestion.ei || 0) +
+              parseFloat(suggestion.provincialHealthTaxCA || 0);
+          } else {
+            totalTaxes = parseFloat(suggestion.federalIncomeTaxUS || 0) +
+              parseFloat(suggestion.stateIncomeTaxUS || 0) +
+              parseFloat(suggestion.socialSecurityTax || 0) +
+              parseFloat(suggestion.medicareTax || 0) +
+              parseFloat(suggestion.stateDisabilityInsurance || 0) +
+              parseFloat(suggestion.localTax || 0);
+          }
+          
+          suggestion.totalSalary = Math.round((grossSalary - totalDeductions - totalTaxes) * 100) / 100;
+        }
+      }
+      
       return updated;
     });
   };
@@ -1222,68 +1343,8 @@ const DriverPayrollManagement = () => {
         });
       }
 
-      // Calculate additions and deductions based on date range
-      const startDateObj = new Date(formData.startDate);
-      const endDateObj = new Date(formData.endDate);
-      endDateObj.setHours(23, 59, 59, 999);
-
-      // Calculate applicable additions
-      let totalAdditions = 0;
-      for (const addition of driverAdditions) {
-        if (!addition.isActive) continue;
-        
-        const addStartDate = addition.startDate ? new Date(addition.startDate) : null;
-        const addEndDate = addition.endDate ? new Date(addition.endDate) : null;
-        
-        // Check if addition is active during the payroll period
-        if (addStartDate && addStartDate > endDateObj) continue;
-        if (addEndDate && addEndDate < startDateObj) continue;
-        
-        // Calculate amount based on recurrence
-        let amount = addition.amount || 0;
-        if (addition.recurrence === 'Weekly') {
-          const weeks = Math.ceil((endDateObj.getTime() - Math.max(startDateObj.getTime(), (addStartDate || startDateObj).getTime())) / (7 * 24 * 60 * 60 * 1000));
-          amount = amount * Math.max(1, weeks);
-        } else if (addition.recurrence === 'Bi-weekly') {
-          const biWeeks = Math.ceil((endDateObj.getTime() - Math.max(startDateObj.getTime(), (addStartDate || startDateObj).getTime())) / (14 * 24 * 60 * 60 * 1000));
-          amount = amount * Math.max(1, biWeeks);
-        } else if (addition.recurrence === 'Monthly') {
-          const months = Math.ceil((endDateObj.getTime() - Math.max(startDateObj.getTime(), (addStartDate || startDateObj).getTime())) / (30 * 24 * 60 * 60 * 1000));
-          amount = amount * Math.max(1, months);
-        }
-        // One-time, Quarterly, Yearly are just the amount itself
-        
-        totalAdditions += amount;
-      }
-
-      // Calculate applicable deductions
-      let totalDeductions = 0;
-      for (const deduction of driverDeductions) {
-        if (!deduction.isActive) continue;
-        
-        const dedStartDate = deduction.startDate ? new Date(deduction.startDate) : null;
-        const dedEndDate = deduction.endDate ? new Date(deduction.endDate) : null;
-        
-        // Check if deduction is active during the payroll period
-        if (dedStartDate && dedStartDate > endDateObj) continue;
-        if (dedEndDate && dedEndDate < startDateObj) continue;
-        
-        // Calculate amount based on recurrence
-        let amount = deduction.amount || 0;
-        if (deduction.recurrence === 'Weekly') {
-          const weeks = Math.ceil((endDateObj.getTime() - Math.max(startDateObj.getTime(), (dedStartDate || startDateObj).getTime())) / (7 * 24 * 60 * 60 * 1000));
-          amount = amount * Math.max(1, weeks);
-        } else if (deduction.recurrence === 'Bi-weekly') {
-          const biWeeks = Math.ceil((endDateObj.getTime() - Math.max(startDateObj.getTime(), (dedStartDate || startDateObj).getTime())) / (14 * 24 * 60 * 60 * 1000));
-          amount = amount * Math.max(1, biWeeks);
-        } else if (deduction.recurrence === 'Monthly') {
-          const months = Math.ceil((endDateObj.getTime() - Math.max(startDateObj.getTime(), (dedStartDate || startDateObj).getTime())) / (30 * 24 * 60 * 60 * 1000));
-          amount = amount * Math.max(1, months);
-        }
-        // One-time, Quarterly, Yearly are just the amount itself
-        
-        totalDeductions += amount;
-      }
+      // Calculate additions and deductions using the helper function (respects edited amounts)
+      const { totalAdditions, totalDeductions } = calculateAdditionsDeductions();
 
       // Add calculated additions to bonus (or baseSalary)
       const calculatedBonus = parseFloat(formData.bonus) || 0;
@@ -1352,14 +1413,18 @@ const DriverPayrollManagement = () => {
     setLoading(true);
 
     try {
-      // Calculate deductions from driver deductions (same as create)
-      const { totalDeductions: calculatedDeductions } = calculateAdditionsDeductions();
+      // Calculate additions and deductions from driver profile (same as create, respects edited amounts)
+      const { totalAdditions, totalDeductions: calculatedDeductions } = calculateAdditionsDeductions();
+      
+      // Add calculated additions to bonus (same as create)
+      const calculatedBonus = parseFloat(formData.bonus) || 0;
+      const finalBonus = calculatedBonus + totalAdditions;
       
       const payload: any = {
         userId: formData.userId,
         baseSalary: selectedPayroll.baseSalary, // Keep existing baseSalary
-        bonus: parseFloat(formData.bonus) || 0,
-        deductions: calculatedDeductions, // Use calculated deductions from backend
+        bonus: finalBonus, // Bonus + edited additions
+        deductions: calculatedDeductions, // Use calculated deductions from backend (respects edited amounts)
         payDate: formData.payDate,
         startDate: formData.startDate,
         endDate: formData.endDate,
@@ -2380,25 +2445,71 @@ const DriverPayrollManagement = () => {
                                 Additions ({driverAdditions.length})
                               </h6>
                               <div className="space-y-2">
-                                {driverAdditions.map((addition) => (
-                                  <div key={addition._id} className="bg-green-50 p-3 rounded-lg border border-green-200">
-                                    <div className="flex justify-between items-start">
-                                      <div>
-                                        <p className="text-sm font-medium text-gray-900">{addition.name || addition.description || 'Addition'}</p>
-                                        <p className="text-xs text-gray-600 mt-1">
-                                          {addition.recurrence} • ${addition.amount?.toFixed(2) || '0.00'}
-                                          {addition.startDate && (
-                                            <span> • From {new Date(addition.startDate).toLocaleDateString()}</span>
-                                          )}
-                                          {addition.endDate && (
-                                            <span> • Until {new Date(addition.endDate).toLocaleDateString()}</span>
-                                          )}
-                                        </p>
+                                {driverAdditions.map((addition) => {
+                                  // Calculate the amount to display (edited or calculated)
+                                  const calculatedAmount = editedAdditionAmounts[addition._id] !== undefined
+                                    ? editedAdditionAmounts[addition._id]
+                                    : (() => {
+                                        // Calculate from base amount and recurrence (same logic as calculateAdditionsDeductions)
+                                        if (!formData.startDate || !formData.endDate) return addition.amount || 0;
+                                        const startDateObj = new Date(formData.startDate);
+                                        const endDateObj = new Date(formData.endDate);
+                                        endDateObj.setHours(23, 59, 59, 999);
+                                        const addStartDate = addition.startDate ? new Date(addition.startDate) : null;
+                                        const addEndDate = addition.endDate ? new Date(addition.endDate) : null;
+                                        const effectiveStartDate = addStartDate && addStartDate > startDateObj ? addStartDate : startDateObj;
+                                        const effectiveEndDate = addEndDate && addEndDate < endDateObj ? addEndDate : endDateObj;
+                                        let amount = addition.amount || 0;
+                                        if (addition.recurrence === 'Weekly') {
+                                          const weeks = Math.ceil((effectiveEndDate.getTime() - effectiveStartDate.getTime()) / (7 * 24 * 60 * 60 * 1000));
+                                          amount = amount * Math.max(1, weeks);
+                                        } else if (addition.recurrence === 'Bi-weekly') {
+                                          const biWeeks = Math.ceil((effectiveEndDate.getTime() - effectiveStartDate.getTime()) / (14 * 24 * 60 * 60 * 1000));
+                                          amount = amount * Math.max(1, biWeeks);
+                                        } else if (addition.recurrence === 'Monthly') {
+                                          const months = Math.ceil((effectiveEndDate.getTime() - effectiveStartDate.getTime()) / (30 * 24 * 60 * 60 * 1000));
+                                          amount = amount * Math.max(1, months);
+                                        }
+                                        return amount;
+                                      })();
+                                  
+                                  return (
+                                    <div key={addition._id} className="bg-green-50 p-3 rounded-lg border border-green-200">
+                                      <div className="flex justify-between items-start gap-4">
+                                        <div className="flex-1">
+                                          <p className="text-sm font-medium text-gray-900">{addition.name || addition.description || 'Addition'}</p>
+                                          <p className="text-xs text-gray-600 mt-1">
+                                            {addition.recurrence} • Base: ${addition.amount?.toFixed(2) || '0.00'}
+                                            {addition.startDate && (
+                                              <span> • From {new Date(addition.startDate).toLocaleDateString()}</span>
+                                            )}
+                                            {addition.endDate && (
+                                              <span> • Until {new Date(addition.endDate).toLocaleDateString()}</span>
+                                            )}
+                                          </p>
+                                        </div>
+                                        <div className="flex items-center gap-2">
+                                          <span className="text-xs text-gray-500">Amount:</span>
+                                          <input
+                                            type="number"
+                                            value={calculatedAmount}
+                                            onChange={(e) => {
+                                              const newAmount = parseFloat(e.target.value) || 0;
+                                              setEditedAdditionAmounts(prev => ({
+                                                ...prev,
+                                                [addition._id]: newAmount
+                                              }));
+                                            }}
+                                            step="0.01"
+                                            min="0"
+                                            className="w-24 px-2 py-1 text-sm border border-green-300 rounded focus:outline-none focus:ring-1 focus:ring-green-500 bg-white"
+                                          />
+                                          <span className="text-sm font-semibold text-green-700">+${calculatedAmount.toFixed(2)}</span>
+                                        </div>
                                       </div>
-                                      <span className="text-sm font-semibold text-green-700">+${addition.amount?.toFixed(2) || '0.00'}</span>
                                     </div>
-                                  </div>
-                                ))}
+                                  );
+                                })}
                               </div>
                             </div>
                           )}
@@ -2409,25 +2520,72 @@ const DriverPayrollManagement = () => {
                                 Deductions ({driverDeductions.length})
                               </h6>
                               <div className="space-y-2">
-                                {driverDeductions.map((deduction) => (
-                                  <div key={deduction._id} className="bg-red-50 p-3 rounded-lg border border-red-200">
-                                    <div className="flex justify-between items-start">
-                                      <div>
-                                        <p className="text-sm font-medium text-gray-900">{deduction.name || deduction.description || 'Deduction'}</p>
-                                        <p className="text-xs text-gray-600 mt-1">
-                                          {deduction.recurrence} • ${deduction.amount?.toFixed(2) || '0.00'}
-                                          {deduction.startDate && (
-                                            <span> • From {new Date(deduction.startDate).toLocaleDateString()}</span>
-                                          )}
-                                          {deduction.endDate && (
-                                            <span> • Until {new Date(deduction.endDate).toLocaleDateString()}</span>
-                                          )}
-                                        </p>
+                                {driverDeductions.map((deduction) => {
+                                  // Calculate the amount to display (edited or calculated)
+                                  const calculatedAmount = editedDeductionAmounts[deduction._id] !== undefined
+                                    ? editedDeductionAmounts[deduction._id]
+                                    : (() => {
+                                        // Calculate from base amount and recurrence (same logic as calculateAdditionsDeductions)
+                                        if (!formData.startDate || !formData.endDate) return deduction.amount || 0;
+                                        const startDateObj = new Date(formData.startDate);
+                                        const endDateObj = new Date(formData.endDate);
+                                        endDateObj.setHours(23, 59, 59, 999);
+                                        const dedStartDate = deduction.startDate ? new Date(deduction.startDate) : null;
+                                        const dedEndDate = deduction.endDate ? new Date(deduction.endDate) : null;
+                                        const effectiveStartDate = dedStartDate && dedStartDate > startDateObj ? dedStartDate : startDateObj;
+                                        const effectiveEndDate = dedEndDate && dedEndDate < endDateObj ? dedEndDate : endDateObj;
+                                        let amount = deduction.amount || 0;
+                                        if (deduction.recurrence === 'Weekly') {
+                                          const weeks = Math.ceil((effectiveEndDate.getTime() - effectiveStartDate.getTime()) / (7 * 24 * 60 * 60 * 1000));
+                                          amount = amount * Math.max(1, weeks);
+                                        } else if (deduction.recurrence === 'Bi-weekly') {
+                                          const biWeeks = Math.ceil((effectiveEndDate.getTime() - effectiveStartDate.getTime()) / (14 * 24 * 60 * 60 * 1000));
+                                          amount = amount * Math.max(1, biWeeks);
+                                        } else if (deduction.recurrence === 'Monthly') {
+                                          // Simplified monthly calculation for display
+                                          const months = Math.ceil((effectiveEndDate.getTime() - effectiveStartDate.getTime()) / (30 * 24 * 60 * 60 * 1000));
+                                          amount = amount * Math.max(1, months);
+                                        }
+                                        return amount;
+                                      })();
+                                  
+                                  return (
+                                    <div key={deduction._id} className="bg-red-50 p-3 rounded-lg border border-red-200">
+                                      <div className="flex justify-between items-start gap-4">
+                                        <div className="flex-1">
+                                          <p className="text-sm font-medium text-gray-900">{deduction.name || deduction.description || 'Deduction'}</p>
+                                          <p className="text-xs text-gray-600 mt-1">
+                                            {deduction.recurrence} • Base: ${deduction.amount?.toFixed(2) || '0.00'}
+                                            {deduction.startDate && (
+                                              <span> • From {new Date(deduction.startDate).toLocaleDateString()}</span>
+                                            )}
+                                            {deduction.endDate && (
+                                              <span> • Until {new Date(deduction.endDate).toLocaleDateString()}</span>
+                                            )}
+                                          </p>
+                                        </div>
+                                        <div className="flex items-center gap-2">
+                                          <span className="text-xs text-gray-500">Amount:</span>
+                                          <input
+                                            type="number"
+                                            value={calculatedAmount}
+                                            onChange={(e) => {
+                                              const newAmount = parseFloat(e.target.value) || 0;
+                                              setEditedDeductionAmounts(prev => ({
+                                                ...prev,
+                                                [deduction._id]: newAmount
+                                              }));
+                                            }}
+                                            step="0.01"
+                                            min="0"
+                                            className="w-24 px-2 py-1 text-sm border border-red-300 rounded focus:outline-none focus:ring-1 focus:ring-red-500 bg-white"
+                                          />
+                                          <span className="text-sm font-semibold text-red-700">-${calculatedAmount.toFixed(2)}</span>
+                                        </div>
                                       </div>
-                                      <span className="text-sm font-semibold text-red-700">-${deduction.amount?.toFixed(2) || '0.00'}</span>
                                     </div>
-                                  </div>
-                                ))}
+                                  );
+                                })}
                               </div>
                             </div>
                           )}
@@ -4291,6 +4449,194 @@ const DriverPayrollManagement = () => {
                         </div>
                       </div>
                     )}
+
+                    {/* Display Additions and Deductions (same as manual payroll) */}
+                    {(suggestion.additions && suggestion.additions.length > 0) || (suggestion.deductionsDetails && suggestion.deductionsDetails.length > 0) ? (
+                      <div className="bg-white border border-gray-200 rounded-lg overflow-hidden mt-4">
+                        <div className="bg-gray-50 px-4 py-3 border-b border-gray-200">
+                          <h5 className="text-sm font-medium text-gray-700">Driver Additions & Deductions</h5>
+                          <p className="text-xs text-gray-500 mt-1">These are automatically included in the payroll calculation</p>
+                        </div>
+                        <div className="p-4 space-y-4">
+                          {suggestion.additions && suggestion.additions.length > 0 && (
+                            <div>
+                              <h6 className="text-sm font-semibold text-green-700 mb-2 flex items-center gap-2">
+                                <TrendingUp size={16} />
+                                Additions ({suggestion.additions.length})
+                              </h6>
+                              <div className="space-y-2">
+                                {suggestion.additions.map((addition: any, addIndex: number) => (
+                                  <div key={addition._id} className="bg-green-50 p-3 rounded-lg border border-green-200">
+                                    <div className="flex justify-between items-start gap-4">
+                                      <div className="flex-1">
+                                        <p className="text-sm font-medium text-gray-900">{addition.name || addition.description || 'Addition'}</p>
+                                        <p className="text-xs text-gray-600 mt-1">
+                                          {addition.recurrence} • Base: ${addition.amount?.toFixed(2) || '0.00'}
+                                          {addition.startDate && (
+                                            <span> • From {new Date(addition.startDate).toLocaleDateString()}</span>
+                                          )}
+                                          {addition.endDate && (
+                                            <span> • Until {new Date(addition.endDate).toLocaleDateString()}</span>
+                                          )}
+                                        </p>
+                                      </div>
+                                      <div className="flex items-center gap-2">
+                                        <span className="text-xs text-gray-500">Amount:</span>
+                                        <input
+                                          type="number"
+                                          value={addition.calculatedAmount || addition.amount || 0}
+                                          onChange={(e) => updateBulkSuggestionAddition(index, addition._id, e.target.value)}
+                                          step="0.01"
+                                          min="0"
+                                          className="w-24 px-2 py-1 text-sm border border-green-300 rounded focus:outline-none focus:ring-1 focus:ring-green-500 bg-white"
+                                        />
+                                        <span className="text-sm font-semibold text-green-700">+${(addition.calculatedAmount || addition.amount || 0).toFixed(2)}</span>
+                                      </div>
+                                    </div>
+                                  </div>
+                                ))}
+                              </div>
+                            </div>
+                          )}
+                          {suggestion.deductionsDetails && suggestion.deductionsDetails.length > 0 && (
+                            <div>
+                              <h6 className="text-sm font-semibold text-red-700 mb-2 flex items-center gap-2">
+                                <TrendingUp size={16} className="rotate-180" />
+                                Deductions ({suggestion.deductionsDetails.length})
+                              </h6>
+                              <div className="space-y-2">
+                                {suggestion.deductionsDetails.map((deduction: any, dedIndex: number) => (
+                                  <div key={deduction._id} className="bg-red-50 p-3 rounded-lg border border-red-200">
+                                    <div className="flex justify-between items-start gap-4">
+                                      <div className="flex-1">
+                                        <p className="text-sm font-medium text-gray-900">{deduction.name || deduction.description || 'Deduction'}</p>
+                                        <p className="text-xs text-gray-600 mt-1">
+                                          {deduction.recurrence} • Base: ${deduction.amount?.toFixed(2) || '0.00'}
+                                          {deduction.startDate && (
+                                            <span> • From {new Date(deduction.startDate).toLocaleDateString()}</span>
+                                          )}
+                                          {deduction.endDate && (
+                                            <span> • Until {new Date(deduction.endDate).toLocaleDateString()}</span>
+                                          )}
+                                        </p>
+                                      </div>
+                                      <div className="flex items-center gap-2">
+                                        <span className="text-xs text-gray-500">Amount:</span>
+                                        <input
+                                          type="number"
+                                          value={deduction.calculatedAmount || deduction.amount || 0}
+                                          onChange={(e) => updateBulkSuggestionDeduction(index, deduction._id, e.target.value)}
+                                          step="0.01"
+                                          min="0"
+                                          className="w-24 px-2 py-1 text-sm border border-red-300 rounded focus:outline-none focus:ring-1 focus:ring-red-500 bg-white"
+                                        />
+                                        <span className="text-sm font-semibold text-red-700">-${(deduction.calculatedAmount || deduction.amount || 0).toFixed(2)}</span>
+                                      </div>
+                                    </div>
+                                  </div>
+                                ))}
+                              </div>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    ) : null}
+
+                    {/* Payroll Summary (same as manual payroll) */}
+                    {suggestion.totalTrips > 0 && (() => {
+                      const tripsEarnings = suggestion.baseSalary || 0;
+                      const manualBonus = parseFloat(suggestion.bonus || '0'); // Bonus is separate from additions
+                      // Recalculate totals from edited additions/deductions
+                      const totalAdditions = suggestion.additions && Array.isArray(suggestion.additions)
+                        ? suggestion.additions.reduce((sum: number, a: any) => sum + (parseFloat(a.calculatedAmount || a.amount || 0)), 0)
+                        : (suggestion.totalAdditions || 0);
+                      const totalDeductions = suggestion.deductionsDetails && Array.isArray(suggestion.deductionsDetails)
+                        ? suggestion.deductionsDetails.reduce((sum: number, d: any) => sum + (parseFloat(d.calculatedAmount || d.amount || 0)), 0)
+                        : (suggestion.totalDeductions || suggestion.deductions || 0);
+                      
+                      // Gross Earnings = Trip Earnings + Manual Bonus + Calculated Additions
+                      const grossEarnings = tripsEarnings + manualBonus + totalAdditions;
+                      
+                      // Calculate taxes
+                      let totalTax = 0;
+                      if (suggestion.country === 'Canada') {
+                        totalTax =
+                          parseFloat(suggestion.federalIncomeTaxCA || '0') +
+                          parseFloat(suggestion.provincialIncomeTaxCA || '0') +
+                          parseFloat(suggestion.cpp || '0') +
+                          parseFloat(suggestion.ei || '0') +
+                          parseFloat(suggestion.provincialHealthTaxCA || '0');
+                      } else {
+                        totalTax =
+                          parseFloat(suggestion.federalIncomeTaxUS || '0') +
+                          parseFloat(suggestion.stateIncomeTaxUS || '0') +
+                          parseFloat(suggestion.socialSecurityTax || '0') +
+                          parseFloat(suggestion.medicareTax || '0') +
+                          parseFloat(suggestion.stateDisabilityInsurance || '0') +
+                          parseFloat(suggestion.localTax || '0');
+                      }
+                      
+                      // Net Pay = Gross Earnings - Total Deductions - Taxes
+                      const netPay = grossEarnings - totalDeductions - totalTax;
+                      
+                      return (
+                        <div className="bg-gradient-to-r from-green-600 to-green-700 text-white p-6 rounded-lg mt-4">
+                          <div className="space-y-2">
+                            <div className="flex justify-between items-center">
+                              <p className="text-sm text-green-100">Gross Earnings</p>
+                              <p className="text-lg font-semibold">
+                                ${grossEarnings.toFixed(2)}
+                              </p>
+                            </div>
+                            {(totalAdditions > 0 || manualBonus > 0) && (
+                              <div className="pl-4 text-xs text-green-200">
+                                {tripsEarnings > 0 && (
+                                  <div className="flex justify-between">
+                                    <span>Trips Earnings:</span>
+                                    <span>${tripsEarnings.toFixed(2)}</span>
+                                  </div>
+                                )}
+                                {manualBonus > 0 && (
+                                  <div className="flex justify-between">
+                                    <span>Manual Bonus:</span>
+                                    <span>+${manualBonus.toFixed(2)}</span>
+                                  </div>
+                                )}
+                                {totalAdditions > 0 && (
+                                  <div className="flex justify-between">
+                                    <span>Additions ({suggestion.additions?.length || 0}):</span>
+                                    <span>+${totalAdditions.toFixed(2)}</span>
+                                  </div>
+                                )}
+                              </div>
+                            )}
+                            <div className="flex justify-between items-center text-sm">
+                              <p className="text-green-100">Deductions</p>
+                              <p className="text-red-200">-${totalDeductions.toFixed(2)}</p>
+                            </div>
+                            {totalDeductions > 0 && (
+                              <div className="pl-4 text-xs text-red-200">
+                                <div className="flex justify-between">
+                                  <span>Deductions ({suggestion.deductionsDetails?.length || 0}):</span>
+                                  <span>-${totalDeductions.toFixed(2)}</span>
+                                </div>
+                              </div>
+                            )}
+                            <div className="flex justify-between items-center text-sm">
+                              <p className="text-green-100">Taxes</p>
+                              <p className="text-red-200">-${totalTax.toFixed(2)}</p>
+                            </div>
+                            <div className="flex justify-between items-center pt-2 border-t border-green-500">
+                              <p className="text-sm font-medium text-green-100">Net Pay</p>
+                              <p className="text-xl font-bold">${netPay.toFixed(2)}</p>
+                            </div>
+                            <div className="text-xs text-green-200 mt-2">
+                              Based on {suggestion.totalTrips || 0} trips {suggestion.totalMiles ? `${suggestion.totalMiles.toFixed(2)} miles` : ''}
+                            </div>
+                          </div>
+                        </div>
+                      );
+                    })()}
                   </div>
                 ))}
               </div>
