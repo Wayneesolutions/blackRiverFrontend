@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { Plus, Search, DollarSign, Users, Calendar, TrendingUp, X, AlertCircle, CheckCircle, Edit2, Trash2, Eye, MapPin, Package, Truck, FileText, Download } from 'lucide-react';
 import { createPayroll, listPayrolls, updatePayroll, deletePayroll, getDriverCompletedOrders, generateAIDriverPayroll, bulkAnalyzeAIDriverPayrolls, bulkCreateDriverPayrolls, getPaystubByPayrollId } from '../../../../axios/api/account.payroll';
+import { getDeductionAdditions } from '../../../../axios/api/account.settlement';
 import * as driverApi from '../../../../axios/api/driver';
 import jsPDF from 'jspdf';
 
@@ -353,6 +354,9 @@ const DriverPayrollManagement = () => {
     performanceNotes: string;
     reasoning: string;
   } | null>(null);
+  const [driverAdditions, setDriverAdditions] = useState<any[]>([]);
+  const [driverDeductions, setDriverDeductions] = useState<any[]>([]);
+  const [loadingAdditionsDeductions, setLoadingAdditionsDeductions] = useState<boolean>(false);
 
   const [formData, setFormData] = useState<FormData>({
     userId: '',
@@ -510,6 +514,34 @@ const DriverPayrollManagement = () => {
     }
   };
 
+  const fetchDriverAdditionsDeductions = async (driverId: string) => {
+    setLoadingAdditionsDeductions(true);
+    try {
+      const [additionsRes, deductionsRes] = await Promise.all([
+        getDeductionAdditions({ assignedTo: driverId, type: 'Addition', isActive: true }),
+        getDeductionAdditions({ assignedTo: driverId, type: 'Deduction', isActive: true })
+      ]);
+
+      if (additionsRes?.success && Array.isArray(additionsRes.data)) {
+        setDriverAdditions(additionsRes.data);
+      } else {
+        setDriverAdditions([]);
+      }
+
+      if (deductionsRes?.success && Array.isArray(deductionsRes.data)) {
+        setDriverDeductions(deductionsRes.data);
+      } else {
+        setDriverDeductions([]);
+      }
+    } catch (error: any) {
+      console.error('Error fetching driver additions/deductions:', error);
+      setDriverAdditions([]);
+      setDriverDeductions([]);
+    } finally {
+      setLoadingAdditionsDeductions(false);
+    }
+  };
+
   const fetchDriverTrips = async (driverId: string, startDate: string, endDate: string) => {
     setLoadingTrips(true);
     try {
@@ -663,6 +695,10 @@ const DriverPayrollManagement = () => {
 
       if (value) {
         fetchDriverTrips(value, startDate, endDate);
+        fetchDriverAdditionsDeductions(value);
+      } else {
+        setDriverAdditions([]);
+        setDriverDeductions([]);
       }
     } else {
       setFormData(prev => ({
@@ -681,6 +717,9 @@ const DriverPayrollManagement = () => {
 
     if (selectedDriver && startDate && endDate) {
       fetchDriverTrips(selectedDriver._id, startDate, endDate);
+      if (selectedDriver._id) {
+        fetchDriverAdditionsDeductions(selectedDriver._id);
+      }
     }
   };
 
@@ -744,6 +783,228 @@ const DriverPayrollManagement = () => {
       totalMiles,
       totalEarnings
     };
+  };
+
+  const calculateAdditionsDeductions = () => {
+    if (!formData.startDate || !formData.endDate) {
+      return { totalAdditions: 0, totalDeductions: 0 };
+    }
+
+    const startDateObj = new Date(formData.startDate);
+    const endDateObj = new Date(formData.endDate);
+    endDateObj.setHours(23, 59, 59, 999);
+    
+    console.log('📊 Calculating additions/deductions for period:', {
+      startDate: startDateObj.toISOString(),
+      endDate: endDateObj.toISOString(),
+      additionsCount: driverAdditions.length,
+      deductionsCount: driverDeductions.length
+    });
+
+    // Calculate applicable additions
+    let totalAdditions = 0;
+    for (const addition of driverAdditions) {
+      if (!addition.isActive) continue;
+      
+      const addStartDate = addition.startDate ? new Date(addition.startDate) : null;
+      const addEndDate = addition.endDate ? new Date(addition.endDate) : null;
+      
+      // Check if addition period overlaps with payroll period
+      // Addition is applicable if:
+      // 1. No start date (always active) OR start date is before/on payroll end date
+      // 2. No end date (ongoing) OR end date is after/on payroll start date
+      const additionStartsBeforePayrollEnds = !addStartDate || addStartDate <= endDateObj;
+      const additionEndsAfterPayrollStarts = !addEndDate || addEndDate >= startDateObj;
+      
+      if (!additionStartsBeforePayrollEnds || !additionEndsAfterPayrollStarts) {
+        continue; // Addition period doesn't overlap with payroll period
+      }
+      
+      // For recurring additions, calculate based on the overlap period
+      const effectiveStartDate = addStartDate && addStartDate > startDateObj ? addStartDate : startDateObj;
+      const effectiveEndDate = addEndDate && addEndDate < endDateObj ? addEndDate : endDateObj;
+      
+      // Calculate amount based on recurrence
+      let amount = addition.amount || 0;
+      if (addition.recurrence === 'Weekly') {
+        const weeks = Math.ceil((effectiveEndDate.getTime() - effectiveStartDate.getTime()) / (7 * 24 * 60 * 60 * 1000));
+        amount = amount * Math.max(1, weeks);
+      } else if (addition.recurrence === 'Bi-weekly') {
+        const biWeeks = Math.ceil((effectiveEndDate.getTime() - effectiveStartDate.getTime()) / (14 * 24 * 60 * 60 * 1000));
+        amount = amount * Math.max(1, biWeeks);
+      } else if (addition.recurrence === 'Monthly') {
+        // For monthly, if the addition period overlaps with payroll period, include it
+        // Calculate based on the number of months in the overlap
+        const months = Math.ceil((effectiveEndDate.getTime() - effectiveStartDate.getTime()) / (30 * 24 * 60 * 60 * 1000));
+        amount = amount * Math.max(1, months);
+      }
+      // One-time, Quarterly, Yearly: if period overlaps, use the full amount
+      
+      totalAdditions += amount;
+    }
+
+    // Calculate applicable deductions
+    let totalDeductions = 0;
+    for (const deduction of driverDeductions) {
+      if (!deduction.isActive) continue;
+      
+      const dedStartDate = deduction.startDate ? new Date(deduction.startDate) : null;
+      const dedEndDate = deduction.endDate ? new Date(deduction.endDate) : null;
+      
+      // Check if deduction period overlaps with payroll period
+      // For monthly deductions, we need special handling
+      let shouldInclude = false;
+      
+      if (deduction.recurrence === 'Monthly') {
+        // For monthly deductions, if the deduction is active and has no end date (or end date is in future),
+        // it should apply to any payroll period in the same year or later years
+        // If it has an end date, check if payroll period overlaps
+        
+        if (!dedStartDate) {
+          // No start date = always active for monthly deductions
+          shouldInclude = true;
+        } else {
+          const payrollStartMonth = startDateObj.getMonth();
+          const payrollStartYear = startDateObj.getFullYear();
+          const payrollEndMonth = endDateObj.getMonth();
+          const payrollEndYear = endDateObj.getFullYear();
+          const dedStartMonth = dedStartDate.getMonth();
+          const dedStartYear = dedStartDate.getFullYear();
+          
+          // Check if deduction end date excludes this period
+          if (dedEndDate) {
+            const dedEndMonth = dedEndDate.getMonth();
+            const dedEndYear = dedEndDate.getFullYear();
+            // If deduction ends before payroll starts, exclude
+            if (dedEndYear < payrollStartYear || (dedEndYear === payrollStartYear && dedEndMonth < payrollStartMonth)) {
+              shouldInclude = false;
+            } else {
+              // Deduction is active during some part of the payroll period
+              // Check if any month in payroll period is >= deduction start month
+              for (let year = payrollStartYear; year <= payrollEndYear; year++) {
+                const startMonth = year === payrollStartYear ? payrollStartMonth : 0;
+                const endMonth = year === payrollEndYear ? payrollEndMonth : 11;
+                
+                for (let month = startMonth; month <= endMonth; month++) {
+                  // Check if this month is within deduction period
+                  const monthInRange = 
+                    (year > dedStartYear || (year === dedStartYear && month >= dedStartMonth)) &&
+                    (year < dedEndYear || (year === dedEndYear && month <= dedEndMonth));
+                  
+                  if (monthInRange) {
+                    shouldInclude = true;
+                    break;
+                  }
+                }
+                if (shouldInclude) break;
+              }
+            }
+          } else {
+            // No end date = deduction is active from start date onwards
+            // For monthly deductions without end date, if they're active, they apply to any payroll period
+            // in the same year or later years, regardless of the exact start date
+            // This allows monthly deductions to apply retroactively or prospectively
+            if (payrollStartYear >= dedStartYear) {
+              // Payroll is in the same year or later - deduction applies
+              shouldInclude = true;
+            }
+            // If payroll is in an earlier year, deduction doesn't apply
+          }
+        }
+      } else {
+        // For non-monthly deductions, use standard overlap check
+        const deductionStartsBeforePayrollEnds = !dedStartDate || dedStartDate <= endDateObj;
+        const deductionEndsAfterPayrollStarts = !dedEndDate || dedEndDate >= startDateObj;
+        shouldInclude = deductionStartsBeforePayrollEnds && deductionEndsAfterPayrollStarts;
+      }
+      
+      if (!shouldInclude) {
+        console.log('⏭️ Skipping deduction (no overlap):', {
+          name: deduction.name,
+          recurrence: deduction.recurrence,
+          startDate: dedStartDate?.toISOString(),
+          endDate: dedEndDate?.toISOString(),
+          payrollStart: startDateObj.toISOString(),
+          payrollEnd: endDateObj.toISOString()
+        });
+        continue; // Deduction period doesn't overlap with payroll period
+      }
+      
+      // For recurring deductions, calculate based on the overlap period
+      const effectiveStartDate = dedStartDate && dedStartDate > startDateObj ? dedStartDate : startDateObj;
+      const effectiveEndDate = dedEndDate && dedEndDate < endDateObj ? dedEndDate : endDateObj;
+      
+      // Calculate amount based on recurrence
+      let amount = deduction.amount || 0;
+      if (deduction.recurrence === 'Weekly') {
+        const weeks = Math.ceil((effectiveEndDate.getTime() - effectiveStartDate.getTime()) / (7 * 24 * 60 * 60 * 1000));
+        amount = amount * Math.max(1, weeks);
+      } else if (deduction.recurrence === 'Bi-weekly') {
+        const biWeeks = Math.ceil((effectiveEndDate.getTime() - effectiveStartDate.getTime()) / (14 * 24 * 60 * 60 * 1000));
+        amount = amount * Math.max(1, biWeeks);
+      } else if (deduction.recurrence === 'Monthly') {
+        // For monthly deductions, count how many months in the payroll period the deduction applies to
+        const payrollStartMonth = startDateObj.getMonth();
+        const payrollStartYear = startDateObj.getFullYear();
+        const payrollEndMonth = endDateObj.getMonth();
+        const payrollEndYear = endDateObj.getFullYear();
+        const dedStartMonth = dedStartDate ? dedStartDate.getMonth() : 0;
+        const dedStartYear = dedStartDate ? dedStartDate.getFullYear() : payrollStartYear;
+        const dedEndMonth = dedEndDate ? dedEndDate.getMonth() : 11;
+        const dedEndYear = dedEndDate ? dedEndDate.getFullYear() : 9999;
+        
+        let monthsCount = 0;
+        for (let year = payrollStartYear; year <= payrollEndYear; year++) {
+          const startMonth = year === payrollStartYear ? payrollStartMonth : 0;
+          const endMonth = year === payrollEndYear ? payrollEndMonth : 11;
+          
+          for (let month = startMonth; month <= endMonth; month++) {
+            // Check if this month is within deduction period
+            const monthInRange = 
+              (year > dedStartYear || (year === dedStartYear && month >= dedStartMonth)) &&
+              (year < dedEndYear || (year === dedEndYear && month <= dedEndMonth));
+            
+            if (monthInRange) {
+              monthsCount++;
+            }
+          }
+        }
+        
+        amount = amount * Math.max(1, monthsCount);
+        console.log('💰 Monthly deduction calculated:', {
+          name: deduction.name,
+          baseAmount: deduction.amount,
+          recurrence: deduction.recurrence,
+          startDate: dedStartDate?.toISOString(),
+          endDate: dedEndDate?.toISOString(),
+          payrollStart: startDateObj.toISOString(),
+          payrollEnd: endDateObj.toISOString(),
+          monthsCount,
+          calculatedAmount: amount
+        });
+      }
+      // One-time, Quarterly, Yearly: if period overlaps, use the full amount
+      
+      console.log('✅ Deduction included:', {
+        name: deduction.name,
+        amount: deduction.amount,
+        recurrence: deduction.recurrence,
+        calculatedAmount: amount,
+        startDate: dedStartDate?.toISOString(),
+        endDate: dedEndDate?.toISOString()
+      });
+      
+      totalDeductions += amount;
+    }
+
+    console.log('📊 Final totals:', {
+      totalAdditions,
+      totalDeductions,
+      additionsCount: driverAdditions.length,
+      deductionsCount: driverDeductions.length
+    });
+
+    return { totalAdditions, totalDeductions };
   };
 
   const handleBulkAIGeneration = async () => {
@@ -961,12 +1222,83 @@ const DriverPayrollManagement = () => {
         });
       }
 
+      // Calculate additions and deductions based on date range
+      const startDateObj = new Date(formData.startDate);
+      const endDateObj = new Date(formData.endDate);
+      endDateObj.setHours(23, 59, 59, 999);
+
+      // Calculate applicable additions
+      let totalAdditions = 0;
+      for (const addition of driverAdditions) {
+        if (!addition.isActive) continue;
+        
+        const addStartDate = addition.startDate ? new Date(addition.startDate) : null;
+        const addEndDate = addition.endDate ? new Date(addition.endDate) : null;
+        
+        // Check if addition is active during the payroll period
+        if (addStartDate && addStartDate > endDateObj) continue;
+        if (addEndDate && addEndDate < startDateObj) continue;
+        
+        // Calculate amount based on recurrence
+        let amount = addition.amount || 0;
+        if (addition.recurrence === 'Weekly') {
+          const weeks = Math.ceil((endDateObj.getTime() - Math.max(startDateObj.getTime(), (addStartDate || startDateObj).getTime())) / (7 * 24 * 60 * 60 * 1000));
+          amount = amount * Math.max(1, weeks);
+        } else if (addition.recurrence === 'Bi-weekly') {
+          const biWeeks = Math.ceil((endDateObj.getTime() - Math.max(startDateObj.getTime(), (addStartDate || startDateObj).getTime())) / (14 * 24 * 60 * 60 * 1000));
+          amount = amount * Math.max(1, biWeeks);
+        } else if (addition.recurrence === 'Monthly') {
+          const months = Math.ceil((endDateObj.getTime() - Math.max(startDateObj.getTime(), (addStartDate || startDateObj).getTime())) / (30 * 24 * 60 * 60 * 1000));
+          amount = amount * Math.max(1, months);
+        }
+        // One-time, Quarterly, Yearly are just the amount itself
+        
+        totalAdditions += amount;
+      }
+
+      // Calculate applicable deductions
+      let totalDeductions = 0;
+      for (const deduction of driverDeductions) {
+        if (!deduction.isActive) continue;
+        
+        const dedStartDate = deduction.startDate ? new Date(deduction.startDate) : null;
+        const dedEndDate = deduction.endDate ? new Date(deduction.endDate) : null;
+        
+        // Check if deduction is active during the payroll period
+        if (dedStartDate && dedStartDate > endDateObj) continue;
+        if (dedEndDate && dedEndDate < startDateObj) continue;
+        
+        // Calculate amount based on recurrence
+        let amount = deduction.amount || 0;
+        if (deduction.recurrence === 'Weekly') {
+          const weeks = Math.ceil((endDateObj.getTime() - Math.max(startDateObj.getTime(), (dedStartDate || startDateObj).getTime())) / (7 * 24 * 60 * 60 * 1000));
+          amount = amount * Math.max(1, weeks);
+        } else if (deduction.recurrence === 'Bi-weekly') {
+          const biWeeks = Math.ceil((endDateObj.getTime() - Math.max(startDateObj.getTime(), (dedStartDate || startDateObj).getTime())) / (14 * 24 * 60 * 60 * 1000));
+          amount = amount * Math.max(1, biWeeks);
+        } else if (deduction.recurrence === 'Monthly') {
+          const months = Math.ceil((endDateObj.getTime() - Math.max(startDateObj.getTime(), (dedStartDate || startDateObj).getTime())) / (30 * 24 * 60 * 60 * 1000));
+          amount = amount * Math.max(1, months);
+        }
+        // One-time, Quarterly, Yearly are just the amount itself
+        
+        totalDeductions += amount;
+      }
+
+      // Add calculated additions to bonus (or baseSalary)
+      const calculatedBonus = parseFloat(formData.bonus) || 0;
+      const finalBonus = calculatedBonus + totalAdditions;
+      
+      // Use only calculated deductions from backend (driver deductions)
+      // No manual deductions field - all deductions come from driver deductions
+      const finalDeductions = totalDeductions;
+
       // Create payload for driver payroll
       const payload: any = {
         userId: formData.userId,
         baseSalary: baseSalary,
-        bonus: parseFloat(formData.bonus) || 0,
-        deductions: parseFloat(formData.deductions) || 0,
+        bonus: finalBonus,
+        deductions: finalDeductions,
         payDate: formData.payDate,
         startDate: formData.startDate,
         endDate: formData.endDate,
@@ -1020,11 +1352,14 @@ const DriverPayrollManagement = () => {
     setLoading(true);
 
     try {
+      // Calculate deductions from driver deductions (same as create)
+      const { totalDeductions: calculatedDeductions } = calculateAdditionsDeductions();
+      
       const payload: any = {
         userId: formData.userId,
         baseSalary: selectedPayroll.baseSalary, // Keep existing baseSalary
         bonus: parseFloat(formData.bonus) || 0,
-        deductions: parseFloat(formData.deductions) || 0,
+        deductions: calculatedDeductions, // Use calculated deductions from backend
         payDate: formData.payDate,
         startDate: formData.startDate,
         endDate: formData.endDate,
@@ -2030,6 +2365,76 @@ const DriverPayrollManagement = () => {
                       </div>
                     )}
 
+                    {/* Additions and Deductions */}
+                    {(driverAdditions.length > 0 || driverDeductions.length > 0) && (
+                      <div className="bg-white border border-gray-200 rounded-lg overflow-hidden">
+                        <div className="bg-gray-50 px-4 py-3 border-b border-gray-200">
+                          <h5 className="text-sm font-medium text-gray-700">Driver Additions & Deductions</h5>
+                          <p className="text-xs text-gray-500 mt-1">These will be automatically included in the payroll calculation</p>
+                        </div>
+                        <div className="p-4 space-y-4">
+                          {driverAdditions.length > 0 && (
+                            <div>
+                              <h6 className="text-sm font-semibold text-green-700 mb-2 flex items-center gap-2">
+                                <TrendingUp size={16} />
+                                Additions ({driverAdditions.length})
+                              </h6>
+                              <div className="space-y-2">
+                                {driverAdditions.map((addition) => (
+                                  <div key={addition._id} className="bg-green-50 p-3 rounded-lg border border-green-200">
+                                    <div className="flex justify-between items-start">
+                                      <div>
+                                        <p className="text-sm font-medium text-gray-900">{addition.name || addition.description || 'Addition'}</p>
+                                        <p className="text-xs text-gray-600 mt-1">
+                                          {addition.recurrence} • ${addition.amount?.toFixed(2) || '0.00'}
+                                          {addition.startDate && (
+                                            <span> • From {new Date(addition.startDate).toLocaleDateString()}</span>
+                                          )}
+                                          {addition.endDate && (
+                                            <span> • Until {new Date(addition.endDate).toLocaleDateString()}</span>
+                                          )}
+                                        </p>
+                                      </div>
+                                      <span className="text-sm font-semibold text-green-700">+${addition.amount?.toFixed(2) || '0.00'}</span>
+                                    </div>
+                                  </div>
+                                ))}
+                              </div>
+                            </div>
+                          )}
+                          {driverDeductions.length > 0 && (
+                            <div>
+                              <h6 className="text-sm font-semibold text-red-700 mb-2 flex items-center gap-2">
+                                <TrendingUp size={16} className="rotate-180" />
+                                Deductions ({driverDeductions.length})
+                              </h6>
+                              <div className="space-y-2">
+                                {driverDeductions.map((deduction) => (
+                                  <div key={deduction._id} className="bg-red-50 p-3 rounded-lg border border-red-200">
+                                    <div className="flex justify-between items-start">
+                                      <div>
+                                        <p className="text-sm font-medium text-gray-900">{deduction.name || deduction.description || 'Deduction'}</p>
+                                        <p className="text-xs text-gray-600 mt-1">
+                                          {deduction.recurrence} • ${deduction.amount?.toFixed(2) || '0.00'}
+                                          {deduction.startDate && (
+                                            <span> • From {new Date(deduction.startDate).toLocaleDateString()}</span>
+                                          )}
+                                          {deduction.endDate && (
+                                            <span> • Until {new Date(deduction.endDate).toLocaleDateString()}</span>
+                                          )}
+                                        </p>
+                                      </div>
+                                      <span className="text-sm font-semibold text-red-700">-${deduction.amount?.toFixed(2) || '0.00'}</span>
+                                    </div>
+                                  </div>
+                                ))}
+                              </div>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    )}
+
                     {/* Trip List */}
                     {driverTrips.length > 0 && (
                       <div className="bg-white border border-gray-200 rounded-lg overflow-hidden">
@@ -2273,44 +2678,26 @@ const DriverPayrollManagement = () => {
                   </div>
                 )}
 
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Bonus ($)
-                    </label>
-                    <div className="relative">
-                      <DollarSign className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={18} />
-                      <input
-                        type="number"
-                        name="bonus"
-                        value={formData.bonus}
-                        onChange={handleInputChange}
-                        min="0"
-                        step="0.01"
-                        placeholder="0.00"
-                        className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
-                      />
-                    </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Bonus ($)
+                  </label>
+                  <div className="relative">
+                    <DollarSign className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={18} />
+                    <input
+                      type="number"
+                      name="bonus"
+                      value={formData.bonus}
+                      onChange={handleInputChange}
+                      min="0"
+                      step="0.01"
+                      placeholder="0.00"
+                      className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
+                    />
                   </div>
-
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Deductions ($)
-                    </label>
-                    <div className="relative">
-                      <DollarSign className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={18} />
-                      <input
-                        type="number"
-                        name="deductions"
-                        value={formData.deductions}
-                        onChange={handleInputChange}
-                        min="0"
-                        step="0.01"
-                        placeholder="0.00"
-                        className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
-                      />
-                    </div>
-                  </div>
+                  <p className="text-xs text-gray-500 mt-1">
+                    Note: Deductions are automatically calculated from driver deductions and will be shown in the summary below.
+                  </p>
                 </div>
 
                 {/* Tax Section */}
@@ -2592,82 +2979,102 @@ const DriverPayrollManagement = () => {
                   />
                 </div>
 
-                {getSelectedTripsTotals().count > 0 && (
-                  <div className="bg-gradient-to-r from-green-600 to-green-700 text-white p-6 rounded-lg">
-                    <div className="space-y-2">
-                      <div className="flex justify-between items-center">
-                        <p className="text-sm text-green-100">Gross Earnings</p>
-                        <p className="text-lg font-semibold">
-                          ${(
-                            getSelectedTripsTotals().totalEarnings +
-                            parseFloat(formData.bonus || '0')
-                          ).toFixed(2)}
-                        </p>
-                      </div>
-                      <div className="flex justify-between items-center text-sm">
-                        <p className="text-green-100">Deductions</p>
-                        <p className="text-red-200">-${parseFloat(formData.deductions || '0').toFixed(2)}</p>
-                      </div>
-                      <div className="flex justify-between items-center text-sm">
-                        <p className="text-green-100">Taxes</p>
-                        <p className="text-red-200">
-                          -${(() => {
-                            let totalTax = 0;
-                            if (formData.country === 'Canada') {
-                              totalTax =
-                                parseFloat(formData.federalIncomeTaxCA || '0') +
-                                parseFloat(formData.provincialIncomeTaxCA || '0') +
-                                parseFloat(formData.cpp || '0') +
-                                parseFloat(formData.ei || '0') +
-                                parseFloat(formData.provincialHealthTaxCA || '0');
-                            } else {
-                              totalTax =
-                                parseFloat(formData.federalIncomeTaxUS || '0') +
-                                parseFloat(formData.stateIncomeTaxUS || '0') +
-                                parseFloat(formData.socialSecurityTax || '0') +
-                                parseFloat(formData.medicareTax || '0') +
-                                parseFloat(formData.stateDisabilityInsurance || '0') +
-                                parseFloat(formData.localTax || '0');
-                            }
-                            return totalTax.toFixed(2);
-                          })()}
-                        </p>
-                      </div>
-                      <div className="pt-2 border-t border-green-500 flex justify-between items-center">
-                        <p className="text-sm font-bold text-green-100">Net Pay</p>
-                        <p className="text-4xl font-bold mt-1">
-                          ${(() => {
-                            const gross = getSelectedTripsTotals().totalEarnings + parseFloat(formData.bonus || '0');
-                            const deductions = parseFloat(formData.deductions || '0');
-                            let totalTax = 0;
-                            if (formData.country === 'Canada') {
-                              totalTax =
-                                parseFloat(formData.federalIncomeTaxCA || '0') +
-                                parseFloat(formData.provincialIncomeTaxCA || '0') +
-                                parseFloat(formData.cpp || '0') +
-                                parseFloat(formData.ei || '0') +
-                                parseFloat(formData.provincialHealthTaxCA || '0');
-                            } else {
-                              totalTax =
-                                parseFloat(formData.federalIncomeTaxUS || '0') +
-                                parseFloat(formData.stateIncomeTaxUS || '0') +
-                                parseFloat(formData.socialSecurityTax || '0') +
-                                parseFloat(formData.medicareTax || '0') +
-                                parseFloat(formData.stateDisabilityInsurance || '0') +
-                                parseFloat(formData.localTax || '0');
-                            }
-                            return (gross - deductions - totalTax).toFixed(2);
-                          })()}
-                        </p>
-                      </div>
-                      <div className="text-right mt-2">
-                        <p className="text-xs text-green-100">Based on</p>
-                        <p className="text-sm font-bold">{getSelectedTripsTotals().count} trips</p>
-                        <p className="text-xs text-green-100">{getSelectedTripsTotals().totalMiles.toLocaleString()} miles</p>
+                {getSelectedTripsTotals().count > 0 && (() => {
+                  const { totalAdditions, totalDeductions: calculatedDeductions } = calculateAdditionsDeductions();
+                  const tripsTotals = getSelectedTripsTotals();
+                  const manualBonus = parseFloat(formData.bonus || '0');
+                  
+                  // Gross Earnings = Trip Earnings + Manual Bonus + Calculated Additions
+                  const grossEarnings = tripsTotals.totalEarnings + manualBonus + totalAdditions;
+                  
+                  // Total Deductions = Only Calculated Deductions (from backend/driver deductions)
+                  // No manual deductions - all deductions come from driver deductions
+                  const totalDeductions = calculatedDeductions;
+                  
+                  // Calculate taxes
+                  let totalTax = 0;
+                  if (formData.country === 'Canada') {
+                    totalTax =
+                      parseFloat(formData.federalIncomeTaxCA || '0') +
+                      parseFloat(formData.provincialIncomeTaxCA || '0') +
+                      parseFloat(formData.cpp || '0') +
+                      parseFloat(formData.ei || '0') +
+                      parseFloat(formData.provincialHealthTaxCA || '0');
+                  } else {
+                    totalTax =
+                      parseFloat(formData.federalIncomeTaxUS || '0') +
+                      parseFloat(formData.stateIncomeTaxUS || '0') +
+                      parseFloat(formData.socialSecurityTax || '0') +
+                      parseFloat(formData.medicareTax || '0') +
+                      parseFloat(formData.stateDisabilityInsurance || '0') +
+                      parseFloat(formData.localTax || '0');
+                  }
+                  
+                  // Net Pay = Gross Earnings - Total Deductions - Taxes
+                  const netPay = grossEarnings - totalDeductions - totalTax;
+                  
+                  return (
+                    <div className="bg-gradient-to-r from-green-600 to-green-700 text-white p-6 rounded-lg">
+                      <div className="space-y-2">
+                        <div className="flex justify-between items-center">
+                          <p className="text-sm text-green-100">Gross Earnings</p>
+                          <p className="text-lg font-semibold">
+                            ${grossEarnings.toFixed(2)}
+                          </p>
+                        </div>
+                        {(totalAdditions > 0 || manualBonus > 0) && (
+                          <div className="pl-4 text-xs text-green-200">
+                            {tripsTotals.totalEarnings > 0 && (
+                              <div className="flex justify-between">
+                                <span>Trips Earnings:</span>
+                                <span>${tripsTotals.totalEarnings.toFixed(2)}</span>
+                              </div>
+                            )}
+                            {manualBonus > 0 && (
+                              <div className="flex justify-between">
+                                <span>Manual Bonus:</span>
+                                <span>+${manualBonus.toFixed(2)}</span>
+                              </div>
+                            )}
+                            {totalAdditions > 0 && (
+                              <div className="flex justify-between">
+                                <span>Additions ({driverAdditions.length}):</span>
+                                <span>+${totalAdditions.toFixed(2)}</span>
+                              </div>
+                            )}
+                          </div>
+                        )}
+                        <div className="flex justify-between items-center text-sm">
+                          <p className="text-green-100">Deductions</p>
+                          <p className="text-red-200">-${totalDeductions.toFixed(2)}</p>
+                        </div>
+                        {calculatedDeductions > 0 && (
+                          <div className="pl-4 text-xs text-red-200">
+                            <div className="flex justify-between">
+                              <span>Deductions ({driverDeductions.length}):</span>
+                              <span>-${calculatedDeductions.toFixed(2)}</span>
+                            </div>
+                          </div>
+                        )}
+                        <div className="flex justify-between items-center text-sm">
+                          <p className="text-green-100">Taxes</p>
+                          <p className="text-red-200">-${totalTax.toFixed(2)}</p>
+                        </div>
+                        <div className="pt-2 border-t border-green-500 flex justify-between items-center">
+                          <p className="text-sm font-bold text-green-100">Net Pay</p>
+                          <p className="text-4xl font-bold mt-1">
+                            ${netPay.toFixed(2)}
+                          </p>
+                        </div>
+                        <div className="text-right mt-2">
+                          <p className="text-xs text-green-100">Based on</p>
+                          <p className="text-sm font-bold">{tripsTotals.count} trips</p>
+                          <p className="text-xs text-green-100">{tripsTotals.totalMiles.toLocaleString()} miles</p>
+                        </div>
                       </div>
                     </div>
-                  </div>
-                )}
+                  );
+                })()}
 
                 <div className="flex justify-end gap-3 pt-4 border-t border-gray-200">
                   <button

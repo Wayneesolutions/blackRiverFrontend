@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Plus, Receipt, DollarSign, Calendar, User, FileText, Filter, Edit, Trash2, Eye, Building2, Users, Settings, X } from 'lucide-react';
+import { Plus, Receipt, DollarSign, Calendar, User, FileText, Filter, Edit, Trash2, Eye, Building2, Users, Settings, X, Truck, Package } from 'lucide-react';
 import { FaCheckCircle, FaExclamationCircle, FaInfoCircle, FaTimes } from 'react-icons/fa';
 import { createExpense, listExpenses, updateExpense, deleteExpense, getExpenseReceiptSignedUrl, extractReceiptData, listExpenseCategories, createExpenseCategory, updateExpenseCategory, deleteExpenseCategory, listExpenseTypes, createExpenseType, updateExpenseType, deleteExpenseType } from "../../../../axios/api/account.expense";
 import { getEmployees } from "../../../../axios/api/account.payroll";
@@ -198,7 +198,13 @@ const ExpensesPage = () => {
   // Fetch expense types when category is selected
   useEffect(() => {
     if (formData.categoryId) {
-      fetchExpenseTypes(formData.categoryId);
+      // Ensure categoryId is a string
+      const categoryIdStr = typeof formData.categoryId === 'string' 
+        ? formData.categoryId 
+        : (formData.categoryId as any)?._id || String(formData.categoryId);
+      if (categoryIdStr) {
+        fetchExpenseTypes(categoryIdStr);
+      }
     } else {
       setExpenseTypes([]);
       setFormData(prev => ({ ...prev, type: '', typeId: '' }));
@@ -243,10 +249,24 @@ const ExpensesPage = () => {
     }
   };
 
-  const fetchExpenseTypes = async (categoryId: string) => {
+  const fetchExpenseTypes = async (categoryId: string | object) => {
     setLoadingTypes(true);
     try {
-      const response = await listExpenseTypes(categoryId);
+      // Ensure categoryId is a string (extract _id if it's an object)
+      let categoryIdStr = '';
+      if (typeof categoryId === 'string') {
+        categoryIdStr = categoryId;
+      } else if (categoryId && typeof categoryId === 'object' && categoryId !== null) {
+        categoryIdStr = (categoryId as any)._id || String(categoryId);
+      }
+      
+      if (!categoryIdStr || categoryIdStr.trim() === '') {
+        setExpenseTypes([]);
+        setLoadingTypes(false);
+        return;
+      }
+      
+      const response = await listExpenseTypes(categoryIdStr);
       if (response?.success && Array.isArray(response.data)) {
         // Normalize categoryId to string for all types
         const normalizedTypes = response.data.map((type: any) => ({
@@ -684,23 +704,47 @@ const ExpensesPage = () => {
       ? expense.userId._id
       : expense.userId || '';
     const categoryId = expense.categoryId || (expense.category?._id) || '';
+    // Ensure categoryId is a string
+    const categoryIdStr = typeof categoryId === 'string' 
+      ? categoryId 
+      : (categoryId as any)?._id || String(categoryId);
     // Get typeId if available (from typeId field or from type object)
     const typeId = (expense as any).typeId || (typeof (expense as any).type === 'object' && (expense as any).type?._id) || '';
     setFormData({
       userId: userIdValue,
-      categoryId: categoryId,
+      categoryId: categoryIdStr,
       type: typeof expense.type === 'string' ? expense.type : (expense.type as any)?.name || '',
       typeId: typeId,
       amount: expense.amount.toString(),
       description: expense.description || '',
       date: expense.date ? new Date(expense.date).toISOString().split('T')[0] : new Date().toISOString().split('T')[0],
       receiptFile: null,
-      truckId: (expense as any).truckId || '',
-      trailerId: (expense as any).trailerId || ''
+      truckId: (() => {
+        // Try truckId first
+        if ((expense as any).truckId) return (expense as any).truckId;
+        // Try vehicle object
+        if (expense.vehicle && typeof expense.vehicle === 'object' && expense.vehicle !== null) {
+          return (expense.vehicle as any)._id || '';
+        }
+        // Try vehicle as string/ID
+        if ((expense as any).vehicle) return String((expense as any).vehicle);
+        return '';
+      })(),
+      trailerId: (() => {
+        // Try trailerId first
+        if ((expense as any).trailerId) return (expense as any).trailerId;
+        // Try trailer object
+        if (expense.trailer && typeof expense.trailer === 'object' && expense.trailer !== null) {
+          return (expense.trailer as any)._id || '';
+        }
+        // Try trailer as string/ID
+        if ((expense as any).trailer) return String((expense as any).trailer);
+        return '';
+      })()
     });
     // Fetch types for the category
-    if (categoryId) {
-      fetchExpenseTypes(categoryId);
+    if (categoryIdStr) {
+      fetchExpenseTypes(categoryIdStr);
     }
     setActiveTab('create');
   };
@@ -1234,7 +1278,7 @@ const ExpensesPage = () => {
                                 </span>
                               </div>
                               <p className="text-gray-600 text-sm mb-1">{expense.description || 'No description'}</p>
-                              <div className="flex items-center gap-4 text-xs text-gray-500">
+                              <div className="flex items-center gap-4 text-xs text-gray-500 flex-wrap">
                                 <span className="flex items-center gap-1">
                                   <User size={12} />
                                   {getEmployeeName(expense.userId)}
@@ -1247,6 +1291,18 @@ const ExpensesPage = () => {
                                   <span className="flex items-center gap-1">
                                     <Receipt size={12} />
                                     Receipt Available
+                                  </span>
+                                )}
+                                {expense.vehicle && typeof expense.vehicle === 'object' && (
+                                  <span className="flex items-center gap-1">
+                                    <Truck size={12} />
+                                    {expense.vehicle.unitNo || expense.vehicle.unitNumber || expense.vehicle.internalId || expense.vehicle.licensePlate || 'Vehicle'}
+                                  </span>
+                                )}
+                                {expense.trailer && typeof expense.trailer === 'object' && (
+                                  <span className="flex items-center gap-1">
+                                    <Package size={12} />
+                                    {expense.trailer.unitNo || expense.trailer.unitNumber || expense.trailer.internalId || expense.trailer.licensePlate || 'Trailer'}
                                   </span>
                                 )}
                               </div>
@@ -1616,6 +1672,48 @@ const ExpensesPage = () => {
                 </div>
               </div>
 
+              {/* Vehicle and Trailer Information */}
+              {(viewingExpense.vehicle || viewingExpense.trailer || (viewingExpense as any).truckId || (viewingExpense as any).trailerId) && (
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {viewingExpense.vehicle && (
+                    <div className="bg-gray-50 p-4 rounded-lg">
+                      <div className="flex items-center gap-2 mb-2">
+                        <Truck size={18} className="text-gray-500" />
+                        <p className="text-sm font-medium text-gray-600">Vehicle</p>
+                      </div>
+                      <p className="text-lg font-semibold text-gray-900">
+                        {typeof viewingExpense.vehicle === 'object' && viewingExpense.vehicle !== null
+                          ? (viewingExpense.vehicle as any).unitNo || (viewingExpense.vehicle as any).unitNumber || (viewingExpense.vehicle as any).internalId || (viewingExpense.vehicle as any).licensePlate || (viewingExpense.vehicle as any).plateNumber || 'Vehicle'
+                          : 'Vehicle'}
+                      </p>
+                      {typeof viewingExpense.vehicle === 'object' && viewingExpense.vehicle !== null && (
+                        <p className="text-sm text-gray-500 mt-1">
+                          {[(viewingExpense.vehicle as any).make, (viewingExpense.vehicle as any).model].filter(Boolean).join(' ') || 'No details'}
+                        </p>
+                      )}
+                    </div>
+                  )}
+                  {viewingExpense.trailer && (
+                    <div className="bg-gray-50 p-4 rounded-lg">
+                      <div className="flex items-center gap-2 mb-2">
+                        <Package size={18} className="text-gray-500" />
+                        <p className="text-sm font-medium text-gray-600">Trailer</p>
+                      </div>
+                      <p className="text-lg font-semibold text-gray-900">
+                        {typeof viewingExpense.trailer === 'object' && viewingExpense.trailer !== null
+                          ? (viewingExpense.trailer as any).unitNo || (viewingExpense.trailer as any).unitNumber || (viewingExpense.trailer as any).internalId || (viewingExpense.trailer as any).licensePlate || (viewingExpense.trailer as any).plateNumber || 'Trailer'
+                          : 'Trailer'}
+                      </p>
+                      {typeof viewingExpense.trailer === 'object' && viewingExpense.trailer !== null && (
+                        <p className="text-sm text-gray-500 mt-1">
+                          {[(viewingExpense.trailer as any).make, (viewingExpense.trailer as any).model].filter(Boolean).join(' ') || 'No details'}
+                        </p>
+                      )}
+                    </div>
+                  )}
+                </div>
+              )}
+
               {/* Description */}
               {viewingExpense.description && (
                 <div>
@@ -1690,34 +1788,49 @@ const ExpensesPage = () => {
 
               {/* Timestamps */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-4 border-t border-gray-200">
-                {viewingExpense.createdAt && (
-                  <div>
-                    <p className="text-xs text-gray-500 mb-1">Created At</p>
-                    <p className="text-sm text-gray-900">
-                      {new Date(viewingExpense.createdAt).toLocaleString('en-US', {
-                        year: 'numeric',
-                        month: 'long',
-                        day: 'numeric',
-                        hour: '2-digit',
-                        minute: '2-digit'
-                      })}
-                    </p>
-                  </div>
-                )}
-                {viewingExpense.updatedAt && viewingExpense.updatedAt !== viewingExpense.createdAt && (
-                  <div>
-                    <p className="text-xs text-gray-500 mb-1">Last Updated</p>
-                    <p className="text-sm text-gray-900">
-                      {new Date(viewingExpense.updatedAt).toLocaleString('en-US', {
-                        year: 'numeric',
-                        month: 'long',
-                        day: 'numeric',
-                        hour: '2-digit',
-                        minute: '2-digit'
-                      })}
-                    </p>
-                  </div>
-                )}
+                <div>
+                  <p className="text-xs text-gray-500 mb-1">Created At</p>
+                  <p className="text-sm text-gray-900">
+                    {(() => {
+                      const createdAt = viewingExpense.createdAt || (viewingExpense as any).createdAt;
+                      if (!createdAt) return 'N/A';
+                      try {
+                        return new Date(createdAt).toLocaleString('en-US', {
+                          year: 'numeric',
+                          month: 'long',
+                          day: 'numeric',
+                          hour: '2-digit',
+                          minute: '2-digit'
+                        });
+                      } catch (e) {
+                        return 'Invalid Date';
+                      }
+                    })()}
+                  </p>
+                </div>
+                <div>
+                  <p className="text-xs text-gray-500 mb-1">Last Updated</p>
+                  <p className="text-sm text-gray-900">
+                    {(() => {
+                      const updatedAt = viewingExpense.updatedAt || (viewingExpense as any).updatedAt;
+                      const createdAt = viewingExpense.createdAt || (viewingExpense as any).createdAt;
+                      // If no updatedAt, show createdAt as fallback
+                      const dateToShow = updatedAt || createdAt;
+                      if (!dateToShow) return 'N/A';
+                      try {
+                        return new Date(dateToShow).toLocaleString('en-US', {
+                          year: 'numeric',
+                          month: 'long',
+                          day: 'numeric',
+                          hour: '2-digit',
+                          minute: '2-digit'
+                        });
+                      } catch (e) {
+                        return 'Invalid Date';
+                      }
+                    })()}
+                  </p>
+                </div>
               </div>
             </div>
 
