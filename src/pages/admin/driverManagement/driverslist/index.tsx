@@ -865,7 +865,7 @@ const DriverManagement = () => {
                   description: ded.name || ded.description || '',
                   amount: ded.amount?.toString() || '0',
                   interval: ded.recurrence || ded.interval || '',
-                  currency: 'CAD' // Default currency
+                  currency: ded.currency || 'CAD' // Use currency from API response
                 }));
                 setDeductions(existingDeductions);
                 console.log(`✅ Deductions loaded (${existingDeductions.length} deductions)`);
@@ -887,7 +887,7 @@ const DriverManagement = () => {
                   description: add.name || add.description || '',
                   amount: add.amount?.toString() || '0',
                   interval: add.recurrence || add.interval || '',
-                  currency: 'CAD' // Default currency
+                  currency: add.currency || 'CAD' // Use currency from API response
                 }));
                 setAdditions(existingAdditions);
                 console.log(`✅ Additions loaded (${existingAdditions.length} additions)`);
@@ -2512,7 +2512,7 @@ const DriverManagement = () => {
                   description: ded.name || ded.description || '',
                   amount: ded.amount?.toString() || '0',
                   interval: ded.recurrence || ded.interval || '',
-                  currency: 'CAD'
+                  currency: ded.currency || 'CAD' // Use currency from API response
                 }));
                 setDeductions(existingDeductions);
               }
@@ -2525,7 +2525,7 @@ const DriverManagement = () => {
                   description: add.name || add.description || '',
                   amount: add.amount?.toString() || '0',
                   interval: add.recurrence || add.interval || '',
-                  currency: 'CAD'
+                  currency: add.currency || 'CAD' // Use currency from API response
                 }));
                 setAdditions(existingAdditions);
               }
