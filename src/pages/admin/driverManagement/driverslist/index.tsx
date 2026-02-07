@@ -143,6 +143,7 @@ interface Driver {
   phone?: string;
   mobile?: string;
   company?: string;
+  profileImageUrl?: string | null;
   [key: string]: any; // Allow additional fields from backend
 }
 
@@ -436,6 +437,7 @@ const DriverManagement = () => {
     ticket: string;
     description: string;
     currency: string;
+    amount?: string;
     violationType?: string;
     file?: File | null;
     fileUrl?: string | null;
@@ -446,6 +448,7 @@ const DriverManagement = () => {
     ticket: '',
     description: '',
     currency: 'CAD',
+    amount: '',
     violationType: '',
     file: null as File | null
   });
@@ -553,7 +556,8 @@ const DriverManagement = () => {
             email: driver.email,
             phone: driver.phone,
             mobile: driver.mobile || driver.details?.cell1,
-            company: driver.company
+            company: driver.company,
+            profileImageUrl: driver.profileImageUrl || null
           };
         });
         
@@ -835,6 +839,7 @@ const DriverManagement = () => {
                   ticket: vio.ticketInfo?.ticketNumber || vio.ticket || '',
                   description: vio.description || '',
                   currency: vio.currency || 'CAD',
+                  amount: vio.amount?.toString() || '',
                   violationType: vio.violationType || vio.type || '',
                   file: null, // Don't set file for existing violations (it's a File object, not needed for display)
                   fileUrl: vio.fileUrl || null, // Include fileUrl for displaying existing files
@@ -1675,6 +1680,7 @@ const DriverManagement = () => {
           ticket: viol.ticket || '',
           description: viol.description || '',
           currency: viol.currency || 'CAD',
+          amount: viol.amount || '',
           violationType: viol.violationType || '',
           hasFile: !!(viol.file instanceof File) // Only true if it's a new File object
         }));
@@ -1933,6 +1939,7 @@ const DriverManagement = () => {
       ticket: '',
       description: '',
       currency: 'CAD',
+      amount: '',
       violationType: '',
       file: null
     });
@@ -2358,6 +2365,7 @@ const DriverManagement = () => {
           ticket: vio.ticket || '',
           description: vio.description || '',
           currency: vio.currency || 'CAD',
+          amount: vio.amount || '',
           violationType: vio.violationType || '',
           hasFile: !!(vio.file instanceof File) // Only true if it's a new File object
         }));
@@ -2486,6 +2494,7 @@ const DriverManagement = () => {
                   ticket: vio.ticketInfo?.ticketNumber || vio.ticket || '',
                   description: vio.description || '',
                   currency: vio.currency || 'CAD',
+                  amount: vio.amount?.toString() || '',
                   violationType: vio.violationType || vio.type || '',
                   file: null, // Don't set file for existing violations (it's a File object, not needed for display)
                   fileUrl: vio.fileUrl || null, // Include fileUrl for displaying existing files
@@ -2756,6 +2765,13 @@ const DriverManagement = () => {
             <table className="w-full min-w-[1200px]">
               <thead className="bg-gray-50 border-b border-gray-200">
                 <tr>
+                  {/* Photo */}
+                  <th className="px-4 py-3 text-left">
+                    <div className="flex items-center gap-2">
+                      <span className="font-medium text-xs text-gray-700 uppercase">Photo</span>
+                    </div>
+                  </th>
+
                   {/* Driver ID */}
                   <th className="px-4 py-3 text-left">
                     <div className="flex items-center gap-2">
@@ -2957,6 +2973,29 @@ const DriverManagement = () => {
                       }
                     }}
                   >
+                    <td className="px-4 py-3">
+                      <div className="flex items-center justify-center">
+                        {driver.profileImageUrl ? (
+                          <img
+                            src={driver.profileImageUrl}
+                            alt={`${driver.firstName || ''} ${driver.lastName || ''}`}
+                            className="w-10 h-10 rounded-full object-cover border-2 border-gray-200"
+                            onError={(e) => {
+                              // If image fails to load, show placeholder
+                              const target = e.target as HTMLImageElement;
+                              target.style.display = 'none';
+                              const placeholder = target.nextElementSibling as HTMLElement;
+                              if (placeholder) placeholder.style.display = 'flex';
+                            }}
+                          />
+                        ) : null}
+                        <div
+                          className={`w-10 h-10 rounded-full bg-gray-200 flex items-center justify-center border-2 border-gray-200 ${driver.profileImageUrl ? 'hidden' : ''}`}
+                        >
+                          <User className="w-6 h-6 text-gray-400" />
+                        </div>
+                      </div>
+                    </td>
                     <td className="px-4 py-3 text-sm text-gray-900">{driver.driverId}</td>
                     <td className="px-4 py-3 text-sm text-gray-900">{driver.firstName}</td>
                     <td className="px-4 py-3 text-sm text-gray-900">{driver.lastName}</td>
@@ -5295,6 +5334,17 @@ const DriverManagement = () => {
                             <option value="USD">American Dollar (USD)</option>
                           </select>
                         </div>
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700 mb-1">Amount</label>
+                          <input
+                            type="number"
+                            step="0.01"
+                            placeholder="0.00"
+                            value={newViolation.amount}
+                            onChange={(e) => setNewViolation({ ...newViolation, amount: e.target.value })}
+                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#42aeec] focus:border-transparent"
+                          />
+                        </div>
                       </div>
                       <div className="flex items-center gap-3">
                         <div className="flex items-end">
@@ -5348,6 +5398,7 @@ const DriverManagement = () => {
                                         ticket: newViolation.ticket,
                                         description: newViolation.description,
                                         currency: newViolation.currency,
+                                        amount: newViolation.amount,
                                         violationType: newViolation.violationType,
                                         file: newViolation.file
                                       }
@@ -5373,6 +5424,7 @@ const DriverManagement = () => {
                                   ticket: newViolation.ticket,
                                   description: newViolation.description,
                                   currency: newViolation.currency,
+                                  amount: newViolation.amount,
                                   violationType: newViolation.violationType,
                                   file: newViolation.file
                                 }]);
@@ -5387,6 +5439,7 @@ const DriverManagement = () => {
                                 ticket: '',
                                 description: '',
                                 currency: 'CAD',
+                                amount: '',
                                 violationType: '',
                                 file: null
                               });
@@ -5408,9 +5461,9 @@ const DriverManagement = () => {
                           <tr>
                             <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase">Type of Violation</th>
                             <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase">Ticket</th>
-                            <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase">Payment Due Date</th>
                             <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase">Description</th>
                             <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase">Currency</th>
+                            <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase">Amount</th>
                             <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase">File</th>
                             <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase">ACTIONS</th>
                           </tr>
@@ -5433,12 +5486,19 @@ const DriverManagement = () => {
                                 <td className="px-4 py-3 text-sm text-gray-900">
                                   {violation.ticket || '-'}
                                 </td>
-                                <td className="px-4 py-3 text-sm text-gray-900">{violation.paymentDueDate || '-'}</td>
                                 <td className="px-4 py-3 text-sm text-gray-900">
                                   {violation.description || '-'}
                                 </td>
                                 <td className="px-4 py-3 text-sm text-gray-900">
                                   {violation.currency || '-'}
+                                </td>
+                                <td className="px-4 py-3 text-sm text-gray-900">
+                                  {violation.amount ? new Intl.NumberFormat('en-CA', {
+                                    style: 'currency',
+                                    currency: violation.currency || 'CAD',
+                                    minimumFractionDigits: 2,
+                                    maximumFractionDigits: 2,
+                                  }).format(parseFloat(violation.amount)) : '-'}
                                 </td>
                                 <td className="px-4 py-3 text-sm text-gray-900">
                                   {(violation.file instanceof File || violation.fileUrl || violation.fileName) ? (
@@ -5475,6 +5535,7 @@ const DriverManagement = () => {
                                           ticket: violation.ticket || '',
                                           description: violation.description || '',
                                           currency: violation.currency || 'CAD',
+                                          amount: violation.amount || '',
                                           violationType: violation.violationType || '',
                                           file: violation.file || null
                                         });
