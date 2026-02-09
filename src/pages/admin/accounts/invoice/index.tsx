@@ -59,11 +59,18 @@ interface Invoice {
     updatedAt: string;
 }
 
-interface Trip {
+interface Order {
     _id: string;
-    tripNumber: string;
+    orderNumber: string;
+    customerOrderNo?: string;
     status: string;
     driver?: {
+        _id: string;
+        name: string;
+        email?: string;
+        phone?: string;
+    };
+    coDriver?: {
         _id: string;
         name: string;
         email?: string;
@@ -93,64 +100,69 @@ interface Trip {
         unitType?: string; // Legacy field
         capacity?: string;
     };
-    orders?: Array<{
+    customer?: {
         _id: string;
-        orderNumber: string;
-        customerOrderNo?: string;
-        commodity?: string;
-        weight?: number;
-        weightUnit?: string;
-        orderType?: string;
-        equipment?: string[];
-        noOfPackages?: number;
-        noOfPackagesType?: string;
-        temperature?: number;
-        additionalInfo?: {
-            HAZMAT?: boolean;
-            TARP?: boolean;
-            OverDimension?: boolean;
-            CSA?: boolean;
-        };
-        dimensions?: {
-            length?: number;
-            width?: number;
-            height?: number;
-            unit?: string;
-        };
-        customer?: {
-            _id: string;
-            name: string;
-            email: string;
-            phone?: string;
+        name: string;
+        email: string;
+        phone?: string;
+        address?: string;
+        company?: string;
+        city?: string;
+        state?: string;
+        country?: string;
+        location?: {
             address?: string;
-            company?: string;
-            location?: {
+            city?: string;
+            state?: string;
+            postalCode?: string;
+        };
+    };
+    pickupLocation?: {
+        place?: string;
+        placeId?: {
+            name?: string;
+            currentLocation?: {
                 address?: string;
                 city?: string;
                 state?: string;
-                postalCode?: string;
             };
         };
-        pickupLocation?: {
-            place?: string;
-        };
-        deliveryLocation?: {
-            place?: string;
-        };
-    }>;
-    startLocation?: {
+    };
+    deliveryLocation?: {
         place?: string;
+        placeId?: {
+            name?: string;
+            currentLocation?: {
+                address?: string;
+                city?: string;
+                state?: string;
+            };
+        };
     };
-    endLocation?: {
-        place?: string;
+    commodity?: string;
+    weight?: number;
+    weightUnit?: string;
+    orderType?: string;
+    equipment?: string[];
+    noOfPackages?: number;
+    noOfPackagesType?: string;
+    temperature?: number;
+    additionalInfo?: {
+        HAZMAT?: boolean;
+        TARP?: boolean;
+        OverDimension?: boolean;
+        CSA?: boolean;
     };
-    route?: {
-        totalDistance?: number;
+    dimensions?: {
+        length?: number;
+        width?: number;
+        height?: number;
+        unit?: string;
     };
-    plannedStartDate?: string;
-    plannedEndDate?: string;
-    actualStartDate?: string;
-    actualEndDate?: string;
+    pickupDate?: string;
+    deliveryDate?: string;
+    createdAt?: string;
+    updatedAt?: string;
     notes?: string;
 }
 
@@ -168,7 +180,7 @@ const InvoiceManagement: React.FC = () => {
     const [selectedInvoice, setSelectedInvoice] = useState<Invoice | null>(null);
     const [statusFilter, setStatusFilter] = useState<StatusFilter>('all');
     const [invoices, setInvoices] = useState<Invoice[]>([]);
-    const [trips, setTrips] = useState<Trip[]>([]);
+    const [orders, setOrders] = useState<Order[]>([]);
     const [loading, setLoading] = useState(false);
     const [notifications, setNotifications] = useState<Notification[]>([]);
     const [deleteModal, setDeleteModal] = useState<{ show: boolean; invoiceId: string | null }>({ show: false, invoiceId: null });
@@ -202,7 +214,7 @@ const InvoiceManagement: React.FC = () => {
         }
 
         fetchInvoices();
-        fetchTrips();
+        fetchOrders();
     }, []);
 
     const showNotification = (type: 'success' | 'error', message: string) => {
@@ -855,7 +867,7 @@ const InvoiceManagement: React.FC = () => {
         }
     };
 
-    const fetchTrips = async () => {
+    const fetchOrders = async () => {
         try {
             const userInfo: any = getLocalUserInfo();
 
@@ -869,43 +881,43 @@ const InvoiceManagement: React.FC = () => {
             // Allow HR and dispatchers to call API even if company is not visible in localStorage
             // The backend will handle company filtering based on the authenticated user
             if (!isSuperadmin && !isHR && !hasCompany) {
-                setTrips([]);
+                setOrders([]);
                 return;
             }
 
-            console.log('🔍 Starting to fetch trips...');
+            console.log('🔍 Starting to fetch orders...');
             const response = await listTrips();
-            console.log('📡 Trip API Response:', response);
+            console.log('📡 Order API Response:', response);
             console.log('📡 Response type:', typeof response);
             console.log('📡 Response keys:', response ? Object.keys(response) : 'null');
 
             // Handle different response structures
-            let tripData = null;
+            let orderData = null;
             if (response && response.data) {
-                tripData = response.data;
-                console.log('✅ Found data in response.data:', tripData);
+                orderData = response.data;
+                console.log('✅ Found data in response.data:', orderData);
             } else if (response && Array.isArray(response)) {
-                tripData = response;
-                console.log('✅ Response is array:', tripData);
+                orderData = response;
+                console.log('✅ Response is array:', orderData);
             } else if (response && response.success && response.data) {
-                tripData = response.data;
-                console.log('✅ Found data in response.success.data:', tripData);
+                orderData = response.data;
+                console.log('✅ Found data in response.success.data:', orderData);
             } else {
                 console.log('❌ No data found in response structure');
             }
 
-            if (tripData && Array.isArray(tripData)) {
-                console.log('✅ Setting trips with data:', tripData);
-                console.log('✅ Number of trips:', tripData.length);
-                setTrips(tripData);
+            if (orderData && Array.isArray(orderData)) {
+                console.log('✅ Setting orders with data:', orderData);
+                console.log('✅ Number of orders:', orderData.length);
+                setOrders(orderData);
             } else {
-                console.log('❌ No valid trip data found in response:', response);
-                setTrips([]);
+                console.log('❌ No valid order data found in response:', response);
+                setOrders([]);
             }
         } catch (error) {
-            console.error('❌ Error fetching trips:', error);
+            console.error('❌ Error fetching orders:', error);
             console.error('❌ Error details:', error);
-            setTrips([]);
+            setOrders([]);
         }
     };
 
@@ -1712,6 +1724,7 @@ const InvoiceManagement: React.FC = () => {
             clientAddress: '',
             clientPhone: '',
             tripId: '',
+            orderId: '',
             amount: '',
             currency: 'USD',
             dueDate: '',
@@ -1725,15 +1738,13 @@ const InvoiceManagement: React.FC = () => {
             }));
         };
 
-        const handleTripSelect = (tripId: string) => {
-            console.log('Selected trip ID:', tripId);
-            const selectedTrip = trips.find(trip => trip._id === tripId);
-            console.log('Selected trip data:', selectedTrip);
+        const handleOrderSelect = (orderId: string) => {
+            console.log('Selected order ID:', orderId);
+            const selectedOrder = orders.find(order => order._id === orderId);
+            console.log('Selected order data:', selectedOrder);
 
-            if (selectedTrip && selectedTrip.orders && selectedTrip.orders.length > 0) {
-                // Get customer from first order (trips can have multiple orders with same customer)
-                const firstOrder = selectedTrip.orders[0];
-                const customer = firstOrder.customer;
+            if (selectedOrder) {
+                const customer = selectedOrder.customer;
 
                 const customerName = customer?.name || '';
                 const customerEmail = customer?.email || '';
@@ -1741,27 +1752,29 @@ const InvoiceManagement: React.FC = () => {
                 const customerAddress = customer?.address || customer?.location?.address || '';
                 const customerPhone = customer?.phone || '';
 
-                console.log('Auto-filling customer details from trip:', {
+                console.log('Auto-filling customer details from order:', {
                     customerName,
                     customerEmail,
                     customerAddress,
                     customerPhone,
-                    tripNumber: selectedTrip.tripNumber
+                    orderNumber: selectedOrder.orderNumber
                 });
 
                 setNewInvoice(prev => ({
                     ...prev,
-                    tripId: tripId,
+                    tripId: orderId, // Keep tripId field name for backend compatibility
+                    orderId: orderId, // Also set orderId
                     clientName: customerName,
                     clientEmail: customerEmail,
                     clientAddress: customerAddress,
                     clientPhone: customerPhone,
                 }));
             } else {
-                console.log('No trip found with ID or trip has no orders:', tripId);
+                console.log('No order found with ID:', orderId);
                 setNewInvoice(prev => ({
                     ...prev,
-                    tripId: tripId
+                    tripId: orderId, // Keep tripId field name for backend compatibility
+                    orderId: orderId
                 }));
             }
         };
@@ -1785,6 +1798,7 @@ const InvoiceManagement: React.FC = () => {
                         clientAddress: '',
                         clientPhone: '',
                         tripId: '',
+                        orderId: '',
                         amount: '',
                         currency: 'USD',
                         dueDate: '',
@@ -1831,31 +1845,32 @@ const InvoiceManagement: React.FC = () => {
                         <div className="space-y-4">
                             <div>
                                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                                    Select Trip (Optional)
+                                    Select Order (Optional)
                                 </label>
                                 <select
                                     value={newInvoice.tripId}
-                                    onChange={(e) => handleTripSelect(e.target.value)}
+                                    onChange={(e) => handleOrderSelect(e.target.value)}
                                     className="w-full border border-gray-300 rounded-md px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                                     disabled={loading}
                                 >
                                     <option value="">
-                                        {loading ? "Loading trips..." : trips.length === 0 ? "No trips available - Check console for details" : "Select a trip..."}
+                                        {loading ? "Loading orders..." : orders.length === 0 ? "No completed orders available" : "Select an order..."}
                                     </option>
-                                    {trips.map((trip) => {
-                                        const tripId = trip._id;
-                                        const tripNumber = trip.tripNumber || 'Unknown Trip';
-                                        const startLocation = trip.startLocation?.place || trip.orders?.[0]?.pickupLocation?.place || "N/A";
-                                        const endLocation = trip.endLocation?.place || trip.orders?.[trip.orders.length - 1]?.deliveryLocation?.place || "N/A";
-                                        const customer = trip.orders?.[0]?.customer;
+                                    {orders.map((order) => {
+                                        const orderId = order._id;
+                                        const orderNumber = order.orderNumber || 'Unknown Order';
+                                        const pickupLocation = order.pickupLocation?.place || order.pickupLocation?.placeId?.name || order.pickupLocation?.placeId?.currentLocation?.address || "N/A";
+                                        const deliveryLocation = order.deliveryLocation?.place || order.deliveryLocation?.placeId?.name || order.deliveryLocation?.placeId?.currentLocation?.address || "N/A";
+                                        const customer = order.customer;
                                         const customerName = customer?.name || '';
                                         const customerEmail = customer?.email || '';
+                                        const customerOrderNo = order.customerOrderNo || '';
 
                                         return (
-                                            <option key={tripId} value={tripId}>
-                                                {tripNumber} - {startLocation} → {endLocation}
+                                            <option key={orderId} value={orderId}>
+                                                {orderNumber} {customerOrderNo && `(PO: ${customerOrderNo})`} - {pickupLocation} → {deliveryLocation}
                                                 {customerName && ` (${customerName})`}
-                                                {customerEmail && ` [Email: ${customerEmail}]`}
+                                                {customerEmail && ` [${customerEmail}]`}
                                             </option>
                                         );
                                     })}
@@ -1863,8 +1878,8 @@ const InvoiceManagement: React.FC = () => {
 
                                 <div className="flex items-center justify-between mt-1">
                                     <p className="text-xs text-gray-500">
-                                        Selecting a trip will auto-fill customer details if available
-                                        {trips.length > 0 && ` (${trips.length} trips available)`}
+                                        Selecting an order will auto-fill customer details if available
+                                        {orders.length > 0 && ` (${orders.length} completed orders available)`}
                                     </p>
                                     {newInvoice.tripId && (
                                         <button
@@ -1873,6 +1888,7 @@ const InvoiceManagement: React.FC = () => {
                                                 setNewInvoice(prev => ({
                                                     ...prev,
                                                     tripId: '',
+                                                    orderId: '',
                                                     clientName: '',
                                                     clientEmail: '',
                                                     clientAddress: '',
@@ -1887,7 +1903,7 @@ const InvoiceManagement: React.FC = () => {
                                 </div>
                                 {newInvoice.tripId && !newInvoice.clientName && (
                                     <p className="text-xs text-amber-600 mt-1">
-                                        ⚠️ Selected trip has no customer name - please fill manually
+                                        ⚠️ Selected order has no customer name - please fill manually
                                     </p>
                                 )}
                                 {newInvoice.tripId && newInvoice.clientName && !newInvoice.clientEmail && (
@@ -1901,7 +1917,7 @@ const InvoiceManagement: React.FC = () => {
                                 <label className="block text-sm font-medium text-gray-700 mb-1">
                                     Client Name *
                                     {newInvoice.tripId && newInvoice.clientName && (
-                                        <span className="text-xs text-green-600 ml-2">✓ Auto-filled from trip</span>
+                                        <span className="text-xs text-green-600 ml-2">✓ Auto-filled from order</span>
                                     )}
                                 </label>
                                 <input
@@ -1921,7 +1937,7 @@ const InvoiceManagement: React.FC = () => {
                                 <label className="block text-sm font-medium text-gray-700 mb-1">
                                     Client Email
                                     {newInvoice.tripId && newInvoice.clientEmail && (
-                                        <span className="text-xs text-green-600 ml-2">✓ Auto-filled from trip</span>
+                                        <span className="text-xs text-green-600 ml-2">✓ Auto-filled from order</span>
                                     )}
                                 </label>
                                 <input
