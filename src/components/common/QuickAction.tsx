@@ -190,16 +190,6 @@ export const useQuickActions = () => {
             keywords: ['issues', 'problems', 'reports'],
             roles: ['hr']
         },
-        {
-            id: 'hr-accounts',
-            type: 'navigation',
-            title: 'Accounts',
-            description: 'Go to Accounts',
-            path: '/accounts',
-            icon: <DollarSign size={16} />,
-            keywords: ['accounts', 'finance', 'money'],
-            roles: ['hr']
-        },
 
         // Compliance Specific Routes
         {
@@ -649,7 +639,7 @@ export const useQuickActions = () => {
             roles: ['safety']
         },
 
-        // HR & Accounts Actions (Unified for HR Role)
+        // HR Actions (HR only has access to Management portal)
         {
             id: 'hr-management-home',
             type: 'navigation',
@@ -741,116 +731,116 @@ export const useQuickActions = () => {
             roles: ['hr']
         },
 
-        // Accounts Actions for HR Role
+        // Accounts Actions for Accountant Role
         {
-            id: 'hr-accounts-dashboard',
+            id: 'accountant-accounts-dashboard',
             type: 'navigation',
             title: 'Accounts Dashboard',
             description: 'Financial overview',
             path: '/accounts',
             icon: <DollarSign size={16} />,
-            keywords: ['hr', 'accounts', 'finance', 'dashboard'],
-            roles: ['hr']
+            keywords: ['accountant', 'accounts', 'finance', 'dashboard'],
+            roles: ['accountant']
         },
         {
-            id: 'hr-settlements',
+            id: 'accountant-settlements',
             type: 'navigation',
             title: 'Settlements',
             description: 'Manage settlements',
             path: '/accounts/settlements',
             icon: <FileCheck size={16} />,
-            keywords: ['hr', 'accounts', 'settlements', 'payment'],
-            roles: ['hr']
+            keywords: ['accountant', 'accounts', 'settlements', 'payment'],
+            roles: ['accountant']
         },
         {
-            id: 'hr-expenses',
+            id: 'accountant-expenses',
             type: 'navigation',
             title: 'Expense Management',
             description: 'Manage expenses',
             path: '/accounts/expenses',
             icon: <DollarSign size={16} />,
-            keywords: ['hr', 'accounts', 'expenses', 'costs'],
-            roles: ['hr']
+            keywords: ['accountant', 'accounts', 'expenses', 'costs'],
+            roles: ['accountant']
         },
         {
-            id: 'hr-invoicing',
+            id: 'accountant-invoicing',
             type: 'navigation',
             title: 'Invoicing',
             description: 'Manage invoices',
             path: '/accounts/invoice',
             icon: <FileText size={16} />,
-            keywords: ['hr', 'accounts', 'invoices', 'billing'],
-            roles: ['hr']
+            keywords: ['accountant', 'accounts', 'invoices', 'billing'],
+            roles: ['accountant']
         },
         {
-            id: 'hr-payroll',
+            id: 'accountant-payroll',
             type: 'navigation',
             title: 'Employees Payroll',
             description: 'Manage payroll',
             path: '/accounts/payroll',
             icon: <Users size={16} />,
-            keywords: ['hr', 'accounts', 'payroll', 'salary'],
-            roles: ['hr']
+            keywords: ['accountant', 'accounts', 'payroll', 'salary'],
+            roles: ['accountant']
         },
         {
-            id: 'hr-driver-payroll',
+            id: 'accountant-driver-payroll',
             type: 'navigation',
             title: 'Driver Payroll',
             description: 'Driver payments',
             path: '/accounts/driverpayroll',
             icon: <Truck size={16} />,
-            keywords: ['hr', 'accounts', 'driver', 'payroll'],
-            roles: ['hr']
+            keywords: ['accountant', 'accounts', 'driver', 'payroll'],
+            roles: ['accountant']
         },
         {
-            id: 'hr-fleet-finance',
+            id: 'accountant-fleet-finance',
             type: 'navigation',
             title: 'Fleet & Maint. Finance',
             description: 'Fleet financials',
             path: '/accounts/fleet-maintenance',
             icon: <Wrench size={16} />,
-            keywords: ['hr', 'accounts', 'fleet', 'maintenance', 'finance'],
-            roles: ['hr']
+            keywords: ['accountant', 'accounts', 'fleet', 'maintenance', 'finance'],
+            roles: ['accountant']
         },
         {
-            id: 'hr-receipts',
+            id: 'accountant-receipts',
             type: 'navigation',
             title: 'Receipts & Notes',
             description: 'View receipts',
             path: '/accounts/receipts-notes',
             icon: <FileText size={16} />,
-            keywords: ['hr', 'accounts', 'receipts', 'notes'],
-            roles: ['hr']
+            keywords: ['accountant', 'accounts', 'receipts', 'notes'],
+            roles: ['accountant']
         },
         {
-            id: 'hr-accounting-config',
+            id: 'accountant-accounting-config',
             type: 'navigation',
             title: 'Accounting Config',
             description: 'Finance settings',
             path: '/accounts/config',
             icon: <Settings size={16} />,
-            keywords: ['hr', 'accounts', 'config', 'settings'],
-            roles: ['hr']
+            keywords: ['accountant', 'accounts', 'config', 'settings'],
+            roles: ['accountant']
         },
         {
-            id: 'hr-cash-flow',
+            id: 'accountant-cash-flow',
             type: 'navigation',
             title: 'Cash Flow Insights',
             description: 'Financial insights',
             path: '/accounts/cash-flow-insights',
             icon: <DollarSign size={16} />,
-            keywords: ['hr', 'accounts', 'cash', 'flow', 'insights'],
-            roles: ['hr']
+            keywords: ['accountant', 'accounts', 'cash', 'flow', 'insights'],
+            roles: ['accountant']
         },
         {
-            id: 'hr-tax-setup',
+            id: 'accountant-tax-setup',
             type: 'navigation',
             title: 'Tax Setup',
             description: 'Tax management',
             path: '/accounts/tax-setup',
             icon: <DollarSign size={16} />,
-            keywords: ['hr', 'accounts', 'tax', 'setup'],
-            roles: ['hr']
+            keywords: ['accountant', 'accounts', 'tax', 'setup'],
+            roles: ['accountant']
         },
         {
             id: 'dispatch-profile',

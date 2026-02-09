@@ -19,11 +19,12 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed }) => {
     const navigate = useNavigate();
     const location = useLocation();
     const isHR = userRole === 'hr';
+    const isAccountant = userRole === 'accountant';
 
     // Transform paths based on user role
     const transformPath = (path: string): string => {
-        if (isHR) {
-            // Remove /admin prefix for HR
+        if (isHR || isAccountant) {
+            // Remove /admin prefix for HR and accountant
             return path.replace(/^\/admin\//, '/');
         }
         return path;
@@ -43,14 +44,9 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed }) => {
 
         const links = AccountSidebarlinks.map(transformLink);
 
-        // Add Management link for HR
-        if (isHR) {
-            links.unshift({
-                key: "/Management",
-                icon: <FaUsers />,
-                label: "Management",
-            });
-        }
+        // HR no longer has access to Management portal from Accounts
+        // Management portal is only accessible via /Management route for HR
+        // Accounts portal is now only for accountant role
 
         return links;
     }, [isHR]);
@@ -68,7 +64,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed }) => {
     };
 
     const isActiveLink = (linkKey: string, isActive: boolean, pathname: string) => {
-        const basePath = isHR ? "/accounts" : "/admin/accounts";
+        const basePath = (isHR || isAccountant) ? "/accounts" : "/admin/accounts";
         if (linkKey === basePath) {
             return (
                 pathname === basePath ||

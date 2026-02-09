@@ -15,7 +15,7 @@ export const useExpiringDocuments = () => {
     // Type assertion to handle the nested userData structure
     const userData = (userInfo as any)?.userData;
 
-    // Check if we're in HR panel routes
+    // Check if we're in HR or Accountant panel routes
     const isHRPanel = location.pathname.startsWith('/Management') || location.pathname.startsWith('/accounts');
 
     // Check for expiring documents continuously (only in HR panel)
@@ -113,7 +113,7 @@ export const useExpiringDocuments = () => {
                 }
             }
             
-            if (!effectiveUserInfo || !effectiveUserData || !['admin', 'hr', 'superadmin'].includes(effectiveUserData.role)) {
+            if (!effectiveUserInfo || !effectiveUserData || !['admin', 'hr', 'accountant', 'superadmin'].includes(effectiveUserData.role)) {
                 return;
             }
 

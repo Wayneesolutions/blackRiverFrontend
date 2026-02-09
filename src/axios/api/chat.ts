@@ -3,10 +3,71 @@ import apiClient from "../apiClient";
 
 
 
+export interface TripStatusData {
+  driver: {
+    name: string;
+    email: string;
+    phone?: string;
+    status: string;
+  };
+  activeTrips: Array<{
+    tripNumber: string;
+    status: string;
+    plannedStartDate?: string;
+    actualStartDate?: string;
+    plannedEndDate?: string;
+    startLocation: string;
+    endLocation: string;
+    ordersCount: number;
+    truck: string;
+    trailer: string;
+  }>;
+  activeOrders: Array<{
+    orderNumber: string;
+    status: string;
+    pickupDate?: string;
+    deliveryDate?: string;
+    actualStartDate?: string;
+    pickupLocation: string;
+    deliveryLocation: string;
+    customer: string;
+    truck: string;
+    trailer: string;
+  }>;
+  pendingTrips: Array<{
+    tripNumber: string;
+    status: string;
+    plannedStartDate?: string;
+    startLocation: string;
+    endLocation: string;
+    ordersCount: number;
+  }>;
+  pendingOrders: Array<{
+    orderNumber: string;
+    status: string;
+    pickupDate?: string;
+    deliveryDate?: string;
+    pickupLocation: string;
+    deliveryLocation: string;
+    customer: string;
+  }>;
+  aiSummary?: string;
+  summary: {
+    hasActiveTrips: boolean;
+    hasActiveOrders: boolean;
+    hasPendingTrips: boolean;
+    hasPendingOrders: boolean;
+    isCurrentlyDriving: boolean;
+    totalActive: number;
+    totalPending: number;
+  };
+}
+
 export interface ChatMessage {
   _id: string;
   tripId?: string; // Optional for backward compatibility
   orderId?: string; // New field for orders
+  driverId?: string; // New field for driver chat
   senderId: {
     _id: string;
     name: string;
@@ -19,6 +80,7 @@ export interface ChatMessage {
   fileName?: string;
   fileType?: "image" | "pdf" | "document" | "other";
   fileSize?: number;
+  tripStatus?: TripStatusData; // Trip status data from AI
   readBy: Array<{
     userId: string;
     readAt: string;
@@ -241,6 +303,100 @@ export const getOrderUnreadMessageCount = async (
     return res.data;
   } catch (error) {
     console.error("Get order unread count error:", error);
+    return {
+      success: false,
+      data: { unreadCount: 0 },
+    };
+  }
+};
+
+// ===== DRIVER CHAT FUNCTIONS =====
+
+// Get chat messages for a driver
+export const getDriverChatMessages = async (
+  driverId: string,
+  page: number = 1,
+  limit: number = 50
+): Promise<ChatMessagesResponse> => {
+  try {
+    const res: AxiosResponse = await apiClient.get(
+      `chat/driver/${driverId}/messages`,
+      {
+        params: { page, limit },
+      }
+    );
+    return res.data;
+  } catch (error) {
+    console.error("Get driver chat messages error:", error);
+    return {
+      success: false,
+      message: (error as any).response?.data?.message || "Failed to fetch chat messages",
+      data: { messages: [], pagination: { current: 1, pages: 0, total: 0, limit: 50 } },
+    };
+  }
+};
+
+// Send a chat message to a driver (with optional file)
+export const sendDriverChatMessage = async (
+  driverId: string,
+  message: string,
+  file?: File
+): Promise<{ success: boolean; data?: ChatMessage; message: string }> => {
+  try {
+    const formData = new FormData();
+    formData.append("message", message);
+    if (file) {
+      formData.append("file", file);
+    }
+
+    const res: AxiosResponse = await apiClient.post(
+      `chat/driver/${driverId}/message`,
+      formData,
+      {
+        headers: {
+          "Content-Type": "multipart/form-data",
+        },
+      }
+    );
+    return res.data;
+  } catch (error) {
+    console.error("Send driver chat message error:", error);
+    return {
+      success: false,
+      message: (error as any).response?.data?.message || "Failed to send message",
+    };
+  }
+};
+
+// Mark driver messages as read
+export const markDriverMessagesAsRead = async (
+  driverId: string
+): Promise<{ success: boolean; message: string; count?: number }> => {
+  try {
+    const res: AxiosResponse = await apiClient.post(
+      `chat/driver/${driverId}/mark-read`
+    );
+    return res.data;
+  } catch (error) {
+    console.error("Mark driver messages as read error:", error);
+    return {
+      success: false,
+      message: (error as any).response?.data?.message || "Failed to mark messages as read",
+    };
+  }
+};
+
+// Get unread message count for a driver
+export const getDriverUnreadMessageCount = async (
+  driverId: string
+): Promise<{ success: boolean; data: { unreadCount: number } }> => {
+  try {
+    const res: AxiosResponse = await apiClient.get(
+      `chat/driver/${driverId}/unread-count`
+    );
+    return res.data;
+  } catch (error) {
+    console.error("Get driver unread count error:", error);
     return {
       success: false,
       data: { unreadCount: 0 },

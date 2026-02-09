@@ -13,6 +13,7 @@ import {
   FaBoxOpen,
   FaUserClock,
   FaHistory,
+  FaComments,
 } from "react-icons/fa";
 
 type DispatchSidebarLinks = {
@@ -87,6 +88,11 @@ export const DispatchSidebarLinks: DispatchSidebarLinks[] = [
     key: "/admin/dispatch/audit",
     icon: <FaHistory />,
     label: "Audit Trail",
+  },
+  {
+    key: "/admin/dispatch/chat",
+    icon: <FaComments />,
+    label: "Chat",
   },
 
 ];

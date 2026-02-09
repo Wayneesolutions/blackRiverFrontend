@@ -25,6 +25,7 @@ const Deliveries = lazy(() => import("../../pages/admin/dispatch/operations/deli
 const Pickups = lazy(() => import("../../pages/admin/dispatch/operations/pickups/index"))
 const DriversOnLeave = lazy(() => import("../../pages/admin/dispatch/operations/drivers-on-leave/index"))
 const AuditTrail = lazy(() => import("../../pages/admin/dispatch/operations/audit/index"))
+const ChatPage = lazy(() => import("../../pages/admin/dispatch/chat/index"))
 
 
 function DispatchRoutes() {
@@ -56,6 +57,7 @@ function DispatchRoutes() {
           <Route path="/pickups" element={<Pickups />} />
           <Route path="/drivers-on-leave" element={<DriversOnLeave />} />
           <Route path="/audit" element={<AuditTrail />} />
+          <Route path="/chat" element={<ChatPage />} />
        
 
 

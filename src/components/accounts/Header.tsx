@@ -24,9 +24,10 @@ function Header({ onToggleSidebar }: { onToggleSidebar: () => void }) {
   const navigate = useNavigate();
   const userRole = getUserRole();
   const isHR = userRole === 'hr';
+  const isAccountant = userRole === 'accountant';
   const { filterActions } = useQuickActions();
 
-  const filteredActions = filterActions(searchQuery, isHR ? 'hr' : 'admin');
+  const filteredActions = filterActions(searchQuery, (isHR || isAccountant) ? (isAccountant ? 'accountant' : 'hr') : 'admin');
 
   // Close dropdowns when clicking outside
   useEffect(() => {
@@ -87,7 +88,7 @@ function Header({ onToggleSidebar }: { onToggleSidebar: () => void }) {
   };
 
   const getProfilePath = () => {
-    const basePath = isHR ? '/accounts' : '/admin/accounts';
+    const basePath = (isHR || isAccountant) ? '/accounts' : '/admin/accounts';
     return `${basePath}/profile`;
   };
 

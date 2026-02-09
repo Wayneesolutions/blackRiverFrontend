@@ -4,6 +4,7 @@ import SuperAdminRoute from "./SuperAdminRoute";
 import AdminRoute from "./AdminRoute";
 import DispatcherRoute from "./DispatcherRoute";
 import HRRoute from "./HRRoute";
+import AccountantRoute from "./AccountantRoute";
 import FleetMaintenanceRoute from "./FleetMaintenanceRoute";
 import ComplianceRoute from "./ComplianceRoute";
 import SafetyOfficerRoute from "./SafetyOfficerRoute";
@@ -56,7 +57,9 @@ const AppRoutes = () => {
       
       {/* HR routes (without /admin prefix) */}
       <Route path='/Management/*' element={<HRRoute />}></Route>
-      <Route path='/accounts/*' element={<HRRoute />}></Route>
+      
+      {/* Accountant routes (without /admin prefix) */}
+      <Route path='/accounts/*' element={<AccountantRoute />}></Route>
       
       {/* Fleet Maintenance Manager routes (without /admin prefix) */}
       <Route path='/fleetmaintenance/*' element={<FleetMaintenanceRoute />}></Route>

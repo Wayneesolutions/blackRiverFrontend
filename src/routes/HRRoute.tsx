@@ -6,7 +6,6 @@ import ErrorBoundary from "../components/common/ErrorBoundary";
 import { getUserRole } from "../utils/auth";
 
 const HRManagementRoutes = lazy(() => import("./AdminFeatures/HRManagementRoutes"));
-const AccountsRoutes = lazy(() => import("./AdminFeatures/AccountsRoutes"));
 
 // Debug wrapper to log route changes
 const RouteDebugger = ({ children }: { children: React.ReactNode }) => {
@@ -26,9 +25,8 @@ function HRRoute() {
     return <Navigate to="/" replace />;
   }
 
-  // Determine which route component to render based on pathname
-  const isAccountsRoute = location.pathname.startsWith('/accounts');
-
+  // HR only has access to Management portal (Human Resource Portal)
+  // Accounts portal is now only for accountant role
   return (
     <Suspense fallback={<Loading />}>
       <RouteDebugger>
@@ -37,11 +35,7 @@ function HRRoute() {
           <Route 
             path="*" 
             element={
-              isAccountsRoute ? (
-                <ErrorBoundary><AccountsRoutes /></ErrorBoundary>
-              ) : (
-                <ErrorBoundary><HRManagementRoutes /></ErrorBoundary>
-              )
+              <ErrorBoundary><HRManagementRoutes /></ErrorBoundary>
             } 
           />
         </Routes>

@@ -218,6 +218,63 @@ class SocketService {
 
   // Note: Backend uses joinTripChat for both trips and orders
   // So we use joinTripChat for orders as well
+
+  // Join driver chat room
+  joinDriverChat(driverId: string): Promise<void> {
+    return new Promise((resolve, reject) => {
+      if (!this.socket || !this.isAuthenticated) {
+        reject(new Error("Socket not connected or authenticated"));
+        return;
+      }
+
+      const timeout = setTimeout(() => {
+        reject(new Error("Join driver chat timeout"));
+      }, 5000);
+
+      this.socket.emit("joinDriverChat", driverId);
+
+      this.socket.once("joinedDriverChat", (data) => {
+        clearTimeout(timeout);
+        console.log("✅ Joined driver chat:", data);
+        resolve();
+      });
+
+      this.socket.once("error", (error) => {
+        clearTimeout(timeout);
+        reject(new Error(error.message || "Failed to join driver chat"));
+      });
+    });
+  }
+
+  // Leave driver chat room
+  leaveDriverChat(driverId: string) {
+    if (this.socket) {
+      this.socket.emit("leaveDriverChat", driverId);
+    }
+  }
+
+  // Send driver chat message via socket
+  sendDriverChatMessage(data: {
+    driverId: string;
+    message: string;
+    fileUrl?: string;
+    fileName?: string;
+    fileType?: string;
+    fileSize?: number;
+  }) {
+    if (this.socket && this.isAuthenticated) {
+      this.socket.emit("sendDriverChatMessage", data);
+    } else {
+      console.error("Socket not connected or authenticated");
+    }
+  }
+
+  // Typing indicator for driver chat
+  setDriverTyping(driverId: string, isTyping: boolean) {
+    if (this.socket && this.isAuthenticated) {
+      this.socket.emit("driverTyping", { driverId, isTyping });
+    }
+  }
 }
 
 // Export singleton instance

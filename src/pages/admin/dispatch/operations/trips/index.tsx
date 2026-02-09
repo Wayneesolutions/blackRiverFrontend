@@ -1100,7 +1100,6 @@ const Trips = () => {
                     <th className="px-4 py-3 text-left text-xs font-semibold text-gray-700 uppercase">Orders</th>
                     <th className="px-4 py-3 text-left text-xs font-semibold text-gray-700 uppercase">Start Date</th>
                     <th className="px-4 py-3 text-left text-xs font-semibold text-gray-700 uppercase">Status</th>
-                    <th className="px-4 py-3 text-center text-xs font-semibold text-gray-700 uppercase">Chat</th>
                     <th className="px-4 py-3 text-left text-xs font-semibold text-gray-700 uppercase">Actions</th>
                   </tr>
                 </thead>
@@ -1197,28 +1196,6 @@ const Trips = () => {
                           <option value="completed">Completed</option>
                           <option value="canceled">Canceled</option>
                         </select>
-                      </td>
-                      <td className="px-4 py-3 whitespace-nowrap">
-                        <div className="flex items-center justify-center">
-                          <button
-                            onClick={() => {
-                              setViewingTrip(trip);
-                              setShowChat(true);
-                            }}
-                            className="relative p-2 rounded-lg transition-colors hover:bg-blue-50"
-                            title="Open Chat"
-                          >
-                            <MessageCircle
-                              className="w-5 h-5"
-                              style={{ color: unreadCounts[trip._id] > 0 ? FLEET_COLORS.primary : '#9CA3AF' }}
-                            />
-                            {unreadCounts[trip._id] > 0 && (
-                              <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs font-bold rounded-full w-5 h-5 flex items-center justify-center animate-pulse">
-                                {unreadCounts[trip._id] > 99 ? '99+' : unreadCounts[trip._id]}
-                              </span>
-                            )}
-                          </button>
-                        </div>
                       </td>
                       <td className="px-4 py-3 whitespace-nowrap">
                         <div className="flex items-center gap-2">
@@ -1346,18 +1323,10 @@ const Trips = () => {
       {/* View Trip Modal */}
       {viewingTrip && (
         <div className="fixed inset-0 z-[10001] bg-gray-900/50 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className={`bg-white rounded-xl shadow-2xl ${showChat ? 'w-full max-w-5xl' : 'w-full max-w-3xl'} max-h-[90vh] h-[90vh] overflow-hidden flex flex-col`}>
+          <div className="bg-white rounded-xl shadow-2xl w-full max-w-3xl max-h-[90vh] h-[90vh] overflow-hidden flex flex-col">
             <div className="flex-shrink-0 bg-white border-b px-6 py-4 flex items-center justify-between rounded-t-xl">
               <h3 className="text-xl font-bold text-gray-800">Trip Details: {viewingTrip.tripNumber}</h3>
               <div className="flex items-center gap-2">
-                <button
-                  onClick={() => setShowChat(!showChat)}
-                  className="p-2 hover:bg-gray-100 rounded-lg transition-colors flex items-center gap-2"
-                  title="Open Chat"
-                >
-                  <MessageCircle className="w-5 h-5 text-blue-600" />
-                  <span className="text-sm text-gray-700">Chat</span>
-                </button>
                 <button
                   onClick={() => {
                     setViewingTrip(null);
@@ -1369,30 +1338,7 @@ const Trips = () => {
                 </button>
               </div>
             </div>
-            {showChat ? (
-              <div className="flex-1 overflow-hidden min-h-0 flex flex-col">
-                {isOrderChat ? (
-                  <OrderChat
-                    orderId={viewingTrip._id}
-                    orderNumber={(viewingTrip as any).orderNumber || viewingTrip.tripNumber || viewingTrip._id}
-                    onClose={() => {
-                      setShowChat(false);
-                      setIsOrderChat(false);
-                      setViewingTrip(null);
-                    }}
-                  />
-                ) : (
-                  <TripChat
-                    tripId={viewingTrip._id}
-                    tripNumber={viewingTrip.tripNumber}
-                    onClose={() => {
-                      setShowChat(false);
-                      setViewingTrip(null);
-                    }}
-                  />
-                )}
-              </div>
-            ) : (
+            <div className="flex-1 overflow-hidden min-h-0 flex flex-col">
               <div className="p-6 space-y-6 overflow-y-auto flex-1">
                 {/* Trip Info */}
                 <div className="grid grid-cols-2 gap-4">

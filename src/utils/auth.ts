@@ -167,6 +167,8 @@ export const getDashboardRoute = (): string => {
       return '/dispatch';
     case 'hr':
       return '/Management';
+    case 'accountant':
+      return '/accounts';
     case 'Fleet Maintenance Manager':
       return '/fleetmaintenance';
     case 'Compliance Manager':

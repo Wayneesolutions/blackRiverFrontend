@@ -1162,22 +1162,19 @@ const OrderList = () => {
                 <th className="px-4 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
                   Carrier
                 </th>
-                <th className="px-4 py-3 text-center text-xs font-semibold text-gray-700 uppercase tracking-wider">
-                  Chat
-                </th>
               </tr>
             </thead>
             <tbody className="bg-white divide-y divide-gray-200">
               {loading ? (
                 <tr>
-                  <td colSpan={25} className="px-6 py-12 text-center text-gray-500">
+                  <td colSpan={24} className="px-6 py-12 text-center text-gray-500">
                     <div className="animate-spin rounded-full h-8 w-8 border-b-2 mx-auto" style={{ borderBottomColor: PRIMARY_COLOR }}></div>
                     <p className="mt-2">Loading orders...</p>
                   </td>
                 </tr>
               ) : paginatedOrders.length === 0 ? (
                 <tr>
-                  <td colSpan={25} className="px-6 py-12 text-center text-gray-500">
+                  <td colSpan={24} className="px-6 py-12 text-center text-gray-500">
                     <p className="text-lg font-medium">No orders found</p>
                     <p className="text-sm">Create a new order to get started</p>
                   </td>
@@ -1409,30 +1406,6 @@ const OrderList = () => {
                       </td>
                       <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-900">
                         {carrierName}
-                      </td>
-                      {/* Chat Icon */}
-                      <td className="px-4 py-4 whitespace-nowrap text-center">
-                        <button
-                          onClick={(e) => {
-                            e.stopPropagation(); // Prevent row click event
-                            // Only update URL if chat is not already open for this order
-                            if (!showChat || chatOrderId !== order.id) {
-                              setChatOrderId(order.id);
-                              setChatOrderNumber(order.orderNo);
-                              setShowChat(true);
-                              // URL will be updated by useEffect only if needed
-                            }
-                          }}
-                          className="relative inline-flex items-center justify-center text-[#42aeec] hover:text-[#1db5f5] transition-colors"
-                          title="Open chat"
-                        >
-                          <MessageCircle className="w-5 h-5" />
-                          {unreadCounts[order.id] > 0 && (
-                            <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full w-4 h-4 flex items-center justify-center font-semibold">
-                              {unreadCounts[order.id] > 9 ? '9+' : unreadCounts[order.id]}
-                            </span>
-                          )}
-                        </button>
                       </td>
                     </tr>
                   );

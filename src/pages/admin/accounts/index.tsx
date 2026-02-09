@@ -52,8 +52,8 @@ const Dashboard = () => {
   const navigate = useNavigate();
   const userRole = getUserRole();
   // Determine route prefix based on user role
-  // HR users access via /accounts/*, admin users via /admin/accounts/*
-  const routePrefix = userRole === 'hr' ? '/accounts' : '/admin/accounts';
+  // Accountant and HR users access via /accounts/*, admin users via /admin/accounts/*
+  const routePrefix = (userRole === 'hr' || userRole === 'accountant') ? '/accounts' : '/admin/accounts';
   
   const [invoices, setInvoices] = useState<Invoice[]>([]);
   const [expenses, setExpenses] = useState<Expense[]>([]);

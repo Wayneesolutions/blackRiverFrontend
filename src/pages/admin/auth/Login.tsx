@@ -36,6 +36,8 @@ export default function LoginPage() {
             navigate('/dispatch', { replace: true });
           } else if (userRole === 'hr') {
             navigate('/Management', { replace: true });
+          } else if (userRole === 'accountant') {
+            navigate('/accounts', { replace: true });
           } else if (userRole === 'Fleet Maintenance Manager') {
             navigate('/fleetmaintenance', { replace: true });
           } else if (userRole === 'Compliance Manager') {
@@ -201,6 +203,8 @@ export default function LoginPage() {
           navigate('/dispatch', { replace: true });
         } else if (userRole === 'hr') {
           navigate('/Management', { replace: true });
+        } else if (userRole === 'accountant') {
+          navigate('/accounts', { replace: true });
         } else if (userRole === 'Fleet Maintenance Manager') {
           navigate('/fleetmaintenance', { replace: true });
         } else if (userRole === 'Compliance Manager') {

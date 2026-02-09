@@ -42,14 +42,8 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed }) => {
 
     const links = DriverSidebarLinks.map(transformLink);
 
-    // Add Accounts link for HR
-    if (isHR) {
-      links.push({
-        key: "/accounts",
-        icon: <FaMoneyBillWave />,
-        label: "Accounts",
-      });
-    }
+    // HR no longer has access to Accounts portal
+    // Accounts portal is now only for accountant role
 
     return links;
   }, [isHR]);

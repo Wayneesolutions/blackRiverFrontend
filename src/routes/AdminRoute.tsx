@@ -66,6 +66,11 @@ function AdminRoute() {
   if (userRole === 'safety officer') {
     return <Navigate to="/healthandsafety" replace />;
   }
+  
+  // If accountant tries to access admin routes, redirect to accounts routes (without /admin prefix)
+  if (userRole === 'accountant') {
+    return <Navigate to="/accounts" replace />;
+  }
 
   return (
     <Suspense fallback={<Loading />}>
