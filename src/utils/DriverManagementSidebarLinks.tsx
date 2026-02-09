@@ -11,6 +11,7 @@ import { FaIdCard } from "react-icons/fa";       // Driver Portfolio
 import { FaFolderOpen } from "react-icons/fa";   // Company Documents
 import { FaUsers } from "react-icons/fa";        // Customers
 import { FaFlask } from "react-icons/fa";        // Drug Test
+import { FaGraduationCap } from "react-icons/fa"; // Training & Test Management
 
 
 type DriverSidebarLink = {
@@ -62,9 +63,9 @@ export const DriverSidebarLinks: DriverSidebarLink[] = [
     label: "Driver Portfolio",
   },
   {
-    key: "/admin/Management/training-certificates",
-    icon: <MdSchool />,
-    label: "Training Certificates",
+    key: "/admin/Management/driver-training-center",
+    icon: <FaGraduationCap />,
+    label: "Driver Training Center",
   },
   {
     key: "/admin/Management/drug-test",

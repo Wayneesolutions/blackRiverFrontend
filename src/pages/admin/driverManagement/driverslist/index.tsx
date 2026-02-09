@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
-import { Edit, Trash2, Plus, X, RefreshCw, User, Search, FileText,  MapPin, DollarSign, Upload, Save, ChevronUp, ChevronDown, Calendar, Award, AlertTriangle, FileText as FileTextIcon, PlusCircle, Check } from 'lucide-react';
+import { Edit, Trash2, Plus, X, RefreshCw, User, Search, FileText,  MapPin, DollarSign, Upload, Save, ChevronUp, ChevronDown, Calendar, Award, AlertTriangle, FileText as FileTextIcon, PlusCircle, Check, ClipboardCheck } from 'lucide-react';
 import { FaCheckCircle, FaExclamationCircle, FaTimes } from 'react-icons/fa';
 import * as driverApi from '../../../../axios/api/driver';
 import { listDriver } from '../../../../axios/api/distapcher';
@@ -172,7 +172,7 @@ const DriverManagement = () => {
   });
   const [showNewDriverModal, setShowNewDriverModal] = useState(false);
   const [editingDriver, setEditingDriver] = useState<Driver | null>(null);
-  const [activeFormTab, setActiveFormTab] = useState<'basic' | 'personal' | 'travel' | 'documents' | 'certifications' | 'violations' | 'notes' | 'deductions' | 'additions'>('basic');
+  const [activeFormTab, setActiveFormTab] = useState<'basic' | 'personal' | 'travel' | 'documents' | 'certifications' | 'violations' | 'notes' | 'deductions' | 'additions' | 'onboarding'>('basic');
   const tableScrollRef = useRef<HTMLDivElement>(null);
   const topScrollRef = useRef<HTMLDivElement>(null);
   const topScrollContentRef = useRef<HTMLDivElement>(null);
@@ -502,6 +502,21 @@ const DriverManagement = () => {
     currency: 'CAD'
   });
   const [editingAdditionId, setEditingAdditionId] = useState<string | null>(null);
+
+  // Form state for Onboarding & Tests
+  const [onboardingStatus, setOnboardingStatus] = useState<'PENDING_TESTS' | 'IN_PROGRESS' | 'WAITING_FOR_HR_APPROVAL' | 'APPROVED' | 'REJECTED'>('PENDING_TESTS');
+  const [handlesHazardousLoads, setHandlesHazardousLoads] = useState<boolean>(false);
+  const [winterTestRequired, setWinterTestRequired] = useState<boolean>(false);
+  const [approvedByHR, setApprovedByHR] = useState<boolean>(false);
+  const [approvedAt, setApprovedAt] = useState<string>('');
+  const [driverTests, setDriverTests] = useState<Array<{
+    id: string;
+    testType: 'TDG' | 'VEHICLE' | 'HOS' | 'WINTER';
+    score: number;
+    passed: boolean;
+    attempts: number;
+    completedAt: string;
+  }>>([]);
 
   // Fetch drivers from API
   const fetchDrivers = async () => {
@@ -916,6 +931,68 @@ const DriverManagement = () => {
               setNotes(notesArray);
             } else {
               setNotes([]);
+            }
+
+            // Load onboarding data
+            try {
+              // Load onboarding status
+              if (driver.onboardingStatus) {
+                setOnboardingStatus(driver.onboardingStatus);
+              } else {
+                setOnboardingStatus('PENDING_TESTS');
+              }
+
+              // Load hazardous loads flag
+              if (driver.handlesHazardousLoads !== undefined) {
+                setHandlesHazardousLoads(driver.handlesHazardousLoads);
+              } else {
+                setHandlesHazardousLoads(false);
+              }
+
+              // Load winter test flag
+              if (driver.winterTestRequired !== undefined) {
+                setWinterTestRequired(driver.winterTestRequired);
+              } else {
+                setWinterTestRequired(false);
+              }
+
+              // Load HR approval data
+              if (driver.approvedByHR !== undefined) {
+                setApprovedByHR(driver.approvedByHR);
+              } else {
+                setApprovedByHR(false);
+              }
+
+              if (driver.approvedAt) {
+                setApprovedAt(new Date(driver.approvedAt).toISOString().split('T')[0]);
+              } else {
+                setApprovedAt('');
+              }
+
+              // Load test results (assuming driverTests array or similar structure)
+              if (driver.driverTests && Array.isArray(driver.driverTests) && driver.driverTests.length > 0) {
+                const existingTests = driver.driverTests.map((test: any) => ({
+                  id: test._id || test.id || `test-${Date.now()}-${Math.random()}`,
+                  testType: test.testType || 'TDG',
+                  score: test.score || 0,
+                  passed: test.passed || false,
+                  attempts: test.attempts || 1,
+                  completedAt: test.completedAt ? new Date(test.completedAt).toISOString() : ''
+                }));
+                setDriverTests(existingTests);
+                console.log(`✅ Test results loaded (${existingTests.length} tests)`);
+              } else {
+                setDriverTests([]);
+              }
+            } catch (onboardingError) {
+              console.error('Error loading onboarding data:', onboardingError);
+              // Set defaults
+              setOnboardingStatus('PENDING_TESTS');
+              setHandlesHazardousLoads(false);
+              setWinterTestRequired(false);
+              setApprovedByHR(false);
+              setApprovedAt('');
+              setDriverTests([]);
             }
 
             // Store original data for comparison (after state updates)
@@ -1979,6 +2056,14 @@ const DriverManagement = () => {
       currency: 'CAD'
     });
     setEditingAdditionId(null);
+    
+    // Reset onboarding data
+    setOnboardingStatus('PENDING_TESTS');
+    setHandlesHazardousLoads(false);
+    setWinterTestRequired(false);
+    setApprovedByHR(false);
+    setApprovedAt('');
+    setDriverTests([]);
     
     // Reset other states
     setProfileImagePreview(null);
@@ -3191,7 +3276,8 @@ const DriverManagement = () => {
                     { id: 'violations', label: 'Violations', icon: AlertTriangle },
                     { id: 'notes', label: 'Notes', icon: FileTextIcon },
                     { id: 'deductions', label: 'Deductions', icon: DollarSign },
-                    { id: 'additions', label: 'Additions', icon: PlusCircle }
+                    { id: 'additions', label: 'Additions', icon: PlusCircle },
+                    { id: 'onboarding', label: 'Onboarding & Tests', icon: ClipboardCheck }
                   ].map((tab) => {
                     const Icon = tab.icon;
                     const isActive = activeFormTab === tab.id;
@@ -6195,7 +6281,172 @@ const DriverManagement = () => {
                   </div>
                 )}
 
-                {activeFormTab !== 'basic' && activeFormTab !== 'personal' && activeFormTab !== 'travel' && activeFormTab !== 'documents' && activeFormTab !== 'certifications' && activeFormTab !== 'violations' && activeFormTab !== 'notes' && activeFormTab !== 'deductions' && activeFormTab !== 'additions' && (
+                {activeFormTab === 'onboarding' && (
+                  <div className="space-y-6">
+                    <h3 className="text-lg font-bold text-gray-900 mb-4">Onboarding & Tests</h3>
+
+                    {/* Section 1: Onboarding Status */}
+                    <div className="bg-gray-50 rounded-lg p-4 space-y-4">
+                      <h4 className="text-sm font-bold text-gray-900 mb-3">Onboarding Status</h4>
+                      
+                      <div className="flex items-center gap-4">
+                        <div className="flex-1">
+                          <label className="block text-xs font-medium text-gray-700 mb-2">Current Status</label>
+                          <div className="flex items-center gap-2">
+                            <span className={`px-3 py-1.5 rounded-lg text-xs font-medium ${
+                              onboardingStatus === 'APPROVED' ? 'bg-green-100 text-green-800' :
+                              onboardingStatus === 'REJECTED' ? 'bg-red-100 text-red-800' :
+                              onboardingStatus === 'WAITING_FOR_HR_APPROVAL' ? 'bg-yellow-100 text-yellow-800' :
+                              onboardingStatus === 'IN_PROGRESS' ? 'bg-blue-100 text-blue-800' :
+                              'bg-gray-100 text-gray-800'
+                            }`}>
+                              {onboardingStatus === 'PENDING_TESTS' ? 'Pending Tests' :
+                               onboardingStatus === 'IN_PROGRESS' ? 'In Progress' :
+                               onboardingStatus === 'WAITING_FOR_HR_APPROVAL' ? 'Waiting for HR Approval' :
+                               onboardingStatus === 'APPROVED' ? 'Approved' :
+                               'Rejected'}
+                            </span>
+                          </div>
+                        </div>
+                        
+                        <div className="flex gap-2">
+                          <button
+                            onClick={() => {
+                              setOnboardingStatus('APPROVED');
+                              setApprovedByHR(true);
+                              setApprovedAt(new Date().toISOString().split('T')[0]);
+                            }}
+                            className="px-3 py-1.5 bg-green-600 text-white text-xs font-medium rounded-lg hover:bg-green-700 transition-colors"
+                          >
+                            Approve
+                          </button>
+                          <button
+                            onClick={() => {
+                              setOnboardingStatus('REJECTED');
+                              setApprovedByHR(false);
+                            }}
+                            className="px-3 py-1.5 bg-red-600 text-white text-xs font-medium rounded-lg hover:bg-red-700 transition-colors"
+                          >
+                            Reject
+                          </button>
+                          <button
+                            onClick={() => {
+                              setOnboardingStatus('PENDING_TESTS');
+                              setApprovedByHR(false);
+                              setApprovedAt('');
+                              setDriverTests([]);
+                            }}
+                            className="px-3 py-1.5 bg-gray-600 text-white text-xs font-medium rounded-lg hover:bg-gray-700 transition-colors"
+                          >
+                            Reset Tests
+                          </button>
+                        </div>
+                      </div>
+
+                      {approvedByHR && approvedAt && (
+                        <div className="mt-3 text-xs text-gray-600">
+                          <span className="font-medium">Approved by HR:</span> {new Date(approvedAt).toLocaleDateString()}
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Section 2: Test Results Table */}
+                    <div className="bg-white rounded-lg border border-gray-200">
+                      <div className="p-4 border-b border-gray-200">
+                        <h4 className="text-sm font-bold text-gray-900">Test Results</h4>
+                      </div>
+                      <div className="overflow-x-auto">
+                        <table className="w-full">
+                          <thead className="bg-gray-50">
+                            <tr>
+                              <th className="px-4 py-2 text-left text-xs font-medium text-gray-700">Test Type</th>
+                              <th className="px-4 py-2 text-left text-xs font-medium text-gray-700">Score</th>
+                              <th className="px-4 py-2 text-left text-xs font-medium text-gray-700">Status</th>
+                              <th className="px-4 py-2 text-left text-xs font-medium text-gray-700">Attempts</th>
+                              <th className="px-4 py-2 text-left text-xs font-medium text-gray-700">Date</th>
+                            </tr>
+                          </thead>
+                          <tbody className="divide-y divide-gray-200">
+                            {driverTests.length > 0 ? (
+                              driverTests.map((test) => (
+                                <tr key={test.id} className="hover:bg-gray-50">
+                                  <td className="px-4 py-2 text-xs text-gray-900">{test.testType}</td>
+                                  <td className="px-4 py-2 text-xs text-gray-900">{test.score}%</td>
+                                  <td className="px-4 py-2">
+                                    <span className={`px-2 py-1 rounded text-xs font-medium ${
+                                      test.passed ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
+                                    }`}>
+                                      {test.passed ? 'Passed' : 'Failed'}
+                                    </span>
+                                  </td>
+                                  <td className="px-4 py-2 text-xs text-gray-900">{test.attempts}</td>
+                                  <td className="px-4 py-2 text-xs text-gray-900">
+                                    {test.completedAt ? new Date(test.completedAt).toLocaleDateString() : '-'}
+                                  </td>
+                                </tr>
+                              ))
+                            ) : (
+                              <tr>
+                                <td colSpan={5} className="px-4 py-8 text-center text-xs text-gray-500">
+                                  No test results available
+                                </td>
+                              </tr>
+                            )}
+                          </tbody>
+                        </table>
+                      </div>
+                    </div>
+
+                    {/* Section 3: Flags */}
+                    <div className="bg-gray-50 rounded-lg p-4 space-y-3">
+                      <h4 className="text-sm font-bold text-gray-900 mb-3">Flags</h4>
+                      
+                      <div className="flex items-center gap-2">
+                        <input
+                          type="checkbox"
+                          id="handlesHazardousLoads"
+                          checked={handlesHazardousLoads}
+                          onChange={(e) => setHandlesHazardousLoads(e.target.checked)}
+                          className="w-4 h-4 text-[#0ea3d8] border-gray-300 rounded focus:ring-[#0ea3d8]"
+                        />
+                        <label htmlFor="handlesHazardousLoads" className="text-xs font-medium text-gray-700 cursor-pointer">
+                          Handles hazardous loads
+                        </label>
+                      </div>
+
+                      <div className="flex items-center gap-2">
+                        <input
+                          type="checkbox"
+                          id="winterTestRequired"
+                          checked={winterTestRequired}
+                          onChange={(e) => setWinterTestRequired(e.target.checked)}
+                          className="w-4 h-4 text-[#0ea3d8] border-gray-300 rounded focus:ring-[#0ea3d8]"
+                        />
+                        <label htmlFor="winterTestRequired" className="text-xs font-medium text-gray-700 cursor-pointer">
+                          Winter test required (optional override)
+                        </label>
+                      </div>
+                    </div>
+
+                    {/* Navigation Footer */}
+                    <div className="flex justify-between items-center pt-4 border-t border-gray-200">
+                      <button
+                        onClick={() => setActiveFormTab('deductions')}
+                        className="text-gray-600 hover:text-gray-900 flex items-center gap-2"
+                      >
+                        <span>←</span> Deductions
+                      </button>
+                      <button
+                        onClick={() => setActiveFormTab('onboarding')}
+                        className="text-gray-600 hover:text-gray-900 flex items-center gap-2"
+                      >
+                        Onboarding & Tests <span>→</span>
+                      </button>
+                    </div>
+                  </div>
+                )}
+
+                {activeFormTab !== 'basic' && activeFormTab !== 'personal' && activeFormTab !== 'travel' && activeFormTab !== 'documents' && activeFormTab !== 'certifications' && activeFormTab !== 'violations' && activeFormTab !== 'notes' && activeFormTab !== 'deductions' && activeFormTab !== 'additions' && activeFormTab !== 'onboarding' && (
                   <div className="text-center py-12">
                     <p className="text-gray-500 text-lg">
                       Section coming soon
