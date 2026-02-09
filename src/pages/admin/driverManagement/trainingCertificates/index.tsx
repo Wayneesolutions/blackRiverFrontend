@@ -47,7 +47,7 @@ const Notification = ({ notification, onClose }: { notification: Notification; o
     );
 };
 
-const TrainingCertificates = () => {
+const TrainingCertificates = ({ hideHeader = false }: { hideHeader?: boolean }) => {
     const [searchQuery, setSearchQuery] = useState('');
     const [selectedDriver, setSelectedDriver] = useState<string>('');
     const [selectedType, setSelectedType] = useState<string>('');
@@ -68,6 +68,7 @@ const TrainingCertificates = () => {
         driverId: '',
         certificateName: '',
         certificateType: '',
+        verificationType: '', // TDG | VEHICLE | HOS | WINTER
         issuedDate: new Date().toISOString().split('T')[0],
         expiryDate: '',
         issuingAuthority: '',
@@ -177,6 +178,7 @@ const TrainingCertificates = () => {
             driverId: certificate.driverId,
             certificateName: certificate.certificateName,
             certificateType: certificate.certificateType,
+            verificationType: (certificate as any).verificationType || '',
             issuedDate: certificate.issuedDate,
             expiryDate: certificate.expiryDate || '',
             issuingAuthority: certificate.issuingAuthority,
@@ -338,7 +340,7 @@ const TrainingCertificates = () => {
     };
 
     return (
-        <div className="min-h-screen bg-[#EDF8FF] p-6">
+        <div>
             {/* Notifications */}
             <div className="fixed top-4 right-4 z-50 space-y-2">
                 {notifications.map(notification => (
@@ -350,16 +352,34 @@ const TrainingCertificates = () => {
                 ))}
             </div>
 
-            {/* Header */}
-            <div className="mb-6">
-                <div className="flex justify-between items-center">
-                    <div>
-                        <h1 className="text-3xl font-bold text-gray-900 flex items-center gap-3">
-                            <FileText className="text-blue-600" size={32} />
-                            Training Certificates
-                        </h1>
-                        <p className="text-gray-600 mt-2">Manage driver training certificates and certifications</p>
+            {/* Header - Hide when used as child component */}
+            {!hideHeader && (
+                <div className="mb-6">
+                    <div className="flex justify-between items-center">
+                        <div>
+                            <h1 className="text-3xl font-bold text-gray-900 flex items-center gap-3">
+                                <FileText className="text-blue-600" size={32} />
+                                Training Certificates
+                            </h1>
+                            <p className="text-gray-600 mt-2">Manage driver training certificates and certifications</p>
+                        </div>
+                        <button
+                            onClick={handleAddClick}
+                            style={{
+                                background: 'linear-gradient(90deg, #42aeec 0%, #1db5f5 40%, #0ea3d8 100%)',
+                            }}
+                            className="flex items-center gap-2 px-6 py-3 !text-white font-semibold rounded-lg hover:opacity-90 transition-opacity"
+                        >
+                            <Plus size={20} />
+                            Add Certificate
+                        </button>
                     </div>
+                </div>
+            )}
+
+            {/* Add Certificate Button - Show when header is hidden */}
+            {hideHeader && (
+                <div className="mb-6 flex justify-end">
                     <button
                         onClick={handleAddClick}
                         style={{
@@ -371,7 +391,7 @@ const TrainingCertificates = () => {
                         Add Certificate
                     </button>
                 </div>
-            </div>
+            )}
 
             {/* Filters */}
             <div className="bg-white rounded-lg shadow-sm p-4 mb-6">
@@ -635,6 +655,27 @@ const TrainingCertificates = () => {
                                         <option key={type} value={type}>{type}</option>
                                     ))}
                                 </select>
+                            </div>
+
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-2">
+                                    Verification Type <span className="text-red-500">*</span>
+                                </label>
+                                <select
+                                    value={formData.verificationType}
+                                    onChange={(e) => setFormData({ ...formData, verificationType: e.target.value })}
+                                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                    required
+                                >
+                                    <option value="">Select verification type</option>
+                                    <option value="TDG">TDG</option>
+                                    <option value="VEHICLE">Vehicle Inspection</option>
+                                    <option value="HOS">Hours of Service</option>
+                                    <option value="WINTER">Winter Driving</option>
+                                </select>
+                                <p className="text-xs text-gray-500 mt-1">
+                                    Links certificate to test type for compliance verification
+                                </p>
                             </div>
 
                             <div className="grid grid-cols-2 gap-4">

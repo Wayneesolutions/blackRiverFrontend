@@ -969,6 +969,19 @@ export const completeTrip = async (id: string) => {
   }
 };
 
+export const approveTripCompletion = async (id: string, action: 'approve' | 'reject', rejectionReason?: string) => {
+  try {
+    const res: AxiosResponse = await apiClient.post(`dispatcher/trip/${id}/approve-completion`, {
+      action,
+      rejectionReason
+    });
+    return res.data;
+  } catch (error: any) {
+    console.error('approveTripCompletion API error:', error);
+    throw error?.response?.data || error;
+  }
+};
+
 export const uploadTripDocument = async (tripId: string, file: File, description?: string, documentType?: string) => {
   try {
     const formData = new FormData();
