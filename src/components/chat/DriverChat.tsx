@@ -147,19 +147,8 @@ const DriverChat: React.FC<DriverChatProps> = ({ onClose }) => {
       return;
     }
 
-    // Connect and authenticate socket
-    socketService
-      .connect(token)
-      .then(() => {
-        console.log("✅ Socket connected for driver chat");
-        loadDrivers();
-        loadUnreadCounts();
-      })
-      .catch((error) => {
-        console.error("Socket connection error:", error);
-      });
-
     // Listen for new messages - use refs to always have current values
+    // Set up listener first so it's ready when socket connects
     const handleNewMessage = (message: ChatMessage) => {
       // Get current values from refs
       const currentSelectedDriver = selectedDriverRef.current;
@@ -170,40 +159,92 @@ const DriverChat: React.FC<DriverChatProps> = ({ onClose }) => {
         driverId: message.driverId,
         driverIdType: typeof message.driverId,
         senderId: message.senderId,
+        senderIdType: typeof message.senderId,
         selectedDriverId: currentSelectedDriver?._id,
+        selectedDriverName: currentSelectedDriver?.name,
+        hasSelectedDriver: !!currentSelectedDriver,
         message: message.message?.substring(0, 50),
+        senderType: message.senderType,
+        isSystemMessage: message.isSystemMessage,
+        hasTripStatus: !!message.tripStatus,
+        tripStatusSummary: message.tripStatus?.summary,
+        forDispatchersOnly: message.forDispatchersOnly,
+        isTempMessage: message._id?.startsWith('temp-'),
+        currentMessagesCount: currentMessages.length
       });
       
-      // Only process messages with driverId (driver chat messages)
-      if (!message.driverId) {
-        console.log("⚠️ Message has no driverId, skipping");
-        return;
-      }
-      
       // Extract driverId from message (handle both object and string formats)
-      let driverIdStr: string;
-      if (typeof message.driverId === 'object') {
-        // Handle ObjectId or populated object
-        driverIdStr = message.driverId._id?.toString() || 
-                     message.driverId.toString() || 
-                     String(message.driverId);
-      } else {
-        driverIdStr = String(message.driverId);
+      let driverIdStr: string = '';
+      if (message.driverId) {
+        if (typeof message.driverId === 'object') {
+          // Handle ObjectId or populated object
+          driverIdStr = message.driverId._id?.toString() || 
+                       message.driverId.toString() || 
+                       String(message.driverId);
+        } else {
+          driverIdStr = String(message.driverId);
+        }
       }
       
       // Normalize selected driver ID for comparison
       const selectedDriverIdStr = currentSelectedDriver?._id?.toString() || currentSelectedDriver?._id;
       const currentUserIdStr = currentUserId?.toString();
       
+      // System messages with trip status should always be shown if driverId matches
+      const isSystemMessage = message.isSystemMessage || message.senderType === 'system';
+      
       console.log("🔍 Comparing driver IDs:", {
         messageDriverId: driverIdStr,
         selectedDriverId: selectedDriverIdStr,
         match: driverIdStr === selectedDriverIdStr,
+        isSystemMessage: isSystemMessage,
+        hasTripStatus: !!message.tripStatus,
+        senderType: message.senderType,
+        messageId: message._id?.substring(0, 20)
       });
       
       // Only add message if it's for the currently selected driver
-      if (currentSelectedDriver && driverIdStr === selectedDriverIdStr) {
-        console.log("✅ Adding message to chat for selected driver");
+      // For system messages, we still need driverId to match
+      // If no driver is selected, we'll just update unread counts
+      if (currentSelectedDriver && driverIdStr && driverIdStr === selectedDriverIdStr) {
+        console.log("✅ Adding message to chat for selected driver", {
+          isSystemMessage: isSystemMessage,
+          hasTripStatus: !!message.tripStatus,
+          messageId: message._id,
+          driverIdMatch: driverIdStr === selectedDriverIdStr
+        });
+        
+        // System messages should always be added (they're not from current user)
+        if (isSystemMessage && message.tripStatus) {
+          // Check if system message already exists
+          const exists = currentMessages.some((msg) => msg._id === message._id);
+          if (exists) {
+            console.log("⚠️ System message already exists, skipping duplicate");
+            return;
+          }
+        console.log("✅ Adding system message with trip status", {
+          tripStatusSummary: message.tripStatus?.summary,
+          activeOrders: message.tripStatus?.activeOrders?.length,
+          activeTrips: message.tripStatus?.activeTrips?.length,
+          totalActive: message.tripStatus?.summary?.totalActive,
+          totalPending: message.tripStatus?.summary?.totalPending,
+          isCurrentlyDriving: message.tripStatus?.summary?.isCurrentlyDriving,
+          messageId: message._id
+        });
+        setMessages((prev) => {
+          const updated = [...prev, message];
+          messagesRef.current = updated;
+          console.log("📝 Updated messages array:", {
+            newLength: updated.length,
+            lastMessageId: updated[updated.length - 1]?._id,
+            lastMessageType: updated[updated.length - 1]?.senderType,
+            lastMessageHasTripStatus: !!updated[updated.length - 1]?.tripStatus
+          });
+          return updated;
+        });
+        scrollToBottom();
+        return;
+        }
         
         // Check if this is a real message that should replace an optimistic message
         const senderId = typeof message.senderId === 'object' 
@@ -212,6 +253,14 @@ const DriverChat: React.FC<DriverChatProps> = ({ onClose }) => {
         
         // If this message is from current user, check if we have an optimistic message to replace
         if (senderId === currentUserIdStr) {
+          console.log("📨 Received real message from dispatcher (current user), replacing optimistic message", {
+            messageId: message._id,
+            messageText: message.message?.substring(0, 50),
+            senderId: senderId,
+            currentUserId: currentUserIdStr,
+            hasOptimistic: currentMessages.some(msg => msg._id.startsWith('temp-'))
+          });
+          
           setMessages((prev) => {
             // Check if real message already exists
             const realExists = prev.some(msg => msg._id === message._id);
@@ -222,13 +271,15 @@ const DriverChat: React.FC<DriverChatProps> = ({ onClose }) => {
             
             // Remove any optimistic messages from current user (remove all temp messages from this user)
             // This ensures we replace optimistic messages even if content doesn't match exactly
+            let removedCount = 0;
             const filtered = prev.filter(msg => {
               if (msg._id.startsWith('temp-')) {
                 const optimisticSenderId = typeof msg.senderId === 'object' 
                   ? msg.senderId._id?.toString() || msg.senderId.toString()
                   : msg.senderId?.toString();
                 if (optimisticSenderId === currentUserIdStr) {
-                  console.log("🔄 Removing optimistic message:", msg._id);
+                  removedCount++;
+                  console.log("🔄 Removing optimistic message:", msg._id, "Message:", msg.message?.substring(0, 30));
                   return false; // Remove optimistic message
                 }
               }
@@ -236,34 +287,86 @@ const DriverChat: React.FC<DriverChatProps> = ({ onClose }) => {
             });
             
             // Add the real message
-            console.log("✅ Adding real message from dispatcher");
-            return [...filtered, message];
+            console.log(`✅ Adding real message from dispatcher (removed ${removedCount} optimistic), total messages:`, filtered.length + 1);
+            const updated = [...filtered, message];
+            // Update ref immediately
+            messagesRef.current = updated;
+            return updated;
           });
+          scrollToBottom();
         } else {
-          // Message from other user, check if it already exists
-          const exists = currentMessages.some((msg) => msg._id === message._id);
+          // Message from other user (driver or system), check if it already exists
+          // Normalize message ID for comparison
+          const messageId = typeof message._id === 'object' ? message._id.toString() : String(message._id);
+          const exists = currentMessages.some((msg) => {
+            const msgId = typeof msg._id === 'object' ? msg._id.toString() : String(msg._id);
+            return msgId === messageId;
+          });
+          
           if (exists) {
-            console.log("⚠️ Message already exists, skipping duplicate");
+            console.log("⚠️ Message already exists, skipping duplicate", {
+              messageId: messageId,
+              messageText: message.message?.substring(0, 30)
+            });
             return; // Don't add duplicate
           }
-          // Message from other user, just add it
-          console.log("✅ Adding new message to state");
-          setMessages((prev) => [...prev, message]);
+          
+          // Message from other user or system, just add it
+          console.log("✅ Adding new message from other user", {
+            messageId: messageId,
+            senderType: message.senderType,
+            isSystemMessage: message.isSystemMessage,
+            hasTripStatus: !!message.tripStatus,
+            senderId: senderId,
+            currentUserId: currentUserIdStr
+          });
+          setMessages((prev) => {
+            // Double-check for duplicates before adding
+            const msgId = typeof message._id === 'object' ? message._id.toString() : String(message._id);
+            const stillExists = prev.some((msg) => {
+              const existingMsgId = typeof msg._id === 'object' ? msg._id.toString() : String(msg._id);
+              return existingMsgId === msgId;
+            });
+            
+            if (stillExists) {
+              console.log("⚠️ Duplicate detected in setMessages, skipping");
+              return prev;
+            }
+            
+            const updated = [...prev, message];
+            // Update ref immediately
+            messagesRef.current = updated;
+            console.log("📝 Added message from other user, total messages:", updated.length);
+            return updated;
+          });
+          scrollToBottom();
         }
-        
-        scrollToBottom();
         
         // Mark as read if it's not from current user
         if (senderId && senderId !== currentUserIdStr && currentSelectedDriver) {
           markDriverMessagesAsRead(currentSelectedDriver._id);
         }
       } else if (driverIdStr) {
+        // Message is for a different driver or no driver selected
+        if (isSystemMessage && message.tripStatus) {
+          console.log("⚠️ System message received but driverId doesn't match selected driver or no driver selected", {
+            messageDriverId: driverIdStr,
+            selectedDriverId: selectedDriverIdStr,
+            hasSelectedDriver: !!currentSelectedDriver
+          });
+        }
         // Update unread count for the driver (if not currently viewing)
         console.log(`📬 Updating unread count for driver: ${driverIdStr}`);
         setUnreadCounts((prev) => ({
           ...prev,
           [driverIdStr]: (prev[driverIdStr] || 0) + 1,
         }));
+      } else {
+        console.log("⚠️ Message has no driverId, skipping", {
+          messageId: message._id,
+          senderType: message.senderType,
+          isSystemMessage: isSystemMessage
+        });
       }
     };
 
@@ -291,11 +394,26 @@ const DriverChat: React.FC<DriverChatProps> = ({ onClose }) => {
       }
     };
 
-    // Set up socket listeners - these will persist and always use current ref values
+    // Connect and authenticate socket first
+    socketService
+      .connect(token)
+      .then(() => {
+        console.log("✅ Socket connected for driver chat");
+        // Set up listeners after socket is connected
+        socketService.onNewMessage(handleNewMessage);
+        socketService.onUserTyping(handleTyping);
+        console.log("✅ Socket listeners set up after connection");
+        loadDrivers();
+        loadUnreadCounts();
+      })
+      .catch((error) => {
+        console.error("Socket connection error:", error);
+      });
+
+    // Also set up listeners immediately (in case socket is already connected)
     socketService.onNewMessage(handleNewMessage);
     socketService.onUserTyping(handleTyping);
-    
-    console.log("✅ Socket listeners set up for driver chat (using refs for current state)");
+    console.log("✅ Socket listeners registered (will work when socket connects)");
 
     // Cleanup
     return () => {
@@ -337,11 +455,17 @@ const DriverChat: React.FC<DriverChatProps> = ({ onClose }) => {
           loadMessages(driverIdStr);
         });
 
-      // Cleanup on driver change
+      // Cleanup on driver change - don't leave immediately, wait a bit
       return () => {
-        socketService.leaveDriverChat(selectedDriver._id);
-        setMessages([]);
-        setLoading(false);
+        // Delay leaving the room to ensure messages are received
+        const timeoutId = setTimeout(() => {
+          socketService.leaveDriverChat(selectedDriver._id);
+          console.log(`💬 Left driver chat room for driver: ${selectedDriver._id}`);
+        }, 2000); // Wait 2 seconds before leaving
+        
+        return () => {
+          clearTimeout(timeoutId);
+        };
       };
     } else {
       // No driver selected, clear messages and loading
@@ -403,13 +527,20 @@ const DriverChat: React.FC<DriverChatProps> = ({ onClose }) => {
         };
 
         // Add optimistic message immediately for instant feedback
-        setMessages((prev) => [...prev, optimisticMessage]);
+        setMessages((prev) => {
+          const updated = [...prev, optimisticMessage];
+          // Update ref immediately so handleNewMessage can access it
+          messagesRef.current = updated;
+          console.log("✅ Added optimistic message, total messages:", updated.length);
+          return updated;
+        });
         setNewMessage("");
         scrollToBottom();
 
         // Send via socket for real-time
         // The backend will emit the message back via socket, which will be caught by handleNewMessage
         // The real message will replace the optimistic one (or we'll remove the optimistic one if it matches)
+        console.log("📤 Sending message via socket to driver:", selectedDriver._id);
         socketService.sendDriverChatMessage({
           driverId: selectedDriver._id,
           message: messageText,
@@ -650,10 +781,284 @@ const DriverChat: React.FC<DriverChatProps> = ({ onClose }) => {
                     {/* Messages for this date */}
                     {dateMessages.map((message, index) => {
                       const senderType = message.senderType || '';
-                      const isRightSide = senderType === 'dispatcher' || senderType === 'admin';
+                      const isSystemMessage = message.isSystemMessage || senderType === 'system';
+                      const isRightSide = (senderType === 'dispatcher' || senderType === 'admin') && !isSystemMessage;
                       const isCurrentUser = currentUserId && String(message.senderId._id) === String(currentUserId);
-                      const showAvatar = index === 0 || dateMessages[index - 1].senderId._id !== message.senderId._id;
+                      const showAvatar = !isSystemMessage && (index === 0 || dateMessages[index - 1].senderId._id !== message.senderId._id);
                       const isRead = message.readBy && message.readBy.length > 0;
+
+                      // System messages (trip status) should be centered
+                      if (isSystemMessage && message.tripStatus) {
+                        return (
+                          <div key={message._id} className="flex justify-center mb-4">
+                            <div className="w-full max-w-2xl">
+                              {/* Trip Status Card */}
+                              <div className="bg-gradient-to-br from-blue-50 to-indigo-50 rounded-lg p-4 border border-blue-200 shadow-sm">
+                                <div className="flex items-start gap-3">
+                                  <div className="flex-shrink-0 w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center">
+                                    <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7" />
+                                    </svg>
+                                  </div>
+                                  <div className="flex-1 min-w-0">
+                                    <div className="flex items-center gap-2 mb-2">
+                                      <h4 className="text-sm font-bold text-gray-800">Driver Trip Status</h4>
+                                      {message.tripStatus.summary.isCurrentlyDriving && (
+                                        <span className="px-2 py-0.5 bg-green-100 text-green-700 text-xs font-semibold rounded-full">
+                                          Currently Driving
+                                        </span>
+                                      )}
+                                      {!message.tripStatus.summary.isCurrentlyDriving && message.tripStatus.summary.totalPending > 0 && (
+                                        <span className="px-2 py-0.5 bg-yellow-100 text-yellow-700 text-xs font-semibold rounded-full">
+                                          Assigned
+                                        </span>
+                                      )}
+                                      {!message.tripStatus.summary.isCurrentlyDriving && message.tripStatus.summary.totalPending === 0 && (
+                                        <span className="px-2 py-0.5 bg-gray-100 text-gray-700 text-xs font-semibold rounded-full">
+                                          Available
+                                        </span>
+                                      )}
+                                    </div>
+                                    
+                                    {/* AI Summary */}
+                                    {message.tripStatus.aiSummary && (
+                                      <p className="text-sm text-gray-700 mb-3 leading-relaxed">
+                                        {message.tripStatus.aiSummary}
+                                      </p>
+                                    )}
+
+                                    {/* Trip Details */}
+                                    <div className="space-y-2">
+                                      {/* Active Trips */}
+                                      {message.tripStatus.activeTrips.length > 0 && (
+                                        <div>
+                                          <p className="text-xs font-semibold text-gray-600 mb-1">Active Trips ({message.tripStatus.activeTrips.length}):</p>
+                                          {message.tripStatus.activeTrips.map((trip, idx) => (
+                                            <div key={idx} className="text-xs text-gray-600 bg-white/60 rounded p-2 mb-2 border border-gray-200">
+                                              <div className="font-medium mb-2 flex items-center gap-2">
+                                                <span>Trip {trip.tripNumber}</span>
+                                                {trip.driverRole && (
+                                                  <span className="px-2 py-0.5 bg-blue-100 text-blue-700 rounded text-xs">
+                                                    {trip.driverRole}
+                                                  </span>
+                                                )}
+                                              </div>
+                                              <div className="text-gray-700 space-y-1">
+                                                <div className="font-medium text-gray-800">📍 Start Location:</div>
+                                                <div className="ml-2">{trip.startLocation}</div>
+                                                <div className="font-medium text-gray-800 mt-2">📍 End Location:</div>
+                                                <div className="ml-2">{trip.endLocation}</div>
+                                                {trip.ordersCount > 0 && (
+                                                  <div className="mt-2">
+                                                    <span className="font-medium">📦 Orders:</span> {trip.ordersCount}
+                                                  </div>
+                                                )}
+                                                {trip.truck && (
+                                                  <div>
+                                                    <span className="font-medium">🚚 Truck:</span> {trip.truck}
+                                                  </div>
+                                                )}
+                                                {trip.trailer && (
+                                                  <div>
+                                                    <span className="font-medium">🚛 Trailer:</span> {trip.trailer}
+                                                  </div>
+                                                )}
+                                                {trip.mainDriver && (
+                                                  <div>
+                                                    <span className="font-medium">👤 Main Driver:</span> {trip.mainDriver}
+                                                  </div>
+                                                )}
+                                                {trip.coDriver && (
+                                                  <div>
+                                                    <span className="font-medium">👥 Co-Driver:</span> {trip.coDriver}
+                                                  </div>
+                                                )}
+                                                {trip.actualStartDate && (
+                                                  <div className="text-gray-500 mt-2 text-xs">
+                                                    Started: {new Date(trip.actualStartDate).toLocaleString()}
+                                                  </div>
+                                                )}
+                                                {trip.plannedEndDate && (
+                                                  <div className="text-gray-500 text-xs">
+                                                    Expected End: {new Date(trip.plannedEndDate).toLocaleString()}
+                                                  </div>
+                                                )}
+                                              </div>
+                                            </div>
+                                          ))}
+                                        </div>
+                                      )}
+
+                                      {/* Active Orders - All non-completed/canceled orders */}
+                                      {message.tripStatus.activeOrders.length > 0 && (
+                                        <div>
+                                          <p className="text-xs font-semibold text-gray-600 mb-1">Active Orders ({message.tripStatus.activeOrders.length}):</p>
+                                          {message.tripStatus.activeOrders.map((order, idx) => (
+                                            <div key={idx} className="text-xs text-gray-600 bg-white/60 rounded p-2 mb-2 border border-gray-200">
+                                              <div className="font-medium mb-2 flex items-center gap-2">
+                                                <span>Order {order.orderNumber}</span>
+                                                <span className={`px-2 py-0.5 rounded text-xs ${
+                                                  order.status === 'in-delivery' ? 'bg-yellow-100 text-yellow-700' :
+                                                  order.status === 'delivered' ? 'bg-purple-100 text-purple-700' :
+                                                  order.status === 'planned' ? 'bg-blue-100 text-blue-700' :
+                                                  order.status === 'quoted' ? 'bg-orange-100 text-orange-700' :
+                                                  'bg-gray-100 text-gray-700'
+                                                }`}>
+                                                  {order.status}
+                                                </span>
+                                              </div>
+                                              <div className="text-gray-700 space-y-1">
+                                                <div className="font-medium text-gray-800">📍 Pickup Location:</div>
+                                                <div className="ml-2">{order.pickupLocation}</div>
+                                                {order.pickupFullAddress && (
+                                                  <div className="ml-2 text-gray-500 text-xs">{order.pickupFullAddress}</div>
+                                                )}
+                                                <div className="font-medium text-gray-800 mt-2">📍 Delivery Location:</div>
+                                                <div className="ml-2">{order.deliveryLocation}</div>
+                                                {order.deliveryFullAddress && (
+                                                  <div className="ml-2 text-gray-500 text-xs">{order.deliveryFullAddress}</div>
+                                                )}
+                                                {order.customer && (
+                                                  <div className="mt-2">
+                                                    <span className="font-medium">👤 Customer:</span> {order.customer}
+                                                  </div>
+                                                )}
+                                                {order.truck && (
+                                                  <div>
+                                                    <span className="font-medium">🚚 Truck:</span> {order.truck}
+                                                  </div>
+                                                )}
+                                                {order.trailer && (
+                                                  <div>
+                                                    <span className="font-medium">🚛 Trailer:</span> {order.trailer}
+                                                  </div>
+                                                )}
+                                                {order.actualStartDate && (
+                                                  <div className="text-gray-500 mt-2 text-xs">
+                                                    Started: {new Date(order.actualStartDate).toLocaleString()}
+                                                  </div>
+                                                )}
+                                                {order.pickupDate && !order.actualStartDate && (
+                                                  <div className="text-gray-500 mt-2 text-xs">
+                                                    Pickup: {new Date(order.pickupDate).toLocaleString()}
+                                                  </div>
+                                                )}
+                                                {order.deliveryDate && (
+                                                  <div className="text-gray-500 text-xs">
+                                                    Delivery Due: {new Date(order.deliveryDate).toLocaleString()}
+                                                  </div>
+                                                )}
+                                              </div>
+                                            </div>
+                                          ))}
+                                        </div>
+                                      )}
+
+                                      {/* Pending Trips */}
+                                      {message.tripStatus.pendingTrips.length > 0 && (
+                                        <div>
+                                          <p className="text-xs font-semibold text-gray-600 mb-1">Pending Trips ({message.tripStatus.pendingTrips.length}):</p>
+                                          {message.tripStatus.pendingTrips.map((trip, idx) => (
+                                            <div key={idx} className="text-xs text-gray-600 bg-white/60 rounded p-2 mb-2 border border-gray-200">
+                                              <div className="font-medium mb-2 flex items-center gap-2">
+                                                <span>Trip {trip.tripNumber}</span>
+                                                {trip.driverRole && (
+                                                  <span className="px-2 py-0.5 bg-blue-100 text-blue-700 rounded text-xs">
+                                                    {trip.driverRole}
+                                                  </span>
+                                                )}
+                                              </div>
+                                              <div className="text-gray-700 space-y-1">
+                                                <div className="font-medium text-gray-800">📍 Start Location:</div>
+                                                <div className="ml-2">{trip.startLocation}</div>
+                                                <div className="font-medium text-gray-800 mt-2">📍 End Location:</div>
+                                                <div className="ml-2">{trip.endLocation}</div>
+                                                {trip.ordersCount > 0 && (
+                                                  <div className="mt-2">
+                                                    <span className="font-medium">📦 Orders:</span> {trip.ordersCount}
+                                                  </div>
+                                                )}
+                                                {trip.mainDriver && (
+                                                  <div>
+                                                    <span className="font-medium">👤 Main Driver:</span> {trip.mainDriver}
+                                                  </div>
+                                                )}
+                                                {trip.coDriver && (
+                                                  <div>
+                                                    <span className="font-medium">👥 Co-Driver:</span> {trip.coDriver}
+                                                  </div>
+                                                )}
+                                                {trip.plannedStartDate && (
+                                                  <div className="text-gray-500 mt-2 text-xs">
+                                                    Planned Start: {new Date(trip.plannedStartDate).toLocaleString()}
+                                                  </div>
+                                                )}
+                                              </div>
+                                            </div>
+                                          ))}
+                                        </div>
+                                      )}
+
+                                      {/* Pending Orders */}
+                                      {message.tripStatus.pendingOrders.length > 0 && (
+                                        <div>
+                                          <p className="text-xs font-semibold text-gray-600 mb-1">Pending Orders ({message.tripStatus.pendingOrders.length}):</p>
+                                          {message.tripStatus.pendingOrders.map((order, idx) => (
+                                            <div key={idx} className="text-xs text-gray-600 bg-white/60 rounded p-2 mb-2 border border-gray-200">
+                                              <div className="font-medium mb-2 flex items-center gap-2">
+                                                <span>Order {order.orderNumber}</span>
+                                                <span className={`px-2 py-0.5 rounded text-xs ${
+                                                  order.status === 'planned' ? 'bg-blue-100 text-blue-700' :
+                                                  order.status === 'quoted' ? 'bg-orange-100 text-orange-700' :
+                                                  'bg-gray-100 text-gray-700'
+                                                }`}>
+                                                  {order.status}
+                                                </span>
+                                              </div>
+                                              <div className="text-gray-700 space-y-1">
+                                                <div className="font-medium text-gray-800">📍 Pickup Location:</div>
+                                                <div className="ml-2">{order.pickupLocation}</div>
+                                                {order.pickupFullAddress && (
+                                                  <div className="ml-2 text-gray-500 text-xs">{order.pickupFullAddress}</div>
+                                                )}
+                                                <div className="font-medium text-gray-800 mt-2">📍 Delivery Location:</div>
+                                                <div className="ml-2">{order.deliveryLocation}</div>
+                                                {order.deliveryFullAddress && (
+                                                  <div className="ml-2 text-gray-500 text-xs">{order.deliveryFullAddress}</div>
+                                                )}
+                                                {order.customer && (
+                                                  <div className="mt-2">
+                                                    <span className="font-medium">👤 Customer:</span> {order.customer}
+                                                  </div>
+                                                )}
+                                                {order.pickupDate && (
+                                                  <div className="text-gray-500 mt-2 text-xs">
+                                                    Pickup: {new Date(order.pickupDate).toLocaleString()}
+                                                  </div>
+                                                )}
+                                                {order.deliveryDate && (
+                                                  <div className="text-gray-500 text-xs">
+                                                    Delivery Due: {new Date(order.deliveryDate).toLocaleString()}
+                                                  </div>
+                                                )}
+                                              </div>
+                                            </div>
+                                          ))}
+                                        </div>
+                                      )}
+
+                                      {/* No trips/orders */}
+                                      {message.tripStatus.summary.totalActive === 0 && message.tripStatus.summary.totalPending === 0 && (
+                                        <p className="text-xs text-gray-600 italic">No active trips or orders assigned.</p>
+                                      )}
+                                    </div>
+                                  </div>
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                        );
+                      }
 
                       return (
                         <div
@@ -733,123 +1138,6 @@ const DriverChat: React.FC<DriverChatProps> = ({ onClose }) => {
                                 </div>
                               )}
 
-                              {/* Trip Status Card - Show if message has tripStatus and sender is driver */}
-                              {message.tripStatus && message.senderType === 'driver' && (
-                                <div className="mt-3 pt-3 border-t border-gray-200">
-                                  <div className="bg-gradient-to-br from-blue-50 to-indigo-50 rounded-lg p-4 border border-blue-200 shadow-sm">
-                                    <div className="flex items-start gap-3">
-                                      <div className="flex-shrink-0 w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center">
-                                        <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7" />
-                                        </svg>
-                                      </div>
-                                      <div className="flex-1 min-w-0">
-                                        <div className="flex items-center gap-2 mb-2">
-                                          <h4 className="text-sm font-bold text-gray-800">Driver Trip Status</h4>
-                                          {message.tripStatus.summary.isCurrentlyDriving && (
-                                            <span className="px-2 py-0.5 bg-green-100 text-green-700 text-xs font-semibold rounded-full">
-                                              Currently Driving
-                                            </span>
-                                          )}
-                                          {!message.tripStatus.summary.isCurrentlyDriving && message.tripStatus.summary.totalPending > 0 && (
-                                            <span className="px-2 py-0.5 bg-yellow-100 text-yellow-700 text-xs font-semibold rounded-full">
-                                              Assigned
-                                            </span>
-                                          )}
-                                          {!message.tripStatus.summary.isCurrentlyDriving && message.tripStatus.summary.totalPending === 0 && (
-                                            <span className="px-2 py-0.5 bg-gray-100 text-gray-700 text-xs font-semibold rounded-full">
-                                              Available
-                                            </span>
-                                          )}
-                                        </div>
-                                        
-                                        {/* AI Summary */}
-                                        {message.tripStatus.aiSummary && (
-                                          <p className="text-sm text-gray-700 mb-3 leading-relaxed">
-                                            {message.tripStatus.aiSummary}
-                                          </p>
-                                        )}
-
-                                        {/* Trip Details */}
-                                        <div className="space-y-2">
-                                          {/* Active Trips */}
-                                          {message.tripStatus.activeTrips.length > 0 && (
-                                            <div>
-                                              <p className="text-xs font-semibold text-gray-600 mb-1">Active Trips ({message.tripStatus.activeTrips.length}):</p>
-                                              {message.tripStatus.activeTrips.slice(0, 2).map((trip, idx) => (
-                                                <div key={idx} className="text-xs text-gray-600 bg-white/60 rounded p-2 mb-1">
-                                                  <span className="font-medium">Trip {trip.tripNumber}</span> - {trip.startLocation} → {trip.endLocation}
-                                                  {trip.actualStartDate && (
-                                                    <span className="text-gray-500 ml-2">
-                                                      (Started: {new Date(trip.actualStartDate).toLocaleString()})
-                                                    </span>
-                                                  )}
-                                                </div>
-                                              ))}
-                                            </div>
-                                          )}
-
-                                          {/* Active Orders */}
-                                          {message.tripStatus.activeOrders.length > 0 && (
-                                            <div>
-                                              <p className="text-xs font-semibold text-gray-600 mb-1">Active Orders ({message.tripStatus.activeOrders.length}):</p>
-                                              {message.tripStatus.activeOrders.slice(0, 2).map((order, idx) => (
-                                                <div key={idx} className="text-xs text-gray-600 bg-white/60 rounded p-2 mb-1">
-                                                  <span className="font-medium">Order {order.orderNumber}</span> - {order.pickupLocation} → {order.deliveryLocation}
-                                                  {order.actualStartDate && (
-                                                    <span className="text-gray-500 ml-2">
-                                                      (Started: {new Date(order.actualStartDate).toLocaleString()})
-                                                    </span>
-                                                  )}
-                                                </div>
-                                              ))}
-                                            </div>
-                                          )}
-
-                                          {/* Pending Trips */}
-                                          {message.tripStatus.pendingTrips.length > 0 && (
-                                            <div>
-                                              <p className="text-xs font-semibold text-gray-600 mb-1">Pending Trips ({message.tripStatus.pendingTrips.length}):</p>
-                                              {message.tripStatus.pendingTrips.slice(0, 2).map((trip, idx) => (
-                                                <div key={idx} className="text-xs text-gray-600 bg-white/60 rounded p-2 mb-1">
-                                                  <span className="font-medium">Trip {trip.tripNumber}</span> - {trip.startLocation} → {trip.endLocation}
-                                                  {trip.plannedStartDate && (
-                                                    <span className="text-gray-500 ml-2">
-                                                      (Planned: {new Date(trip.plannedStartDate).toLocaleString()})
-                                                    </span>
-                                                  )}
-                                                </div>
-                                              ))}
-                                            </div>
-                                          )}
-
-                                          {/* Pending Orders */}
-                                          {message.tripStatus.pendingOrders.length > 0 && (
-                                            <div>
-                                              <p className="text-xs font-semibold text-gray-600 mb-1">Pending Orders ({message.tripStatus.pendingOrders.length}):</p>
-                                              {message.tripStatus.pendingOrders.slice(0, 2).map((order, idx) => (
-                                                <div key={idx} className="text-xs text-gray-600 bg-white/60 rounded p-2 mb-1">
-                                                  <span className="font-medium">Order {order.orderNumber}</span> - {order.pickupLocation} → {order.deliveryLocation}
-                                                  {order.pickupDate && (
-                                                    <span className="text-gray-500 ml-2">
-                                                      (Pickup: {new Date(order.pickupDate).toLocaleString()})
-                                                    </span>
-                                                  )}
-                                                </div>
-                                              ))}
-                                            </div>
-                                          )}
-
-                                          {/* No trips/orders */}
-                                          {message.tripStatus.summary.totalActive === 0 && message.tripStatus.summary.totalPending === 0 && (
-                                            <p className="text-xs text-gray-600 italic">No active trips or orders assigned.</p>
-                                          )}
-                                        </div>
-                                      </div>
-                                    </div>
-                                  </div>
-                                </div>
-                              )}
 
                               {/* Message Footer */}
                               <div className={`flex items-center gap-1.5 mt-1.5 ${isRightSide ? "justify-end" : "justify-start"}`}>

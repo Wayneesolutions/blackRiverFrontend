@@ -21,6 +21,9 @@ export interface TripStatusData {
     ordersCount: number;
     truck: string;
     trailer: string;
+    driverRole?: string;
+    mainDriver?: string;
+    coDriver?: string;
   }>;
   activeOrders: Array<{
     orderNumber: string;
@@ -29,7 +32,9 @@ export interface TripStatusData {
     deliveryDate?: string;
     actualStartDate?: string;
     pickupLocation: string;
+    pickupFullAddress?: string;
     deliveryLocation: string;
+    deliveryFullAddress?: string;
     customer: string;
     truck: string;
     trailer: string;
@@ -41,6 +46,9 @@ export interface TripStatusData {
     startLocation: string;
     endLocation: string;
     ordersCount: number;
+    driverRole?: string;
+    mainDriver?: string;
+    coDriver?: string;
   }>;
   pendingOrders: Array<{
     orderNumber: string;
@@ -48,7 +56,9 @@ export interface TripStatusData {
     pickupDate?: string;
     deliveryDate?: string;
     pickupLocation: string;
+    pickupFullAddress?: string;
     deliveryLocation: string;
+    deliveryFullAddress?: string;
     customer: string;
   }>;
   aiSummary?: string;
@@ -73,7 +83,7 @@ export interface ChatMessage {
     name: string;
     email: string;
   };
-  senderType: "driver" | "dispatcher" | "admin";
+  senderType: "driver" | "dispatcher" | "admin" | "system";
   senderName: string;
   message: string;
   fileUrl?: string;
@@ -81,6 +91,7 @@ export interface ChatMessage {
   fileType?: "image" | "pdf" | "document" | "other";
   fileSize?: number;
   tripStatus?: TripStatusData; // Trip status data from AI
+  isSystemMessage?: boolean; // Flag for system messages
   readBy: Array<{
     userId: string;
     readAt: string;

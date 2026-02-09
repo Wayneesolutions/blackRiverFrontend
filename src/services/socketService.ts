@@ -146,6 +146,9 @@ class SocketService {
   onNewMessage(callback: (message: any) => void) {
     if (this.socket) {
       this.socket.on("newChatMessage", callback);
+      console.log("✅ Socket listener 'newChatMessage' registered");
+    } else {
+      console.error("❌ Cannot register 'newChatMessage' listener: socket not initialized");
     }
   }
 
