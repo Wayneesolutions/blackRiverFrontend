@@ -5,6 +5,7 @@ import { listCustomer, createOrder, updateOrder, getAuditTrail } from "../../../
 import { listTrucks } from "../../../../../axios/api/truckTracking";
 import { listTrailers } from "../../../../../axios/api/trailerTracking";
 import { getAllDrivers } from "../../../../../axios/api/driver";
+import { getAllEmployees } from "../../../../../axios/api/employee";
 import { getUserInfo } from "../../../../../utils/auth";
 import AddressSearch from "../../../../../components/common/AddressSearch";
 
@@ -153,6 +154,8 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
     const [loadType, setLoadType] = useState("FTL");
     const [freightOn, setFreightOn] = useState("Order");
     const [selectedSalesman, setSelectedSalesman] = useState("");
+    const [salespersons, setSalespersons] = useState<Array<{ _id: string; name: string }>>([]);
+    const [loadingSalespersons, setLoadingSalespersons] = useState(false);
     const [orderNotes, setOrderNotes] = useState("");
     const [commodity, setCommodity] = useState("");
     const [valueOfGoods, setValueOfGoods] = useState("");
@@ -519,7 +522,32 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
     // Fetch customers on component mount
     useEffect(() => {
         fetchCustomers();
+        fetchSalespersons();
     }, []);
+
+    // Fetch salespersons from API
+    const fetchSalespersons = async () => {
+        try {
+            setLoadingSalespersons(true);
+            const response = await getAllEmployees(1, 100, undefined, 'salesperson', 'active');
+            
+            if (response?.success && response.data) {
+                // Filter and map salespersons
+                const salespersonList = (Array.isArray(response.data) ? response.data : [])
+                    .filter((emp: any) => emp.role === 'salesperson' && (emp.status === 'active' || emp.status === 'ACTIVE'))
+                    .map((emp: any) => ({
+                        _id: emp._id,
+                        name: emp.name || `${emp.firstName || ''} ${emp.lastName || ''}`.trim() || 'Unnamed'
+                    }));
+                setSalespersons(salespersonList);
+            }
+        } catch (error) {
+            console.error('Error fetching salespersons:', error);
+            setSalespersons([]);
+        } finally {
+            setLoadingSalespersons(false);
+        }
+    };
 
     // Populate form fields when editing an order
     useEffect(() => {
@@ -2997,11 +3025,21 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
                                                     <select
                                                         value={selectedSalesman}
                                                         onChange={(e) => setSelectedSalesman(e.target.value)}
-                                                        className="flex-1 p-2 border border-gray-300 rounded focus:outline-none focus:ring-2 text-sm"
+                                                        disabled={loadingSalespersons}
+                                                        className="flex-1 p-2 border border-gray-300 rounded focus:outline-none focus:ring-2 text-sm disabled:bg-gray-100 disabled:cursor-not-allowed"
                                                     >
                                                         <option value="">Select</option>
-                                                        <option value="john">John Doe</option>
-                                                        <option value="jane">Jane Smith</option>
+                                                        {loadingSalespersons ? (
+                                                            <option value="" disabled>Loading...</option>
+                                                        ) : salespersons.length === 0 ? (
+                                                            <option value="" disabled>No salespersons found</option>
+                                                        ) : (
+                                                            salespersons.map((salesperson) => (
+                                                                <option key={salesperson._id} value={salesperson._id}>
+                                                                    {salesperson.name}
+                                                                </option>
+                                                            ))
+                                                        )}
                                                     </select>
                                                     <Search className="w-5 h-5 text-gray-400 mt-2" />
                                                 </div>
@@ -4306,7 +4344,11 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
                                                 </div>
                                                 <div>
                                                     <span className="font-semibold text-gray-700">Dispatcher:</span>
-                                                    <span className="ml-2 text-gray-800">{selectedSalesman || 'N/A'}</span>
+                                                    <span className="ml-2 text-gray-800">
+                                                        {selectedSalesman 
+                                                            ? salespersons.find(s => s._id === selectedSalesman)?.name || selectedSalesman 
+                                                            : 'N/A'}
+                                                    </span>
                                                 </div>
                                                 <div>
                                                     <span className="font-semibold text-gray-700">Customs Broker:</span>

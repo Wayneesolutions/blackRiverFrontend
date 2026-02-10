@@ -71,7 +71,8 @@ const roleBadges = [
   'REPORTER',
   'MAINTENANCE CREW (MECHANICS)',
   'OPERATOR',
-  'ACCOUNTANT'
+  'ACCOUNTANT',
+  'SALESPERSON'
 ];
 
 const EmployeesPage = () => {
@@ -316,7 +317,8 @@ const EmployeesPage = () => {
     'Maintenance Crew (Mechanics)',
     'safety officer',
     'operator',
-    'accountant'
+    'accountant',
+    'salesperson'
   ];
 
   // Fetch employees from API
@@ -433,7 +435,8 @@ const EmployeesPage = () => {
       'reporter': 'Reporter',
       'Maintenance Crew (Mechanics)': 'Maintenance Crew (Mechanics)',
       'operator': 'Operator',
-      'accountant': 'Accountant'
+      'accountant': 'Accountant',
+      'salesperson': 'Salesperson'
     };
     return roleMap[role.toLowerCase()] || role;
   };
@@ -471,7 +474,7 @@ const EmployeesPage = () => {
     }
 
     // Check if password is required for this role
-    const nonSigninRoles = ['reporter', 'Maintenance Crew (Mechanics)', 'operator'];
+    const nonSigninRoles = ['reporter', 'Maintenance Crew (Mechanics)', 'operator', 'salesperson'];
     const isNonSigninRole = nonSigninRoles.includes(basicData.role);
     
     if (!isNonSigninRole && !editingId && !basicData.password) {
@@ -1550,7 +1553,7 @@ const EmployeesPage = () => {
                         />
                       </div>
                       {/* Only show password field for roles that require sign-in */}
-                      {!['reporter', 'Maintenance Crew (Mechanics)', 'operator'].includes(basicData.role) && (
+                      {!['reporter', 'Maintenance Crew (Mechanics)', 'operator', 'salesperson'].includes(basicData.role) && (
                         <div>
                           <label className="block text-sm font-medium text-gray-700 mb-1">
                             Password{!editingId && <span className="text-red-500">*</span>}
