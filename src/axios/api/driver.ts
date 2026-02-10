@@ -495,6 +495,28 @@ export const getDriverTestStatus = async (driverId: string) => {
   }
 };
 
+// Approve a test result
+export const approveTestResult = async (testResultId: string) => {
+  try {
+    const res: AxiosResponse = await apiClient.put(`hr/driver/test-result/${testResultId}/approve`);
+    return res.data;
+  } catch (error) {
+    console.error('❌ Error approving test:', error);
+    return (error as any).response?.data;
+  }
+};
+
+// Reject a test result
+export const rejectTestResult = async (testResultId: string, reason?: string) => {
+  try {
+    const res: AxiosResponse = await apiClient.put(`hr/driver/test-result/${testResultId}/reject`, { reason });
+    return res.data;
+  } catch (error) {
+    console.error('❌ Error rejecting test:', error);
+    return (error as any).response?.data;
+  }
+};
+
 // ==================== DRUG TEST APIs ====================
 export interface DrugTestRequest {
   _id?: string;

@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from 'react';
 import { Edit, Trash2, Plus, X, RefreshCw, User, Search, FileText,  MapPin, DollarSign, Upload, Save, ChevronUp, ChevronDown, Calendar, Award, AlertTriangle, FileText as FileTextIcon, PlusCircle, Check, ClipboardCheck } from 'lucide-react';
 import { FaCheckCircle, FaExclamationCircle, FaTimes } from 'react-icons/fa';
 import * as driverApi from '../../../../axios/api/driver';
+import { getTestResults, approveTestResult, rejectTestResult } from '../../../../axios/api/driver';
 import { listDriver } from '../../../../axios/api/distapcher';
 import { getSignedEmployeeDocumentUrl, deleteEmployeeDocument } from '../../../../axios/api/employeeDocument';
 import type { EmployeeDocument } from '../../../../axios/api/employeeDocument';
@@ -516,7 +517,101 @@ const DriverManagement = () => {
     passed: boolean;
     attempts: number;
     completedAt: string;
+    hrApproved?: boolean;
+    hrRejected?: boolean;
+    hrApprovedBy?: string;
+    hrApprovedAt?: string;
+    hrRejectionReason?: string;
   }>>([]);
+  const [loadingTests, setLoadingTests] = useState(false);
+
+  // Fetch test results for a driver
+  const fetchDriverTestResults = async (driverId: string) => {
+    try {
+      setLoadingTests(true);
+      console.log('📊 Fetching test results for driver:', driverId);
+      
+      const response = await getTestResults({ driverId });
+      
+      console.log('📊 Test results response:', response);
+      
+      if (response?.success && response.data) {
+        const tests = Array.isArray(response.data) ? response.data : [];
+        
+        const formattedTests = tests.map((test: any) => ({
+          id: test._id || test.id,
+          testType: test.testType || 'TDG',
+          score: test.score || 0,
+          passed: test.passed || false,
+          attempts: test.attempts || 1,
+          completedAt: test.createdAt || test.completedAt || '',
+          hrApproved: test.hrApproved || false,
+          hrRejected: test.hrRejected || false,
+          hrApprovedBy: test.hrApprovedBy?.name || test.hrApprovedBy || '',
+          hrApprovedAt: test.hrApprovedAt || '',
+          hrRejectionReason: test.hrRejectionReason || ''
+        }));
+        
+        setDriverTests(formattedTests);
+        console.log(`✅ Test results loaded (${formattedTests.length} tests)`);
+      } else {
+        setDriverTests([]);
+        console.log('⚠️ No test results found');
+      }
+    } catch (error: any) {
+      console.error('❌ Error fetching test results:', error);
+      setDriverTests([]);
+      addNotification('error', 'Failed to load test results');
+    } finally {
+      setLoadingTests(false);
+    }
+  };
+
+  // Handle test approval
+  const handleTestApproval = async (testId: string) => {
+    try {
+      console.log('📝 Approving test:', testId);
+      
+      const response = await approveTestResult(testId);
+      
+      if (response?.success) {
+        addNotification('success', 'Test approved successfully');
+        
+        // Refresh test results
+        if (editingDriver?._id) {
+          await fetchDriverTestResults(editingDriver._id);
+        }
+      } else {
+        addNotification('error', response?.message || 'Failed to approve test');
+      }
+    } catch (error: any) {
+      console.error('❌ Error approving test:', error);
+      addNotification('error', error.response?.data?.message || 'Failed to approve test');
+    }
+  };
+
+  // Handle test rejection
+  const handleTestRejection = async (testId: string, reason?: string) => {
+    try {
+      console.log('📝 Rejecting test:', testId, 'Reason:', reason);
+      
+      const response = await rejectTestResult(testId, reason);
+      
+      if (response?.success) {
+        addNotification('success', 'Test rejected successfully');
+        
+        // Refresh test results
+        if (editingDriver?._id) {
+          await fetchDriverTestResults(editingDriver._id);
+        }
+      } else {
+        addNotification('error', response?.message || 'Failed to reject test');
+      }
+    } catch (error: any) {
+      console.error('❌ Error rejecting test:', error);
+      addNotification('error', error.response?.data?.message || 'Failed to reject test');
+    }
+  };
 
   // Fetch drivers from API
   const fetchDrivers = async () => {
@@ -969,21 +1064,8 @@ const DriverManagement = () => {
                 setApprovedAt('');
               }
 
-              // Load test results (assuming driverTests array or similar structure)
-              if (driver.driverTests && Array.isArray(driver.driverTests) && driver.driverTests.length > 0) {
-                const existingTests = driver.driverTests.map((test: any) => ({
-                  id: test._id || test.id || `test-${Date.now()}-${Math.random()}`,
-                  testType: test.testType || 'TDG',
-                  score: test.score || 0,
-                  passed: test.passed || false,
-                  attempts: test.attempts || 1,
-                  completedAt: test.completedAt ? new Date(test.completedAt).toISOString() : ''
-                }));
-                setDriverTests(existingTests);
-                console.log(`✅ Test results loaded (${existingTests.length} tests)`);
-              } else {
-                setDriverTests([]);
-              }
+              // Fetch test results from API
+              await fetchDriverTestResults(driver._id);
             } catch (onboardingError) {
               console.error('Error loading onboarding data:', onboardingError);
               // Set defaults
@@ -6428,8 +6510,14 @@ const DriverManagement = () => {
 
                     {/* Section 4: Test Results Table */}
                     <div className="bg-white rounded-lg border border-gray-200">
-                      <div className="p-4 border-b border-gray-200">
+                      <div className="p-4 border-b border-gray-200 flex items-center justify-between">
                         <h4 className="text-sm font-bold text-gray-900">Test Results</h4>
+                        {loadingTests && (
+                          <div className="flex items-center gap-2 text-xs text-gray-500">
+                            <RefreshCw className="w-3 h-3 animate-spin" />
+                            Loading...
+                          </div>
+                        )}
                       </div>
                       <div className="overflow-x-auto">
                         <table className="w-full">
@@ -6438,15 +6526,17 @@ const DriverManagement = () => {
                               <th className="px-4 py-2 text-left text-xs font-medium text-gray-700">Test Type</th>
                               <th className="px-4 py-2 text-left text-xs font-medium text-gray-700">Score</th>
                               <th className="px-4 py-2 text-left text-xs font-medium text-gray-700">Status</th>
+                              <th className="px-4 py-2 text-left text-xs font-medium text-gray-700">HR Approval</th>
                               <th className="px-4 py-2 text-left text-xs font-medium text-gray-700">Attempts</th>
                               <th className="px-4 py-2 text-left text-xs font-medium text-gray-700">Date</th>
+                              <th className="px-4 py-2 text-left text-xs font-medium text-gray-700">Actions</th>
                             </tr>
                           </thead>
                           <tbody className="divide-y divide-gray-200">
                             {driverTests.length > 0 ? (
                               driverTests.map((test) => (
                                 <tr key={test.id} className="hover:bg-gray-50">
-                                  <td className="px-4 py-2 text-xs text-gray-900">{test.testType}</td>
+                                  <td className="px-4 py-2 text-xs text-gray-900 font-medium">{test.testType}</td>
                                   <td className="px-4 py-2 text-xs text-gray-900">{test.score}%</td>
                                   <td className="px-4 py-2">
                                     <span className={`px-2 py-1 rounded text-xs font-medium ${
@@ -6455,16 +6545,73 @@ const DriverManagement = () => {
                                       {test.passed ? 'Passed' : 'Failed'}
                                     </span>
                                   </td>
+                                  <td className="px-4 py-2">
+                                    {test.hrApproved ? (
+                                      <span className="px-2 py-1 rounded text-xs font-medium bg-green-100 text-green-800 flex items-center gap-1">
+                                        <Check className="w-3 h-3" />
+                                        Approved
+                                      </span>
+                                    ) : test.hrRejected ? (
+                                      <span className="px-2 py-1 rounded text-xs font-medium bg-red-100 text-red-800 flex items-center gap-1">
+                                        <X className="w-3 h-3" />
+                                        Rejected
+                                      </span>
+                                    ) : (
+                                      <span className="px-2 py-1 rounded text-xs font-medium bg-yellow-100 text-yellow-800">
+                                        Pending
+                                      </span>
+                                    )}
+                                  </td>
                                   <td className="px-4 py-2 text-xs text-gray-900">{test.attempts}</td>
                                   <td className="px-4 py-2 text-xs text-gray-900">
                                     {test.completedAt ? new Date(test.completedAt).toLocaleDateString() : '-'}
+                                  </td>
+                                  <td className="px-4 py-2">
+                                    {!test.hrApproved && !test.hrRejected && (
+                                      <div className="flex items-center gap-1">
+                                        <button
+                                          onClick={() => handleTestApproval(test.id)}
+                                          className="px-2 py-1 bg-green-600 text-white text-xs rounded hover:bg-green-700 transition-colors flex items-center gap-1"
+                                          title="Approve Test"
+                                        >
+                                          <Check className="w-3 h-3" />
+                                          Approve
+                                        </button>
+                                        <button
+                                          onClick={() => {
+                                            const reason = prompt('Enter rejection reason (optional):');
+                                            if (reason !== null) {
+                                              handleTestRejection(test.id, reason || undefined);
+                                            }
+                                          }}
+                                          className="px-2 py-1 bg-red-600 text-white text-xs rounded hover:bg-red-700 transition-colors flex items-center gap-1"
+                                          title="Reject Test"
+                                        >
+                                          <X className="w-3 h-3" />
+                                          Reject
+                                        </button>
+                                      </div>
+                                    )}
+                                    {test.hrApproved && test.hrApprovedBy && (
+                                      <div className="text-xs text-gray-500">
+                                        By: {test.hrApprovedBy}
+                                        {test.hrApprovedAt && (
+                                          <div>{new Date(test.hrApprovedAt).toLocaleDateString()}</div>
+                                        )}
+                                      </div>
+                                    )}
+                                    {test.hrRejected && test.hrRejectionReason && (
+                                      <div className="text-xs text-red-600">
+                                        Reason: {test.hrRejectionReason}
+                                      </div>
+                                    )}
                                   </td>
                                 </tr>
                               ))
                             ) : (
                               <tr>
-                                <td colSpan={5} className="px-4 py-8 text-center text-xs text-gray-500">
-                                  No test results available
+                                <td colSpan={7} className="px-4 py-8 text-center text-xs text-gray-500">
+                                  {loadingTests ? 'Loading test results...' : 'No test results available'}
                                 </td>
                               </tr>
                             )}
