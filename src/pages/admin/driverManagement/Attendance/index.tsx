@@ -574,6 +574,26 @@ const AttendanceTracking = () => {
             .table-container-hidden-scrollbar::-webkit-scrollbar {
               display: none; /* Chrome, Safari, Opera */
             }
+            /* Custom Scrollbar Styles for Modal */
+            .custom-scrollbar {
+              scrollbar-width: thin;
+              scrollbar-color: #cbd5e1 #f1f5f9;
+            }
+            .custom-scrollbar::-webkit-scrollbar {
+              width: 8px;
+            }
+            .custom-scrollbar::-webkit-scrollbar-track {
+              background: #f1f5f9;
+              border-radius: 4px;
+            }
+            .custom-scrollbar::-webkit-scrollbar-thumb {
+              background: #cbd5e1;
+              border-radius: 4px;
+              transition: background 0.2s ease;
+            }
+            .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+              background: #94a3b8;
+            }
           `}</style>
           <div 
             ref={topScrollRef}
@@ -712,8 +732,9 @@ const AttendanceTracking = () => {
       {showAddModal && (
         <div className="fixed inset-0 bg-black/60 backdrop-blur-md z-[9999] flex items-center justify-center p-4">
 
-          <div className="bg-white rounded-xl shadow-2xl max-w-2xl w-full">
-            <div className="p-6 border-b border-gray-200">
+          <div className="bg-white rounded-xl shadow-2xl max-w-2xl w-full max-h-[90vh] flex flex-col">
+            {/* Fixed Header */}
+            <div className="p-6 border-b border-gray-200 flex-shrink-0">
               <div className="flex items-center justify-between">
                 <h2 className="text-2xl font-bold text-gray-900">
                   {editingRecord ? 'Edit Attendance' : 'Add Attendance Record'}
@@ -738,7 +759,8 @@ const AttendanceTracking = () => {
               </div>
             </div>
 
-            <div className="p-6 space-y-6">
+            {/* Scrollable Content Area */}
+            <div className="flex-1 overflow-y-auto px-6 py-6 space-y-6 custom-scrollbar">
               <div>
                 <label className="block text-sm font-semibold text-gray-700 mb-2">Employee Name</label>
                 <select
@@ -837,8 +859,11 @@ const AttendanceTracking = () => {
                   <p className="text-xs text-red-500 mt-1">Note is required for absent or leave status</p>
                 )}
               </div>
+            </div>
 
-              <div className="flex gap-3 pt-4 border-t border-gray-200">
+            {/* Fixed Footer */}
+            <div className="p-6 border-t border-gray-200 flex-shrink-0">
+              <div className="flex gap-3">
                 <button
                   onClick={() => {
                     setShowAddModal(false);
