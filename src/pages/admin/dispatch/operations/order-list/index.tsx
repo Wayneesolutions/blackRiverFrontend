@@ -1,5 +1,5 @@
 import { useState, useMemo, useEffect, useCallback, useRef } from "react";
-import { Edit, Plus, X, Package, DollarSign, Route, Truck, MessageCircle } from "lucide-react";
+import { Edit, Plus, X, Package, DollarSign, Route, Truck, MessageCircle, File, Download } from "lucide-react";
 import { FaCheckCircle, FaExclamationCircle, FaTimes, FaTruck } from "react-icons/fa";
 import { useNavigate, useLocation } from "react-router-dom";
 import NewOrderSidebar from "./NewOrderSidebar";
@@ -203,6 +203,10 @@ const OrderList = () => {
   const [chatOrderId, setChatOrderId] = useState<string | null>(null);
   const [chatOrderNumber, setChatOrderNumber] = useState<string>("");
   const [unreadCounts, setUnreadCounts] = useState<Record<string, number>>({});
+
+  // Documents modal state
+  const [showDocumentsModal, setShowDocumentsModal] = useState(false);
+  const [selectedOrderForDocuments, setSelectedOrderForDocuments] = useState<Order | null>(null);
 
   // Navigation
   const navigate = useNavigate();
@@ -839,6 +843,51 @@ const OrderList = () => {
     }
   };
 
+  // Helper function to get DEMO document status (for static display)
+  const getDemoDocumentStatus = (order: Order, index: number) => {
+    // Demo logic: alternate between different states for visual variety
+    const demoPattern = index % 4;
+    
+    // Pattern 0: Both documents uploaded (complete - Canada trip)
+    if (demoPattern === 0) {
+      return {
+        hasPOD: true,
+        hasBorderManifest: true,
+        isCanada: true,
+        isComplete: true,
+        documentCount: 2
+      };
+    }
+    // Pattern 1: Only POD uploaded (US trip - complete)
+    if (demoPattern === 1) {
+      return {
+        hasPOD: true,
+        hasBorderManifest: false,
+        isCanada: false,
+        isComplete: true,
+        documentCount: 1
+      };
+    }
+    // Pattern 2: POD missing (incomplete)
+    if (demoPattern === 2) {
+      return {
+        hasPOD: false,
+        hasBorderManifest: false,
+        isCanada: false,
+        isComplete: false,
+        documentCount: 0
+      };
+    }
+    // Pattern 3: POD uploaded, Manifest missing (Canada trip incomplete)
+    return {
+      hasPOD: true,
+      hasBorderManifest: false,
+      isCanada: true,
+      isComplete: false,
+      documentCount: 1
+    };
+  };
+
   const handleSaveOrder = async () => {
     // Order is already saved by the sidebar component
     // Close sidebar first, then refresh the list to get properly formatted data
@@ -1162,19 +1211,22 @@ const OrderList = () => {
                 <th className="px-4 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
                   Carrier
                 </th>
+                <th className="px-4 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                  Documents
+                </th>
               </tr>
             </thead>
             <tbody className="bg-white divide-y divide-gray-200">
               {loading ? (
                 <tr>
-                  <td colSpan={24} className="px-6 py-12 text-center text-gray-500">
+                  <td colSpan={25} className="px-6 py-12 text-center text-gray-500">
                     <div className="animate-spin rounded-full h-8 w-8 border-b-2 mx-auto" style={{ borderBottomColor: PRIMARY_COLOR }}></div>
                     <p className="mt-2">Loading orders...</p>
                   </td>
                 </tr>
               ) : paginatedOrders.length === 0 ? (
                 <tr>
-                  <td colSpan={24} className="px-6 py-12 text-center text-gray-500">
+                  <td colSpan={25} className="px-6 py-12 text-center text-gray-500">
                     <p className="text-lg font-medium">No orders found</p>
                     <p className="text-sm">Create a new order to get started</p>
                   </td>
@@ -1407,6 +1459,82 @@ const OrderList = () => {
                       <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-900">
                         {carrierName}
                       </td>
+                      <td className="px-4 py-4 whitespace-nowrap">
+                        {(() => {
+                          // Use demo status for static display - always shows something
+                          const orderIndex = paginatedOrders.findIndex(o => o.id === order.id);
+                          const demoStatus = getDemoDocumentStatus(order, orderIndex);
+                          
+                          return (
+                            <button
+                              onClick={async (e) => {
+                                e.stopPropagation();
+                                try {
+                                  const response = await getOrderById(order.id);
+                                  if (response?.success) {
+                                    const orderData = response.data;
+                                    setSelectedOrderForDocuments(orderData as any);
+                                    setShowDocumentsModal(true);
+                                  } else {
+                                    addNotification('error', 'Failed to load order documents');
+                                  }
+                                } catch (error: any) {
+                                  addNotification('error', 'Error loading documents');
+                                }
+                              }}
+                              className="flex items-center gap-2 px-2 py-1.5 bg-white hover:bg-blue-50 border border-gray-300 rounded transition-colors w-full min-w-[140px] cursor-pointer"
+                              title="Click to view documents"
+                            >
+                              <div className="flex items-center gap-2 flex-1">
+                                {/* POD Status - Always visible */}
+                                <div className="flex items-center gap-1" title={demoStatus.hasPOD ? "POD Uploaded ✓" : "POD Missing ✗"}>
+                                  {demoStatus.hasPOD ? (
+                                    <>
+                                      <FaCheckCircle className="text-green-600" size={14} />
+                                      <span className="text-xs font-semibold text-green-700">POD</span>
+                                    </>
+                                  ) : (
+                                    <>
+                                      <FaTimes className="text-red-600" size={14} />
+                                      <span className="text-xs font-semibold text-red-700">POD</span>
+                                    </>
+                                  )}
+                                </div>
+                                
+                                {/* Border Manifest Status (for Canada trips) */}
+                                {demoStatus.isCanada && (
+                                  <div className="flex items-center gap-1" title={demoStatus.hasBorderManifest ? "Manifest Uploaded ✓" : "Manifest Missing ✗"}>
+                                    {demoStatus.hasBorderManifest ? (
+                                      <>
+                                        <FaCheckCircle className="text-green-600" size={14} />
+                                        <span className="text-xs font-semibold text-green-700">M</span>
+                                      </>
+                                    ) : (
+                                      <>
+                                        <FaTimes className="text-red-600" size={14} />
+                                        <span className="text-xs font-semibold text-red-700">M</span>
+                                      </>
+                                    )}
+                                  </div>
+                                )}
+                                
+                                {/* Document count badge */}
+                                {demoStatus.documentCount > 0 && (
+                                  <div className="flex items-center gap-1 ml-auto">
+                                    <File className="text-blue-600" size={12} />
+                                    <span className="text-xs font-semibold text-blue-800">{demoStatus.documentCount}</span>
+                                  </div>
+                                )}
+                                
+                                {/* Show dash if no documents */}
+                                {demoStatus.documentCount === 0 && (
+                                  <span className="text-xs text-gray-400 ml-auto">-</span>
+                                )}
+                              </div>
+                            </button>
+                          );
+                        })()}
+                      </td>
                     </tr>
                   );
                 })
@@ -1452,6 +1580,295 @@ const OrderList = () => {
           </div>
         </div>
       </div>
+
+      {/* Documents Modal */}
+      {showDocumentsModal && selectedOrderForDocuments && (
+        <div className="fixed inset-0 z-[10002] bg-gray-900/50 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="bg-white rounded-xl shadow-2xl w-full max-w-2xl max-h-[85vh] overflow-hidden flex flex-col">
+            <div className="flex-shrink-0 bg-white border-b px-6 py-4 flex items-center justify-between rounded-t-xl">
+              <div>
+                <h3 className="text-xl font-bold text-gray-800">Order Documents</h3>
+                <p className="text-sm text-gray-600 mt-1">Order: {selectedOrderForDocuments.orderNo || selectedOrderForDocuments.custOrderNo || 'N/A'}</p>
+              </div>
+              <button
+                onClick={() => {
+                  setShowDocumentsModal(false);
+                  setSelectedOrderForDocuments(null);
+                }}
+                className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+              >
+                <X className="w-5 h-5 text-gray-500" />
+              </button>
+            </div>
+            <div className="flex-1 overflow-y-auto p-6">
+              {/* Document Requirements Status */}
+              <div className="mb-4 p-3 bg-gray-50 rounded-lg border border-gray-200">
+                <div className="text-xs font-semibold text-gray-700 mb-2">Required Documents:</div>
+                {(() => {
+                  const orderIndex = paginatedOrders.findIndex(o => o.id === selectedOrderForDocuments.id);
+                  const demoStatus = getDemoDocumentStatus(selectedOrderForDocuments, orderIndex);
+                  return (
+                    <div className="space-y-2">
+                      <div className="flex items-center gap-2 text-sm">
+                        {demoStatus.hasPOD ? (
+                          <FaCheckCircle className="text-green-600" size={14} />
+                        ) : (
+                          <FaTimes className="text-red-600" size={14} />
+                        )}
+                        <span className={demoStatus.hasPOD ? 'text-green-800' : 'text-red-800'}>
+                          POD (Proof of Delivery) - {demoStatus.hasPOD ? 'Uploaded' : 'Missing'}
+                        </span>
+                      </div>
+                      {demoStatus.isCanada && (
+                        <div className="flex items-center gap-2 text-sm">
+                          {demoStatus.hasBorderManifest ? (
+                            <FaCheckCircle className="text-green-600" size={14} />
+                          ) : (
+                            <FaTimes className="text-red-600" size={14} />
+                          )}
+                          <span className={demoStatus.hasBorderManifest ? 'text-green-800' : 'text-red-800'}>
+                            Border Manifest - {demoStatus.hasBorderManifest ? 'Uploaded' : 'Missing'}
+                          </span>
+                        </div>
+                      )}
+                    </div>
+                  );
+                })()}
+              </div>
+
+              {/* Documents List */}
+              <div>
+                <div className="text-sm font-semibold text-gray-700 mb-3">Uploaded Documents:</div>
+                {(() => {
+                  const orderIndex = paginatedOrders.findIndex(o => o.id === selectedOrderForDocuments.id);
+                  const demoStatus = getDemoDocumentStatus(selectedOrderForDocuments, orderIndex);
+                  
+                  if (demoStatus.documentCount > 0) {
+                    return (
+                      <div className="space-y-2">
+                        {demoStatus.hasPOD && (
+                          <div className="p-3 bg-white border border-gray-200 rounded-lg">
+                            <div className="flex items-start justify-between gap-3">
+                              <div className="flex items-start gap-3 flex-1 min-w-0">
+                                <File className="w-4 h-4 text-gray-400 mt-0.5 flex-shrink-0" />
+                                <div className="flex-1 min-w-0">
+                                  <div className="flex items-center gap-2 mb-1">
+                                    <span className="font-medium text-sm text-gray-900">Proof of Delivery (POD)</span>
+                                    <span className="px-2 py-0.5 bg-gray-100 text-gray-700 rounded text-xs font-medium">POD</span>
+                                  </div>
+                                  <div className="text-xs text-gray-500 mt-1">Uploaded document</div>
+                                </div>
+                              </div>
+                              <button
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  // Check if order has actual POD document
+                                  const orderData = selectedOrderForDocuments as any;
+                                  const podUrl = orderData?.documents?.pod || orderData?._fullOrder?.documents?.pod;
+                                  
+                                  if (podUrl) {
+                                    // Open actual document URL in new tab
+                                    window.open(podUrl, '_blank', 'noopener,noreferrer');
+                                  } else {
+                                    // For demo: Create and open a demo document viewer
+                                    const demoDocHtml = `
+                                      <!DOCTYPE html>
+                                      <html>
+                                        <head>
+                                          <title>Proof of Delivery - ${selectedOrderForDocuments.orderNo || 'Order'}</title>
+                                          <style>
+                                            body { font-family: Arial, sans-serif; padding: 40px; max-width: 800px; margin: 0 auto; }
+                                            .header { border-bottom: 2px solid #016ab2; padding-bottom: 20px; margin-bottom: 30px; }
+                                            .header h1 { color: #016ab2; margin: 0; }
+                                            .info { margin: 20px 0; }
+                                            .info-row { display: flex; margin: 10px 0; }
+                                            .info-label { font-weight: bold; width: 200px; color: #666; }
+                                            .info-value { color: #333; }
+                                            .signature-section { margin-top: 40px; padding-top: 20px; border-top: 1px solid #ddd; }
+                                            .signature-box { border: 2px solid #016ab2; padding: 20px; margin-top: 20px; min-height: 100px; }
+                                            .footer { margin-top: 40px; padding-top: 20px; border-top: 1px solid #ddd; text-align: center; color: #666; font-size: 12px; }
+                                          </style>
+                                        </head>
+                                        <body>
+                                          <div class="header">
+                                            <h1>Proof of Delivery (POD)</h1>
+                                            <p style="color: #666; margin: 5px 0;">Order: ${selectedOrderForDocuments.orderNo || selectedOrderForDocuments.custOrderNo || 'N/A'}</p>
+                                          </div>
+                                          <div class="info">
+                                            <div class="info-row">
+                                              <div class="info-label">Customer:</div>
+                                              <div class="info-value">${selectedOrderForDocuments.customerName || 'N/A'}</div>
+                                            </div>
+                                            <div class="info-row">
+                                              <div class="info-label">Delivery Date:</div>
+                                              <div class="info-value">${selectedOrderForDocuments.deliveryDate || 'N/A'}</div>
+                                            </div>
+                                            <div class="info-row">
+                                              <div class="info-label">Delivery Location:</div>
+                                              <div class="info-value">${selectedOrderForDocuments.deliveryLocation || 'N/A'}</div>
+                                            </div>
+                                            <div class="info-row">
+                                              <div class="info-label">Driver:</div>
+                                              <div class="info-value">${selectedOrderForDocuments.driver || 'N/A'}</div>
+                                            </div>
+                                          </div>
+                                          <div class="signature-section">
+                                            <h3>Customer Signature</h3>
+                                            <div class="signature-box">
+                                              <p style="color: #999; font-style: italic;">Signature area - Document signed by customer</p>
+                                            </div>
+                                          </div>
+                                          <div class="footer">
+                                            <p>This is a demo document. Actual POD will be displayed when uploaded.</p>
+                                            <p>Generated: ${new Date().toLocaleString()}</p>
+                                          </div>
+                                        </body>
+                                      </html>
+                                    `;
+                                    const blob = new Blob([demoDocHtml], { type: 'text/html' });
+                                    const url = URL.createObjectURL(blob);
+                                    const newWindow = window.open(url, '_blank', 'noopener,noreferrer');
+                                    if (newWindow) {
+                                      setTimeout(() => URL.revokeObjectURL(url), 100);
+                                    }
+                                  }
+                                }}
+                                className="px-3 py-1.5 text-xs font-medium text-blue-600 hover:text-blue-700 hover:bg-blue-50 rounded border border-blue-200 transition-colors flex items-center gap-1 flex-shrink-0"
+                                title="View Document in New Tab"
+                              >
+                                <Download className="w-3 h-3" />
+                                View
+                              </button>
+                            </div>
+                          </div>
+                        )}
+                        {demoStatus.hasBorderManifest && (
+                          <div className="p-3 bg-white border border-gray-200 rounded-lg">
+                            <div className="flex items-start justify-between gap-3">
+                              <div className="flex items-start gap-3 flex-1 min-w-0">
+                                <File className="w-4 h-4 text-gray-400 mt-0.5 flex-shrink-0" />
+                                <div className="flex-1 min-w-0">
+                                  <div className="flex items-center gap-2 mb-1">
+                                    <span className="font-medium text-sm text-gray-900">Border Manifest</span>
+                                    <span className="px-2 py-0.5 bg-gray-100 text-gray-700 rounded text-xs font-medium">Manifest</span>
+                                  </div>
+                                  <div className="text-xs text-gray-500 mt-1">Uploaded document</div>
+                                </div>
+                              </div>
+                              <button
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  // Check if order has actual Manifest document
+                                  const orderData = selectedOrderForDocuments as any;
+                                  const manifestUrl = orderData?.documents?.stampedManifest || orderData?._fullOrder?.documents?.stampedManifest;
+                                  
+                                  if (manifestUrl) {
+                                    // Open actual document URL in new tab
+                                    window.open(manifestUrl, '_blank', 'noopener,noreferrer');
+                                  } else {
+                                    // For demo: Create and open a demo document viewer
+                                    const demoDocHtml = `
+                                      <!DOCTYPE html>
+                                      <html>
+                                        <head>
+                                          <title>Border Manifest - ${selectedOrderForDocuments.orderNo || 'Order'}</title>
+                                          <style>
+                                            body { font-family: Arial, sans-serif; padding: 40px; max-width: 800px; margin: 0 auto; }
+                                            .header { border-bottom: 2px solid #016ab2; padding-bottom: 20px; margin-bottom: 30px; }
+                                            .header h1 { color: #016ab2; margin: 0; }
+                                            .info { margin: 20px 0; }
+                                            .info-row { display: flex; margin: 10px 0; }
+                                            .info-label { font-weight: bold; width: 200px; color: #666; }
+                                            .info-value { color: #333; }
+                                            .border-info { margin-top: 30px; padding: 20px; background: #f5f5f5; border-radius: 8px; }
+                                            .stamp-section { margin-top: 40px; padding-top: 20px; border-top: 1px solid #ddd; text-align: center; }
+                                            .stamp-box { border: 3px dashed #016ab2; padding: 30px; margin: 20px auto; width: 300px; }
+                                            .footer { margin-top: 40px; padding-top: 20px; border-top: 1px solid #ddd; text-align: center; color: #666; font-size: 12px; }
+                                          </style>
+                                        </head>
+                                        <body>
+                                          <div class="header">
+                                            <h1>Border Manifest</h1>
+                                            <p style="color: #666; margin: 5px 0;">Order: ${selectedOrderForDocuments.orderNo || selectedOrderForDocuments.custOrderNo || 'N/A'}</p>
+                                          </div>
+                                          <div class="info">
+                                            <div class="info-row">
+                                              <div class="info-label">Port of Entry:</div>
+                                              <div class="info-value">${(selectedOrderForDocuments as any).borderInfo?.portOfEntry || 'N/A'}</div>
+                                            </div>
+                                            <div class="info-row">
+                                              <div class="info-label">Direction:</div>
+                                              <div class="info-value">${(selectedOrderForDocuments as any).borderInfo?.direction || 'N/A'}</div>
+                                            </div>
+                                            <div class="info-row">
+                                              <div class="info-label">Broker:</div>
+                                              <div class="info-value">${(selectedOrderForDocuments as any).borderInfo?.brokerName || 'N/A'}</div>
+                                            </div>
+                                          </div>
+                                          <div class="border-info">
+                                            <h3>Border Crossing Information</h3>
+                                            <p>This manifest is required for Canada border crossings.</p>
+                                            <p><strong>Cargo Description:</strong> ${(selectedOrderForDocuments as any).borderInfo?.cargoDescription || 'N/A'}</p>
+                                            <p><strong>Commercial Value:</strong> ${(selectedOrderForDocuments as any).borderInfo?.commercialValue || 'N/A'}</p>
+                                          </div>
+                                          <div class="stamp-section">
+                                            <h3>Customs Stamp</h3>
+                                            <div class="stamp-box">
+                                              <p style="color: #999; font-style: italic;">Customs stamp area</p>
+                                              <p style="color: #016ab2; font-weight: bold; margin-top: 10px;">STAMPED</p>
+                                            </div>
+                                          </div>
+                                          <div class="footer">
+                                            <p>This is a demo document. Actual Border Manifest will be displayed when uploaded.</p>
+                                            <p>Generated: ${new Date().toLocaleString()}</p>
+                                          </div>
+                                        </body>
+                                      </html>
+                                    `;
+                                    const blob = new Blob([demoDocHtml], { type: 'text/html' });
+                                    const url = URL.createObjectURL(blob);
+                                    const newWindow = window.open(url, '_blank', 'noopener,noreferrer');
+                                    if (newWindow) {
+                                      setTimeout(() => URL.revokeObjectURL(url), 100);
+                                    }
+                                  }
+                                }}
+                                className="px-3 py-1.5 text-xs font-medium text-blue-600 hover:text-blue-700 hover:bg-blue-50 rounded border border-blue-200 transition-colors flex items-center gap-1 flex-shrink-0"
+                                title="View Document in New Tab"
+                              >
+                                <Download className="w-3 h-3" />
+                                View
+                              </button>
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    );
+                  }
+                  return (
+                    <div className="p-4 bg-gray-50 border border-gray-200 rounded-lg text-center text-gray-500">
+                      <File className="w-6 h-6 mx-auto mb-2 text-gray-400" />
+                      <p className="text-sm">No documents uploaded</p>
+                    </div>
+                  );
+                })()}
+              </div>
+            </div>
+            <div className="flex-shrink-0 bg-gray-50 px-6 py-4 flex justify-end border-t rounded-b-xl">
+              <button
+                onClick={() => {
+                  setShowDocumentsModal(false);
+                  setSelectedOrderForDocuments(null);
+                }}
+                className="px-6 py-2 !text-white rounded-lg font-medium transition-all hover:opacity-90 hover:shadow-md"
+                style={{ background: PRIMARY_GRADIENT }}
+              >
+                Close
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Toast Notifications */}
       <div className="fixed top-4 right-4 z-[10003] flex flex-col gap-2">

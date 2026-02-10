@@ -54,6 +54,10 @@ interface Invoice {
     subtotal?: number;
     taxAmount?: number;
     taxNumber?: string;
+    gst?: number;
+    gstRate?: number;
+    pst?: number;
+    pstRate?: number;
     company?: CompanyInfo | string;
     createdAt: string;
     updatedAt: string;
@@ -238,591 +242,212 @@ const InvoiceManagement: React.FC = () => {
         }
     };
 
-    const handleDownloadPDF = (invoice: Invoice) => {
+    const handleDownloadPDF = async (invoice: Invoice) => {
         try {
             const doc = new jsPDF();
             const pageWidth = doc.internal.pageSize.width;
-            const pageHeight = doc.internal.pageSize.height;
             const margin = 20;
-            const contentWidth = pageWidth - (margin * 2);
-
-            // Color scheme - using RGB values directly
-            const primaryR = 67, primaryG = 56, primaryB = 202; // Indigo
-            const secondaryR = 99, secondaryG = 102, secondaryB = 241; // Lighter indigo
-            const textR = 31, textG = 41, textB = 55; // Gray-800
-            const lightGrayR = 243, lightGrayG = 244, lightGrayB = 246; // Gray-100
-
-            // Get company info
-            const company = typeof invoice.company === 'object' && invoice.company ? invoice.company : null;
-
-            // Header with colored background
-            doc.setFillColor(primaryR, primaryG, primaryB);
-            doc.rect(0, 0, pageWidth, 50, 'F');
-
-            // Company/Invoice Title
+            const contentWidth = pageWidth - margin * 2;
+    
+            const primaryColor = [67, 56, 202];
+            const secondaryColor = [99, 102, 241];
+            const textColor = [31, 41, 55];
+    
+            const company =
+                typeof invoice.company === "object" && invoice.company
+                    ? invoice.company
+                    : null;
+    
+            // 🔹 helper to load logo
+            const loadImageAsBase64 = async (url: string) => {
+                const res = await fetch(url);
+                const blob = await res.blob();
+                return await new Promise<string>((resolve) => {
+                    const reader = new FileReader();
+                    reader.onloadend = () => resolve(reader.result as string);
+                    reader.readAsDataURL(blob);
+                });
+            };
+    
+            // ================= HEADER =================
+            doc.setFillColor(...primaryColor);
+            doc.rect(0, 0, pageWidth, 50, "F");
+    
+            // Logo
+            if (company?.logoUrl) {
+                try {
+                    const base64 = await loadImageAsBase64(company.logoUrl);
+                    doc.addImage(base64, "PNG", margin, 10, 40, 25);
+                } catch {
+                    console.warn("Logo not loaded");
+                }
+            }
+    
+            // Title
             doc.setTextColor(255, 255, 255);
-            doc.setFontSize(28);
-            doc.setFont('helvetica', 'bold');
-            doc.text('INVOICE', pageWidth / 2, 25, { align: 'center' });
-
-
-
-            // Reset text color
-            doc.setTextColor(textR, textG, textB);
-
-            // Company Details Section (Top Left)
+            doc.setFontSize(26);
+            doc.setFont("helvetica", "bold");
+            doc.text("INVOICE", pageWidth / 2, 25, { align: "center" });
+    
+            doc.setTextColor(...textColor);
+    
+            // ================= COMPANY DETAILS =================
             let yPos = 60;
+    
             if (company) {
                 doc.setFontSize(12);
-                doc.setFont('helvetica', 'bold');
-                doc.text(company.companyName || 'Company Name', margin, yPos);
+                doc.setFont("helvetica", "bold");
+                doc.text(company.companyName || "Company Name", margin, yPos);
                 yPos += 7;
-
+    
                 doc.setFontSize(10);
-                doc.setFont('helvetica', 'normal');
+                doc.setFont("helvetica", "normal");
+    
                 if (company.address) {
-                    const addressLines = doc.splitTextToSize(company.address, 80);
-                    doc.text(addressLines, margin, yPos);
-                    yPos += addressLines.length * 5;
+                    const lines = doc.splitTextToSize(company.address, 90);
+                    doc.text(lines, margin, yPos);
+                    yPos += lines.length * 5;
                 }
+    
                 if (company.contactPhone) {
                     doc.text(`Phone: ${company.contactPhone}`, margin, yPos);
                     yPos += 6;
                 }
+    
                 if (company.contactEmail) {
                     doc.text(`Email: ${company.contactEmail}`, margin, yPos);
                     yPos += 6;
                 }
+    
                 if (company.taxNumber) {
-                    doc.text(`Tax Number: ${company.taxNumber}`, margin, yPos);
+                    doc.text(`GST No: ${company.taxNumber}`, margin, yPos);
                     yPos += 6;
                 }
-                yPos += 5;
             }
-
-            // Invoice Details Box (Top Right) - Properly positioned
-            const boxX = pageWidth - margin - 90;
-            const boxY = 60;
-            const boxWidth = 90;
-            const boxHeight = 55;
-
-            doc.setFillColor(lightGrayR, lightGrayG, lightGrayB);
-            doc.roundedRect(boxX, boxY, boxWidth, boxHeight, 3, 3, 'F');
-
-            doc.setFontSize(9);
-            doc.setTextColor(107, 114, 128); // Gray-500
-            doc.text('Invoice Number', boxX + 5, boxY + 8);
-            doc.text('Invoice Date', boxX + 5, boxY + 18);
-            doc.text('Due Date', boxX + 5, boxY + 28);
-            doc.text('Status', boxX + 5, boxY + 38);
-
-            doc.setFontSize(10);
-            doc.setTextColor(textR, textG, textB);
-            doc.setFont('helvetica', 'bold');
-            doc.text(`#${invoice._id.slice(-8).toUpperCase()}`, boxX + 5, boxY + 15);
-            doc.setFont('helvetica', 'normal');
-            doc.text(formatDate(invoice.invoiceDate), boxX + 5, boxY + 25);
-            doc.text(formatDate(invoice.dueDate), boxX + 5, boxY + 35);
-
-            // Status badge
-            const statusR = invoice.status === 'paid' ? 34 : 251;
-            const statusG = invoice.status === 'paid' ? 197 : 191;
-            const statusB = invoice.status === 'paid' ? 94 : 36;
-            doc.setFillColor(statusR, statusG, statusB);
-            doc.roundedRect(boxX + 5, boxY + 40, 35, 6, 2, 2, 'F');
-            doc.setTextColor(255, 255, 255);
-            doc.setFontSize(8);
-            doc.setFont('helvetica', 'bold');
-            doc.text(invoice.status.toUpperCase(), boxX + 22.5, boxY + 44, { align: 'center' });
-            doc.setTextColor(textR, textG, textB);
-
-            // Company Details Section (Top Left) - Below header
-            yPos = 60;
-            if (company) {
-                doc.setFontSize(12);
-                doc.setFont('helvetica', 'bold');
-                doc.text(company.companyName || 'Company Name', margin, yPos);
-                yPos += 7;
-
-                doc.setFontSize(10);
-                doc.setFont('helvetica', 'normal');
-                if (company.address) {
-                    const addressLines = doc.splitTextToSize(company.address, 100);
-                    doc.text(addressLines, margin, yPos);
-                    yPos += addressLines.length * 5;
-                }
-                if (company.contactPhone) {
-                    doc.text(`Phone: ${company.contactPhone}`, margin, yPos);
-                    yPos += 6;
-                }
-                if (company.contactEmail) {
-                    doc.text(`Email: ${company.contactEmail}`, margin, yPos);
-                    yPos += 6;
-                }
-                if (company.taxNumber) {
-                    doc.text(`Tax Number: ${company.taxNumber}`, margin, yPos);
-                    yPos += 6;
-                }
-                yPos += 5;
-            }
-
-            // Bill To Section (Customer Details) - Below company, left side
+    
+            // ================= BILL TO =================
+            yPos += 10;
+    
             doc.setFontSize(12);
-            doc.setFont('helvetica', 'bold');
-            doc.text('Bill To:', margin, yPos);
+            doc.setFont("helvetica", "bold");
+            doc.text("Bill To:", margin, yPos);
             yPos += 8;
-
+    
             doc.setFontSize(11);
-            doc.setFont('helvetica', 'normal');
+            doc.setFont("helvetica", "normal");
             doc.text(invoice.clientName, margin, yPos);
             yPos += 7;
-
-            if (invoice.clientCompany) {
-                doc.setFontSize(10);
-                doc.setTextColor(107, 114, 128);
-                doc.text(invoice.clientCompany, margin, yPos);
-                doc.setTextColor(textR, textG, textB);
-                yPos += 7;
-            }
-
+    
             if (invoice.clientAddress) {
-                doc.setFontSize(10);
-                doc.setTextColor(107, 114, 128);
-                const addressLines = doc.splitTextToSize(invoice.clientAddress, 100);
-                doc.text(addressLines, margin, yPos);
-                yPos += addressLines.length * 5;
-                doc.setTextColor(textR, textG, textB);
+                const lines = doc.splitTextToSize(invoice.clientAddress, 90);
+                doc.text(lines, margin, yPos);
+                yPos += lines.length * 5;
             }
-
+    
             if (invoice.clientEmail) {
-                doc.setFontSize(10);
-                doc.setTextColor(107, 114, 128);
                 doc.text(invoice.clientEmail, margin, yPos);
-                doc.setTextColor(textR, textG, textB);
                 yPos += 6;
             }
-
+    
             if (invoice.clientPhone) {
-                doc.setFontSize(10);
-                doc.setTextColor(107, 114, 128);
                 doc.text(`Phone: ${invoice.clientPhone}`, margin, yPos);
-                doc.setTextColor(textR, textG, textB);
                 yPos += 6;
             }
-
+    
+            // ================= TABLE =================
             yPos += 10;
-
-            // Trip Information Section (if trip exists)
-            const trip = typeof invoice.tripId === 'object' && invoice.tripId ? invoice.tripId : null;
-            if (trip) {
-                yPos += 10;
-                doc.setDrawColor(229, 231, 235); // Gray-200
-                doc.setLineWidth(0.5);
-                doc.line(margin, yPos, pageWidth - margin, yPos);
-                yPos += 12;
-
-                doc.setFontSize(12);
-                doc.setFont('helvetica', 'bold');
-                doc.text('Trip Information:', margin, yPos);
-                yPos += 10;
-
-                doc.setFontSize(10);
-                doc.setFont('helvetica', 'normal');
-
-                // Trip Number
-                if (trip.tripNumber) {
-                    doc.setTextColor(107, 114, 128); // Gray-500
-                    doc.text('Trip Number:', margin, yPos);
-                    doc.setTextColor(textR, textG, textB);
-                    doc.text(trip.tripNumber, margin + 50, yPos);
-                    yPos += 7;
-                }
-
-                // Vehicle Information (without internal IDs)
-                if (trip.truck) {
-                    doc.setTextColor(107, 114, 128);
-                    doc.text('Truck:', margin, yPos);
-                    doc.setTextColor(textR, textG, textB);
-                    const plateNumber = trip.truck.plateNumber || trip.truck.licensePlate || trip.truck.unitNumber || 'N/A';
-                    const makeModel = trip.truck.make && trip.truck.model
-                        ? `${trip.truck.make} ${trip.truck.model}`
-                        : (trip.truck.makeModel || '');
-                    const vehicleType = trip.truck.type || trip.truck.unitType || '';
-                    const vehicleInfo = [
-                        plateNumber,
-                        makeModel,
-                        vehicleType ? `(${vehicleType})` : ''
-                    ].filter(Boolean).join(' ');
-                    doc.text(vehicleInfo || 'N/A', margin + 50, yPos);
-                    yPos += 7;
-                }
-
-                // Trailer Type
-                if (trip.trailer) {
-                    doc.setTextColor(107, 114, 128);
-                    doc.text('Trailer:', margin, yPos);
-                    doc.setTextColor(textR, textG, textB);
-                    const trailerTypeMap: { [key: string]: string } = {
-                        'dry_van': 'Dry Van',
-                        'refrigerated': 'Reefer',
-                        'flatbed': 'Flatbed',
-                        'tanker': 'Tanker',
-                        'container': 'Container'
-                    };
-                    const trailerType = trip.trailer.type ? trailerTypeMap[trip.trailer.type] || trip.trailer.type : '';
-                    const plateNumber = trip.trailer.plateNumber || trip.trailer.licensePlate || trip.trailer.unitNumber || 'N/A';
-                    const trailerInfo = [
-                        plateNumber,
-                        trailerType,
-                        trip.trailer.capacity ? `(${trip.trailer.capacity})` : ''
-                    ].filter(Boolean).join(' ');
-                    doc.text(trailerInfo || 'N/A', margin + 50, yPos);
-                    yPos += 7;
-                }
-
-                // Origin and Destination
-                if (trip.startLocation && trip.startLocation.place) {
-                    doc.setTextColor(107, 114, 128);
-                    doc.text('Origin:', margin, yPos);
-                    doc.setTextColor(textR, textG, textB);
-                    doc.text(trip.startLocation.place, margin + 50, yPos);
-                    yPos += 7;
-                }
-
-                if (trip.endLocation && trip.endLocation.place) {
-                    doc.setTextColor(107, 114, 128);
-                    doc.text('Destination:', margin, yPos);
-                    doc.setTextColor(textR, textG, textB);
-                    doc.text(trip.endLocation.place, margin + 50, yPos);
-                    yPos += 7;
-                }
-
-                // Distance (Miles covered)
-                if (trip.route && trip.route.totalDistance) {
-                    doc.setTextColor(107, 114, 128);
-                    doc.text('Miles Covered:', margin, yPos);
-                    doc.setTextColor(textR, textG, textB);
-                    const distanceKm = trip.route.totalDistance.toFixed(2);
-                    const distanceMiles = (trip.route.totalDistance * 0.621371).toFixed(2);
-                    doc.text(`${distanceMiles} miles (${distanceKm} km)`, margin + 50, yPos);
-                    yPos += 7;
-                }
-
-                // Load Details Section
-                if (trip.orders && trip.orders.length > 0) {
-                    yPos += 3;
-                    doc.setFontSize(11);
-                    doc.setFont('helvetica', 'bold');
-                    doc.setTextColor(textR, textG, textB);
-                    doc.text('Load Details:', margin, yPos);
-                    yPos += 8;
-                    doc.setFontSize(10);
-                    doc.setFont('helvetica', 'normal');
-
-                    // Calculate total weight
-                    let totalWeight = 0;
-                    const weightUnits: string[] = [];
-                    const commodities: string[] = [];
-                    const orderTypes: string[] = [];
-                    const equipmentList: string[] = [];
-                    let hasTemperature = false;
-                    let temperatureValue: number | null = null;
-                    const specialFlags: string[] = [];
-
-                    trip.orders.forEach((order: any) => {
-                        if (order.weight) {
-                            totalWeight += order.weight;
-                            if (order.weightUnit && !weightUnits.includes(order.weightUnit)) {
-                                weightUnits.push(order.weightUnit);
-                            }
-                        }
-                        if (order.commodity && !commodities.includes(order.commodity)) {
-                            commodities.push(order.commodity);
-                        }
-                        if (order.orderType && !orderTypes.includes(order.orderType)) {
-                            orderTypes.push(order.orderType);
-                        }
-                        if (order.equipment && Array.isArray(order.equipment)) {
-                            order.equipment.forEach((eq: string) => {
-                                if (!equipmentList.includes(eq)) {
-                                    equipmentList.push(eq);
-                                }
-                            });
-                        }
-                        if (order.temperature !== null && order.temperature !== undefined) {
-                            hasTemperature = true;
-                            temperatureValue = order.temperature;
-                        }
-                        if (order.additionalInfo) {
-                            if (order.additionalInfo.HAZMAT) specialFlags.push('HAZMAT');
-                            if (order.additionalInfo.TARP) specialFlags.push('TARP');
-                            if (order.additionalInfo.OverDimension) specialFlags.push('Over Dimension');
-                            if (order.additionalInfo.CSA) specialFlags.push('CSA');
-                        }
-                    });
-
-                    // Product/Load Type
-                    if (commodities.length > 0) {
-                        doc.setTextColor(107, 114, 128);
-                        doc.text('Product/Load Type:', margin, yPos);
-                        doc.setTextColor(textR, textG, textB);
-                        doc.text(commodities.join(', '), margin + 50, yPos);
-                        yPos += 7;
-                    }
-
-                    // Order Type
-                    if (orderTypes.length > 0) {
-                        doc.setTextColor(107, 114, 128);
-                        doc.text('Order Type:', margin, yPos);
-                        doc.setTextColor(textR, textG, textB);
-                        doc.text(orderTypes.join(', '), margin + 50, yPos);
-                        yPos += 7;
-                    }
-
-                    // Total Load Weight
-                    if (totalWeight > 0) {
-                        doc.setTextColor(107, 114, 128);
-                        doc.text('Total Load Weight:', margin, yPos);
-                        doc.setTextColor(textR, textG, textB);
-                        const weightUnit = weightUnits.length > 0 ? weightUnits[0] : 'kg';
-                        doc.text(`${totalWeight.toFixed(2)} ${weightUnit}`, margin + 50, yPos);
-                        yPos += 7;
-                    }
-
-                    // Equipment
-                    if (equipmentList.length > 0) {
-                        doc.setTextColor(107, 114, 128);
-                        doc.text('Equipment:', margin, yPos);
-                        doc.setTextColor(textR, textG, textB);
-                        doc.text(equipmentList.join(', '), margin + 50, yPos);
-                        yPos += 7;
-                    }
-
-                    // Temperature (for refrigerated loads)
-                    if (hasTemperature && temperatureValue !== null) {
-                        doc.setTextColor(107, 114, 128);
-                        doc.text('Temperature:', margin, yPos);
-                        doc.setTextColor(textR, textG, textB);
-                        doc.text(`${temperatureValue}°C`, margin + 50, yPos);
-                        yPos += 7;
-                    }
-
-                    // Special Flags
-                    if (specialFlags.length > 0) {
-                        doc.setTextColor(107, 114, 128);
-                        doc.text('Special Requirements:', margin, yPos);
-                        doc.setTextColor(textR, textG, textB);
-                        doc.text(specialFlags.join(', '), margin + 50, yPos);
-                        yPos += 7;
-                    }
-
-                    yPos += 3;
-                }
-
-                // Trip Dates
-                if (trip.actualStartDate) {
-                    doc.setTextColor(107, 114, 128);
-                    doc.text('Start Date:', margin, yPos);
-                    doc.setTextColor(textR, textG, textB);
-                    doc.text(formatDate(trip.actualStartDate), margin + 50, yPos);
-                    yPos += 7;
-                }
-
-                if (trip.actualEndDate) {
-                    doc.setTextColor(107, 114, 128);
-                    doc.text('End Date:', margin, yPos);
-                    doc.setTextColor(textR, textG, textB);
-                    doc.text(formatDate(trip.actualEndDate), margin + 50, yPos);
-                    yPos += 7;
-                }
-
-                // Orders Information (without internal IDs) - Show after load details
-                if (trip.orders && trip.orders.length > 0) {
-                    yPos += 3;
-                    doc.setFontSize(11);
-                    doc.setFont('helvetica', 'bold');
-                    doc.setTextColor(textR, textG, textB);
-                    doc.text('Orders:', margin, yPos);
-                    yPos += 7;
-                    doc.setFontSize(10);
-                    doc.setFont('helvetica', 'normal');
-                    trip.orders.forEach((order: any, index: number) => {
-                        if (yPos > pageHeight - 60) {
-                            doc.addPage();
-                            yPos = margin + 20;
-                        }
-                        doc.setTextColor(textR, textG, textB);
-                        // Only show customer order number and customer name, not internal order number
-                        const orderInfo = [
-                            order.customerOrderNo || `Order ${index + 1}`,
-                            order.customer?.name ? `- ${order.customer.name}` : ''
-                        ].filter(Boolean).join(' ');
-                        doc.text(`  ${index + 1}. ${orderInfo}`, margin + 5, yPos);
-                        yPos += 6;
-                    });
-                }
-
-                yPos += 5;
-            }
-
-            // Line separator
-            yPos += 5;
-            doc.setDrawColor(229, 231, 235); // Gray-200
-            doc.setLineWidth(0.5);
-            doc.line(margin, yPos, pageWidth - margin, yPos);
-            yPos += 15;
-
-            // Service Breakdown Section
-            doc.setFillColor(lightGrayR, lightGrayG, lightGrayB);
-            doc.roundedRect(margin, yPos, contentWidth, 8, 2, 2, 'F');
-
-            // Column positions - properly spaced to avoid overlap
-            // Page width is typically 210mm, margin is 20mm
-            // Column layout with generous spacing:
-            // Description (25-80mm, 55mm max width) | Qty (90mm) | Unit Price (right 140mm) | Amount (right 170mm) | Tax (right 185mm)
-            const colDesc = margin + 5; // Description column start (25mm)
-            const colQty = margin + 85; // Quantity column start (105mm) - ensures Description ends at ~80mm with 5mm gap
-            const colUnitPrice = pageWidth - margin - 50; // Unit Price column end (140mm) - right-aligned, ensures gap after Qty
-            const colAmount = pageWidth - margin - 20; // Amount column end (170mm) - right-aligned, ensures gap after Unit Price
-            const colTax = pageWidth - margin - 5; // Tax column end (185mm) - right-aligned
-
-            doc.setFontSize(10);
-            doc.setFont('helvetica', 'bold');
-            doc.text('Description', colDesc, yPos + 6);
-            doc.text('Qty', colQty, yPos + 6);
-            doc.text('Unit Price', colUnitPrice, yPos + 6, { align: 'right' });
-            doc.text('Amount', colAmount, yPos + 6, { align: 'right' });
-            doc.text('Tax', colTax, yPos + 6, { align: 'right' });
-
-            yPos += 15;
-            doc.setFont('helvetica', 'normal');
-            doc.setFontSize(10);
-
-            // Calculate totals
+    
+            const colDesc = margin;
+            const colQty = margin + 90;
+            const colPrice = pageWidth - margin - 50;
+            const colAmount = pageWidth - margin;
+    
+            doc.setFontSize(11);
+            doc.setFont("helvetica", "bold");
+    
+            doc.text("Description", colDesc, yPos);
+            doc.text("Qty", colQty, yPos);
+            doc.text("Unit Price", colPrice, yPos, { align: "right" });
+            doc.text("Amount", colAmount, yPos, { align: "right" });
+    
+            yPos += 8;
+            doc.setFont("helvetica", "normal");
+    
+            // ================= CALCULATIONS =================
             let subtotal = 0;
-            let totalTax = 0;
-
-            if (invoice.serviceBreakdown && invoice.serviceBreakdown.length > 0) {
-                // Use service breakdown
+    
+            if (invoice.serviceBreakdown?.length) {
                 invoice.serviceBreakdown.forEach((item) => {
-                    if (yPos > pageHeight - 60) {
-                        doc.addPage();
-                        yPos = margin + 20;
-                    }
-                    const itemAmount = item.amount || (item.unitPrice * (item.quantity || 1));
-                    const itemTax = item.taxAmount || (itemAmount * ((item.taxRate || 0) / 100));
-                    subtotal += itemAmount;
-                    totalTax += itemTax;
-
-                    // Limit description width to prevent overflow into Qty column
-                    const maxDescWidth = colQty - colDesc - 5; // Leave 5mm gap before Qty column
-                    doc.text(item.description || 'Service', colDesc, yPos, { maxWidth: maxDescWidth });
-                    doc.text((item.quantity || 1).toString(), colQty, yPos);
-                    doc.text(`${invoice.currency} ${(item.unitPrice || 0).toFixed(2)}`, colUnitPrice, yPos, { align: 'right' });
-                    doc.text(`${invoice.currency} ${itemAmount.toFixed(2)}`, colAmount, yPos, { align: 'right' });
-                    doc.text(`${invoice.currency} ${itemTax.toFixed(2)}`, colTax, yPos, { align: 'right' });
+                    const amt = item.amount || item.unitPrice * (item.quantity || 1);
+                    subtotal += amt;
+    
+                    doc.text(item.description || "Service", colDesc, yPos);
+                    doc.text(String(item.quantity || 1), colQty, yPos);
+                    doc.text(`${invoice.currency} ${item.unitPrice.toFixed(2)}`, colPrice, yPos, { align: "right" });
+                    doc.text(`${invoice.currency} ${amt.toFixed(2)}`, colAmount, yPos, { align: "right" });
+    
                     yPos += 7;
                 });
             } else {
-                // Fallback to single line item
-                const amount = parseFloat(invoice.amount.toString());
-                subtotal = invoice.subtotal || amount;
-                totalTax = invoice.taxAmount || 0;
-
-                // Limit description width to prevent overflow into Qty column
-                const maxDescWidth = colQty - colDesc - 5; // Leave 5mm gap before Qty column
-                doc.text('Freight Services', colDesc, yPos, { maxWidth: maxDescWidth });
-                doc.text('1', colQty, yPos);
-                doc.text(`${invoice.currency} ${subtotal.toFixed(2)}`, colUnitPrice, yPos, { align: 'right' });
-                doc.text(`${invoice.currency} ${subtotal.toFixed(2)}`, colAmount, yPos, { align: 'right' });
-                doc.text(`${invoice.currency} ${totalTax.toFixed(2)}`, colTax, yPos, { align: 'right' });
+                subtotal = Number(invoice.amount);
+    
+                doc.text("Freight Service", colDesc, yPos);
+                doc.text("1", colQty, yPos);
+                doc.text(`${invoice.currency} ${subtotal.toFixed(2)}`, colPrice, yPos, { align: "right" });
+                doc.text(`${invoice.currency} ${subtotal.toFixed(2)}`, colAmount, yPos, { align: "right" });
+    
                 yPos += 7;
             }
-
-            // Subtotal and Tax Section
-            yPos += 5;
-            doc.setDrawColor(209, 213, 219); // Gray-300
-            doc.setLineWidth(0.5);
-            doc.line(margin, yPos, pageWidth - margin, yPos);
-            yPos += 8;
-
-            doc.setFontSize(10);
-            doc.setFont('helvetica', 'bold');
-            doc.text('Subtotal:', colAmount, yPos, { align: 'right' });
-            doc.setFont('helvetica', 'normal');
-            doc.text(`${invoice.currency} ${subtotal.toFixed(2)}`, colTax, yPos, { align: 'right' });
-            yPos += 7;
-
-            if (totalTax > 0) {
-                doc.setFont('helvetica', 'bold');
-                const taxLabel = invoice.taxNumber
-                    ? `Tax (${invoice.taxNumber}):`
-                    : (company && company.taxNumber ? `Tax (${company.taxNumber}):` : 'Tax (GST/HST):');
-                doc.text(taxLabel, colAmount, yPos, { align: 'right' });
-                doc.setFont('helvetica', 'normal');
-                doc.text(`${invoice.currency} ${totalTax.toFixed(2)}`, colTax, yPos, { align: 'right' });
-                yPos += 7;
-            }
-
-            // Total Section
-            yPos += 5;
-            doc.setDrawColor(209, 213, 219); // Gray-300
-            doc.setLineWidth(0.5);
-            doc.line(margin, yPos, pageWidth - margin, yPos);
+    
+            // ================= TAX =================
+            const GST = subtotal * 0.05;
+            const PST = subtotal * 0.07;
+            const TOTAL = subtotal + GST + PST;
+    
             yPos += 10;
-
-            const totalAmount = subtotal + totalTax;
-            doc.setFillColor(secondaryR, secondaryG, secondaryB);
-            doc.roundedRect(margin, yPos, contentWidth, 20, 3, 3, 'F');
-
+    
+            doc.setFont("helvetica", "bold");
+            doc.text("Subtotal:", colPrice, yPos, { align: "right" });
+            doc.setFont("helvetica", "normal");
+            doc.text(`${invoice.currency} ${subtotal.toFixed(2)}`, colAmount, yPos, { align: "right" });
+    
+            yPos += 7;
+            doc.setFont("helvetica", "bold");
+            doc.text("GST (5%):", colPrice, yPos, { align: "right" });
+            doc.setFont("helvetica", "normal");
+            doc.text(`${invoice.currency} ${GST.toFixed(2)}`, colAmount, yPos, { align: "right" });
+    
+            yPos += 7;
+            doc.setFont("helvetica", "bold");
+            doc.text("PST (7%):", colPrice, yPos, { align: "right" });
+            doc.setFont("helvetica", "normal");
+            doc.text(`${invoice.currency} ${PST.toFixed(2)}`, colAmount, yPos, { align: "right" });
+    
+            // ================= TOTAL BOX =================
+            yPos += 12;
+    
+            doc.setFillColor(...secondaryColor);
+            doc.rect(margin, yPos, contentWidth, 18, "F");
+    
             doc.setTextColor(255, 255, 255);
-            doc.setFontSize(12);
-            doc.setFont('helvetica', 'bold');
-            doc.text('Total Amount Due', margin + 10, yPos + 8);
-            doc.setFontSize(18);
-            doc.text(`${invoice.currency} ${totalAmount.toFixed(2)}`, pageWidth - margin - 10, yPos + 15, { align: 'right' });
-            doc.setTextColor(textR, textG, textB);
-
-            // Notes Section
-            if (invoice.notes) {
-                yPos += 30;
-                doc.setFontSize(11);
-                doc.setFont('helvetica', 'bold');
-                doc.text('Additional Notes:', margin, yPos);
-                yPos += 8;
-
-                doc.setFontSize(10);
-                doc.setFont('helvetica', 'normal');
-                doc.setTextColor(75, 85, 99); // Gray-600
-                const splitNotes = doc.splitTextToSize(invoice.notes, contentWidth - 10);
-                doc.text(splitNotes, margin + 5, yPos);
-                doc.setTextColor(textR, textG, textB);
-            }
-
-            // Footer
-            const footerY = pageHeight - 30;
-            doc.setDrawColor(229, 231, 235);
-            doc.setLineWidth(0.5);
-            doc.line(margin, footerY, pageWidth - margin, footerY);
-
-            doc.setFontSize(9);
-            doc.setTextColor(107, 114, 128);
-            doc.text('Thank you for your business!', pageWidth / 2, footerY + 10, { align: 'center' });
-            doc.text('If you have any questions about this invoice, please contact us.', pageWidth / 2, footerY + 16, { align: 'center' });
-
-            // Page number
-            doc.text(`Page 1 of 1`, pageWidth - margin, pageHeight - 10, { align: 'right' });
-
-            // Save PDF
-            const fileName = `Invoice_${invoice._id.slice(-8)}_${new Date().toISOString().split('T')[0]}.pdf`;
-            doc.save(fileName);
-
-            showNotification('success', 'Invoice PDF downloaded successfully');
-        } catch (error) {
-            console.error('Error generating PDF:', error);
-            showNotification('error', 'Failed to generate PDF');
+            doc.setFontSize(14);
+            doc.setFont("helvetica", "bold");
+            doc.text("Total Amount Due", margin + 5, yPos + 12);
+    
+            doc.setFontSize(16);
+            doc.text(`${invoice.currency} ${TOTAL.toFixed(2)}`, pageWidth - margin - 5, yPos + 12, { align: "right" });
+    
+            // ================= SAVE =================
+            doc.save(`Invoice_${invoice._id.slice(-8)}.pdf`);
+    
+            showNotification("success", "Invoice PDF downloaded successfully");
+        } catch (err) {
+            console.error(err);
+            showNotification("error", "Failed to generate PDF");
         }
     };
+    
+    
 
     const fetchInvoices = async () => {
         setLoading(true);
@@ -1315,7 +940,39 @@ const InvoiceManagement: React.FC = () => {
                                     <p className="text-sm text-gray-600">{selectedInvoice.clientEmail}</p>
                                 </div>
                                 <div>
-                                    <label className="text-sm font-medium text-gray-500">Amount</label>
+                                    <label className="text-sm font-medium text-gray-500">Subtotal</label>
+                                    <p className="text-lg font-bold">{formatCurrency(Number(selectedInvoice.subtotal || selectedInvoice.amount))}</p>
+                                </div>
+                                {(() => {
+                                    const subtotal = Number(selectedInvoice.subtotal || selectedInvoice.amount);
+                                    const gstAmount = selectedInvoice.gst || (subtotal * ((selectedInvoice.gstRate || 0) / 100));
+                                    return (selectedInvoice.gstRate || selectedInvoice.gst) ? (
+                                        <div>
+                                            <label className="text-sm font-medium text-gray-500">
+                                                GST {selectedInvoice.gstRate ? `(${selectedInvoice.gstRate}%)` : ''}
+                                            </label>
+                                            <p className="text-sm font-semibold text-gray-700">
+                                                {formatCurrency(gstAmount)}
+                                            </p>
+                                        </div>
+                                    ) : null;
+                                })()}
+                                {(() => {
+                                    const subtotal = Number(selectedInvoice.subtotal || selectedInvoice.amount);
+                                    const pstAmount = selectedInvoice.pst || (subtotal * ((selectedInvoice.pstRate || 0) / 100));
+                                    return (selectedInvoice.pstRate || selectedInvoice.pst) ? (
+                                        <div>
+                                            <label className="text-sm font-medium text-gray-500">
+                                                PST {selectedInvoice.pstRate ? `(${selectedInvoice.pstRate}%)` : ''}
+                                            </label>
+                                            <p className="text-sm font-semibold text-gray-700">
+                                                {formatCurrency(pstAmount)}
+                                            </p>
+                                        </div>
+                                    ) : null;
+                                })()}
+                                <div>
+                                    <label className="text-sm font-medium text-gray-500">Total Amount</label>
                                     <p className="text-lg font-bold">{formatCurrency(Number(selectedInvoice.amount))}</p>
                                 </div>
                                 <div>
@@ -1578,15 +1235,29 @@ const InvoiceManagement: React.FC = () => {
         const handleSave = async () => {
             setLoading(true);
             try {
+                // Calculate GST and PST amounts
+                const subtotal = parseFloat(editForm.subtotal?.toString() || editForm.amount.toString()) || 0;
+                const gstRate = editForm.gstRate || 0;
+                const pstRate = editForm.pstRate || 0;
+                const gstAmount = subtotal * (gstRate / 100);
+                const pstAmount = subtotal * (pstRate / 100);
+                const totalAmount = subtotal + gstAmount + pstAmount;
+
                 const updateData = {
                     clientName: editForm.clientName,
                     clientEmail: editForm.clientEmail,
-                    amount: editForm.amount.toString(),
+                    amount: totalAmount.toString(),
                     currency: editForm.currency,
                     status: editForm.status,
                     dueDate: editForm.dueDate,
                     paymentDate: editForm.paymentDate,
-                    notes: editForm.notes
+                    notes: editForm.notes,
+                    subtotal: subtotal,
+                    gst: gstAmount,
+                    gstRate: gstRate,
+                    pst: pstAmount,
+                    pstRate: pstRate,
+                    taxAmount: gstAmount + pstAmount
                 };
 
                 const response = await updateInvoice(editForm._id, updateData);
@@ -1663,6 +1334,34 @@ const InvoiceManagement: React.FC = () => {
                                     className="w-full border border-gray-300 rounded-md px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                                 />
                             </div>
+
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-1">GST Rate (%)</label>
+                                <input
+                                    type="number"
+                                    step="0.01"
+                                    min="0"
+                                    max="100"
+                                    value={editForm.gstRate || ''}
+                                    onChange={(e) => handleInputChange('gstRate', parseFloat(e.target.value) || 0)}
+                                    className="w-full border border-gray-300 rounded-md px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                    placeholder="0.00"
+                                />
+                            </div>
+
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-1">PST Rate (%)</label>
+                                <input
+                                    type="number"
+                                    step="0.01"
+                                    min="0"
+                                    max="100"
+                                    value={editForm.pstRate || ''}
+                                    onChange={(e) => handleInputChange('pstRate', parseFloat(e.target.value) || 0)}
+                                    className="w-full border border-gray-300 rounded-md px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                    placeholder="0.00"
+                                />
+                            </div>
                         </div>
 
                         <div className="space-y-4">
@@ -1728,7 +1427,9 @@ const InvoiceManagement: React.FC = () => {
             amount: '',
             currency: 'USD',
             dueDate: '',
-            notes: ''
+            notes: '',
+            gstRate: '',
+            pstRate: ''
         });
 
         const handleInputChange = (field: string, value: string) => {
@@ -1787,7 +1488,26 @@ const InvoiceManagement: React.FC = () => {
 
             setLoading(true);
             try {
-                const response = await createInvoice(newInvoice);
+                // Calculate GST and PST amounts
+                const subtotal = parseFloat(newInvoice.amount) || 0;
+                const gstRate = parseFloat(newInvoice.gstRate) || 0;
+                const pstRate = parseFloat(newInvoice.pstRate) || 0;
+                const gstAmount = subtotal * (gstRate / 100);
+                const pstAmount = subtotal * (pstRate / 100);
+                const totalAmount = subtotal + gstAmount + pstAmount;
+
+                const invoiceData = {
+                    ...newInvoice,
+                    amount: totalAmount.toString(),
+                    subtotal: subtotal,
+                    gst: gstAmount,
+                    gstRate: gstRate,
+                    pst: pstAmount,
+                    pstRate: pstRate,
+                    taxAmount: gstAmount + pstAmount
+                };
+
+                const response = await createInvoice(invoiceData);
                 if (response && response.success) {
                     showNotification('success', 'Invoice created successfully');
                     await fetchInvoices();
@@ -1802,7 +1522,9 @@ const InvoiceManagement: React.FC = () => {
                         amount: '',
                         currency: 'USD',
                         dueDate: '',
-                        notes: ''
+                        notes: '',
+                        gstRate: '',
+                        pstRate: ''
                     });
                 } else {
                     showNotification('error', response?.message || 'Failed to create invoice');
@@ -1964,6 +1686,34 @@ const InvoiceManagement: React.FC = () => {
                                     className="w-full border border-gray-300 rounded-md px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                                     placeholder="0.00"
                                     required
+                                />
+                            </div>
+
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-1">GST Rate (%)</label>
+                                <input
+                                    type="number"
+                                    step="0.01"
+                                    min="0"
+                                    max="100"
+                                    value={newInvoice.gstRate}
+                                    onChange={(e) => handleInputChange('gstRate', e.target.value)}
+                                    className="w-full border border-gray-300 rounded-md px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                    placeholder="0.00"
+                                />
+                            </div>
+
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-1">PST Rate (%)</label>
+                                <input
+                                    type="number"
+                                    step="0.01"
+                                    min="0"
+                                    max="100"
+                                    value={newInvoice.pstRate}
+                                    onChange={(e) => handleInputChange('pstRate', e.target.value)}
+                                    className="w-full border border-gray-300 rounded-md px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                    placeholder="0.00"
                                 />
                             </div>
                         </div>

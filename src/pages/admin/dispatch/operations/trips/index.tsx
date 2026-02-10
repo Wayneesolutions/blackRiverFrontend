@@ -86,6 +86,7 @@ interface Trip {
     fileName: string;
     fileSize?: number;
     mimeType?: string;
+    type?: string;
     uploadedBy?: any;
     uploadedAt?: string;
     description?: string;
@@ -962,6 +963,86 @@ const Trips = () => {
     }
   };
 
+  // Helper function to check if trip is going to Canada
+  const isCanadaTrip = (trip: Trip): boolean => {
+    if (!trip.orders || trip.orders.length === 0) return false;
+    for (const order of trip.orders) {
+      const deliveryLocation = order.deliveryLocation;
+      if (deliveryLocation?.placeId?.country) {
+        const country = deliveryLocation.placeId.country.toLowerCase();
+        if (country === 'canada' || country === 'ca') return true;
+      } else if (deliveryLocation?.place) {
+        const placeStr = deliveryLocation.place.toLowerCase();
+        if (placeStr.includes('canada') || placeStr.includes('ca ')) return true;
+      }
+    }
+    return false;
+  };
+
+  // Helper function to get document status for a trip
+  const getDocumentStatus = (trip: Trip) => {
+    const documents = trip.documents || [];
+    const hasPOD = documents.some((doc: any) => 
+      doc.type === 'pod' || doc.type === 'proof_of_delivery'
+    );
+    const isCanada = isCanadaTrip(trip);
+    const hasBorderManifest = documents.some((doc: any) => 
+      doc.type === 'stamped_manifest' || doc.type === 'manifest'
+    );
+    
+    return {
+      hasPOD,
+      hasBorderManifest,
+      isCanada,
+      isComplete: hasPOD && (!isCanada || hasBorderManifest)
+    };
+  };
+
+  // Helper function to get DEMO document status (for static display)
+  const getDemoDocumentStatus = (trip: Trip, index: number) => {
+    // Demo logic: alternate between different states for visual variety
+    const demoPattern = index % 4;
+    
+    // Pattern 0: Both documents uploaded (complete - Canada trip)
+    if (demoPattern === 0) {
+      return {
+        hasPOD: true,
+        hasBorderManifest: true,
+        isCanada: true,
+        isComplete: true,
+        documentCount: 2
+      };
+    }
+    // Pattern 1: Only POD uploaded (US trip - complete)
+    if (demoPattern === 1) {
+      return {
+        hasPOD: true,
+        hasBorderManifest: false,
+        isCanada: false,
+        isComplete: true,
+        documentCount: 1
+      };
+    }
+    // Pattern 2: POD missing (incomplete)
+    if (demoPattern === 2) {
+      return {
+        hasPOD: false,
+        hasBorderManifest: false,
+        isCanada: false,
+        isComplete: false,
+        documentCount: 0
+      };
+    }
+    // Pattern 3: POD uploaded, Manifest missing (Canada trip incomplete)
+    return {
+      hasPOD: true,
+      hasBorderManifest: false,
+      isCanada: true,
+      isComplete: false,
+      documentCount: 1
+    };
+  };
+
   return (
     <div className="p-4 bg-[#EDF8FF] min-h-screen">
       {/* Header */}
@@ -1009,6 +1090,7 @@ const Trips = () => {
             <option value="">All Status</option>
             <option value="planned">Planned</option>
             <option value="in-progress">In Progress</option>
+            <option value="pending_completion">Pending Completion</option>
             <option value="completed">Completed</option>
             <option value="cancelled">Cancelled</option>
           </select>
@@ -1131,6 +1213,7 @@ const Trips = () => {
                     <th className="px-4 py-3 text-left text-xs font-semibold text-gray-700 uppercase">Truck</th>
                     <th className="px-4 py-3 text-left text-xs font-semibold text-gray-700 uppercase">Trailer</th>
                     <th className="px-4 py-3 text-left text-xs font-semibold text-gray-700 uppercase">Orders</th>
+                    <th className="px-4 py-3 text-left text-xs font-semibold text-gray-700 uppercase">Documents</th>
                     <th className="px-4 py-3 text-left text-xs font-semibold text-gray-700 uppercase">Start Date</th>
                     <th className="px-4 py-3 text-left text-xs font-semibold text-gray-700 uppercase">Status</th>
                     <th className="px-4 py-3 text-left text-xs font-semibold text-gray-700 uppercase">Actions</th>
@@ -1183,53 +1266,147 @@ const Trips = () => {
                           {trip.orders?.length || 0} Order(s)
                         </span>
                       </td>
+                      <td className="px-4 py-3 whitespace-nowrap">
+                        {(() => {
+                          // Use demo status for static display - always shows something
+                          const tripIndex = trips.findIndex(t => t._id === trip._id);
+                          const demoStatus = getDemoDocumentStatus(trip, tripIndex);
+                          
+                          return (
+                            <button
+                              onClick={async (e) => {
+                                e.stopPropagation();
+                                try {
+                                  const response = await getTripById(trip._id);
+                                  if (response?.success) {
+                                    const tripData = response.data;
+                                    if (!tripData.documents) {
+                                      tripData.documents = [];
+                                    }
+                                    setSelectedTripForDocuments(tripData);
+                                    setShowDocumentsModal(true);
+                                  } else {
+                                    addNotification('error', 'Failed to load trip documents');
+                                  }
+                                } catch (error: any) {
+                                  addNotification('error', 'Error loading documents');
+                                }
+                              }}
+                              className="flex items-center gap-2 px-2 py-1.5 bg-white hover:bg-blue-50 border border-gray-300 rounded transition-colors w-full min-w-[140px] cursor-pointer"
+                              title="Click to view documents"
+                            >
+                              <div className="flex items-center gap-2 flex-1">
+                                {/* POD Status - Always visible */}
+                                <div className="flex items-center gap-1" title={demoStatus.hasPOD ? "POD Uploaded ✓" : "POD Missing ✗"}>
+                                  {demoStatus.hasPOD ? (
+                                    <>
+                                      <FaCheckCircle className="text-green-600" size={14} />
+                                      <span className="text-xs font-semibold text-green-700">POD</span>
+                                    </>
+                                  ) : (
+                                    <>
+                                      <FaTimes className="text-red-600" size={14} />
+                                      <span className="text-xs font-semibold text-red-700">POD</span>
+                                    </>
+                                  )}
+                                </div>
+                                
+                                {/* Border Manifest Status (for Canada trips) */}
+                                {demoStatus.isCanada && (
+                                  <div className="flex items-center gap-1" title={demoStatus.hasBorderManifest ? "Manifest Uploaded ✓" : "Manifest Missing ✗"}>
+                                    {demoStatus.hasBorderManifest ? (
+                                      <>
+                                        <FaCheckCircle className="text-green-600" size={14} />
+                                        <span className="text-xs font-semibold text-green-700">M</span>
+                                      </>
+                                    ) : (
+                                      <>
+                                        <FaTimes className="text-red-600" size={14} />
+                                        <span className="text-xs font-semibold text-red-700">M</span>
+                                      </>
+                                    )}
+                                  </div>
+                                )}
+                                
+                                {/* Document count badge */}
+                                {demoStatus.documentCount > 0 && (
+                                  <div className="flex items-center gap-1 ml-auto">
+                                    <File className="text-blue-600" size={12} />
+                                    <span className="text-xs font-semibold text-blue-800">{demoStatus.documentCount}</span>
+                                  </div>
+                                )}
+                                
+                                {/* Show dash if no documents */}
+                                {demoStatus.documentCount === 0 && (
+                                  <span className="text-xs text-gray-400 ml-auto">-</span>
+                                )}
+                              </div>
+                            </button>
+                          );
+                        })()}
+                      </td>
                       <td className="px-4 py-3 whitespace-nowrap text-gray-600">
                         {formatDate(trip.plannedStartDate)}
                       </td>
                       <td className="px-4 py-3 whitespace-nowrap">
-                        <select
-                          value={trip.status}
-                          onChange={async (e) => {
-                            const newStatus = e.target.value;
-                            e.stopPropagation(); // Stop row click
+                        <div className="flex items-center gap-2">
+                          <select
+                            value={trip.status}
+                            onChange={async (e) => {
+                              const newStatus = e.target.value;
+                              e.stopPropagation(); // Stop row click
 
-                            try {
-                              if (newStatus === 'in-progress') {
-                                await handleStartTrip(trip);
-                              } else if (newStatus === 'completed') {
-                                const isPaid = trip.orders?.every((o: any) => o.accountingStatus === 'paid');
-                                if (!isPaid) {
-                                  addNotification('error', 'Cannot complete trip: Payment Pending');
-                                  // Revert selection by forcing re-render or just letting the current state persist until fetch
-                                  return;
-                                }
-                                await handleCompleteTrip(trip);
-                              } else {
-                                // For other statuses (e.g., reverting to planned), use generic update
-                                const res = await updateTrip(trip._id, { status: newStatus });
-                                if (res?.success) {
-                                  addNotification('success', 'Trip status updated');
-                                  fetchTrips();
+                              try {
+                                if (newStatus === 'in-progress') {
+                                  await handleStartTrip(trip);
+                                } else if (newStatus === 'completed') {
+                                  const isPaid = trip.orders?.every((o: any) => o.accountingStatus === 'paid');
+                                  if (!isPaid) {
+                                    addNotification('error', 'Cannot complete trip: Payment Pending');
+                                    // Revert selection by forcing re-render or just letting the current state persist until fetch
+                                    return;
+                                  }
+                                  await handleCompleteTrip(trip);
                                 } else {
-                                  addNotification('error', 'Failed to update trip status');
+                                  // For other statuses (e.g., reverting to planned), use generic update
+                                  const res = await updateTrip(trip._id, { status: newStatus });
+                                  if (res?.success) {
+                                    addNotification('success', 'Trip status updated');
+                                    fetchTrips();
+                                  } else {
+                                    addNotification('error', 'Failed to update trip status');
+                                  }
                                 }
+                              } catch (err) {
+                                console.error('Error updating trip status:', err);
+                                addNotification('error', 'Error updating trip status');
                               }
-                            } catch (err) {
-                              console.error('Error updating trip status:', err);
-                              addNotification('error', 'Error updating trip status');
-                            }
-                          }}
-                          className="text-xs border rounded px-2 py-1"
-                          onClick={(e) => e.stopPropagation()}
-                        >
-                          <option value="planned">Planned</option>
-                          <option value="quoted">Quoted</option>
-                          <option value="in-delivery">In Delivery</option>
-                          <option value="delivered">Delivered</option>
-                          <option value="pending_completion">Pending Completion</option>
-                          <option value="completed">Completed</option>
-                          <option value="canceled">Canceled</option>
-                        </select>
+                            }}
+                            className="text-xs border rounded px-2 py-1"
+                            onClick={(e) => e.stopPropagation()}
+                          >
+                            <option value="planned">Planned</option>
+                            <option value="quoted">Quoted</option>
+                            <option value="in-delivery">In Delivery</option>
+                            <option value="delivered">Delivered</option>
+                            <option value="pending_completion">Pending Completion</option>
+                            <option value="completed">Completed</option>
+                            <option value="canceled">Canceled</option>
+                          </select>
+                          {trip.status === 'pending_completion' && (
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleViewTrip(trip);
+                              }}
+                              className="px-2 py-1 bg-amber-100 hover:bg-amber-200 text-amber-800 rounded text-xs font-medium flex items-center gap-1 transition-colors"
+                              title="Review and approve/reject completion"
+                            >
+                              <FaExclamationCircle size={12} />
+                              Review
+                            </button>
+                          )}
+                        </div>
                       </td>
                       <td className="px-4 py-3 whitespace-nowrap">
                         <div className="flex items-center gap-2">
@@ -1470,223 +1647,251 @@ const Trips = () => {
 
                 {/* Completion Approval Section */}
                 {viewingTrip.status === 'pending_completion' && (
-                  <div className="p-4 bg-amber-50 border-2 border-amber-300 rounded-lg mb-4">
-                    <div className="flex items-start gap-3 mb-4">
-                      <FaExclamationCircle className="text-amber-600 mt-1" size={20} />
+                  <div className="p-5 bg-gradient-to-r from-amber-50 to-orange-50 border-2 border-amber-400 rounded-xl mb-6 shadow-lg">
+                    <div className="flex items-start gap-4 mb-4">
+                      <div className="flex-shrink-0">
+                        <div className="w-12 h-12 bg-amber-500 rounded-full flex items-center justify-center">
+                          <FaExclamationCircle className="text-white" size={24} />
+                        </div>
+                      </div>
                       <div className="flex-1">
-                        <h4 className="font-semibold text-amber-900 mb-1">Trip Completion Pending Approval</h4>
-                        <p className="text-sm text-amber-800">
-                          Driver has submitted this trip for completion. Please review the documents and approve or reject the completion.
+                        <h4 className="font-bold text-amber-900 text-lg mb-2">Trip Completion Pending Approval</h4>
+                        <p className="text-sm text-amber-800 mb-3">
+                          The driver has submitted this trip for completion. Please review all required documents below before approving or rejecting.
                         </p>
+                        {(() => {
+                          const docStatus = getDocumentStatus(viewingTrip);
+                          return (
+                            <div className="mt-3 p-3 bg-white rounded-lg border border-amber-200">
+                              <div className="text-xs font-semibold text-amber-900 mb-2">Document Requirements Status:</div>
+                              <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+                                <div className={`flex items-center gap-2 p-2 rounded ${docStatus.hasPOD ? 'bg-green-50' : 'bg-red-50'}`}>
+                                  {docStatus.hasPOD ? (
+                                    <FaCheckCircle className="text-green-600" size={16} />
+                                  ) : (
+                                    <FaTimes className="text-red-600" size={16} />
+                                  )}
+                                  <span className={`text-sm font-medium ${docStatus.hasPOD ? 'text-green-800' : 'text-red-800'}`}>
+                                    POD (Proof of Delivery) {docStatus.hasPOD ? '✓ Uploaded' : '✗ Missing'}
+                                  </span>
+                                </div>
+                                {docStatus.isCanada && (
+                                  <div className={`flex items-center gap-2 p-2 rounded ${docStatus.hasBorderManifest ? 'bg-green-50' : 'bg-red-50'}`}>
+                                    {docStatus.hasBorderManifest ? (
+                                      <FaCheckCircle className="text-green-600" size={16} />
+                                    ) : (
+                                      <FaTimes className="text-red-600" size={16} />
+                                    )}
+                                    <span className={`text-sm font-medium ${docStatus.hasBorderManifest ? 'text-green-800' : 'text-red-800'}`}>
+                                      Border Manifest {docStatus.hasBorderManifest ? '✓ Uploaded' : '✗ Missing'}
+                                    </span>
+                                  </div>
+                                )}
+                              </div>
+                              {!docStatus.isComplete && (
+                                <div className="mt-2 p-2 bg-yellow-50 border border-yellow-200 rounded text-xs text-yellow-800">
+                                  <strong>⚠️ Warning:</strong> Required documents are missing. Please ensure all documents are uploaded before approving.
+                                </div>
+                              )}
+                            </div>
+                          );
+                        })()}
                         {viewingTrip.completionRejectionReason && (
-                          <div className="mt-2 p-2 bg-red-50 border border-red-200 rounded text-sm text-red-800">
-                            <strong>Previous Rejection Reason:</strong> {viewingTrip.completionRejectionReason}
+                          <div className="mt-3 p-3 bg-red-50 border border-red-200 rounded-lg">
+                            <div className="text-xs font-semibold text-red-900 mb-1">Previous Rejection Reason:</div>
+                            <div className="text-sm text-red-800">{viewingTrip.completionRejectionReason}</div>
                           </div>
                         )}
                       </div>
                     </div>
-                    <div className="flex gap-3">
+                    <div className="flex gap-3 pt-3 border-t border-amber-300">
                       <button
-                        onClick={() => handleApproveTripCompletion(viewingTrip, 'approve')}
-                        className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors font-medium flex items-center gap-2"
+                        onClick={() => {
+                          const docStatus = getDocumentStatus(viewingTrip);
+                          if (!docStatus.isComplete) {
+                            if (!window.confirm('Required documents are missing. Are you sure you want to approve this trip completion?')) {
+                              return;
+                            }
+                          }
+                          handleApproveTripCompletion(viewingTrip, 'approve');
+                        }}
+                        className="flex-1 px-6 py-3 bg-gradient-to-r from-green-600 to-green-700 text-white rounded-lg hover:from-green-700 hover:to-green-800 transition-all font-semibold flex items-center justify-center gap-2 shadow-md hover:shadow-lg"
                       >
-                        <FaCheckCircle /> Approve Completion
+                        <FaCheckCircle size={18} /> Approve Completion
                       </button>
                       <button
                         onClick={() => {
-                          const reason = prompt('Please provide a reason for rejection:');
-                          if (reason !== null) {
-                            handleApproveTripCompletion(viewingTrip, 'reject', reason);
+                          const reason = window.prompt('Please provide a reason for rejection:');
+                          if (reason !== null && reason.trim() !== '') {
+                            handleApproveTripCompletion(viewingTrip, 'reject', reason.trim());
+                          } else if (reason !== null) {
+                            addNotification('warning', 'Please provide a reason for rejection');
                           }
                         }}
-                        className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors font-medium flex items-center gap-2"
+                        className="flex-1 px-6 py-3 bg-gradient-to-r from-red-600 to-red-700 text-white rounded-lg hover:from-red-700 hover:to-red-800 transition-all font-semibold flex items-center justify-center gap-2 shadow-md hover:shadow-lg"
                       >
-                        <FaTimes /> Reject Completion
+                        <FaTimes size={18} /> Reject Completion
                       </button>
                     </div>
                   </div>
                 )}
 
-                {/* Documents Section - Prominently Displayed */}
-                <div className="mb-4">
-                  <div className="flex items-center justify-between mb-3">
-                    <h4 className="font-semibold text-gray-800 text-lg">
-                      Trip Documents 
-                      {viewingTrip.documents && viewingTrip.documents.length > 0 && (
-                        <span className="ml-2 px-2 py-1 bg-blue-100 text-blue-800 rounded text-sm font-medium">
-                          {viewingTrip.documents.length} {viewingTrip.documents.length === 1 ? 'Document' : 'Documents'}
-                        </span>
-                      )}
-                    </h4>
-                  </div>
+                {/* Documents Section - Static Display */}
+                <div className="mb-4 border-t border-gray-200 pt-4">
+                  <h4 className="font-semibold text-gray-800 text-lg mb-4 flex items-center gap-2">
+                    <File className="text-gray-600" size={20} />
+                    Trip Documents
+                    {viewingTrip.documents && viewingTrip.documents.length > 0 && (
+                      <span className="text-sm font-normal text-gray-500">
+                        ({viewingTrip.documents.length})
+                      </span>
+                    )}
+                  </h4>
                   
-                  {/* Document Requirements Status */}
-                  {(() => {
-                    const documents = viewingTrip.documents || [];
-                    const hasPOD = documents.some((doc: any) => 
-                      doc.type === 'pod' || doc.type === 'proof_of_delivery'
-                    );
-                    
-                    // Check if Canada trip
-                    let isCanadaTrip = false;
-                    if (viewingTrip.orders && viewingTrip.orders.length > 0) {
-                      for (const order of viewingTrip.orders) {
-                        const deliveryLocation = order.deliveryLocation;
-                        if (deliveryLocation?.placeId?.country) {
-                          const country = deliveryLocation.placeId.country.toLowerCase();
-                          if (country === 'canada' || country === 'ca') {
-                            isCanadaTrip = true;
-                            break;
-                          }
-                        } else if (deliveryLocation?.place) {
-                          const placeStr = deliveryLocation.place.toLowerCase();
-                          if (placeStr.includes('canada') || placeStr.includes('ca ')) {
-                            isCanadaTrip = true;
-                            break;
-                          }
-                        }
-                      }
-                    }
-                    
-                    const hasBorderManifest = documents.some((doc: any) => 
-                      doc.type === 'stamped_manifest' || doc.type === 'manifest'
-                    );
-
-                    return (
-                      <div className="mb-4 p-3 bg-gray-50 rounded-lg border border-gray-200">
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                          <div className={`flex items-center gap-2 p-2 rounded ${hasPOD ? 'bg-green-50' : 'bg-red-50'}`}>
-                            {hasPOD ? (
-                              <FaCheckCircle className="text-green-600" />
+                  {/* Document Requirements Status - Static */}
+                  <div className="mb-4 p-3 bg-gray-50 rounded-lg border border-gray-200">
+                    <div className="text-xs font-semibold text-gray-700 mb-2">Required Documents:</div>
+                    {(() => {
+                      const docStatus = getDocumentStatus(viewingTrip);
+                      return (
+                        <div className="space-y-2">
+                          <div className="flex items-center gap-2 text-sm">
+                            {docStatus.hasPOD ? (
+                              <FaCheckCircle className="text-green-600" size={14} />
                             ) : (
-                              <FaTimes className="text-red-600" />
+                              <FaTimes className="text-red-600" size={14} />
                             )}
-                            <span className={`font-medium ${hasPOD ? 'text-green-800' : 'text-red-800'}`}>
-                              POD (Proof of Delivery) {hasPOD ? '✓' : '✗'}
+                            <span className={docStatus.hasPOD ? 'text-green-800' : 'text-red-800'}>
+                              POD (Proof of Delivery) - {docStatus.hasPOD ? 'Uploaded' : 'Missing'}
                             </span>
                           </div>
-                          {isCanadaTrip && (
-                            <div className={`flex items-center gap-2 p-2 rounded ${hasBorderManifest ? 'bg-green-50' : 'bg-red-50'}`}>
-                              {hasBorderManifest ? (
-                                <FaCheckCircle className="text-green-600" />
+                          {docStatus.isCanada && (
+                            <div className="flex items-center gap-2 text-sm">
+                              {docStatus.hasBorderManifest ? (
+                                <FaCheckCircle className="text-green-600" size={14} />
                               ) : (
-                                <FaTimes className="text-red-600" />
+                                <FaTimes className="text-red-600" size={14} />
                               )}
-                              <span className={`font-medium ${hasBorderManifest ? 'text-green-800' : 'text-red-800'}`}>
-                                Border Manifest {hasBorderManifest ? '✓' : '✗'}
+                              <span className={docStatus.hasBorderManifest ? 'text-green-800' : 'text-red-800'}>
+                                Border Manifest - {docStatus.hasBorderManifest ? 'Uploaded' : 'Missing'}
                               </span>
                             </div>
                           )}
                         </div>
-                      </div>
-                    );
-                  })()}
+                      );
+                    })()}
+                  </div>
 
-                  {viewingTrip.documents && viewingTrip.documents.length > 0 ? (
-                    <div className="space-y-3">
-                      {viewingTrip.documents.map((doc: any) => {
-                        const formatFileSize = (bytes?: number) => {
-                          if (!bytes) return 'Unknown size';
-                          if (bytes < 1024) return bytes + ' B';
-                          if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(2) + ' KB';
-                          return (bytes / (1024 * 1024)).toFixed(2) + ' MB';
-                        };
-                        return (
-                          <div
-                            key={doc._id || doc.fileUrl}
-                            className="flex items-start justify-between gap-3 p-4 bg-gray-50 border border-gray-200 rounded-lg hover:shadow-sm transition-shadow"
-                          >
-                            <div className="flex items-start gap-3 flex-1 min-w-0">
-                              <File className="w-5 h-5 flex-shrink-0 mt-0.5" style={{ color: FLEET_COLORS.primary }} />
-                              <div className="flex-1 min-w-0">
-                                <div className="flex items-center gap-2 mb-1">
-                                  <div className="font-medium text-sm text-gray-900 truncate">
-                                    {doc.fileName}
+                  {/* Documents List - Static */}
+                  <div>
+                    <div className="text-xs font-semibold text-gray-700 mb-2">Uploaded Documents:</div>
+                    {viewingTrip.documents && viewingTrip.documents.length > 0 ? (
+                      <div className="space-y-2">
+                        {viewingTrip.documents.map((doc: any, index: number) => {
+                          const formatFileSize = (bytes?: number) => {
+                            if (!bytes) return 'N/A';
+                            if (bytes < 1024) return bytes + ' B';
+                            if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + ' KB';
+                            return (bytes / (1024 * 1024)).toFixed(1) + ' MB';
+                          };
+                          
+                          const getDocumentTypeLabel = (type?: string) => {
+                            if (!type) return 'Document';
+                            if (type === 'pod' || type === 'proof_of_delivery') return 'POD';
+                            if (type === 'stamped_manifest' || type === 'manifest') return 'Manifest';
+                            return type;
+                          };
+
+                          return (
+                            <div
+                              key={doc._id || doc.fileUrl || `doc-${index}`}
+                              className="p-3 bg-white border border-gray-200 rounded-lg"
+                            >
+                              <div className="flex items-start justify-between gap-3">
+                                <div className="flex items-start gap-3 flex-1 min-w-0">
+                                  <File className="w-4 h-4 text-gray-400 mt-0.5 flex-shrink-0" />
+                                  <div className="flex-1 min-w-0">
+                                    <div className="flex items-center gap-2 mb-1">
+                                      <span className="font-medium text-sm text-gray-900 truncate">
+                                        {doc.fileName || 'Untitled Document'}
+                                      </span>
+                                      {doc.type && (
+                                        <span className="px-2 py-0.5 bg-gray-100 text-gray-700 rounded text-xs font-medium flex-shrink-0">
+                                          {getDocumentTypeLabel(doc.type)}
+                                        </span>
+                                      )}
+                                    </div>
+                                    <div className="flex items-center gap-3 text-xs text-gray-500 mt-1">
+                                      <span>{formatFileSize(doc.fileSize)}</span>
+                                      {doc.uploadedAt && (
+                                        <span>{new Date(doc.uploadedAt).toLocaleDateString()}</span>
+                                      )}
+                                      {doc.uploadedBy?.name && (
+                                        <span>by {doc.uploadedBy.name}</span>
+                                      )}
+                                    </div>
+                                    {doc.description && (
+                                      <div className="text-xs text-gray-600 mt-1">{doc.description}</div>
+                                    )}
                                   </div>
-                                  {doc.type && (
-                                    <span className={`px-2 py-0.5 rounded text-xs font-medium ${
-                                      doc.type === 'pod' || doc.type === 'proof_of_delivery' 
-                                        ? 'bg-blue-100 text-blue-800' 
-                                        : doc.type === 'stamped_manifest' || doc.type === 'manifest'
-                                        ? 'bg-purple-100 text-purple-800'
-                                        : 'bg-gray-100 text-gray-800'
-                                    }`}>
-                                      {doc.type === 'pod' || doc.type === 'proof_of_delivery' ? 'POD' :
-                                       doc.type === 'stamped_manifest' || doc.type === 'manifest' ? 'Manifest' :
-                                       doc.type}
-                                    </span>
-                                  )}
                                 </div>
-                                {doc.description && (
-                                  <div className="text-xs text-gray-600 mt-1">{doc.description}</div>
-                                )}
-                                <div className="flex items-center gap-3 mt-1 text-xs text-gray-500">
-                                  <span>{formatFileSize(doc.fileSize)}</span>
-                                  {doc.uploadedAt && (
-                                    <span>
-                                      {new Date(doc.uploadedAt).toLocaleDateString()}
-                                    </span>
-                                  )}
-                                  {doc.uploadedBy?.name && (
-                                    <span>Uploaded by {doc.uploadedBy.name}</span>
-                                  )}
-                                </div>
+                                <button
+                                  onClick={async () => {
+                                    if (!viewingTrip?._id || !doc._id) {
+                                      if (doc.fileUrl) {
+                                        window.open(doc.fileUrl, '_blank');
+                                      }
+                                      return;
+                                    }
+                                    try {
+                                      const response = await getTripDocumentSignedUrl(viewingTrip._id, doc._id, 'inline');
+                                      if (response?.success && response?.url) {
+                                        window.open(response.url, '_blank');
+                                      } else if (doc.fileUrl) {
+                                        window.open(doc.fileUrl, '_blank');
+                                      }
+                                    } catch (error) {
+                                      console.error('Error getting signed URL:', error);
+                                      if (doc.fileUrl) {
+                                        window.open(doc.fileUrl, '_blank');
+                                      }
+                                    }
+                                  }}
+                                  className="px-3 py-1.5 text-xs font-medium text-blue-600 hover:text-blue-700 hover:bg-blue-50 rounded border border-blue-200 transition-colors flex items-center gap-1 flex-shrink-0"
+                                  title="View Document"
+                                >
+                                  <Download className="w-3 h-3" />
+                                  View
+                                </button>
                               </div>
                             </div>
-                            <div className="flex items-center gap-2 flex-shrink-0">
-                              <button
-                                onClick={async () => {
-                                  if (!viewingTrip?._id || !doc._id) return;
-                                  try {
-                                    const response = await getTripDocumentSignedUrl(viewingTrip._id, doc._id, 'inline');
-                                    if (response?.success && response?.url) {
-                                      window.open(response.url, '_blank');
-                                    } else {
-                                      // Fallback to original URL
-                                      window.open(doc.fileUrl, '_blank');
-                                    }
-                                  } catch (error) {
-                                    console.error('Error getting signed URL:', error);
-                                    // Fallback to original URL
-                                    window.open(doc.fileUrl, '_blank');
-                                  }
-                                }}
-                                className="p-2 rounded-lg transition-colors"
-                                style={{ color: FLEET_COLORS.primary }}
-                                onMouseEnter={(e) => e.currentTarget.style.backgroundColor = `${FLEET_COLORS.primary}15`}
-                                onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
-                                title="View/Download Document"
-                              >
-                                <Download className="w-4 h-4" />
-                              </button>
-                            </div>
-                          </div>
-                        );
-                      })}
-                    </div>
-                  ) : (
-                    <div className="p-4 bg-gray-50 border border-gray-200 rounded-lg text-center text-gray-500">
-                      <File className="w-8 h-8 mx-auto mb-2 text-gray-400" />
-                      <p>No documents uploaded yet</p>
-                    </div>
-                  )}
+                          );
+                        })}
+                      </div>
+                    ) : (
+                      <div className="p-4 bg-gray-50 border border-gray-200 rounded-lg text-center text-gray-500">
+                        <File className="w-6 h-6 mx-auto mb-2 text-gray-400" />
+                        <p className="text-sm">No documents uploaded</p>
+                      </div>
+                    )}
+                  </div>
                 </div>
               </div>
-            )}
-            {!showChat && (
-              <div className="sticky bottom-0 bg-gray-50 px-6 py-4 flex justify-end border-t rounded-b-xl">
-                <button
-                  onClick={() => {
-                    setViewingTrip(null);
-                    setShowChat(false);
-                  }}
-                  className="px-6 py-2 !text-white rounded-lg font-medium transition-all hover:opacity-90 hover:shadow-md"
-                  style={{ background: FLEET_COLORS.gradient }}
-                >
-                  Close
-                </button>
-              </div>
-            )}
+              {!showChat && (
+                <div className="sticky bottom-0 bg-gray-50 px-6 py-4 flex justify-end border-t rounded-b-xl">
+                  <button
+                    onClick={() => {
+                      setViewingTrip(null);
+                      setShowChat(false);
+                    }}
+                    className="px-6 py-2 !text-white rounded-lg font-medium transition-all hover:opacity-90 hover:shadow-md"
+                    style={{ background: FLEET_COLORS.gradient }}
+                  >
+                    Close
+                  </button>
+                </div>
+              )}
+            </div>
           </div>
         </div>
       )}
