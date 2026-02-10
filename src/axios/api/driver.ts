@@ -247,6 +247,254 @@ export const getTrainingCertificateSignedUrl = async (id: string, disposition: '
   }
 };
 
+// ==================== QUESTION BANK APIs ====================
+export interface Question {
+  id?: string;
+  question: string;
+  options: string[];
+  correctAnswer: number;
+}
+
+export interface QuestionBank {
+  _id?: string;
+  testName: string;
+  testType: 'TDG' | 'VEHICLE' | 'HOS' | 'WINTER';
+  passingPercentage: number;
+  mandatory?: boolean;
+  questions: Question[];
+  createdAt?: string;
+  updatedAt?: string;
+}
+
+export const getQuestionBanks = async (params?: { testType?: string }) => {
+  try {
+    const queryParams = new URLSearchParams();
+    if (params?.testType) queryParams.append('testType', params.testType);
+    
+    const queryString = queryParams.toString();
+    const url = `hr/driver/question-bank${queryString ? `?${queryString}` : ''}`;
+    console.log('📤 Fetching question banks from:', url);
+    const res: AxiosResponse = await apiClient.get(url);
+    console.log('✅ Question banks fetched:', res.data);
+    return res.data;
+  } catch (error) {
+    console.error('❌ Error fetching question banks:', error);
+    console.error('❌ Error response:', (error as any).response?.data);
+    return (error as any).response?.data || { success: false, message: 'Network error' };
+  }
+};
+
+export const getQuestionBankById = async (id: string) => {
+  try {
+    const res: AxiosResponse = await apiClient.get(`hr/driver/question-bank/${id}`);
+    return res.data;
+  } catch (error) {
+    console.error('❌ Error fetching question bank:', error);
+    return (error as any).response?.data;
+  }
+};
+
+export const createQuestionBank = async (data: Omit<QuestionBank, '_id' | 'createdAt' | 'updatedAt'>) => {
+  try {
+    console.log('📤 Creating question bank with data:', data);
+    const res: AxiosResponse = await apiClient.post('hr/driver/question-bank', data);
+    console.log('✅ Question bank created successfully:', res.data);
+    return res.data;
+  } catch (error) {
+    console.error('❌ Error creating question bank:', error);
+    console.error('❌ Error response:', (error as any).response?.data);
+    console.error('❌ Error status:', (error as any).response?.status);
+    return (error as any).response?.data || { success: false, message: 'Network error' };
+  }
+};
+
+export const updateQuestionBank = async (id: string, data: Partial<QuestionBank>) => {
+  try {
+    console.log('📤 Updating question bank:', id, 'with data:', data);
+    const res: AxiosResponse = await apiClient.put(`hr/driver/question-bank/${id}`, data);
+    console.log('✅ Question bank updated successfully:', res.data);
+    return res.data;
+  } catch (error) {
+    console.error('❌ Error updating question bank:', error);
+    console.error('❌ Error response:', (error as any).response?.data);
+    return (error as any).response?.data || { success: false, message: 'Network error' };
+  }
+};
+
+export const deleteQuestionBank = async (id: string) => {
+  try {
+    console.log('📤 Deleting question bank:', id);
+    const res: AxiosResponse = await apiClient.delete(`hr/driver/question-bank/${id}`);
+    console.log('✅ Question bank deleted successfully:', res.data);
+    return res.data;
+  } catch (error) {
+    console.error('❌ Error deleting question bank:', error);
+    console.error('❌ Error response:', (error as any).response?.data);
+    return (error as any).response?.data || { success: false, message: 'Network error' };
+  }
+};
+
+// ==================== TRAINING CONTENT APIs ====================
+export interface TrainingContent {
+  _id?: string;
+  name: string;
+  type: 'PDF' | 'VIDEO' | 'IMAGE';
+  testType: 'TDG' | 'VEHICLE' | 'HOS' | 'WINTER';
+  fileUrl?: string;
+  fileName?: string;
+  description?: string;
+  createdAt?: string;
+  updatedAt?: string;
+}
+
+export const getTrainingContent = async (params?: { testType?: string; type?: string }) => {
+  try {
+    const queryParams = new URLSearchParams();
+    if (params?.testType) queryParams.append('testType', params.testType);
+    if (params?.type) queryParams.append('type', params.type);
+    
+    const queryString = queryParams.toString();
+    const url = `hr/driver/training-content${queryString ? `?${queryString}` : ''}`;
+    const res: AxiosResponse = await apiClient.get(url);
+    return res.data;
+  } catch (error) {
+    console.error('❌ Error fetching training content:', error);
+    return (error as any).response?.data;
+  }
+};
+
+export const getTrainingContentById = async (id: string) => {
+  try {
+    const res: AxiosResponse = await apiClient.get(`hr/driver/training-content/${id}`);
+    return res.data;
+  } catch (error) {
+    console.error('❌ Error fetching training content:', error);
+    return (error as any).response?.data;
+  }
+};
+
+export const createTrainingContent = async (formData: FormData) => {
+  try {
+    const res: AxiosResponse = await apiClient.post('hr/driver/training-content', formData, {
+      headers: {
+        'Content-Type': 'multipart/form-data'
+      }
+    });
+    return res.data;
+  } catch (error) {
+    console.error('❌ Error creating training content:', error);
+    return (error as any).response?.data;
+  }
+};
+
+export const updateTrainingContent = async (id: string, formData: FormData) => {
+  try {
+    const res: AxiosResponse = await apiClient.put(`hr/driver/training-content/${id}`, formData, {
+      headers: {
+        'Content-Type': 'multipart/form-data'
+      }
+    });
+    return res.data;
+  } catch (error) {
+    console.error('❌ Error updating training content:', error);
+    return (error as any).response?.data;
+  }
+};
+
+export const deleteTrainingContent = async (id: string) => {
+  try {
+    const res: AxiosResponse = await apiClient.delete(`hr/driver/training-content/${id}`);
+    return res.data;
+  } catch (error) {
+    console.error('❌ Error deleting training content:', error);
+    return (error as any).response?.data;
+  }
+};
+
+export const getTrainingContentSignedUrl = async (id: string, disposition: 'inline' | 'attachment' = 'inline') => {
+  try {
+    const res: AxiosResponse = await apiClient.get(`hr/driver/training-content/${id}/signed-url?disposition=${disposition}`);
+    return res.data;
+  } catch (error) {
+    console.error('❌ Error getting training content signed URL:', error);
+    return (error as any).response?.data;
+  }
+};
+
+// ==================== TEST RESULT APIs ====================
+export interface TestResult {
+  _id?: string;
+  driverId: string;
+  driverName?: string;
+  testType: 'TDG' | 'VEHICLE' | 'HOS' | 'WINTER';
+  questionBankId?: string;
+  score: number;
+  passed: boolean;
+  attempts: number;
+  answers: Array<{
+    questionId: string;
+    selectedAnswer: number;
+    isCorrect: boolean;
+  }>;
+  createdAt?: string;
+  updatedAt?: string;
+}
+
+export const getTestResults = async (params?: { driverId?: string; testType?: string }) => {
+  try {
+    const queryParams = new URLSearchParams();
+    if (params?.driverId) queryParams.append('driverId', params.driverId);
+    if (params?.testType) queryParams.append('testType', params.testType);
+    
+    const queryString = queryParams.toString();
+    const url = `hr/driver/test-result${queryString ? `?${queryString}` : ''}`;
+    const res: AxiosResponse = await apiClient.get(url);
+    return res.data;
+  } catch (error) {
+    console.error('❌ Error fetching test results:', error);
+    return (error as any).response?.data;
+  }
+};
+
+export const getTestResultById = async (id: string) => {
+  try {
+    const res: AxiosResponse = await apiClient.get(`hr/driver/test-result/${id}`);
+    return res.data;
+  } catch (error) {
+    console.error('❌ Error fetching test result:', error);
+    return (error as any).response?.data;
+  }
+};
+
+export const submitTestResult = async (data: {
+  driverId: string;
+  testType: string;
+  questionBankId?: string;
+  answers: Array<{
+    questionId: string;
+    selectedAnswer: number;
+    isCorrect?: boolean;
+  }>;
+}) => {
+  try {
+    const res: AxiosResponse = await apiClient.post('hr/driver/test-result', data);
+    return res.data;
+  } catch (error) {
+    console.error('❌ Error submitting test result:', error);
+    return (error as any).response?.data;
+  }
+};
+
+export const getDriverTestStatus = async (driverId: string) => {
+  try {
+    const res: AxiosResponse = await apiClient.get(`hr/driver/${driverId}/test-status`);
+    return res.data;
+  } catch (error) {
+    console.error('❌ Error fetching driver test status:', error);
+    return (error as any).response?.data;
+  }
+};
+
 // ==================== DRUG TEST APIs ====================
 export interface DrugTestRequest {
   _id?: string;

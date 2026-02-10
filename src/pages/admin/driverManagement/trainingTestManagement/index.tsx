@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { 
   FileText, 
   Upload, 
@@ -8,9 +8,23 @@ import {
   X, 
   Image as ImageIcon, 
   Video, 
-  CheckCircle
+  CheckCircle,
+  Eye,
+  Play
 } from 'lucide-react';
 import { FaCheckCircle, FaExclamationCircle, FaTimes } from 'react-icons/fa';
+import {
+  getTrainingContent,
+  createTrainingContent,
+  deleteTrainingContent,
+  getTrainingContentSignedUrl,
+  getQuestionBanks,
+  createQuestionBank,
+  updateQuestionBank,
+  deleteQuestionBank,
+  type TrainingContent as APITrainingContent,
+  type QuestionBank as APIQuestionBank
+} from '../../../../axios/api/driver';
 
 type NotificationType = 'success' | 'error' | 'info';
 
@@ -92,50 +106,10 @@ const TrainingTestManagement = ({ showOnly }: { showOnly?: "training" | "questio
     showOnly === "questions" ? "questionBanks" : "training"
   );
   const [notifications, setNotifications] = useState<Notification[]>([]);
+  const [loading, setLoading] = useState(false);
   
-  // Training Content State - Initialize with dummy data
-  const [trainingContent, setTrainingContent] = useState<TrainingContent[]>([
-    {
-      id: 'content-1',
-      name: 'TDG Safety Guidelines 2024',
-      type: 'PDF',
-      testType: 'TDG',
-      file: null,
-      uploadedAt: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString()
-    },
-    {
-      id: 'content-2',
-      name: 'Vehicle Inspection Checklist',
-      type: 'PDF',
-      testType: 'VEHICLE',
-      file: null,
-      uploadedAt: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000).toISOString()
-    },
-    {
-      id: 'content-3',
-      name: 'HOS Regulations Training Video',
-      type: 'VIDEO',
-      testType: 'HOS',
-      file: null,
-      uploadedAt: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000).toISOString()
-    },
-    {
-      id: 'content-4',
-      name: 'Winter Driving Safety Guide',
-      type: 'IMAGE',
-      testType: 'WINTER',
-      file: null,
-      uploadedAt: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString()
-    },
-    {
-      id: 'content-5',
-      name: 'TDG Hazardous Materials Chart',
-      type: 'IMAGE',
-      testType: 'TDG',
-      file: null,
-      uploadedAt: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000).toISOString()
-    }
-  ]);
+  // Training Content State
+  const [trainingContent, setTrainingContent] = useState<TrainingContent[]>([]);
   const [showUploadModal, setShowUploadModal] = useState(false);
   const [uploadForm, setUploadForm] = useState<{
     name: string;
@@ -149,207 +123,8 @@ const TrainingTestManagement = ({ showOnly }: { showOnly?: "training" | "questio
     file: null
   });
 
-  // Question Bank State - Initialize with dummy data
-  const [questionBanks, setQuestionBanks] = useState<QuestionBank[]>([
-    {
-      id: 'bank-1',
-      testName: 'TDG Certification Test',
-      testType: 'TDG',
-      passingPercentage: 80,
-      mandatory: true,
-      questions: [
-        {
-          id: 'q-1',
-          question: 'What does TDG stand for?',
-          options: [
-            'Transportation of Dangerous Goods',
-            'Truck Driver Guidelines',
-            'Traffic Direction Guide',
-            'Transportation Department Guide'
-          ],
-          correctAnswer: 0
-        },
-        {
-          id: 'q-2',
-          question: 'What is the maximum weight allowed for a single package of dangerous goods?',
-          options: [
-            '30 kg',
-            '50 kg',
-            '100 kg',
-            '150 kg'
-          ],
-          correctAnswer: 0
-        },
-        {
-          id: 'q-3',
-          question: 'Which class of dangerous goods includes flammable liquids?',
-          options: [
-            'Class 3',
-            'Class 5',
-            'Class 7',
-            'Class 9'
-          ],
-          correctAnswer: 0
-        },
-        {
-          id: 'q-4',
-          question: 'How often must TDG training be renewed?',
-          options: [
-            'Every year',
-            'Every 2 years',
-            'Every 3 years',
-            'Only once'
-          ],
-          correctAnswer: 2
-        }
-      ],
-      createdAt: new Date(Date.now() - 10 * 24 * 60 * 60 * 1000).toISOString(),
-      updatedAt: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString()
-    },
-    {
-      id: 'bank-2',
-      testName: 'Vehicle Inspection Test',
-      testType: 'VEHICLE',
-      passingPercentage: 75,
-      mandatory: true,
-      questions: [
-        {
-          id: 'q-5',
-          question: 'What should you check before starting your vehicle?',
-          options: [
-            'Tire pressure and tread depth',
-            'Fuel level only',
-            'Radio settings',
-            'None of the above'
-          ],
-          correctAnswer: 0
-        },
-        {
-          id: 'q-6',
-          question: 'How often should you perform a pre-trip inspection?',
-          options: [
-            'Before every trip',
-            'Once a week',
-            'Once a month',
-            'Only when required'
-          ],
-          correctAnswer: 0
-        },
-        {
-          id: 'q-7',
-          question: 'What is the minimum tread depth required for commercial vehicle tires?',
-          options: [
-            '2/32 inch',
-            '4/32 inch',
-            '6/32 inch',
-            '8/32 inch'
-          ],
-          correctAnswer: 1
-        }
-      ],
-      createdAt: new Date(Date.now() - 8 * 24 * 60 * 60 * 1000).toISOString(),
-      updatedAt: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000).toISOString()
-    },
-    {
-      id: 'bank-3',
-      testName: 'Hours of Service (HOS) Regulations',
-      testType: 'HOS',
-      passingPercentage: 80,
-      mandatory: true,
-      questions: [
-        {
-          id: 'q-8',
-          question: 'What is the maximum driving time allowed in a 14-hour period?',
-          options: [
-            '8 hours',
-            '10 hours',
-            '11 hours',
-            '12 hours'
-          ],
-          correctAnswer: 2
-        },
-        {
-          id: 'q-9',
-          question: 'How long must a driver rest after 8 hours of driving?',
-          options: [
-            '15 minutes',
-            '30 minutes',
-            '45 minutes',
-            '1 hour'
-          ],
-          correctAnswer: 1
-        },
-        {
-          id: 'q-10',
-          question: 'What is the maximum on-duty time in a 14-hour window?',
-          options: [
-            '11 hours',
-            '12 hours',
-            '13 hours',
-            '14 hours'
-          ],
-          correctAnswer: 3
-        },
-        {
-          id: 'q-11',
-          question: 'When must a driver take a 34-hour restart?',
-          options: [
-            'After 60 hours of work in 7 days',
-            'After 70 hours of work in 8 days',
-            'After 80 hours of work in 7 days',
-            'After 70 hours of work in 7 days'
-          ],
-          correctAnswer: 1
-        }
-      ],
-      createdAt: new Date(Date.now() - 6 * 24 * 60 * 60 * 1000).toISOString(),
-      updatedAt: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000).toISOString()
-    },
-    {
-      id: 'bank-4',
-      testName: 'Winter Driving Safety',
-      testType: 'WINTER',
-      passingPercentage: 75,
-      mandatory: false,
-      questions: [
-        {
-          id: 'q-12',
-          question: 'What is the recommended following distance in winter conditions?',
-          options: [
-            '2 seconds',
-            '4 seconds',
-            '6 seconds',
-            '8 seconds'
-          ],
-          correctAnswer: 2
-        },
-        {
-          id: 'q-13',
-          question: 'When should you use chains on your tires?',
-          options: [
-            'Only in heavy snow',
-            'When required by law or road conditions',
-            'Never',
-            'Always in winter'
-          ],
-          correctAnswer: 1
-        },
-        {
-          id: 'q-14',
-          question: 'What should you do if you start to skid on ice?',
-          options: [
-            'Brake hard',
-            'Steer into the skid and ease off accelerator',
-            'Accelerate quickly',
-            'Turn the wheel sharply'
-          ],
-          correctAnswer: 1
-        }
-      ],
-      createdAt: new Date(Date.now() - 4 * 24 * 60 * 60 * 1000).toISOString(),
-      updatedAt: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000).toISOString()
-    }
-  ]);
+  // Question Bank State
+  const [questionBanks, setQuestionBanks] = useState<QuestionBank[]>([]);
   const [showQuestionBankModal, setShowQuestionBankModal] = useState(false);
   const [editingQuestionBank, setEditingQuestionBank] = useState<QuestionBank | null>(null);
   const [questionBankForm, setQuestionBankForm] = useState<{
@@ -365,7 +140,6 @@ const TrainingTestManagement = ({ showOnly }: { showOnly?: "training" | "questio
     mandatory: false,
     questions: []
   });
-
   const [editingQuestionIndex, setEditingQuestionIndex] = useState<number | null>(null);
   const [questionForm, setQuestionForm] = useState<{
     question: string;
@@ -376,6 +150,68 @@ const TrainingTestManagement = ({ showOnly }: { showOnly?: "training" | "questio
     options: ['', '', '', ''],
     correctAnswer: 0
   });
+
+  // Fetch data on mount
+  useEffect(() => {
+    fetchTrainingContent();
+    fetchQuestionBanks();
+  }, []);
+
+  const fetchTrainingContent = async () => {
+    try {
+      setLoading(true);
+      const response = await getTrainingContent();
+      if (response?.success && Array.isArray(response.data)) {
+        const mapped = response.data.map((item: APITrainingContent) => ({
+          id: item._id || '',
+          name: item.name,
+          type: item.type as ContentType,
+          testType: item.testType as TestType,
+          file: null,
+          fileUrl: item.fileUrl,
+          uploadedAt: item.createdAt || new Date().toISOString()
+        }));
+        setTrainingContent(mapped);
+      }
+    } catch (error) {
+      console.error('Error fetching training content:', error);
+      showNotification('error', 'Failed to load training content');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const fetchQuestionBanks = async () => {
+    try {
+      setLoading(true);
+      const response = await getQuestionBanks();
+      if (response?.success && Array.isArray(response.data)) {
+        const mapped = response.data.map((item: APIQuestionBank) => ({
+          id: item._id || '',
+          testName: item.testName,
+          testType: item.testType as TestType,
+          passingPercentage: item.passingPercentage,
+          mandatory: item.mandatory !== false,
+          questions: item.questions.map((q, idx) => ({
+            id: q.id || `q-${item._id}-${idx}-${Date.now()}`,
+            question: q.question,
+            options: q.options || [],
+            correctAnswer: q.correctAnswer
+          })),
+          createdAt: item.createdAt,
+          updatedAt: item.updatedAt
+        }));
+        setQuestionBanks(mapped);
+      } else if (response?.message) {
+        showNotification('info', response.message);
+      }
+    } catch (error) {
+      console.error('Error fetching question banks:', error);
+      showNotification('error', 'Failed to load question banks');
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const testTypes: { value: TestType; label: string }[] = [
     { value: 'TDG', label: 'TDG' },
@@ -390,7 +226,7 @@ const TrainingTestManagement = ({ showOnly }: { showOnly?: "training" | "questio
     { value: 'VIDEO', label: 'Video', icon: <Video className="w-4 h-4" /> }
   ];
 
-  const addNotification = (type: NotificationType, message: string) => {
+  const showNotification = (type: NotificationType, message: string) => {
     const id = Date.now();
     setNotifications(prev => [...prev, { id, type, message }]);
   };
@@ -407,30 +243,82 @@ const TrainingTestManagement = ({ showOnly }: { showOnly?: "training" | "questio
     }
   };
 
-  const handleUploadContent = () => {
+  const handleUploadContent = async () => {
     if (!uploadForm.name || !uploadForm.file) {
-      addNotification('error', 'Please provide a name and select a file');
+      showNotification('error', 'Please provide a name and select a file');
       return;
     }
 
-    const newContent: TrainingContent = {
-      id: `content-${Date.now()}`,
-      name: uploadForm.name,
-      type: uploadForm.type,
-      testType: uploadForm.testType,
-      file: uploadForm.file,
-      uploadedAt: new Date().toISOString()
-    };
+    try {
+      setLoading(true);
+      const formData = new FormData();
+      formData.append('name', uploadForm.name);
+      formData.append('type', uploadForm.type);
+      formData.append('testType', uploadForm.testType);
+      formData.append('file', uploadForm.file);
 
-    setTrainingContent(prev => [...prev, newContent]);
-    addNotification('success', 'Training content uploaded successfully');
-    setUploadForm({ name: '', type: 'PDF', testType: 'TDG', file: null });
-    setShowUploadModal(false);
+      const response = await createTrainingContent(formData);
+      if (response?.success) {
+        showNotification('success', 'Training content uploaded successfully');
+        setUploadForm({ name: '', type: 'PDF', testType: 'TDG', file: null });
+        setShowUploadModal(false);
+        await fetchTrainingContent();
+      } else {
+        showNotification('error', response?.message || 'Failed to upload training content');
+      }
+    } catch (error) {
+      console.error('Error uploading content:', error);
+      showNotification('error', 'Failed to upload training content');
+    } finally {
+      setLoading(false);
+    }
   };
 
-  const handleDeleteContent = (id: string) => {
-    setTrainingContent(prev => prev.filter(c => c.id !== id));
-    addNotification('success', 'Training content deleted successfully');
+  const handleDeleteContent = async (id: string) => {
+    if (!confirm('Are you sure you want to delete this training content?')) {
+      return;
+    }
+
+    try {
+      setLoading(true);
+      const response = await deleteTrainingContent(id);
+      if (response?.success) {
+        showNotification('success', 'Training content deleted successfully');
+        await fetchTrainingContent();
+      } else {
+        showNotification('error', response?.message || 'Failed to delete training content');
+      }
+    } catch (error) {
+      console.error('Error deleting content:', error);
+      showNotification('error', 'Failed to delete training content');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleViewContent = async (content: TrainingContent) => {
+    try {
+      const response = await getTrainingContentSignedUrl(content.id, 'inline');
+      if (response?.success && response.url) {
+        // Open in new tab for all types
+        window.open(response.url, '_blank');
+      } else {
+        // Fallback to direct URL if signed URL fails
+        if (content.fileUrl) {
+          window.open(content.fileUrl, '_blank');
+        } else {
+          showNotification('error', 'Unable to open content file');
+        }
+      }
+    } catch (error) {
+      console.error('Error opening content:', error);
+      // Fallback to direct URL
+      if (content.fileUrl) {
+        window.open(content.fileUrl, '_blank');
+      } else {
+        showNotification('error', 'Unable to open content file');
+      }
+    }
   };
 
   // Question Bank Handlers
@@ -443,6 +331,12 @@ const TrainingTestManagement = ({ showOnly }: { showOnly?: "training" | "questio
       mandatory: false,
       questions: []
     });
+    setQuestionForm({
+      question: '',
+      options: ['', '', '', ''],
+      correctAnswer: 0
+    });
+    setEditingQuestionIndex(null);
     setShowQuestionBankModal(true);
   };
 
@@ -453,64 +347,127 @@ const TrainingTestManagement = ({ showOnly }: { showOnly?: "training" | "questio
       testType: bank.testType,
       passingPercentage: bank.passingPercentage,
       mandatory: bank.mandatory,
-      questions: bank.questions
+      questions: bank.questions.map(q => ({
+        ...q,
+        id: q.id || `q-${bank.id}-${Date.now()}`
+      }))
     });
+    setQuestionForm({
+      question: '',
+      options: ['', '', '', ''],
+      correctAnswer: 0
+    });
+    setEditingQuestionIndex(null);
     setShowQuestionBankModal(true);
   };
 
-  const handleSaveQuestionBank = () => {
+  const handleSaveQuestionBank = async () => {
+    console.log('🔵 handleSaveQuestionBank called');
+    console.log('🔵 questionBankForm:', questionBankForm);
+    
     if (!questionBankForm.testName.trim()) {
-      addNotification('error', 'Please provide a test name');
+      showNotification('error', 'Please provide a test name');
       return;
     }
 
     if (questionBankForm.questions.length === 0) {
-      addNotification('error', 'Please add at least one question');
+      showNotification('error', 'Please add at least one question');
       return;
     }
 
-    if (editingQuestionBank) {
-      // Update existing
-      setQuestionBanks(prev => prev.map(bank => 
-        bank.id === editingQuestionBank.id 
-          ? { ...questionBankForm, id: editingQuestionBank.id, updatedAt: new Date().toISOString() }
-          : bank
-      ));
-      addNotification('success', 'Question bank updated successfully');
-    } else {
-      // Create new
-      const newBank: QuestionBank = {
-        id: `bank-${Date.now()}`,
-        ...questionBankForm,
-        createdAt: new Date().toISOString()
+    try {
+      setLoading(true);
+      const payload = {
+        testName: questionBankForm.testName,
+        testType: questionBankForm.testType,
+        passingPercentage: questionBankForm.passingPercentage,
+        mandatory: questionBankForm.mandatory,
+        questions: questionBankForm.questions.map(q => ({
+          question: q.question,
+          options: q.options,
+          correctAnswer: q.correctAnswer
+        }))
       };
-      setQuestionBanks(prev => [...prev, newBank]);
-      addNotification('success', 'Question bank created successfully');
-    }
 
-    setShowQuestionBankModal(false);
-    setEditingQuestionBank(null);
+      console.log('🔵 Payload to send:', JSON.stringify(payload, null, 2));
+
+      let response;
+      if (editingQuestionBank) {
+        console.log('🔵 Updating question bank:', editingQuestionBank.id);
+        response = await updateQuestionBank(editingQuestionBank.id, payload);
+      } else {
+        console.log('🔵 Creating new question bank');
+        response = await createQuestionBank(payload);
+      }
+
+      console.log('🔵 API Response:', response);
+
+      if (response?.success) {
+        showNotification('success', editingQuestionBank ? 'Question bank updated successfully' : 'Question bank created successfully');
+        setShowQuestionBankModal(false);
+        setEditingQuestionBank(null);
+        setQuestionBankForm({
+          testName: '',
+          testType: 'TDG',
+          passingPercentage: 80,
+          mandatory: false,
+          questions: []
+        });
+        setQuestionForm({
+          question: '',
+          options: ['', '', '', ''],
+          correctAnswer: 0
+        });
+        setEditingQuestionIndex(null);
+        await fetchQuestionBanks();
+      } else {
+        console.error('🔴 API Error:', response);
+        showNotification('error', response?.message || 'Failed to save question bank');
+      }
+    } catch (error) {
+      console.error('🔴 Error saving question bank:', error);
+      showNotification('error', 'Failed to save question bank');
+    } finally {
+      setLoading(false);
+    }
   };
 
-  const handleDeleteQuestionBank = (id: string) => {
-    setQuestionBanks(prev => prev.filter(b => b.id !== id));
-    addNotification('success', 'Question bank deleted successfully');
+  const handleDeleteQuestionBank = async (id: string) => {
+    if (!confirm('Are you sure you want to delete this question bank?')) {
+      return;
+    }
+
+    try {
+      setLoading(true);
+      const response = await deleteQuestionBank(id);
+      if (response?.success) {
+        showNotification('success', 'Question bank deleted successfully');
+        await fetchQuestionBanks();
+      } else {
+        showNotification('error', response?.message || 'Failed to delete question bank');
+      }
+    } catch (error) {
+      console.error('Error deleting question bank:', error);
+      showNotification('error', 'Failed to delete question bank');
+    } finally {
+      setLoading(false);
+    }
   };
 
   // Question Handlers
   const handleAddQuestion = () => {
     if (!questionForm.question.trim()) {
-      addNotification('error', 'Please enter a question');
+      showNotification('error', 'Please enter a question');
       return;
     }
 
     if (questionForm.options.filter(opt => opt.trim()).length < 2) {
-      addNotification('error', 'Please provide at least 2 options');
+      showNotification('error', 'Please provide at least 2 options');
       return;
     }
 
     if (questionForm.options[questionForm.correctAnswer]?.trim() === '') {
-      addNotification('error', 'Please select a valid correct answer');
+      showNotification('error', 'Please select a valid correct answer');
       return;
     }
 
@@ -532,14 +489,19 @@ const TrainingTestManagement = ({ showOnly }: { showOnly?: "training" | "questio
       correctAnswer: 0
     });
     setEditingQuestionIndex(null);
-    addNotification('success', 'Question added successfully');
+    showNotification('success', 'Question added successfully');
   };
 
   const handleEditQuestion = (index: number) => {
     const question = questionBankForm.questions[index];
+    // Ensure we have at least 4 option slots, pad with empty strings if needed
+    const paddedOptions = [...question.options];
+    while (paddedOptions.length < 4) {
+      paddedOptions.push('');
+    }
     setQuestionForm({
       question: question.question,
-      options: [...question.options, '', '', ''].slice(0, 4),
+      options: paddedOptions.slice(0, 4),
       correctAnswer: question.correctAnswer
     });
     setEditingQuestionIndex(index);
@@ -549,12 +511,12 @@ const TrainingTestManagement = ({ showOnly }: { showOnly?: "training" | "questio
     if (editingQuestionIndex === null) return;
 
     if (!questionForm.question.trim()) {
-      addNotification('error', 'Please enter a question');
+      showNotification('error', 'Please enter a question');
       return;
     }
 
     if (questionForm.options.filter(opt => opt.trim()).length < 2) {
-      addNotification('error', 'Please provide at least 2 options');
+      showNotification('error', 'Please provide at least 2 options');
       return;
     }
 
@@ -577,7 +539,7 @@ const TrainingTestManagement = ({ showOnly }: { showOnly?: "training" | "questio
       correctAnswer: 0
     });
     setEditingQuestionIndex(null);
-    addNotification('success', 'Question updated successfully');
+    showNotification('success', 'Question updated successfully');
   };
 
   const handleDeleteQuestion = (index: number) => {
@@ -586,7 +548,7 @@ const TrainingTestManagement = ({ showOnly }: { showOnly?: "training" | "questio
       ...prev,
       questions: updatedQuestions
     }));
-    addNotification('success', 'Question deleted successfully');
+    showNotification('success', 'Question deleted successfully');
   };
 
   const getFileIcon = (type: ContentType) => {
@@ -667,7 +629,12 @@ const TrainingTestManagement = ({ showOnly }: { showOnly?: "training" | "questio
             </div>
 
             {/* Training Content List */}
-            {trainingContent.length === 0 ? (
+            {loading ? (
+              <div className="text-center py-12">
+                <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-[#0ea3d8]"></div>
+                <p className="mt-4 text-gray-600">Loading training content...</p>
+              </div>
+            ) : trainingContent.length === 0 ? (
               <div className="text-center py-12">
                 <FileText className="w-16 h-16 text-gray-400 mx-auto mb-4" />
                 <p className="text-gray-500 text-lg">No training content uploaded yet</p>
@@ -678,19 +645,33 @@ const TrainingTestManagement = ({ showOnly }: { showOnly?: "training" | "questio
                 {trainingContent.map((content) => (
                   <div key={content.id} className="border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow">
                     <div className="flex items-start justify-between mb-3">
-                      <div className="flex items-center gap-3">
+                      <div className="flex items-center gap-3 flex-1">
                         {getFileIcon(content.type)}
-                        <div>
-                          <h3 className="font-medium text-gray-900">{content.name}</h3>
+                        <div className="flex-1 min-w-0">
+                          <h3 className="font-medium text-gray-900 truncate">{content.name}</h3>
                           <p className="text-xs text-gray-500">{content.type}</p>
                         </div>
                       </div>
-                      <button
-                        onClick={() => handleDeleteContent(content.id)}
-                        className="text-red-500 hover:text-red-700 transition-colors"
-                      >
-                        <Trash2 className="w-4 h-4" />
-                      </button>
+                      <div className="flex items-center gap-2">
+                        <button
+                          onClick={() => handleViewContent(content)}
+                          className="text-blue-500 hover:text-blue-700 transition-colors"
+                          title="View/Open Content"
+                        >
+                          {content.type === 'VIDEO' ? (
+                            <Play className="w-4 h-4" />
+                          ) : (
+                            <Eye className="w-4 h-4" />
+                          )}
+                        </button>
+                        <button
+                          onClick={() => handleDeleteContent(content.id)}
+                          className="text-red-500 hover:text-red-700 transition-colors"
+                          title="Delete Content"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </button>
+                      </div>
                     </div>
                     <div className="flex items-center gap-2 mb-2">
                       <span className={`px-2 py-1 rounded text-xs font-medium ${getTestTypeColor(content.testType)}`}>
@@ -724,7 +705,12 @@ const TrainingTestManagement = ({ showOnly }: { showOnly?: "training" | "questio
             </div>
 
             {/* Question Banks List */}
-            {questionBanks.length === 0 ? (
+            {loading ? (
+              <div className="text-center py-12">
+                <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-[#0ea3d8]"></div>
+                <p className="mt-4 text-gray-600">Loading question banks...</p>
+              </div>
+            ) : questionBanks.length === 0 ? (
               <div className="text-center py-12">
                 <FileText className="w-16 h-16 text-gray-400 mx-auto mb-4" />
                 <p className="text-gray-500 text-lg">No question banks created yet</p>
@@ -1093,16 +1079,30 @@ const TrainingTestManagement = ({ showOnly }: { showOnly?: "training" | "questio
                       setShowQuestionBankModal(false);
                       setEditingQuestionBank(null);
                       setEditingQuestionIndex(null);
+                      setQuestionBankForm({
+                        testName: '',
+                        testType: 'TDG',
+                        passingPercentage: 80,
+                        mandatory: false,
+                        questions: []
+                      });
+                      setQuestionForm({
+                        question: '',
+                        options: ['', '', '', ''],
+                        correctAnswer: 0
+                      });
                     }}
                     className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
+                    disabled={loading}
                   >
                     Cancel
                   </button>
                   <button
                     onClick={handleSaveQuestionBank}
-                    className="px-4 py-2 bg-[#0ea3d8] !text-white rounded-lg hover:bg-[#0d8fc7] transition-colors"
+                    disabled={loading}
+                    className="px-4 py-2 bg-[#0ea3d8] !text-white rounded-lg hover:bg-[#0d8fc7] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                   >
-                    {editingQuestionBank ? 'Update' : 'Create'} Question Bank
+                    {loading ? 'Saving...' : editingQuestionBank ? 'Update' : 'Create'} Question Bank
                   </button>
                 </div>
               </div>

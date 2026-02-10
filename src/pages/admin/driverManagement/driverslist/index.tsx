@@ -6350,7 +6350,85 @@ const DriverManagement = () => {
                       )}
                     </div>
 
-                    {/* Section 2: Test Results Table */}
+                    {/* Section 2: Flags */}
+                    <div className="bg-gray-50 rounded-lg p-4 space-y-3">
+                      <h4 className="text-sm font-bold text-gray-900 mb-3">Flags</h4>
+                      
+                      <div className="flex items-center gap-2">
+                        <input
+                          type="checkbox"
+                          id="handlesHazardousLoads"
+                          checked={handlesHazardousLoads}
+                          onChange={(e) => setHandlesHazardousLoads(e.target.checked)}
+                          className="w-4 h-4 text-[#0ea3d8] border-gray-300 rounded focus:ring-[#0ea3d8]"
+                        />
+                        <label htmlFor="handlesHazardousLoads" className="text-xs font-medium text-gray-700 cursor-pointer">
+                          Handles hazardous loads
+                        </label>
+                      </div>
+
+                      <div className="flex items-center gap-2">
+                        <input
+                          type="checkbox"
+                          id="winterTestRequired"
+                          checked={winterTestRequired}
+                          onChange={(e) => setWinterTestRequired(e.target.checked)}
+                          className="w-4 h-4 text-[#0ea3d8] border-gray-300 rounded focus:ring-[#0ea3d8]"
+                        />
+                        <label htmlFor="winterTestRequired" className="text-xs font-medium text-gray-700 cursor-pointer">
+                          Winter test required (optional override)
+                        </label>
+                      </div>
+                    </div>
+
+                    {/* Section 4: Required Tests */}
+                    <div className="bg-blue-50 rounded-lg p-4 space-y-3 border border-blue-200">
+                      <h4 className="text-sm font-bold text-gray-900 mb-3">Required Tests</h4>
+                      <p className="text-xs text-gray-600 mb-3">Based on the flags above, the following tests are required for this driver:</p>
+                      
+                      <div className="space-y-2">
+                        {/* Base tests - always required */}
+                        <div className="flex items-center gap-2 bg-white rounded-lg p-2 border border-blue-100">
+                          <div className="w-2 h-2 rounded-full bg-blue-500"></div>
+                          <span className="text-xs font-medium text-gray-900">VEHICLE</span>
+                          <span className="text-xs text-gray-600">- Vehicle Inspection</span>
+                        </div>
+                        
+                        <div className="flex items-center gap-2 bg-white rounded-lg p-2 border border-blue-100">
+                          <div className="w-2 h-2 rounded-full bg-blue-500"></div>
+                          <span className="text-xs font-medium text-gray-900">HOS</span>
+                          <span className="text-xs text-gray-600">- Hours of Service</span>
+                        </div>
+                        
+                        {/* TDG test - only if handles hazardous loads */}
+                        {handlesHazardousLoads && (
+                          <div className="flex items-center gap-2 bg-orange-50 rounded-lg p-2 border border-orange-200">
+                            <div className="w-2 h-2 rounded-full bg-orange-500"></div>
+                            <span className="text-xs font-medium text-gray-900">TDG</span>
+                            <span className="text-xs text-gray-600">- Transportation of Dangerous Goods</span>
+                            <span className="ml-auto px-2 py-0.5 bg-orange-100 text-orange-800 text-xs rounded">Hazardous Loads</span>
+                          </div>
+                        )}
+                        
+                        {/* Winter test - only if winter test required */}
+                        {winterTestRequired && (
+                          <div className="flex items-center gap-2 bg-cyan-50 rounded-lg p-2 border border-cyan-200">
+                            <div className="w-2 h-2 rounded-full bg-cyan-500"></div>
+                            <span className="text-xs font-medium text-gray-900">WINTER</span>
+                            <span className="text-xs text-gray-600">- Winter Driving</span>
+                            <span className="ml-auto px-2 py-0.5 bg-cyan-100 text-cyan-800 text-xs rounded">Winter Season</span>
+                          </div>
+                        )}
+                      </div>
+                      
+                      <div className="mt-3 pt-3 border-t border-blue-200">
+                        <p className="text-xs text-gray-600">
+                          <span className="font-medium">Total Required Tests:</span> {2 + (handlesHazardousLoads ? 1 : 0) + (winterTestRequired ? 1 : 0)}
+                        </p>
+                      </div>
+                    </div>
+
+                    {/* Section 4: Test Results Table */}
                     <div className="bg-white rounded-lg border border-gray-200">
                       <div className="p-4 border-b border-gray-200">
                         <h4 className="text-sm font-bold text-gray-900">Test Results</h4>
@@ -6394,37 +6472,6 @@ const DriverManagement = () => {
                             )}
                           </tbody>
                         </table>
-                      </div>
-                    </div>
-
-                    {/* Section 3: Flags */}
-                    <div className="bg-gray-50 rounded-lg p-4 space-y-3">
-                      <h4 className="text-sm font-bold text-gray-900 mb-3">Flags</h4>
-                      
-                      <div className="flex items-center gap-2">
-                        <input
-                          type="checkbox"
-                          id="handlesHazardousLoads"
-                          checked={handlesHazardousLoads}
-                          onChange={(e) => setHandlesHazardousLoads(e.target.checked)}
-                          className="w-4 h-4 text-[#0ea3d8] border-gray-300 rounded focus:ring-[#0ea3d8]"
-                        />
-                        <label htmlFor="handlesHazardousLoads" className="text-xs font-medium text-gray-700 cursor-pointer">
-                          Handles hazardous loads
-                        </label>
-                      </div>
-
-                      <div className="flex items-center gap-2">
-                        <input
-                          type="checkbox"
-                          id="winterTestRequired"
-                          checked={winterTestRequired}
-                          onChange={(e) => setWinterTestRequired(e.target.checked)}
-                          className="w-4 h-4 text-[#0ea3d8] border-gray-300 rounded focus:ring-[#0ea3d8]"
-                        />
-                        <label htmlFor="winterTestRequired" className="text-xs font-medium text-gray-700 cursor-pointer">
-                          Winter test required (optional override)
-                        </label>
                       </div>
                     </div>
 
