@@ -524,6 +524,13 @@ const DriverManagement = () => {
     hrRejectionReason?: string;
   }>>([]);
   const [loadingTests, setLoadingTests] = useState(false);
+  const [showApprovalModal, setShowApprovalModal] = useState(false);
+  const [selectedTest, setSelectedTest] = useState<{
+    id: string;
+    testType: string;
+    action: 'approve' | 'reject';
+  } | null>(null);
+  const [rejectionReason, setRejectionReason] = useState('');
 
   // Fetch test results for a driver
   const fetchDriverTestResults = async (driverId: string) => {
@@ -538,22 +545,59 @@ const DriverManagement = () => {
       if (response?.success && response.data) {
         const tests = Array.isArray(response.data) ? response.data : [];
         
-        const formattedTests = tests.map((test: any) => ({
-          id: test._id || test.id,
-          testType: test.testType || 'TDG',
-          score: test.score || 0,
-          passed: test.passed || false,
-          attempts: test.attempts || 1,
-          completedAt: test.createdAt || test.completedAt || '',
-          hrApproved: test.hrApproved || false,
-          hrRejected: test.hrRejected || false,
-          hrApprovedBy: test.hrApprovedBy?.name || test.hrApprovedBy || '',
-          hrApprovedAt: test.hrApprovedAt || '',
-          hrRejectionReason: test.hrRejectionReason || ''
-        }));
+        // Group by test type and get only the latest (most recent) result for each type
+        const testsByType = new Map<string, any>();
+        
+        tests.forEach((test: any) => {
+          const testType = test.testType || 'TDG';
+          const existing = testsByType.get(testType);
+          
+          // If no existing test for this type, or this one is more recent, use this one
+          const testDate = new Date(test.createdAt || test.updatedAt || test.completedAt || 0);
+          const existingDate = existing ? new Date(existing.createdAt || existing.updatedAt || existing.completedAt || 0) : new Date(0);
+          
+          if (!existing || testDate > existingDate) {
+            testsByType.set(testType, test);
+          }
+        });
+        
+        // Convert map to array and format
+        const formattedTests = Array.from(testsByType.values()).map((test: any) => {
+          // Handle hrApprovedBy - could be populated object or just ID string
+          let hrApprovedByName = '';
+          if (test.hrApprovedBy) {
+            if (typeof test.hrApprovedBy === 'object' && test.hrApprovedBy.name) {
+              hrApprovedByName = test.hrApprovedBy.name;
+            } else if (typeof test.hrApprovedBy === 'string') {
+              // If it's just an ID string, we'll need to fetch the user name separately
+              // For now, leave it empty - the backend should populate it
+              hrApprovedByName = '';
+            }
+          }
+          
+          return {
+            id: test._id || test.id,
+            testType: test.testType || 'TDG',
+            score: test.score || 0,
+            passed: test.passed || false,
+            attempts: test.attempts || 1,
+            completedAt: test.createdAt || test.completedAt || '',
+            hrApproved: test.hrApproved || false,
+            hrRejected: test.hrRejected || false,
+            hrApprovedBy: hrApprovedByName,
+            hrApprovedAt: test.hrApprovedAt || '',
+            hrRejectionReason: test.hrRejectionReason || ''
+          };
+        });
+        
+        // Sort by test type for consistent display
+        formattedTests.sort((a, b) => {
+          const order = ['VEHICLE', 'HOS', 'TDG', 'WINTER'];
+          return order.indexOf(a.testType) - order.indexOf(b.testType);
+        });
         
         setDriverTests(formattedTests);
-        console.log(`✅ Test results loaded (${formattedTests.length} tests)`);
+        console.log(`✅ Test results loaded (${formattedTests.length} unique tests - latest per type)`);
       } else {
         setDriverTests([]);
         console.log('⚠️ No test results found');
@@ -567,19 +611,46 @@ const DriverManagement = () => {
     }
   };
 
+  // Open approval modal
+  const openApprovalModal = (test: any, action: 'approve' | 'reject') => {
+    setSelectedTest({
+      id: test.id,
+      testType: test.testType,
+      action
+    });
+    setRejectionReason('');
+    setShowApprovalModal(true);
+  };
+
+  // Close approval modal
+  const closeApprovalModal = () => {
+    setShowApprovalModal(false);
+    setSelectedTest(null);
+    setRejectionReason('');
+  };
+
   // Handle test approval
-  const handleTestApproval = async (testId: string) => {
+  const handleTestApproval = async () => {
+    if (!selectedTest) return;
+    
     try {
-      console.log('📝 Approving test:', testId);
+      console.log('📝 Approving test:', selectedTest.id);
       
-      const response = await approveTestResult(testId);
+      const response = await approveTestResult(selectedTest.id);
       
       if (response?.success) {
         addNotification('success', 'Test approved successfully');
+        closeApprovalModal();
         
-        // Refresh test results
-        if (editingDriver?._id) {
+        // Refresh driver details and test results
+        if (editingId) {
+          // Reload driver data - this will trigger useEffect and refresh all data
+          await fetchDriverTestResults(editingId);
+          // Also reload the full driver data to update onboarding status
+          await loadDriverForEdit(editingId);
+        } else if (editingDriver?._id) {
           await fetchDriverTestResults(editingDriver._id);
+          await loadDriverForEdit(editingDriver._id);
         }
       } else {
         addNotification('error', response?.message || 'Failed to approve test');
@@ -591,18 +662,27 @@ const DriverManagement = () => {
   };
 
   // Handle test rejection
-  const handleTestRejection = async (testId: string, reason?: string) => {
+  const handleTestRejection = async () => {
+    if (!selectedTest) return;
+    
     try {
-      console.log('📝 Rejecting test:', testId, 'Reason:', reason);
+      console.log('📝 Rejecting test:', selectedTest.id, 'Reason:', rejectionReason);
       
-      const response = await rejectTestResult(testId, reason);
+      const response = await rejectTestResult(selectedTest.id, rejectionReason || undefined);
       
       if (response?.success) {
         addNotification('success', 'Test rejected successfully');
+        closeApprovalModal();
         
-        // Refresh test results
-        if (editingDriver?._id) {
+        // Refresh driver details and test results
+        if (editingId) {
+          // Reload driver data - this will trigger useEffect and refresh all data
+          await fetchDriverTestResults(editingId);
+          // Also reload the full driver data to update onboarding status
+          await loadDriverForEdit(editingId);
+        } else if (editingDriver?._id) {
           await fetchDriverTestResults(editingDriver._id);
+          await loadDriverForEdit(editingDriver._id);
         }
       } else {
         addNotification('error', response?.message || 'Failed to reject test');
@@ -689,13 +769,13 @@ const DriverManagement = () => {
     fetchDrivers();
   }, [activeTab]);
 
-  // Load driver data when editing
-  useEffect(() => {
-    const loadDriverForEdit = async () => {
-      if (editingId) {
+  // Load driver data when editing - extracted as reusable function
+  const loadDriverForEdit = async (driverId?: string) => {
+    const idToLoad = driverId || editingId;
+    if (idToLoad) {
         try {
-          console.log('🔄 Loading driver for edit, ID:', editingId);
-          const response = await driverApi.getDriverById(editingId);
+          console.log('🔄 Loading driver for edit, ID:', idToLoad);
+          const response = await driverApi.getDriverById(idToLoad);
           console.log('📥 Driver API response:', response);
           console.log('📥 Response success:', response?.success);
           console.log('📥 Response data:', response?.data);
@@ -1284,8 +1364,10 @@ const DriverManagement = () => {
         setNotes([]);
         setProfileImagePreview(null);
       }
-    };
+  };
 
+  // Load driver data when editingId changes
+  useEffect(() => {
     loadDriverForEdit();
   }, [editingId]);
 
@@ -6369,59 +6451,49 @@ const DriverManagement = () => {
                     <div className="bg-gray-50 rounded-lg p-4 space-y-4">
                       <h4 className="text-sm font-bold text-gray-900 mb-3">Onboarding Status</h4>
                       
-                      <div className="flex items-center gap-4">
-                        <div className="flex-1">
-                          <label className="block text-xs font-medium text-gray-700 mb-2">Current Status</label>
-                          <div className="flex items-center gap-2">
-                            <span className={`px-3 py-1.5 rounded-lg text-xs font-medium ${
-                              onboardingStatus === 'APPROVED' ? 'bg-green-100 text-green-800' :
-                              onboardingStatus === 'REJECTED' ? 'bg-red-100 text-red-800' :
-                              onboardingStatus === 'WAITING_FOR_HR_APPROVAL' ? 'bg-yellow-100 text-yellow-800' :
-                              onboardingStatus === 'IN_PROGRESS' ? 'bg-blue-100 text-blue-800' :
-                              'bg-gray-100 text-gray-800'
-                            }`}>
-                              {onboardingStatus === 'PENDING_TESTS' ? 'Pending Tests' :
-                               onboardingStatus === 'IN_PROGRESS' ? 'In Progress' :
-                               onboardingStatus === 'WAITING_FOR_HR_APPROVAL' ? 'Waiting for HR Approval' :
-                               onboardingStatus === 'APPROVED' ? 'Approved' :
-                               'Rejected'}
-                            </span>
+                      {/* Test Approval Summary - Show at top */}
+                      {driverTests.length > 0 && (
+                        <div className="bg-white rounded-lg p-3 border border-gray-200 mb-4">
+                          <label className="block text-xs font-medium text-gray-700 mb-2">Test Approval Status</label>
+                          <div className="space-y-2">
+                            {driverTests.map((test) => (
+                              <div key={test.id} className="flex items-center justify-between">
+                                <span className="text-xs font-medium text-gray-700">{test.testType}</span>
+                                {test.hrApproved ? (
+                                  <div className="flex items-center gap-2">
+                                    <span className="px-2 py-1 rounded bg-green-100 text-green-800 text-xs font-medium flex items-center gap-1">
+                                      <Check className="w-3 h-3" />
+                                      Approved
+                                    </span>
+                                    {test.hrApprovedBy && (
+                                      <span className="text-xs text-gray-500">by {test.hrApprovedBy}</span>
+                                    )}
+                                    {test.hrApprovedAt && (
+                                      <span className="text-xs text-gray-500">
+                                        {new Date(test.hrApprovedAt).toLocaleDateString()}
+                                      </span>
+                                    )}
+                                  </div>
+                                ) : test.hrRejected ? (
+                                  <div className="flex items-center gap-2">
+                                    <span className="px-2 py-1 rounded bg-red-100 text-red-800 text-xs font-medium flex items-center gap-1">
+                                      <X className="w-3 h-3" />
+                                      Rejected
+                                    </span>
+                                    {test.hrRejectionReason && (
+                                      <span className="text-xs text-red-600">({test.hrRejectionReason})</span>
+                                    )}
+                                  </div>
+                                ) : (
+                                  <span className="px-2 py-1 rounded bg-yellow-100 text-yellow-800 text-xs font-medium">
+                                    Pending Review
+                                  </span>
+                                )}
+                              </div>
+                            ))}
                           </div>
                         </div>
-                        
-                        <div className="flex gap-2">
-                          <button
-                            onClick={() => {
-                              setOnboardingStatus('APPROVED');
-                              setApprovedByHR(true);
-                              setApprovedAt(new Date().toISOString().split('T')[0]);
-                            }}
-                            className="px-3 py-1.5 bg-green-600 text-white text-xs font-medium rounded-lg hover:bg-green-700 transition-colors"
-                          >
-                            Approve
-                          </button>
-                          <button
-                            onClick={() => {
-                              setOnboardingStatus('REJECTED');
-                              setApprovedByHR(false);
-                            }}
-                            className="px-3 py-1.5 bg-red-600 text-white text-xs font-medium rounded-lg hover:bg-red-700 transition-colors"
-                          >
-                            Reject
-                          </button>
-                          <button
-                            onClick={() => {
-                              setOnboardingStatus('PENDING_TESTS');
-                              setApprovedByHR(false);
-                              setApprovedAt('');
-                              setDriverTests([]);
-                            }}
-                            className="px-3 py-1.5 bg-gray-600 text-white text-xs font-medium rounded-lg hover:bg-gray-700 transition-colors"
-                          >
-                            Reset Tests
-                          </button>
-                        </div>
-                      </div>
+                      )}
 
                       {approvedByHR && approvedAt && (
                         <div className="mt-3 text-xs text-gray-600">
@@ -6570,7 +6642,7 @@ const DriverManagement = () => {
                                     {!test.hrApproved && !test.hrRejected && (
                                       <div className="flex items-center gap-1">
                                         <button
-                                          onClick={() => handleTestApproval(test.id)}
+                                          onClick={() => openApprovalModal(test, 'approve')}
                                           className="px-2 py-1 bg-green-600 text-white text-xs rounded hover:bg-green-700 transition-colors flex items-center gap-1"
                                           title="Approve Test"
                                         >
@@ -6578,12 +6650,7 @@ const DriverManagement = () => {
                                           Approve
                                         </button>
                                         <button
-                                          onClick={() => {
-                                            const reason = prompt('Enter rejection reason (optional):');
-                                            if (reason !== null) {
-                                              handleTestRejection(test.id, reason || undefined);
-                                            }
-                                          }}
+                                          onClick={() => openApprovalModal(test, 'reject')}
                                           className="px-2 py-1 bg-red-600 text-white text-xs rounded hover:bg-red-700 transition-colors flex items-center gap-1"
                                           title="Reject Test"
                                         >
@@ -6592,17 +6659,29 @@ const DriverManagement = () => {
                                         </button>
                                       </div>
                                     )}
-                                    {test.hrApproved && test.hrApprovedBy && (
-                                      <div className="text-xs text-gray-500">
-                                        By: {test.hrApprovedBy}
+                                    {test.hrApproved && (
+                                      <div className="text-xs">
+                                        <div className="text-green-700 font-medium">Approved</div>
+                                        {test.hrApprovedBy && (
+                                          <div className="text-gray-500">By: {test.hrApprovedBy}</div>
+                                        )}
                                         {test.hrApprovedAt && (
-                                          <div>{new Date(test.hrApprovedAt).toLocaleDateString()}</div>
+                                          <div className="text-gray-500">{new Date(test.hrApprovedAt).toLocaleDateString()}</div>
                                         )}
                                       </div>
                                     )}
-                                    {test.hrRejected && test.hrRejectionReason && (
-                                      <div className="text-xs text-red-600">
-                                        Reason: {test.hrRejectionReason}
+                                    {test.hrRejected && (
+                                      <div className="text-xs">
+                                        <div className="text-red-700 font-medium">Rejected</div>
+                                        {test.hrRejectionReason && (
+                                          <div className="text-red-600 mt-1">Reason: {test.hrRejectionReason}</div>
+                                        )}
+                                        {test.hrApprovedBy && (
+                                          <div className="text-gray-500 mt-1">By: {test.hrApprovedBy}</div>
+                                        )}
+                                        {test.hrApprovedAt && (
+                                          <div className="text-gray-500">{new Date(test.hrApprovedAt).toLocaleDateString()}</div>
+                                        )}
                                       </div>
                                     )}
                                   </td>
@@ -6645,6 +6724,71 @@ const DriverManagement = () => {
                     </p>
                   </div>
                 )}
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Test Approval/Rejection Modal */}
+      {showApprovalModal && selectedTest && (
+        <div className="fixed inset-0 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg shadow-xl max-w-md w-full mx-4">
+            <div className="p-6">
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="text-lg font-bold text-gray-900">
+                  {selectedTest.action === 'approve' ? 'Approve Test' : 'Reject Test'}
+                </h3>
+                <button
+                  onClick={closeApprovalModal}
+                  className="text-gray-400 hover:text-gray-600 transition-colors"
+                >
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
+
+              <div className="mb-4">
+                <p className="text-sm text-gray-700 mb-2">
+                  <span className="font-medium">Test Type:</span> {selectedTest.testType}
+                </p>
+                {selectedTest.action === 'reject' && (
+                  <div className="mt-4">
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Rejection Reason <span className="text-gray-500">(optional)</span>
+                    </label>
+                    <textarea
+                      value={rejectionReason}
+                      onChange={(e) => setRejectionReason(e.target.value)}
+                      placeholder="Enter reason for rejection..."
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#0ea3d8] focus:border-transparent resize-none"
+                      rows={4}
+                    />
+                  </div>
+                )}
+                {selectedTest.action === 'approve' && (
+                  <p className="text-sm text-gray-600 mt-2">
+                    Are you sure you want to approve this test result?
+                  </p>
+                )}
+              </div>
+
+              <div className="flex items-center gap-3 justify-end">
+                <button
+                  onClick={closeApprovalModal}
+                  className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={selectedTest.action === 'approve' ? handleTestApproval : handleTestRejection}
+                  className={`px-4 py-2 text-sm font-medium text-white rounded-lg transition-colors ${
+                    selectedTest.action === 'approve'
+                      ? 'bg-green-600 hover:bg-green-700'
+                      : 'bg-red-600 hover:bg-red-700'
+                  }`}
+                >
+                  {selectedTest.action === 'approve' ? 'Approve' : 'Reject'}
+                </button>
               </div>
             </div>
           </div>
