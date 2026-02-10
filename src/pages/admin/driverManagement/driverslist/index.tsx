@@ -4103,40 +4103,38 @@ const DriverManagement = () => {
 
                       {/* Configure Payroll Text - shown when OWNER OPERATOR is selected */}
                       {personalData.driverType === 'OWNER OPERATOR' && (
-                        <p className="text-xs font-medium text-gray-900 mt-1.5">
+                        <p className="text-xs font-medium text-gray-900 mt-1.5 mb-3">
                           CONFIGURE PAYROLL IN TRUCK
                         </p>
                       )}
 
-                      {/* Payment Method Tabs - Only show when COMPANY DRIVER is selected */}
-                      {personalData.driverType === 'COMPANY DRIVER' && (
-                        <div className="mb-3">
-                          <div className="flex gap-1.5 flex-wrap">
-                            {[
-                              'PAID PER MILE',
-                              'PAID PERCENT',
-                              'PAID BY TRIP',
-                              'PAID PER HOUR',
-                              'PAID PER DAY'
-                            ].map((method) => (
-                              <button
-                                key={method}
-                                type="button"
-                                onClick={() => setPersonalData({ ...personalData, paymentMethod: method as any })}
-                                className={`px-3 py-1.5 rounded text-xs font-medium transition-colors ${personalData.paymentMethod === method
-                                    ? 'bg-gray-700 !text-white'
-                                    : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
-                                  }`}
-                              >
-                                {method}
-                              </button>
-                            ))}
-                          </div>
+                      {/* Payment Method Tabs - Show for both COMPANY DRIVER and OWNER OPERATOR */}
+                      <div className="mb-3">
+                        <div className="flex gap-1.5 flex-wrap">
+                          {[
+                            'PAID PER MILE',
+                            'PAID PERCENT',
+                            'PAID BY TRIP',
+                            'PAID PER HOUR',
+                            'PAID PER DAY'
+                          ].map((method) => (
+                            <button
+                              key={method}
+                              type="button"
+                              onClick={() => setPersonalData({ ...personalData, paymentMethod: method as any })}
+                              className={`px-3 py-1.5 rounded text-xs font-medium transition-colors ${personalData.paymentMethod === method
+                                  ? 'bg-gray-700 !text-white'
+                                  : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+                                }`}
+                            >
+                              {method}
+                            </button>
+                          ))}
                         </div>
-                      )}
+                      </div>
 
-                      {/* $/Mile Details (shown when PAID PER MILE is selected and COMPANY DRIVER) */}
-                      {personalData.driverType === 'COMPANY DRIVER' && personalData.paymentMethod === 'PAID PER MILE' && (
+                      {/* $/Mile Details (shown when PAID PER MILE is selected) */}
+                      {personalData.paymentMethod === 'PAID PER MILE' && (
                         <div className="grid grid-cols-4 gap-4 mt-4">
                           <div>
                             <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -4161,7 +4159,7 @@ const DriverManagement = () => {
                             />
                           </div>
                           <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-1">BONUS/DROP</label>
+                            <label className="block text-sm font-medium text-gray-700 mb-1">DROP</label>
                             <input
                               type="text"
                               value={personalData.bonusDrop}
@@ -4192,7 +4190,7 @@ const DriverManagement = () => {
                             />
                           </div>
                           <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-1">BONUS/PICK</label>
+                            <label className="block text-sm font-medium text-gray-700 mb-1">PICK</label>
                             <input
                               type="text"
                               value={personalData.bonusPick}
@@ -4212,8 +4210,8 @@ const DriverManagement = () => {
                         </div>
                       )}
 
-                      {/* Percent Rate (shown when PAID PERCENT is selected and COMPANY DRIVER) */}
-                      {personalData.driverType === 'COMPANY DRIVER' && personalData.paymentMethod === 'PAID PERCENT' && (
+                      {/* Percent Rate (shown when PAID PERCENT is selected) */}
+                      {personalData.paymentMethod === 'PAID PERCENT' && (
                         <div className="mt-4">
                           <h4 className="text-md font-bold text-gray-900 mb-4">Percent Rate</h4>
                           <div>
@@ -4230,8 +4228,8 @@ const DriverManagement = () => {
                         </div>
                       )}
 
-                      {/* Per Trip Amount (shown when PAID BY TRIP is selected and COMPANY DRIVER) */}
-                      {personalData.driverType === 'COMPANY DRIVER' && personalData.paymentMethod === 'PAID BY TRIP' && (
+                      {/* Per Trip Amount (shown when PAID BY TRIP is selected) */}
+                      {personalData.paymentMethod === 'PAID BY TRIP' && (
                         <div className="mt-4">
                           <div>
                             <label className="block text-xs font-medium text-gray-700 mb-0.5">
@@ -4248,8 +4246,8 @@ const DriverManagement = () => {
                         </div>
                       )}
 
-                      {/* Hourly Rate (shown when PAID PER HOUR is selected and COMPANY DRIVER) */}
-                      {personalData.driverType === 'COMPANY DRIVER' && personalData.paymentMethod === 'PAID PER HOUR' && (
+                      {/* Hourly Rate (shown when PAID PER HOUR is selected) */}
+                      {personalData.paymentMethod === 'PAID PER HOUR' && (
                         <div className="mt-4">
                           <div>
                             <label className="block text-xs font-medium text-gray-700 mb-0.5">
@@ -4266,8 +4264,8 @@ const DriverManagement = () => {
                         </div>
                       )}
 
-                      {/* Daily Rate (shown when PAID PER DAY is selected and COMPANY DRIVER) */}
-                      {personalData.driverType === 'COMPANY DRIVER' && personalData.paymentMethod === 'PAID PER DAY' && (
+                      {/* Daily Rate (shown when PAID PER DAY is selected) */}
+                      {personalData.paymentMethod === 'PAID PER DAY' && (
                         <div className="mt-4">
                           <div>
                             <label className="block text-xs font-medium text-gray-700 mb-0.5">
