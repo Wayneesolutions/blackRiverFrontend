@@ -531,6 +531,14 @@ const DriverManagement = () => {
     action: 'approve' | 'reject';
   } | null>(null);
   const [rejectionReason, setRejectionReason] = useState('');
+  
+  // Flag update modal state
+  const [showFlagModal, setShowFlagModal] = useState(false);
+  const [selectedFlag, setSelectedFlag] = useState<{
+    flagName: 'handlesHazardousLoads' | 'winterTestRequired';
+    newValue: boolean;
+    currentValue: boolean;
+  } | null>(null);
 
   // Fetch test results for a driver
   const fetchDriverTestResults = async (driverId: string) => {
@@ -1118,18 +1126,40 @@ const DriverManagement = () => {
               }
 
               // Load hazardous loads flag
+              console.log('📋 Loading driver flags from backend:', {
+                handlesHazardousLoads: driver.handlesHazardousLoads,
+                winterTestRequired: driver.winterTestRequired,
+                driverId: driver._id || driver.id,
+                hasHandlesHazardousLoads: driver.handlesHazardousLoads !== undefined,
+                hasWinterTestRequired: driver.winterTestRequired !== undefined
+              });
+              
               if (driver.handlesHazardousLoads !== undefined) {
-                setHandlesHazardousLoads(driver.handlesHazardousLoads);
+                const value = Boolean(driver.handlesHazardousLoads);
+                console.log('✅ Setting handlesHazardousLoads to:', value, 'type:', typeof value);
+                setHandlesHazardousLoads(value);
               } else {
+                console.log('⚠️ handlesHazardousLoads not found, defaulting to false');
                 setHandlesHazardousLoads(false);
               }
 
               // Load winter test flag
               if (driver.winterTestRequired !== undefined) {
-                setWinterTestRequired(driver.winterTestRequired);
+                const value = Boolean(driver.winterTestRequired);
+                console.log('✅ Setting winterTestRequired to:', value, 'type:', typeof value);
+                setWinterTestRequired(value);
               } else {
+                console.log('⚠️ winterTestRequired not found, defaulting to false');
                 setWinterTestRequired(false);
               }
+              
+              console.log('📊 Flags loaded. Final state will be:', {
+                handlesHazardousLoads: Boolean(driver.handlesHazardousLoads || false),
+                winterTestRequired: Boolean(driver.winterTestRequired || false)
+              });
+              
+              // Store driver object for flag update timestamp display
+              setEditingDriver(driver);
 
               // Load HR approval data
               if (driver.approvedByHR !== undefined) {
@@ -2830,6 +2860,120 @@ const DriverManagement = () => {
     } finally {
       setIsSubmitting(false);
     }
+  };
+
+  // Handle flag checkbox change - show modal for confirmation
+  const handleFlagChange = (flagName: 'handlesHazardousLoads' | 'winterTestRequired', value: boolean) => {
+    console.log('🔄 handleFlagChange called:', { flagName, value, editingId });
+    
+    if (!editingId) {
+      console.log('❌ No editingId, returning');
+      return;
+    }
+    
+    const currentValue = flagName === 'handlesHazardousLoads' ? handlesHazardousLoads : winterTestRequired;
+    console.log('📊 Current flag values:', { 
+      flagName, 
+      currentValue, 
+      newValue: value,
+      handlesHazardousLoads,
+      winterTestRequired
+    });
+    
+    // If value is same, do nothing
+    if (currentValue === value) {
+      console.log('⚠️ Value is same, returning');
+      return;
+    }
+    
+    // Show confirmation modal
+    console.log('✅ Showing flag update modal');
+    setSelectedFlag({
+      flagName,
+      newValue: value,
+      currentValue
+    });
+    setShowFlagModal(true);
+  };
+  
+  // Confirm and update flag
+  const handleConfirmFlagUpdate = async () => {
+    console.log('🚀 handleConfirmFlagUpdate called:', { selectedFlag, editingId });
+    
+    if (!selectedFlag || !editingId) {
+      console.log('❌ Missing selectedFlag or editingId');
+      return;
+    }
+    
+    try {
+      const { flagName, newValue } = selectedFlag;
+      console.log(`🔄 Starting flag update: ${flagName} = ${newValue} for driver ${editingId}`);
+      
+      // Create FormData to update only the flag
+      const flagFormData = new FormData();
+      flagFormData.append(flagName, String(newValue));
+      console.log('📦 FormData created:', { flagName, value: String(newValue) });
+      
+      // Call update API
+      console.log('📡 Calling updateDriver API...');
+      const response = await driverApi.updateDriver(editingId, flagFormData);
+      console.log('📡 API Response:', response);
+      
+      if (response?.success) {
+        const flagLabel = flagName === 'handlesHazardousLoads' ? 'Hazardous loads' : 'Winter test';
+        const action = newValue ? 'enabled' : 'disabled';
+        addNotification('success', `${flagLabel} flag ${action} successfully`);
+        
+        // Update state IMMEDIATELY before refreshing
+        console.log('💾 Updating state immediately...');
+        if (flagName === 'handlesHazardousLoads') {
+          setHandlesHazardousLoads(newValue);
+          console.log('✅ State updated: handlesHazardousLoads =', newValue);
+        } else {
+          setWinterTestRequired(newValue);
+          console.log('✅ State updated: winterTestRequired =', newValue);
+        }
+        
+        // Close modal
+        setShowFlagModal(false);
+        setSelectedFlag(null);
+        
+        // Refresh driver data and test results to get updated flags from backend
+        console.log('🔄 Refreshing driver data from backend...');
+        await loadDriverForEdit(editingId);
+        console.log('✅ Driver data refreshed');
+        
+        await fetchDriverTestResults(editingId);
+        console.log('✅ Test results refreshed');
+        
+        // Log final state after refresh
+        setTimeout(() => {
+          console.log('📊 Final flag state after update:', {
+            handlesHazardousLoads,
+            winterTestRequired,
+            flagName,
+            newValue
+          });
+        }, 100);
+      } else {
+        console.error('❌ API response not successful:', response);
+        addNotification('error', response?.message || 'Failed to update flag');
+      }
+    } catch (error: any) {
+      console.error('❌ Error updating flag:', error);
+      console.error('❌ Error details:', {
+        message: error.message,
+        response: error.response?.data,
+        stack: error.stack
+      });
+      addNotification('error', error.response?.data?.message || error.message || 'Failed to update flag');
+    }
+  };
+  
+  // Cancel flag update
+  const handleCancelFlagUpdate = () => {
+    setShowFlagModal(false);
+    setSelectedFlag(null);
   };
 
   if (loading) {
@@ -6503,40 +6647,110 @@ const DriverManagement = () => {
                     </div>
 
                     {/* Section 2: Flags */}
-                    <div className="bg-gray-50 rounded-lg p-4 space-y-3">
-                      <h4 className="text-sm font-bold text-gray-900 mb-3">Flags</h4>
+                    <div className="bg-white rounded-lg p-4 space-y-3 border border-gray-200">
+                      <div className="flex items-center justify-between mb-3">
+                        <h4 className="text-sm font-bold text-gray-900">Driver Test Requirements (Flags)</h4>
+                        <span className="text-xs text-gray-500">Default: Disabled</span>
+                      </div>
                       
-                      <div className="flex items-center gap-2">
-                        <input
-                          type="checkbox"
-                          id="handlesHazardousLoads"
-                          checked={handlesHazardousLoads}
-                          onChange={(e) => setHandlesHazardousLoads(e.target.checked)}
-                          className="w-4 h-4 text-[#0ea3d8] border-gray-300 rounded focus:ring-[#0ea3d8]"
-                        />
-                        <label htmlFor="handlesHazardousLoads" className="text-xs font-medium text-gray-700 cursor-pointer">
-                          Handles hazardous loads
-                        </label>
-                      </div>
+                      <div className="space-y-3">
+                        <div className="flex items-start gap-3 p-3 bg-gray-50 rounded-lg border border-gray-200 hover:bg-gray-100 transition-colors">
+                          <input
+                            type="checkbox"
+                            id="handlesHazardousLoads"
+                            checked={handlesHazardousLoads}
+                            onChange={(e) => {
+                              e.preventDefault();
+                              handleFlagChange('handlesHazardousLoads', !handlesHazardousLoads);
+                            }}
+                            className="w-4 h-4 mt-0.5 text-[#0ea3d8] border-gray-300 rounded focus:ring-[#0ea3d8] cursor-pointer"
+                          />
+                          <div className="flex-1">
+                            <label htmlFor="handlesHazardousLoads" className="text-xs font-medium text-gray-900 cursor-pointer block">
+                              Handles hazardous loads
+                            </label>
+                            <p className="text-xs text-gray-600 mt-0.5">
+                              When enabled, driver must complete TDG (Transportation of Dangerous Goods) test
+                            </p>
+                            {handlesHazardousLoads && (
+                              <span className="inline-block mt-1 px-2 py-0.5 bg-orange-100 text-orange-800 text-xs rounded font-medium">
+                                TDG Test Required
+                              </span>
+                            )}
+                          </div>
+                        </div>
 
-                      <div className="flex items-center gap-2">
-                        <input
-                          type="checkbox"
-                          id="winterTestRequired"
-                          checked={winterTestRequired}
-                          onChange={(e) => setWinterTestRequired(e.target.checked)}
-                          className="w-4 h-4 text-[#0ea3d8] border-gray-300 rounded focus:ring-[#0ea3d8]"
-                        />
-                        <label htmlFor="winterTestRequired" className="text-xs font-medium text-gray-700 cursor-pointer">
-                          Winter test required (optional override)
-                        </label>
+                        <div className="flex items-start gap-3 p-3 bg-gray-50 rounded-lg border border-gray-200 hover:bg-gray-100 transition-colors">
+                          <input
+                            type="checkbox"
+                            id="winterTestRequired"
+                            checked={winterTestRequired}
+                            onChange={(e) => {
+                              e.preventDefault();
+                              handleFlagChange('winterTestRequired', !winterTestRequired);
+                            }}
+                            className="w-4 h-4 mt-0.5 text-[#0ea3d8] border-gray-300 rounded focus:ring-[#0ea3d8] cursor-pointer"
+                          />
+                          <div className="flex-1">
+                            <label htmlFor="winterTestRequired" className="text-xs font-medium text-gray-900 cursor-pointer block">
+                              Winter test required (optional override)
+                            </label>
+                            <p className="text-xs text-gray-600 mt-0.5">
+                              When enabled, driver must complete Winter Driving test
+                            </p>
+                            {winterTestRequired && (
+                              <span className="inline-block mt-1 px-2 py-0.5 bg-cyan-100 text-cyan-800 text-xs rounded font-medium">
+                                Winter Test Required
+                              </span>
+                            )}
+                          </div>
+                        </div>
                       </div>
+                      
+                      {/* Show update timestamp if flags were updated */}
+                      {editingDriver && (editingDriver as any).flagsUpdatedAt && (
+                        <div className="mt-3 pt-3 border-t border-gray-200">
+                          <div className="flex items-center gap-2 text-xs text-gray-600">
+                            <span className="font-medium">Last updated:</span>
+                            <span>{new Date((editingDriver as any).flagsUpdatedAt).toLocaleString()}</span>
+                            {(editingDriver as any).flagsUpdatedBy && (
+                              <>
+                                <span className="text-gray-400">•</span>
+                                <span>by {(editingDriver as any).flagsUpdatedBy?.name || 'HR'}</span>
+                                {(editingDriver as any).flagsUpdatedBy?.email && (
+                                  <span className="text-gray-400">({(editingDriver as any).flagsUpdatedBy.email})</span>
+                                )}
+                              </>
+                            )}
+                          </div>
+                        </div>
+                      )}
+                      
+                      {(!editingDriver || !(editingDriver as any).flagsUpdatedAt) && (
+                        <div className="mt-3 pt-3 border-t border-gray-200">
+                          <div className="text-xs text-gray-500 italic">
+                            Flags have not been updated yet. Default state: Both disabled.
+                          </div>
+                        </div>
+                      )}
                     </div>
 
                     {/* Section 4: Required Tests */}
                     <div className="bg-blue-50 rounded-lg p-4 space-y-3 border border-blue-200">
                       <h4 className="text-sm font-bold text-gray-900 mb-3">Required Tests</h4>
                       <p className="text-xs text-gray-600 mb-3">Based on the flags above, the following tests are required for this driver:</p>
+                      
+                      {(() => {
+                        console.log('🎯 Required Tests Section - Current flag states:', {
+                          handlesHazardousLoads,
+                          winterTestRequired,
+                          handlesHazardousLoadsType: typeof handlesHazardousLoads,
+                          winterTestRequiredType: typeof winterTestRequired,
+                          handlesHazardousLoadsStrict: handlesHazardousLoads === true,
+                          winterTestRequiredStrict: winterTestRequired === true
+                        });
+                        return null;
+                      })()}
                       
                       <div className="space-y-2">
                         {/* Base tests - always required */}
@@ -6553,24 +6767,30 @@ const DriverManagement = () => {
                         </div>
                         
                         {/* TDG test - only if handles hazardous loads */}
-                        {handlesHazardousLoads && (
-                          <div className="flex items-center gap-2 bg-orange-50 rounded-lg p-2 border border-orange-200">
-                            <div className="w-2 h-2 rounded-full bg-orange-500"></div>
-                            <span className="text-xs font-medium text-gray-900">TDG</span>
-                            <span className="text-xs text-gray-600">- Transportation of Dangerous Goods</span>
-                            <span className="ml-auto px-2 py-0.5 bg-orange-100 text-orange-800 text-xs rounded">Hazardous Loads</span>
-                          </div>
-                        )}
+                        {(() => {
+                          console.log('🔍 Rendering Required Tests - handlesHazardousLoads:', handlesHazardousLoads, 'type:', typeof handlesHazardousLoads);
+                          return handlesHazardousLoads === true ? (
+                            <div className="flex items-center gap-2 bg-orange-50 rounded-lg p-2 border border-orange-200">
+                              <div className="w-2 h-2 rounded-full bg-orange-500"></div>
+                              <span className="text-xs font-medium text-gray-900">TDG</span>
+                              <span className="text-xs text-gray-600">- Transportation of Dangerous Goods</span>
+                              <span className="ml-auto px-2 py-0.5 bg-orange-100 text-orange-800 text-xs rounded">Hazardous Loads</span>
+                            </div>
+                          ) : null;
+                        })()}
                         
                         {/* Winter test - only if winter test required */}
-                        {winterTestRequired && (
-                          <div className="flex items-center gap-2 bg-cyan-50 rounded-lg p-2 border border-cyan-200">
-                            <div className="w-2 h-2 rounded-full bg-cyan-500"></div>
-                            <span className="text-xs font-medium text-gray-900">WINTER</span>
-                            <span className="text-xs text-gray-600">- Winter Driving</span>
-                            <span className="ml-auto px-2 py-0.5 bg-cyan-100 text-cyan-800 text-xs rounded">Winter Season</span>
-                          </div>
-                        )}
+                        {(() => {
+                          console.log('🔍 Rendering Required Tests - winterTestRequired:', winterTestRequired, 'type:', typeof winterTestRequired);
+                          return winterTestRequired === true ? (
+                            <div className="flex items-center gap-2 bg-cyan-50 rounded-lg p-2 border border-cyan-200">
+                              <div className="w-2 h-2 rounded-full bg-cyan-500"></div>
+                              <span className="text-xs font-medium text-gray-900">WINTER</span>
+                              <span className="text-xs text-gray-600">- Winter Driving</span>
+                              <span className="ml-auto px-2 py-0.5 bg-cyan-100 text-cyan-800 text-xs rounded">Winter Season</span>
+                            </div>
+                          ) : null;
+                        })()}
                       </div>
                       
                       <div className="mt-3 pt-3 border-t border-blue-200">
@@ -6724,6 +6944,68 @@ const DriverManagement = () => {
                     </p>
                   </div>
                 )}
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Flag Update Modal */}
+      {showFlagModal && selectedFlag && (
+        <div className="fixed inset-0 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg shadow-xl max-w-md w-full mx-4">
+            <div className="p-6">
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="text-lg font-bold text-gray-900">
+                  {selectedFlag.newValue ? 'Enable Flag' : 'Disable Flag'}
+                </h3>
+                <button
+                  onClick={handleCancelFlagUpdate}
+                  className="text-gray-400 hover:text-gray-600 transition-colors"
+                >
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
+
+              <div className="mb-4">
+                <p className="text-sm text-gray-700 mb-2">
+                  <span className="font-medium">Flag:</span> {selectedFlag.flagName === 'handlesHazardousLoads' ? 'Handles hazardous loads' : 'Winter test required'}
+                </p>
+                <p className="text-sm text-gray-600 mb-4">
+                  Current status: <span className="font-medium">{selectedFlag.currentValue ? 'Enabled' : 'Disabled'}</span>
+                </p>
+                <p className="text-sm text-gray-600 mb-4">
+                  New status: <span className="font-medium">{selectedFlag.newValue ? 'Enabled' : 'Disabled'}</span>
+                </p>
+                {selectedFlag.flagName === 'handlesHazardousLoads' && selectedFlag.newValue && (
+                  <div className="bg-orange-50 border border-orange-200 rounded-lg p-3 mb-4">
+                    <p className="text-xs text-orange-800">
+                      <span className="font-medium">Note:</span> Enabling this flag will require the driver to complete the TDG (Transportation of Dangerous Goods) test.
+                    </p>
+                  </div>
+                )}
+                {selectedFlag.flagName === 'winterTestRequired' && selectedFlag.newValue && (
+                  <div className="bg-cyan-50 border border-cyan-200 rounded-lg p-3 mb-4">
+                    <p className="text-xs text-cyan-800">
+                      <span className="font-medium">Note:</span> Enabling this flag will require the driver to complete the Winter Driving test.
+                    </p>
+                  </div>
+                )}
+              </div>
+
+              <div className="flex gap-3">
+                <button
+                  onClick={handleCancelFlagUpdate}
+                  className="flex-1 px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition-colors font-medium"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={handleConfirmFlagUpdate}
+                  className="flex-1 px-4 py-2 bg-[#0ea3d8] text-white rounded-lg hover:bg-[#0d8fc7] transition-colors font-medium"
+                >
+                  {selectedFlag.newValue ? 'Enable' : 'Disable'}
+                </button>
               </div>
             </div>
           </div>
