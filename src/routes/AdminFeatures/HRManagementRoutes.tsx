@@ -20,6 +20,7 @@ const TrainingCertificates = lazy(() => import("../../pages/admin/driverManageme
 const DrugTest = lazy(() => import("../../pages/admin/driverManagement/drugTest/index"));
 const TrainingTestManagement = lazy(() => import("../../pages/admin/driverManagement/trainingTestManagement/index"));
 const DriverTrainingCenter = lazy(() => import("../../pages/admin/driverManagement/driverTrainingCenter/index"));
+const ELDDocuments = lazy(() => import("../../pages/admin/accounts/eld-documents/index"));
 
 function DriverManagementRoutes() {
     return (
@@ -45,6 +46,7 @@ function DriverManagementRoutes() {
                     <Route path="/training-certificates" element={<TrainingCertificates />} />
                     <Route path="/drug-test" element={<DrugTest />} />
                     <Route path="/training-test-management" element={<TrainingTestManagement />} />
+                    <Route path="/eld-documents" element={<ELDDocuments />} />
                 </Route>
             </Routes>
         </Suspense>

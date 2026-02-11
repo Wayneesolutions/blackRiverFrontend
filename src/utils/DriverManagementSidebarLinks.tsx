@@ -12,6 +12,7 @@ import { FaFolderOpen } from "react-icons/fa";   // Company Documents
 import { FaUsers } from "react-icons/fa";        // Customers
 import { FaFlask } from "react-icons/fa";        // Drug Test
 import { FaGraduationCap } from "react-icons/fa"; // Training & Test Management
+import { FileText } from "lucide-react";         // ELD Documents
 
 
 type DriverSidebarLink = {
@@ -71,6 +72,11 @@ export const DriverSidebarLinks: DriverSidebarLink[] = [
     key: "/admin/Management/drug-test",
     icon: <FaFlask />,
     label: "Drug Test",
+  },
+  {
+    key: "/admin/Management/eld-documents",
+    icon: <FileText className="w-5 h-5" />,
+    label: "ELD Documents",
   },
 ];
 
