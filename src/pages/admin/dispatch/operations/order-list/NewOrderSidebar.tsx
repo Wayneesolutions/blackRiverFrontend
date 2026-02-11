@@ -4,7 +4,7 @@ import { FaCheckCircle, FaExclamationCircle, FaTimes } from "react-icons/fa";
 import { listCustomer, createOrder, updateOrder, getAuditTrail } from "../../../../../axios/api/distapcher";
 import { listTrucks } from "../../../../../axios/api/truckTracking";
 import { listTrailers } from "../../../../../axios/api/trailerTracking";
-import { getAllDrivers } from "../../../../../axios/api/driver";
+import { getAllDrivers, getDriverOnboardingStatus } from "../../../../../axios/api/driver";
 import { getAllEmployees } from "../../../../../axios/api/employee";
 import { getUserInfo } from "../../../../../utils/auth";
 import AddressSearch from "../../../../../components/common/AddressSearch";
@@ -2274,17 +2274,117 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
                 }
             };
 
-            // Fetch drivers
+            // Fetch drivers with onboarding status
             const fetchDrivers = async () => {
                 try {
                     const response = await getAllDrivers(1, 100);
                     if (response.success && response.data) {
                         const driversData = Array.isArray(response.data) ? response.data : response.data.data || [];
-                        setDrivers(driversData);
-                        setCoDrivers(driversData); // Co-drivers use the same list
+                        console.log('📋 Total drivers fetched:', driversData.length);
+                        
+                        // Fetch onboarding status for each driver and calculate percentage
+                        const driversWithOnboarding = await Promise.all(
+                            driversData.map(async (driver: any) => {
+                                try {
+                                    const driverId = driver._id || driver.id;
+                                    const onboardingResponse = await getDriverOnboardingStatus(driverId);
+                                    
+                                    if (onboardingResponse && onboardingResponse.success && onboardingResponse.data) {
+                                        const onboarding = onboardingResponse.data;
+                                        
+                                        // Calculate onboarding percentage
+                                        // Weighted: Training (25%), Tests (50%), HR Approval (25%)
+                                        // Tests are most important, so they get 50%
+                                        let percentage = 0;
+                                        
+                                        if (onboarding.trainingCompleted) percentage += 25;
+                                        if (onboarding.testsCompleted) percentage += 50; // Most important step
+                                        if (onboarding.hrApprovalStatus === 'APPROVED') percentage += 25;
+                                        
+                                        // Alternative: If tests are completed, give at least 80% even if HR not approved yet
+                                        // This allows drivers who passed tests to be eligible
+                                        if (onboarding.testsCompleted && onboarding.trainingCompleted) {
+                                            // If both training and tests are done, they're at 75%, but we want them eligible
+                                            // So if tests are done, they should be at least 80%
+                                            if (percentage < 80) {
+                                                percentage = 80;
+                                            }
+                                        }
+                                        
+                                        console.log(`📊 Driver ${driver.name || driverId}: Training=${onboarding.trainingCompleted}, Tests=${onboarding.testsCompleted}, HR=${onboarding.hrApprovalStatus}, Percentage=${percentage}%`);
+                                        
+                                        return {
+                                            ...driver,
+                                            onboardingPercentage: percentage,
+                                            onboardingStatus: onboarding.onboardingStatus,
+                                            trainingCompleted: onboarding.trainingCompleted,
+                                            testsCompleted: onboarding.testsCompleted,
+                                            hrApprovalStatus: onboarding.hrApprovalStatus,
+                                            allTestsApprovedByHR: onboarding.allTestsApprovedByHR
+                                        };
+                                    } else {
+                                        console.warn(`⚠️ No onboarding data for driver ${driver.name || driverId}:`, onboardingResponse);
+                                        return {
+                                            ...driver,
+                                            onboardingPercentage: 0,
+                                            onboardingStatus: 'NOT_STARTED',
+                                            trainingCompleted: false,
+                                            testsCompleted: false,
+                                            hrApprovalStatus: 'PENDING'
+                                        };
+                                    }
+                                } catch (error) {
+                                    console.error(`❌ Error fetching onboarding for driver ${driver._id || driver.id}:`, error);
+                                    return {
+                                        ...driver,
+                                        onboardingPercentage: 0,
+                                        onboardingStatus: 'NOT_STARTED',
+                                        trainingCompleted: false,
+                                        testsCompleted: false,
+                                        hrApprovalStatus: 'PENDING'
+                                    };
+                                }
+                            })
+                        );
+                        
+                        console.log('📊 Drivers with onboarding data:', driversWithOnboarding.length);
+                        console.log('📊 Onboarding percentages:', driversWithOnboarding.map((d: any) => ({
+                            name: d.name,
+                            percentage: d.onboardingPercentage,
+                            testsCompleted: d.testsCompleted,
+                            hrApprovalStatus: d.hrApprovalStatus
+                        })));
+                        
+                        // Filter drivers to only show those with 80% or more onboarding passed AND HR approved
+                        const eligibleDrivers = driversWithOnboarding.filter((driver: any) => {
+                            const has80Percent = driver.onboardingPercentage >= 80;
+                            const isHRApproved = driver.hrApprovalStatus === 'APPROVED';
+                            const isEligible = has80Percent && isHRApproved;
+                            
+                            if (!isEligible) {
+                                if (!has80Percent) {
+                                    console.log(`🚫 Driver ${driver.name} filtered out: ${driver.onboardingPercentage}% < 80%`);
+                                } else if (!isHRApproved) {
+                                    console.log(`🚫 Driver ${driver.name} filtered out: HR not approved (status: ${driver.hrApprovalStatus})`);
+                                }
+                            }
+                            return isEligible;
+                        });
+                        
+                        console.log('✅ Eligible drivers (80%+ and HR Approved):', eligibleDrivers.length);
+                        console.log('✅ Eligible drivers:', eligibleDrivers.map((d: any) => ({
+                            name: d.name,
+                            percentage: d.onboardingPercentage,
+                            hrApprovalStatus: d.hrApprovalStatus
+                        })));
+                        
+                        setDrivers(eligibleDrivers);
+                        setCoDrivers(eligibleDrivers); // Co-drivers use the same filtered list
+                    } else {
+                        console.error('❌ Failed to fetch drivers:', response);
                     }
                 } catch (error) {
-                    console.error('Error fetching drivers:', error);
+                    console.error('❌ Error fetching drivers:', error);
                 }
             };
 
@@ -5222,7 +5322,7 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
                                                         />
                                                         <Search className="absolute right-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
                                                         {driverDropdownOpen && (
-                                                            <div className="absolute z-50 w-full mt-1 bg-white border border-gray-300 rounded-lg shadow-lg max-h-64 overflow-hidden">
+                                                            <div className="absolute z-50 w-full bottom-full mb-1 bg-white border border-gray-300 rounded-lg shadow-xl max-h-96 overflow-hidden" style={{ maxHeight: '24rem' }}>
                                                                 <div className="p-2 border-b border-gray-200">
                                                                     <div className="relative">
                                                                         <Search className="absolute left-2 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
@@ -5236,7 +5336,7 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
                                                                         />
                                                                     </div>
                                                                 </div>
-                                                                <div className="overflow-y-auto max-h-48">
+                                                                <div className="overflow-y-auto max-h-80" style={{ maxHeight: '20rem' }}>
                                                                     {drivers
                                                                         .filter(driver => 
                                                                             !driverSearch || 
@@ -5258,21 +5358,40 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
                                                                                         addAuditTrailEntry(`Receiver - Driver Added`);
                                                                                     }
                                                                                 }}
-                                                                                className="p-2 hover:bg-gray-100 cursor-pointer text-sm border-b border-gray-100 last:border-b-0"
+                                                                                className="p-3 hover:bg-gray-100 cursor-pointer text-sm border-b border-gray-100 last:border-b-0"
                                                                             >
-                                                                                <div className="font-medium text-gray-900">
-                                                                                    {driver.name || driver.internalId || 'N/A'}
+                                                                                <div className="font-medium text-gray-900 flex items-center justify-between mb-1">
+                                                                                    <span>{driver.name || driver.internalId || 'N/A'}</span>
+                                                                                    {driver.onboardingPercentage !== undefined && (
+                                                                                        <span className={`text-xs font-semibold px-2 py-0.5 rounded flex-shrink-0 ${
+                                                                                            driver.onboardingPercentage >= 80 
+                                                                                                ? 'bg-green-100 text-green-700' 
+                                                                                                : 'bg-yellow-100 text-yellow-700'
+                                                                                        }`}>
+                                                                                            {driver.onboardingPercentage.toFixed(0)}%
+                                                                                        </span>
+                                                                                    )}
                                                                                 </div>
-                                                                                <div className="text-xs text-gray-600 mt-0.5 space-y-0.5">
+                                                                                <div className="text-xs text-gray-600 space-y-1">
                                                                                     {driver.internalId && <div>Internal ID: {driver.internalId}</div>}
                                                                                     {driver.phone && <div>Phone: {driver.phone}</div>}
                                                                                     {driver.email && <div>Email: {driver.email}</div>}
                                                                                     {driver.licenseNumber && <div>License: {driver.licenseNumber}</div>}
+                                                                                    {driver.onboardingPercentage !== undefined && (
+                                                                                        <div className="mt-2 pt-2 border-t border-gray-200">
+                                                                                            <div className="font-medium text-gray-700 mb-1">Onboarding Status:</div>
+                                                                                            <div className="space-y-0.5">
+                                                                                                <div>Training: {driver.trainingCompleted ? '✓ Completed' : '✗ Pending'}</div>
+                                                                                                <div>Tests: {driver.testsCompleted ? '✓ Completed' : '✗ Pending'}</div>
+                                                                                                <div>HR Approval: {driver.hrApprovalStatus === 'APPROVED' ? '✓ Approved' : driver.hrApprovalStatus === 'IN_REVIEW' ? '⏳ In Review' : '✗ Pending'}</div>
+                                                                                            </div>
+                                                                                        </div>
+                                                                                    )}
                                                                                 </div>
                                                                             </div>
                                                                         ))}
                                                                     {drivers.length === 0 && (
-                                                                        <div className="p-2 text-sm text-gray-500">No drivers found</div>
+                                                                        <div className="p-2 text-sm text-gray-500">No eligible drivers found (80%+ onboarding required)</div>
                                                                     )}
                                                                 </div>
                                                             </div>
@@ -5291,22 +5410,94 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
                                                         <span>Clear All</span>
                                                     </div>
                                                     {selectedDriver && (
-                                                        <div className="mt-2 p-3 bg-purple-50 border border-purple-200 rounded-lg">
-                                                            <div className="text-xs font-semibold text-purple-900 mb-2">Selected Driver Details:</div>
-                                                            <div className="text-xs text-gray-700 space-y-1">
-                                                                {selectedDriver.internalId && <div><span className="font-medium">Internal ID:</span> {selectedDriver.internalId}</div>}
-                                                                <div><span className="font-medium">Name:</span> {selectedDriver.name || 'N/A'}</div>
-                                                                {selectedDriver.phone && <div><span className="font-medium">Phone:</span> {selectedDriver.phone}</div>}
-                                                                {selectedDriver.email && <div><span className="font-medium">Email:</span> {selectedDriver.email}</div>}
-                                                                {selectedDriver.licenseNumber && <div><span className="font-medium">License Number:</span> {selectedDriver.licenseNumber}</div>}
-                                                                {selectedDriver.status && <div><span className="font-medium">Status:</span> {selectedDriver.status}</div>}
+                                                        <div className="mt-3 p-4 bg-purple-50 border border-purple-200 rounded-lg">
+                                                            <div className="text-sm font-semibold text-purple-900 mb-3">Selected Driver Details</div>
+                                                            <div className="text-xs text-gray-700 space-y-2">
+                                                                {selectedDriver.internalId && (
+                                                                    <div className="flex">
+                                                                        <span className="font-medium w-24 flex-shrink-0">Internal ID:</span>
+                                                                        <span>{selectedDriver.internalId}</span>
+                                                                    </div>
+                                                                )}
+                                                                <div className="flex">
+                                                                    <span className="font-medium w-24 flex-shrink-0">Name:</span>
+                                                                    <span>{selectedDriver.name || 'N/A'}</span>
+                                                                </div>
+                                                                {selectedDriver.phone && (
+                                                                    <div className="flex">
+                                                                        <span className="font-medium w-24 flex-shrink-0">Phone:</span>
+                                                                        <span>{selectedDriver.phone}</span>
+                                                                    </div>
+                                                                )}
+                                                                {selectedDriver.email && (
+                                                                    <div className="flex">
+                                                                        <span className="font-medium w-24 flex-shrink-0">Email:</span>
+                                                                        <span className="break-all">{selectedDriver.email}</span>
+                                                                    </div>
+                                                                )}
+                                                                {selectedDriver.licenseNumber && (
+                                                                    <div className="flex">
+                                                                        <span className="font-medium w-24 flex-shrink-0">License:</span>
+                                                                        <span>{selectedDriver.licenseNumber}</span>
+                                                                    </div>
+                                                                )}
+                                                                {selectedDriver.status && (
+                                                                    <div className="flex">
+                                                                        <span className="font-medium w-24 flex-shrink-0">Status:</span>
+                                                                        <span className={`font-medium ${
+                                                                            selectedDriver.status === 'ACTIVE' ? 'text-green-600' : 'text-gray-600'
+                                                                        }`}>{selectedDriver.status}</span>
+                                                                    </div>
+                                                                )}
+                                                                {selectedDriver.onboardingPercentage !== undefined && (
+                                                                    <div className="mt-3 pt-3 border-t border-purple-300">
+                                                                        <div className="font-semibold text-purple-900 mb-2 text-sm">Onboarding Progress</div>
+                                                                        <div className="flex items-center gap-2 mb-2">
+                                                                            <div className="flex-1 bg-gray-200 rounded-full h-2.5">
+                                                                                <div 
+                                                                                    className={`h-2.5 rounded-full transition-all ${
+                                                                                        selectedDriver.onboardingPercentage >= 80 ? 'bg-green-500' : 'bg-yellow-500'
+                                                                                    }`}
+                                                                                    style={{ width: `${selectedDriver.onboardingPercentage}%` }}
+                                                                                ></div>
+                                                                            </div>
+                                                                            <span className="font-semibold text-sm text-gray-700 min-w-[3rem] text-right">{selectedDriver.onboardingPercentage.toFixed(0)}%</span>
+                                                                        </div>
+                                                                        <div className="space-y-1.5 mt-2">
+                                                                            <div className="flex items-center">
+                                                                                <span className="w-24 flex-shrink-0">Training:</span>
+                                                                                <span className={selectedDriver.trainingCompleted ? 'text-green-600 font-medium' : 'text-gray-500'}>
+                                                                                    {selectedDriver.trainingCompleted ? '✓ Completed' : '✗ Pending'}
+                                                                                </span>
+                                                                            </div>
+                                                                            <div className="flex items-center">
+                                                                                <span className="w-24 flex-shrink-0">Tests:</span>
+                                                                                <span className={selectedDriver.testsCompleted ? 'text-green-600 font-medium' : 'text-gray-500'}>
+                                                                                    {selectedDriver.testsCompleted ? '✓ Completed' : '✗ Pending'}
+                                                                                </span>
+                                                                            </div>
+                                                                            <div className="flex items-center">
+                                                                                <span className="w-24 flex-shrink-0">HR Approval:</span>
+                                                                                <span className={
+                                                                                    selectedDriver.hrApprovalStatus === 'APPROVED' ? 'text-green-600 font-medium' : 
+                                                                                    selectedDriver.hrApprovalStatus === 'IN_REVIEW' ? 'text-yellow-600 font-medium' : 
+                                                                                    'text-gray-500'
+                                                                                }>
+                                                                                    {selectedDriver.hrApprovalStatus === 'APPROVED' ? '✓ Approved' : 
+                                                                                     selectedDriver.hrApprovalStatus === 'IN_REVIEW' ? '⏳ In Review' : 
+                                                                                     '✗ Pending'}
+                                                                                </span>
+                                                                            </div>
+                                                                        </div>
+                                                                    </div>
+                                                                )}
                                                             </div>
                                                         </div>
                                                     )}
                                                 </div>
 
                                                 {/* Co-Driver Field */}
-                                                <div className="relative assignment-dropdown-container">
+                                                <div className="relative assignment-dropdown-container mt-4">
                                                     <label className="block text-xs font-medium text-gray-700 mb-1">Co-Driver</label>
                                                     <div className="relative">
                                                         <input
@@ -5322,7 +5513,7 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
                                                         />
                                                         <Search className="absolute right-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
                                                         {coDriverDropdownOpen && (
-                                                            <div className="absolute z-50 w-full mt-1 bg-white border border-gray-300 rounded-lg shadow-lg max-h-64 overflow-hidden">
+                                                            <div className="absolute z-50 w-full bottom-full mb-1 bg-white border border-gray-300 rounded-lg shadow-xl max-h-96 overflow-hidden" style={{ maxHeight: '24rem' }}>
                                                                 <div className="p-2 border-b border-gray-200">
                                                                     <div className="relative">
                                                                         <Search className="absolute left-2 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
@@ -5336,7 +5527,7 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
                                                                         />
                                                                     </div>
                                                                 </div>
-                                                                <div className="overflow-y-auto max-h-48">
+                                                                <div className="overflow-y-auto max-h-80" style={{ maxHeight: '20rem' }}>
                                                                     {coDrivers
                                                                         .filter(driver => 
                                                                             !coDriverSearch || 
@@ -5358,21 +5549,40 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
                                                                                         addAuditTrailEntry(`Receiver - Codriver Added`);
                                                                                     }
                                                                                 }}
-                                                                                className="p-2 hover:bg-gray-100 cursor-pointer text-sm border-b border-gray-100 last:border-b-0"
+                                                                                className="p-3 hover:bg-gray-100 cursor-pointer text-sm border-b border-gray-100 last:border-b-0"
                                                                             >
-                                                                                <div className="font-medium text-gray-900">
-                                                                                    {driver.name || driver.internalId || 'N/A'}
+                                                                                <div className="font-medium text-gray-900 flex items-center justify-between mb-1">
+                                                                                    <span>{driver.name || driver.internalId || 'N/A'}</span>
+                                                                                    {driver.onboardingPercentage !== undefined && (
+                                                                                        <span className={`text-xs font-semibold px-2 py-0.5 rounded flex-shrink-0 ${
+                                                                                            driver.onboardingPercentage >= 80 
+                                                                                                ? 'bg-green-100 text-green-700' 
+                                                                                                : 'bg-yellow-100 text-yellow-700'
+                                                                                        }`}>
+                                                                                            {driver.onboardingPercentage.toFixed(0)}%
+                                                                                        </span>
+                                                                                    )}
                                                                                 </div>
-                                                                                <div className="text-xs text-gray-600 mt-0.5 space-y-0.5">
+                                                                                <div className="text-xs text-gray-600 space-y-1">
                                                                                     {driver.internalId && <div>Internal ID: {driver.internalId}</div>}
                                                                                     {driver.phone && <div>Phone: {driver.phone}</div>}
                                                                                     {driver.email && <div>Email: {driver.email}</div>}
                                                                                     {driver.licenseNumber && <div>License: {driver.licenseNumber}</div>}
+                                                                                    {driver.onboardingPercentage !== undefined && (
+                                                                                        <div className="mt-2 pt-2 border-t border-gray-200">
+                                                                                            <div className="font-medium text-gray-700 mb-1">Onboarding Status:</div>
+                                                                                            <div className="space-y-0.5">
+                                                                                                <div>Training: {driver.trainingCompleted ? '✓ Completed' : '✗ Pending'}</div>
+                                                                                                <div>Tests: {driver.testsCompleted ? '✓ Completed' : '✗ Pending'}</div>
+                                                                                                <div>HR Approval: {driver.hrApprovalStatus === 'APPROVED' ? '✓ Approved' : driver.hrApprovalStatus === 'IN_REVIEW' ? '⏳ In Review' : '✗ Pending'}</div>
+                                                                                            </div>
+                                                                                        </div>
+                                                                                    )}
                                                                                 </div>
                                                                             </div>
                                                                         ))}
                                                                     {coDrivers.length === 0 && (
-                                                                        <div className="p-2 text-sm text-gray-500">No co-drivers found</div>
+                                                                        <div className="p-2 text-sm text-gray-500">No eligible co-drivers found (80%+ onboarding required)</div>
                                                                     )}
                                                                 </div>
                                                             </div>
@@ -5391,15 +5601,87 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
                                                         <span>Clear All</span>
                                                     </div>
                                                     {selectedCoDriver && (
-                                                        <div className="mt-2 p-3 bg-orange-50 border border-orange-200 rounded-lg">
-                                                            <div className="text-xs font-semibold text-orange-900 mb-2">Selected Co-Driver Details:</div>
-                                                            <div className="text-xs text-gray-700 space-y-1">
-                                                                {selectedCoDriver.internalId && <div><span className="font-medium">Internal ID:</span> {selectedCoDriver.internalId}</div>}
-                                                                <div><span className="font-medium">Name:</span> {selectedCoDriver.name || 'N/A'}</div>
-                                                                {selectedCoDriver.phone && <div><span className="font-medium">Phone:</span> {selectedCoDriver.phone}</div>}
-                                                                {selectedCoDriver.email && <div><span className="font-medium">Email:</span> {selectedCoDriver.email}</div>}
-                                                                {selectedCoDriver.licenseNumber && <div><span className="font-medium">License Number:</span> {selectedCoDriver.licenseNumber}</div>}
-                                                                {selectedCoDriver.status && <div><span className="font-medium">Status:</span> {selectedCoDriver.status}</div>}
+                                                        <div className="mt-3 p-4 bg-orange-50 border border-orange-200 rounded-lg">
+                                                            <div className="text-sm font-semibold text-orange-900 mb-3">Selected Co-Driver Details</div>
+                                                            <div className="text-xs text-gray-700 space-y-2">
+                                                                {selectedCoDriver.internalId && (
+                                                                    <div className="flex">
+                                                                        <span className="font-medium w-24 flex-shrink-0">Internal ID:</span>
+                                                                        <span>{selectedCoDriver.internalId}</span>
+                                                                    </div>
+                                                                )}
+                                                                <div className="flex">
+                                                                    <span className="font-medium w-24 flex-shrink-0">Name:</span>
+                                                                    <span>{selectedCoDriver.name || 'N/A'}</span>
+                                                                </div>
+                                                                {selectedCoDriver.phone && (
+                                                                    <div className="flex">
+                                                                        <span className="font-medium w-24 flex-shrink-0">Phone:</span>
+                                                                        <span>{selectedCoDriver.phone}</span>
+                                                                    </div>
+                                                                )}
+                                                                {selectedCoDriver.email && (
+                                                                    <div className="flex">
+                                                                        <span className="font-medium w-24 flex-shrink-0">Email:</span>
+                                                                        <span className="break-all">{selectedCoDriver.email}</span>
+                                                                    </div>
+                                                                )}
+                                                                {selectedCoDriver.licenseNumber && (
+                                                                    <div className="flex">
+                                                                        <span className="font-medium w-24 flex-shrink-0">License:</span>
+                                                                        <span>{selectedCoDriver.licenseNumber}</span>
+                                                                    </div>
+                                                                )}
+                                                                {selectedCoDriver.status && (
+                                                                    <div className="flex">
+                                                                        <span className="font-medium w-24 flex-shrink-0">Status:</span>
+                                                                        <span className={`font-medium ${
+                                                                            selectedCoDriver.status === 'ACTIVE' ? 'text-green-600' : 'text-gray-600'
+                                                                        }`}>{selectedCoDriver.status}</span>
+                                                                    </div>
+                                                                )}
+                                                                {selectedCoDriver.onboardingPercentage !== undefined && (
+                                                                    <div className="mt-3 pt-3 border-t border-orange-300">
+                                                                        <div className="font-semibold text-orange-900 mb-2 text-sm">Onboarding Progress</div>
+                                                                        <div className="flex items-center gap-2 mb-2">
+                                                                            <div className="flex-1 bg-gray-200 rounded-full h-2.5">
+                                                                                <div 
+                                                                                    className={`h-2.5 rounded-full transition-all ${
+                                                                                        selectedCoDriver.onboardingPercentage >= 80 ? 'bg-green-500' : 'bg-yellow-500'
+                                                                                    }`}
+                                                                                    style={{ width: `${selectedCoDriver.onboardingPercentage}%` }}
+                                                                                ></div>
+                                                                            </div>
+                                                                            <span className="font-semibold text-sm text-gray-700 min-w-[3rem] text-right">{selectedCoDriver.onboardingPercentage.toFixed(0)}%</span>
+                                                                        </div>
+                                                                        <div className="space-y-1.5 mt-2">
+                                                                            <div className="flex items-center">
+                                                                                <span className="w-24 flex-shrink-0">Training:</span>
+                                                                                <span className={selectedCoDriver.trainingCompleted ? 'text-green-600 font-medium' : 'text-gray-500'}>
+                                                                                    {selectedCoDriver.trainingCompleted ? '✓ Completed' : '✗ Pending'}
+                                                                                </span>
+                                                                            </div>
+                                                                            <div className="flex items-center">
+                                                                                <span className="w-24 flex-shrink-0">Tests:</span>
+                                                                                <span className={selectedCoDriver.testsCompleted ? 'text-green-600 font-medium' : 'text-gray-500'}>
+                                                                                    {selectedCoDriver.testsCompleted ? '✓ Completed' : '✗ Pending'}
+                                                                                </span>
+                                                                            </div>
+                                                                            <div className="flex items-center">
+                                                                                <span className="w-24 flex-shrink-0">HR Approval:</span>
+                                                                                <span className={
+                                                                                    selectedCoDriver.hrApprovalStatus === 'APPROVED' ? 'text-green-600 font-medium' : 
+                                                                                    selectedCoDriver.hrApprovalStatus === 'IN_REVIEW' ? 'text-yellow-600 font-medium' : 
+                                                                                    'text-gray-500'
+                                                                                }>
+                                                                                    {selectedCoDriver.hrApprovalStatus === 'APPROVED' ? '✓ Approved' : 
+                                                                                     selectedCoDriver.hrApprovalStatus === 'IN_REVIEW' ? '⏳ In Review' : 
+                                                                                     '✗ Pending'}
+                                                                                </span>
+                                                                            </div>
+                                                                        </div>
+                                                                    </div>
+                                                                )}
                                                             </div>
                                                         </div>
                                                     )}

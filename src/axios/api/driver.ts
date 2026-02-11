@@ -495,6 +495,17 @@ export const getDriverTestStatus = async (driverId: string) => {
   }
 };
 
+// Get driver onboarding status
+export const getDriverOnboardingStatus = async (driverId: string) => {
+  try {
+    const res: AxiosResponse = await apiClient.get(`hr/driver/onboarding/${driverId}/status`);
+    return res.data;
+  } catch (error) {
+    console.error('❌ Error fetching driver onboarding status:', error);
+    return (error as any).response?.data;
+  }
+};
+
 // Approve a test result
 export const approveTestResult = async (testResultId: string) => {
   try {
