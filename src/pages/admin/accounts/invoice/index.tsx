@@ -244,605 +244,348 @@ const InvoiceManagement: React.FC = () => {
 
     const handleDownloadPDF = async (invoice: Invoice) => {
         try {
-            const doc = new jsPDF();
-            const pageWidth = doc.internal.pageSize.width;
-            const margin = 20;
-            const contentWidth = pageWidth - margin * 2;
-    
-            // Professional gray colors (matching super admin style)
-            const primaryColor = [55, 65, 81]; // Gray-700
-            const secondaryColor = [55, 65, 81]; // Gray-700
-            const textColor = [31, 41, 55]; // Gray-800
-            const grayColor = [107, 114, 128]; // Gray-500
-            const lightGrayColor = [243, 244, 246]; // Gray-100
-    
-            const company =
-                typeof invoice.company === "object" && invoice.company
-                    ? invoice.company
-                    : null;
-    
-            // 🔹 helper to load logo
-            const loadImageAsBase64 = async (url: string) => {
-                const res = await fetch(url);
-                const blob = await res.blob();
-                return await new Promise<string>((resolve) => {
-                    const reader = new FileReader();
-                    reader.onloadend = () => resolve(reader.result as string);
-                    reader.readAsDataURL(blob);
-                });
-            };
-    
-            // ================= HEADER =================
-            doc.setFillColor(...primaryColor);
-            doc.rect(0, 0, pageWidth, 55, "F");
-
-            // Logo
-            if (company?.logoUrl) {
-                try {
-                    const base64 = await loadImageAsBase64(company.logoUrl);
-                    doc.addImage(base64, "PNG", margin, 12, 45, 28);
-                } catch {
-                    console.warn("Logo not loaded");
-                }
+          const doc = new jsPDF();
+          const pageWidth = doc.internal.pageSize.width;
+          const pageHeight = doc.internal.pageSize.height;
+      
+          const margin = 20;
+          const contentWidth = pageWidth - margin * 2;
+          const bottomMargin = 20;
+      
+          let yPos = 15;
+      
+          const textColor: [number, number, number] = [31, 41, 55];
+          const grayColor: [number, number, number] = [107, 114, 128];
+      
+          /* ---------------- PAGE BREAK ---------------- */
+          const checkPageBreak = (requiredHeight: number) => {
+            if (yPos + requiredHeight > pageHeight - bottomMargin) {
+              doc.addPage();
+              yPos = margin;
             }
-
-            // Title
-            doc.setTextColor(255, 255, 255);
-            doc.setFontSize(32);
+          };
+      
+          /* ---------------- TEXT ROW PRINTER ---------------- */
+          const printRow = (
+            label: string,
+            value: string | undefined,
+            labelX: number,
+            valueX: number,
+            maxWidth: number
+          ) => {
+            const lines = doc.splitTextToSize(value || "N/A", maxWidth);
+      
+            checkPageBreak(lines.length * 5 + 2);
+      
+            doc.setFont("helvetica", "normal");
+            doc.setTextColor(...grayColor);
+            doc.text(label, labelX, yPos);
+      
             doc.setFont("helvetica", "bold");
-            doc.text("INVOICE", pageWidth / 2, 30, { align: "center" });
-    
             doc.setTextColor(...textColor);
-    
-            // ================= COMPANY DETAILS =================
-            let yPos = 60;
-    
-            if (company) {
-                doc.setFontSize(12);
-                doc.setFont("helvetica", "bold");
-                doc.text(company.companyName || "Company Name", margin, yPos);
-                yPos += 7;
-    
-                doc.setFontSize(10);
-                doc.setFont("helvetica", "normal");
-    
-                if (company.address) {
-                    const lines = doc.splitTextToSize(company.address, 90);
-                    doc.text(lines, margin, yPos);
-                    yPos += lines.length * 5;
-                }
-    
-                if (company.contactPhone) {
-                    doc.text(`Phone: ${company.contactPhone}`, margin, yPos);
-                    yPos += 6;
-                }
-    
-                if (company.contactEmail) {
-                    doc.text(`Email: ${company.contactEmail}`, margin, yPos);
-                    yPos += 6;
-                }
-    
-                if (company.taxNumber) {
-                    doc.text(`GST No: ${company.taxNumber}`, margin, yPos);
-                    yPos += 6;
-                }
-            }
-    
-            // ================= BILL TO =================
-            yPos += 10;
-
+            doc.text(lines, valueX, yPos);
+      
+            yPos += lines.length * 5 + 2;
+          };
+      
+          /* ---------------- COMPANY ---------------- */
+          const company =
+            typeof invoice.company === "object" ? invoice.company : null;
+      
+          /* ---------------- HEADER ---------------- */
+          if (company?.logoUrl) {
+            try {
+              const res = await fetch(company.logoUrl);
+              const blob = await res.blob();
+              const base64 = await new Promise<string>((resolve) => {
+                const reader = new FileReader();
+                reader.onloadend = () => resolve(reader.result as string);
+                reader.readAsDataURL(blob);
+              });
+      
+              doc.addImage(base64, "PNG", margin, yPos, 45, 25);
+            } catch {}
+          }
+      
+          doc.setFontSize(32);
+          doc.setFont("helvetica", "bold");
+          doc.setTextColor(...textColor);
+          doc.text("INVOICE", pageWidth - margin, yPos + 12, { align: "right" });
+      
+          /* ---------------- COMPANY & BILL TO ---------------- */
+          yPos = 55;
+      
+          const leftCol = margin;
+          const rightCol = pageWidth / 2 + 10;
+          const colWidth = (pageWidth - margin * 2) / 2 - 10;
+      
+          if (company) {
             doc.setFontSize(12);
             doc.setFont("helvetica", "bold");
-            doc.text("Bill To:", margin, yPos);
-            yPos += 8;
-
-            doc.setFontSize(11);
-            doc.setFont("helvetica", "normal");
-            doc.text(invoice.clientName, margin, yPos);
+            doc.text(company.companyName || "Company Name", leftCol, yPos);
             yPos += 7;
-
-            if (invoice.clientAddress) {
-                const lines = doc.splitTextToSize(invoice.clientAddress, 90);
-                doc.text(lines, margin, yPos);
-                yPos += lines.length * 5;
-            }
-
-            if (invoice.clientEmail) {
-                doc.text(invoice.clientEmail, margin, yPos);
-                yPos += 6;
-            }
-
-            if (invoice.clientPhone) {
-                doc.text(`Phone: ${invoice.clientPhone}`, margin, yPos);
-                yPos += 6;
-            }
-
-            // ================= LOAD DETAILS =================
-            const trip = typeof invoice.tripId === 'object' && invoice.tripId ? invoice.tripId : null;
-            const order = invoice.orderId;
-            // Type guard to check if order is a full Order object
-            const isFullOrder = (o: any): o is Order => {
-                return o && typeof o === 'object' && '_id' in o;
-            };
-            
-            if (trip || order) {
-                yPos += 10;
-                
-                const loadDetailsStartY = yPos - 3;
-                
-                // First, calculate approximate height needed
-                let estimatedHeight = 15; // Header + spacing
-                if (trip?.tripNumber || order?.orderNumber) estimatedHeight += 6;
-                if (order?.customerOrderNo) estimatedHeight += 6;
-                if (trip?.startLocation?.place || order?.pickupLocation?.place) estimatedHeight += 12;
-                if (trip?.endLocation?.place || order?.deliveryLocation?.place) estimatedHeight += 12;
-                
-                // Truck details (from trip or order)
-                const calcTruckInfo = trip?.truck || (isFullOrder(order) && order.truck ? order.truck : null);
-                if (calcTruckInfo) {
-                    estimatedHeight += 10; // Section header
-                    if (calcTruckInfo.plateNumber || calcTruckInfo.licensePlate || calcTruckInfo.unitNumber || calcTruckInfo.internalId || calcTruckInfo._id) estimatedHeight += 6;
-                    if (calcTruckInfo.make) estimatedHeight += 6;
-                    if (calcTruckInfo.model) estimatedHeight += 6;
-                    if (calcTruckInfo.makeModel && !calcTruckInfo.make) estimatedHeight += 6;
-                    if (calcTruckInfo.type || calcTruckInfo.unitType) estimatedHeight += 6;
-                    if (calcTruckInfo.year) estimatedHeight += 6;
-                    if (calcTruckInfo.vin) estimatedHeight += 6;
-                }
-                
-                // Trailer details (from trip or order)
-                const calcTrailerInfo = trip?.trailer || (isFullOrder(order) && order.trailer ? order.trailer : null);
-                if (calcTrailerInfo) {
-                    estimatedHeight += 10; // Section header
-                    if (calcTrailerInfo.plateNumber || calcTrailerInfo.licensePlate || calcTrailerInfo.unitNumber || calcTrailerInfo.internalId || calcTrailerInfo._id) estimatedHeight += 6;
-                    if (calcTrailerInfo.make) estimatedHeight += 6;
-                    if (calcTrailerInfo.model) estimatedHeight += 6;
-                    if (calcTrailerInfo.makeModel && !calcTrailerInfo.make) estimatedHeight += 6;
-                    if (calcTrailerInfo.type) estimatedHeight += 6;
-                    if (calcTrailerInfo.capacity) estimatedHeight += 6;
-                    if (calcTrailerInfo.year) estimatedHeight += 6;
-                    if (calcTrailerInfo.vin) estimatedHeight += 6;
-                }
-                
-                // Driver information (Name and ID only) - from trip or order
-                const calcDriverInfo = trip?.driver || (isFullOrder(order) && order.driver ? order.driver : null);
-                const calcCoDriverInfo = trip?.coDriver || (isFullOrder(order) && order.coDriver ? order.coDriver : null);
-                if (calcDriverInfo || calcCoDriverInfo) {
-                    estimatedHeight += 10; // Section header
-                    if (calcDriverInfo) {
-                        estimatedHeight += 6; // Name
-                        estimatedHeight += 6; // ID
-                    }
-                    if (calcCoDriverInfo) {
-                        estimatedHeight += 9; // Spacing + name
-                        estimatedHeight += 6; // ID
-                    }
-                }
-                
-                if (trip?.route?.totalDistance) estimatedHeight += 6;
-                
-                // Draw background box first
-                doc.setFillColor(...lightGrayColor);
-                doc.rect(margin, loadDetailsStartY, contentWidth, estimatedHeight, 'F');
-                
-                doc.setFontSize(12);
-                doc.setFont("helvetica", "bold");
-                doc.setTextColor(...textColor);
-                doc.text("Load Details:", margin + 3, yPos);
-                yPos += 8;
-
-                doc.setFontSize(10);
-                doc.setFont("helvetica", "normal");
-                doc.setTextColor(...grayColor);
-
-                // Trip/Order Number
-                const tripNumber = trip?.tripNumber || order?.orderNumber;
-                if (tripNumber) {
-                    doc.text("Trip/Order Number:", margin + 3, yPos);
-                    doc.setTextColor(...textColor);
-                    doc.setFont("helvetica", "bold");
-                    doc.text(tripNumber, margin + 53, yPos);
-                    doc.setFont("helvetica", "normal");
-                    doc.setTextColor(...grayColor);
-                    yPos += 6;
-                }
-
-                // Customer Order Number
-                if (order?.customerOrderNo) {
-                    doc.text("Customer PO Number:", margin + 3, yPos);
-                    doc.setTextColor(...textColor);
-                    doc.text(order.customerOrderNo, margin + 53, yPos);
-                    doc.setTextColor(...grayColor);
-                    yPos += 6;
-                }
-
-                // Pickup Location
-                const pickupLocation = trip?.startLocation?.place || trip?.orders?.[0]?.pickupLocation?.place || order?.pickupLocation?.place;
-                if (pickupLocation) {
-                    doc.text("Pickup Location:", margin + 3, yPos);
-                    doc.setTextColor(...textColor);
-                    const pickupLines = doc.splitTextToSize(pickupLocation, 80);
-                    doc.text(pickupLines, margin + 53, yPos);
-                    yPos += pickupLines.length * 5;
-                    doc.setTextColor(...grayColor);
-                }
-
-                // Dropoff Location
-                const dropoffLocation = trip?.endLocation?.place || trip?.orders?.[trip?.orders?.length - 1]?.deliveryLocation?.place || order?.deliveryLocation?.place;
-                if (dropoffLocation) {
-                    doc.text("Dropoff Location:", margin + 3, yPos);
-                    doc.setTextColor(...textColor);
-                    const dropoffLines = doc.splitTextToSize(dropoffLocation, 80);
-                    doc.text(dropoffLines, margin + 53, yPos);
-                    yPos += dropoffLines.length * 5;
-                    doc.setTextColor(...grayColor);
-                }
-
-                // Truck Details Section - Check multiple sources
-                let truckInfo = trip?.truck;
-                if (!truckInfo && isFullOrder(order) && order.truck) {
-                    truckInfo = order.truck;
-                }
-                // Also check trip's orders for truck data
-                if (!truckInfo && trip?.orders && trip.orders.length > 0) {
-                    truckInfo = trip.orders[0]?.truck;
-                }
-                // Show section if truck object exists
-                if (truckInfo) {
-                    yPos += 3;
-                    doc.setFontSize(11);
-                    doc.setFont("helvetica", "bold");
-                    doc.setTextColor(...textColor);
-                    doc.text("TRUCK DETAILS:", margin + 3, yPos);
-                    yPos += 7;
-                    
-                    doc.setFontSize(9);
-                    doc.setFont("helvetica", "normal");
-                    doc.setTextColor(...grayColor);
-                    
-                    // Always show Unit/Plate Number (at minimum show ID)
-                    doc.text("Unit/Plate Number:", margin + 3, yPos);
-                    doc.setTextColor(...textColor);
-                    doc.setFont("helvetica", "bold");
-                    const truckNumber = truckInfo.plateNumber || truckInfo.licensePlate || truckInfo.unitNumber || truckInfo.internalId || (truckInfo._id ? truckInfo._id.slice(-8) : 'N/A');
-                    doc.text(truckNumber, margin + 53, yPos);
-                    doc.setFont("helvetica", "normal");
-                    doc.setTextColor(...grayColor);
-                    yPos += 6;
-                    
-                    if (truckInfo.make) {
-                        doc.text("Make:", margin + 3, yPos);
-                        doc.setTextColor(...textColor);
-                        doc.text(truckInfo.make, margin + 53, yPos);
-                        doc.setTextColor(...grayColor);
-                        yPos += 6;
-                    }
-                    
-                    if (truckInfo.model) {
-                        doc.text("Model:", margin + 3, yPos);
-                        doc.setTextColor(...textColor);
-                        doc.text(truckInfo.model, margin + 53, yPos);
-                        doc.setTextColor(...grayColor);
-                        yPos += 6;
-                    }
-                    
-                    if (truckInfo.makeModel && !truckInfo.make) {
-                        doc.text("Make/Model:", margin + 3, yPos);
-                        doc.setTextColor(...textColor);
-                        doc.text(truckInfo.makeModel, margin + 53, yPos);
-                        doc.setTextColor(...grayColor);
-                        yPos += 6;
-                    }
-                    
-                    if (truckInfo.type || truckInfo.unitType) {
-                        doc.text("Type:", margin + 3, yPos);
-                        doc.setTextColor(...textColor);
-                        doc.text(truckInfo.type || truckInfo.unitType, margin + 53, yPos);
-                        doc.setTextColor(...grayColor);
-                        yPos += 6;
-                    }
-                    
-                    if (truckInfo.year) {
-                        doc.text("Year:", margin + 3, yPos);
-                        doc.setTextColor(...textColor);
-                        doc.text(String(truckInfo.year), margin + 53, yPos);
-                        doc.setTextColor(...grayColor);
-                        yPos += 6;
-                    }
-                    
-                    if (truckInfo.vin) {
-                        doc.text("VIN:", margin + 3, yPos);
-                        doc.setTextColor(...textColor);
-                        doc.setFont("helvetica", "normal");
-                        doc.text(truckInfo.vin, margin + 53, yPos);
-                        doc.setTextColor(...grayColor);
-                        yPos += 6;
-                    }
-                }
-
-                // Trailer Details Section - Check multiple sources
-                let trailerInfo = trip?.trailer;
-                if (!trailerInfo && isFullOrder(order) && order.trailer) {
-                    trailerInfo = order.trailer;
-                }
-                // Also check trip's orders for trailer data
-                if (!trailerInfo && trip?.orders && trip.orders.length > 0) {
-                    trailerInfo = trip.orders[0]?.trailer;
-                }
-                // Show section if trailer object exists
-                if (trailerInfo) {
-                    yPos += 3;
-                    doc.setFontSize(11);
-                    doc.setFont("helvetica", "bold");
-                    doc.setTextColor(...textColor);
-                    doc.text("TRAILER DETAILS:", margin + 3, yPos);
-                    yPos += 7;
-                    
-                    doc.setFontSize(9);
-                    doc.setFont("helvetica", "normal");
-                    doc.setTextColor(...grayColor);
-                    
-                    // Always show Unit/Plate Number (at minimum show ID)
-                    doc.text("Unit/Plate Number:", margin + 3, yPos);
-                    doc.setTextColor(...textColor);
-                    doc.setFont("helvetica", "bold");
-                    const trailerNumber = trailerInfo.plateNumber || trailerInfo.licensePlate || trailerInfo.unitNumber || trailerInfo.internalId || (trailerInfo._id ? trailerInfo._id.slice(-8) : 'N/A');
-                    doc.text(trailerNumber, margin + 53, yPos);
-                    doc.setFont("helvetica", "normal");
-                    doc.setTextColor(...grayColor);
-                    yPos += 6;
-                    
-                    if (trailerInfo.make) {
-                        doc.text("Make:", margin + 3, yPos);
-                        doc.setTextColor(...textColor);
-                        doc.text(trailerInfo.make, margin + 53, yPos);
-                        doc.setTextColor(...grayColor);
-                        yPos += 6;
-                    }
-                    
-                    if (trailerInfo.model) {
-                        doc.text("Model:", margin + 3, yPos);
-                        doc.setTextColor(...textColor);
-                        doc.text(trailerInfo.model, margin + 53, yPos);
-                        doc.setTextColor(...grayColor);
-                        yPos += 6;
-                    }
-                    
-                    if (trailerInfo.makeModel && !trailerInfo.make) {
-                        doc.text("Make/Model:", margin + 3, yPos);
-                        doc.setTextColor(...textColor);
-                        doc.text(trailerInfo.makeModel, margin + 53, yPos);
-                        doc.setTextColor(...grayColor);
-                        yPos += 6;
-                    }
-                    
-                    if (trailerInfo.type) {
-                        doc.text("Type:", margin + 3, yPos);
-                        doc.setTextColor(...textColor);
-                        doc.text(trailerInfo.type, margin + 53, yPos);
-                        doc.setTextColor(...grayColor);
-                        yPos += 6;
-                    }
-                    
-                    if (trailerInfo.capacity) {
-                        doc.text("Capacity:", margin + 3, yPos);
-                        doc.setTextColor(...textColor);
-                        doc.text(trailerInfo.capacity, margin + 53, yPos);
-                        doc.setTextColor(...grayColor);
-                        yPos += 6;
-                    }
-                    
-                    if (trailerInfo.year) {
-                        doc.text("Year:", margin + 3, yPos);
-                        doc.setTextColor(...textColor);
-                        doc.text(String(trailerInfo.year), margin + 53, yPos);
-                        doc.setTextColor(...grayColor);
-                        yPos += 6;
-                    }
-                    
-                    if (trailerInfo.vin) {
-                        doc.text("VIN:", margin + 3, yPos);
-                        doc.setTextColor(...textColor);
-                        doc.text(trailerInfo.vin, margin + 53, yPos);
-                        doc.setTextColor(...grayColor);
-                        yPos += 6;
-                    }
-                }
-
-                // Driver & Co-Driver Section - Check multiple sources
-                let driverInfo = trip?.driver;
-                let coDriverInfo = trip?.coDriver;
-                
-                if (!driverInfo && isFullOrder(order) && order.driver) {
-                    driverInfo = order.driver;
-                }
-                if (!coDriverInfo && isFullOrder(order) && order.coDriver) {
-                    coDriverInfo = order.coDriver;
-                }
-                
-                // Also check trip's orders for driver data
-                if ((!driverInfo || !coDriverInfo) && trip?.orders && trip.orders.length > 0) {
-                    if (!driverInfo) driverInfo = trip.orders[0]?.driver;
-                    if (!coDriverInfo) coDriverInfo = trip.orders[0]?.coDriver;
-                }
-                
-                if (driverInfo || coDriverInfo) {
-                    yPos += 3;
-                    doc.setFontSize(11);
-                    doc.setFont("helvetica", "bold");
-                    doc.setTextColor(...textColor);
-                    doc.text("DRIVER INFORMATION:", margin + 3, yPos);
-                    yPos += 7;
-                    
-                    doc.setFontSize(9);
-                    doc.setFont("helvetica", "normal");
-                    doc.setTextColor(...grayColor);
-                    
-                    if (driverInfo) {
-                        doc.text("Driver Name:", margin + 3, yPos);
-                        doc.setTextColor(...textColor);
-                        doc.setFont("helvetica", "bold");
-                        doc.text(driverInfo.name || 'N/A', margin + 53, yPos);
-                        doc.setFont("helvetica", "normal");
-                        doc.setTextColor(...grayColor);
-                        yPos += 6;
-                        
-                        doc.text("Driver ID:", margin + 3, yPos);
-                        doc.setTextColor(...textColor);
-                        const driverId = driverInfo._id;
-                        const driverInternalId = (driverInfo as any)?.internalId;
-                        const displayDriverId = driverId ? driverId.slice(-8) : (driverInternalId || 'N/A');
-                        doc.setFont("helvetica", "normal");
-                        doc.text(displayDriverId, margin + 53, yPos);
-                        doc.setTextColor(...grayColor);
-                        yPos += 6;
-                    }
-                    
-                    if (coDriverInfo) {
-                        yPos += 3;
-                        doc.text("Co-Driver Name:", margin + 3, yPos);
-                        doc.setTextColor(...textColor);
-                        doc.setFont("helvetica", "bold");
-                        doc.text(coDriverInfo.name || 'N/A', margin + 53, yPos);
-                        doc.setFont("helvetica", "normal");
-                        doc.setTextColor(...grayColor);
-                        yPos += 6;
-                        
-                        doc.text("Co-Driver ID:", margin + 3, yPos);
-                        doc.setTextColor(...textColor);
-                        const coDriverId = coDriverInfo._id;
-                        const coDriverInternalId = (coDriverInfo as any)?.internalId;
-                        const displayCoDriverId = coDriverId ? coDriverId.slice(-8) : (coDriverInternalId || 'N/A');
-                        doc.setFont("helvetica", "normal");
-                        doc.text(displayCoDriverId, margin + 53, yPos);
-                        doc.setTextColor(...grayColor);
-                        yPos += 6;
-                    }
-                }
-
-                // Distance
-                if (trip?.route?.totalDistance) {
-                    doc.text("Distance:", margin + 3, yPos);
-                    doc.setTextColor(...textColor);
-                    doc.text(`${trip.route.totalDistance.toFixed(2)} km (${(trip.route.totalDistance * 0.621371).toFixed(2)} miles)`, margin + 53, yPos);
-                    doc.setTextColor(...grayColor);
-                    yPos += 6;
-                }
-
-                doc.setTextColor(...textColor);
-                yPos += 5;
-            }
-    
-            // ================= TABLE =================
-            yPos += 12;
-
-            const colDesc = margin;
-            const colQty = margin + 100;
-            const colPrice = pageWidth - margin - 50;
-            const colAmount = pageWidth - margin;
-
+      
             doc.setFontSize(10);
-            doc.setFont("helvetica", "bold");
-
-            doc.text("DESCRIPTION", colDesc, yPos);
-            doc.text("QTY", colQty, yPos);
-            doc.text("UNIT PRICE", colPrice, yPos, { align: "right" });
-            doc.text("AMOUNT", colAmount, yPos, { align: "right" });
-            
-            // Draw line under headers
-            doc.setDrawColor(200, 200, 200);
-            doc.setLineWidth(0.5);
-            doc.line(colDesc, yPos + 3, colAmount, yPos + 3);
-    
-            yPos += 8;
             doc.setFont("helvetica", "normal");
-    
-            // ================= CALCULATIONS =================
-            let subtotal = 0;
-    
-            if (invoice.serviceBreakdown?.length) {
-                invoice.serviceBreakdown.forEach((item) => {
-                    const amt = item.amount || item.unitPrice * (item.quantity || 1);
-                    subtotal += amt;
-    
-                    doc.text(item.description || "Service", colDesc, yPos);
-                    doc.text(String(item.quantity || 1), colQty, yPos);
-                    doc.text(`${invoice.currency} ${item.unitPrice.toFixed(2)}`, colPrice, yPos, { align: "right" });
-                    doc.text(`${invoice.currency} ${amt.toFixed(2)}`, colAmount, yPos, { align: "right" });
-    
-                    yPos += 7;
-                });
-            } else {
-                subtotal = Number(invoice.subtotal || invoice.amount);
-                
-                // Get trip/order details for description
-                const trip = typeof invoice.tripId === 'object' && invoice.tripId ? invoice.tripId : null;
-                const order = invoice.orderId;
-                const tripNumber = trip?.tripNumber || order?.orderNumber || null;
-                const description = tripNumber 
-                    ? `Freight Charges - Order #${tripNumber}`
-                    : 'Freight Service';
-
-                doc.text(description, colDesc, yPos);
-                doc.text("1", colQty, yPos);
-                doc.text(`${invoice.currency} ${subtotal.toFixed(2)}`, colPrice, yPos, { align: "right" });
-                doc.text(`${invoice.currency} ${subtotal.toFixed(2)}`, colAmount, yPos, { align: "right" });
-
-                yPos += 7;
+      
+            if (company.address) {
+              const lines = doc.splitTextToSize(company.address, colWidth);
+              doc.text(lines, leftCol, yPos);
+              yPos += lines.length * 5;
             }
-    
-            // ================= TAX =================
-            const gstRate = invoice.gstRate || 0;
-            const pstRate = invoice.pstRate || 0;
-            const gstAmount = invoice.gst || (subtotal * (gstRate / 100));
-            const pstAmount = invoice.pst || (subtotal * (pstRate / 100));
-            const TOTAL = Number(invoice.amount);
-
-            yPos += 10;
-
+      
+            if (company.contactPhone) {
+              doc.text(`Phone: ${company.contactPhone}`, leftCol, yPos);
+              yPos += 6;
+            }
+      
+            if (company.contactEmail) {
+              doc.text(`Email: ${company.contactEmail}`, leftCol, yPos);
+              yPos += 6;
+            }
+      
+            if (company.taxNumber) {
+              doc.text(`GST No: ${company.taxNumber}`, leftCol, yPos);
+              yPos += 6;
+            }
+          }
+      
+          /* -------- BILL TO -------- */
+          let rightY = 55;
+      
+          doc.setFontSize(12);
+          doc.setFont("helvetica", "bold");
+          doc.text("Bill To:", rightCol, rightY);
+          rightY += 8;
+      
+          doc.setFontSize(11);
+          doc.setFont("helvetica", "normal");
+      
+          doc.text(invoice.clientName, rightCol, rightY);
+          rightY += 7;
+      
+          if (invoice.clientAddress) {
+            const lines = doc.splitTextToSize(invoice.clientAddress, colWidth);
+            doc.text(lines, rightCol, rightY);
+            rightY += lines.length * 5;
+          }
+      
+          if (invoice.clientEmail) {
+            doc.text(invoice.clientEmail, rightCol, rightY);
+            rightY += 6;
+          }
+      
+          if (invoice.clientPhone) {
+            doc.text(`Phone: ${invoice.clientPhone}`, rightCol, rightY);
+            rightY += 6;
+          }
+      
+          yPos = Math.max(yPos, rightY) + 10;
+      
+          /* ---------------- LOAD DETAILS ---------------- */
+          const trip = typeof invoice.tripId === "object" ? invoice.tripId : null;
+          const order = invoice.orderId;
+      
+          doc.setFontSize(12);
+          doc.setFont("helvetica", "bold");
+          doc.text("Load Details:", margin, yPos);
+          yPos += 8;
+      
+          doc.setFontSize(10);
+      
+          const pickup =
+            trip?.startLocation?.place || order?.pickupLocation?.place;
+          const dropoff =
+            trip?.endLocation?.place || order?.deliveryLocation?.place;
+      
+          if (pickup)
+            printRow(
+              "Pickup Location:",
+              pickup,
+              margin,
+              margin + 55,
+              pageWidth - margin - 60
+            );
+      
+          if (dropoff)
+            printRow(
+              "Dropoff Location:",
+              dropoff,
+              margin,
+              margin + 55,
+              pageWidth - margin - 60
+            );
+      
+          /* ---------------- VEHICLE SECTIONS ---------------- */
+          const renderVehicleSection = (title: string, data: any) => {
+            if (!data) return;
+      
+            checkPageBreak(25);
+      
+            yPos += 3;
+      
+            doc.setFontSize(11);
             doc.setFont("helvetica", "bold");
-            doc.text("Subtotal:", colPrice, yPos, { align: "right" });
-            doc.setFont("helvetica", "normal");
-            doc.text(`${invoice.currency} ${subtotal.toFixed(2)}`, colAmount, yPos, { align: "right" });
-
-            // Always show GST
+            doc.setTextColor(...textColor);
+            doc.text(title, margin, yPos);
+      
             yPos += 7;
+            doc.setFontSize(9);
+      
+            const number =
+              data.plateNumber ||
+              data.licensePlate ||
+              data.unitNumber ||
+              data.internalId ||
+              (data._id ? data._id.slice(-8) : "N/A");
+      
+            printRow("Unit/Plate:", number, margin, margin + 55, 80);
+      
+            if (data.make) printRow("Make:", data.make, margin, margin + 55, 80);
+            if (data.model) printRow("Model:", data.model, margin, margin + 55, 80);
+            if (data.type || data.unitType)
+              printRow("Type:", data.type || data.unitType, margin, margin + 55, 80);
+            if (data.year)
+              printRow("Year:", String(data.year), margin, margin + 55, 80);
+            if (data.vin) printRow("VIN:", data.vin, margin, margin + 55, 80);
+          };
+      
+          renderVehicleSection("TRUCK DETAILS:", trip?.truck || order?.truck);
+          renderVehicleSection("TRAILER DETAILS:", trip?.trailer || order?.trailer);
+      
+          /* ---------------- DRIVER SECTION ---------------- */
+          const renderDriverSection = () => {
+            const driver = trip?.driver || order?.driver;
+            const coDriver = trip?.coDriver || order?.coDriver;
+      
+            if (!driver && !coDriver) return;
+      
+            checkPageBreak(30);
+      
+            yPos += 3;
+      
+            doc.setFontSize(11);
             doc.setFont("helvetica", "bold");
-            doc.text(`GST (${gstRate > 0 ? `${gstRate}%` : '0%'}):`, colPrice, yPos, { align: "right" });
-            doc.setFont("helvetica", "normal");
-            doc.text(`${invoice.currency} ${gstAmount.toFixed(2)}`, colAmount, yPos, { align: "right" });
-
-            // Always show PST
+            doc.text("DRIVER INFORMATION:", margin, yPos);
             yPos += 7;
-            doc.setFont("helvetica", "bold");
-            doc.text(`PST (${pstRate > 0 ? `${pstRate}%` : '0%'}):`, colPrice, yPos, { align: "right" });
-            doc.setFont("helvetica", "normal");
-            doc.text(`${invoice.currency} ${pstAmount.toFixed(2)}`, colAmount, yPos, { align: "right" });
-    
-            // ================= TOTAL BOX =================
-            yPos += 12;
-
-            doc.setFillColor(...secondaryColor);
-            doc.rect(margin, yPos, contentWidth, 20, "F");
-
-            doc.setTextColor(255, 255, 255);
-            doc.setFontSize(12);
-            doc.setFont("helvetica", "bold");
-            doc.text("TOTAL AMOUNT DUE", margin + 5, yPos + 13);
-
-            doc.setFontSize(18);
-            doc.setFont("helvetica", "bold");
-            doc.text(`${invoice.currency} ${TOTAL.toFixed(2)}`, pageWidth - margin - 5, yPos + 13, { align: "right" });
-    
-            // ================= SAVE =================
-            doc.save(`Invoice_${invoice._id.slice(-8)}.pdf`);
-    
-            showNotification("success", "Invoice PDF downloaded successfully");
+      
+            doc.setFontSize(9);
+      
+            if (driver) {
+              printRow("Driver Name:", driver.name, margin, margin + 55, 80);
+              printRow(
+                "Driver ID:",
+                driver._id?.slice(-8) || driver.internalId,
+                margin,
+                margin + 55,
+                80
+              );
+            }
+      
+            if (coDriver) {
+              printRow("Co-Driver Name:", coDriver.name, margin, margin + 55, 80);
+              printRow(
+                "Co-Driver ID:",
+                coDriver._id?.slice(-8) || coDriver.internalId,
+                margin,
+                margin + 55,
+                80
+              );
+            }
+          };
+      
+          renderDriverSection();
+      
+          /* ---------------- TABLE ---------------- */
+          yPos += 10;
+          checkPageBreak(20);
+      
+          const colDesc = margin;
+          const colQty = margin + 90;
+          const colPrice = pageWidth - margin - 40;
+          const colAmount = pageWidth - margin;
+      
+          doc.setFontSize(10);
+          doc.setFont("helvetica", "bold");
+      
+          doc.text("DESCRIPTION", colDesc, yPos);
+          doc.text("QTY", colQty, yPos);
+          doc.text("UNIT PRICE", colPrice, yPos, { align: "right" });
+          doc.text("AMOUNT", colAmount, yPos, { align: "right" });
+      
+          doc.line(colDesc, yPos + 3, colAmount, yPos + 3);
+          yPos += 8;
+      
+          doc.setFont("helvetica", "normal");
+      
+          let subtotal = Number(invoice.subtotal || invoice.amount);
+      
+          checkPageBreak(10);
+      
+          doc.text("Freight Service", colDesc, yPos);
+          doc.text("1", colQty, yPos);
+          doc.text(`${invoice.currency} ${subtotal.toFixed(2)}`, colPrice, yPos, {
+            align: "right",
+          });
+          doc.text(`${invoice.currency} ${subtotal.toFixed(2)}`, colAmount, yPos, {
+            align: "right",
+          });
+      
+          yPos += 10;
+      
+          /* ---------------- TAX + TOTAL ---------------- */
+          const gst = invoice.gst || 0;
+          const pst = invoice.pst || 0;
+          const total = Number(invoice.amount);
+      
+          checkPageBreak(40);
+      
+          doc.setFont("helvetica", "bold");
+          doc.text("Subtotal:", colPrice, yPos, { align: "right" });
+          doc.setFont("helvetica", "normal");
+          doc.text(`${invoice.currency} ${subtotal.toFixed(2)}`, colAmount, yPos, {
+            align: "right",
+          });
+      
+          yPos += 7;
+      
+          doc.setFont("helvetica", "bold");
+          doc.text("GST:", colPrice, yPos, { align: "right" });
+          doc.setFont("helvetica", "normal");
+          doc.text(`${invoice.currency} ${gst.toFixed(2)}`, colAmount, yPos, {
+            align: "right",
+          });
+      
+          yPos += 7;
+      
+          doc.setFont("helvetica", "bold");
+          doc.text("PST:", colPrice, yPos, { align: "right" });
+          doc.setFont("helvetica", "normal");
+          doc.text(`${invoice.currency} ${pst.toFixed(2)}`, colAmount, yPos, {
+            align: "right",
+          });
+      
+          /* -------- TOTAL BOX -------- */
+          yPos += 12;
+      
+          doc.rect(margin, yPos, contentWidth, 20);
+      
+          doc.setFontSize(12);
+          doc.setFont("helvetica", "bold");
+          doc.text("TOTAL AMOUNT DUE", margin + 5, yPos + 13);
+      
+          doc.setFontSize(18);
+          doc.text(`${invoice.currency} ${total.toFixed(2)}`, pageWidth - margin - 5, yPos + 13, {
+            align: "right",
+          });
+      
+          /* ---------------- SAVE ---------------- */
+          doc.save(`Invoice_${invoice._id.slice(-8)}.pdf`);
         } catch (err) {
-            console.error(err);
-            showNotification("error", "Failed to generate PDF");
+          console.error(err);
         }
-    };
+      };
+      
     
     
 
@@ -1361,64 +1104,67 @@ const InvoiceManagement: React.FC = () => {
                 <div className="p-6 bg-gray-100">
                     {/* Invoice Document Preview */}
                     <div className="max-w-4xl mx-auto bg-white shadow-2xl rounded-sm overflow-hidden border border-gray-200">
-                        {/* Header - Professional Gray Banner */}
-                        <div className="bg-gradient-to-r from-gray-700 to-gray-800 px-10 py-8 flex items-center justify-between">
+                        {/* Header - White Background with Logo and Title */}
+                        <div className="bg-white px-10 py-6 border-b-2 border-gray-300 flex items-center justify-between">
                             <div className="flex items-center gap-4">
                                 {company?.logoUrl && (
                                     <img 
                                         src={company.logoUrl} 
                                         alt="Company Logo" 
-                                        className="h-14 w-auto object-contain"
+                                        className="h-16 w-auto object-contain max-w-[200px]"
                                         onError={(e) => {
                                             (e.target as HTMLImageElement).style.display = 'none';
                                         }}
                                     />
                                 )}
                             </div>
-                            <h1 className="text-5xl font-bold text-white tracking-wider uppercase" style={{ letterSpacing: '0.1em' }}>INVOICE</h1>
+                            <h1 className="text-5xl font-bold text-gray-900 tracking-wider uppercase" style={{ letterSpacing: '0.1em' }}>INVOICE</h1>
                         </div>
 
                         {/* Body */}
-                        <div className="px-10 py-8 space-y-8">
-                            {/* Company Details */}
-                            {company && (
-                                <div className="space-y-1.5">
-                                    <h3 className="font-bold text-gray-900 text-base leading-tight">{company.companyName || 'Company Name'}</h3>
-                                    {company.address && (
-                                        <p className="text-sm text-gray-700 leading-relaxed">{company.address}</p>
-                                    )}
-                                    {company.contactPhone && (
-                                        <p className="text-sm text-gray-700">Phone: {company.contactPhone}</p>
-                                    )}
-                                    {company.contactEmail && (
-                                        <p className="text-sm text-gray-700">Email: {company.contactEmail}</p>
-                                    )}
-                                    {company.taxNumber && (
-                                        <p className="text-sm text-gray-700">GST No: {company.taxNumber}</p>
-                                    )}
-                                </div>
-                            )}
+                        <div className="px-10 py-8">
+                            {/* Company Details (Left) & Bill To (Right) */}
+                            <div className="grid grid-cols-2 gap-12 mb-8">
+                                {/* Left Column - Company Details */}
+                                {company && (
+                                    <div className="space-y-1.5">
+                                        <h3 className="font-bold text-gray-900 text-base leading-tight mb-3">{company.companyName || 'Company Name'}</h3>
+                                        {company.address && (
+                                            <p className="text-sm text-gray-700 leading-relaxed">{company.address}</p>
+                                        )}
+                                        {company.contactPhone && (
+                                            <p className="text-sm text-gray-700">Phone: {company.contactPhone}</p>
+                                        )}
+                                        {company.contactEmail && (
+                                            <p className="text-sm text-gray-700">Email: {company.contactEmail}</p>
+                                        )}
+                                        {company.taxNumber && (
+                                            <p className="text-sm text-gray-700">GST No: {company.taxNumber}</p>
+                                        )}
+                                    </div>
+                                )}
 
-                            {/* Bill To Section */}
-                            <div className="mt-8">
-                                <h3 className="font-bold text-gray-900 mb-3 text-base">Bill To:</h3>
-                                <div className="space-y-1.5">
-                                    <p className="text-sm font-semibold text-gray-900">{selectedInvoice.clientName}</p>
-                                    {selectedInvoice.clientAddress && (
-                                        <p className="text-sm text-gray-700 leading-relaxed">{selectedInvoice.clientAddress}</p>
-                                    )}
-                                    {selectedInvoice.clientEmail && (
-                                        <p className="text-sm text-gray-700">{selectedInvoice.clientEmail}</p>
-                                    )}
-                                    {selectedInvoice.clientPhone && (
-                                        <p className="text-sm text-gray-700">Phone: {selectedInvoice.clientPhone}</p>
-                                    )}
+                                {/* Right Column - Bill To Section */}
+                                <div>
+                                    <h3 className="font-bold text-gray-900 mb-3 text-base">Bill To:</h3>
+                                    <div className="space-y-1.5">
+                                        <p className="text-sm font-semibold text-gray-900">{selectedInvoice.clientName}</p>
+                                        {selectedInvoice.clientAddress && (
+                                            <p className="text-sm text-gray-700 leading-relaxed">{selectedInvoice.clientAddress}</p>
+                                        )}
+                                        {selectedInvoice.clientEmail && (
+                                            <p className="text-sm text-gray-700">{selectedInvoice.clientEmail}</p>
+                                        )}
+                                        {selectedInvoice.clientPhone && (
+                                            <p className="text-sm text-gray-700">Phone: {selectedInvoice.clientPhone}</p>
+                                        )}
+                                    </div>
                                 </div>
                             </div>
 
                             {/* Load/Trip Details Section */}
                             {(trip || order) && (
-                                <div className="mt-8 bg-gray-50 rounded-lg p-5 border border-gray-200">
+                                <div className="mt-8 p-5 border border-gray-200">
                                     <h3 className="font-bold text-gray-900 mb-4 text-base">Load Details:</h3>
                                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                         {/* Trip/Order Number */}
@@ -1475,8 +1221,7 @@ const InvoiceManagement: React.FC = () => {
                                         // Show section if truck object exists (even if empty)
                                         return truckInfo ? (
                                             <div className="mt-6 pt-6 border-t border-gray-300">
-                                                <h4 className="font-semibold text-gray-900 mb-4 text-sm uppercase tracking-wide flex items-center gap-2">
-                                                    <span className="w-1 h-4 bg-gray-400"></span>
+                                                <h4 className="font-semibold text-gray-900 mb-4 text-sm uppercase tracking-wide">
                                                     Truck Details
                                                 </h4>
                                                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -1541,8 +1286,7 @@ const InvoiceManagement: React.FC = () => {
                                         // Show section if trailer object exists (even if empty)
                                         return trailerInfo ? (
                                             <div className="mt-6 pt-6 border-t border-gray-300">
-                                                <h4 className="font-semibold text-gray-900 mb-4 text-sm uppercase tracking-wide flex items-center gap-2">
-                                                    <span className="w-1 h-4 bg-gray-400"></span>
+                                                <h4 className="font-semibold text-gray-900 mb-4 text-sm uppercase tracking-wide">
                                                     Trailer Details
                                                 </h4>
                                                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -1621,8 +1365,7 @@ const InvoiceManagement: React.FC = () => {
                                         // Show section if driver or coDriver exists
                                         return (driverInfo || coDriverInfo) ? (
                                             <div className="mt-6 pt-6 border-t border-gray-300">
-                                                <h4 className="font-semibold text-gray-900 mb-4 text-sm uppercase tracking-wide flex items-center gap-2">
-                                                    <span className="w-1 h-4 bg-gray-400"></span>
+                                                <h4 className="font-semibold text-gray-900 mb-4 text-sm uppercase tracking-wide">
                                                     Driver Information
                                                 </h4>
                                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -1683,10 +1426,9 @@ const InvoiceManagement: React.FC = () => {
                                     {/* Additional Trip Information */}
                                     {(trip?.route?.totalDistance || trip?.plannedStartDate || trip?.actualStartDate) && (
                                         <div className="mt-6 pt-6 border-t border-gray-300">
-                                            <h4 className="font-semibold text-gray-900 mb-4 text-sm uppercase tracking-wide flex items-center gap-2">
-                                                <span className="w-1 h-4 bg-gray-400"></span>
-                                                Trip Information
-                                            </h4>
+                                                <h4 className="font-semibold text-gray-900 mb-4 text-sm uppercase tracking-wide">
+                                                    Trip Information
+                                                </h4>
                                             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                                                 {trip?.route?.totalDistance && (
                                                     <div>
@@ -1798,14 +1540,51 @@ const InvoiceManagement: React.FC = () => {
                             </div>
 
                             {/* Total Amount Box */}
-                            <div className="mt-6 bg-gradient-to-r from-gray-700 to-gray-800 rounded-sm p-5">
+                            <div className="mt-6 border-2 border-gray-900 rounded-sm p-5 bg-white">
                                 <div className="flex justify-between items-center">
-                                    <span className="text-white font-bold text-lg uppercase tracking-wide">Total Amount Due</span>
-                                    <span className="text-white font-bold text-2xl font-mono">
+                                    <span className="text-gray-900 font-bold text-lg uppercase tracking-wide">Total Amount Due</span>
+                                    <span className="text-gray-900 font-bold text-2xl font-mono">
                                         {selectedInvoice.currency} {totalAmount.toFixed(2)}
                                     </span>
                                 </div>
                             </div>
+
+                            {/* GST Details Section */}
+                            {company && (company.taxNumber || gstRate > 0 || pstRate > 0) && (
+                                <div className="mt-8 pt-6 border-t border-gray-300">
+                                    <h4 className="font-semibold text-gray-900 mb-4 text-sm uppercase tracking-wide">
+                                        Tax Information
+                                    </h4>
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                        {company.taxNumber && (
+                                            <div>
+                                                <p className="text-xs text-gray-600 mb-1">GST/HST Number</p>
+                                                <p className="text-sm font-semibold text-gray-900">{company.taxNumber}</p>
+                                            </div>
+                                        )}
+                                        {gstRate > 0 && (
+                                            <div>
+                                                <p className="text-xs text-gray-600 mb-1">GST Rate</p>
+                                                <p className="text-sm font-semibold text-gray-900">{gstRate}%</p>
+                                            </div>
+                                        )}
+                                        {pstRate > 0 && (
+                                            <div>
+                                                <p className="text-xs text-gray-600 mb-1">PST Rate</p>
+                                                <p className="text-sm font-semibold text-gray-900">{pstRate}%</p>
+                                            </div>
+                                        )}
+                                        <div>
+                                            <p className="text-xs text-gray-600 mb-1">GST Amount</p>
+                                            <p className="text-sm font-semibold text-gray-900">{selectedInvoice.currency} {gstAmount.toFixed(2)}</p>
+                                        </div>
+                                        <div>
+                                            <p className="text-xs text-gray-600 mb-1">PST Amount</p>
+                                            <p className="text-sm font-semibold text-gray-900">{selectedInvoice.currency} {pstAmount.toFixed(2)}</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            )}
 
                             {/* Invoice Metadata */}
                             <div className="mt-10 pt-6 border-t-2 border-gray-300 grid grid-cols-2 gap-6 text-sm">
