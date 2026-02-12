@@ -6,6 +6,7 @@ import {
 import { createInvoice, listInvoices, updateInvoice, deleteInvoice, listTrips } from "../../../../axios/api/account.invoices";
 import jsPDF from 'jspdf';
 import { FLEET_COLORS } from '../../fleetMaintenance/colorUtils';
+import type { Trip } from '../../../../axios/api/main.dashboard';
 
 interface CompanyInfo {
     _id?: string;
@@ -40,6 +41,42 @@ interface Invoice {
         customerOrderNo?: string;
         pickupLocation?: { place?: string };
         deliveryLocation?: { place?: string };
+        driver?: {
+            _id: string;
+            name: string;
+            email?: string;
+            phone?: string;
+        };
+        coDriver?: {
+            _id: string;
+            name: string;
+            email?: string;
+            phone?: string;
+        };
+        truck?: {
+            _id: string;
+            unitNumber?: string;
+            plateNumber?: string;
+            licensePlate?: string;
+            internalId?: string;
+            make?: string;
+            model?: string;
+            makeModel?: string;
+            type?: string;
+            unitType?: string;
+        };
+        trailer?: {
+            _id: string;
+            unitNumber?: string;
+            plateNumber?: string;
+            licensePlate?: string;
+            make?: string;
+            model?: string;
+            makeModel?: string;
+            type?: string;
+            unitType?: string;
+            capacity?: string;
+        };
     };
     amount: number | string;
     currency: string;
@@ -472,10 +509,14 @@ const InvoiceManagement: React.FC = () => {
             doc.setFontSize(9);
       
             if (driver) {
-              printRow("Driver Name:", driver.name, margin, margin + 55, 80);
+              const driverName = typeof driver === 'object' ? driver.name : driver;
+              const driverId = typeof driver === 'object' 
+                ? (driver._id?.slice(-8) || (driver as any).internalId || 'N/A')
+                : (typeof driver === 'string' ? driver.slice(-8) : 'N/A');
+              printRow("Driver Name:", driverName, margin, margin + 55, 80);
               printRow(
                 "Driver ID:",
-                driver._id?.slice(-8) || driver.internalId,
+                driverId,
                 margin,
                 margin + 55,
                 80
@@ -483,10 +524,17 @@ const InvoiceManagement: React.FC = () => {
             }
       
             if (coDriver) {
-              printRow("Co-Driver Name:", coDriver.name, margin, margin + 55, 80);
+              const coDriverName = typeof coDriver === 'object' ? coDriver.name : (typeof coDriver === 'string' ? coDriver : 'N/A');
+              let coDriverId = 'N/A';
+              if (typeof coDriver === 'object') {
+                coDriverId = coDriver._id?.slice(-8) || (coDriver as any).internalId || 'N/A';
+              } else if (typeof coDriver === 'string') {
+                coDriverId = coDriver.slice(-8);
+              }
+              printRow("Co-Driver Name:", coDriverName, margin, margin + 55, 80);
               printRow(
                 "Co-Driver ID:",
-                coDriver._id?.slice(-8) || coDriver.internalId,
+                coDriverId,
                 margin,
                 margin + 55,
                 80
@@ -1377,15 +1425,18 @@ const InvoiceManagement: React.FC = () => {
                                                                 <div>
                                                                     <p className="text-xs text-gray-600 mb-1">Name</p>
                                                                     <p className="text-sm font-semibold text-gray-900">
-                                                                        {driverInfo.name || 'N/A'}
+                                                                        {typeof driverInfo === 'object' ? (driverInfo?.name || 'N/A') : (driverInfo || 'N/A')}
                                                                     </p>
                                                                 </div>
                                                                 <div>
                                                                     <p className="text-xs text-gray-600 mb-1">Driver ID</p>
                                                                     <p className="text-sm text-gray-900 font-mono">
                                                                         {(() => {
-                                                                            const driverId = driverInfo._id;
-                                                                            const driverInternalId = (driverInfo as any)?.internalId;
+                                                                            if (typeof driverInfo === 'string') {
+                                                                                return driverInfo.slice(-8) || 'N/A';
+                                                                            }
+                                                                            const driverId = driverInfo?._id;
+                                                                            const driverInternalId = driverInfo?.internalId;
                                                                             return driverId ? driverId.slice(-8) : (driverInternalId || 'N/A');
                                                                         })()}
                                                                     </p>

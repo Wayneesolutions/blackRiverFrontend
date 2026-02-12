@@ -1,4 +1,3 @@
-import React from "react";
 import DriverChat from "../../../../components/chat/DriverChat";
 
 const ChatPage = () => {
