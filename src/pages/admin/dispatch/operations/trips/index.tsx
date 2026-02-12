@@ -1346,11 +1346,11 @@ const Trips = () => {
                           const tripIndex = trips.findIndex(t => t._id === trip._id);
                           const demoStatus = getDemoDocumentStatus(trip, tripIndex);
                           
-                          function setShowDocumentsModal(arg0: boolean) {
+                          function setShowDocumentsModal(_arg0: boolean) {
                             throw new Error("Function not implemented.");
                           }
 
-                          function setSelectedTripForDocuments(tripData: any) {
+                          function setSelectedTripForDocuments(_tripData: any) {
                             throw new Error("Function not implemented.");
                           }
 

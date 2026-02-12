@@ -37,14 +37,38 @@ export interface Trip {
     originLng: number | null;
     destLat: number | null;
     destLng: number | null;
-    driver: string;
-    driverInfo: {
+    driver?: string | {
+        _id: string;
+        name: string;
+        email?: string;
+        phone?: string;
+        internalId?: string;
+    };
+    coDriver?: {
+        _id: string;
+        name: string;
+        email?: string;
+        phone?: string;
+        internalId?: string;
+    };
+    driverInfo?: {
         name: string;
         email: string;
         phone: string;
     } | null;
-    truck: string;
-    truckInfo: {
+    truck?: {
+        _id?: string;
+        plateNumber?: string;
+        licensePlate?: string;
+        unitNumber?: string;
+        internalId?: string;
+        make?: string;
+        model?: string;
+        makeModel?: string;
+        type?: string;
+        unitType?: string;
+    };
+    truckInfo?: {
         id: string;
         unitNo: string;
         licensePlate: string;
@@ -69,10 +93,59 @@ export interface Trip {
             } | null;
         } | null;
     } | null;
+    trailer?: {
+        _id?: string;
+        plateNumber?: string;
+        licensePlate?: string;
+        unitNumber?: string;
+        make?: string;
+        model?: string;
+        makeModel?: string;
+        type?: string;
+        capacity?: string;
+        internalId?: string;
+    };
     status: string;
     eta: string;
     currentLat: number | null;
     currentLng: number | null;
+    plannedStartDate?: string;
+    plannedEndDate?: string;
+    actualStartDate?: string;
+    actualEndDate?: string;
+    startLocation?: {
+        place?: string;
+        latitude?: string | number;
+        longitude?: string | number;
+    };
+    endLocation?: {
+        place?: string;
+        latitude?: string | number;
+        longitude?: string | number;
+    };
+    orders?: Array<{
+        _id: string;
+        orderNumber: string;
+        customerOrderNo?: string;
+        status?: string;
+        commodity?: string;
+        weight?: number;
+        weightUnit?: string;
+        pickupLocation?: {
+            place?: string;
+            latitude?: string | number;
+            longitude?: string | number;
+        };
+        deliveryLocation?: {
+            place?: string;
+            latitude?: string | number;
+            longitude?: string | number;
+        };
+        truck?: any;
+        trailer?: any;
+        driver?: any;
+        coDriver?: any;
+    }>;
     route?: {
         waypoints: Array<{
             place: string;

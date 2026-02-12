@@ -21,6 +21,7 @@ interface Driver {
 }
 
 interface Trip {
+  rateTypeLabel: string;
   _id: string;
   tripNumber?: string;
   startLocation?: {
@@ -36,7 +37,33 @@ interface Trip {
       };
     };
   };
+  pickupLocation?: {
+    place?: string;
+    latitude?: string;
+    longitude?: string;
+    placeId?: {
+      name?: string;
+      currentLocation?: {
+        address?: string;
+        latitude?: string;
+        longitude?: string;
+      };
+    };
+  };
   endLocation?: {
+    place?: string;
+    latitude?: string;
+    longitude?: string;
+    placeId?: {
+      name?: string;
+      currentLocation?: {
+        address?: string;
+        latitude?: string;
+        longitude?: string;
+      };
+    };
+  };
+  deliveryLocation?: {
     place?: string;
     latitude?: string;
     longitude?: string;

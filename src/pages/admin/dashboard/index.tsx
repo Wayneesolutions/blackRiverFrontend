@@ -626,7 +626,9 @@ const Index = () => {
                                             }
 
                                             const truckDisplay = trip.truckInfo?.licensePlate || trip.truckInfo?.unitNo || 'Truck';
-                                            const driverDisplay = trip.driver || trip.driverInfo?.name || 'Unassigned';
+                                            const driverDisplay = typeof trip.driver === 'string' 
+                                                ? trip.driver 
+                                                : (typeof trip.driver === 'object' ? trip.driver?.name : trip.driverInfo?.name) || 'Unassigned';
                                             const locationAddress = hasCurrentLocation
                                                 ? (trip.truckInfo?.currentLocation?.address || '')
                                                 : (useYardLocation
@@ -774,13 +776,15 @@ const Index = () => {
                                                         <div className="flex items-center gap-2.5 text-[10px] text-gray-500" style={{ fontSize: '0.625rem' }}>
                                                             <span className="flex items-center gap-1">
                                                                 <Users size={11} />
-                                                                {trip.driver || 'Unassigned'}
+                                                                {typeof trip.driver === 'string' 
+                                                                    ? trip.driver 
+                                                                    : (typeof trip.driver === 'object' ? trip.driver?.name : trip.driverInfo?.name) || 'Unassigned'}
                                                             </span>
-                                                            {(trip.truck && trip.truck !== 'No Truck') || trip.truckInfo ? (
+                                                            {(trip.truck && typeof trip.truck === 'object') || trip.truckInfo ? (
                                                                 <span className="flex items-center gap-1">
                                                                     <TruckIcon size={11} />
-                                                                    {trip.truck && trip.truck !== 'No Truck'
-                                                                        ? trip.truck
+                                                                    {trip.truck && typeof trip.truck === 'object'
+                                                                        ? (trip.truck.plateNumber || trip.truck.licensePlate || trip.truck.unitNumber || trip.truck.internalId || 'Truck')
                                                                         : trip.truckInfo?.licensePlate || trip.truckInfo?.unitNo || 'Truck Assigned'}
                                                                 </span>
                                                             ) : null}

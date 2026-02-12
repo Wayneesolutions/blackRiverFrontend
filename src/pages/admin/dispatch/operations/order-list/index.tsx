@@ -3,7 +3,7 @@ import { Edit, Plus, X, Package, DollarSign, Route, Truck, MessageCircle, File, 
 import { FaCheckCircle, FaExclamationCircle, FaTimes, FaTruck } from "react-icons/fa";
 import { useNavigate, useLocation } from "react-router-dom";
 import NewOrderSidebar from "./NewOrderSidebar";
-import { listOrder, deleteOrder, getOrderById, updateOrder, getOrderAttachmentSignedUrl } from "../../../../../axios/api/distapcher";
+import { listOrder, deleteOrder, getOrderById, updateOrder } from "../../../../../axios/api/distapcher";
 import { listPlace } from "../../../../../axios/api/dispatcher.places";
 import ConfirmationModal from "../../../../../components/common/ConfirmationModal";
 import OrderChat from "../../../../../components/chat/OrderChat";
@@ -285,7 +285,7 @@ const OrderList = () => {
   const [showChat, setShowChat] = useState(false);
   const [chatOrderId, setChatOrderId] = useState<string | null>(null);
   const [chatOrderNumber, setChatOrderNumber] = useState<string>("");
-  const [unreadCounts, setUnreadCounts] = useState<Record<string, number>>({});
+  const [, setUnreadCounts] = useState<Record<string, number>>({});
 
   // Documents modal state
   const [showDocumentsModal, setShowDocumentsModal] = useState(false);
@@ -946,49 +946,6 @@ const OrderList = () => {
   };
 
   // Helper function to get DEMO document status (for static display)
-  const getDemoDocumentStatus = (order: Order, index: number) => {
-    // Demo logic: alternate between different states for visual variety
-    const demoPattern = index % 4;
-    
-    // Pattern 0: Both documents uploaded (complete - Canada trip)
-    if (demoPattern === 0) {
-      return {
-        hasPOD: true,
-        hasBorderManifest: true,
-        isCanada: true,
-        isComplete: true,
-        documentCount: 2
-      };
-    }
-    // Pattern 1: Only POD uploaded (US trip - complete)
-    if (demoPattern === 1) {
-      return {
-        hasPOD: true,
-        hasBorderManifest: false,
-        isCanada: false,
-        isComplete: true,
-        documentCount: 1
-      };
-    }
-    // Pattern 2: POD missing (incomplete)
-    if (demoPattern === 2) {
-      return {
-        hasPOD: false,
-        hasBorderManifest: false,
-        isCanada: false,
-        isComplete: false,
-        documentCount: 0
-      };
-    }
-    // Pattern 3: POD uploaded, Manifest missing (Canada trip incomplete)
-    return {
-      hasPOD: true,
-      hasBorderManifest: false,
-      isCanada: true,
-      isComplete: false,
-      documentCount: 1
-    };
-  };
 
   const handleSaveOrder = async () => {
     // Order is already saved by the sidebar component
