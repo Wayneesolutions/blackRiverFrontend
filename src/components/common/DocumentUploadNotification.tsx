@@ -25,11 +25,15 @@ const DocumentUploadNotification = ({ notification, onClose, userRole = 'admin' 
 
   // Log when component mounts
   useEffect(() => {
-    console.log('🎨 DocumentUploadNotification COMPONENT MOUNTED!');
-    console.log('🎨 Notification props:', notification);
+    console.log('🎨🎨🎨 DocumentUploadNotification COMPONENT MOUNTED! 🎨🎨🎨');
+    console.log('🎨 Notification props:', JSON.stringify(notification, null, 2));
     console.log('🎨 User role:', userRole);
-    console.log('🎨 Component is now visible in the DOM');
-  }, []);
+  }, [notification, userRole]);
+  
+  // Don't render if no notification
+  if (!notification || !notification.orderId) {
+    return null;
+  }
 
   useEffect(() => {
     console.log('⏰ Starting auto-dismiss timer (8 seconds)...');
@@ -54,71 +58,86 @@ const DocumentUploadNotification = ({ notification, onClose, userRole = 'admin' 
   const handleClick = () => {
     // Navigate to the order page based on user role
     const basePath = userRole === 'dispatcher' ? '/dispatch/trips' : '/admin/dispatch/trips';
-    const targetUrl = `${basePath}?orderId=${notification.orderId}`;
+    const targetUrl = `${basePath}`;
     
     console.log(`📍 Navigating to: ${targetUrl} (role: ${userRole})`);
+    console.log(`📍 User role: ${userRole}, basePath: ${basePath}`);
     navigate(targetUrl);
     onClose();
   };
 
+  console.log('🎨🎨🎨 DocumentUploadNotification RENDER: About to render component 🎨🎨🎨');
+  console.log('🎨 DocumentUploadNotification RENDER: Notification:', JSON.stringify(notification, null, 2));
+  console.log('🎨 DocumentUploadNotification RENDER: Notification exists?', !!notification);
+  console.log('🎨 DocumentUploadNotification RENDER: Order ID?', notification?.orderId);
+  
+  if (!notification || !notification.orderId) {
+    console.log('❌ DocumentUploadNotification RENDER: NOT rendering - missing notification or orderId');
+    return null;
+  }
+  
+  console.log('✅✅✅ DocumentUploadNotification RENDER: RENDERING COMPONENT! ✅✅✅');
+  
   return (
-    <div
-      onClick={handleClick}
-      className="fixed top-4 right-4 w-[400px] bg-white rounded-2xl shadow-2xl z-[99999] animate-slide-in cursor-pointer hover:shadow-3xl transition-all duration-300 hover:scale-[1.02] border border-gray-100 overflow-hidden"
-      style={{ animation: 'slideInRight 0.3s ease-out' }}
-    >
-      {/* Progress bar */}
-      <div 
-        className="h-1 bg-gradient-to-r from-green-500 to-emerald-500 transition-all duration-100" 
-        style={{ width: `${progress}%` }}
-      ></div>
-      
-      <div className="p-5">
-        <div className="flex items-start gap-4">
-          {/* Icon */}
-          <div className="flex-shrink-0">
-            <div className="w-12 h-12 rounded-full bg-gradient-to-br from-green-500 to-emerald-600 flex items-center justify-center text-white shadow-lg">
-              <File className="w-6 h-6" />
-            </div>
-            <div className="w-4 h-4 bg-green-500 rounded-full border-2 border-white absolute ml-8 -mt-3 animate-pulse"></div>
-          </div>
-          
-          {/* Content */}
-          <div className="flex-1 min-w-0">
-            <div className="flex items-center gap-2 mb-1">
-              <h4 className="font-bold text-gray-900 text-base">
-                📄 Documents Uploaded
-              </h4>
-            </div>
-            <p className="text-gray-700 text-sm leading-relaxed mb-2">
-              <strong>{notification.driverName || 'Driver'}</strong> has uploaded POD and Manifest documents
-            </p>
-            <div className="flex items-center gap-2 mb-3">
-              <span className="inline-flex items-center gap-1 px-2 py-1 bg-blue-100 text-blue-700 text-xs font-semibold rounded-full">
-                <FaTruck className="w-3 h-3" />
-                Order #{notification.orderNumber}
-              </span>
-            </div>
+    <div className="fixed top-4 right-4 z-[9999] max-w-md w-full">
+      <div
+        onClick={handleClick}
+        className="bg-white rounded-xl shadow-2xl border border-green-200 overflow-hidden transform transition-all duration-500 ease-in-out animate-slide-in cursor-pointer hover:shadow-3xl"
+      >
+        {/* Progress bar */}
+        <div 
+          className="h-1 bg-gradient-to-r from-green-500 to-emerald-500 transition-all duration-100" 
+          style={{ width: `${progress}%` }}
+        ></div>
+        
+        {/* Header with gradient background */}
+        <div className="bg-gradient-to-r from-green-500 to-emerald-500 p-4">
+          <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
-              <div className="flex items-center gap-2 text-green-600 text-xs font-semibold">
-                <File className="w-4 h-4" />
-                <span>Click to view documents</span>
+              <div className="p-2 bg-white/20 rounded-lg backdrop-blur-sm">
+                <File className="w-6 h-6 text-white" />
               </div>
-              <div className="flex-1"></div>
-              <span className="text-gray-400 text-xs">Just now</span>
+              <div>
+                <h2 className="text-lg font-bold text-white">📄 Documents Uploaded</h2>
+                <p className="text-sm text-white/90">
+                  {notification.driverName || 'Driver'} uploaded POD and Manifest
+                </p>
+              </div>
             </div>
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                onClose();
+              }}
+              className="p-2 hover:bg-white/20 rounded-lg transition-all duration-200 group"
+            >
+              <X className="w-5 h-5 text-white group-hover:scale-110 transition-transform" />
+            </button>
           </div>
-          
-          {/* Close button */}
-          <button
-            onClick={(e) => {
-              e.stopPropagation();
-              onClose();
-            }}
-            className="flex-shrink-0 w-8 h-8 rounded-full hover:bg-gray-100 flex items-center justify-center text-gray-400 hover:text-gray-600 transition-all"
-          >
-            <X size={18} />
-          </button>
+        </div>
+
+        {/* Content */}
+        <div className="p-4 bg-white">
+          <div className="flex items-center gap-2 mb-3">
+            <span className="inline-flex items-center gap-1 px-2 py-1 bg-blue-100 text-blue-700 text-xs font-semibold rounded-full">
+              <FaTruck className="w-3 h-3" />
+              Order #{notification.orderNumber}
+            </span>
+          </div>
+          <p className="text-gray-700 text-sm leading-relaxed">
+            <strong>{notification.driverName || 'Driver'}</strong> has uploaded POD and Manifest documents for order <strong>{notification.orderNumber}</strong>
+          </p>
+        </div>
+
+        {/* Footer */}
+        <div className="bg-gray-50 px-4 py-3 border-t border-gray-200">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <File className="w-4 h-4 text-green-600" />
+              <span className="text-xs text-gray-600">Click to view documents</span>
+            </div>
+            <span className="text-gray-400 text-xs">Just now</span>
+          </div>
         </div>
       </div>
     </div>

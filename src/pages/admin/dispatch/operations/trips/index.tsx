@@ -9,6 +9,7 @@ import TripChat from "../../../../../components/chat/TripChat";
 import OrderChat from "../../../../../components/chat/OrderChat";
 import { getUnreadMessageCount } from "../../../../../axios/api/chat";
 import { useLocation, useNavigate } from "react-router-dom";
+import { socketService } from "../../../../../services/socketService";
 
 interface Trip {
   _id: string;
@@ -93,7 +94,7 @@ interface Trip {
   }>;
 }
 
-type NotificationType = 'success' | 'error' | 'warning' | 'chat';
+type NotificationType = 'success' | 'error' | 'warning' | 'chat' | 'document_upload';
 
 interface ToastNotification {
   id: number;
@@ -102,6 +103,8 @@ interface ToastNotification {
   tripId?: string;
   tripNumber?: string;
   driverName?: string;
+  orderId?: string;
+  orderNumber?: string;
 }
 
 const ToastNotification = ({ notification, onClose, onChatClick }: {
@@ -110,7 +113,8 @@ const ToastNotification = ({ notification, onClose, onChatClick }: {
   onChatClick?: (tripId: string, tripNumber: string) => void;
 }) => {
   const [progress, setProgress] = useState(100);
-  const duration = notification.type === 'chat' ? 8000 : 5000;
+  const navigate = useNavigate();
+  const duration = notification.type === 'chat' ? 8000 : notification.type === 'document_upload' ? 8000 : 5000;
 
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -134,6 +138,14 @@ const ToastNotification = ({ notification, onClose, onChatClick }: {
   const handleClick = () => {
     if (notification.type === 'chat' && notification.tripId && notification.tripNumber && onChatClick) {
       onChatClick(notification.tripId, notification.tripNumber);
+      onClose(notification.id);
+    } else if (notification.type === 'document_upload' && notification.orderId) {
+      // Navigate to the order in trips page (only when clicked, not automatically)
+      // Check current path to determine if admin or dispatcher
+      const currentPath = location.pathname;
+      const isAdmin = currentPath.includes('/admin/');
+      const basePath = isAdmin ? '/admin/dispatch/trips' : '/dispatch/trips';
+      navigate(`${basePath}?orderId=${notification.orderId}`);
       onClose(notification.id);
     }
   };
@@ -210,33 +222,98 @@ const ToastNotification = ({ notification, onClose, onChatClick }: {
     );
   }
 
+  // Document Upload notification (Advanced UI)
+  if (notification.type === 'document_upload') {
+    return (
+      <div
+        onClick={handleClick}
+        className="fixed top-4 right-4 w-[400px] bg-white rounded-2xl shadow-2xl z-[10000] animate-slide-in cursor-pointer hover:shadow-3xl transition-all duration-300 hover:scale-[1.02] border border-gray-100 overflow-hidden"
+      >
+        <div className="h-1 bg-gradient-to-r from-green-500 to-emerald-500 transition-all duration-100" style={{ width: `${progress}%` }}></div>
+        <div className="p-5">
+          <div className="flex items-start gap-4">
+            <div className="flex-shrink-0">
+              <div className="w-12 h-12 rounded-full bg-gradient-to-br from-green-500 to-emerald-600 flex items-center justify-center text-white shadow-lg">
+                <File className="w-6 h-6" />
+              </div>
+              <div className="w-4 h-4 bg-green-500 rounded-full border-2 border-white absolute ml-8 -mt-3 animate-pulse"></div>
+            </div>
+            <div className="flex-1 min-w-0">
+              <div className="flex items-center gap-2 mb-1">
+                <h4 className="font-bold text-gray-900 text-base">
+                  📄 Documents Uploaded
+                </h4>
+              </div>
+              <p className="text-gray-700 text-sm leading-relaxed mb-2">
+                <strong>{notification.driverName || 'Driver'}</strong> has uploaded POD and Manifest documents
+              </p>
+              <div className="flex items-center gap-2 mb-3">
+                <span className="inline-flex items-center gap-1 px-2 py-1 bg-blue-100 text-blue-700 text-xs font-semibold rounded-full">
+                  <FaTruck className="w-3 h-3" />
+                  Order #{notification.orderNumber}
+                </span>
+              </div>
+              <div className="flex items-center gap-3">
+                <div className="flex items-center gap-2 text-green-600 text-xs font-semibold">
+                  <File className="w-4 h-4" />
+                  <span>Click to view documents</span>
+                </div>
+                <div className="flex-1"></div>
+                <span className="text-gray-400 text-xs">Just now</span>
+              </div>
+            </div>
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                onClose(notification.id);
+              }}
+              className="flex-shrink-0 w-8 h-8 rounded-full hover:bg-gray-100 flex items-center justify-center text-gray-400 hover:text-gray-600 transition-all"
+            >
+              <X size={18} />
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   // Standard notifications (Success, Error, Warning)
-  const icons = {
+  // Note: document_upload is handled above with early return, but included here for TypeScript
+  const icons: Record<NotificationType, React.ReactNode> = {
     success: <FaCheckCircle className="text-green-500" size={24} />,
     error: <FaExclamationCircle className="text-red-500" size={24} />,
     warning: <FaExclamationCircle className="text-yellow-500" size={24} />,
+    document_upload: <File className="text-green-500" size={24} />, // Not used, but needed for type safety
+    chat: <MessageCircle className="text-blue-500" size={24} />, // Not used, but needed for type safety
   };
 
-  const bgColors = {
+  const bgColors: Record<NotificationType, string> = {
     success: 'bg-green-50 border-green-200',
     error: 'bg-red-50 border-red-200',
     warning: 'bg-yellow-50 border-yellow-200',
+    document_upload: 'bg-green-50 border-green-200', // Not used, but needed for type safety
+    chat: 'bg-blue-50 border-blue-200', // Not used, but needed for type safety
   };
 
-  const progressColors = {
+  const progressColors: Record<NotificationType, string> = {
     success: 'bg-green-500',
     error: 'bg-red-500',
     warning: 'bg-yellow-500',
+    document_upload: 'bg-green-500', // Not used, but needed for type safety
+    chat: 'bg-blue-500', // Not used, but needed for type safety
   };
 
+  // Type guard: at this point, notification.type can only be 'success' | 'error' | 'warning'
+  const standardType = notification.type as 'success' | 'error' | 'warning';
+  
   return (
-    <div className={`fixed top-4 right-4 w-[350px] rounded-xl border-2 shadow-xl z-[10000] ${bgColors[notification.type]} animate-slide-in overflow-hidden`}>
+    <div className={`fixed top-4 right-4 w-[350px] rounded-xl border-2 shadow-xl z-[10000] ${bgColors[standardType]} animate-slide-in overflow-hidden`}>
       {/* Progress bar */}
-      <div className={`h-1 ${progressColors[notification.type]} transition-all duration-100`} style={{ width: `${progress}%` }}></div>
+      <div className={`h-1 ${progressColors[standardType]} transition-all duration-100`} style={{ width: `${progress}%` }}></div>
 
       <div className="flex items-start gap-3 p-4">
         <div className="flex-shrink-0 mt-0.5">
-          {icons[notification.type]}
+          {icons[standardType]}
         </div>
         <div className="flex-1 min-w-0">
           <p className="text-sm font-medium text-gray-800">{notification.message}</p>
@@ -462,7 +539,7 @@ const Trips = () => {
   const addNotification = useCallback((
     type: NotificationType,
     message: string,
-    extra?: { tripId?: string; tripNumber?: string; driverName?: string }
+    extra?: { tripId?: string; tripNumber?: string; driverName?: string; orderId?: string; orderNumber?: string }
   ) => {
     const id = Date.now();
     setNotifications(prev => [...prev, { id, type, message, ...extra }]);

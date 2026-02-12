@@ -23,6 +23,7 @@ const OutletWrapper = () => {
 const Layout = () => {
     const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
     const [documentNotification, setDocumentNotification] = useState<any>(null);
+    const [showDocumentNotification, setShowDocumentNotification] = useState(false);
     
     // Hooks MUST be called unconditionally at top level (React Rules of Hooks)
     // ErrorBoundary will catch any errors from these hooks
@@ -67,28 +68,33 @@ const Layout = () => {
         
         const handleDocumentUpload = (notification: any) => {
             console.log('🎉🎉🎉 GLOBAL NOTIFICATION RECEIVED! 🎉🎉🎉');
-            console.log('📢 GLOBAL: Full notification data:', notification);
-            console.log('📢 GLOBAL: Notification type:', typeof notification);
-            console.log('📢 GLOBAL: Notification keys:', Object.keys(notification));
-            console.log('📢 GLOBAL: Order ID:', notification.orderId);
-            console.log('📢 GLOBAL: Order Number:', notification.orderNumber);
-            console.log('📢 GLOBAL: Driver Name:', notification.driverName);
-            console.log('📢 GLOBAL: Message:', notification.message);
-            console.log('📢 GLOBAL: Timestamp:', notification.timestamp);
+            console.log('📢 GLOBAL: Raw notification:', notification);
+            console.log('📢 GLOBAL: Is array?', Array.isArray(notification));
             
-            console.log('🔄 GLOBAL: Setting notification state...');
-            console.log('🔄 GLOBAL: Current documentNotification:', documentNotification);
+            // Handle array format - unwrap if needed
+            let notificationData = notification;
+            if (Array.isArray(notification) && notification.length > 0) {
+                notificationData = notification[0];
+                console.log('📢 GLOBAL: Unwrapped from array:', notificationData);
+            }
             
-            // Show the notification
-            setDocumentNotification(notification);
+            console.log('📢 GLOBAL: Final notification data:', JSON.stringify(notificationData, null, 2));
             
-            console.log('✅ GLOBAL: setDocumentNotification called with:', notification);
-            console.log('✅ GLOBAL: Notification state update triggered');
+            // Validate notification
+            if (!notificationData || typeof notificationData !== 'object') {
+                console.error('❌ GLOBAL: Invalid notification data:', notificationData);
+                return;
+            }
             
-            // Force a console log after a short delay to see if state updated
-            setTimeout(() => {
-                console.log('⏱️ GLOBAL: After 100ms, checking if popup rendered...');
-            }, 100);
+            console.log('📢 GLOBAL: Order ID:', notificationData.orderId);
+            console.log('📢 GLOBAL: Order Number:', notificationData.orderNumber);
+            console.log('📢 GLOBAL: Driver Name:', notificationData.driverName);
+            
+            // Set notification data and show popup (like expiring documents pattern)
+            setDocumentNotification(notificationData);
+            setShowDocumentNotification(true);
+            
+            console.log('✅ ADMIN GLOBAL: State updated - notification set and popup shown');
         };
 
         // Wait for socket to be ready before registering listener
@@ -101,8 +107,38 @@ const Layout = () => {
             }
 
             console.log('✅ GLOBAL: Socket is ready! Registering listener...');
+            console.log('✅ GLOBAL: Socket ID:', socket.id);
+            console.log('✅ GLOBAL: Socket connected:', socket.connected);
+            
+            // Register via service
             socketService.onDocumentUploadNotification(handleDocumentUpload);
-            console.log('✅ GLOBAL: Socket.IO listener registered for "documentUploadNotification" event');
+            console.log('✅ GLOBAL: Socket.IO listener registered via service');
+            
+            // Also add direct socket listener as primary handler
+            socket.on('documentUploadNotification', (data) => {
+                console.log('🔔🔔🔔 GLOBAL: Direct socket listener triggered!');
+                console.log('🔔 GLOBAL: Raw data:', data);
+                console.log('🔔 GLOBAL: Is array?', Array.isArray(data));
+                
+                // Handle array format (Socket.IO sometimes wraps in array)
+                let notificationData = data;
+                if (Array.isArray(data) && data.length > 0) {
+                    notificationData = data[0];
+                    console.log('🔔 GLOBAL: Unwrapped from array:', notificationData);
+                }
+                
+                console.log('🔔 GLOBAL: Final notification data:', JSON.stringify(notificationData, null, 2));
+                handleDocumentUpload(notificationData);
+            });
+            console.log('✅ GLOBAL: Direct socket listener registered as PRIMARY handler');
+            
+            // Add catch-all listener
+            socket.onAny((eventName, ...args) => {
+                if (eventName === 'documentUploadNotification') {
+                    console.log('🎯🎯🎯 GLOBAL: onAny caught documentUploadNotification!', args);
+                }
+            });
+            console.log('✅ GLOBAL: Catch-all listener (onAny) registered');
         };
 
         // Start registration after connection attempt
@@ -207,95 +243,19 @@ const Layout = () => {
                     <AIChatAssistant />
                 </ErrorBoundary>
 
-                {/* Global Document Upload Notification */}
-                {(() => {
-                    console.log('🔍 RENDER CHECK: documentNotification =', documentNotification);
-                    console.log('🔍 RENDER CHECK: Should render?', !!documentNotification);
-                    return documentNotification && (
-                        <DocumentUploadNotification
-                            notification={documentNotification}
-                            onClose={() => {
-                                console.log('❌ Closing notification...');
-                                setDocumentNotification(null);
-                            }}
-                            userRole="admin"
-                        />
-                    );
-                })()}
+                {/* Global Document Upload Notification - Like expiring documents popup */}
+                {showDocumentNotification && documentNotification && (
+                    <DocumentUploadNotification
+                        notification={documentNotification}
+                        onClose={() => {
+                            console.log('❌ ADMIN: Closing notification...');
+                            setShowDocumentNotification(false);
+                            setDocumentNotification(null);
+                        }}
+                        userRole="admin"
+                    />
+                )}
 
-                {/* DEBUG: State Monitor */}
-                <div className="fixed top-4 left-4 z-[99998] bg-black text-white p-2 rounded text-xs font-mono max-w-xs">
-                    <div>Socket: {socketService.isConnected() ? '🟢 Connected' : '🔴 Disconnected'}</div>
-                    <div>Notification: {documentNotification ? '🟢 Active' : '⚪ None'}</div>
-                    {documentNotification && (
-                        <div className="mt-1 text-green-400">
-                            Order: {documentNotification.orderNumber}
-                        </div>
-                    )}
-                </div>
-
-                {/* DEBUG: Test Notification Button */}
-                <div className="fixed bottom-4 left-4 z-[99999] flex flex-col gap-2">
-                    <button
-                        onClick={() => {
-                            console.log('🧪 TEST: Manually triggering notification...');
-                            const testNotification = {
-                                type: 'DOCUMENT_UPLOAD',
-                                title: 'Driver Documents Uploaded',
-                                message: 'TEST: Driver has uploaded POD and Manifest documents',
-                                orderId: '123456',
-                                orderNumber: 'TEST-ORDER-123',
-                                driverName: 'Test Driver',
-                                timestamp: new Date().toISOString(),
-                                link: '/admin/dispatch/trips?orderId=123456'
-                            };
-                            setDocumentNotification(testNotification);
-                            console.log('✅ TEST: Notification triggered manually');
-                        }}
-                        className="px-4 py-2 bg-purple-600 text-white rounded-lg shadow-lg hover:bg-purple-700 transition-all"
-                        style={{ fontSize: '12px' }}
-                    >
-                        🧪 Test Notification
-                    </button>
-                    <button
-                        onClick={() => {
-                            console.log('🔍 Socket.IO Status Check:');
-                            console.log('  - Connected:', socketService.isConnected());
-                            console.log('  - Authenticated:', socketService.getIsAuthenticated());
-                            const socket = socketService.getSocket();
-                            console.log('  - Socket ID:', socket?.id);
-                            console.log('  - Socket exists:', !!socket);
-                            console.log('  - Listeners:', socket?.listeners('documentUploadNotification'));
-                            alert(`Socket Connected: ${socketService.isConnected()}\nSocket ID: ${socket?.id || 'N/A'}\nAuthenticated: ${socketService.getIsAuthenticated()}`);
-                        }}
-                        className="px-4 py-2 bg-blue-600 text-white rounded-lg shadow-lg hover:bg-blue-700 transition-all"
-                        style={{ fontSize: '12px' }}
-                    >
-                        🔍 Check Socket
-                    </button>
-                    <button
-                        onClick={async () => {
-                            console.log('🔥 Calling backend TEST endpoint to trigger notification...');
-                            try {
-                                const response = await fetch('http://localhost:3000/api/v1/dispatcher/test/document-notification', {
-                                    headers: {
-                                        'Authorization': `Bearer ${localStorage.getItem('token')}`
-                                    }
-                                });
-                                const data = await response.json();
-                                console.log('✅ Backend response:', data);
-                                alert('Backend test triggered! Check console and watch for popup.');
-                            } catch (error) {
-                                console.error('❌ Backend test failed:', error);
-                                alert('Backend test failed: ' + error.message);
-                            }
-                        }}
-                        className="px-4 py-2 bg-red-600 text-white rounded-lg shadow-lg hover:bg-red-700 transition-all"
-                        style={{ fontSize: '12px' }}
-                    >
-                        🔥 Backend Test
-                    </button>
-                </div>
             </div>
         </ErrorBoundary>
     );

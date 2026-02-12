@@ -378,6 +378,7 @@ const DriverPayrollManagement = () => {
     recommendations: string[];
     performanceNotes: string;
     reasoning: string;
+    trips?: Trip[];
   } | null>(null);
   const [driverAdditions, setDriverAdditions] = useState<any[]>([]);
   const [driverDeductions, setDriverDeductions] = useState<any[]>([]);
@@ -1270,13 +1271,44 @@ const DriverPayrollManagement = () => {
 
       if (response?.success && response?.data) {
         const analysis = response.data;
+        // Transform trips from backend to match Trip interface
+        const trips: Trip[] = (analysis.trips || []).map((trip: any) => ({
+          _id: trip._id || trip.orderNumber || '',
+          tripNumber: trip.tripNumber || trip.orderNumber || 'N/A',
+          startLocation: trip.startLocation || trip.pickupLocation,
+          endLocation: trip.endLocation || trip.deliveryLocation,
+          pickupLocation: trip.pickupLocation || trip.startLocation,
+          deliveryLocation: trip.deliveryLocation || trip.endLocation,
+          actualEndDate: trip.actualEndDate || trip.deliveryDate || trip.completedDate,
+          distance: trip.distance,
+          distanceInMiles: trip.distanceInMiles,
+          baseRate: trip.baseRate,
+          rateType: trip.rateType,
+          rateTypeLabel: trip.rateTypeLabel,
+          earnings: trip.earnings,
+          truck: trip.truck,
+          driverRole: trip.driverRole || 'driver',
+          driverDetails: trip.driver ? {
+            _id: trip.driver._id || '',
+            name: trip.driver.name || '',
+            phone: trip.driver.phone || ''
+          } : undefined,
+          coDriverDetails: trip.coDriver ? {
+            _id: trip.coDriver._id || '',
+            name: trip.coDriver.name || '',
+            phone: trip.coDriver.phone || ''
+          } : undefined,
+          selected: true // Auto-select all AI analysis trips
+        }));
+        
         setAiAnalysis({
           recommendedBonus: analysis.recommendedBonus || 0,
           recommendedDeductions: analysis.recommendedDeductions || 0,
           performanceScore: analysis.performanceScore || 0,
           recommendations: analysis.recommendations || [],
           performanceNotes: analysis.performanceNotes || '',
-          reasoning: analysis.reasoning || ''
+          reasoning: analysis.reasoning || '',
+          trips: trips
         });
 
         // Update form fields with AI recommendations (bonus and deductions only, NOT taxes)
@@ -2295,7 +2327,7 @@ const DriverPayrollManagement = () => {
                   : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
               }`}
             >
-              Owner Operators
+              Company Drivers
               <span className="ml-2 text-xs text-gray-500">
                 ({drivers.filter(d => !(d.companyFlag ?? d.details?.companyFlag ?? false)).length})
               </span>
@@ -2308,7 +2340,7 @@ const DriverPayrollManagement = () => {
                   : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
               }`}
             >
-              Company Drivers
+              Owner Operators
               <span className="ml-2 text-xs text-gray-500">
                 ({drivers.filter(d => d.companyFlag ?? d.details?.companyFlag ?? false).length})
               </span>
@@ -2319,7 +2351,7 @@ const DriverPayrollManagement = () => {
         <div className="bg-white border-gray-200 rounded-xl shadow-sm border">
           <div className="p-6 border-b border-gray-200">
             <h2 className="text-xl font-bold text-gray-900">
-              {driverTypeTab === 'ownerOperator' ? 'Owner Operator' : 'Company Driver'} Payroll Records
+              {driverTypeTab === 'ownerOperator' ? 'Company Driver' : 'Owner Operator'} Payroll Records
             </h2>
           </div>
           
@@ -3058,6 +3090,151 @@ const DriverPayrollManagement = () => {
                       <div className="mt-4 bg-white rounded-lg p-4 border border-gray-200">
                         <div className="text-sm font-medium text-gray-700 mb-2">Performance Notes:</div>
                         <p className="text-sm text-gray-600">{aiAnalysis.performanceNotes}</p>
+                      </div>
+                    )}
+
+                    {/* AI Analysis Trips */}
+                    {aiAnalysis.trips && aiAnalysis.trips.length > 0 && (
+                      <div className="mt-4 bg-white border border-gray-200 rounded-lg overflow-hidden">
+                        <div className="bg-gray-50 px-4 py-3 border-b border-gray-200">
+                          <h5 className="text-sm font-medium text-gray-700">Completed Trips ({aiAnalysis.trips.length})</h5>
+                        </div>
+                        <div className="overflow-x-auto max-h-96">
+                          <table className="w-full">
+                            <thead className="bg-gray-50 sticky top-0">
+                              <tr>
+                                <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase">Trip #</th>
+                                <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase">Route</th>
+                                <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase">Role</th>
+                                <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase">Completed</th>
+                                <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase">Truck</th>
+                                <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase">Miles</th>
+                                <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase">Rate</th>
+                                <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase">Earnings</th>
+                              </tr>
+                            </thead>
+                            <tbody className="divide-y divide-gray-200">
+                              {aiAnalysis.trips.map((trip) => (
+                                <tr key={trip._id} className="hover:bg-gray-50">
+                                  <td className="px-3 py-2 text-sm font-medium text-gray-900">
+                                    {trip.tripNumber || trip._id?.slice(-6).toUpperCase()}
+                                  </td>
+                                  <td className="px-3 py-2 text-sm text-gray-600">
+                                    <div className="flex items-center gap-1">
+                                      <MapPin size={14} className="text-gray-400" />
+                                      <span>
+                                        {(() => {
+                                          if (trip.startLocation?.place && trip.startLocation.place !== 'Unknown') {
+                                            return trip.startLocation.place;
+                                          }
+                                          if (trip.pickupLocation?.place) {
+                                            return trip.pickupLocation.place;
+                                          }
+                                          return 'Unknown';
+                                        })()}
+                                      </span>
+                                      <span className="text-gray-400">→</span>
+                                      <span>
+                                        {(() => {
+                                          if (trip.endLocation?.place && trip.endLocation.place !== 'Unknown') {
+                                            return trip.endLocation.place;
+                                          }
+                                          if (trip.deliveryLocation?.place) {
+                                            return trip.deliveryLocation.place;
+                                          }
+                                          return 'Unknown';
+                                        })()}
+                                      </span>
+                                    </div>
+                                  </td>
+                                  <td className="px-3 py-2 text-sm">
+                                    {trip.driverRole === 'coDriver' ? (
+                                      <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                                        Co-Driver
+                                      </span>
+                                    ) : (
+                                      <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                                        Driver
+                                      </span>
+                                    )}
+                                    {trip.coDriverDetails && trip.driverRole === 'driver' && (
+                                      <div className="text-xs text-gray-500 mt-1">
+                                        Co: {trip.coDriverDetails.name}
+                                      </div>
+                                    )}
+                                    {trip.driverDetails && trip.driverRole === 'coDriver' && (
+                                      <div className="text-xs text-gray-500 mt-1">
+                                        Driver: {trip.driverDetails.name}
+                                      </div>
+                                    )}
+                                  </td>
+                                  <td className="px-3 py-2 text-sm text-gray-600">
+                                    {trip.actualEndDate ? new Date(trip.actualEndDate).toLocaleDateString() : '-'}
+                                  </td>
+                                  <td className="px-3 py-2 text-sm text-gray-600">
+                                    {trip.truck?.plateNumber || trip.truck?.licensePlate || trip.truck?.internalId || 'N/A'}
+                                  </td>
+                                  <td className="px-3 py-2 text-sm font-medium text-gray-900">
+                                    {(() => {
+                                      const miles = typeof trip.distanceInMiles === 'string' ? parseFloat(trip.distanceInMiles) : (trip.distanceInMiles || 0);
+                                      return miles || 0;
+                                    })()}
+                                  </td>
+                                  <td className="px-3 py-2 text-sm text-gray-600">
+                                    <div className="flex items-center gap-2">
+                                      <span>${trip.baseRate || 0}/mi</span>
+                                      {trip.rateType && (
+                                        <span className={`px-2 py-0.5 text-xs font-medium rounded ${
+                                          trip.rateType === 'TEAM' 
+                                            ? 'bg-blue-100 text-blue-800'
+                                            : trip.rateType === 'EMPTY'
+                                            ? 'bg-yellow-100 text-yellow-800'
+                                            : trip.rateType === 'EMPTY-TEAM'
+                                            ? 'bg-orange-100 text-orange-800'
+                                            : 'bg-gray-100 text-gray-800'
+                                        }`}>
+                                          {trip.rateTypeLabel || trip.rateType}
+                                        </span>
+                                      )}
+                                    </div>
+                                  </td>
+                                  <td className="px-3 py-2 text-sm font-bold text-green-600">
+                                    ${(() => {
+                                      const earnings = typeof trip.earnings === 'string' ? parseFloat(trip.earnings) : (typeof trip.earnings === 'number' ? trip.earnings : 0);
+                                      return earnings.toFixed(2);
+                                    })()}
+                                  </td>
+                                </tr>
+                              ))}
+                            </tbody>
+                            <tfoot className="bg-green-50 sticky bottom-0">
+                              <tr>
+                                <td colSpan={5} className="px-3 py-3 text-sm font-medium text-gray-900 text-right">
+                                  Selected Totals:
+                                </td>
+                                <td className="px-3 py-3 text-sm font-bold text-gray-900">
+                                  {(() => {
+                                    const totalMiles = aiAnalysis.trips?.reduce((sum, trip) => {
+                                      const miles = typeof trip.distanceInMiles === 'string' ? parseFloat(trip.distanceInMiles) : (trip.distanceInMiles || 0);
+                                      return sum + miles;
+                                    }, 0) || 0;
+                                    return totalMiles.toLocaleString();
+                                  })()} mi
+                                </td>
+                                <td className="px-3 py-3 text-sm text-gray-600">-</td>
+                                <td className="px-3 py-3 text-sm font-bold text-green-600">
+                                  ${(() => {
+                                    const totalEarnings = aiAnalysis.trips?.reduce((sum, trip) => {
+                                      const earnings = typeof trip.earnings === 'string' ? parseFloat(trip.earnings) : (typeof trip.earnings === 'number' ? trip.earnings : 0);
+                                      return sum + earnings;
+                                    }, 0) || 0;
+                                    return totalEarnings.toFixed(2);
+                                  })()}
+                                </td>
+                              </tr>
+                            </tfoot>
+                          </table>
+                        </div>
                       </div>
                     )}
                   </div>
@@ -4768,6 +4945,151 @@ const DriverPayrollManagement = () => {
                         </div>
                       </div>
                     ) : null}
+
+                    {/* Display Trips */}
+                    {suggestion.trips && suggestion.trips.length > 0 && (
+                      <div className="bg-white border border-gray-200 rounded-lg overflow-hidden mt-4">
+                        <div className="bg-gray-50 px-4 py-3 border-b border-gray-200">
+                          <h5 className="text-sm font-medium text-gray-700">Completed Trips ({suggestion.trips.length})</h5>
+                        </div>
+                        <div className="overflow-x-auto max-h-96">
+                          <table className="w-full">
+                            <thead className="bg-gray-50 sticky top-0">
+                              <tr>
+                                <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase">Trip #</th>
+                                <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase">Route</th>
+                                <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase">Role</th>
+                                <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase">Completed</th>
+                                <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase">Truck</th>
+                                <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase">Miles</th>
+                                <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase">Rate</th>
+                                <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase">Earnings</th>
+                              </tr>
+                            </thead>
+                            <tbody className="divide-y divide-gray-200">
+                              {suggestion.trips.map((trip: any) => (
+                                <tr key={trip._id} className="hover:bg-gray-50">
+                                  <td className="px-3 py-2 text-sm font-medium text-gray-900">
+                                    {trip.tripNumber || trip.orderNumber || trip._id?.slice(-6).toUpperCase()}
+                                  </td>
+                                  <td className="px-3 py-2 text-sm text-gray-600">
+                                    <div className="flex items-center gap-1">
+                                      <MapPin size={14} className="text-gray-400" />
+                                      <span>
+                                        {(() => {
+                                          if (trip.startLocation?.place && trip.startLocation.place !== 'Unknown') {
+                                            return trip.startLocation.place;
+                                          }
+                                          if (trip.pickupLocation?.place) {
+                                            return trip.pickupLocation.place;
+                                          }
+                                          return 'Unknown';
+                                        })()}
+                                      </span>
+                                      <span className="text-gray-400">→</span>
+                                      <span>
+                                        {(() => {
+                                          if (trip.endLocation?.place && trip.endLocation.place !== 'Unknown') {
+                                            return trip.endLocation.place;
+                                          }
+                                          if (trip.deliveryLocation?.place) {
+                                            return trip.deliveryLocation.place;
+                                          }
+                                          return 'Unknown';
+                                        })()}
+                                      </span>
+                                    </div>
+                                  </td>
+                                  <td className="px-3 py-2 text-sm">
+                                    {trip.driverRole === 'coDriver' ? (
+                                      <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                                        Co-Driver
+                                      </span>
+                                    ) : (
+                                      <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                                        Driver
+                                      </span>
+                                    )}
+                                    {trip.coDriver && trip.driverRole === 'driver' && (
+                                      <div className="text-xs text-gray-500 mt-1">
+                                        Co: {trip.coDriver.name}
+                                      </div>
+                                    )}
+                                    {trip.driver && trip.driverRole === 'coDriver' && (
+                                      <div className="text-xs text-gray-500 mt-1">
+                                        Driver: {trip.driver.name}
+                                      </div>
+                                    )}
+                                  </td>
+                                  <td className="px-3 py-2 text-sm text-gray-600">
+                                    {trip.actualEndDate ? new Date(trip.actualEndDate).toLocaleDateString() : (trip.deliveryDate ? new Date(trip.deliveryDate).toLocaleDateString() : (trip.completedDate ? new Date(trip.completedDate).toLocaleDateString() : '-'))}
+                                  </td>
+                                  <td className="px-3 py-2 text-sm text-gray-600">
+                                    {trip.truck?.plateNumber || trip.truck?.licensePlate || trip.truck?.internalId || 'N/A'}
+                                  </td>
+                                  <td className="px-3 py-2 text-sm font-medium text-gray-900">
+                                    {(() => {
+                                      const miles = typeof trip.distanceInMiles === 'string' ? parseFloat(trip.distanceInMiles) : (trip.distanceInMiles || 0);
+                                      return miles || 0;
+                                    })()}
+                                  </td>
+                                  <td className="px-3 py-2 text-sm text-gray-600">
+                                    <div className="flex items-center gap-2">
+                                      <span>${trip.baseRate || 0}/mi</span>
+                                      {trip.rateType && (
+                                        <span className={`px-2 py-0.5 text-xs font-medium rounded ${
+                                          trip.rateType === 'TEAM' 
+                                            ? 'bg-blue-100 text-blue-800'
+                                            : trip.rateType === 'EMPTY'
+                                            ? 'bg-yellow-100 text-yellow-800'
+                                            : trip.rateType === 'EMPTY-TEAM'
+                                            ? 'bg-orange-100 text-orange-800'
+                                            : 'bg-gray-100 text-gray-800'
+                                        }`}>
+                                          {trip.rateTypeLabel || trip.rateType}
+                                        </span>
+                                      )}
+                                    </div>
+                                  </td>
+                                  <td className="px-3 py-2 text-sm font-bold text-green-600">
+                                    ${(() => {
+                                      const earnings = typeof trip.earnings === 'string' ? parseFloat(trip.earnings) : (typeof trip.earnings === 'number' ? trip.earnings : 0);
+                                      return earnings.toFixed(2);
+                                    })()}
+                                  </td>
+                                </tr>
+                              ))}
+                            </tbody>
+                            <tfoot className="bg-green-50 sticky bottom-0">
+                              <tr>
+                                <td colSpan={5} className="px-3 py-3 text-sm font-medium text-gray-900 text-right">
+                                  Selected Totals:
+                                </td>
+                                <td className="px-3 py-3 text-sm font-bold text-gray-900">
+                                  {(() => {
+                                    const totalMiles = suggestion.trips?.reduce((sum: number, trip: any) => {
+                                      const miles = typeof trip.distanceInMiles === 'string' ? parseFloat(trip.distanceInMiles) : (trip.distanceInMiles || 0);
+                                      return sum + miles;
+                                    }, 0) || 0;
+                                    return totalMiles.toLocaleString();
+                                  })()} mi
+                                </td>
+                                <td className="px-3 py-3 text-sm text-gray-600">-</td>
+                                <td className="px-3 py-3 text-sm font-bold text-green-600">
+                                  ${(() => {
+                                    const totalEarnings = suggestion.trips?.reduce((sum: number, trip: any) => {
+                                      const earnings = typeof trip.earnings === 'string' ? parseFloat(trip.earnings) : (typeof trip.earnings === 'number' ? trip.earnings : 0);
+                                      return sum + earnings;
+                                    }, 0) || 0;
+                                    return totalEarnings.toFixed(2);
+                                  })()}
+                                </td>
+                              </tr>
+                            </tfoot>
+                          </table>
+                        </div>
+                      </div>
+                    )}
 
                     {/* Payroll Summary (same as manual payroll) */}
                     {suggestion.totalTrips > 0 && (() => {

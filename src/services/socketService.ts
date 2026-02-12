@@ -36,10 +36,48 @@ class SocketService {
 
       // Connection events
       this.socket.on("connect", () => {
-        console.log("✅ Socket connected:", this.socket?.id);
+        console.log("✅ [FRONTEND] Socket connected:", this.socket?.id);
+        console.log("✅ [FRONTEND] Socket transport:", this.socket?.io?.engine?.transport?.name);
         // Authenticate after connection
         this.authenticate(token);
       });
+      
+      // Store the callback so onAny can call it
+      let documentUploadCallback: ((notification: any) => void) | null = null;
+      
+      // Listen to ALL events for debugging (moved here so it's registered immediately)
+      this.socket.onAny((eventName, ...args) => {
+        if (eventName === 'documentUploadNotification') {
+          console.log('🎯🎯🎯 [FRONTEND] onAny caught documentUploadNotification!', args);
+          console.log('🎯 [FRONTEND] Raw event data:', args);
+          
+          // Handle array format
+          let notificationData = args[0];
+          if (Array.isArray(args[0]) && args[0].length > 0) {
+            notificationData = args[0][0];
+            console.log('🎯 [FRONTEND] Unwrapped from nested array:', notificationData);
+          }
+          
+          console.log('🎯 [FRONTEND] Final notification data:', JSON.stringify(notificationData, null, 2));
+          
+          // Call the registered callback if it exists
+          const callback = (this as any).documentUploadCallback;
+          if (callback && notificationData) {
+            console.log('🎯 [FRONTEND] Calling registered callback from onAny...');
+            try {
+              callback(notificationData);
+              console.log('✅ [FRONTEND] Callback executed successfully from onAny');
+            } catch (error) {
+              console.error('❌ [FRONTEND] Error in callback from onAny:', error);
+            }
+          } else {
+            console.log('⚠️ [FRONTEND] No callback registered yet or no notification data');
+          }
+        } else {
+          console.log(`🔍 [FRONTEND] Socket event received: "${eventName}"`, args);
+        }
+      });
+      console.log('✅ [FRONTEND] Catch-all event listener (onAny) registered immediately');
 
       this.socket.on("disconnect", () => {
         console.log("❌ Socket disconnected");
@@ -53,7 +91,9 @@ class SocketService {
 
       // Authentication events
       this.socket.on("authenticated", (data) => {
-        console.log("✅ Socket authenticated:", data);
+        console.log("✅ [FRONTEND] Socket authenticated:", data);
+        console.log("✅ [FRONTEND] User role:", data.role);
+        console.log("✅ [FRONTEND] User company ID:", data.companyId);
         this.isAuthenticated = true;
         resolve();
       });
@@ -290,21 +330,70 @@ class SocketService {
     timestamp: string;
     link: string;
   }) => void) {
-    console.log('🔔 onDocumentUploadNotification called');
-    console.log('🔔 Socket exists?', !!this.socket);
-    console.log('🔔 Socket connected?', this.socket?.connected);
-    console.log('🔔 Socket ID:', this.socket?.id);
+    console.log('🔔 [FRONTEND] onDocumentUploadNotification called');
+    console.log('🔔 [FRONTEND] Socket exists?', !!this.socket);
+    console.log('🔔 [FRONTEND] Socket connected?', this.socket?.connected);
+    console.log('🔔 [FRONTEND] Socket ID:', this.socket?.id);
+    console.log('🔔 [FRONTEND] Socket authenticated?', this.isAuthenticated);
+    
+    // Store callback for onAny handler
+    (this as any).documentUploadCallback = callback;
     
     if (this.socket) {
-      this.socket.on("documentUploadNotification", callback);
-      console.log("✅ Socket listener 'documentUploadNotification' registered successfully");
-      console.log("✅ Callback function:", callback.name || 'anonymous');
+      // Remove any existing listener first to avoid duplicates
+      this.socket.off("documentUploadNotification");
       
-      // Test emit to verify listener is working
-      console.log("🧪 Testing listener by emitting a test event...");
+      // Add new listener with enhanced logging
+      this.socket.on("documentUploadNotification", (notification) => {
+        console.log('🎉🎉🎉 [FRONTEND] documentUploadNotification EVENT RECEIVED! 🎉🎉🎉');
+        console.log('📨 [FRONTEND] Raw notification data:', notification);
+        console.log('📨 [FRONTEND] Notification type:', typeof notification);
+        console.log('📨 [FRONTEND] Is array?', Array.isArray(notification));
+        
+        // Handle array format (Socket.IO sometimes wraps in array)
+        let notificationData = notification;
+        if (Array.isArray(notification) && notification.length > 0) {
+          notificationData = notification[0];
+          console.log('📨 [FRONTEND] Unwrapped from array:', notificationData);
+        }
+        
+        console.log('📨 [FRONTEND] Final notification data:', JSON.stringify(notificationData, null, 2));
+        console.log('📨 [FRONTEND] Notification keys:', notificationData ? Object.keys(notificationData) : 'null');
+        console.log('📨 [FRONTEND] Order ID:', notificationData?.orderId);
+        console.log('📨 [FRONTEND] Order Number:', notificationData?.orderNumber);
+        console.log('📨 [FRONTEND] Driver Name:', notificationData?.driverName);
+        console.log('📨 [FRONTEND] Message:', notificationData?.message);
+        console.log('📨 [FRONTEND] Timestamp:', notificationData?.timestamp);
+        console.log('📨 [FRONTEND] Link:', notificationData?.link);
+        console.log('📨 [FRONTEND] Callback function exists?', typeof callback === 'function');
+        console.log('📨 [FRONTEND] Calling callback function...');
+        
+        try {
+          if (typeof callback === 'function') {
+            callback(notificationData);
+            console.log('✅ [FRONTEND] Callback executed successfully');
+          } else {
+            console.error('❌ [FRONTEND] Callback is not a function!', typeof callback);
+          }
+        } catch (error) {
+          console.error('❌ [FRONTEND] Error in callback:', error);
+          console.error('❌ [FRONTEND] Error stack:', error);
+        }
+      });
+      
+      console.log("✅ [FRONTEND] Socket listener 'documentUploadNotification' registered successfully");
+      console.log("✅ [FRONTEND] Callback function:", callback.name || 'anonymous');
+      
+      // Also listen to all events for debugging
+      this.socket.onAny((eventName, ...args) => {
+        if (eventName === 'documentUploadNotification') {
+          console.log('🔍 [FRONTEND] Caught documentUploadNotification via onAny:', args);
+        }
+      });
+      console.log("🔍 [FRONTEND] Added catch-all listener for debugging");
     } else {
-      console.error("❌ Cannot register 'documentUploadNotification' listener: socket not initialized");
-      console.error("❌ Socket is null/undefined");
+      console.error("❌ [FRONTEND] Cannot register 'documentUploadNotification' listener: socket not initialized");
+      console.error("❌ [FRONTEND] Socket is null/undefined");
     }
   }
 
