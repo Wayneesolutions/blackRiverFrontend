@@ -2,7 +2,6 @@ import {
   MdDashboard,         
   MdAccessTime,           // Attendance
   MdPerson,               // Profile / Portfolio
-  MdSchool,               // Training Certificates
 } from "react-icons/md";
 
 import { FaUserTie } from "react-icons/fa";      // Employees

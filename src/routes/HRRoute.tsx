@@ -1,4 +1,4 @@
-import { Routes, Route, Navigate, useLocation } from "react-router-dom";
+import { Routes, Route, Navigate} from "react-router-dom";
 import { Suspense, lazy } from "react";
 import React from "react";
 import Loading from "../components/common/Loading";
@@ -16,7 +16,6 @@ const RouteDebugger = ({ children }: { children: React.ReactNode }) => {
 };
 
 function HRRoute() {
-  const location = useLocation();
   // Check if user is HR
   const userRole = getUserRole();
   

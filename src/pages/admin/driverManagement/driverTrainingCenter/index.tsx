@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import  { useState } from "react";
 import TrainingCertificates from "../trainingCertificates/index";
 import TrainingTestManagement from "../trainingTestManagement/index";
 

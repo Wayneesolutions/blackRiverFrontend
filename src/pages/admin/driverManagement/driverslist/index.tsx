@@ -505,7 +505,7 @@ const DriverManagement = () => {
   const [editingAdditionId, setEditingAdditionId] = useState<string | null>(null);
 
   // Form state for Onboarding & Tests
-  const [onboardingStatus, setOnboardingStatus] = useState<'PENDING_TESTS' | 'IN_PROGRESS' | 'WAITING_FOR_HR_APPROVAL' | 'APPROVED' | 'REJECTED'>('PENDING_TESTS');
+  const [, setOnboardingStatus] = useState<'PENDING_TESTS' | 'IN_PROGRESS' | 'WAITING_FOR_HR_APPROVAL' | 'APPROVED' | 'REJECTED'>('PENDING_TESTS');
   const [handlesHazardousLoads, setHandlesHazardousLoads] = useState<boolean>(false);
   const [winterTestRequired, setWinterTestRequired] = useState<boolean>(false);
   const [approvedByHR, setApprovedByHR] = useState<boolean>(false);

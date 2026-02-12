@@ -43,7 +43,6 @@ class SocketService {
       });
       
       // Store the callback so onAny can call it
-      let documentUploadCallback: ((notification: any) => void) | null = null;
       
       // Listen to ALL events for debugging (moved here so it's registered immediately)
       this.socket.onAny((eventName, ...args) => {

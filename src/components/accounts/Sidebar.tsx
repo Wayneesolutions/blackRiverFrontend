@@ -2,7 +2,6 @@ import React, { useState, useMemo } from 'react'
 import { AccountSidebarlinks } from '../../utils/AccountSidebarlinks'
 import { NavLink, useNavigate, useLocation } from "react-router-dom";
 import { FaChevronDown, FaChevronRight } from "react-icons/fa";
-import { FaUsers } from "react-icons/fa";
 import Logo from "../../assets/images/LI.png";
 import FullLogo from "../../assets/FleetGo.png";
 import { getUserRole, getDashboardRoute } from "../../utils/auth";

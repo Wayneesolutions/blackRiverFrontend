@@ -5,11 +5,8 @@ import NewTripSidebar from "./NewTripSidebar";
 import { listTrip, deleteTrip, getTripById, startTrip as startTripAPI, completeTrip as completeTripAPI, approveTripCompletion, listDriver, listVehicle, getTripDocumentSignedUrl, updateTrip } from "../../../../../axios/api/distapcher";
 import ConfirmationModal from "../../../../../components/common/ConfirmationModal";
 import { FLEET_COLORS, getFocusStyles } from "../../../fleetMaintenance/colorUtils";
-import TripChat from "../../../../../components/chat/TripChat";
-import OrderChat from "../../../../../components/chat/OrderChat";
 import { getUnreadMessageCount } from "../../../../../axios/api/chat";
 import { useLocation, useNavigate } from "react-router-dom";
-import { socketService } from "../../../../../services/socketService";
 
 interface Trip {
   _id: string;
@@ -345,11 +342,11 @@ const Trips = () => {
   const [editingTrip, setEditingTrip] = useState<Trip | null>(null);
   const [viewingTrip, setViewingTrip] = useState<Trip | null>(null);
   const [showChat, setShowChat] = useState(false);
-  const [isOrderChat, setIsOrderChat] = useState(false);
+  const [, setIsOrderChat] = useState(false);
   const [deleteConfirm, setDeleteConfirm] = useState<{ show: boolean; trip: Trip | null }>({ show: false, trip: null });
   const [startConfirm, setStartConfirm] = useState<{ show: boolean; trip: Trip | null }>({ show: false, trip: null });
   const [completeConfirm, setCompleteConfirm] = useState<{ show: boolean; trip: Trip | null }>({ show: false, trip: null });
-  const [unreadCounts, setUnreadCounts] = useState<Record<string, number>>({});
+  const [, setUnreadCounts] = useState<Record<string, number>>({});
   const location = useLocation();
   const navigate = useNavigate();
   const pendingOpenChatTripIdRef = useRef<string | null>(null);
@@ -1076,7 +1073,7 @@ const Trips = () => {
   };
 
   // Helper function to get DEMO document status (for static display)
-  const getDemoDocumentStatus = (trip: Trip, index: number) => {
+  const getDemoDocumentStatus = (_trip: Trip, index: number) => {
     // Demo logic: alternate between different states for visual variety
     const demoPattern = index % 4;
     
@@ -1349,6 +1346,14 @@ const Trips = () => {
                           const tripIndex = trips.findIndex(t => t._id === trip._id);
                           const demoStatus = getDemoDocumentStatus(trip, tripIndex);
                           
+                          function setShowDocumentsModal(arg0: boolean) {
+                            throw new Error("Function not implemented.");
+                          }
+
+                          function setSelectedTripForDocuments(tripData: any) {
+                            throw new Error("Function not implemented.");
+                          }
+
                           return (
                             <button
                               onClick={async (e) => {

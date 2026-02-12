@@ -92,6 +92,7 @@ export interface ChatMessage {
   fileSize?: number;
   tripStatus?: TripStatusData; // Trip status data from AI
   isSystemMessage?: boolean; // Flag for system messages
+  forDispatchersOnly?: boolean; // Flag for messages visible only to dispatchers
   readBy: Array<{
     userId: string;
     readAt: string;

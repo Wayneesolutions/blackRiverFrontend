@@ -16,7 +16,6 @@ const RouteDebugger = ({ children }: { children: React.ReactNode }) => {
 };
 
 function AccountantRoute() {
-  const location = useLocation();
   // Check if user is accountant
   const userRole = getUserRole();
   

@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from "react";
-import { MessageCircle, Send, Paperclip, X, File, Image as ImageIcon, Check, CheckCheck, Search, User } from "lucide-react";
+import { MessageCircle, Send, Paperclip, X, File, Image as ImageIcon, Check, CheckCheck, Search } from "lucide-react";
 import { socketService } from "../../services/socketService";
 import { listDriver } from "../../axios/api/distapcher";
 import {
