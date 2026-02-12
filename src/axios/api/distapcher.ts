@@ -1026,6 +1026,18 @@ export const getTripDocumentSignedUrl = async (tripId: string, documentId: strin
   }
 };
 
+export const getOrderAttachmentSignedUrl = async (orderId: string, attachmentId: string, disposition: 'inline' | 'attachment' = 'inline') => {
+  try {
+    const res: AxiosResponse = await apiClient.get(`dispatcher/order/${orderId}/attachments/${attachmentId}/signed-url`, {
+      params: { disposition }
+    });
+    return res.data;
+  } catch (error: any) {
+    console.error('getOrderAttachmentSignedUrl API error:', error);
+    throw error?.response?.data || error;
+  }
+};
+
 export const createBulkOrders = async (orders: any[]) => {
   try {
     const res: AxiosResponse = await apiClient.post(`dispatcher/order/bulk`, { orders });

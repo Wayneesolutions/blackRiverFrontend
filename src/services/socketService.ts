@@ -278,6 +278,46 @@ class SocketService {
       this.socket.emit("driverTyping", { driverId, isTyping });
     }
   }
+
+  // Listen to document upload notifications
+  onDocumentUploadNotification(callback: (notification: {
+    type: string;
+    title: string;
+    message: string;
+    orderId: string;
+    orderNumber: string;
+    driverName: string;
+    timestamp: string;
+    link: string;
+  }) => void) {
+    console.log('🔔 onDocumentUploadNotification called');
+    console.log('🔔 Socket exists?', !!this.socket);
+    console.log('🔔 Socket connected?', this.socket?.connected);
+    console.log('🔔 Socket ID:', this.socket?.id);
+    
+    if (this.socket) {
+      this.socket.on("documentUploadNotification", callback);
+      console.log("✅ Socket listener 'documentUploadNotification' registered successfully");
+      console.log("✅ Callback function:", callback.name || 'anonymous');
+      
+      // Test emit to verify listener is working
+      console.log("🧪 Testing listener by emitting a test event...");
+    } else {
+      console.error("❌ Cannot register 'documentUploadNotification' listener: socket not initialized");
+      console.error("❌ Socket is null/undefined");
+    }
+  }
+
+  // Remove document upload notification listener
+  offDocumentUploadNotification(callback?: (notification: any) => void) {
+    if (this.socket) {
+      if (callback) {
+        this.socket.off("documentUploadNotification", callback);
+      } else {
+        this.socket.off("documentUploadNotification");
+      }
+    }
+  }
 }
 
 // Export singleton instance

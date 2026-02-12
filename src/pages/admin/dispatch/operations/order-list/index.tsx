@@ -3,7 +3,7 @@ import { Edit, Plus, X, Package, DollarSign, Route, Truck, MessageCircle, File, 
 import { FaCheckCircle, FaExclamationCircle, FaTimes, FaTruck } from "react-icons/fa";
 import { useNavigate, useLocation } from "react-router-dom";
 import NewOrderSidebar from "./NewOrderSidebar";
-import { listOrder, deleteOrder, getOrderById, updateOrder } from "../../../../../axios/api/distapcher";
+import { listOrder, deleteOrder, getOrderById, updateOrder, getOrderAttachmentSignedUrl } from "../../../../../axios/api/distapcher";
 import { listPlace } from "../../../../../axios/api/dispatcher.places";
 import ConfirmationModal from "../../../../../components/common/ConfirmationModal";
 import OrderChat from "../../../../../components/chat/OrderChat";
@@ -29,7 +29,7 @@ interface Place {
   };
 }
 
-type NotificationType = 'success' | 'error' | 'warning' | 'chat';
+type NotificationType = 'success' | 'error' | 'warning' | 'chat' | 'document_upload';
 
 interface ToastNotification {
   id: number;
@@ -40,10 +40,11 @@ interface ToastNotification {
   driverName?: string;
 }
 
-const ToastNotification = ({ notification, onClose, onChatClick }: { 
+const ToastNotification = ({ notification, onClose, onChatClick, onDocumentClick }: { 
   notification: ToastNotification; 
   onClose: (id: number) => void;
   onChatClick?: (orderId: string) => void;
+  onDocumentClick?: (orderId: string) => void;
 }) => {
   const [progress, setProgress] = useState(100);
   const duration = notification.type === 'chat' ? 8000 : 5000;
@@ -70,8 +71,66 @@ const ToastNotification = ({ notification, onClose, onChatClick }: {
     if (notification.type === 'chat' && notification.orderId && onChatClick) {
       onChatClick(notification.orderId);
       onClose(notification.id);
+    } else if (notification.type === 'document_upload' && notification.orderId && onDocumentClick) {
+      onDocumentClick(notification.orderId);
+      onClose(notification.id);
     }
   };
+
+  // Document Upload notification (Advanced UI)
+  if (notification.type === 'document_upload') {
+    return (
+      <div
+        onClick={handleClick}
+        className="fixed top-4 right-4 w-[400px] bg-white rounded-2xl shadow-2xl z-[10000] animate-slide-in cursor-pointer hover:shadow-3xl transition-all duration-300 hover:scale-[1.02] border border-gray-100 overflow-hidden"
+      >
+        <div className="h-1 bg-gradient-to-r from-green-500 to-emerald-500 transition-all duration-100" style={{ width: `${progress}%` }}></div>
+        <div className="p-5">
+          <div className="flex items-start gap-4">
+            <div className="flex-shrink-0">
+              <div className="w-12 h-12 rounded-full bg-gradient-to-br from-green-500 to-emerald-600 flex items-center justify-center text-white shadow-lg">
+                <File className="w-6 h-6" />
+              </div>
+              <div className="w-4 h-4 bg-green-500 rounded-full border-2 border-white absolute ml-8 -mt-3 animate-pulse"></div>
+            </div>
+            <div className="flex-1 min-w-0">
+              <div className="flex items-center gap-2 mb-1">
+                <h4 className="font-bold text-gray-900 text-base">
+                  📄 Documents Uploaded
+                </h4>
+              </div>
+              <p className="text-gray-700 text-sm leading-relaxed mb-2">
+                <strong>{notification.driverName || 'Driver'}</strong> has uploaded POD and Manifest documents
+              </p>
+              <div className="flex items-center gap-2 mb-3">
+                <span className="inline-flex items-center gap-1 px-2 py-1 bg-blue-100 text-blue-700 text-xs font-semibold rounded-full">
+                  <FaTruck className="w-3 h-3" />
+                  Order #{notification.orderNumber}
+                </span>
+              </div>
+              <div className="flex items-center gap-3">
+                <div className="flex items-center gap-2 text-green-600 text-xs font-semibold">
+                  <File className="w-4 h-4" />
+                  <span>Click to view documents</span>
+                </div>
+                <div className="flex-1"></div>
+                <span className="text-gray-400 text-xs">Just now</span>
+              </div>
+            </div>
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                onClose(notification.id);
+              }}
+              className="flex-shrink-0 w-8 h-8 rounded-full hover:bg-gray-100 flex items-center justify-center text-gray-400 hover:text-gray-600 transition-all"
+            >
+              <X size={18} />
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   // Chat notification (Advanced UI)
   if (notification.type === 'chat') {
@@ -132,6 +191,7 @@ const ToastNotification = ({ notification, onClose, onChatClick }: {
     error: <FaExclamationCircle className="text-red-500" size={24} />,
     warning: <FaExclamationCircle className="text-yellow-500" size={24} />,
     chat: <MessageCircle className="text-blue-500" size={24} />,
+    document_upload: <File className="text-green-500" size={24} />,
   };
 
   const bgColors = {
@@ -139,6 +199,7 @@ const ToastNotification = ({ notification, onClose, onChatClick }: {
     error: 'bg-red-50 border-red-200',
     warning: 'bg-yellow-50 border-yellow-200',
     chat: 'bg-blue-50 border-blue-200',
+    document_upload: 'bg-green-50 border-green-200',
   };
 
   return (
@@ -181,6 +242,28 @@ interface Order {
   coDriver: string;
   truckNo: string;
   trailerNo: string;
+  attachments?: Array<{
+    id?: string;
+    name?: string;
+    url?: string;
+    type?: string;
+    fileSize?: number;
+    uploadedAt?: string;
+    uploadedBy?: string;
+  }>;
+  documentVerification?: {
+    podDocument?: {
+      fileUrl?: string;
+      fileName?: string;
+      uploadedAt?: string;
+    };
+    borderManifestDocument?: {
+      fileUrl?: string;
+      fileName?: string;
+      uploadedAt?: string;
+    };
+    verificationStatus?: string;
+  };
 }
 
 const OrderList = () => {
@@ -234,6 +317,9 @@ const OrderList = () => {
     setNotifications(prev => prev.filter(n => n.id !== id));
   }, []);
 
+  // Note: Document upload notifications are now handled globally in the Layout component
+  // No need for local listener here anymore
+
   // Handle chat notification click - open chat without updating URL if already open
   const handleChatNotificationClick = useCallback((orderId: string) => {
     const order = orders.find(o => o.id === orderId);
@@ -249,6 +335,16 @@ const OrderList = () => {
       setShowChat(true);
     }
   }, [orders, showChat, chatOrderId]);
+
+  // Handle document notification click - open documents modal
+  const handleDocumentNotificationClick = useCallback((orderId: string) => {
+    const order = orders.find(o => o.id === orderId);
+    if (order) {
+      console.log('📄 Opening documents modal for order:', orderId);
+      setSelectedOrderForDocuments(order);
+      setShowDocumentsModal(true);
+    }
+  }, [orders]);
 
   // Handle orderId query parameter to open chat
   useEffect(() => {
@@ -681,6 +777,9 @@ const OrderList = () => {
       });
 
       if (response?.success && response?.data) {
+        console.log('📋 Raw orders from backend:', response.data);
+        console.log('📎 First order attachments:', response.data[0]?.attachments);
+        
         const formattedOrders = response.data.map((order: any) => ({
           id: order._id,
           orderNo: order.orderNumber || order._id,
@@ -725,6 +824,9 @@ const OrderList = () => {
           dispatcher: order.dispatcher || '',
           carrier: order.carrier || '',
           borderInfo: order.borderInfo || null,
+          // Document fields
+          attachments: order.attachments || [],
+          documentVerification: order.documentVerification || null,
           // Keep full order object for reference
           _fullOrder: order
         }));
@@ -901,14 +1003,19 @@ const OrderList = () => {
 
 
   const getStatusColor = (status: string) => {
-    switch (status) {
-      case "QUOTED":
+    switch (status?.toLowerCase()) {
+      case "quoted":
         return "bg-orange-100 text-orange-800";
-      case "CONFIRMED":
+      case "confirmed":
         return "bg-green-100 text-green-800";
-      case "IN_PROGRESS":
+      case "in_progress":
+      case "in-progress":
+      case "in-delivery":
         return "text-white";
-      case "COMPLETED":
+      case "pending_review":
+      case "verification_pending":
+        return "bg-amber-100 text-amber-800";
+      case "completed":
         return "bg-gray-100 text-gray-800";
       default:
         return "bg-gray-100 text-gray-800";
@@ -916,8 +1023,12 @@ const OrderList = () => {
   };
 
   const getStatusStyle = (status: string) => {
-    if (status === "IN_PROGRESS") {
+    const statusLower = status?.toLowerCase();
+    if (statusLower === "in_progress" || statusLower === "in-progress" || statusLower === "in-delivery") {
       return { background: PRIMARY_GRADIENT };
+    }
+    if (statusLower === "pending_review" || statusLower === "verification_pending") {
+      return { background: 'linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%)' }; // Amber gradient
     }
     return {};
   };
@@ -1357,14 +1468,17 @@ const OrderList = () => {
                               order.status?.toLowerCase() === 'completed' ? 'bg-gray-100 text-gray-800 ring-gray-600/20' :
                                 order.status?.toLowerCase() === 'delivered' ? 'bg-purple-100 text-purple-800 ring-purple-600/20' :
                                   order.status?.toLowerCase() === 'in-delivery' ? 'bg-yellow-100 text-yellow-800 ring-yellow-600/20' :
-                                    order.status?.toLowerCase() === 'canceled' ? 'bg-red-100 text-red-800 ring-red-600/20' :
-                                      'bg-gray-100 text-gray-800 ring-gray-500/10'
+                                    order.status?.toLowerCase() === 'pending_review' || order.status?.toLowerCase() === 'verification_pending' ? 'bg-amber-100 text-amber-800 ring-amber-600/20' :
+                                      order.status?.toLowerCase() === 'canceled' ? 'bg-red-100 text-red-800 ring-red-600/20' :
+                                        'bg-gray-100 text-gray-800 ring-gray-500/10'
                             }`}
                         >
                           <option value="planned">Planned</option>
                           <option value="quoted">Quoted</option>
                           <option value="in-delivery">In Delivery</option>
                           <option value="delivered">Delivered</option>
+                          <option value="pending_review">Pending Review</option>
+                          <option value="verification_pending">Verification Pending</option>
                           <option value="completed">Completed</option>
                           <option value="canceled">Canceled</option>
                         </select>
@@ -1461,9 +1575,10 @@ const OrderList = () => {
                       </td>
                       <td className="px-4 py-4 whitespace-nowrap">
                         {(() => {
-                          // Use demo status for static display - always shows something
-                          const orderIndex = paginatedOrders.findIndex(o => o.id === order.id);
-                          const demoStatus = getDemoDocumentStatus(order, orderIndex);
+                          // Get actual attachment count from order
+                          const attachmentCount = order.attachments?.length || 0;
+                          
+                          console.log(`📎 Order ${order.orderNo} - Attachments:`, order.attachments, 'Count:', attachmentCount);
                           
                           return (
                             <button
@@ -1471,66 +1586,29 @@ const OrderList = () => {
                                 e.stopPropagation();
                                 try {
                                   const response = await getOrderById(order.id);
+                                  console.log('📄 getOrderById response:', response);
                                   if (response?.success) {
                                     const orderData = response.data;
+                                    console.log('📄 Order data:', orderData);
+                                    console.log('📎 Attachments:', orderData?.attachments);
+                                    console.log('📋 Document Verification:', orderData?.documentVerification);
                                     setSelectedOrderForDocuments(orderData as any);
                                     setShowDocumentsModal(true);
                                   } else {
                                     addNotification('error', 'Failed to load order documents');
                                   }
                                 } catch (error: any) {
+                                  console.error('❌ Error loading documents:', error);
                                   addNotification('error', 'Error loading documents');
                                 }
                               }}
-                              className="flex items-center gap-2 px-2 py-1.5 bg-white hover:bg-blue-50 border border-gray-300 rounded transition-colors w-full min-w-[140px] cursor-pointer"
-                              title="Click to view documents"
+                              className="flex items-center justify-center gap-2 px-3 py-2 bg-white hover:bg-blue-50 border border-gray-300 rounded transition-colors cursor-pointer"
+                              title={`Click to view ${attachmentCount} document${attachmentCount !== 1 ? 's' : ''}`}
                             >
-                              <div className="flex items-center gap-2 flex-1">
-                                {/* POD Status - Always visible */}
-                                <div className="flex items-center gap-1" title={demoStatus.hasPOD ? "POD Uploaded ✓" : "POD Missing ✗"}>
-                                  {demoStatus.hasPOD ? (
-                                    <>
-                                      <FaCheckCircle className="text-green-600" size={14} />
-                                      <span className="text-xs font-semibold text-green-700">POD</span>
-                                    </>
-                                  ) : (
-                                    <>
-                                      <FaTimes className="text-red-600" size={14} />
-                                      <span className="text-xs font-semibold text-red-700">POD</span>
-                                    </>
-                                  )}
-                                </div>
-                                
-                                {/* Border Manifest Status (for Canada trips) */}
-                                {demoStatus.isCanada && (
-                                  <div className="flex items-center gap-1" title={demoStatus.hasBorderManifest ? "Manifest Uploaded ✓" : "Manifest Missing ✗"}>
-                                    {demoStatus.hasBorderManifest ? (
-                                      <>
-                                        <FaCheckCircle className="text-green-600" size={14} />
-                                        <span className="text-xs font-semibold text-green-700">M</span>
-                                      </>
-                                    ) : (
-                                      <>
-                                        <FaTimes className="text-red-600" size={14} />
-                                        <span className="text-xs font-semibold text-red-700">M</span>
-                                      </>
-                                    )}
-                                  </div>
-                                )}
-                                
-                                {/* Document count badge */}
-                                {demoStatus.documentCount > 0 && (
-                                  <div className="flex items-center gap-1 ml-auto">
-                                    <File className="text-blue-600" size={12} />
-                                    <span className="text-xs font-semibold text-blue-800">{demoStatus.documentCount}</span>
-                                  </div>
-                                )}
-                                
-                                {/* Show dash if no documents */}
-                                {demoStatus.documentCount === 0 && (
-                                  <span className="text-xs text-gray-400 ml-auto">-</span>
-                                )}
-                              </div>
+                              <File className={attachmentCount > 0 ? "text-blue-600" : "text-gray-400"} size={16} />
+                              <span className={`text-sm font-semibold ${attachmentCount > 0 ? 'text-blue-800' : 'text-gray-400'}`}>
+                                {attachmentCount}
+                              </span>
                             </button>
                           );
                         })()}
@@ -1605,32 +1683,53 @@ const OrderList = () => {
               <div className="mb-4 p-3 bg-gray-50 rounded-lg border border-gray-200">
                 <div className="text-xs font-semibold text-gray-700 mb-2">Required Documents:</div>
                 {(() => {
-                  const orderIndex = paginatedOrders.findIndex(o => o.id === selectedOrderForDocuments.id);
-                  const demoStatus = getDemoDocumentStatus(selectedOrderForDocuments, orderIndex);
+                  const orderData = selectedOrderForDocuments as any;
+                  const attachments = orderData?.attachments || [];
+                  
+                  console.log('📋 Modal - Order Data:', orderData);
+                  console.log('📎 Modal - Attachments:', attachments);
+                  console.log('📎 Modal - Attachments length:', attachments.length);
+                  
+                  // Check for POD
+                  const hasPOD = attachments.some((att: any) => 
+                    att.type === 'pod' || 
+                    att.type === 'proof_of_delivery' ||
+                    att.name?.toLowerCase().includes('pod')
+                  );
+                  
+                  // Check for Manifest
+                  const hasManifest = attachments.some((att: any) => 
+                    att.type === 'border_manifest' || 
+                    att.type === 'manifest' ||
+                    att.type === 'stamped_manifest' ||
+                    att.name?.toLowerCase().includes('manifest')
+                  );
+                  
+                  console.log('✅ Has POD:', hasPOD);
+                  console.log('✅ Has Manifest:', hasManifest);
+                  
                   return (
                     <div className="space-y-2">
                       <div className="flex items-center gap-2 text-sm">
-                        {demoStatus.hasPOD ? (
+                        {hasPOD ? (
                           <FaCheckCircle className="text-green-600" size={14} />
                         ) : (
                           <FaTimes className="text-red-600" size={14} />
                         )}
-                        <span className={demoStatus.hasPOD ? 'text-green-800' : 'text-red-800'}>
-                          POD (Proof of Delivery) - {demoStatus.hasPOD ? 'Uploaded' : 'Missing'}
+                        <span className={hasPOD ? 'text-green-800' : 'text-red-800'}>
+                          POD (Proof of Delivery) - {hasPOD ? 'Uploaded' : 'Missing'}
                         </span>
                       </div>
-                      {demoStatus.isCanada && (
-                        <div className="flex items-center gap-2 text-sm">
-                          {demoStatus.hasBorderManifest ? (
-                            <FaCheckCircle className="text-green-600" size={14} />
-                          ) : (
-                            <FaTimes className="text-red-600" size={14} />
-                          )}
-                          <span className={demoStatus.hasBorderManifest ? 'text-green-800' : 'text-red-800'}>
-                            Border Manifest - {demoStatus.hasBorderManifest ? 'Uploaded' : 'Missing'}
-                          </span>
-                        </div>
-                      )}
+                      <div className="flex items-center gap-2 text-sm">
+                        {hasManifest ? (
+                          <FaCheckCircle className="text-green-600" size={14} />
+                        ) : (
+                          <FaTimes className="text-red-600" size={14} />
+                        )}
+                        <span className={hasManifest ? 'text-green-800' : 'text-red-800'}>
+                          Border Manifest - {hasManifest ? 'Uploaded' : 'Missing'}
+                        </span>
+                      </div>
                     </div>
                   );
                 })()}
@@ -1640,208 +1739,71 @@ const OrderList = () => {
               <div>
                 <div className="text-sm font-semibold text-gray-700 mb-3">Uploaded Documents:</div>
                 {(() => {
-                  const orderIndex = paginatedOrders.findIndex(o => o.id === selectedOrderForDocuments.id);
-                  const demoStatus = getDemoDocumentStatus(selectedOrderForDocuments, orderIndex);
+                  const orderData = selectedOrderForDocuments as any;
+                  const attachments = orderData?.attachments || [];
                   
-                  if (demoStatus.documentCount > 0) {
+                  console.log('📄 Uploaded Documents Section - Attachments:', attachments);
+                  console.log('📄 Uploaded Documents Section - Count:', attachments.length);
+                  
+                  if (attachments.length > 0) {
+                    console.log('✅ Showing attachments list');
                     return (
                       <div className="space-y-2">
-                        {demoStatus.hasPOD && (
-                          <div className="p-3 bg-white border border-gray-200 rounded-lg">
-                            <div className="flex items-start justify-between gap-3">
-                              <div className="flex items-start gap-3 flex-1 min-w-0">
-                                <File className="w-4 h-4 text-gray-400 mt-0.5 flex-shrink-0" />
-                                <div className="flex-1 min-w-0">
-                                  <div className="flex items-center gap-2 mb-1">
-                                    <span className="font-medium text-sm text-gray-900">Proof of Delivery (POD)</span>
-                                    <span className="px-2 py-0.5 bg-gray-100 text-gray-700 rounded text-xs font-medium">POD</span>
+                        {attachments.map((attachment: any, index: number) => {
+                          console.log(`📎 Rendering attachment ${index}:`, attachment);
+                          const docType = attachment.type || 'other';
+                          const docName = attachment.name || 'Document';
+                          const docUrl = attachment.url;
+                          
+                          let displayName = docName;
+                          let typeLabel = docType.toUpperCase();
+                          
+                          if (docType === 'pod' || docType === 'proof_of_delivery') {
+                            displayName = 'Proof of Delivery (POD)';
+                            typeLabel = 'POD';
+                          } else if (docType === 'border_manifest' || docType === 'manifest' || docType === 'stamped_manifest') {
+                            displayName = 'Border Manifest';
+                            typeLabel = 'Manifest';
+                          }
+                          
+                          return (
+                            <div key={attachment.id || index} className="p-3 bg-white border border-gray-200 rounded-lg">
+                              <div className="flex items-start justify-between gap-3">
+                                <div className="flex items-start gap-3 flex-1 min-w-0">
+                                  <File className="w-4 h-4 text-gray-400 mt-0.5 flex-shrink-0" />
+                                  <div className="flex-1 min-w-0">
+                                    <div className="flex items-center gap-2 mb-1">
+                                      <span className="font-medium text-sm text-gray-900">{displayName}</span>
+                                      <span className="px-2 py-0.5 bg-gray-100 text-gray-700 rounded text-xs font-medium">{typeLabel}</span>
+                                    </div>
+                                    <div className="text-xs text-gray-500 mt-1">{docName}</div>
+                                    {attachment.uploadedAt && (
+                                      <div className="text-xs text-gray-400 mt-1">
+                                        Uploaded: {new Date(attachment.uploadedAt).toLocaleString()}
+                                      </div>
+                                    )}
                                   </div>
-                                  <div className="text-xs text-gray-500 mt-1">Uploaded document</div>
                                 </div>
-                              </div>
-                              <button
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  // Check if order has actual POD document
-                                  const orderData = selectedOrderForDocuments as any;
-                                  const podUrl = orderData?.documents?.pod || orderData?._fullOrder?.documents?.pod;
-                                  
-                                  if (podUrl) {
-                                    // Open actual document URL in new tab
-                                    window.open(podUrl, '_blank', 'noopener,noreferrer');
-                                  } else {
-                                    // For demo: Create and open a demo document viewer
-                                    const demoDocHtml = `
-                                      <!DOCTYPE html>
-                                      <html>
-                                        <head>
-                                          <title>Proof of Delivery - ${selectedOrderForDocuments.orderNo || 'Order'}</title>
-                                          <style>
-                                            body { font-family: Arial, sans-serif; padding: 40px; max-width: 800px; margin: 0 auto; }
-                                            .header { border-bottom: 2px solid #016ab2; padding-bottom: 20px; margin-bottom: 30px; }
-                                            .header h1 { color: #016ab2; margin: 0; }
-                                            .info { margin: 20px 0; }
-                                            .info-row { display: flex; margin: 10px 0; }
-                                            .info-label { font-weight: bold; width: 200px; color: #666; }
-                                            .info-value { color: #333; }
-                                            .signature-section { margin-top: 40px; padding-top: 20px; border-top: 1px solid #ddd; }
-                                            .signature-box { border: 2px solid #016ab2; padding: 20px; margin-top: 20px; min-height: 100px; }
-                                            .footer { margin-top: 40px; padding-top: 20px; border-top: 1px solid #ddd; text-align: center; color: #666; font-size: 12px; }
-                                          </style>
-                                        </head>
-                                        <body>
-                                          <div class="header">
-                                            <h1>Proof of Delivery (POD)</h1>
-                                            <p style="color: #666; margin: 5px 0;">Order: ${selectedOrderForDocuments.orderNo || selectedOrderForDocuments.custOrderNo || 'N/A'}</p>
-                                          </div>
-                                          <div class="info">
-                                            <div class="info-row">
-                                              <div class="info-label">Customer:</div>
-                                              <div class="info-value">${selectedOrderForDocuments.customerName || 'N/A'}</div>
-                                            </div>
-                                            <div class="info-row">
-                                              <div class="info-label">Delivery Date:</div>
-                                              <div class="info-value">${selectedOrderForDocuments.deliveryDate || 'N/A'}</div>
-                                            </div>
-                                            <div class="info-row">
-                                              <div class="info-label">Delivery Location:</div>
-                                              <div class="info-value">${selectedOrderForDocuments.deliveryLocation || 'N/A'}</div>
-                                            </div>
-                                            <div class="info-row">
-                                              <div class="info-label">Driver:</div>
-                                              <div class="info-value">${selectedOrderForDocuments.driver || 'N/A'}</div>
-                                            </div>
-                                          </div>
-                                          <div class="signature-section">
-                                            <h3>Customer Signature</h3>
-                                            <div class="signature-box">
-                                              <p style="color: #999; font-style: italic;">Signature area - Document signed by customer</p>
-                                            </div>
-                                          </div>
-                                          <div class="footer">
-                                            <p>This is a demo document. Actual POD will be displayed when uploaded.</p>
-                                            <p>Generated: ${new Date().toLocaleString()}</p>
-                                          </div>
-                                        </body>
-                                      </html>
-                                    `;
-                                    const blob = new Blob([demoDocHtml], { type: 'text/html' });
-                                    const url = URL.createObjectURL(blob);
-                                    const newWindow = window.open(url, '_blank', 'noopener,noreferrer');
-                                    if (newWindow) {
-                                      setTimeout(() => URL.revokeObjectURL(url), 100);
+                                <button
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    if (docUrl) {
+                                      console.log('🔗 Opening document with pre-signed URL');
+                                      window.open(docUrl, '_blank', 'noopener,noreferrer');
+                                    } else {
+                                      alert('Document URL not available');
                                     }
-                                  }
-                                }}
-                                className="px-3 py-1.5 text-xs font-medium text-blue-600 hover:text-blue-700 hover:bg-blue-50 rounded border border-blue-200 transition-colors flex items-center gap-1 flex-shrink-0"
-                                title="View Document in New Tab"
-                              >
-                                <Download className="w-3 h-3" />
-                                View
-                              </button>
-                            </div>
-                          </div>
-                        )}
-                        {demoStatus.hasBorderManifest && (
-                          <div className="p-3 bg-white border border-gray-200 rounded-lg">
-                            <div className="flex items-start justify-between gap-3">
-                              <div className="flex items-start gap-3 flex-1 min-w-0">
-                                <File className="w-4 h-4 text-gray-400 mt-0.5 flex-shrink-0" />
-                                <div className="flex-1 min-w-0">
-                                  <div className="flex items-center gap-2 mb-1">
-                                    <span className="font-medium text-sm text-gray-900">Border Manifest</span>
-                                    <span className="px-2 py-0.5 bg-gray-100 text-gray-700 rounded text-xs font-medium">Manifest</span>
-                                  </div>
-                                  <div className="text-xs text-gray-500 mt-1">Uploaded document</div>
-                                </div>
+                                  }}
+                                  className="px-3 py-1.5 text-xs font-medium text-blue-600 hover:text-blue-700 hover:bg-blue-50 rounded border border-blue-200 transition-colors flex items-center gap-1 flex-shrink-0"
+                                  title="View Document in New Tab"
+                                >
+                                  <Download className="w-3 h-3" />
+                                  View
+                                </button>
                               </div>
-                              <button
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  // Check if order has actual Manifest document
-                                  const orderData = selectedOrderForDocuments as any;
-                                  const manifestUrl = orderData?.documents?.stampedManifest || orderData?._fullOrder?.documents?.stampedManifest;
-                                  
-                                  if (manifestUrl) {
-                                    // Open actual document URL in new tab
-                                    window.open(manifestUrl, '_blank', 'noopener,noreferrer');
-                                  } else {
-                                    // For demo: Create and open a demo document viewer
-                                    const demoDocHtml = `
-                                      <!DOCTYPE html>
-                                      <html>
-                                        <head>
-                                          <title>Border Manifest - ${selectedOrderForDocuments.orderNo || 'Order'}</title>
-                                          <style>
-                                            body { font-family: Arial, sans-serif; padding: 40px; max-width: 800px; margin: 0 auto; }
-                                            .header { border-bottom: 2px solid #016ab2; padding-bottom: 20px; margin-bottom: 30px; }
-                                            .header h1 { color: #016ab2; margin: 0; }
-                                            .info { margin: 20px 0; }
-                                            .info-row { display: flex; margin: 10px 0; }
-                                            .info-label { font-weight: bold; width: 200px; color: #666; }
-                                            .info-value { color: #333; }
-                                            .border-info { margin-top: 30px; padding: 20px; background: #f5f5f5; border-radius: 8px; }
-                                            .stamp-section { margin-top: 40px; padding-top: 20px; border-top: 1px solid #ddd; text-align: center; }
-                                            .stamp-box { border: 3px dashed #016ab2; padding: 30px; margin: 20px auto; width: 300px; }
-                                            .footer { margin-top: 40px; padding-top: 20px; border-top: 1px solid #ddd; text-align: center; color: #666; font-size: 12px; }
-                                          </style>
-                                        </head>
-                                        <body>
-                                          <div class="header">
-                                            <h1>Border Manifest</h1>
-                                            <p style="color: #666; margin: 5px 0;">Order: ${selectedOrderForDocuments.orderNo || selectedOrderForDocuments.custOrderNo || 'N/A'}</p>
-                                          </div>
-                                          <div class="info">
-                                            <div class="info-row">
-                                              <div class="info-label">Port of Entry:</div>
-                                              <div class="info-value">${(selectedOrderForDocuments as any).borderInfo?.portOfEntry || 'N/A'}</div>
-                                            </div>
-                                            <div class="info-row">
-                                              <div class="info-label">Direction:</div>
-                                              <div class="info-value">${(selectedOrderForDocuments as any).borderInfo?.direction || 'N/A'}</div>
-                                            </div>
-                                            <div class="info-row">
-                                              <div class="info-label">Broker:</div>
-                                              <div class="info-value">${(selectedOrderForDocuments as any).borderInfo?.brokerName || 'N/A'}</div>
-                                            </div>
-                                          </div>
-                                          <div class="border-info">
-                                            <h3>Border Crossing Information</h3>
-                                            <p>This manifest is required for Canada border crossings.</p>
-                                            <p><strong>Cargo Description:</strong> ${(selectedOrderForDocuments as any).borderInfo?.cargoDescription || 'N/A'}</p>
-                                            <p><strong>Commercial Value:</strong> ${(selectedOrderForDocuments as any).borderInfo?.commercialValue || 'N/A'}</p>
-                                          </div>
-                                          <div class="stamp-section">
-                                            <h3>Customs Stamp</h3>
-                                            <div class="stamp-box">
-                                              <p style="color: #999; font-style: italic;">Customs stamp area</p>
-                                              <p style="color: #016ab2; font-weight: bold; margin-top: 10px;">STAMPED</p>
-                                            </div>
-                                          </div>
-                                          <div class="footer">
-                                            <p>This is a demo document. Actual Border Manifest will be displayed when uploaded.</p>
-                                            <p>Generated: ${new Date().toLocaleString()}</p>
-                                          </div>
-                                        </body>
-                                      </html>
-                                    `;
-                                    const blob = new Blob([demoDocHtml], { type: 'text/html' });
-                                    const url = URL.createObjectURL(blob);
-                                    const newWindow = window.open(url, '_blank', 'noopener,noreferrer');
-                                    if (newWindow) {
-                                      setTimeout(() => URL.revokeObjectURL(url), 100);
-                                    }
-                                  }
-                                }}
-                                className="px-3 py-1.5 text-xs font-medium text-blue-600 hover:text-blue-700 hover:bg-blue-50 rounded border border-blue-200 transition-colors flex items-center gap-1 flex-shrink-0"
-                                title="View Document in New Tab"
-                              >
-                                <Download className="w-3 h-3" />
-                                View
-                              </button>
                             </div>
-                          </div>
-                        )}
+                          );
+                        })}
                       </div>
                     );
                   }
@@ -1878,6 +1840,7 @@ const OrderList = () => {
             notification={notification}
             onClose={removeNotification}
             onChatClick={handleChatNotificationClick}
+            onDocumentClick={handleDocumentNotificationClick}
           />
         ))}
       </div>
