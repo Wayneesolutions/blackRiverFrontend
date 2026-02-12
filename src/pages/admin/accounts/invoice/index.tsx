@@ -1086,7 +1086,7 @@ const InvoiceManagement: React.FC = () => {
                         <div className="flex items-center gap-3">
                             <button
                                 onClick={() => handleDownloadPDF(selectedInvoice)}
-                                className="px-5 py-2.5 bg-gradient-to-r from-gray-700 to-gray-800 text-white rounded-md hover:from-gray-800 hover:to-gray-900 transition-all flex items-center gap-2 shadow-md hover:shadow-lg transform hover:scale-105 duration-200 font-medium"
+                                className="px-5 py-2.5 bg-gradient-to-r from-gray-700 to-gray-800 !text-white rounded-md hover:from-gray-800 hover:to-gray-900 transition-all flex items-center gap-2 shadow-md hover:shadow-lg transform hover:scale-105 duration-200 font-medium"
                             >
                                 <Download className="h-4 w-4" />
                                 Download PDF
