@@ -35,7 +35,7 @@ interface Invoice {
     clientPhone?: string;
     loadId?: string; // Legacy field
     tripId?: string | Trip; // New field - can be populated
-    orderId?: {
+    orderId?: Order | {
         orderNumber: string;
         customerOrderNo?: string;
         pickupLocation?: { place?: string };
@@ -249,9 +249,12 @@ const InvoiceManagement: React.FC = () => {
             const margin = 20;
             const contentWidth = pageWidth - margin * 2;
     
-            const primaryColor = [67, 56, 202];
-            const secondaryColor = [99, 102, 241];
-            const textColor = [31, 41, 55];
+            // Professional gray colors (matching super admin style)
+            const primaryColor = [55, 65, 81]; // Gray-700
+            const secondaryColor = [55, 65, 81]; // Gray-700
+            const textColor = [31, 41, 55]; // Gray-800
+            const grayColor = [107, 114, 128]; // Gray-500
+            const lightGrayColor = [243, 244, 246]; // Gray-100
     
             const company =
                 typeof invoice.company === "object" && invoice.company
@@ -271,23 +274,23 @@ const InvoiceManagement: React.FC = () => {
     
             // ================= HEADER =================
             doc.setFillColor(...primaryColor);
-            doc.rect(0, 0, pageWidth, 50, "F");
-    
+            doc.rect(0, 0, pageWidth, 55, "F");
+
             // Logo
             if (company?.logoUrl) {
                 try {
                     const base64 = await loadImageAsBase64(company.logoUrl);
-                    doc.addImage(base64, "PNG", margin, 10, 40, 25);
+                    doc.addImage(base64, "PNG", margin, 12, 45, 28);
                 } catch {
                     console.warn("Logo not loaded");
                 }
             }
-    
+
             // Title
             doc.setTextColor(255, 255, 255);
-            doc.setFontSize(26);
+            doc.setFontSize(32);
             doc.setFont("helvetica", "bold");
-            doc.text("INVOICE", pageWidth / 2, 25, { align: "center" });
+            doc.text("INVOICE", pageWidth / 2, 30, { align: "center" });
     
             doc.setTextColor(...textColor);
     
@@ -327,48 +330,429 @@ const InvoiceManagement: React.FC = () => {
     
             // ================= BILL TO =================
             yPos += 10;
-    
+
             doc.setFontSize(12);
             doc.setFont("helvetica", "bold");
             doc.text("Bill To:", margin, yPos);
             yPos += 8;
-    
+
             doc.setFontSize(11);
             doc.setFont("helvetica", "normal");
             doc.text(invoice.clientName, margin, yPos);
             yPos += 7;
-    
+
             if (invoice.clientAddress) {
                 const lines = doc.splitTextToSize(invoice.clientAddress, 90);
                 doc.text(lines, margin, yPos);
                 yPos += lines.length * 5;
             }
-    
+
             if (invoice.clientEmail) {
                 doc.text(invoice.clientEmail, margin, yPos);
                 yPos += 6;
             }
-    
+
             if (invoice.clientPhone) {
                 doc.text(`Phone: ${invoice.clientPhone}`, margin, yPos);
                 yPos += 6;
             }
+
+            // ================= LOAD DETAILS =================
+            const trip = typeof invoice.tripId === 'object' && invoice.tripId ? invoice.tripId : null;
+            const order = invoice.orderId;
+            // Type guard to check if order is a full Order object
+            const isFullOrder = (o: any): o is Order => {
+                return o && typeof o === 'object' && '_id' in o;
+            };
+            
+            if (trip || order) {
+                yPos += 10;
+                
+                const loadDetailsStartY = yPos - 3;
+                
+                // First, calculate approximate height needed
+                let estimatedHeight = 15; // Header + spacing
+                if (trip?.tripNumber || order?.orderNumber) estimatedHeight += 6;
+                if (order?.customerOrderNo) estimatedHeight += 6;
+                if (trip?.startLocation?.place || order?.pickupLocation?.place) estimatedHeight += 12;
+                if (trip?.endLocation?.place || order?.deliveryLocation?.place) estimatedHeight += 12;
+                
+                // Truck details (from trip or order)
+                const calcTruckInfo = trip?.truck || (isFullOrder(order) && order.truck ? order.truck : null);
+                if (calcTruckInfo) {
+                    estimatedHeight += 10; // Section header
+                    if (calcTruckInfo.plateNumber || calcTruckInfo.licensePlate || calcTruckInfo.unitNumber || calcTruckInfo.internalId || calcTruckInfo._id) estimatedHeight += 6;
+                    if (calcTruckInfo.make) estimatedHeight += 6;
+                    if (calcTruckInfo.model) estimatedHeight += 6;
+                    if (calcTruckInfo.makeModel && !calcTruckInfo.make) estimatedHeight += 6;
+                    if (calcTruckInfo.type || calcTruckInfo.unitType) estimatedHeight += 6;
+                    if (calcTruckInfo.year) estimatedHeight += 6;
+                    if (calcTruckInfo.vin) estimatedHeight += 6;
+                }
+                
+                // Trailer details (from trip or order)
+                const calcTrailerInfo = trip?.trailer || (isFullOrder(order) && order.trailer ? order.trailer : null);
+                if (calcTrailerInfo) {
+                    estimatedHeight += 10; // Section header
+                    if (calcTrailerInfo.plateNumber || calcTrailerInfo.licensePlate || calcTrailerInfo.unitNumber || calcTrailerInfo.internalId || calcTrailerInfo._id) estimatedHeight += 6;
+                    if (calcTrailerInfo.make) estimatedHeight += 6;
+                    if (calcTrailerInfo.model) estimatedHeight += 6;
+                    if (calcTrailerInfo.makeModel && !calcTrailerInfo.make) estimatedHeight += 6;
+                    if (calcTrailerInfo.type) estimatedHeight += 6;
+                    if (calcTrailerInfo.capacity) estimatedHeight += 6;
+                    if (calcTrailerInfo.year) estimatedHeight += 6;
+                    if (calcTrailerInfo.vin) estimatedHeight += 6;
+                }
+                
+                // Driver information (Name and ID only) - from trip or order
+                const calcDriverInfo = trip?.driver || (isFullOrder(order) && order.driver ? order.driver : null);
+                const calcCoDriverInfo = trip?.coDriver || (isFullOrder(order) && order.coDriver ? order.coDriver : null);
+                if (calcDriverInfo || calcCoDriverInfo) {
+                    estimatedHeight += 10; // Section header
+                    if (calcDriverInfo) {
+                        estimatedHeight += 6; // Name
+                        estimatedHeight += 6; // ID
+                    }
+                    if (calcCoDriverInfo) {
+                        estimatedHeight += 9; // Spacing + name
+                        estimatedHeight += 6; // ID
+                    }
+                }
+                
+                if (trip?.route?.totalDistance) estimatedHeight += 6;
+                
+                // Draw background box first
+                doc.setFillColor(...lightGrayColor);
+                doc.rect(margin, loadDetailsStartY, contentWidth, estimatedHeight, 'F');
+                
+                doc.setFontSize(12);
+                doc.setFont("helvetica", "bold");
+                doc.setTextColor(...textColor);
+                doc.text("Load Details:", margin + 3, yPos);
+                yPos += 8;
+
+                doc.setFontSize(10);
+                doc.setFont("helvetica", "normal");
+                doc.setTextColor(...grayColor);
+
+                // Trip/Order Number
+                const tripNumber = trip?.tripNumber || order?.orderNumber;
+                if (tripNumber) {
+                    doc.text("Trip/Order Number:", margin + 3, yPos);
+                    doc.setTextColor(...textColor);
+                    doc.setFont("helvetica", "bold");
+                    doc.text(tripNumber, margin + 53, yPos);
+                    doc.setFont("helvetica", "normal");
+                    doc.setTextColor(...grayColor);
+                    yPos += 6;
+                }
+
+                // Customer Order Number
+                if (order?.customerOrderNo) {
+                    doc.text("Customer PO Number:", margin + 3, yPos);
+                    doc.setTextColor(...textColor);
+                    doc.text(order.customerOrderNo, margin + 53, yPos);
+                    doc.setTextColor(...grayColor);
+                    yPos += 6;
+                }
+
+                // Pickup Location
+                const pickupLocation = trip?.startLocation?.place || trip?.orders?.[0]?.pickupLocation?.place || order?.pickupLocation?.place;
+                if (pickupLocation) {
+                    doc.text("Pickup Location:", margin + 3, yPos);
+                    doc.setTextColor(...textColor);
+                    const pickupLines = doc.splitTextToSize(pickupLocation, 80);
+                    doc.text(pickupLines, margin + 53, yPos);
+                    yPos += pickupLines.length * 5;
+                    doc.setTextColor(...grayColor);
+                }
+
+                // Dropoff Location
+                const dropoffLocation = trip?.endLocation?.place || trip?.orders?.[trip?.orders?.length - 1]?.deliveryLocation?.place || order?.deliveryLocation?.place;
+                if (dropoffLocation) {
+                    doc.text("Dropoff Location:", margin + 3, yPos);
+                    doc.setTextColor(...textColor);
+                    const dropoffLines = doc.splitTextToSize(dropoffLocation, 80);
+                    doc.text(dropoffLines, margin + 53, yPos);
+                    yPos += dropoffLines.length * 5;
+                    doc.setTextColor(...grayColor);
+                }
+
+                // Truck Details Section - Check multiple sources
+                let truckInfo = trip?.truck;
+                if (!truckInfo && isFullOrder(order) && order.truck) {
+                    truckInfo = order.truck;
+                }
+                // Also check trip's orders for truck data
+                if (!truckInfo && trip?.orders && trip.orders.length > 0) {
+                    truckInfo = trip.orders[0]?.truck;
+                }
+                // Show section if truck object exists
+                if (truckInfo) {
+                    yPos += 3;
+                    doc.setFontSize(11);
+                    doc.setFont("helvetica", "bold");
+                    doc.setTextColor(...textColor);
+                    doc.text("TRUCK DETAILS:", margin + 3, yPos);
+                    yPos += 7;
+                    
+                    doc.setFontSize(9);
+                    doc.setFont("helvetica", "normal");
+                    doc.setTextColor(...grayColor);
+                    
+                    // Always show Unit/Plate Number (at minimum show ID)
+                    doc.text("Unit/Plate Number:", margin + 3, yPos);
+                    doc.setTextColor(...textColor);
+                    doc.setFont("helvetica", "bold");
+                    const truckNumber = truckInfo.plateNumber || truckInfo.licensePlate || truckInfo.unitNumber || truckInfo.internalId || (truckInfo._id ? truckInfo._id.slice(-8) : 'N/A');
+                    doc.text(truckNumber, margin + 53, yPos);
+                    doc.setFont("helvetica", "normal");
+                    doc.setTextColor(...grayColor);
+                    yPos += 6;
+                    
+                    if (truckInfo.make) {
+                        doc.text("Make:", margin + 3, yPos);
+                        doc.setTextColor(...textColor);
+                        doc.text(truckInfo.make, margin + 53, yPos);
+                        doc.setTextColor(...grayColor);
+                        yPos += 6;
+                    }
+                    
+                    if (truckInfo.model) {
+                        doc.text("Model:", margin + 3, yPos);
+                        doc.setTextColor(...textColor);
+                        doc.text(truckInfo.model, margin + 53, yPos);
+                        doc.setTextColor(...grayColor);
+                        yPos += 6;
+                    }
+                    
+                    if (truckInfo.makeModel && !truckInfo.make) {
+                        doc.text("Make/Model:", margin + 3, yPos);
+                        doc.setTextColor(...textColor);
+                        doc.text(truckInfo.makeModel, margin + 53, yPos);
+                        doc.setTextColor(...grayColor);
+                        yPos += 6;
+                    }
+                    
+                    if (truckInfo.type || truckInfo.unitType) {
+                        doc.text("Type:", margin + 3, yPos);
+                        doc.setTextColor(...textColor);
+                        doc.text(truckInfo.type || truckInfo.unitType, margin + 53, yPos);
+                        doc.setTextColor(...grayColor);
+                        yPos += 6;
+                    }
+                    
+                    if (truckInfo.year) {
+                        doc.text("Year:", margin + 3, yPos);
+                        doc.setTextColor(...textColor);
+                        doc.text(String(truckInfo.year), margin + 53, yPos);
+                        doc.setTextColor(...grayColor);
+                        yPos += 6;
+                    }
+                    
+                    if (truckInfo.vin) {
+                        doc.text("VIN:", margin + 3, yPos);
+                        doc.setTextColor(...textColor);
+                        doc.setFont("helvetica", "normal");
+                        doc.text(truckInfo.vin, margin + 53, yPos);
+                        doc.setTextColor(...grayColor);
+                        yPos += 6;
+                    }
+                }
+
+                // Trailer Details Section - Check multiple sources
+                let trailerInfo = trip?.trailer;
+                if (!trailerInfo && isFullOrder(order) && order.trailer) {
+                    trailerInfo = order.trailer;
+                }
+                // Also check trip's orders for trailer data
+                if (!trailerInfo && trip?.orders && trip.orders.length > 0) {
+                    trailerInfo = trip.orders[0]?.trailer;
+                }
+                // Show section if trailer object exists
+                if (trailerInfo) {
+                    yPos += 3;
+                    doc.setFontSize(11);
+                    doc.setFont("helvetica", "bold");
+                    doc.setTextColor(...textColor);
+                    doc.text("TRAILER DETAILS:", margin + 3, yPos);
+                    yPos += 7;
+                    
+                    doc.setFontSize(9);
+                    doc.setFont("helvetica", "normal");
+                    doc.setTextColor(...grayColor);
+                    
+                    // Always show Unit/Plate Number (at minimum show ID)
+                    doc.text("Unit/Plate Number:", margin + 3, yPos);
+                    doc.setTextColor(...textColor);
+                    doc.setFont("helvetica", "bold");
+                    const trailerNumber = trailerInfo.plateNumber || trailerInfo.licensePlate || trailerInfo.unitNumber || trailerInfo.internalId || (trailerInfo._id ? trailerInfo._id.slice(-8) : 'N/A');
+                    doc.text(trailerNumber, margin + 53, yPos);
+                    doc.setFont("helvetica", "normal");
+                    doc.setTextColor(...grayColor);
+                    yPos += 6;
+                    
+                    if (trailerInfo.make) {
+                        doc.text("Make:", margin + 3, yPos);
+                        doc.setTextColor(...textColor);
+                        doc.text(trailerInfo.make, margin + 53, yPos);
+                        doc.setTextColor(...grayColor);
+                        yPos += 6;
+                    }
+                    
+                    if (trailerInfo.model) {
+                        doc.text("Model:", margin + 3, yPos);
+                        doc.setTextColor(...textColor);
+                        doc.text(trailerInfo.model, margin + 53, yPos);
+                        doc.setTextColor(...grayColor);
+                        yPos += 6;
+                    }
+                    
+                    if (trailerInfo.makeModel && !trailerInfo.make) {
+                        doc.text("Make/Model:", margin + 3, yPos);
+                        doc.setTextColor(...textColor);
+                        doc.text(trailerInfo.makeModel, margin + 53, yPos);
+                        doc.setTextColor(...grayColor);
+                        yPos += 6;
+                    }
+                    
+                    if (trailerInfo.type) {
+                        doc.text("Type:", margin + 3, yPos);
+                        doc.setTextColor(...textColor);
+                        doc.text(trailerInfo.type, margin + 53, yPos);
+                        doc.setTextColor(...grayColor);
+                        yPos += 6;
+                    }
+                    
+                    if (trailerInfo.capacity) {
+                        doc.text("Capacity:", margin + 3, yPos);
+                        doc.setTextColor(...textColor);
+                        doc.text(trailerInfo.capacity, margin + 53, yPos);
+                        doc.setTextColor(...grayColor);
+                        yPos += 6;
+                    }
+                    
+                    if (trailerInfo.year) {
+                        doc.text("Year:", margin + 3, yPos);
+                        doc.setTextColor(...textColor);
+                        doc.text(String(trailerInfo.year), margin + 53, yPos);
+                        doc.setTextColor(...grayColor);
+                        yPos += 6;
+                    }
+                    
+                    if (trailerInfo.vin) {
+                        doc.text("VIN:", margin + 3, yPos);
+                        doc.setTextColor(...textColor);
+                        doc.text(trailerInfo.vin, margin + 53, yPos);
+                        doc.setTextColor(...grayColor);
+                        yPos += 6;
+                    }
+                }
+
+                // Driver & Co-Driver Section - Check multiple sources
+                let driverInfo = trip?.driver;
+                let coDriverInfo = trip?.coDriver;
+                
+                if (!driverInfo && isFullOrder(order) && order.driver) {
+                    driverInfo = order.driver;
+                }
+                if (!coDriverInfo && isFullOrder(order) && order.coDriver) {
+                    coDriverInfo = order.coDriver;
+                }
+                
+                // Also check trip's orders for driver data
+                if ((!driverInfo || !coDriverInfo) && trip?.orders && trip.orders.length > 0) {
+                    if (!driverInfo) driverInfo = trip.orders[0]?.driver;
+                    if (!coDriverInfo) coDriverInfo = trip.orders[0]?.coDriver;
+                }
+                
+                if (driverInfo || coDriverInfo) {
+                    yPos += 3;
+                    doc.setFontSize(11);
+                    doc.setFont("helvetica", "bold");
+                    doc.setTextColor(...textColor);
+                    doc.text("DRIVER INFORMATION:", margin + 3, yPos);
+                    yPos += 7;
+                    
+                    doc.setFontSize(9);
+                    doc.setFont("helvetica", "normal");
+                    doc.setTextColor(...grayColor);
+                    
+                    if (driverInfo) {
+                        doc.text("Driver Name:", margin + 3, yPos);
+                        doc.setTextColor(...textColor);
+                        doc.setFont("helvetica", "bold");
+                        doc.text(driverInfo.name || 'N/A', margin + 53, yPos);
+                        doc.setFont("helvetica", "normal");
+                        doc.setTextColor(...grayColor);
+                        yPos += 6;
+                        
+                        doc.text("Driver ID:", margin + 3, yPos);
+                        doc.setTextColor(...textColor);
+                        const driverId = driverInfo._id;
+                        const driverInternalId = (driverInfo as any)?.internalId;
+                        const displayDriverId = driverId ? driverId.slice(-8) : (driverInternalId || 'N/A');
+                        doc.setFont("helvetica", "normal");
+                        doc.text(displayDriverId, margin + 53, yPos);
+                        doc.setTextColor(...grayColor);
+                        yPos += 6;
+                    }
+                    
+                    if (coDriverInfo) {
+                        yPos += 3;
+                        doc.text("Co-Driver Name:", margin + 3, yPos);
+                        doc.setTextColor(...textColor);
+                        doc.setFont("helvetica", "bold");
+                        doc.text(coDriverInfo.name || 'N/A', margin + 53, yPos);
+                        doc.setFont("helvetica", "normal");
+                        doc.setTextColor(...grayColor);
+                        yPos += 6;
+                        
+                        doc.text("Co-Driver ID:", margin + 3, yPos);
+                        doc.setTextColor(...textColor);
+                        const coDriverId = coDriverInfo._id;
+                        const coDriverInternalId = (coDriverInfo as any)?.internalId;
+                        const displayCoDriverId = coDriverId ? coDriverId.slice(-8) : (coDriverInternalId || 'N/A');
+                        doc.setFont("helvetica", "normal");
+                        doc.text(displayCoDriverId, margin + 53, yPos);
+                        doc.setTextColor(...grayColor);
+                        yPos += 6;
+                    }
+                }
+
+                // Distance
+                if (trip?.route?.totalDistance) {
+                    doc.text("Distance:", margin + 3, yPos);
+                    doc.setTextColor(...textColor);
+                    doc.text(`${trip.route.totalDistance.toFixed(2)} km (${(trip.route.totalDistance * 0.621371).toFixed(2)} miles)`, margin + 53, yPos);
+                    doc.setTextColor(...grayColor);
+                    yPos += 6;
+                }
+
+                doc.setTextColor(...textColor);
+                yPos += 5;
+            }
     
             // ================= TABLE =================
-            yPos += 10;
-    
+            yPos += 12;
+
             const colDesc = margin;
-            const colQty = margin + 90;
+            const colQty = margin + 100;
             const colPrice = pageWidth - margin - 50;
             const colAmount = pageWidth - margin;
-    
-            doc.setFontSize(11);
+
+            doc.setFontSize(10);
             doc.setFont("helvetica", "bold");
-    
-            doc.text("Description", colDesc, yPos);
-            doc.text("Qty", colQty, yPos);
-            doc.text("Unit Price", colPrice, yPos, { align: "right" });
-            doc.text("Amount", colAmount, yPos, { align: "right" });
+
+            doc.text("DESCRIPTION", colDesc, yPos);
+            doc.text("QTY", colQty, yPos);
+            doc.text("UNIT PRICE", colPrice, yPos, { align: "right" });
+            doc.text("AMOUNT", colAmount, yPos, { align: "right" });
+            
+            // Draw line under headers
+            doc.setDrawColor(200, 200, 200);
+            doc.setLineWidth(0.5);
+            doc.line(colDesc, yPos + 3, colAmount, yPos + 3);
     
             yPos += 8;
             doc.setFont("helvetica", "normal");
@@ -389,53 +773,66 @@ const InvoiceManagement: React.FC = () => {
                     yPos += 7;
                 });
             } else {
-                subtotal = Number(invoice.amount);
-    
-                doc.text("Freight Service", colDesc, yPos);
+                subtotal = Number(invoice.subtotal || invoice.amount);
+                
+                // Get trip/order details for description
+                const trip = typeof invoice.tripId === 'object' && invoice.tripId ? invoice.tripId : null;
+                const order = invoice.orderId;
+                const tripNumber = trip?.tripNumber || order?.orderNumber || null;
+                const description = tripNumber 
+                    ? `Freight Charges - Order #${tripNumber}`
+                    : 'Freight Service';
+
+                doc.text(description, colDesc, yPos);
                 doc.text("1", colQty, yPos);
                 doc.text(`${invoice.currency} ${subtotal.toFixed(2)}`, colPrice, yPos, { align: "right" });
                 doc.text(`${invoice.currency} ${subtotal.toFixed(2)}`, colAmount, yPos, { align: "right" });
-    
+
                 yPos += 7;
             }
     
             // ================= TAX =================
-            const GST = subtotal * 0.05;
-            const PST = subtotal * 0.07;
-            const TOTAL = subtotal + GST + PST;
-    
+            const gstRate = invoice.gstRate || 0;
+            const pstRate = invoice.pstRate || 0;
+            const gstAmount = invoice.gst || (subtotal * (gstRate / 100));
+            const pstAmount = invoice.pst || (subtotal * (pstRate / 100));
+            const TOTAL = Number(invoice.amount);
+
             yPos += 10;
-    
+
             doc.setFont("helvetica", "bold");
             doc.text("Subtotal:", colPrice, yPos, { align: "right" });
             doc.setFont("helvetica", "normal");
             doc.text(`${invoice.currency} ${subtotal.toFixed(2)}`, colAmount, yPos, { align: "right" });
-    
+
+            // Always show GST
             yPos += 7;
             doc.setFont("helvetica", "bold");
-            doc.text("GST (5%):", colPrice, yPos, { align: "right" });
+            doc.text(`GST (${gstRate > 0 ? `${gstRate}%` : '0%'}):`, colPrice, yPos, { align: "right" });
             doc.setFont("helvetica", "normal");
-            doc.text(`${invoice.currency} ${GST.toFixed(2)}`, colAmount, yPos, { align: "right" });
-    
+            doc.text(`${invoice.currency} ${gstAmount.toFixed(2)}`, colAmount, yPos, { align: "right" });
+
+            // Always show PST
             yPos += 7;
             doc.setFont("helvetica", "bold");
-            doc.text("PST (7%):", colPrice, yPos, { align: "right" });
+            doc.text(`PST (${pstRate > 0 ? `${pstRate}%` : '0%'}):`, colPrice, yPos, { align: "right" });
             doc.setFont("helvetica", "normal");
-            doc.text(`${invoice.currency} ${PST.toFixed(2)}`, colAmount, yPos, { align: "right" });
+            doc.text(`${invoice.currency} ${pstAmount.toFixed(2)}`, colAmount, yPos, { align: "right" });
     
             // ================= TOTAL BOX =================
             yPos += 12;
-    
+
             doc.setFillColor(...secondaryColor);
-            doc.rect(margin, yPos, contentWidth, 18, "F");
-    
+            doc.rect(margin, yPos, contentWidth, 20, "F");
+
             doc.setTextColor(255, 255, 255);
-            doc.setFontSize(14);
+            doc.setFontSize(12);
             doc.setFont("helvetica", "bold");
-            doc.text("Total Amount Due", margin + 5, yPos + 12);
-    
-            doc.setFontSize(16);
-            doc.text(`${invoice.currency} ${TOTAL.toFixed(2)}`, pageWidth - margin - 5, yPos + 12, { align: "right" });
+            doc.text("TOTAL AMOUNT DUE", margin + 5, yPos + 13);
+
+            doc.setFontSize(18);
+            doc.setFont("helvetica", "bold");
+            doc.text(`${invoice.currency} ${TOTAL.toFixed(2)}`, pageWidth - margin - 5, yPos + 13, { align: "right" });
     
             // ================= SAVE =================
             doc.save(`Invoice_${invoice._id.slice(-8)}.pdf`);
@@ -873,8 +1270,11 @@ const InvoiceManagement: React.FC = () => {
                                                     <Eye className="h-4 w-4" />
                                                 </button>
                                                 <button
-                                                    onClick={() => handleDownloadPDF(invoice)}
-                                                    className="text-purple-600 hover:text-purple-800 transition-colors"
+                                                    onClick={(e) => {
+                                                        e.stopPropagation();
+                                                        handleDownloadPDF(invoice);
+                                                    }}
+                                                    className="p-2 text-gray-700 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-all"
                                                     title="Download PDF"
                                                 >
                                                     <Download className="h-4 w-4" />
@@ -911,308 +1311,740 @@ const InvoiceManagement: React.FC = () => {
     const InvoiceView: React.FC = () => {
         if (!selectedInvoice) return null;
 
+        const company = typeof selectedInvoice.company === "object" && selectedInvoice.company
+            ? selectedInvoice.company
+            : null;
+
+        const subtotal = Number(selectedInvoice.subtotal || selectedInvoice.amount);
+        const gstRate = selectedInvoice.gstRate || 0;
+        const pstRate = selectedInvoice.pstRate || 0;
+        const gstAmount = selectedInvoice.gst || (subtotal * (gstRate / 100));
+        const pstAmount = selectedInvoice.pst || (subtotal * (pstRate / 100));
+        const totalAmount = Number(selectedInvoice.amount);
+
+        // Get trip/order details for description
+        const trip = typeof selectedInvoice.tripId === 'object' && selectedInvoice.tripId ? selectedInvoice.tripId : null;
+        const order = selectedInvoice.orderId;
+        // Type guard to check if order is a full Order object
+        const isFullOrder = (o: any): o is Order => {
+            return o && typeof o === 'object' && '_id' in o;
+        };
+        const tripNumber = trip?.tripNumber || order?.orderNumber || null;
+        const description = tripNumber 
+            ? `Freight Charges - Order #${tripNumber}`
+            : selectedInvoice.serviceBreakdown?.[0]?.description || 'Freight Service';
+
+
         return (
-            <div className="bg-white rounded-lg" >
+            <div className="bg-white rounded-lg">
                 <div className="p-6 border-b border-gray-200">
                     <div className="flex items-center justify-between">
-                        <h2 className="text-xl font-semibold text-gray-900">Invoice Details</h2>
-                        <button
-                            onClick={() => setActiveTab('list')}
-                            className="text-gray-500 hover:text-gray-700 transition-colors"
-                        >
-                            ← Back to List
-                        </button>
+                        <h2 className="text-xl font-semibold text-gray-900">Invoice Preview</h2>
+                        <div className="flex items-center gap-3">
+                            <button
+                                onClick={() => handleDownloadPDF(selectedInvoice)}
+                                className="px-5 py-2.5 bg-gradient-to-r from-gray-700 to-gray-800 text-white rounded-md hover:from-gray-800 hover:to-gray-900 transition-all flex items-center gap-2 shadow-md hover:shadow-lg transform hover:scale-105 duration-200 font-medium"
+                            >
+                                <Download className="h-4 w-4" />
+                                Download PDF
+                            </button>
+                            <button
+                                onClick={() => setActiveTab('list')}
+                                className="text-gray-500 hover:text-gray-700 transition-colors px-3 py-2 hover:bg-gray-100 rounded-lg"
+                            >
+                                ← Back to List
+                            </button>
+                        </div>
                     </div>
                 </div>
 
-                <div className="p-6">
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        <div>
-                            <h3 className="text-lg font-medium text-gray-900 mb-4">Basic Information</h3>
-                            <div className="space-y-3">
-                                <div>
-                                    <label className="text-sm font-medium text-gray-500">Invoice ID</label>
-                                    <p className="font-mono text-sm">{selectedInvoice._id}</p>
+                <div className="p-6 bg-gray-100">
+                    {/* Invoice Document Preview */}
+                    <div className="max-w-4xl mx-auto bg-white shadow-2xl rounded-sm overflow-hidden border border-gray-200">
+                        {/* Header - Professional Gray Banner */}
+                        <div className="bg-gradient-to-r from-gray-700 to-gray-800 px-10 py-8 flex items-center justify-between">
+                            <div className="flex items-center gap-4">
+                                {company?.logoUrl && (
+                                    <img 
+                                        src={company.logoUrl} 
+                                        alt="Company Logo" 
+                                        className="h-14 w-auto object-contain"
+                                        onError={(e) => {
+                                            (e.target as HTMLImageElement).style.display = 'none';
+                                        }}
+                                    />
+                                )}
+                            </div>
+                            <h1 className="text-5xl font-bold text-white tracking-wider uppercase" style={{ letterSpacing: '0.1em' }}>INVOICE</h1>
+                        </div>
+
+                        {/* Body */}
+                        <div className="px-10 py-8 space-y-8">
+                            {/* Company Details */}
+                            {company && (
+                                <div className="space-y-1.5">
+                                    <h3 className="font-bold text-gray-900 text-base leading-tight">{company.companyName || 'Company Name'}</h3>
+                                    {company.address && (
+                                        <p className="text-sm text-gray-700 leading-relaxed">{company.address}</p>
+                                    )}
+                                    {company.contactPhone && (
+                                        <p className="text-sm text-gray-700">Phone: {company.contactPhone}</p>
+                                    )}
+                                    {company.contactEmail && (
+                                        <p className="text-sm text-gray-700">Email: {company.contactEmail}</p>
+                                    )}
+                                    {company.taxNumber && (
+                                        <p className="text-sm text-gray-700">GST No: {company.taxNumber}</p>
+                                    )}
                                 </div>
-                                <div>
-                                    <label className="text-sm font-medium text-gray-500">Client</label>
-                                    <p className="font-medium">{selectedInvoice.clientName}</p>
-                                    <p className="text-sm text-gray-600">{selectedInvoice.clientEmail}</p>
+                            )}
+
+                            {/* Bill To Section */}
+                            <div className="mt-8">
+                                <h3 className="font-bold text-gray-900 mb-3 text-base">Bill To:</h3>
+                                <div className="space-y-1.5">
+                                    <p className="text-sm font-semibold text-gray-900">{selectedInvoice.clientName}</p>
+                                    {selectedInvoice.clientAddress && (
+                                        <p className="text-sm text-gray-700 leading-relaxed">{selectedInvoice.clientAddress}</p>
+                                    )}
+                                    {selectedInvoice.clientEmail && (
+                                        <p className="text-sm text-gray-700">{selectedInvoice.clientEmail}</p>
+                                    )}
+                                    {selectedInvoice.clientPhone && (
+                                        <p className="text-sm text-gray-700">Phone: {selectedInvoice.clientPhone}</p>
+                                    )}
                                 </div>
-                                <div>
-                                    <label className="text-sm font-medium text-gray-500">Subtotal</label>
-                                    <p className="text-lg font-bold">{formatCurrency(Number(selectedInvoice.subtotal || selectedInvoice.amount))}</p>
-                                </div>
-                                {(() => {
-                                    const subtotal = Number(selectedInvoice.subtotal || selectedInvoice.amount);
-                                    const gstAmount = selectedInvoice.gst || (subtotal * ((selectedInvoice.gstRate || 0) / 100));
-                                    return (selectedInvoice.gstRate || selectedInvoice.gst) ? (
-                                        <div>
-                                            <label className="text-sm font-medium text-gray-500">
-                                                GST {selectedInvoice.gstRate ? `(${selectedInvoice.gstRate}%)` : ''}
-                                            </label>
-                                            <p className="text-sm font-semibold text-gray-700">
-                                                {formatCurrency(gstAmount)}
-                                            </p>
+                            </div>
+
+                            {/* Load/Trip Details Section */}
+                            {(trip || order) && (
+                                <div className="mt-8 bg-gray-50 rounded-lg p-5 border border-gray-200">
+                                    <h3 className="font-bold text-gray-900 mb-4 text-base">Load Details:</h3>
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                        {/* Trip/Order Number */}
+                                        {(trip?.tripNumber || order?.orderNumber) && (
+                                            <div>
+                                                <p className="text-xs text-gray-600 mb-1">Trip/Order Number</p>
+                                                <p className="text-sm font-semibold text-gray-900">
+                                                    {trip?.tripNumber || order?.orderNumber}
+                                                </p>
+                                            </div>
+                                        )}
+
+                                        {/* Customer Order Number */}
+                                        {order?.customerOrderNo && (
+                                            <div>
+                                                <p className="text-xs text-gray-600 mb-1">Customer PO Number</p>
+                                                <p className="text-sm font-semibold text-gray-900">{order.customerOrderNo}</p>
+                                            </div>
+                                        )}
+
+                                        {/* Pickup Location */}
+                                        {(trip?.startLocation?.place || trip?.orders?.[0]?.pickupLocation?.place || order?.pickupLocation?.place) && (
+                                            <div>
+                                                <p className="text-xs text-gray-600 mb-1">Pickup Location</p>
+                                                <p className="text-sm text-gray-900">
+                                                    {trip?.startLocation?.place || trip?.orders?.[0]?.pickupLocation?.place || order?.pickupLocation?.place}
+                                                </p>
+                                            </div>
+                                        )}
+
+                                        {/* Dropoff Location */}
+                                        {(trip?.endLocation?.place || trip?.orders?.[trip?.orders?.length - 1]?.deliveryLocation?.place || order?.deliveryLocation?.place) && (
+                                            <div>
+                                                <p className="text-xs text-gray-600 mb-1">Dropoff Location</p>
+                                                <p className="text-sm text-gray-900">
+                                                    {trip?.endLocation?.place || trip?.orders?.[trip?.orders?.length - 1]?.deliveryLocation?.place || order?.deliveryLocation?.place}
+                                                </p>
+                                            </div>
+                                        )}
+
+                                    </div>
+
+                                    {/* Truck Details Section */}
+                                    {(() => {
+                                        // Check multiple sources for truck data
+                                        let truckInfo = trip?.truck;
+                                        if (!truckInfo && isFullOrder(order) && order.truck) {
+                                            truckInfo = order.truck;
+                                        }
+                                        // Also check trip's orders for truck data
+                                        if (!truckInfo && trip?.orders && trip.orders.length > 0) {
+                                            truckInfo = trip.orders[0]?.truck;
+                                        }
+                                        // Show section if truck object exists (even if empty)
+                                        return truckInfo ? (
+                                            <div className="mt-6 pt-6 border-t border-gray-300">
+                                                <h4 className="font-semibold text-gray-900 mb-4 text-sm uppercase tracking-wide flex items-center gap-2">
+                                                    <span className="w-1 h-4 bg-gray-400"></span>
+                                                    Truck Details
+                                                </h4>
+                                                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                                                    <div>
+                                                        <p className="text-xs text-gray-600 mb-1">Unit/Plate Number</p>
+                                                        <p className="text-sm font-semibold text-gray-900">
+                                                            {truckInfo.plateNumber || truckInfo.licensePlate || truckInfo.unitNumber || truckInfo.internalId || (truckInfo._id ? truckInfo._id.slice(-8) : 'N/A')}
+                                                        </p>
+                                                    </div>
+                                                    {truckInfo.make && (
+                                                        <div>
+                                                            <p className="text-xs text-gray-600 mb-1">Make</p>
+                                                            <p className="text-sm text-gray-900">{truckInfo.make}</p>
+                                                        </div>
+                                                    )}
+                                                    {truckInfo.model && (
+                                                        <div>
+                                                            <p className="text-xs text-gray-600 mb-1">Model</p>
+                                                            <p className="text-sm text-gray-900">{truckInfo.model}</p>
+                                                        </div>
+                                                    )}
+                                                    {truckInfo.makeModel && !truckInfo.make && (
+                                                        <div>
+                                                            <p className="text-xs text-gray-600 mb-1">Make/Model</p>
+                                                            <p className="text-sm text-gray-900">{truckInfo.makeModel}</p>
+                                                        </div>
+                                                    )}
+                                                    {(truckInfo.type || truckInfo.unitType) && (
+                                                        <div>
+                                                            <p className="text-xs text-gray-600 mb-1">Type</p>
+                                                            <p className="text-sm text-gray-900">{truckInfo.type || truckInfo.unitType}</p>
+                                                        </div>
+                                                    )}
+                                                    {truckInfo.year && (
+                                                        <div>
+                                                            <p className="text-xs text-gray-600 mb-1">Year</p>
+                                                            <p className="text-sm text-gray-900">{truckInfo.year}</p>
+                                                        </div>
+                                                    )}
+                                                    {truckInfo.vin && (
+                                                        <div>
+                                                            <p className="text-xs text-gray-600 mb-1">VIN</p>
+                                                            <p className="text-sm text-gray-900 font-mono">{truckInfo.vin}</p>
+                                                        </div>
+                                                    )}
+                                                </div>
+                                            </div>
+                                        ) : null;
+                                    })()}
+
+                                    {/* Trailer Details Section */}
+                                    {(() => {
+                                        // Check multiple sources for trailer data
+                                        let trailerInfo = trip?.trailer;
+                                        if (!trailerInfo && isFullOrder(order) && order.trailer) {
+                                            trailerInfo = order.trailer;
+                                        }
+                                        // Also check trip's orders for trailer data
+                                        if (!trailerInfo && trip?.orders && trip.orders.length > 0) {
+                                            trailerInfo = trip.orders[0]?.trailer;
+                                        }
+                                        // Show section if trailer object exists (even if empty)
+                                        return trailerInfo ? (
+                                            <div className="mt-6 pt-6 border-t border-gray-300">
+                                                <h4 className="font-semibold text-gray-900 mb-4 text-sm uppercase tracking-wide flex items-center gap-2">
+                                                    <span className="w-1 h-4 bg-gray-400"></span>
+                                                    Trailer Details
+                                                </h4>
+                                                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                                                    <div>
+                                                        <p className="text-xs text-gray-600 mb-1">Unit/Plate Number</p>
+                                                        <p className="text-sm font-semibold text-gray-900">
+                                                            {trailerInfo.plateNumber || trailerInfo.licensePlate || trailerInfo.unitNumber || trailerInfo.internalId || (trailerInfo._id ? trailerInfo._id.slice(-8) : 'N/A')}
+                                                        </p>
+                                                    </div>
+                                                    {trailerInfo.make && (
+                                                        <div>
+                                                            <p className="text-xs text-gray-600 mb-1">Make</p>
+                                                            <p className="text-sm text-gray-900">{trailerInfo.make}</p>
+                                                        </div>
+                                                    )}
+                                                    {trailerInfo.model && (
+                                                        <div>
+                                                            <p className="text-xs text-gray-600 mb-1">Model</p>
+                                                            <p className="text-sm text-gray-900">{trailerInfo.model}</p>
+                                                        </div>
+                                                    )}
+                                                    {trailerInfo.makeModel && !trailerInfo.make && (
+                                                        <div>
+                                                            <p className="text-xs text-gray-600 mb-1">Make/Model</p>
+                                                            <p className="text-sm text-gray-900">{trailerInfo.makeModel}</p>
+                                                        </div>
+                                                    )}
+                                                    {trailerInfo.type && (
+                                                        <div>
+                                                            <p className="text-xs text-gray-600 mb-1">Type</p>
+                                                            <p className="text-sm text-gray-900">{trailerInfo.type}</p>
+                                                        </div>
+                                                    )}
+                                                    {trailerInfo.capacity && (
+                                                        <div>
+                                                            <p className="text-xs text-gray-600 mb-1">Capacity</p>
+                                                            <p className="text-sm text-gray-900">{trailerInfo.capacity}</p>
+                                                        </div>
+                                                    )}
+                                                    {trailerInfo.year && (
+                                                        <div>
+                                                            <p className="text-xs text-gray-600 mb-1">Year</p>
+                                                            <p className="text-sm text-gray-900">{trailerInfo.year}</p>
+                                                        </div>
+                                                    )}
+                                                    {trailerInfo.vin && (
+                                                        <div>
+                                                            <p className="text-xs text-gray-600 mb-1">VIN</p>
+                                                            <p className="text-sm text-gray-900 font-mono">{trailerInfo.vin}</p>
+                                                        </div>
+                                                    )}
+                                                </div>
+                                            </div>
+                                        ) : null;
+                                    })()}
+
+                                    {/* Driver & Co-Driver Section */}
+                                    {(() => {
+                                        // Check multiple sources for driver data
+                                        let driverInfo = trip?.driver;
+                                        let coDriverInfo = trip?.coDriver;
+                                        
+                                        if (!driverInfo && isFullOrder(order) && order.driver) {
+                                            driverInfo = order.driver;
+                                        }
+                                        if (!coDriverInfo && isFullOrder(order) && order.coDriver) {
+                                            coDriverInfo = order.coDriver;
+                                        }
+                                        
+                                        // Also check trip's orders for driver data
+                                        if ((!driverInfo || !coDriverInfo) && trip?.orders && trip.orders.length > 0) {
+                                            if (!driverInfo) driverInfo = trip.orders[0]?.driver;
+                                            if (!coDriverInfo) coDriverInfo = trip.orders[0]?.coDriver;
+                                        }
+                                        
+                                        // Show section if driver or coDriver exists
+                                        return (driverInfo || coDriverInfo) ? (
+                                            <div className="mt-6 pt-6 border-t border-gray-300">
+                                                <h4 className="font-semibold text-gray-900 mb-4 text-sm uppercase tracking-wide flex items-center gap-2">
+                                                    <span className="w-1 h-4 bg-gray-400"></span>
+                                                    Driver Information
+                                                </h4>
+                                                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                                    {/* Driver */}
+                                                    {driverInfo && (
+                                                        <div className="bg-white rounded-md p-4 border border-gray-200">
+                                                            <p className="text-xs text-gray-600 mb-3 font-semibold uppercase">Driver</p>
+                                                            <div className="space-y-2">
+                                                                <div>
+                                                                    <p className="text-xs text-gray-600 mb-1">Name</p>
+                                                                    <p className="text-sm font-semibold text-gray-900">
+                                                                        {driverInfo.name || 'N/A'}
+                                                                    </p>
+                                                                </div>
+                                                                <div>
+                                                                    <p className="text-xs text-gray-600 mb-1">Driver ID</p>
+                                                                    <p className="text-sm text-gray-900 font-mono">
+                                                                        {(() => {
+                                                                            const driverId = driverInfo._id;
+                                                                            const driverInternalId = (driverInfo as any)?.internalId;
+                                                                            return driverId ? driverId.slice(-8) : (driverInternalId || 'N/A');
+                                                                        })()}
+                                                                    </p>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    )}
+
+                                                    {/* Co-Driver */}
+                                                    {coDriverInfo && (
+                                                        <div className="bg-white rounded-md p-4 border border-gray-200">
+                                                            <p className="text-xs text-gray-600 mb-3 font-semibold uppercase">Co-Driver</p>
+                                                            <div className="space-y-2">
+                                                                <div>
+                                                                    <p className="text-xs text-gray-600 mb-1">Name</p>
+                                                                    <p className="text-sm font-semibold text-gray-900">
+                                                                        {coDriverInfo.name || 'N/A'}
+                                                                    </p>
+                                                                </div>
+                                                                <div>
+                                                                    <p className="text-xs text-gray-600 mb-1">Driver ID</p>
+                                                                    <p className="text-sm text-gray-900 font-mono">
+                                                                        {(() => {
+                                                                            const coDriverId = coDriverInfo._id;
+                                                                            const coDriverInternalId = (coDriverInfo as any)?.internalId;
+                                                                            return coDriverId ? coDriverId.slice(-8) : (coDriverInternalId || 'N/A');
+                                                                        })()}
+                                                                    </p>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    )}
+                                                </div>
+                                            </div>
+                                        ) : null;
+                                    })()}
+
+                                    {/* Additional Trip Information */}
+                                    {(trip?.route?.totalDistance || trip?.plannedStartDate || trip?.actualStartDate) && (
+                                        <div className="mt-6 pt-6 border-t border-gray-300">
+                                            <h4 className="font-semibold text-gray-900 mb-4 text-sm uppercase tracking-wide flex items-center gap-2">
+                                                <span className="w-1 h-4 bg-gray-400"></span>
+                                                Trip Information
+                                            </h4>
+                                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                                                {trip?.route?.totalDistance && (
+                                                    <div>
+                                                        <p className="text-xs text-gray-600 mb-1">Total Distance</p>
+                                                        <p className="text-sm text-gray-900">
+                                                            {trip.route.totalDistance.toFixed(2)} km ({(trip.route.totalDistance * 0.621371).toFixed(2)} miles)
+                                                        </p>
+                                                    </div>
+                                                )}
+                                                {trip?.plannedStartDate && (
+                                                    <div>
+                                                        <p className="text-xs text-gray-600 mb-1">Planned Start Date</p>
+                                                        <p className="text-sm text-gray-900">{formatDate(trip.plannedStartDate)}</p>
+                                                    </div>
+                                                )}
+                                                {trip?.actualStartDate && (
+                                                    <div>
+                                                        <p className="text-xs text-gray-600 mb-1">Actual Start Date</p>
+                                                        <p className="text-sm text-gray-900">{formatDate(trip.actualStartDate)}</p>
+                                                    </div>
+                                                )}
+                                                {trip?.plannedEndDate && (
+                                                    <div>
+                                                        <p className="text-xs text-gray-600 mb-1">Planned End Date</p>
+                                                        <p className="text-sm text-gray-900">{formatDate(trip.plannedEndDate)}</p>
+                                                    </div>
+                                                )}
+                                                {trip?.actualEndDate && (
+                                                    <div>
+                                                        <p className="text-xs text-gray-600 mb-1">Actual End Date</p>
+                                                        <p className="text-sm text-gray-900">{formatDate(trip.actualEndDate)}</p>
+                                                    </div>
+                                                )}
+                                                {trip?.status && (
+                                                    <div>
+                                                        <p className="text-xs text-gray-600 mb-1">Trip Status</p>
+                                                        <span className={`inline-block px-2 py-1 text-xs font-medium rounded-full ${
+                                                            trip.status === 'completed' ? 'bg-green-100 text-green-800' :
+                                                            trip.status === 'in-progress' ? 'bg-yellow-100 text-yellow-800' :
+                                                            'bg-blue-100 text-blue-800'
+                                                        }`}>
+                                                            {trip.status.charAt(0).toUpperCase() + trip.status.slice(1)}
+                                                        </span>
+                                                    </div>
+                                                )}
+                                            </div>
                                         </div>
-                                    ) : null;
-                                })()}
-                                {(() => {
-                                    const subtotal = Number(selectedInvoice.subtotal || selectedInvoice.amount);
-                                    const pstAmount = selectedInvoice.pst || (subtotal * ((selectedInvoice.pstRate || 0) / 100));
-                                    return (selectedInvoice.pstRate || selectedInvoice.pst) ? (
-                                        <div>
-                                            <label className="text-sm font-medium text-gray-500">
-                                                PST {selectedInvoice.pstRate ? `(${selectedInvoice.pstRate}%)` : ''}
-                                            </label>
-                                            <p className="text-sm font-semibold text-gray-700">
-                                                {formatCurrency(pstAmount)}
-                                            </p>
-                                        </div>
-                                    ) : null;
-                                })()}
+                                    )}
+                                </div>
+                            )}
+
+                            {/* Invoice Details Table */}
+                            <div className="mt-10">
+                                <table className="w-full border-collapse">
+                                    <thead>
+                                        <tr className="border-b-2 border-gray-300">
+                                            <th className="text-left py-4 px-5 font-bold text-gray-900 text-sm uppercase tracking-wide">Description</th>
+                                            <th className="text-center py-4 px-5 font-bold text-gray-900 text-sm uppercase tracking-wide">Qty</th>
+                                            <th className="text-right py-4 px-5 font-bold text-gray-900 text-sm uppercase tracking-wide">Unit Price</th>
+                                            <th className="text-right py-4 px-5 font-bold text-gray-900 text-sm uppercase tracking-wide">Amount</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {selectedInvoice.serviceBreakdown && selectedInvoice.serviceBreakdown.length > 0 ? (
+                                            selectedInvoice.serviceBreakdown.map((item, index) => (
+                                                <tr key={index} className="border-b border-gray-200 hover:bg-gray-50 transition-colors">
+                                                    <td className="py-4 px-5 text-sm text-gray-800">{item.description || 'Service'}</td>
+                                                    <td className="py-4 px-5 text-sm text-gray-800 text-center">{item.quantity || 1}</td>
+                                                    <td className="py-4 px-5 text-sm text-gray-800 text-right font-mono">
+                                                        {selectedInvoice.currency} {item.unitPrice.toFixed(2)}
+                                                    </td>
+                                                    <td className="py-4 px-5 text-sm text-gray-800 text-right font-semibold font-mono">
+                                                        {selectedInvoice.currency} {(item.amount || item.unitPrice * (item.quantity || 1)).toFixed(2)}
+                                                    </td>
+                                                </tr>
+                                            ))
+                                        ) : (
+                                            <tr className="border-b border-gray-200 hover:bg-gray-50 transition-colors">
+                                                <td className="py-4 px-5 text-sm text-gray-800">{description}</td>
+                                                <td className="py-4 px-5 text-sm text-gray-800 text-center">1</td>
+                                                <td className="py-4 px-5 text-sm text-gray-800 text-right font-mono">
+                                                    {selectedInvoice.currency} {subtotal.toFixed(2)}
+                                                </td>
+                                                <td className="py-4 px-5 text-sm text-gray-800 text-right font-semibold font-mono">
+                                                    {selectedInvoice.currency} {subtotal.toFixed(2)}
+                                                </td>
+                                            </tr>
+                                        )}
+                                    </tbody>
+                                </table>
+                            </div>
+
+                            {/* Totals Section */}
+                            <div className="mt-8 flex justify-end">
+                                <div className="w-72 space-y-3">
+                                    <div className="flex justify-between text-sm py-1">
+                                        <span className="font-semibold text-gray-800">Subtotal:</span>
+                                        <span className="text-gray-800 font-mono">{selectedInvoice.currency} {subtotal.toFixed(2)}</span>
+                                    </div>
+                                    <div className="flex justify-between text-sm py-1">
+                                        <span className="font-semibold text-gray-800">GST ({gstRate > 0 ? `${gstRate}%` : '0%'}):</span>
+                                        <span className="text-gray-800 font-mono">{selectedInvoice.currency} {gstAmount.toFixed(2)}</span>
+                                    </div>
+                                    <div className="flex justify-between text-sm py-1">
+                                        <span className="font-semibold text-gray-800">PST ({pstRate > 0 ? `${pstRate}%` : '0%'}):</span>
+                                        <span className="text-gray-800 font-mono">{selectedInvoice.currency} {pstAmount.toFixed(2)}</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            {/* Total Amount Box */}
+                            <div className="mt-6 bg-gradient-to-r from-gray-700 to-gray-800 rounded-sm p-5">
+                                <div className="flex justify-between items-center">
+                                    <span className="text-white font-bold text-lg uppercase tracking-wide">Total Amount Due</span>
+                                    <span className="text-white font-bold text-2xl font-mono">
+                                        {selectedInvoice.currency} {totalAmount.toFixed(2)}
+                                    </span>
+                                </div>
+                            </div>
+
+                            {/* Invoice Metadata */}
+                            <div className="mt-10 pt-6 border-t-2 border-gray-300 grid grid-cols-2 gap-6 text-sm">
                                 <div>
-                                    <label className="text-sm font-medium text-gray-500">Total Amount</label>
-                                    <p className="text-lg font-bold">{formatCurrency(Number(selectedInvoice.amount))}</p>
+                                    <span className="font-semibold text-gray-700">Invoice Date:</span>
+                                    <span className="ml-2 text-gray-800">{formatDate(selectedInvoice.invoiceDate)}</span>
                                 </div>
                                 <div>
-                                    <label className="text-sm font-medium text-gray-500">Status</label>
-                                    <span className={`inline-block px-2 py-1 text-xs font-medium rounded-full ${getStatusColor(selectedInvoice.status)}`}>
+                                    <span className="font-semibold text-gray-700">Due Date:</span>
+                                    <span className="ml-2 text-gray-800">{formatDate(selectedInvoice.dueDate)}</span>
+                                </div>
+                                <div>
+                                    <span className="font-semibold text-gray-700">Invoice ID:</span>
+                                    <span className="ml-2 text-gray-800 font-mono">{selectedInvoice._id.slice(-8)}</span>
+                                </div>
+                                <div>
+                                    <span className="font-semibold text-gray-700">Status:</span>{' '}
+                                    <span className={`ml-2 px-3 py-1 text-xs font-semibold rounded-full ${getStatusColor(selectedInvoice.status)}`}>
                                         {selectedInvoice.status.charAt(0).toUpperCase() + selectedInvoice.status.slice(1)}
                                     </span>
                                 </div>
                             </div>
-                        </div>
 
-                        <div>
-                            <h3 className="text-lg font-medium text-gray-900 mb-4">Payment Information</h3>
-                            <div className="space-y-3">
-                                <div>
-                                    <label className="text-sm font-medium text-gray-500">Invoice Date</label>
-                                    <p className="text-sm">{formatDate(selectedInvoice.invoiceDate)}</p>
+                            {/* Notes */}
+                            {selectedInvoice.notes && (
+                                <div className="mt-8 pt-6 border-t-2 border-gray-300">
+                                    <h4 className="font-semibold text-gray-900 mb-3 text-sm uppercase tracking-wide">Notes:</h4>
+                                    <p className="text-sm text-gray-700 leading-relaxed whitespace-pre-wrap">{selectedInvoice.notes}</p>
                                 </div>
-                                <div>
-                                    <label className="text-sm font-medium text-gray-500">Due Date</label>
-                                    <p className="text-sm">{formatDate(selectedInvoice.dueDate)}</p>
-                                </div>
-                                <div>
-                                    <label className="text-sm font-medium text-gray-500">Payment Date</label>
-                                    <p className="text-sm">
-                                        {selectedInvoice.paymentDate ? formatDate(selectedInvoice.paymentDate) : 'Not paid'}
-                                    </p>
-                                </div>
-                            </div>
+                            )}
                         </div>
                     </div>
 
-                    {selectedInvoice.notes && (
-                        <div className="mt-6">
-                            <label className="text-sm font-medium text-gray-500">Notes</label>
-                            <p className="text-sm mt-1 p-3 bg-gray-50 rounded-md">{selectedInvoice.notes}</p>
-                        </div>
-                    )}
-
-                    {/* Trip/Load/Order Details Section */}
-                    {(selectedInvoice.tripId || selectedInvoice.orderId || (selectedInvoice.notes && selectedInvoice.notes.includes('Auto-generated'))) && (
-                        <div className="mt-6 border-t border-gray-200 pt-6">
-                            <h3 className="text-lg font-medium text-gray-900 mb-4">
-                                {selectedInvoice.orderId ? 'Order Details' : 'Trip/Load Details'}
-                            </h3>
-                            {selectedInvoice.orderId ? (
-                                <div className="space-y-4">
-                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                        <div>
-                                            <label className="text-sm font-medium text-gray-500">Order Number</label>
-                                            <p className="text-sm font-medium">{selectedInvoice.orderId.orderNumber}</p>
+                    {/* Additional Details Section (Collapsible) */}
+                    {(selectedInvoice.tripId || selectedInvoice.orderId) && (
+                        <div className="max-w-4xl mx-auto mt-6 bg-white rounded-lg shadow-lg p-6">
+                            <details className="group">
+                                <summary className="cursor-pointer flex items-center justify-between text-lg font-semibold text-gray-900 hover:text-gray-700 transition-colors">
+                                    <span>{selectedInvoice.orderId ? 'Order Details' : 'Trip Details'}</span>
+                                    <span className="text-gray-400 group-open:rotate-180 transition-transform">▼</span>
+                                </summary>
+                                <div className="mt-4 space-y-4">
+                                    {selectedInvoice.orderId ? (
+                                        <div className="space-y-4">
+                                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                                <div>
+                                                    <label className="text-sm font-medium text-gray-500">Order Number</label>
+                                                    <p className="text-sm font-medium">{selectedInvoice.orderId.orderNumber}</p>
+                                                </div>
+                                                {selectedInvoice.orderId.customerOrderNo && (
+                                                    <div>
+                                                        <label className="text-sm font-medium text-gray-500">Customer Ref</label>
+                                                        <p className="text-sm">{selectedInvoice.orderId.customerOrderNo}</p>
+                                                    </div>
+                                                )}
+                                            </div>
+                                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                                {selectedInvoice.orderId.pickupLocation?.place && (
+                                                    <div>
+                                                        <label className="text-sm font-medium text-gray-500">Pickup Location</label>
+                                                        <p className="text-sm">{selectedInvoice.orderId.pickupLocation.place}</p>
+                                                    </div>
+                                                )}
+                                                {selectedInvoice.orderId.deliveryLocation?.place && (
+                                                    <div>
+                                                        <label className="text-sm font-medium text-gray-500">Delivery Location</label>
+                                                        <p className="text-sm">{selectedInvoice.orderId.deliveryLocation.place}</p>
+                                                    </div>
+                                                )}
+                                            </div>
                                         </div>
-                                        {selectedInvoice.orderId.customerOrderNo && (
-                                            <div>
-                                                <label className="text-sm font-medium text-gray-500">Customer Ref</label>
-                                                <p className="text-sm">{selectedInvoice.orderId.customerOrderNo}</p>
+                                    ) : typeof selectedInvoice.tripId === 'object' && selectedInvoice.tripId ? (
+                                        <div className="space-y-4">
+                                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                                {selectedInvoice.tripId.tripNumber && (
+                                                    <div>
+                                                        <label className="text-sm font-medium text-gray-500">Trip Number</label>
+                                                        <p className="text-sm font-medium">{selectedInvoice.tripId.tripNumber}</p>
+                                                    </div>
+                                                )}
+                                                {selectedInvoice.tripId.status && (
+                                                    <div>
+                                                        <label className="text-sm font-medium text-gray-500">Trip Status</label>
+                                                        <span className={`inline-block px-2 py-1 text-xs font-medium rounded-full ${selectedInvoice.tripId.status === 'completed' ? 'bg-green-100 text-green-800' :
+                                                            selectedInvoice.tripId.status === 'in-progress' ? 'bg-yellow-100 text-yellow-800' :
+                                                                'bg-blue-100 text-blue-800'
+                                                            }`}>
+                                                            {selectedInvoice.tripId.status.charAt(0).toUpperCase() + selectedInvoice.tripId.status.slice(1)}
+                                                        </span>
+                                                    </div>
+                                                )}
                                             </div>
-                                        )}
-                                    </div>
-                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                        {selectedInvoice.orderId.pickupLocation?.place && (
-                                            <div>
-                                                <label className="text-sm font-medium text-gray-500">Pickup Location</label>
-                                                <p className="text-sm">{selectedInvoice.orderId.pickupLocation.place}</p>
-                                            </div>
-                                        )}
-                                        {selectedInvoice.orderId.deliveryLocation?.place && (
-                                            <div>
-                                                <label className="text-sm font-medium text-gray-500">Delivery Location</label>
-                                                <p className="text-sm">{selectedInvoice.orderId.deliveryLocation.place}</p>
-                                            </div>
-                                        )}
-                                    </div>
-                                </div>
-                            ) : typeof selectedInvoice.tripId === 'object' && selectedInvoice.tripId ? (
-                                <div className="space-y-4">
-                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                        {selectedInvoice.tripId.tripNumber && (
+
+                                            {selectedInvoice.tripId.truck && (
+                                                <div>
+                                                    <label className="text-sm font-medium text-gray-500">Truck</label>
+                                                    <p className="text-sm">
+                                                        {selectedInvoice.tripId.truck.plateNumber || selectedInvoice.tripId.truck.licensePlate || selectedInvoice.tripId.truck.unitNumber || selectedInvoice.tripId.truck.internalId || 'N/A'}
+                                                        {(() => {
+                                                            const makeModel = selectedInvoice.tripId.truck.make && selectedInvoice.tripId.truck.model
+                                                                ? `${selectedInvoice.tripId.truck.make} ${selectedInvoice.tripId.truck.model}`
+                                                                : (selectedInvoice.tripId.truck.makeModel || '');
+                                                            return makeModel ? ` - ${makeModel}` : '';
+                                                        })()}
+                                                        {(selectedInvoice.tripId.truck.type || selectedInvoice.tripId.truck.unitType) && ` (${selectedInvoice.tripId.truck.type || selectedInvoice.tripId.truck.unitType})`}
+                                                    </p>
+                                                </div>
+                                            )}
+
+                                            {selectedInvoice.tripId.trailer && (
+                                                <div>
+                                                    <label className="text-sm font-medium text-gray-500">Trailer</label>
+                                                    <p className="text-sm">
+                                                        {selectedInvoice.tripId.trailer.plateNumber || selectedInvoice.tripId.trailer.licensePlate || selectedInvoice.tripId.trailer.unitNumber || 'N/A'}
+                                                        {(() => {
+                                                            const makeModel = selectedInvoice.tripId.trailer.make && selectedInvoice.tripId.trailer.model
+                                                                ? `${selectedInvoice.tripId.trailer.make} ${selectedInvoice.tripId.trailer.model}`
+                                                                : (selectedInvoice.tripId.trailer.makeModel || '');
+                                                            return makeModel ? ` - ${makeModel}` : '';
+                                                        })()}
+                                                        {selectedInvoice.tripId.trailer.type && ` (${selectedInvoice.tripId.trailer.type})`}
+                                                        {selectedInvoice.tripId.trailer.capacity && ` - ${selectedInvoice.tripId.trailer.capacity}`}
+                                                    </p>
+                                                </div>
+                                            )}
+
+                                            {selectedInvoice.tripId.startLocation?.place && (
+                                                <div>
+                                                    <label className="text-sm font-medium text-gray-500">Pickup Location</label>
+                                                    <p className="text-sm">{selectedInvoice.tripId.startLocation.place}</p>
+                                                </div>
+                                            )}
+
+                                            {selectedInvoice.tripId.endLocation?.place && (
+                                                <div>
+                                                    <label className="text-sm font-medium text-gray-500">Delivery Location</label>
+                                                    <p className="text-sm">{selectedInvoice.tripId.endLocation.place}</p>
+                                                </div>
+                                            )}
+
+                                            {selectedInvoice.tripId.route?.totalDistance && (
+                                                <div>
+                                                    <label className="text-sm font-medium text-gray-500">Distance</label>
+                                                    <p className="text-sm">
+                                                        {selectedInvoice.tripId.route.totalDistance.toFixed(2)} km
+                                                        ({(selectedInvoice.tripId.route.totalDistance * 0.621371).toFixed(2)} miles)
+                                                    </p>
+                                                </div>
+                                            )}
+
+                                            {selectedInvoice.tripId.orders && selectedInvoice.tripId.orders.length > 0 && (
+                                                <div>
+                                                    <label className="text-sm font-medium text-gray-500 mb-2 block">Orders ({selectedInvoice.tripId.orders.length})</label>
+                                                    <div className="space-y-2">
+                                                        {selectedInvoice.tripId.orders.map((order: any, index: number) => (
+                                                            <div key={order._id || index} className="p-3 bg-gray-50 rounded-md">
+                                                                <div className="flex items-center justify-between mb-2">
+                                                                    <span className="font-medium text-sm">{order.orderNumber || `Order ${index + 1}`}</span>
+                                                                    {order.customerOrderNo && (
+                                                                        <span className="text-xs text-gray-500">PO: {order.customerOrderNo}</span>
+                                                                    )}
+                                                                </div>
+                                                                {order.commodity && (
+                                                                    <p className="text-xs text-gray-600">Commodity: {order.commodity}</p>
+                                                                )}
+                                                                {order.weight && (
+                                                                    <p className="text-xs text-gray-600">
+                                                                        Weight: {order.weight} {order.weightUnit || 'lbs'}
+                                                                    </p>
+                                                                )}
+                                                                {order.pickupLocation?.place && (
+                                                                    <p className="text-xs text-gray-600">Pickup: {order.pickupLocation.place}</p>
+                                                                )}
+                                                                {order.deliveryLocation?.place && (
+                                                                    <p className="text-xs text-gray-600">Delivery: {order.deliveryLocation.place}</p>
+                                                                )}
+                                                            </div>
+                                                        ))}
+                                                    </div>
+                                                </div>
+                                            )}
+
+                                            {(selectedInvoice.tripId.plannedStartDate || selectedInvoice.tripId.actualStartDate) && (
+                                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                                    {selectedInvoice.tripId.plannedStartDate && (
+                                                        <div>
+                                                            <label className="text-sm font-medium text-gray-500">Planned Start Date</label>
+                                                            <p className="text-sm">{formatDate(selectedInvoice.tripId.plannedStartDate)}</p>
+                                                        </div>
+                                                    )}
+                                                    {selectedInvoice.tripId.actualStartDate && (
+                                                        <div>
+                                                            <label className="text-sm font-medium text-gray-500">Actual Start Date</label>
+                                                            <p className="text-sm">{formatDate(selectedInvoice.tripId.actualStartDate)}</p>
+                                                        </div>
+                                                    )}
+                                                    {selectedInvoice.tripId.plannedEndDate && (
+                                                        <div>
+                                                            <label className="text-sm font-medium text-gray-500">Planned End Date</label>
+                                                            <p className="text-sm">{formatDate(selectedInvoice.tripId.plannedEndDate)}</p>
+                                                        </div>
+                                                    )}
+                                                    {selectedInvoice.tripId.actualEndDate && (
+                                                        <div>
+                                                            <label className="text-sm font-medium text-gray-500">Actual End Date</label>
+                                                            <p className="text-sm">{formatDate(selectedInvoice.tripId.actualEndDate)}</p>
+                                                        </div>
+                                                    )}
+                                                </div>
+                                            )}
+                                        </div>
+                                    ) : selectedInvoice.tripId ? (
+                                        <div>
+                                            <p className="text-sm text-gray-500">Trip ID: {typeof selectedInvoice.tripId === 'string' ? selectedInvoice.tripId : String(selectedInvoice.tripId)}</p>
+                                            <p className="text-xs text-gray-400 mt-1">Trip details not loaded. Please refresh the invoice.</p>
+                                        </div>
+                                    ) : selectedInvoice.notes && selectedInvoice.notes.includes('Auto-generated invoice for trip') ? (
+                                        <div className="space-y-3">
                                             <div>
                                                 <label className="text-sm font-medium text-gray-500">Trip Number</label>
-                                                <p className="text-sm font-medium">{selectedInvoice.tripId.tripNumber}</p>
+                                                <p className="text-sm font-medium">
+                                                    {(() => {
+                                                        const match = selectedInvoice.notes.match(/trip\s+([A-Z0-9]+)/i);
+                                                        return match ? match[1] : 'N/A';
+                                                    })()}
+                                                </p>
                                             </div>
-                                        )}
-                                        {selectedInvoice.tripId.status && (
                                             <div>
-                                                <label className="text-sm font-medium text-gray-500">Trip Status</label>
-                                                <span className={`inline-block px-2 py-1 text-xs font-medium rounded-full ${selectedInvoice.tripId.status === 'completed' ? 'bg-green-100 text-green-800' :
-                                                    selectedInvoice.tripId.status === 'in-progress' ? 'bg-yellow-100 text-yellow-800' :
-                                                        'bg-blue-100 text-blue-800'
-                                                    }`}>
-                                                    {selectedInvoice.tripId.status.charAt(0).toUpperCase() + selectedInvoice.tripId.status.slice(1)}
-                                                </span>
-                                            </div>
-                                        )}
-                                    </div>
-
-                                    {selectedInvoice.tripId.truck && (
-                                        <div>
-                                            <label className="text-sm font-medium text-gray-500">Truck</label>
-                                            <p className="text-sm">
-                                                {selectedInvoice.tripId.truck.plateNumber || selectedInvoice.tripId.truck.licensePlate || selectedInvoice.tripId.truck.unitNumber || selectedInvoice.tripId.truck.internalId || 'N/A'}
-                                                {(() => {
-                                                    const makeModel = selectedInvoice.tripId.truck.make && selectedInvoice.tripId.truck.model
-                                                        ? `${selectedInvoice.tripId.truck.make} ${selectedInvoice.tripId.truck.model}`
-                                                        : (selectedInvoice.tripId.truck.makeModel || '');
-                                                    return makeModel ? ` - ${makeModel}` : '';
-                                                })()}
-                                                {(selectedInvoice.tripId.truck.type || selectedInvoice.tripId.truck.unitType) && ` (${selectedInvoice.tripId.truck.type || selectedInvoice.tripId.truck.unitType})`}
-                                            </p>
-                                        </div>
-                                    )}
-
-                                    {selectedInvoice.tripId.trailer && (
-                                        <div>
-                                            <label className="text-sm font-medium text-gray-500">Trailer</label>
-                                            <p className="text-sm">
-                                                {selectedInvoice.tripId.trailer.plateNumber || selectedInvoice.tripId.trailer.licensePlate || selectedInvoice.tripId.trailer.unitNumber || 'N/A'}
-                                                {(() => {
-                                                    const makeModel = selectedInvoice.tripId.trailer.make && selectedInvoice.tripId.trailer.model
-                                                        ? `${selectedInvoice.tripId.trailer.make} ${selectedInvoice.tripId.trailer.model}`
-                                                        : (selectedInvoice.tripId.trailer.makeModel || '');
-                                                    return makeModel ? ` - ${makeModel}` : '';
-                                                })()}
-                                                {selectedInvoice.tripId.trailer.type && ` (${selectedInvoice.tripId.trailer.type})`}
-                                                {selectedInvoice.tripId.trailer.capacity && ` - ${selectedInvoice.tripId.trailer.capacity}`}
-                                            </p>
-                                        </div>
-                                    )}
-
-                                    {selectedInvoice.tripId.startLocation?.place && (
-                                        <div>
-                                            <label className="text-sm font-medium text-gray-500">Pickup Location</label>
-                                            <p className="text-sm">{selectedInvoice.tripId.startLocation.place}</p>
-                                        </div>
-                                    )}
-
-                                    {selectedInvoice.tripId.endLocation?.place && (
-                                        <div>
-                                            <label className="text-sm font-medium text-gray-500">Delivery Location</label>
-                                            <p className="text-sm">{selectedInvoice.tripId.endLocation.place}</p>
-                                        </div>
-                                    )}
-
-                                    {selectedInvoice.tripId.route?.totalDistance && (
-                                        <div>
-                                            <label className="text-sm font-medium text-gray-500">Distance</label>
-                                            <p className="text-sm">
-                                                {selectedInvoice.tripId.route.totalDistance.toFixed(2)} km
-                                                ({(selectedInvoice.tripId.route.totalDistance * 0.621371).toFixed(2)} miles)
-                                            </p>
-                                        </div>
-                                    )}
-
-                                    {selectedInvoice.tripId.orders && selectedInvoice.tripId.orders.length > 0 && (
-                                        <div>
-                                            <label className="text-sm font-medium text-gray-500 mb-2 block">Orders ({selectedInvoice.tripId.orders.length})</label>
-                                            <div className="space-y-2">
-                                                {selectedInvoice.tripId.orders.map((order: any, index: number) => (
-                                                    <div key={order._id || index} className="p-3 bg-gray-50 rounded-md">
-                                                        <div className="flex items-center justify-between mb-2">
-                                                            <span className="font-medium text-sm">{order.orderNumber || `Order ${index + 1}`}</span>
-                                                            {order.customerOrderNo && (
-                                                                <span className="text-xs text-gray-500">PO: {order.customerOrderNo}</span>
-                                                            )}
-                                                        </div>
-                                                        {order.commodity && (
-                                                            <p className="text-xs text-gray-600">Commodity: {order.commodity}</p>
-                                                        )}
-                                                        {order.weight && (
-                                                            <p className="text-xs text-gray-600">
-                                                                Weight: {order.weight} {order.weightUnit || 'lbs'}
-                                                            </p>
-                                                        )}
-                                                        {order.pickupLocation?.place && (
-                                                            <p className="text-xs text-gray-600">Pickup: {order.pickupLocation.place}</p>
-                                                        )}
-                                                        {order.deliveryLocation?.place && (
-                                                            <p className="text-xs text-gray-600">Delivery: {order.deliveryLocation.place}</p>
-                                                        )}
-                                                    </div>
-                                                ))}
+                                                <p className="text-xs text-gray-500 italic">
+                                                    Trip details are not available. This invoice was auto-generated when the trip was completed.
+                                                </p>
+                                                <p className="text-xs text-gray-400 mt-1">
+                                                    {selectedInvoice.notes}
+                                                </p>
                                             </div>
                                         </div>
-                                    )}
-
-                                    {(selectedInvoice.tripId.plannedStartDate || selectedInvoice.tripId.actualStartDate) && (
-                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                            {selectedInvoice.tripId.plannedStartDate && (
-                                                <div>
-                                                    <label className="text-sm font-medium text-gray-500">Planned Start Date</label>
-                                                    <p className="text-sm">{formatDate(selectedInvoice.tripId.plannedStartDate)}</p>
-                                                </div>
-                                            )}
-                                            {selectedInvoice.tripId.actualStartDate && (
-                                                <div>
-                                                    <label className="text-sm font-medium text-gray-500">Actual Start Date</label>
-                                                    <p className="text-sm">{formatDate(selectedInvoice.tripId.actualStartDate)}</p>
-                                                </div>
-                                            )}
-                                            {selectedInvoice.tripId.plannedEndDate && (
-                                                <div>
-                                                    <label className="text-sm font-medium text-gray-500">Planned End Date</label>
-                                                    <p className="text-sm">{formatDate(selectedInvoice.tripId.plannedEndDate)}</p>
-                                                </div>
-                                            )}
-                                            {selectedInvoice.tripId.actualEndDate && (
-                                                <div>
-                                                    <label className="text-sm font-medium text-gray-500">Actual End Date</label>
-                                                    <p className="text-sm">{formatDate(selectedInvoice.tripId.actualEndDate)}</p>
-                                                </div>
-                                            )}
-                                        </div>
-                                    )}
+                                    ) : null}
                                 </div>
-                            ) : selectedInvoice.tripId ? (
-                                <div>
-                                    <p className="text-sm text-gray-500">Trip ID: {typeof selectedInvoice.tripId === 'string' ? selectedInvoice.tripId : String(selectedInvoice.tripId)}</p>
-                                    <p className="text-xs text-gray-400 mt-1">Trip details not loaded. Please refresh the invoice.</p>
-                                </div>
-                            ) : selectedInvoice.notes && selectedInvoice.notes.includes('Auto-generated invoice for trip') ? (
-                                <div className="space-y-3">
-                                    <div>
-                                        <label className="text-sm font-medium text-gray-500">Trip Number</label>
-                                        <p className="text-sm font-medium">
-                                            {(() => {
-                                                const match = selectedInvoice.notes.match(/trip\s+([A-Z0-9]+)/i);
-                                                return match ? match[1] : 'N/A';
-                                            })()}
-                                        </p>
-                                    </div>
-                                    <div>
-                                        <p className="text-xs text-gray-500 italic">
-                                            Trip details are not available. This invoice was auto-generated when the trip was completed.
-                                        </p>
-                                        <p className="text-xs text-gray-400 mt-1">
-                                            {selectedInvoice.notes}
-                                        </p>
-                                    </div>
-                                </div>
-                            ) : null}
+                            </details>
                         </div>
                     )}
                 </div>
