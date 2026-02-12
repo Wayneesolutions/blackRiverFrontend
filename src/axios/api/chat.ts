@@ -74,15 +74,11 @@ export interface TripStatusData {
 }
 
 export interface ChatMessage {
-  _id: string;
+  _id: any; // Can be string or ObjectId-like object
   tripId?: string; // Optional for backward compatibility
   orderId?: string; // New field for orders
-  driverId?: string; // New field for driver chat
-  senderId: {
-    _id: string;
-    name: string;
-    email: string;
-  };
+  driverId?: any; // Can be string or ObjectId-like object
+  senderId: any; // Can be string, object with _id, or populated object
   senderType: "driver" | "dispatcher" | "admin" | "system";
   senderName: string;
   message: string;
@@ -92,7 +88,7 @@ export interface ChatMessage {
   fileSize?: number;
   tripStatus?: TripStatusData; // Trip status data from AI
   isSystemMessage?: boolean; // Flag for system messages
-  forDispatchersOnly?: boolean; // Flag for messages visible only to dispatchers
+  forDispatchersOnly?: boolean; // Flag for dispatcher-only messages
   readBy: Array<{
     userId: string;
     readAt: string;
