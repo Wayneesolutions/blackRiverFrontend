@@ -1810,11 +1810,23 @@ const EmployeesPage = () => {
                           label="Search Address"
                           placeholder="Search For An Address..."
                           onAddressSelect={(addressData) => {
+                            // Find matching country by name or code
+                            let countryName = '';
+                            if (addressData.country) {
+                              const countryFromAddress = countries.find(
+                                c => c.name.toLowerCase() === addressData.country.toLowerCase() ||
+                                     c.code.toLowerCase() === addressData.country.toLowerCase()
+                              );
+                              countryName = countryFromAddress ? countryFromAddress.name : addressData.country;
+                            }
+
                             // Populate address fields
                             setPersonalData({
                               ...personalData,
                               address: addressData.fullAddress || addressData.address || '',
-                              searchAddress: addressData.fullAddress || ''
+                              searchAddress: addressData.fullAddress || '',
+                              country: countryName,
+                              stateProvince: addressData.state || ''
                             });
                           }}
                           className=""

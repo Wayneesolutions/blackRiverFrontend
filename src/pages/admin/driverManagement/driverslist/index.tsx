@@ -160,7 +160,7 @@ const DriverManagement = () => {
   const [driverCounts, setDriverCounts] = useState<{ total: number; assigned: number; unassigned: number }>({ total: 0, assigned: 0, unassigned: 0 });
   const [profileImagePreview, setProfileImagePreview] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const [, setIsSubmitting] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
  
 
   const [filterBy, setFilterBy] = useState('Active');
@@ -353,6 +353,32 @@ const DriverManagement = () => {
     citizenship: ''
   });
 
+  // Sync country name when countries array loads (ensures dropdown shows correct selection)
+  useEffect(() => {
+    if (countries.length > 0 && formData.country && formData.country.trim() !== '') {
+      // Try to find exact match first
+      const exactMatch = countries.find(c => c.name === formData.country);
+      if (!exactMatch) {
+        // Try to find by code or partial match
+        const countryMatch = countries.find(
+          c => c.code.toLowerCase() === formData.country.toLowerCase() ||
+               c.name.toLowerCase() === formData.country.toLowerCase() ||
+               c.name.toLowerCase().includes(formData.country.toLowerCase()) ||
+               formData.country.toLowerCase().includes(c.name.toLowerCase())
+        );
+        if (countryMatch && countryMatch.name !== formData.country) {
+          // Update to exact country name from array (only if different)
+          setFormData(prev => {
+            if (prev.country !== countryMatch.name) {
+              return { ...prev, country: countryMatch.name };
+            }
+            return prev;
+          });
+        }
+      }
+    }
+  }, [countries.length, formData.country]); // Sync when countries load or country changes
+
   // Form state for Travel Information
   const [travelData, setTravelData] = useState({
     // Travel Information
@@ -400,9 +426,7 @@ const DriverManagement = () => {
   const [certifications, setCertifications] = useState<Array<{
     id: string;
     expiryDate: string;
-    title: string;
     description: string;
-    result: string;
     ignoreExpiration: boolean;
     file?: File | null;
     fileUrl?: string | null;
@@ -410,9 +434,7 @@ const DriverManagement = () => {
   }>>([]);
   const [newCertification, setNewCertification] = useState({
     expiryDate: '',
-    title: '',
     description: '',
-    result: '',
     ignoreExpiration: false,
     file: null as File | null
   });
@@ -431,30 +453,35 @@ const DriverManagement = () => {
   const [editingDocumentId, setEditingDocumentId] = useState<string | null>(null);
   const [editingCertificationId, setEditingCertificationId] = useState<string | null>(null);
 
-  // Form state for Violations
+  // Form state for Violations (Internal HR/safety/compliance issues)
   const [violations, setViolations] = useState<Array<{
     id: string;
-    paymentDueDate: string;
-    ticket: string;
+    violationType: string;
+    title: string;
     description: string;
-    currency: string;
-    amount?: string;
-    violationType?: string;
+    dateOfIncident: string;
+    reportedBy: string;
+    severity: string;
+    actionTaken: string;
+    status: string;
     file?: File | null;
     fileUrl?: string | null;
     fileName?: string | null;
   }>>([]);
   const [newViolation, setNewViolation] = useState({
-    paymentDueDate: '',
-    ticket: '',
-    description: '',
-    currency: 'CAD',
-    amount: '',
     violationType: '',
+    title: '',
+    description: '',
+    dateOfIncident: '',
+    reportedBy: '',
+    severity: '',
+    actionTaken: '',
+    status: '',
     file: null as File | null
   });
   const [violationFile, setViolationFile] = useState<File | null>(null);
   const [editingViolationId, setEditingViolationId] = useState<string | null>(null);
+
 
   // Form state for Notes
   const [notes, setNotes] = useState<Array<{
@@ -1009,9 +1036,7 @@ const DriverManagement = () => {
                 const existingCertifications = driver.certifications.map((cert: any) => ({
                   id: `existing-${cert._id}`,
                   expiryDate: cert.expiryDate ? new Date(cert.expiryDate).toISOString().split('T')[0] : '',
-                  title: cert.certificateName || cert.title || '',
                   description: cert.description || '',
-                  result: cert.notes || cert.result || 'pass', // Use notes field, not status (status is auto-calculated)
                   ignoreExpiration: cert.ignoreExpiration || false,
                   file: cert.fileName ? { name: cert.fileName, size: cert.fileSize || 0 } : null,
                   fileUrl: cert.fileUrl || null,
@@ -1028,17 +1053,19 @@ const DriverManagement = () => {
               setCertifications([]);
             }
 
-            // Load violations (Tickets / Violations) from getDriverById response
+            // Load violations (Violations) from getDriverById response
             try {
               if (driver.violations && Array.isArray(driver.violations) && driver.violations.length > 0) {
                 const existingViolations = driver.violations.map((vio: any) => ({
                   id: `existing-${vio._id}`,
-                  paymentDueDate: vio.date ? new Date(vio.date).toISOString().split('T')[0] : '',
-                  ticket: vio.ticketInfo?.ticketNumber || vio.ticket || '',
-                  description: vio.description || '',
-                  currency: vio.currency || 'CAD',
-                  amount: vio.amount?.toString() || '',
                   violationType: vio.violationType || vio.type || '',
+                  title: vio.title || vio.ticketInfo?.ticketNumber || vio.ticket || '',
+                  description: vio.description || '',
+                  dateOfIncident: vio.dateOfIncident || (vio.date ? new Date(vio.date).toISOString().split('T')[0] : ''),
+                  reportedBy: vio.reportedBy || '',
+                  severity: vio.severity || '',
+                  actionTaken: vio.actionTaken || '',
+                  status: vio.status || '',
                   file: null, // Don't set file for existing violations (it's a File object, not needed for display)
                   fileUrl: vio.fileUrl || null, // Include fileUrl for displaying existing files
                   fileName: vio.fileName || null // Include fileName for displaying existing files
@@ -1926,10 +1953,10 @@ const DriverManagement = () => {
         const certificationsData = certifications.map(cert => ({
           id: cert.id,
           expiryDate: cert.expiryDate || '',
-          title: cert.title || '',
           description: cert.description || '',
-          result: cert.result || '',
           ignoreExpiration: cert.ignoreExpiration || false,
+          fileUrl: cert.fileUrl || null,
+          fileName: cert.fileName || null,
           hasFile: !!(cert.file instanceof File) // Only true if it's a new File object
         }));
         driverFormData.append('certifications', JSON.stringify(certificationsData));
@@ -1947,12 +1974,16 @@ const DriverManagement = () => {
       if (violations && violations.length > 0) {
         const violationsData = violations.map(viol => ({
           id: viol.id,
-          paymentDueDate: viol.paymentDueDate || '',
-          ticket: viol.ticket || '',
-          description: viol.description || '',
-          currency: viol.currency || 'CAD',
-          amount: viol.amount || '',
           violationType: viol.violationType || '',
+          title: viol.title || '',
+          description: viol.description || '',
+          dateOfIncident: viol.dateOfIncident || '',
+          reportedBy: viol.reportedBy || '',
+          severity: viol.severity || '',
+          actionTaken: viol.actionTaken || '',
+          status: viol.status || '',
+          fileUrl: viol.fileUrl || null,
+          fileName: viol.fileName || null,
           hasFile: !!(viol.file instanceof File) // Only true if it's a new File object
         }));
         driverFormData.append('violations', JSON.stringify(violationsData));
@@ -1966,6 +1997,7 @@ const DriverManagement = () => {
           }
         });
       }
+      
       
       // Deductions - send as JSON array
       if (deductions && deductions.length > 0) {
@@ -2191,9 +2223,7 @@ const DriverManagement = () => {
     setCertifications([]);
     setNewCertification({
       expiryDate: '',
-      title: '',
       description: '',
-      result: '',
       ignoreExpiration: false,
       file: null
     });
@@ -2206,12 +2236,14 @@ const DriverManagement = () => {
     // Reset violations
     setViolations([]);
     setNewViolation({
-      paymentDueDate: '',
-      ticket: '',
-      description: '',
-      currency: 'CAD',
-      amount: '',
       violationType: '',
+      title: '',
+      description: '',
+      dateOfIncident: '',
+      reportedBy: '',
+      severity: '',
+      actionTaken: '',
+      status: '',
       file: null
     });
     setViolationFile(null);
@@ -2302,9 +2334,7 @@ const DriverManagement = () => {
         setEditingCertificationId(null);
         setNewCertification({
           expiryDate: '',
-          title: '',
           description: '',
-          result: '',
           ignoreExpiration: false,
           file: null
         });
@@ -2570,9 +2600,7 @@ const DriverManagement = () => {
       const normalizeCert = (cert: any) => ({
         id: cert.id || '',
         expiryDate: cert.expiryDate || '',
-        title: cert.title || '',
         description: cert.description || '',
-        result: cert.result || '',
         ignoreExpiration: cert.ignoreExpiration || false
       });
       
@@ -2594,10 +2622,10 @@ const DriverManagement = () => {
         const certificationsData = certifications.map(cert => ({
           id: cert.id,
           expiryDate: cert.expiryDate || '',
-          title: cert.title || '',
           description: cert.description || '',
-          result: cert.result || '',
           ignoreExpiration: cert.ignoreExpiration || false,
+          fileUrl: cert.fileUrl || null,
+          fileName: cert.fileName || null,
           hasFile: !!(cert.file instanceof File) // Only true if it's a new File object
         }));
         driverFormData.append('certifications', JSON.stringify(certificationsData));
@@ -2640,12 +2668,16 @@ const DriverManagement = () => {
       if (violations && violations.length > 0) {
         const violationsData = violations.map(vio => ({
           id: vio.id,
-          paymentDueDate: vio.paymentDueDate || '',
-          ticket: vio.ticket || '',
-          description: vio.description || '',
-          currency: vio.currency || 'CAD',
-          amount: vio.amount || '',
           violationType: vio.violationType || '',
+          title: vio.title || '',
+          description: vio.description || '',
+          dateOfIncident: vio.dateOfIncident || '',
+          reportedBy: vio.reportedBy || '',
+          severity: vio.severity || '',
+          actionTaken: vio.actionTaken || '',
+          status: vio.status || '',
+          fileUrl: vio.fileUrl || null,
+          fileName: vio.fileName || null,
           hasFile: !!(vio.file instanceof File) // Only true if it's a new File object
         }));
         driverFormData.append('violations', JSON.stringify(violationsData));
@@ -2660,6 +2692,7 @@ const DriverManagement = () => {
           }
         });
       }
+      
       
       // Deductions - send as JSON array (always send if exists, backend handles updates)
       if (deductions && deductions.length > 0) {
@@ -2694,7 +2727,7 @@ const DriverManagement = () => {
       const changedFields = Array.from(driverFormData.keys());
       console.log('📋 Changed fields:', changedFields);
       
-      // Check if there are documents, certifications, violations, deductions, or additions to send
+      // Check if there are documents, certifications, violations, tickets, deductions, or additions to send
       const hasDocuments = documents && documents.length > 0;
       const hasCertifications = certifications && certifications.length > 0;
       const hasViolations = violations && violations.length > 0;
@@ -2769,12 +2802,14 @@ const DriverManagement = () => {
               if (driver.violations && Array.isArray(driver.violations)) {
                 const existingViolations = driver.violations.map((vio: any) => ({
                   id: `existing-${vio._id}`,
-                  paymentDueDate: vio.date ? new Date(vio.date).toISOString().split('T')[0] : '',
-                  ticket: vio.ticketInfo?.ticketNumber || vio.ticket || '',
-                  description: vio.description || '',
-                  currency: vio.currency || 'CAD',
-                  amount: vio.amount?.toString() || '',
                   violationType: vio.violationType || vio.type || '',
+                  title: vio.title || vio.ticketInfo?.ticketNumber || vio.ticket || '',
+                  description: vio.description || '',
+                  dateOfIncident: vio.dateOfIncident || (vio.date ? new Date(vio.date).toISOString().split('T')[0] : ''),
+                  reportedBy: vio.reportedBy || '',
+                  severity: vio.severity || '',
+                  actionTaken: vio.actionTaken || '',
+                  status: vio.status || '',
                   file: null, // Don't set file for existing violations (it's a File object, not needed for display)
                   fileUrl: vio.fileUrl || null, // Include fileUrl for displaying existing files
                   fileName: vio.fileName || null // Include fileName for displaying existing files
@@ -3257,19 +3292,7 @@ const DriverManagement = () => {
                   
                   </th>
 
-                  {/* Ticket (YTD) */}
-                  <th className="px-4 py-3 text-left">
-                    <div className="flex items-center gap-2">
-                      <button
-                        onClick={() => handleSort('ticketYTD')}
-                        className="flex items-center gap-2 hover:text-gray-700 font-medium text-xs text-gray-700 uppercase"
-                      >
-                        Ticket (YTD)
-                        {getSortIcon('ticketYTD')}
-                      </button>
-                    </div>
-                
-                  </th>
+                 
 
                   {/* Status */}
                   <th className="px-4 py-3 text-left">
@@ -3415,7 +3438,7 @@ const DriverManagement = () => {
                       })() : '-'}
                     </td>
                     <td className="px-4 py-3 text-sm text-gray-500">{driver.notes || '-'}</td>
-                    <td className="px-4 py-3 text-sm text-gray-900">{driver.ticketYTD}</td>
+                  
                     <td className="px-4 py-3 text-sm text-gray-900">{driver.status}</td>
                     <td className="px-4 py-3">
                       <button
@@ -3617,13 +3640,18 @@ const DriverManagement = () => {
                 <div className="flex items-center gap-2">
                   <button 
                     onClick={editingId ? handleUpdateDriver : handleSaveDriver}
-                    className="px-3 py-1 text-xs bg-gray-600 !text-white rounded-lg hover:bg-gray-700 transition-colors font-medium"
+                    disabled={isSubmitting}
+                    className="px-3 py-1 text-xs bg-gray-600 !text-white rounded-lg hover:bg-gray-700 transition-colors font-medium disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-1.5"
                   >
+                    {isSubmitting && (
+                      <RefreshCw className="w-3 h-3 animate-spin" />
+                    )}
                     {editingId ? 'UPDATE' : 'SAVE'}
                   </button>
                   <button
                     onClick={handleCloseModal}
-                    className="text-gray-400 hover:text-gray-600 transition-colors"
+                    disabled={isSubmitting}
+                    className="text-gray-400 hover:text-gray-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                   >
                     <X className="w-4 h-4" />
                   </button>
@@ -3988,35 +4016,117 @@ const DriverManagement = () => {
                         label="Search Address"
                         placeholder="Search For An Address..."
                         onAddressSelect={(addressData) => {
-                          // Map country name to country code
-                          let countryCode = '';
-                          const countryName = addressData.country?.toLowerCase() || '';
-                          if (countryName.includes('united states') || countryName.includes('usa') || countryName === 'us') {
-                            countryCode = 'US';
-                          } else if (countryName.includes('canada') || countryName === 'ca') {
-                            countryCode = 'CA';
+                          // Find matching country from countries array by name or code
+                          let countryName = '';
+                          if (addressData.country) {
+                            const countryInput = addressData.country.trim();
+                            const countryInputLower = countryInput.toLowerCase();
+                            
+                            // Try to find country by code first (most reliable)
+                            let countryFromAddress = countries.length > 0 ? countries.find(
+                              c => c.code.toLowerCase() === countryInputLower
+                            ) : null;
+                            
+                            // If not found by code, try by name (exact match)
+                            if (!countryFromAddress && countries.length > 0) {
+                              countryFromAddress = countries.find(
+                                c => c.name.toLowerCase() === countryInputLower
+                              );
+                            }
+                            
+                            // If still not found, try partial/fuzzy name match
+                            if (!countryFromAddress && countries.length > 0) {
+                              countryFromAddress = countries.find(
+                                c => {
+                                  const nameLower = c.name.toLowerCase();
+                                  // Check if either string contains the other (fuzzy match)
+                                  return nameLower.includes(countryInputLower) || 
+                                         countryInputLower.includes(nameLower) ||
+                                         // Handle common variations
+                                         (countryInputLower.includes('united states') && (nameLower.includes('united states') || c.code === 'US')) ||
+                                         (countryInputLower.includes('usa') && c.code === 'US') ||
+                                         (countryInputLower.includes('canada') && c.code === 'CA') ||
+                                         (countryInputLower.includes('russia') && (nameLower.includes('russia') || c.code === 'RU')) ||
+                                         (countryInputLower.includes('russian') && (nameLower.includes('russia') || c.code === 'RU'));
+                                }
+                              );
+                            }
+                            
+                            // Set country name if found
+                            if (countryFromAddress) {
+                              countryName = countryFromAddress.name;
+                            } else {
+                              // Fallback: try to map common country codes/names
+                              const countryCodeMap: { [key: string]: string } = {
+                                'us': 'US', 'usa': 'US', 'united states': 'US', 'united states of america': 'US',
+                                'ca': 'CA', 'canada': 'CA',
+                                'uk': 'GB', 'united kingdom': 'GB', 'gb': 'GB', 'great britain': 'GB',
+                                'in': 'IN', 'india': 'IN',
+                                'au': 'AU', 'australia': 'AU',
+                                'ru': 'RU', 'russia': 'RU', 'russian federation': 'RU', 'russian': 'RU'
+                              };
+                              
+                              const mappedCode = countryCodeMap[countryInputLower];
+                              if (mappedCode && countries.length > 0) {
+                                // Find the country by code in the countries array
+                                const countryByCode = countries.find(c => c.code === mappedCode);
+                                if (countryByCode) {
+                                  countryName = countryByCode.name;
+                                } else {
+                                  // If countries array not loaded yet, use common name
+                                  const countryNameMap: { [key: string]: string } = {
+                                    'US': 'United States', 'CA': 'Canada', 'GB': 'United Kingdom',
+                                    'IN': 'India', 'AU': 'Australia', 'RU': 'Russia'
+                                  };
+                                  countryName = countryNameMap[mappedCode] || countryInput;
+                                }
+                              } else if (countries.length > 0) {
+                                // Try to find by partial match in countries array as last resort
+                                const partialMatch = countries.find(c => {
+                                  const nameLower = c.name.toLowerCase();
+                                  return nameLower.includes(countryInputLower) || countryInputLower.includes(nameLower);
+                                });
+                                countryName = partialMatch ? partialMatch.name : countryInput;
+                              } else {
+                                // Countries array not loaded - use input as-is (will be matched when array loads)
+                                countryName = countryInput;
+                              }
+                            }
                           }
 
-                          // Map state/province name to code if needed
-                          let stateProvinceCode = addressData.state || '';
-                          if (countryCode === 'US' && addressData.state) {
-                            // Try to find matching state code
-                            const matchedState = US_STATES.find(
-                              s => s.label.toLowerCase() === addressData.state.toLowerCase() || 
-                                   s.value.toLowerCase() === addressData.state.toLowerCase()
-                            );
-                            if (matchedState) {
-                              stateProvinceCode = matchedState.value;
+                          // Map state/province name to code for US and Canada
+                          let stateProvinceValue = addressData.state || '';
+                          if (countryName && addressData.state) {
+                            // Check if it's US
+                            const foundCountry = countries.find(c => c.name === countryName);
+                            const isUS = countryName.toLowerCase().includes('united states') || 
+                                        countryName.toLowerCase() === 'usa' ||
+                                        foundCountry?.code === 'US';
+                            
+                            // Check if it's Canada
+                            const isCA = countryName.toLowerCase().includes('canada') || 
+                                        foundCountry?.code === 'CA';
+
+                            if (isUS && addressData.state) {
+                              // Try to find matching US state code
+                              const matchedState = US_STATES.find(
+                                s => s.label.toLowerCase() === addressData.state.toLowerCase() || 
+                                     s.value.toLowerCase() === addressData.state.toLowerCase()
+                              );
+                              if (matchedState) {
+                                stateProvinceValue = matchedState.value;
+                              }
+                            } else if (isCA && addressData.state) {
+                              // Try to find matching Canadian province code
+                              const matchedProvince = CANADIAN_PROVINCES.find(
+                                p => p.label.toLowerCase() === addressData.state.toLowerCase() || 
+                                     p.value.toLowerCase() === addressData.state.toLowerCase()
+                              );
+                              if (matchedProvince) {
+                                stateProvinceValue = matchedProvince.value;
+                              }
                             }
-                          } else if (countryCode === 'CA' && addressData.state) {
-                            // Try to find matching province code
-                            const matchedProvince = CANADIAN_PROVINCES.find(
-                              p => p.label.toLowerCase() === addressData.state.toLowerCase() || 
-                                   p.value.toLowerCase() === addressData.state.toLowerCase()
-                            );
-                            if (matchedProvince) {
-                              stateProvinceCode = matchedProvince.value;
-                            }
+                            // For other countries, use the state name as-is
                           }
 
                           // Populate all address fields
@@ -4025,10 +4135,19 @@ const DriverManagement = () => {
                             address: addressData.address || '',
                             city: addressData.city || '',
                             postalCode: addressData.postalCode || '',
-                            stateProvince: stateProvinceCode,
-                            country: countryCode,
+                            stateProvince: stateProvinceValue,
+                            country: countryName,
                             searchAddress: addressData.fullAddress || ''
                           });
+
+                          // Clear validation errors for address fields
+                          const updatedErrors = { ...validationErrors };
+                          if (updatedErrors.address) delete updatedErrors.address;
+                          if (updatedErrors.city) delete updatedErrors.city;
+                          if (updatedErrors.postalCode) delete updatedErrors.postalCode;
+                          if (updatedErrors.country) delete updatedErrors.country;
+                          if (updatedErrors.stateProvince) delete updatedErrors.stateProvince;
+                          setValidationErrors(updatedErrors);
                         }}
                         className=""
                       />
@@ -4679,10 +4798,11 @@ const DriverManagement = () => {
                           className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#42aeec] focus:border-transparent"
                         >
                           <option value="">Select Citizenship</option>
-                          <option value="Canadian">Canadian</option>
-                          <option value="US">United States</option>
-                          <option value="Indian">Indian</option>
-                          <option value="Other">Other</option>
+                          {countries.map((country) => (
+                            <option key={country.code} value={country.name}>
+                              {country.name}
+                            </option>
+                          ))}
                         </select>
                       </div>
                     </div>
@@ -4806,11 +4926,12 @@ const DriverManagement = () => {
                             onChange={(e) => setTravelData({ ...travelData, passportCountry: e.target.value })}
                             className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#42aeec] focus:border-transparent"
                           >
-                            <option value="">Select</option>
-                            <option value="US">United States</option>
-                            <option value="CA">Canada</option>
-                            <option value="IN">India</option>
-                            <option value="UK">United Kingdom</option>
+                            <option value="">Select Passport Country</option>
+                            {countries.map((country) => (
+                              <option key={country.code} value={country.name}>
+                                {country.name}
+                              </option>
+                            ))}
                           </select>
                         </div>
                         <div>
@@ -5320,9 +5441,7 @@ const DriverManagement = () => {
                         <thead className="bg-gray-50">
                           <tr>
                             <th className="px-3 py-2 text-left text-xs font-medium text-gray-700 uppercase">EXPIRY DATE</th>
-                            <th className="px-3 py-2 text-left text-xs font-medium text-gray-700 uppercase">TITLE</th>
                             <th className="px-3 py-2 text-left text-xs font-medium text-gray-700 uppercase">DESCRIPTION</th>
-                            <th className="px-3 py-2 text-left text-xs font-medium text-gray-700 uppercase">RESULT</th>
                             <th className="px-3 py-2 text-left text-xs font-medium text-gray-700 uppercase">IGNORE EXPIRATION</th>
                             <th className="px-3 py-2 text-left text-xs font-medium text-gray-700 uppercase">DOCUMENT</th>
                           </tr>
@@ -5345,32 +5464,11 @@ const DriverManagement = () => {
                             <td className="px-3 py-2">
                               <input
                                 type="text"
-                                placeholder="Title"
-                                value={newCertification.title}
-                                onChange={(e) => setNewCertification({ ...newCertification, title: e.target.value })}
-                                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#42aeec] focus:border-transparent"
-                              />
-                            </td>
-                            <td className="px-3 py-2">
-                              <input
-                                type="text"
                                 placeholder="Description"
                                 value={newCertification.description}
                                 onChange={(e) => setNewCertification({ ...newCertification, description: e.target.value })}
                                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#42aeec] focus:border-transparent"
                               />
-                            </td>
-                            <td className="px-3 py-2">
-                              <select
-                                value={newCertification.result}
-                                onChange={(e) => setNewCertification({ ...newCertification, result: e.target.value })}
-                                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#42aeec] focus:border-transparent"
-                              >
-                                <option value="">Result</option>
-                                <option value="pass">Pass</option>
-                                <option value="fail">Fail</option>
-                                <option value="pending">Pending</option>
-                              </select>
                             </td>
                             <td className="px-3 py-2">
                               <div className="flex items-center gap-3">
@@ -5421,7 +5519,7 @@ const DriverManagement = () => {
                                 )}
                                 <button
                                   onClick={() => {
-                                    if (newCertification.expiryDate || newCertification.title) {
+                                    if (newCertification.expiryDate || newCertification.description) {
                                       if (editingCertificationId) {
                                         // Update existing certification in the list
                                         setCertifications(certifications.map(c => 
@@ -5429,9 +5527,7 @@ const DriverManagement = () => {
                                             ? {
                                                 ...c,
                                                 expiryDate: newCertification.expiryDate,
-                                                title: newCertification.title,
                                                 description: newCertification.description,
-                                                result: newCertification.result,
                                                 ignoreExpiration: newCertification.ignoreExpiration,
                                                 file: newCertification.file
                                               }
@@ -5443,18 +5539,14 @@ const DriverManagement = () => {
                                         setCertifications([...certifications, {
                                           id: Date.now().toString(),
                                           expiryDate: newCertification.expiryDate,
-                                          title: newCertification.title,
                                           description: newCertification.description,
-                                          result: newCertification.result,
                                           ignoreExpiration: newCertification.ignoreExpiration,
                                           file: newCertification.file
                                         }]);
                                       }
                                       setNewCertification({
                                         expiryDate: '',
-                                        title: '',
                                         description: '',
-                                        result: '',
                                         ignoreExpiration: false,
                                         file: null
                                       });
@@ -5478,9 +5570,7 @@ const DriverManagement = () => {
                         <thead className="bg-gray-50">
                           <tr>
                             <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase">EXPIRY DATE</th>
-                            <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase">TITLE</th>
                             <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase">DESCRIPTION</th>
-                            <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase">RESULT</th>
                             <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase">IGNORE EXPIRATION</th>
                             <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase">DOCUMENT</th>
                             <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase">ACTIONS</th>
@@ -5489,7 +5579,7 @@ const DriverManagement = () => {
                         <tbody className="bg-white divide-y divide-gray-200">
                           {certifications.length === 0 ? (
                             <tr>
-                              <td colSpan={7} className="px-4 py-8 text-center text-gray-500">
+                              <td colSpan={5} className="px-4 py-8 text-center text-gray-500">
                                 No Data
                               </td>
                             </tr>
@@ -5500,9 +5590,7 @@ const DriverManagement = () => {
                                 className={`hover:bg-gray-50 ${selectedCertificate?.id === cert.id ? 'bg-blue-50' : ''}`}
                               >
                                 <td className="px-4 py-3 text-sm text-gray-900">{cert.expiryDate || '-'}</td>
-                                <td className="px-4 py-3 text-sm text-gray-900">{cert.title || '-'}</td>
                                 <td className="px-4 py-3 text-sm text-gray-900">{cert.description || '-'}</td>
-                                <td className="px-4 py-3 text-sm text-gray-900">{cert.result || '-'}</td>
                                 <td className="px-4 py-3 text-sm text-gray-900">
                                   {cert.ignoreExpiration ? (
                                     <Check className="w-5 h-5 text-green-500" />
@@ -5530,9 +5618,7 @@ const DriverManagement = () => {
                                         // Load certification data into form for editing
                                         setNewCertification({
                                           expiryDate: cert.expiryDate || '',
-                                          title: cert.title || '',
                                           description: cert.description || '',
-                                          result: cert.result || '',
                                           ignoreExpiration: cert.ignoreExpiration || false,
                                           file: cert.file || null
                                         });
@@ -5661,13 +5747,13 @@ const DriverManagement = () => {
 
                 {activeFormTab === 'violations' && (
                   <div className="space-y-6">
-                    <h3 className="text-lg font-bold text-gray-900 mb-4">Tickets / Violations</h3>
+                    <h3 className="text-lg font-bold text-gray-900 mb-4">Violations</h3>
 
-                    {/* Violations Input Row */}
+                    {/* Violations Input Form */}
                     <div className="space-y-4 p-4 bg-gray-50 rounded-lg">
                       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                         <div>
-                          <label className="block text-sm font-medium text-gray-700 mb-1">Type of Violation <span className="text-red-500">*</span></label>
+                          <label className="block text-sm font-medium text-gray-700 mb-1">Violation Type <span className="text-red-500">*</span></label>
                           <select
                             value={newViolation.violationType}
                             onChange={(e) => {
@@ -5681,14 +5767,12 @@ const DriverManagement = () => {
                             }`}
                           >
                             <option value="">Select Type</option>
-                            <option value="HOs">HOs</option>
-                            <option value="speeding">Speeding</option>
-                            <option value="accident">Accident</option>
-                            <option value="ticket">Ticket</option>
-                            <option value="behaviour issue">Behaviour Issue</option>
-                            <option value="general">General</option>
-                            <option value="warning letters">Warning Letters</option>
-                            <option value="other violation">Other Violation</option>
+                            <option value="HOS">HOS</option>
+                            <option value="Behaviour Issue">Behaviour Issue</option>
+                            <option value="Safety Violation">Safety Violation</option>
+                            <option value="Warning Letter">Warning Letter</option>
+                            <option value="General">General</option>
+                            <option value="Other">Other</option>
                           </select>
                           {validationErrors.violationType && (
                             <p className="text-xs text-red-500 mt-0.5">{validationErrors.violationType}</p>
@@ -5698,42 +5782,81 @@ const DriverManagement = () => {
                           <label className="block text-sm font-medium text-gray-700 mb-1">Title</label>
                           <input
                             type="text"
-                            placeholder="title"
-                            value={newViolation.ticket}
-                            onChange={(e) => setNewViolation({ ...newViolation, ticket: e.target.value })}
+                            placeholder="Short one-line summary"
+                            value={newViolation.title}
+                            onChange={(e) => setNewViolation({ ...newViolation, title: e.target.value })}
                             className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#42aeec] focus:border-transparent"
                           />
                         </div>
-                      
                         <div>
-                          <label className="block text-sm font-medium text-gray-700 mb-1">Description</label>
+                          <label className="block text-sm font-medium text-gray-700 mb-1">Date of Incident <span className="text-red-500">*</span></label>
+                          <div className="relative">
+                            <Calendar className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
+                            <input
+                              type="date"
+                              value={newViolation.dateOfIncident}
+                              onChange={(e) => setNewViolation({ ...newViolation, dateOfIncident: e.target.value })}
+                              className="w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#42aeec] focus:border-transparent"
+                            />
+                          </div>
+                        </div>
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700 mb-1">Reported By</label>
                           <input
                             type="text"
-                            placeholder="Description"
-                            value={newViolation.description}
-                            onChange={(e) => setNewViolation({ ...newViolation, description: e.target.value })}
+                            placeholder="Manager/Admin name"
+                            value={newViolation.reportedBy}
+                            onChange={(e) => setNewViolation({ ...newViolation, reportedBy: e.target.value })}
                             className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#42aeec] focus:border-transparent"
                           />
                         </div>
                         <div>
-                          <label className="block text-sm font-medium text-gray-700 mb-1">Currency</label>
+                          <label className="block text-sm font-medium text-gray-700 mb-1">Severity</label>
                           <select
-                            value={newViolation.currency}
-                            onChange={(e) => setNewViolation({ ...newViolation, currency: e.target.value })}
+                            value={newViolation.severity}
+                            onChange={(e) => setNewViolation({ ...newViolation, severity: e.target.value })}
                             className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#42aeec] focus:border-transparent"
                           >
-                            <option value="CAD">Canadian Dollar (CAD)</option>
-                            <option value="USD">American Dollar (USD)</option>
+                            <option value="">Select Severity</option>
+                            <option value="Low">Low</option>
+                            <option value="Medium">Medium</option>
+                            <option value="High">High</option>
                           </select>
                         </div>
                         <div>
-                          <label className="block text-sm font-medium text-gray-700 mb-1">Amount</label>
-                          <input
-                            type="number"
-                            step="0.01"
-                            placeholder="0.00"
-                            value={newViolation.amount}
-                            onChange={(e) => setNewViolation({ ...newViolation, amount: e.target.value })}
+                          <label className="block text-sm font-medium text-gray-700 mb-1">Action Taken</label>
+                          <select
+                            value={newViolation.actionTaken}
+                            onChange={(e) => setNewViolation({ ...newViolation, actionTaken: e.target.value })}
+                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#42aeec] focus:border-transparent"
+                          >
+                            <option value="">Select Action</option>
+                            <option value="None">None</option>
+                            <option value="Warning">Warning</option>
+                            <option value="Training">Training</option>
+                            <option value="Suspension">Suspension</option>
+                          </select>
+                        </div>
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700 mb-1">Status</label>
+                          <select
+                            value={newViolation.status}
+                            onChange={(e) => setNewViolation({ ...newViolation, status: e.target.value })}
+                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#42aeec] focus:border-transparent"
+                          >
+                            <option value="">Select Status</option>
+                            <option value="Open">Open</option>
+                            <option value="Under Review">Under Review</option>
+                            <option value="Closed">Closed</option>
+                          </select>
+                        </div>
+                        <div className="sm:col-span-2 lg:col-span-3">
+                          <label className="block text-sm font-medium text-gray-700 mb-1">Description</label>
+                          <textarea
+                            placeholder="Detailed explanation"
+                            value={newViolation.description}
+                            onChange={(e) => setNewViolation({ ...newViolation, description: e.target.value })}
+                            rows={3}
                             className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#42aeec] focus:border-transparent"
                           />
                         </div>
@@ -5778,20 +5901,26 @@ const DriverManagement = () => {
                               if (editingViolationId) {
                                 // Update existing violation
                                 if (!newViolation.violationType || !newViolation.violationType.trim()) {
-                                  setValidationErrors({ ...validationErrors, violationType: 'Type of Violation is required' });
-                                  addNotification('error', 'Please select a Type of Violation');
+                                  setValidationErrors({ ...validationErrors, violationType: 'Violation Type is required' });
+                                  addNotification('error', 'Please select a Violation Type');
+                                  return;
+                                }
+                                if (!newViolation.dateOfIncident || !newViolation.dateOfIncident.trim()) {
+                                  addNotification('error', 'Date of Incident is required');
                                   return;
                                 }
                                 setViolations(violations.map(v => 
                                   v.id === editingViolationId 
                                     ? { 
                                         ...v, 
-                                        paymentDueDate: newViolation.paymentDueDate,
-                                        ticket: newViolation.ticket,
-                                        description: newViolation.description,
-                                        currency: newViolation.currency,
-                                        amount: newViolation.amount,
                                         violationType: newViolation.violationType,
+                                        title: newViolation.title,
+                                        description: newViolation.description,
+                                        dateOfIncident: newViolation.dateOfIncident,
+                                        reportedBy: newViolation.reportedBy,
+                                        severity: newViolation.severity,
+                                        actionTaken: newViolation.actionTaken,
+                                        status: newViolation.status,
                                         file: newViolation.file
                                       }
                                     : v
@@ -5801,10 +5930,14 @@ const DriverManagement = () => {
                                   setValidationErrors({ ...validationErrors, violationType: '' });
                                 }
                               } else {
-                                // Add new violation - validate violation type is required
+                                // Add new violation - validate required fields
                                 if (!newViolation.violationType || !newViolation.violationType.trim()) {
-                                  setValidationErrors({ ...validationErrors, violationType: 'Type of Violation is required' });
-                                  addNotification('error', 'Please select a Type of Violation');
+                                  setValidationErrors({ ...validationErrors, violationType: 'Violation Type is required' });
+                                  addNotification('error', 'Please select a Violation Type');
+                                  return;
+                                }
+                                if (!newViolation.dateOfIncident || !newViolation.dateOfIncident.trim()) {
+                                  addNotification('error', 'Date of Incident is required');
                                   return;
                                 }
                                 
@@ -5812,12 +5945,14 @@ const DriverManagement = () => {
                                 const violationId = Date.now().toString();
                                 setViolations([...violations, {
                                   id: violationId,
-                                  paymentDueDate: newViolation.paymentDueDate,
-                                  ticket: newViolation.ticket,
-                                  description: newViolation.description,
-                                  currency: newViolation.currency,
-                                  amount: newViolation.amount,
                                   violationType: newViolation.violationType,
+                                  title: newViolation.title,
+                                  description: newViolation.description,
+                                  dateOfIncident: newViolation.dateOfIncident,
+                                  reportedBy: newViolation.reportedBy,
+                                  severity: newViolation.severity,
+                                  actionTaken: newViolation.actionTaken,
+                                  status: newViolation.status,
                                   file: newViolation.file
                                 }]);
                                 
@@ -5827,12 +5962,14 @@ const DriverManagement = () => {
                                 }
                               }
                               setNewViolation({
-                                paymentDueDate: '',
-                                ticket: '',
-                                description: '',
-                                currency: 'CAD',
-                                amount: '',
                                 violationType: '',
+                                title: '',
+                                description: '',
+                                dateOfIncident: '',
+                                reportedBy: '',
+                                severity: '',
+                                actionTaken: '',
+                                status: '',
                                 file: null
                               });
                               setViolationFile(null);
@@ -5851,11 +5988,11 @@ const DriverManagement = () => {
                       <table className="w-full">
                         <thead className="bg-gray-50">
                           <tr>
-                            <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase">Type of Violation</th>
-                            <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase">Ticket</th>
-                            <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase">Description</th>
-                            <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase">Currency</th>
-                            <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase">Amount</th>
+                            <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase">Date</th>
+                            <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase">Type</th>
+                            <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase">Title</th>
+                            <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase">Severity</th>
+                            <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase">Status</th>
                             <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase">File</th>
                             <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase">ACTIONS</th>
                           </tr>
@@ -5871,26 +6008,37 @@ const DriverManagement = () => {
                             violations.map((violation) => (
                               <tr key={violation.id} className="hover:bg-gray-50">
                                 <td className="px-4 py-3 text-sm text-gray-900">
+                                  {violation.dateOfIncident ? new Date(violation.dateOfIncident).toLocaleDateString() : '-'}
+                                </td>
+                                <td className="px-4 py-3 text-sm text-gray-900">
                                   <span className="px-2 py-1 bg-blue-50 text-blue-700 rounded-md text-xs font-medium">
                                     {violation.violationType || '-'}
                                   </span>
                                 </td>
                                 <td className="px-4 py-3 text-sm text-gray-900">
-                                  {violation.ticket || '-'}
+                                  {violation.title || '-'}
                                 </td>
                                 <td className="px-4 py-3 text-sm text-gray-900">
-                                  {violation.description || '-'}
+                                  {violation.severity ? (
+                                    <span className={`px-2 py-1 rounded-md text-xs font-medium ${
+                                      violation.severity === 'High' ? 'bg-red-100 text-red-700' :
+                                      violation.severity === 'Medium' ? 'bg-yellow-100 text-yellow-700' :
+                                      'bg-green-100 text-green-700'
+                                    }`}>
+                                      {violation.severity}
+                                    </span>
+                                  ) : '-'}
                                 </td>
                                 <td className="px-4 py-3 text-sm text-gray-900">
-                                  {violation.currency || '-'}
-                                </td>
-                                <td className="px-4 py-3 text-sm text-gray-900">
-                                  {violation.amount ? new Intl.NumberFormat('en-CA', {
-                                    style: 'currency',
-                                    currency: violation.currency || 'CAD',
-                                    minimumFractionDigits: 2,
-                                    maximumFractionDigits: 2,
-                                  }).format(parseFloat(violation.amount)) : '-'}
+                                  {violation.status ? (
+                                    <span className={`px-2 py-1 rounded-md text-xs font-medium ${
+                                      violation.status === 'Closed' ? 'bg-gray-100 text-gray-700' :
+                                      violation.status === 'Under Review' ? 'bg-blue-100 text-blue-700' :
+                                      'bg-orange-100 text-orange-700'
+                                    }`}>
+                                      {violation.status}
+                                    </span>
+                                  ) : '-'}
                                 </td>
                                 <td className="px-4 py-3 text-sm text-gray-900">
                                   {(violation.file instanceof File || violation.fileUrl || violation.fileName) ? (
@@ -5923,12 +6071,14 @@ const DriverManagement = () => {
                                         e.stopPropagation();
                                         // Load violation data into form for editing
                                         setNewViolation({
-                                          paymentDueDate: violation.paymentDueDate || '',
-                                          ticket: violation.ticket || '',
-                                          description: violation.description || '',
-                                          currency: violation.currency || 'CAD',
-                                          amount: violation.amount || '',
                                           violationType: violation.violationType || '',
+                                          title: violation.title || '',
+                                          description: violation.description || '',
+                                          dateOfIncident: violation.dateOfIncident || '',
+                                          reportedBy: violation.reportedBy || '',
+                                          severity: violation.severity || '',
+                                          actionTaken: violation.actionTaken || '',
+                                          status: violation.status || '',
                                           file: violation.file || null
                                         });
                                         setEditingViolationId(violation.id);
@@ -5964,12 +6114,14 @@ const DriverManagement = () => {
                                             if (editingViolationId === violation.id) {
                                               setEditingViolationId(null);
                                               setNewViolation({
-                                                paymentDueDate: '',
-                                                ticket: '',
-                                                description: '',
-                                                currency: 'CAD',
-                                                amount: '',
                                                 violationType: '',
+                                                title: '',
+                                                description: '',
+                                                dateOfIncident: '',
+                                                reportedBy: '',
+                                                severity: '',
+                                                actionTaken: '',
+                                                status: '',
                                                 file: null
                                               });
                                               setViolationFile(null);
@@ -6011,6 +6163,7 @@ const DriverManagement = () => {
                     </div>
                   </div>
                 )}
+
 
                 {activeFormTab === 'notes' && (
                   <div className="space-y-6">
@@ -6583,6 +6736,12 @@ const DriverManagement = () => {
                       >
                         <span>←</span> Deductions
                       </button>
+                      <button
+                        onClick={() => setActiveFormTab('onboarding')}
+                        className="text-gray-600 hover:text-gray-900 flex items-center gap-2"
+                      >
+                        Onboarding <span>→</span>
+                      </button>
                     </div>
                   </div>
                 )}
@@ -6922,28 +7081,17 @@ const DriverManagement = () => {
                     {/* Navigation Footer */}
                     <div className="flex justify-between items-center pt-4 border-t border-gray-200">
                       <button
-                        onClick={() => setActiveFormTab('deductions')}
+                        onClick={() => setActiveFormTab('additions')}
                         className="text-gray-600 hover:text-gray-900 flex items-center gap-2"
                       >
-                        <span>←</span> Deductions
+                        <span>←</span> Additions
                       </button>
-                      <button
-                        onClick={() => setActiveFormTab('onboarding')}
-                        className="text-gray-600 hover:text-gray-900 flex items-center gap-2"
-                      >
-                        Onboarding & Tests <span>→</span>
-                      </button>
+                      <div></div>
                     </div>
                   </div>
                 )}
 
-                {activeFormTab !== 'basic' && activeFormTab !== 'personal' && activeFormTab !== 'travel' && activeFormTab !== 'documents' && activeFormTab !== 'certifications' && activeFormTab !== 'violations' && activeFormTab !== 'notes' && activeFormTab !== 'deductions' && activeFormTab !== 'additions' && activeFormTab !== 'onboarding' && (
-                  <div className="text-center py-12">
-                    <p className="text-gray-500 text-lg">
-                      Section coming soon
-                    </p>
-                  </div>
-                )}
+             
               </div>
             </div>
           </div>
@@ -7002,7 +7150,7 @@ const DriverManagement = () => {
                 </button>
                 <button
                   onClick={handleConfirmFlagUpdate}
-                  className="flex-1 px-4 py-2 bg-[#0ea3d8] text-white rounded-lg hover:bg-[#0d8fc7] transition-colors font-medium"
+                  className="flex-1 px-4 py-2 bg-[#0ea3d8] !text-white rounded-lg hover:bg-[#0d8fc7] transition-colors font-medium"
                 >
                   {selectedFlag.newValue ? 'Enable' : 'Disable'}
                 </button>
