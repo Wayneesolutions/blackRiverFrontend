@@ -180,17 +180,9 @@ const TrailersPage: React.FC = () => {
         isExisting?: boolean;
     }>>([]);
 
-    const [invoiceForm, setInvoiceForm] = useState({
-        invoiceNumber: '',
-        vendorWorkshop: '',
-        amount: '',
-        invoiceDate: '',
-        file: null as File | null,
-        notes: ''
-    });
+  
 
-    const [editingInvoiceId, setEditingInvoiceId] = useState<string | null>(null);
-    const invoiceFileInputRef = useRef<HTMLInputElement>(null);
+
 
     // Notes data
     const [notes, setNotes] = useState<Array<{

@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
 import { Plus, Upload, ChevronUp, ChevronDown, Clock, X, Image as ImageIcon, Calendar, ChevronLeft, ChevronRight, Edit, Trash2, FileText, Check } from 'lucide-react';
 import { getAllVehicles, createVehicle, updateVehicle, deleteVehicle, getVehicleById } from '../../../../axios/api/vehicle';
@@ -280,17 +280,6 @@ const Trucks: React.FC = () => {
         isExisting?: boolean;
     }>>([]);
 
-    const [invoiceForm, setInvoiceForm] = useState({
-        invoiceNumber: '',
-        vendorWorkshop: '',
-        amount: '',
-        invoiceDate: '',
-        file: null as File | null,
-        notes: ''
-    });
-
-    const [editingInvoiceId, setEditingInvoiceId] = useState<string | null>(null);
-    const invoiceFileInputRef = useRef<HTMLInputElement>(null);
 
     // Notes data
     const [notes, setNotes] = useState<Array<{

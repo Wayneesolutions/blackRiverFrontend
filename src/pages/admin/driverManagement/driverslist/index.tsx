@@ -2216,6 +2216,11 @@ const DriverManagement = () => {
       corporationName: '',
       driverName: '',
       paymentAddress: '',
+      paymentSearchAddress: '',
+      paymentCity: '',
+      paymentPostalCode: '',
+      paymentCountry: '',
+      paymentStateProvince: '',
       gstNo: '',
       driverType: 'COMPANY DRIVER',
       paymentMethod: 'PAID PER MILE',
@@ -2990,7 +2995,7 @@ const DriverManagement = () => {
     
     // Check if base tests are completed before allowing flag changes
     if (value === true && !areBaseTestsCompleted()) {
-      addNotification('warning', 'Please complete and approve VEHICLE and HOS tests first before enabling driver flags.');
+      addNotification('error', 'Please complete and approve VEHICLE and HOS tests first before enabling driver flags.');
       return;
     }
     
@@ -4691,16 +4696,6 @@ const DriverManagement = () => {
                               }
                               // For other countries, use the state name as-is
                             }
-
-                            // Build full address string for backward compatibility
-                            const addressParts = [
-                              addressData.address,
-                              addressData.city,
-                              addressData.state,
-                              addressData.postalCode,
-                              addressData.country
-                            ].filter(Boolean);
-                            const fullAddress = addressParts.join(', ');
 
                             // Update payment address fields
                             setPersonalData({
