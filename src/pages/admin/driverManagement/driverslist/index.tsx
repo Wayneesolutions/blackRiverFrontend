@@ -320,6 +320,11 @@ const DriverManagement = () => {
     corporationName: '',
     driverName: '',
     paymentAddress: '',
+    paymentSearchAddress: '',
+    paymentCity: '',
+    paymentPostalCode: '',
+    paymentCountry: '',
+    paymentStateProvince: '',
     gstNo: '',
     // Pay Type
     driverType: 'COMPANY DRIVER' as 'COMPANY DRIVER' | 'OWNER OPERATOR',
@@ -937,6 +942,11 @@ const DriverManagement = () => {
                corporationName: driver.details?.incorporation || driver.incorporation || '',
                driverName: driver.details?.driverName || driver.driverName || '',
                paymentAddress: driver.details?.paymentAddress || driver.paymentAddress || '',
+               paymentSearchAddress: driver.details?.paymentSearchAddress || '',
+               paymentCity: driver.details?.paymentCity || '',
+               paymentPostalCode: driver.details?.paymentPostalCode || '',
+               paymentCountry: driver.details?.paymentCountry || '',
+               paymentStateProvince: driver.details?.paymentStateProvince || '',
                gstNo: driver.details?.gstNo || driver.gstNo || '',
                driverType: (driver.details?.companyFlag || driver.companyFlag) ? 'OWNER OPERATOR' : 'COMPANY DRIVER',
                paymentMethod: driver.details?.paymentMethod || driver.paymentMethod || 'PAID PER MILE',
@@ -1264,6 +1274,11 @@ const DriverManagement = () => {
                   corporationName: driver.details?.incorporation || driver.incorporation || '',
                   driverName: driver.details?.driverName || driver.driverName || '',
                   paymentAddress: driver.details?.paymentAddress || driver.paymentAddress || '',
+                  paymentSearchAddress: driver.details?.paymentSearchAddress || '',
+                  paymentCity: driver.details?.paymentCity || '',
+                  paymentPostalCode: driver.details?.paymentPostalCode || '',
+                  paymentCountry: driver.details?.paymentCountry || '',
+                  paymentStateProvince: driver.details?.paymentStateProvince || '',
                   gstNo: driver.details?.gstNo || driver.gstNo || '',
                   driverType: (driver.details?.companyFlag || driver.companyFlag) ? 'OWNER OPERATOR' : 'COMPANY DRIVER',
                   paymentMethod: driver.details?.paymentMethod || driver.paymentMethod || 'PAID PER MILE',
@@ -1377,6 +1392,11 @@ const DriverManagement = () => {
           corporationName: '',
           driverName: '',
           paymentAddress: '',
+          paymentSearchAddress: '',
+          paymentCity: '',
+          paymentPostalCode: '',
+          paymentCountry: '',
+          paymentStateProvince: '',
           gstNo: '',
           driverType: 'COMPANY DRIVER',
           paymentMethod: 'PAID PER MILE',
@@ -1842,7 +1862,27 @@ const DriverManagement = () => {
       // Personal Information - Additional fields
       // Removed incorporation: property does not exist on type
       if (personalData.driverName) driverFormData.append('driverName', personalData.driverName);
-      if (personalData.paymentAddress) driverFormData.append('paymentAddress', personalData.paymentAddress);
+      // Payment Address - save full address for backward compatibility and separate fields
+      if (personalData.paymentAddress) {
+        // Build full address string for backward compatibility
+        const paymentAddressParts = [
+          personalData.paymentAddress,
+          personalData.paymentCity,
+          personalData.paymentStateProvince,
+          personalData.paymentPostalCode,
+          personalData.paymentCountry
+        ].filter(Boolean);
+        const fullPaymentAddress = paymentAddressParts.length > 0 
+          ? paymentAddressParts.join(', ')
+          : personalData.paymentAddress;
+        driverFormData.append('paymentAddress', fullPaymentAddress);
+      }
+      // Save separate payment address fields
+      if (personalData.paymentCity) driverFormData.append('paymentCity', personalData.paymentCity);
+      if (personalData.paymentPostalCode) driverFormData.append('paymentPostalCode', personalData.paymentPostalCode);
+      if (personalData.paymentCountry) driverFormData.append('paymentCountry', personalData.paymentCountry);
+      if (personalData.paymentStateProvince) driverFormData.append('paymentStateProvince', personalData.paymentStateProvince);
+      if (personalData.paymentSearchAddress) driverFormData.append('paymentSearchAddress', personalData.paymentSearchAddress);
       if (personalData.gstNo) driverFormData.append('gstNo', personalData.gstNo);
       if (personalData.vacationPercent) driverFormData.append('vacationPay', personalData.vacationPercent);
 
@@ -2078,6 +2118,11 @@ const DriverManagement = () => {
           corporationName: '',
           driverName: '',
           paymentAddress: '',
+          paymentSearchAddress: '',
+          paymentCity: '',
+          paymentPostalCode: '',
+          paymentCountry: '',
+          paymentStateProvince: '',
           gstNo: '',
           driverType: 'COMPANY DRIVER',
           paymentMethod: 'PAID PER MILE',
@@ -2498,8 +2543,40 @@ const DriverManagement = () => {
       if (hasValueChanged(personalData.driverName, original.personalData.driverName)) {
         driverFormData.append('driverName', personalData.driverName);
       }
-      if (hasValueChanged(personalData.paymentAddress, original.personalData.paymentAddress)) {
-        driverFormData.append('paymentAddress', personalData.paymentAddress);
+      // Payment Address - save full address for backward compatibility and separate fields
+      if (hasValueChanged(personalData.paymentAddress, original.personalData.paymentAddress) ||
+          hasValueChanged(personalData.paymentCity, original.personalData.paymentCity) ||
+          hasValueChanged(personalData.paymentStateProvince, original.personalData.paymentStateProvince) ||
+          hasValueChanged(personalData.paymentPostalCode, original.personalData.paymentPostalCode) ||
+          hasValueChanged(personalData.paymentCountry, original.personalData.paymentCountry)) {
+        // Build full address string for backward compatibility
+        const paymentAddressParts = [
+          personalData.paymentAddress,
+          personalData.paymentCity,
+          personalData.paymentStateProvince,
+          personalData.paymentPostalCode,
+          personalData.paymentCountry
+        ].filter(Boolean);
+        const fullPaymentAddress = paymentAddressParts.length > 0 
+          ? paymentAddressParts.join(', ')
+          : personalData.paymentAddress;
+        driverFormData.append('paymentAddress', fullPaymentAddress);
+      }
+      // Save separate payment address fields if changed
+      if (hasValueChanged(personalData.paymentCity, original.personalData.paymentCity)) {
+        driverFormData.append('paymentCity', personalData.paymentCity);
+      }
+      if (hasValueChanged(personalData.paymentPostalCode, original.personalData.paymentPostalCode)) {
+        driverFormData.append('paymentPostalCode', personalData.paymentPostalCode);
+      }
+      if (hasValueChanged(personalData.paymentCountry, original.personalData.paymentCountry)) {
+        driverFormData.append('paymentCountry', personalData.paymentCountry);
+      }
+      if (hasValueChanged(personalData.paymentStateProvince, original.personalData.paymentStateProvince)) {
+        driverFormData.append('paymentStateProvince', personalData.paymentStateProvince);
+      }
+      if (hasValueChanged(personalData.paymentSearchAddress, original.personalData.paymentSearchAddress)) {
+        driverFormData.append('paymentSearchAddress', personalData.paymentSearchAddress);
       }
       if (hasValueChanged(personalData.gender, original.personalData.gender)) {
         driverFormData.append('gender', personalData.gender);
@@ -2891,12 +2968,29 @@ const DriverManagement = () => {
     }
   };
 
+  // Check if base required tests (VEHICLE and HOS) are completed and HR approved
+  const areBaseTestsCompleted = () => {
+    const vehicleTest = driverTests.find(t => t.testType === 'VEHICLE');
+    const hosTest = driverTests.find(t => t.testType === 'HOS');
+    
+    const vehicleCompleted = vehicleTest && vehicleTest.hrApproved === true;
+    const hosCompleted = hosTest && hosTest.hrApproved === true;
+    
+    return vehicleCompleted && hosCompleted;
+  };
+
   // Handle flag checkbox change - show modal for confirmation
   const handleFlagChange = (flagName: 'handlesHazardousLoads' | 'winterTestRequired', value: boolean) => {
     console.log('🔄 handleFlagChange called:', { flagName, value, editingId });
     
     if (!editingId) {
       console.log('❌ No editingId, returning');
+      return;
+    }
+    
+    // Check if base tests are completed before allowing flag changes
+    if (value === true && !areBaseTestsCompleted()) {
+      addNotification('warning', 'Please complete and approve VEHICLE and HOS tests first before enabling driver flags.');
       return;
     }
     
@@ -4134,6 +4228,17 @@ const DriverManagement = () => {
                             searchAddress: addressData.fullAddress || ''
                           });
 
+                          // Also populate payment address fields with the same values
+                          setPersonalData({
+                            ...personalData,
+                            paymentAddress: addressData.address || '',
+                            paymentCity: addressData.city || '',
+                            paymentPostalCode: addressData.postalCode || '',
+                            paymentStateProvince: stateProvinceValue,
+                            paymentCountry: countryName,
+                            paymentSearchAddress: addressData.fullAddress || ''
+                          });
+
                           // Clear validation errors for address fields
                           const updatedErrors = { ...validationErrors };
                           if (updatedErrors.address) delete updatedErrors.address;
@@ -4474,7 +4579,120 @@ const DriverManagement = () => {
                           label="Payment Address"
                           placeholder="Search For An Address..."
                           onAddressSelect={(addressData) => {
-                            // Build full address string: street address, city, state, postal code, country
+                            // Find matching country from countries array by name or code
+                            let countryName = '';
+                            if (addressData.country) {
+                              const countryInput = addressData.country.trim();
+                              const countryInputLower = countryInput.toLowerCase();
+                              
+                              // Try to find country by code first (most reliable)
+                              let countryFromAddress = countries.length > 0 ? countries.find(
+                                c => c.code.toLowerCase() === countryInputLower
+                              ) : null;
+                              
+                              // If not found by code, try by name (exact match)
+                              if (!countryFromAddress && countries.length > 0) {
+                                countryFromAddress = countries.find(
+                                  c => c.name.toLowerCase() === countryInputLower
+                                );
+                              }
+                              
+                              // If still not found, try partial/fuzzy name match
+                              if (!countryFromAddress && countries.length > 0) {
+                                countryFromAddress = countries.find(
+                                  c => {
+                                    const nameLower = c.name.toLowerCase();
+                                    // Check if either string contains the other (fuzzy match)
+                                    return nameLower.includes(countryInputLower) || 
+                                           countryInputLower.includes(nameLower) ||
+                                           // Handle common variations
+                                           (countryInputLower.includes('united states') && (nameLower.includes('united states') || c.code === 'US')) ||
+                                           (countryInputLower.includes('usa') && c.code === 'US') ||
+                                           (countryInputLower.includes('canada') && c.code === 'CA') ||
+                                           (countryInputLower.includes('russia') && (nameLower.includes('russia') || c.code === 'RU')) ||
+                                           (countryInputLower.includes('russian') && (nameLower.includes('russia') || c.code === 'RU'));
+                                  }
+                                );
+                              }
+                              
+                              // Set country name if found
+                              if (countryFromAddress) {
+                                countryName = countryFromAddress.name;
+                              } else {
+                                // Fallback: try to map common country codes/names
+                                const countryCodeMap: { [key: string]: string } = {
+                                  'us': 'US', 'usa': 'US', 'united states': 'US', 'united states of america': 'US',
+                                  'ca': 'CA', 'canada': 'CA',
+                                  'uk': 'GB', 'united kingdom': 'GB', 'gb': 'GB', 'great britain': 'GB',
+                                  'in': 'IN', 'india': 'IN',
+                                  'au': 'AU', 'australia': 'AU',
+                                  'ru': 'RU', 'russia': 'RU', 'russian federation': 'RU', 'russian': 'RU'
+                                };
+                                
+                                const mappedCode = countryCodeMap[countryInputLower];
+                                if (mappedCode && countries.length > 0) {
+                                  // Find the country by code in the countries array
+                                  const countryByCode = countries.find(c => c.code === mappedCode);
+                                  if (countryByCode) {
+                                    countryName = countryByCode.name;
+                                  } else {
+                                    // If countries array not loaded yet, use common name
+                                    const countryNameMap: { [key: string]: string } = {
+                                      'US': 'United States', 'CA': 'Canada', 'GB': 'United Kingdom',
+                                      'IN': 'India', 'AU': 'Australia', 'RU': 'Russia'
+                                    };
+                                    countryName = countryNameMap[mappedCode] || countryInput;
+                                  }
+                                } else if (countries.length > 0) {
+                                  // Try to find by partial match in countries array as last resort
+                                  const partialMatch = countries.find(c => {
+                                    const nameLower = c.name.toLowerCase();
+                                    return nameLower.includes(countryInputLower) || countryInputLower.includes(nameLower);
+                                  });
+                                  countryName = partialMatch ? partialMatch.name : countryInput;
+                                } else {
+                                  // Countries array not loaded - use input as-is (will be matched when array loads)
+                                  countryName = countryInput;
+                                }
+                              }
+                            }
+
+                            // Map state/province name to code for US and Canada
+                            let stateProvinceValue = addressData.state || '';
+                            if (countryName && addressData.state) {
+                              // Check if it's US
+                              const foundCountry = countries.find(c => c.name === countryName);
+                              const isUS = countryName.toLowerCase().includes('united states') || 
+                                          countryName.toLowerCase() === 'usa' ||
+                                          foundCountry?.code === 'US';
+                              
+                              // Check if it's Canada
+                              const isCA = countryName.toLowerCase().includes('canada') || 
+                                          foundCountry?.code === 'CA';
+
+                              if (isUS && addressData.state) {
+                                // Try to find matching US state code
+                                const matchedState = US_STATES.find(
+                                  s => s.label.toLowerCase() === addressData.state.toLowerCase() || 
+                                       s.value.toLowerCase() === addressData.state.toLowerCase()
+                                );
+                                if (matchedState) {
+                                  stateProvinceValue = matchedState.value;
+                                }
+                              } else if (isCA && addressData.state) {
+                                // Try to find matching Canadian province code
+                                const matchedProvince = CANADIAN_PROVINCES.find(
+                                  p => p.label.toLowerCase() === addressData.state.toLowerCase() || 
+                                       p.value.toLowerCase() === addressData.state.toLowerCase()
+                                );
+                                if (matchedProvince) {
+                                  stateProvinceValue = matchedProvince.value;
+                                }
+                              }
+                              // For other countries, use the state name as-is
+                            }
+
+                            // Build full address string for backward compatibility
                             const addressParts = [
                               addressData.address,
                               addressData.city,
@@ -4484,26 +4702,97 @@ const DriverManagement = () => {
                             ].filter(Boolean);
                             const fullAddress = addressParts.join(', ');
 
-                            // Update payment address with full address
+                            // Update payment address fields
                             setPersonalData({
                               ...personalData,
-                              paymentAddress: fullAddress || addressData.fullAddress || ''
+                              paymentAddress: addressData.address || '',
+                              paymentCity: addressData.city || '',
+                              paymentPostalCode: addressData.postalCode || '',
+                              paymentStateProvince: stateProvinceValue,
+                              paymentCountry: countryName,
+                              paymentSearchAddress: addressData.fullAddress || ''
                             });
                           }}
                           className=""
                         />
-                        {personalData.paymentAddress && (
-                          <div className="mt-2">
-                            <label className="block text-sm font-medium text-gray-700 mb-1">Selected Address</label>
-                            <input
-                              type="text"
-                              readOnly
-                              value={personalData.paymentAddress}
-                              className="w-full px-3 py-2 border border-gray-300 rounded-lg bg-gray-50 text-gray-700 cursor-not-allowed"
-                              placeholder="No address selected"
-                            />
-                          </div>
-                        )}
+                      </div>
+
+                      {/* Payment Address Fields */}
+                      <div className="grid grid-cols-3 gap-4 mt-4">
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700 mb-1">Payment Address</label>
+                          <input
+                            type="text"
+                            placeholder="Payment Address"
+                            value={personalData.paymentAddress}
+                            onChange={(e) => setPersonalData({ ...personalData, paymentAddress: e.target.value })}
+                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#42aeec] focus:border-transparent"
+                          />
+                        </div>
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700 mb-1">Payment City</label>
+                          <input
+                            type="text"
+                            placeholder="Payment City"
+                            value={personalData.paymentCity}
+                            onChange={(e) => setPersonalData({ ...personalData, paymentCity: e.target.value })}
+                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#42aeec] focus:border-transparent"
+                          />
+                        </div>
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700 mb-1">Payment Postal Code</label>
+                          <input
+                            type="text"
+                            placeholder="Payment Postal Code"
+                            value={personalData.paymentPostalCode}
+                            onChange={(e) => setPersonalData({ ...personalData, paymentPostalCode: e.target.value })}
+                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#42aeec] focus:border-transparent"
+                          />
+                        </div>
+                      </div>
+
+                      <div className="grid grid-cols-2 gap-4 mt-4">
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700 mb-1">
+                            Payment Country
+                          </label>
+                          <select
+                            value={(() => {
+                              // Find country by name (personalData.paymentCountry stores the name)
+                              const foundCountry = countries.find(c => c.name === personalData.paymentCountry);
+                              return foundCountry ? foundCountry.code : '';
+                            })()}
+                            onChange={(e) => {
+                              const selectedCountry = countries.find(c => c.code === e.target.value);
+                              setPersonalData({ 
+                                ...personalData, 
+                                paymentCountry: selectedCountry ? selectedCountry.name : '', 
+                                paymentStateProvince: '' 
+                              });
+                            }}
+                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#42aeec] focus:border-transparent"
+                          >
+                            <option value="">Select Country</option>
+                            {countries.map((country) => (
+                              <option key={country.code} value={country.code}>
+                                {country.flag} {country.name}
+                              </option>
+                            ))}
+                          </select>
+                        </div>
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700 mb-1">
+                            Payment Province/State
+                          </label>
+                          <input
+                            type="text"
+                            value={personalData.paymentStateProvince}
+                            onChange={(e) => setPersonalData({ ...personalData, paymentStateProvince: e.target.value })}
+                            disabled={!personalData.paymentCountry}
+                            placeholder={personalData.paymentCountry ? "Enter Province/State" : "Select country first"}
+                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#42aeec] focus:border-transparent disabled:bg-gray-100 disabled:cursor-not-allowed"
+                          />
+                        </div>
                       </div>
                     </div>
 
@@ -6822,20 +7111,53 @@ const DriverManagement = () => {
                         <span className="text-xs text-gray-500">Default: Disabled</span>
                       </div>
                       
+                      {/* Warning message if base tests not completed */}
+                      {!areBaseTestsCompleted() && (
+                        <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-3 mb-3">
+                          <div className="flex items-start gap-2">
+                            <AlertTriangle className="w-4 h-4 text-yellow-600 mt-0.5 flex-shrink-0" />
+                            <div className="flex-1">
+                              <p className="text-xs font-medium text-yellow-800 mb-1">
+                                Complete Required Tests First
+                              </p>
+                              <p className="text-xs text-yellow-700">
+                                Driver must complete and have HR approval for VEHICLE and HOS tests before enabling driver flags.
+                              </p>
+                            </div>
+                          </div>
+                        </div>
+                      )}
+                      
                       <div className="space-y-3">
-                        <div className="flex items-start gap-3 p-3 bg-gray-50 rounded-lg border border-gray-200 hover:bg-gray-100 transition-colors">
+                        <div className={`flex items-start gap-3 p-3 rounded-lg border transition-colors ${
+                          !areBaseTestsCompleted() && !handlesHazardousLoads
+                            ? 'bg-gray-100 border-gray-300 opacity-60'
+                            : 'bg-gray-50 border-gray-200 hover:bg-gray-100'
+                        }`}>
                           <input
                             type="checkbox"
                             id="handlesHazardousLoads"
                             checked={handlesHazardousLoads}
+                            disabled={!areBaseTestsCompleted() && !handlesHazardousLoads}
                             onChange={(e) => {
                               e.preventDefault();
                               handleFlagChange('handlesHazardousLoads', !handlesHazardousLoads);
                             }}
-                            className="w-4 h-4 mt-0.5 text-[#0ea3d8] border-gray-300 rounded focus:ring-[#0ea3d8] cursor-pointer"
+                            className={`w-4 h-4 mt-0.5 text-[#0ea3d8] border-gray-300 rounded focus:ring-[#0ea3d8] ${
+                              !areBaseTestsCompleted() && !handlesHazardousLoads
+                                ? 'cursor-not-allowed opacity-50'
+                                : 'cursor-pointer'
+                            }`}
                           />
                           <div className="flex-1">
-                            <label htmlFor="handlesHazardousLoads" className="text-xs font-medium text-gray-900 cursor-pointer block">
+                            <label 
+                              htmlFor="handlesHazardousLoads" 
+                              className={`text-xs font-medium block ${
+                                !areBaseTestsCompleted() && !handlesHazardousLoads
+                                  ? 'text-gray-500 cursor-not-allowed'
+                                  : 'text-gray-900 cursor-pointer'
+                              }`}
+                            >
                               Handles hazardous loads
                             </label>
                             <p className="text-xs text-gray-600 mt-0.5">
@@ -6849,19 +7171,35 @@ const DriverManagement = () => {
                           </div>
                         </div>
 
-                        <div className="flex items-start gap-3 p-3 bg-gray-50 rounded-lg border border-gray-200 hover:bg-gray-100 transition-colors">
+                        <div className={`flex items-start gap-3 p-3 rounded-lg border transition-colors ${
+                          !areBaseTestsCompleted() && !winterTestRequired
+                            ? 'bg-gray-100 border-gray-300 opacity-60'
+                            : 'bg-gray-50 border-gray-200 hover:bg-gray-100'
+                        }`}>
                           <input
                             type="checkbox"
                             id="winterTestRequired"
                             checked={winterTestRequired}
+                            disabled={!areBaseTestsCompleted() && !winterTestRequired}
                             onChange={(e) => {
                               e.preventDefault();
                               handleFlagChange('winterTestRequired', !winterTestRequired);
                             }}
-                            className="w-4 h-4 mt-0.5 text-[#0ea3d8] border-gray-300 rounded focus:ring-[#0ea3d8] cursor-pointer"
+                            className={`w-4 h-4 mt-0.5 text-[#0ea3d8] border-gray-300 rounded focus:ring-[#0ea3d8] ${
+                              !areBaseTestsCompleted() && !winterTestRequired
+                                ? 'cursor-not-allowed opacity-50'
+                                : 'cursor-pointer'
+                            }`}
                           />
                           <div className="flex-1">
-                            <label htmlFor="winterTestRequired" className="text-xs font-medium text-gray-900 cursor-pointer block">
+                            <label 
+                              htmlFor="winterTestRequired" 
+                              className={`text-xs font-medium block ${
+                                !areBaseTestsCompleted() && !winterTestRequired
+                                  ? 'text-gray-500 cursor-not-allowed'
+                                  : 'text-gray-900 cursor-pointer'
+                              }`}
+                            >
                               Winter test required (optional override)
                             </label>
                             <p className="text-xs text-gray-600 mt-0.5">

@@ -1280,47 +1280,14 @@ const CustomersPage = () => {
                         label="Search Address"
                         placeholder="Search For An Address..."
                         onAddressSelect={(addressData) => {
-                          // Map country name to country code
-                          let countryCode = '';
-                          const countryName = addressData.country?.toLowerCase() || '';
-                          if (countryName.includes('united states') || countryName.includes('usa') || countryName === 'us') {
-                            countryCode = 'US';
-                          } else if (countryName.includes('canada') || countryName === 'ca') {
-                            countryCode = 'CA';
-                          }
-
-                          // Map state/province name to code
-                          let stateProvinceCode = addressData.state || '';
-                          // Common state/province mappings
-                          const stateMap: { [key: string]: string } = {
-                            'ontario': 'ON',
-                            'british columbia': 'BC',
-                            'alberta': 'AB',
-                            'quebec': 'QC',
-                            'manitoba': 'MB',
-                            'saskatchewan': 'SK',
-                            'nova scotia': 'NS',
-                            'new brunswick': 'NB',
-                            'newfoundland and labrador': 'NL',
-                            'prince edward island': 'PE',
-                            'northwest territories': 'NT',
-                            'yukon': 'YT',
-                            'nunavut': 'NU',
-                            'california': 'CA',
-                            'texas': 'TX',
-                            'florida': 'FL',
-                            'new york': 'NY',
-                            'pennsylvania': 'PA',
-                            'illinois': 'IL',
-                            'ohio': 'OH',
-                            'georgia': 'GA',
-                            'north carolina': 'NC',
-                            'michigan': 'MI'
-                          };
-                          
-                          const stateNameLower = addressData.state?.toLowerCase() || '';
-                          if (stateMap[stateNameLower]) {
-                            stateProvinceCode = stateMap[stateNameLower];
+                          // Find matching country by name or code
+                          let countryName = '';
+                          if (addressData.country) {
+                            const countryFromAddress = countries.find(
+                              c => c.name.toLowerCase() === addressData.country.toLowerCase() ||
+                                   c.code.toLowerCase() === addressData.country.toLowerCase()
+                            );
+                            countryName = countryFromAddress ? countryFromAddress.name : addressData.country;
                           }
 
                           // Populate all address fields
@@ -1329,8 +1296,8 @@ const CustomersPage = () => {
                             address: addressData.address || '',
                             city: addressData.city || '',
                             zipCode: addressData.postalCode || '',
-                            stateProvince: stateProvinceCode,
-                            country: countryCode,
+                            stateProvince: addressData.state || '',
+                            country: countryName,
                             searchAddress: addressData.fullAddress || ''
                           });
                         }}
