@@ -31,6 +31,7 @@ import {
 import { getAllVehicles } from '../../../../axios/api/vehicle';
 import { listDriver } from '../../../../axios/api/distapcher';
 import { FLEET_COLORS } from '../../fleetMaintenance/colorUtils';
+import AddressSearch from '../../../../components/common/AddressSearch';
 
 const ACCENT_PRIMARY = FLEET_COLORS.primary;
 const ACCENT_DARK = FLEET_COLORS.dark;
@@ -1636,12 +1637,22 @@ const CvsaInspection: React.FC = () => {
                       </div>
                       <div className="col-span-2">
                         <label className="block text-sm font-medium text-gray-700 mb-1">Location <span className="text-red-500">*</span></label>
-                        <input
-                          type="text"
+                        <AddressSearch
                           placeholder="Enter inspection location"
-                          value={inspectionForm.location || ''}
-                          onChange={(e) => setInspectionForm(prev => ({ ...prev, location: e.target.value }))}
-                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[var(--accent-color)] focus:border-transparent"
+                          value={inspectionForm.location}
+                          onAddressSelect={(address) => {
+                            setInspectionForm(prev => ({ 
+                              ...prev, 
+                              location: address.fullAddress 
+                            }));
+                          }}
+                          onChange={(value) => {
+                            setInspectionForm(prev => ({ 
+                              ...prev, 
+                              location: value 
+                            }));
+                          }}
+                          className="w-full"
                         />
                       </div>
                       <div>

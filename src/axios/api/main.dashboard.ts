@@ -67,6 +67,8 @@ export interface Trip {
         makeModel?: string;
         type?: string;
         unitType?: string;
+        year?: string | number;
+        vin?: string;
     };
     truckInfo?: {
         id: string;
@@ -104,6 +106,8 @@ export interface Trip {
         type?: string;
         capacity?: string;
         internalId?: string;
+        year?: string | number;
+        vin?: string;
     };
     status: string;
     eta: string;

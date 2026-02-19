@@ -9,7 +9,7 @@ export interface QuickActionOption {
     path?: string;
     icon: React.ReactNode;
     keywords: string[];
-    roles?: ('admin' | 'hr' | 'compliance' | 'fleet' | 'dispatch' | 'safety' | 'superadmin')[];
+    roles?: ('admin' | 'hr' | 'compliance' | 'fleet' | 'dispatch' | 'safety' | 'superadmin' | 'accountant')[];
 }
 
 
@@ -969,7 +969,7 @@ export const useQuickActions = () => {
         },
     ];
 
-    const filterActions = (query: string, role: 'admin' | 'hr' | 'compliance' | 'fleet' | 'dispatch' | 'safety' | 'superadmin' = 'admin'): QuickActionOption[] => {
+    const filterActions = (query: string, role: 'admin' | 'hr' | 'compliance' | 'fleet' | 'dispatch' | 'safety' | 'superadmin' | 'accountant' = 'admin'): QuickActionOption[] => {
         const searchQuery = query.toLowerCase();
 
         // For superadmin, only show superadmin actions

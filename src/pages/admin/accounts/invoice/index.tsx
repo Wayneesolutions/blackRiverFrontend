@@ -528,8 +528,10 @@ const InvoiceManagement: React.FC = () => {
               let coDriverId = 'N/A';
               if (typeof coDriver === 'object') {
                 coDriverId = coDriver._id?.slice(-8) || (coDriver as any).internalId || 'N/A';
-              } else if (typeof coDriver === 'string') {
-                coDriverId = coDriver.slice(-8);
+              } else {
+                // Handle string case
+                const coDriverStr = coDriver as string;
+                coDriverId = coDriverStr.slice(-8);
               }
               printRow("Co-Driver Name:", coDriverName, margin, margin + 55, 80);
               printRow(

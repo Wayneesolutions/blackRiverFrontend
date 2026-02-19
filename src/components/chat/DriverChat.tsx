@@ -456,16 +456,16 @@ const DriverChat: React.FC<DriverChatProps> = ({ onClose }) => {
         });
 
       // Cleanup on driver change - don't leave immediately, wait a bit
+      let timeoutId: NodeJS.Timeout | null = null;
+      timeoutId = setTimeout(() => {
+        socketService.leaveDriverChat(selectedDriver._id);
+        console.log(`💬 Left driver chat room for driver: ${selectedDriver._id}`);
+      }, 2000); // Wait 2 seconds before leaving
+      
       return () => {
-        // Delay leaving the room to ensure messages are received
-        const timeoutId = setTimeout(() => {
-          socketService.leaveDriverChat(selectedDriver._id);
-          console.log(`💬 Left driver chat room for driver: ${selectedDriver._id}`);
-        }, 2000); // Wait 2 seconds before leaving
-        
-        return () => {
+        if (timeoutId) {
           clearTimeout(timeoutId);
-        };
+        }
       };
     } else {
       // No driver selected, clear messages and loading

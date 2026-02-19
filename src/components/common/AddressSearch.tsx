@@ -60,6 +60,7 @@ interface AddressResult {
 
 interface AddressSearchProps {
   placeholder?: string;
+  value?: string;
   onAddressSelect: (address: {
     fullAddress: string;
     address: string;
@@ -70,6 +71,7 @@ interface AddressSearchProps {
     latitude: string;
     longitude: string;
   }) => void;
+  onChange?: (value: string) => void;
   className?: string;
   label?: string;
   debounceMs?: number;
@@ -77,12 +79,14 @@ interface AddressSearchProps {
 
 const AddressSearch: React.FC<AddressSearchProps> = ({
   placeholder = "Search For An Address...",
+  value,
   onAddressSelect,
+  onChange,
   className = "",
   label = "Search Address",
   debounceMs = 500
 }) => {
-  const [searchQuery, setSearchQuery] = useState('');
+  const [searchQuery, setSearchQuery] = useState(value || '');
   const [results, setResults] = useState<AddressResult[]>([]);
   const [isSearching, setIsSearching] = useState(false);
   const [showResults, setShowResults] = useState(false);
@@ -92,7 +96,14 @@ const AddressSearch: React.FC<AddressSearchProps> = ({
   const resultsRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
-  // Search addresses using Photon API (Komoot)
+  // Update searchQuery when value prop changes
+  useEffect(() => {
+    if (value !== undefined) {
+      setSearchQuery(value);
+    }
+  }, [value]);
+
+  // Search addresses using Google Places Autocomplete (via backend proxy) or Photon API (fallback)
   const searchAddresses = async (query: string) => {
     if (!query || query.trim().length < 3) {
       setResults([]);
@@ -101,10 +112,283 @@ const AddressSearch: React.FC<AddressSearchProps> = ({
     }
 
     setIsSearching(true);
+    setErrorMessage(null);
 
     try {
-      // Use Photon API (Komoot) - free, faster than Nominatim, better rate limits
-      const url = `https://photon.komoot.io/api/?q=${encodeURIComponent(query)}&limit=10`;
+      // Try Google Places Text Search API first (better for full addresses like "12 Aster Dr Unit 103 A, Rosser, MB...")
+      console.log('🔍 [AddressSearch] Starting address search for:', query.substring(0, 50));
+      const baseUrl = import.meta.env.VITE_APP_BASE_URL || 'http://localhost:3000/api/v1';
+      
+      // Try Text Search API first (better for complete addresses)
+      const textSearchUrl = `${baseUrl}/places/textsearch?query=${encodeURIComponent(query)}&type=address`;
+      
+      console.log('🌐 [AddressSearch] Attempting Google Places Text Search API first (better for full addresses)...');
+      console.log('🌐 [AddressSearch] Backend URL:', baseUrl);
+      console.log('🌐 [AddressSearch] API Key: Will be retrieved from backend (process.env.GOOGLE_MAPS_API_KEY)');
+      console.log('🌐 [AddressSearch] Search query:', query);
+      
+      try {
+        const textSearchResponse = await fetch(textSearchUrl, {
+          method: 'GET',
+          headers: {
+            'Accept': 'application/json'
+          }
+        });
+
+        let textSearchData;
+        try {
+          textSearchData = await textSearchResponse.json();
+        } catch (parseError) {
+          console.warn('⚠️ [AddressSearch] Failed to parse Text Search response, trying Autocomplete...');
+          throw new Error('Invalid response from Text Search API');
+        }
+        
+        // Check if Text Search was successful
+        if (textSearchResponse.ok && textSearchData.success && textSearchData.data?.status === 'OK' && textSearchData.data?.predictions && textSearchData.data.predictions.length > 0) {
+          console.log('✅ [AddressSearch] Google Places Text Search API successful! Found', textSearchData.data.predictions.length, 'predictions');
+          console.log('📍 [AddressSearch] Using: Google Places Text Search API');
+          
+          // Process Text Search results (they're already in the right format)
+          const validResults: AddressResult[] = [];
+          
+          // Fetch place details for each prediction
+          const placeDetailsPromises = textSearchData.data.predictions.slice(0, 8).map(async (prediction: any) => {
+            try {
+              const detailsUrl = `${baseUrl}/places/details?place_id=${encodeURIComponent(prediction.place_id)}&fields=formatted_address,geometry,address_components,place_id`;
+              
+              const controller = new AbortController();
+              const timeoutId = setTimeout(() => controller.abort(), 3000);
+              
+              const detailsResponse = await fetch(detailsUrl, {
+                signal: controller.signal,
+                headers: {
+                  'Accept': 'application/json'
+                }
+              });
+              clearTimeout(timeoutId);
+              
+              if (detailsResponse.ok) {
+                const detailsData = await detailsResponse.json();
+                if (detailsData.success && detailsData.data?.status === 'OK' && detailsData.data?.result) {
+                  const result = detailsData.data.result;
+                  const addressComponents = result.address_components || [];
+                  
+                  const getComponent = (type: string) => {
+                    const component = addressComponents.find((comp: any) => comp.types.includes(type));
+                    return component?.long_name || '';
+                  };
+                  
+                  const getShortComponent = (type: string) => {
+                    const component = addressComponents.find((comp: any) => comp.types.includes(type));
+                    return component?.short_name || '';
+                  };
+
+                  const streetNumber = getComponent('street_number');
+                  const route = getComponent('route');
+                  const city = getComponent('locality') || getComponent('administrative_area_level_2') || getComponent('sublocality');
+                  const state = getComponent('administrative_area_level_1');
+                  const postalCode = getComponent('postal_code');
+                  const country = getComponent('country');
+                  const countryCode = getShortComponent('country');
+
+                  return {
+                    place_id: result.place_id,
+                    display_name: result.formatted_address || prediction.description,
+                    lat: result.geometry?.location?.lat?.toString() || '',
+                    lon: result.geometry?.location?.lng?.toString() || '',
+                    address: {
+                      house_number: streetNumber,
+                      road: route,
+                      street: route,
+                      city: city,
+                      state: state,
+                      postcode: postalCode,
+                      postal_code: postalCode,
+                      country: country,
+                      country_code: countryCode
+                    }
+                  };
+                }
+              }
+            } catch (error: any) {
+              if (error.name !== 'AbortError') {
+                console.warn('Error fetching place details:', error);
+              }
+              return null;
+            }
+            return null;
+          });
+
+          const placeDetailsResults = await Promise.allSettled(placeDetailsPromises);
+          for (const result of placeDetailsResults) {
+            if (result.status === 'fulfilled' && result.value !== null) {
+              validResults.push(result.value);
+            }
+          }
+
+          if (validResults.length > 0) {
+            console.log('✅ [AddressSearch] Text Search API: Successfully processed', validResults.length, 'address results');
+            setResults(validResults);
+            setShowResults(true);
+            setSelectedIndex(-1);
+            setIsSearching(false);
+            return;
+          }
+        } else if (textSearchData.success && textSearchData.data?.status === 'ZERO_RESULTS') {
+          console.warn('⚠️ [AddressSearch] Text Search API returned ZERO_RESULTS, trying Autocomplete API...');
+        } else {
+          console.warn('⚠️ [AddressSearch] Text Search API error, trying Autocomplete API...');
+        }
+      } catch (textSearchError) {
+        console.warn('⚠️ [AddressSearch] Text Search API failed, trying Autocomplete API:', textSearchError);
+      }
+      
+      // Fallback to Autocomplete API
+      const autocompleteUrl = `${baseUrl}/places/autocomplete?input=${encodeURIComponent(query)}&components=country:ca|country:us&types=address`;
+      
+      console.log('🔄 [AddressSearch] Trying Google Places Autocomplete API as fallback...');
+      try {
+        const placesResponse = await fetch(autocompleteUrl, {
+          method: 'GET',
+          headers: {
+            'Accept': 'application/json'
+          }
+        });
+
+        let placesData;
+        try {
+          placesData = await placesResponse.json();
+        } catch (parseError) {
+          // If JSON parsing fails, fall through to Photon
+          console.warn('Failed to parse Google Places response, falling back to Photon');
+          throw new Error('Invalid response from Google Places API');
+        }
+        
+        // Check if request was successful and has valid predictions
+        if (placesResponse.ok && placesData.success) {
+          if (placesData.data?.status === 'ZERO_RESULTS') {
+            console.warn('⚠️ [AddressSearch] Google Places API returned ZERO_RESULTS for query:', query);
+            console.warn('⚠️ [AddressSearch] This might be due to query format. Falling back to Photon API...');
+          } else if (placesData.data?.status === 'OK' && placesData.data?.predictions && placesData.data.predictions.length > 0) {
+            console.log('✅ [AddressSearch] Google Places API successful! Found', placesData.data.predictions.length, 'predictions');
+            console.log('📍 [AddressSearch] Using: Google Places API');
+            // Fetch place details for top predictions (limit to 8 for performance)
+            const topPredictions = placesData.data.predictions.slice(0, 8);
+            const placeDetailsPromises = topPredictions.map(async (prediction: any) => {
+              try {
+                const detailsUrl = `${baseUrl}/places/details?place_id=${encodeURIComponent(prediction.place_id)}&fields=formatted_address,geometry,address_components,place_id`;
+                
+                // Add timeout to prevent hanging
+                const controller = new AbortController();
+                const timeoutId = setTimeout(() => controller.abort(), 3000);
+                
+                const detailsResponse = await fetch(detailsUrl, {
+                  signal: controller.signal,
+                  headers: {
+                    'Accept': 'application/json'
+                  }
+                });
+                clearTimeout(timeoutId);
+                
+                if (detailsResponse.ok) {
+                  const detailsData = await detailsResponse.json();
+                  if (detailsData.success && detailsData.data?.status === 'OK' && detailsData.data?.result) {
+                    const result = detailsData.data.result;
+                    const addressComponents = result.address_components || [];
+                    
+                    // Extract address components
+                    const getComponent = (type: string) => {
+                      const component = addressComponents.find((comp: any) => comp.types.includes(type));
+                      return component?.long_name || '';
+                    };
+                    
+                    const getShortComponent = (type: string) => {
+                      const component = addressComponents.find((comp: any) => comp.types.includes(type));
+                      return component?.short_name || '';
+                    };
+
+                    const streetNumber = getComponent('street_number');
+                    const route = getComponent('route');
+                    const city = getComponent('locality') || getComponent('administrative_area_level_2') || getComponent('sublocality');
+                    const state = getComponent('administrative_area_level_1');
+                    const postalCode = getComponent('postal_code');
+                    const country = getComponent('country');
+                    const countryCode = getShortComponent('country');
+
+                    return {
+                      place_id: result.place_id,
+                      display_name: result.formatted_address || prediction.description,
+                      lat: result.geometry?.location?.lat?.toString() || '',
+                      lon: result.geometry?.location?.lng?.toString() || '',
+                      address: {
+                        house_number: streetNumber,
+                        road: route,
+                        street: route,
+                        city: city,
+                        state: state,
+                        postcode: postalCode,
+                        postal_code: postalCode,
+                        country: country,
+                        country_code: countryCode
+                      }
+                    };
+                  }
+                }
+              } catch (error: any) {
+                // Silently handle errors (timeout, network, etc.)
+                if (error.name !== 'AbortError') {
+                  console.warn('Error fetching place details:', error);
+                }
+                return null;
+              }
+              return null;
+            });
+
+            // Use allSettled to handle partial failures gracefully
+            const placeDetailsResults = await Promise.allSettled(placeDetailsPromises);
+            const validResults: AddressResult[] = [];
+            
+            for (const result of placeDetailsResults) {
+              if (result.status === 'fulfilled' && result.value !== null) {
+                validResults.push(result.value);
+              }
+            }
+
+            if (validResults.length > 0) {
+              console.log('✅ [AddressSearch] Google Places API: Successfully processed', validResults.length, 'address results');
+              setResults(validResults);
+              setShowResults(true);
+              setSelectedIndex(-1);
+              setIsSearching(false);
+              return;
+            } else {
+              // No valid results from Google Places - fall through to Photon
+              console.warn('⚠️ [AddressSearch] Google Places API returned no valid results, falling back to Photon API');
+            }
+          } else {
+            // ZERO_RESULTS or other status - fall through to Photon
+            console.warn('⚠️ [AddressSearch] Google Places API status:', placesData.data?.status, '- Falling back to Photon API');
+          }
+        } else {
+            // Backend returned an error or no results - fall through to Photon
+            if (placesData?.fallback_available || placesResponse.status === 503) {
+              console.warn('⚠️ [AddressSearch] Google Places API unavailable (billing/authentication issue), falling back to Photon API');
+            } else if (placesData?.data?.status) {
+              console.warn('⚠️ [AddressSearch] Google Places API error:', placesData.data.status, placesData.data?.error_message, '- Falling back to Photon API');
+            } else {
+              console.warn('⚠️ [AddressSearch] Google Places API backend error:', placesData?.message || 'Unknown error', '- Falling back to Photon API');
+            }
+          }
+      } catch (googleError) {
+        console.warn('⚠️ [AddressSearch] Google Places API via backend failed:', googleError, '- Falling back to Photon API');
+        // Fall through to Photon API
+      }
+
+      // Fallback to Photon API (Komoot) if Google fails or no API key
+      console.log('🔄 [AddressSearch] Using Photon API (Komoot) as fallback...');
+      console.log('📍 [AddressSearch] Using: Photon API (Free, Open Source - No API Key Required)');
+      console.log('📍 [AddressSearch] Photon API URL: https://photon.komoot.io/api/');
+      const url = `https://photon.komoot.io/api/?q=${encodeURIComponent(query)}&limit=10&lang=en`;
 
       const response = await fetch(url, {
         headers: {
@@ -116,6 +400,7 @@ const AddressSearch: React.FC<AddressSearchProps> = ({
       });
 
       if (!response.ok) {
+        console.error('❌ [AddressSearch] Photon API error:', response.status);
         if (response.status === 429) {
           setErrorMessage('Too many requests. Please wait before searching again.');
         } else {
@@ -126,9 +411,9 @@ const AddressSearch: React.FC<AddressSearchProps> = ({
         throw new Error(`HTTP error! status: ${response.status}`);
       }
 
-      // Clear any previous errors
-      setErrorMessage(null);
       const data: PhotonResponse = await response.json();
+      
+      console.log('✅ [AddressSearch] Photon API successful! Found', data.features?.length || 0, 'results');
 
       // Convert Photon format to our AddressResult format
       const convertedResults: AddressResult[] = data.features.map((feature, index) => {
@@ -151,7 +436,7 @@ const AddressSearch: React.FC<AddressSearchProps> = ({
         const uniqueId = `${lat.toFixed(6)}_${lon.toFixed(6)}_${index}`;
 
         return {
-          place_id: parseInt(uniqueId.replace(/[._-]/g, '')) || index, // Create unique ID from coordinates
+          place_id: parseInt(uniqueId.replace(/[._-]/g, '')) || index,
           display_name: displayName,
           lat: lat.toString(),
           lon: lon.toString(),
@@ -167,12 +452,13 @@ const AddressSearch: React.FC<AddressSearchProps> = ({
         };
       });
 
+      console.log('✅ [AddressSearch] Photon API: Successfully converted', convertedResults.length, 'address results');
       setResults(convertedResults);
       setShowResults(true);
       setSelectedIndex(-1);
 
     } catch (error: any) {
-      console.error('Error searching addresses:', error);
+      console.error('❌ [AddressSearch] Error searching addresses:', error);
 
       // Only set error message if not already set
       if (!errorMessage) {
@@ -253,8 +539,8 @@ const AddressSearch: React.FC<AddressSearchProps> = ({
       longitude: result.lon
     });
 
-    // Clear search and close results
-    setSearchQuery('');
+    // Set the selected address in the input field
+    setSearchQuery(result.display_name);
     setResults([]);
     setShowResults(false);
     setSelectedIndex(-1);
@@ -324,7 +610,12 @@ const AddressSearch: React.FC<AddressSearchProps> = ({
             type="text"
             placeholder={placeholder}
             value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
+            onChange={(e) => {
+              setSearchQuery(e.target.value);
+              if (onChange) {
+                onChange(e.target.value);
+              }
+            }}
             onKeyDown={handleKeyDown}
             onFocus={() => {
               if (results.length > 0) {
@@ -339,6 +630,9 @@ const AddressSearch: React.FC<AddressSearchProps> = ({
                 setSearchQuery('');
                 setResults([]);
                 setShowResults(false);
+                if (onChange) {
+                  onChange('');
+                }
               }}
               className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
             >

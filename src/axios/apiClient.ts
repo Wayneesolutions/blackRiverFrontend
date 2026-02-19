@@ -57,8 +57,27 @@ apiClient.interceptors.request.use(
 // Response interceptor - Handle errors globally
 apiClient.interceptors.response.use(
   (response) => {
-    // Check for successful responses (200) with success: false and token expiration message
+    // Check for trial expired flag in response
     const responseData = response.data;
+    if (responseData && responseData.trialExpired === true) {
+      const isLoginPage = window.location.pathname === '/' || 
+                         window.location.pathname === '/admin/adminLogin' ||
+                         window.location.pathname === '/superadmin/login';
+      const isSubscriptionPage = window.location.pathname.includes('/admin/subscription') || 
+                                window.location.pathname.includes('/subscription');
+      
+      // Don't show toast on login or subscription pages
+      if (!isLoginPage && !isSubscriptionPage) {
+        // Show toast notification using global function
+        const showToast = (window as any).showTrialExpiredToast;
+        if (showToast && typeof showToast === 'function') {
+          const message = responseData.trialExpiredMessage || "Your subscription has ended. Purchase to continue use.";
+          showToast(message);
+        }
+      }
+    }
+    
+    // Check for successful responses (200) with success: false and token expiration message
     if (responseData && responseData.success === false && responseData.message) {
       const isLoginPage = window.location.pathname === '/' || 
                          window.location.pathname === '/admin/adminLogin' ||
@@ -122,15 +141,24 @@ apiClient.interceptors.response.use(
       // Check if it's a trial expiration or subscription required issue
       const errorData = error.response?.data || {};
       const isTrialExpired = errorData.trialExpired === true || errorData.subscriptionRequired === true;
+      const isAccessDenied = errorData.accessDenied === true;
       const isSubscriptionPage = window.location.pathname.includes('/admin/subscription') || 
                                  window.location.pathname.includes('/subscription');
       
       if (isTrialExpired && !isSubscriptionPage && !isBackgroundRequest && !isLoginPage) {
-        console.warn('⚠️ Trial expired or subscription required. Redirecting to subscription page...');
-        // Don't logout - just redirect to subscription page
-        setTimeout(() => {
-          window.location.href = '/admin/subscription';
-        }, 100);
+        // Show toast notification
+        const showToast = (window as any).showTrialExpiredToast;
+        if (showToast && typeof showToast === 'function') {
+          const message = errorData.trialExpiredMessage || "Your subscription has ended. Purchase to continue use.";
+          showToast(message);
+        }
+        
+        // If access is denied (write operation blocked), show additional error message
+        if (isAccessDenied) {
+          console.error('❌ Access denied - trial expired:', errorData.message);
+        }
+        
+        // Don't logout or redirect - just show toast and reject the promise
         return Promise.reject(error);
       }
       
