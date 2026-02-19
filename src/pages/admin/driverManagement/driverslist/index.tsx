@@ -317,7 +317,6 @@ const DriverManagement = () => {
     status: 'Active',
     vacationPercent: '',
     // Pay Information
-    paySearchAddress: '',
     corporationName: '',
     driverName: '',
     paymentAddress: '',
@@ -935,7 +934,6 @@ const DriverManagement = () => {
                })(),
                status: driver.status === 'active' || driver.status === 'ACTIVE' ? 'Active' : 'Inactive',
                vacationPercent: driver.details?.vacationPay || driver.vacationPay || '',
-               paySearchAddress: '',
                corporationName: driver.details?.incorporation || driver.incorporation || '',
                driverName: driver.details?.driverName || driver.driverName || '',
                paymentAddress: driver.details?.paymentAddress || driver.paymentAddress || '',
@@ -1263,7 +1261,6 @@ const DriverManagement = () => {
                   })(),
                   status: driver.status === 'active' || driver.status === 'ACTIVE' ? 'Active' : 'Inactive',
                   vacationPercent: driver.details?.vacationPay || driver.vacationPay || '',
-                  paySearchAddress: '',
                   corporationName: driver.details?.incorporation || driver.incorporation || '',
                   driverName: driver.details?.driverName || driver.driverName || '',
                   paymentAddress: driver.details?.paymentAddress || driver.paymentAddress || '',
@@ -1377,7 +1374,6 @@ const DriverManagement = () => {
           terminationDate: '',
           status: 'Active',
           vacationPercent: '',
-          paySearchAddress: '',
           corporationName: '',
           driverName: '',
           paymentAddress: '',
@@ -2079,7 +2075,6 @@ const DriverManagement = () => {
           terminationDate: '',
           status: 'Active',
           vacationPercent: '',
-          paySearchAddress: '',
           corporationName: '',
           driverName: '',
           paymentAddress: '',
@@ -2173,7 +2168,6 @@ const DriverManagement = () => {
       terminationDate: '',
       status: 'Active',
       vacationPercent: '',
-      paySearchAddress: '',
       corporationName: '',
       driverName: '',
       paymentAddress: '',
@@ -4443,17 +4437,7 @@ const DriverManagement = () => {
                     {/* Pay Information Section */}
                     <div className="mt-6">
                       <h4 className="text-md font-bold text-gray-900 mb-4">Pay Information</h4>
-                      <div className="grid grid-cols-5 gap-4">
-                        <div>
-                          <label className="block text-sm font-medium text-gray-700 mb-1">Search Address</label>
-                          <input
-                            type="text"
-                            placeholder="Search For An Address..."
-                            value={personalData.paySearchAddress}
-                            onChange={(e) => setPersonalData({ ...personalData, paySearchAddress: e.target.value })}
-                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#42aeec] focus:border-transparent"
-                          />
-                        </div>
+                      <div className="grid grid-cols-3 gap-4 mb-4">
                         <div>
                           <label className="block text-sm font-medium text-gray-700 mb-1">Corporation Name</label>
                           <input
@@ -4475,16 +4459,6 @@ const DriverManagement = () => {
                           />
                         </div>
                         <div>
-                          <label className="block text-sm font-medium text-gray-700 mb-1">Payment Address</label>
-                          <input
-                            type="text"
-                            placeholder="Payment Address"
-                            value={personalData.paymentAddress}
-                            onChange={(e) => setPersonalData({ ...personalData, paymentAddress: e.target.value })}
-                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#42aeec] focus:border-transparent"
-                          />
-                        </div>
-                        <div>
                           <label className="block text-sm font-medium text-gray-700 mb-1">GST No.</label>
                           <input
                             type="text"
@@ -4494,6 +4468,42 @@ const DriverManagement = () => {
                             className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#42aeec] focus:border-transparent"
                           />
                         </div>
+                      </div>
+                      <div className="w-full">
+                        <AddressSearch
+                          label="Payment Address"
+                          placeholder="Search For An Address..."
+                          onAddressSelect={(addressData) => {
+                            // Build full address string: street address, city, state, postal code, country
+                            const addressParts = [
+                              addressData.address,
+                              addressData.city,
+                              addressData.state,
+                              addressData.postalCode,
+                              addressData.country
+                            ].filter(Boolean);
+                            const fullAddress = addressParts.join(', ');
+
+                            // Update payment address with full address
+                            setPersonalData({
+                              ...personalData,
+                              paymentAddress: fullAddress || addressData.fullAddress || ''
+                            });
+                          }}
+                          className=""
+                        />
+                        {personalData.paymentAddress && (
+                          <div className="mt-2">
+                            <label className="block text-sm font-medium text-gray-700 mb-1">Selected Address</label>
+                            <input
+                              type="text"
+                              readOnly
+                              value={personalData.paymentAddress}
+                              className="w-full px-3 py-2 border border-gray-300 rounded-lg bg-gray-50 text-gray-700 cursor-not-allowed"
+                              placeholder="No address selected"
+                            />
+                          </div>
+                        )}
                       </div>
                     </div>
 
