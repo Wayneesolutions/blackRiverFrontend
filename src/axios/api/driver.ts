@@ -538,6 +538,8 @@ export interface DrugTestRequest {
   scheduledDate: string;
   scheduledTime?: string;
   labName: string;
+  consentFormUrl?: string;
+  drugTestDocumentUrl?: string;
   collectionSiteName?: string;
   collectionSiteAddress?: string;
   collectionSitePhone?: string;
@@ -580,8 +582,9 @@ export const getDrugTestById = async (id: string) => {
   }
 };
 
-export const createDrugTest = async (data: DrugTestRequest) => {
+export const createDrugTest = async (data: DrugTestRequest | FormData) => {
   try {
+    // Axios automatically handles FormData and sets Content-Type with boundary
     const res: AxiosResponse = await apiClient.post('hr/driver/drug-test', data);
     return res.data;
   } catch (error) {
@@ -590,8 +593,9 @@ export const createDrugTest = async (data: DrugTestRequest) => {
   }
 };
 
-export const updateDrugTest = async (id: string, data: Partial<DrugTestRequest>) => {
+export const updateDrugTest = async (id: string, data: Partial<DrugTestRequest> | FormData) => {
   try {
+    // Axios automatically handles FormData and sets Content-Type with boundary
     const res: AxiosResponse = await apiClient.put(`hr/driver/drug-test/${id}`, data);
     return res.data;
   } catch (error) {

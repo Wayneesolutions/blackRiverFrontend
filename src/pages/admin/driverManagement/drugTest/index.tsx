@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { FlaskConical, Search, Plus, Edit, Trash2, Calendar, MapPin, FileText, Eye, Clock } from 'lucide-react';
+import { FlaskConical, Search, Plus, Edit, Trash2, Calendar, FileText, Eye, Clock } from 'lucide-react';
 import { FaCheckCircle, FaExclamationCircle, FaTimes } from 'react-icons/fa';
 import { getAllDrivers, getAllUsersForDrugTest, getDrugTests, createDrugTest, updateDrugTest, deleteDrugTest, getDrugTestById, type DrugTestRequest } from '../../../../axios/api/driver';
+import AddressSearch from '../../../../components/common/AddressSearch';
 
 type NotificationType = 'success' | 'error' | 'info';
 
@@ -91,13 +92,14 @@ const DrugTest = () => {
         scheduledDate: '',
         scheduledTime: '',
         labName: '',
-        collectionSiteName: '',
-        collectionSiteAddress: '',
-        collectionSitePhone: '',
-        importantDetails: ''
+        collectionSiteAddress: ''
     };
 
     const [formData, setFormData] = useState(requestForm);
+    const [consentForm, setConsentForm] = useState<File | null>(null);
+    const [drugTestDocument, setDrugTestDocument] = useState<File | null>(null);
+    const [existingConsentFormUrl, setExistingConsentFormUrl] = useState<string | null>(null);
+    const [existingDrugTestDocumentUrl, setExistingDrugTestDocumentUrl] = useState<string | null>(null);
 
     useEffect(() => {
         fetchDrivers();
@@ -113,33 +115,51 @@ const DrugTest = () => {
         try {
             // Fetch all users for drug test (excluding admin and superadmin)
             const response = await getAllUsersForDrugTest();
-            if (response?.success && response?.data) {
+            console.log('🔍 getAllUsersForDrugTest response:', response);
+            
+            if (response?.success) {
                 const userList = Array.isArray(response.data) ? response.data : [];
-                setDrivers(userList.map((user: any) => ({
-                    _id: user._id,
-                    name: user.name || 'Unknown User'
-                })));
+                console.log('📋 User list from getAllUsersForDrugTest:', userList);
+                // Show all drivers (no cross-border filter)
+                const mappedDrivers = userList.map((user: any) => {
+                    // Handle different name formats
+                    const userName = user.name || 
+                                   `${user.firstName || ''} ${user.lastName || ''}`.trim() || 
+                                   user.email?.split('@')[0] || 
+                                   'Unknown User';
+                    return {
+                        _id: user._id,
+                        name: userName
+                    };
+                });
+                setDrivers(mappedDrivers);
+                console.log('✅ Set drivers from getAllUsersForDrugTest:', mappedDrivers);
             } else {
                 // Fallback to getAllDrivers if the new endpoint fails
+                console.log('⚠️ getAllUsersForDrugTest failed, trying getAllDrivers fallback...');
                 const fallbackResponse = await getAllDrivers(1, 1000);
-                if (fallbackResponse?.success && fallbackResponse?.data) {
-                    const driverList = Array.isArray(fallbackResponse.data) ? fallbackResponse.data : [];
-                    // Filter out admin, superadmin, customer, and reporter
+                console.log('🔍 getAllDrivers fallback response:', fallbackResponse);
+                
+                if (fallbackResponse?.success && Array.isArray(fallbackResponse.data)) {
+                    const driverList = fallbackResponse.data;
+                    // Filter out admin, superadmin, customer, and reporter (show all other drivers)
                     const filteredDrivers = driverList.filter((d: any) => {
                         const role = d.role?.toLowerCase() || '';
                         return role !== 'admin' && role !== 'superadmin' && role !== 'customer' && role !== 'reporter';
                     });
-                    setDrivers(filteredDrivers.map((d: any) => ({
+                    const mappedDrivers = filteredDrivers.map((d: any) => ({
                         _id: d._id,
                         name: d.name || `${d.firstName || ''} ${d.lastName || ''}`.trim() || 'Unknown Driver'
-                    })));
+                    }));
+                    setDrivers(mappedDrivers);
+                    console.log('✅ Set drivers from getAllDrivers fallback:', mappedDrivers);
                 } else {
-                    // If no drivers returned (likely no company), set empty array
+                    console.warn('⚠️ No drivers found in fallback response');
                     setDrivers([]);
                 }
             }
         } catch (error) {
-            console.error('Error fetching users for drug test:', error);
+            console.error('❌ Error fetching users for drug test:', error);
             // On error, set empty array to prevent issues
             setDrivers([]);
         }
@@ -193,6 +213,10 @@ const DrugTest = () => {
     const handleCreateRequestClick = () => {
         setEditingRequest(null);
         setFormData(requestForm);
+        setConsentForm(null);
+        setDrugTestDocument(null);
+        setExistingConsentFormUrl(null);
+        setExistingDrugTestDocumentUrl(null);
         setShowRequestModal(true);
     };
 
@@ -205,11 +229,12 @@ const DrugTest = () => {
             scheduledDate: request.scheduledDate,
             scheduledTime: request.scheduledTime || '',
             labName: request.labName,
-            collectionSiteName: request.collectionSiteName || '',
-            collectionSiteAddress: request.collectionSiteAddress || '',
-            collectionSitePhone: request.collectionSitePhone || '',
-            importantDetails: request.importantDetails || ''
+            collectionSiteAddress: request.collectionSiteAddress || ''
         });
+        setConsentForm(null);
+        setDrugTestDocument(null);
+        setExistingConsentFormUrl(request.consentFormUrl || null);
+        setExistingDrugTestDocumentUrl(request.drugTestDocumentUrl || null);
         setShowRequestModal(true);
     };
 
@@ -248,16 +273,99 @@ const DrugTest = () => {
         setSaving(true);
         try {
             let response;
+            
+            // Check if we have files to upload
+            const hasFiles = consentForm || drugTestDocument;
+            
             if (editingRequest?._id) {
-                response = await updateDrugTest(editingRequest._id, formData);
+                // UPDATE: Only send changed fields
+                const changedFields: Partial<typeof formData> = {};
+                
+                // Compare each field with original value
+                if (formData.driverId !== editingRequest.driverId) {
+                    changedFields.driverId = formData.driverId;
+                }
+                if (formData.testType !== editingRequest.testType) {
+                    changedFields.testType = formData.testType;
+                }
+                if (formData.reason !== editingRequest.reason) {
+                    changedFields.reason = formData.reason;
+                }
+                if (formData.scheduledDate !== editingRequest.scheduledDate) {
+                    changedFields.scheduledDate = formData.scheduledDate;
+                }
+                if (formData.scheduledTime !== (editingRequest.scheduledTime || '')) {
+                    changedFields.scheduledTime = formData.scheduledTime;
+                }
+                if (formData.labName !== editingRequest.labName) {
+                    changedFields.labName = formData.labName;
+                }
+                if (formData.collectionSiteAddress !== (editingRequest.collectionSiteAddress || '')) {
+                    changedFields.collectionSiteAddress = formData.collectionSiteAddress;
+                }
+                
+                if (hasFiles) {
+                    // Use FormData for file uploads
+                    const formDataToSend = new FormData();
+                    
+                    // Add only changed fields
+                    Object.keys(changedFields).forEach(key => {
+                        const value = changedFields[key as keyof typeof changedFields];
+                        if (value !== null && value !== undefined) {
+                            formDataToSend.append(key, value);
+                        }
+                    });
+                    
+                    // Add files if they exist (new files are always considered updates)
+                    if (consentForm) {
+                        formDataToSend.append('consentForm', consentForm);
+                    }
+                    if (drugTestDocument) {
+                        formDataToSend.append('drugTestDocument', drugTestDocument);
+                    }
+                    
+                    response = await updateDrugTest(editingRequest._id, formDataToSend as any);
+                } else {
+                    // No files, use regular JSON - only send changed fields
+                    response = await updateDrugTest(editingRequest._id, changedFields);
+                }
             } else {
-                response = await createDrugTest(formData as DrugTestRequest);
+                // CREATE: Send all form fields
+                if (hasFiles) {
+                    // Use FormData for file uploads
+                    const formDataToSend = new FormData();
+                    
+                    // Add all form fields
+                    Object.keys(formData).forEach(key => {
+                        const value = formData[key as keyof typeof formData];
+                        if (value !== null && value !== undefined && value !== '') {
+                            formDataToSend.append(key, value);
+                        }
+                    });
+                    
+                    // Add files if they exist
+                    if (consentForm) {
+                        formDataToSend.append('consentForm', consentForm);
+                    }
+                    if (drugTestDocument) {
+                        formDataToSend.append('drugTestDocument', drugTestDocument);
+                    }
+                    
+                    response = await createDrugTest(formDataToSend as any);
+                } else {
+                    // No files, use regular JSON
+                    response = await createDrugTest(formData as DrugTestRequest);
+                }
             }
 
             if (response?.success) {
                 showNotification('success', editingRequest ? 'Drug test request updated successfully' : 'Drug test request created successfully');
                 setShowRequestModal(false);
                 setFormData(requestForm);
+                setConsentForm(null);
+                setDrugTestDocument(null);
+                setExistingConsentFormUrl(null);
+                setExistingDrugTestDocumentUrl(null);
                 setEditingRequest(null);
                 fetchDrugTestRequests();
             } else {
@@ -317,7 +425,7 @@ const DrugTest = () => {
                 request.testType.toLowerCase().includes(searchLower) ||
                 request.reason.toLowerCase().includes(searchLower) ||
                 request.labName.toLowerCase().includes(searchLower) ||
-                request.collectionSiteName?.toLowerCase().includes(searchLower);
+                request.collectionSiteAddress?.toLowerCase().includes(searchLower);
             
             if (!matchesSearch) return false;
         }
@@ -394,13 +502,13 @@ const DrugTest = () => {
                         </div>
                     </div>
                     <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">  Employees</label>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">Drivers</label>
                         <select
                             value={selectedDriver}
                             onChange={(e) => setSelectedDriver(e.target.value)}
                             className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                         >
-                            <option value="">All Employees</option>
+                            <option value="">All Drivers</option>
                             {drivers.map(driver => (
                                 <option key={driver._id} value={driver._id}>
                                     {driver.name}
@@ -484,13 +592,18 @@ const DrugTest = () => {
                                     <th className="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">Reason</th>
                                     <th className="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">Scheduled Date</th>
                                     <th className="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">Lab/Collection Site</th>
+                                    <th className="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">Documents</th>
                                     <th className="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">Status</th>
                                     <th className="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">Actions</th>
                                 </tr>
                             </thead>
                             <tbody className="bg-white divide-y divide-gray-200">
                                 {filteredRequests.map((request) => (
-                                    <tr key={request._id} className="hover:bg-gray-50">
+                                    <tr 
+                                        key={request._id} 
+                                        onClick={() => handleViewDetails(request)}
+                                        className="hover:bg-gray-50 cursor-pointer transition-colors"
+                                    >
                                         <td className="px-6 py-4 whitespace-nowrap">
                                             <div className="text-sm font-medium text-gray-900">{request.driverName || 'Unknown'}</div>
                                         </td>
@@ -510,16 +623,29 @@ const DrugTest = () => {
                                         </td>
                                         <td className="px-6 py-4">
                                             <div className="text-sm text-gray-900">{request.labName}</div>
-                                            {request.collectionSiteName && (
-                                                <div className="text-xs text-gray-500">{request.collectionSiteName}</div>
-                                            )}
+                                        </td>
+                                        <td className="px-6 py-4">
+                                            <div className="flex flex-col gap-1">
+                                                <div className="flex items-center gap-2">
+                                                    <FileText size={14} className={request.consentFormUrl ? "text-green-600" : "text-gray-400"} />
+                                                    <span className={`text-xs ${request.consentFormUrl ? "text-green-600" : "text-gray-500"}`}>
+                                                        {request.consentFormUrl ? "Consent Form" : "No Consent Form"}
+                                                    </span>
+                                                </div>
+                                                <div className="flex items-center gap-2">
+                                                    <FileText size={14} className={request.drugTestDocumentUrl ? "text-green-600" : "text-gray-400"} />
+                                                    <span className={`text-xs ${request.drugTestDocumentUrl ? "text-green-600" : "text-gray-500"}`}>
+                                                        {request.drugTestDocumentUrl ? "Test Result" : "No Test Result"}
+                                                    </span>
+                                                </div>
+                                            </div>
                                         </td>
                                         <td className="px-6 py-4 whitespace-nowrap">
                                             <span className={`px-3 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${getStatusColor(request.status)}`}>
                                                 {request.status.toUpperCase()}
                                             </span>
                                         </td>
-                                        <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                                        <td className="px-6 py-4 whitespace-nowrap text-sm font-medium" onClick={(e) => e.stopPropagation()}>
                                             <div className="flex items-center gap-3">
                                                 <button
                                                     onClick={() => handleViewDetails(request)}
@@ -582,7 +708,7 @@ const DrugTest = () => {
                             {/* Driver Selection */}
                             <div>
                                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                                    Employee <span className="text-red-500">*</span>
+                                    Driver <span className="text-red-500">*</span>
                                 </label>
                                 <select
                                     value={formData.driverId}
@@ -590,7 +716,7 @@ const DrugTest = () => {
                                     className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                                     required
                                 >
-                                    <option value="">Select a employee</option>
+                                    <option value="">Select a driver</option>
                                     {drivers.map(driver => (
                                         <option key={driver._id} value={driver._id}>
                                             {driver.name}
@@ -665,82 +791,124 @@ const DrugTest = () => {
                                 </div>
                             </div>
 
-                            {/* Lab/Collection Site Section */}
+                            {/* Lab Name */}
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-2">
+                                    Lab Name <span className="text-red-500">*</span>
+                                </label>
+                                <input
+                                    type="text"
+                                    value={formData.labName}
+                                    onChange={(e) => setFormData({ ...formData, labName: e.target.value })}
+                                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                    placeholder="e.g., Quest Diagnostics, LabCorp"
+                                    required
+                                />
+                            </div>
+
+                            {/* Collection Site Address */}
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-2">
+                                    Collection Site Address
+                                </label>
+                                <AddressSearch
+                                    label="Search Address"
+                                    placeholder="Search For An Address..."
+                                    value={formData.collectionSiteAddress}
+                                    onAddressSelect={(addressData) => {
+                                        setFormData({
+                                            ...formData,
+                                            collectionSiteAddress: addressData.fullAddress || addressData.address || ''
+                                        });
+                                    }}
+                                    onChange={(value) => {
+                                        setFormData({
+                                            ...formData,
+                                            collectionSiteAddress: value
+                                        });
+                                    }}
+                                    className=""
+                                />
+                            </div>
+
+                            {/* Document Uploads */}
                             <div className="border-t border-gray-200 pt-4">
                                 <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
-                                    <MapPin className="text-blue-600" size={20} />
-                                    Lab or Collection Site Details
+                                    <FileText className="text-blue-600" size={20} />
+                                    Document Uploads
                                 </h3>
-
                                 <div className="space-y-4">
                                     <div>
                                         <label className="block text-sm font-medium text-gray-700 mb-2">
-                                            Lab Name <span className="text-red-500">*</span>
+                                            Drug Test Consent Form
                                         </label>
+                                        {existingConsentFormUrl && !consentForm && (
+                                            <div className="mb-2 p-2 bg-green-50 border border-green-200 rounded-lg">
+                                                <div className="flex items-center justify-between">
+                                                    <div className="flex items-center gap-2">
+                                                        <FileText size={16} className="text-green-600" />
+                                                        <span className="text-sm text-green-700">Existing document uploaded</span>
+                                                    </div>
+                                                    <a
+                                                        href={existingConsentFormUrl}
+                                                        target="_blank"
+                                                        rel="noopener noreferrer"
+                                                        className="text-xs text-blue-600 hover:text-blue-800 underline"
+                                                    >
+                                                        View Document
+                                                    </a>
+                                                </div>
+                                            </div>
+                                        )}
                                         <input
-                                            type="text"
-                                            value={formData.labName}
-                                            onChange={(e) => setFormData({ ...formData, labName: e.target.value })}
+                                            type="file"
+                                            accept=".pdf,.doc,.docx,.jpg,.jpeg,.png"
+                                            onChange={(e) => setConsentForm(e.target.files?.[0] || null)}
                                             className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                                            placeholder="e.g., Quest Diagnostics, LabCorp"
-                                            required
                                         />
+                                        {consentForm && (
+                                            <p className="text-xs text-gray-600 mt-1">New file selected: {consentForm.name}</p>
+                                        )}
+                                        {existingConsentFormUrl && consentForm && (
+                                            <p className="text-xs text-amber-600 mt-1">⚠️ New file will replace existing document</p>
+                                        )}
                                     </div>
-
                                     <div>
                                         <label className="block text-sm font-medium text-gray-700 mb-2">
-                                            Collection Site Name
+                                            Drug Test Result Document
                                         </label>
+                                        {existingDrugTestDocumentUrl && !drugTestDocument && (
+                                            <div className="mb-2 p-2 bg-green-50 border border-green-200 rounded-lg">
+                                                <div className="flex items-center justify-between">
+                                                    <div className="flex items-center gap-2">
+                                                        <FileText size={16} className="text-green-600" />
+                                                        <span className="text-sm text-green-700">Existing document uploaded</span>
+                                                    </div>
+                                                    <a
+                                                        href={existingDrugTestDocumentUrl}
+                                                        target="_blank"
+                                                        rel="noopener noreferrer"
+                                                        className="text-xs text-blue-600 hover:text-blue-800 underline"
+                                                    >
+                                                        View Document
+                                                    </a>
+                                                </div>
+                                            </div>
+                                        )}
                                         <input
-                                            type="text"
-                                            value={formData.collectionSiteName}
-                                            onChange={(e) => setFormData({ ...formData, collectionSiteName: e.target.value })}
+                                            type="file"
+                                            accept=".pdf,.doc,.docx,.jpg,.jpeg,.png"
+                                            onChange={(e) => setDrugTestDocument(e.target.files?.[0] || null)}
                                             className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                                            placeholder="Collection site or facility name"
                                         />
-                                    </div>
-
-                                    <div>
-                                        <label className="block text-sm font-medium text-gray-700 mb-2">
-                                            Collection Site Address
-                                        </label>
-                                        <textarea
-                                            value={formData.collectionSiteAddress}
-                                            onChange={(e) => setFormData({ ...formData, collectionSiteAddress: e.target.value })}
-                                            rows={2}
-                                            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                                            placeholder="Street address, city, state, ZIP"
-                                        />
-                                    </div>
-
-                                    <div>
-                                        <label className="block text-sm font-medium text-gray-700 mb-2">
-                                            Collection Site Phone
-                                        </label>
-                                        <input
-                                            type="tel"
-                                            value={formData.collectionSitePhone}
-                                            onChange={(e) => setFormData({ ...formData, collectionSitePhone: e.target.value })}
-                                            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                                            placeholder="(555) 123-4567"
-                                        />
+                                        {drugTestDocument && (
+                                            <p className="text-xs text-gray-600 mt-1">New file selected: {drugTestDocument.name}</p>
+                                        )}
+                                        {existingDrugTestDocumentUrl && drugTestDocument && (
+                                            <p className="text-xs text-amber-600 mt-1">⚠️ New file will replace existing document</p>
+                                        )}
                                     </div>
                                 </div>
-                            </div>
-
-                            {/* Important Details */}
-                            <div className="border-t border-gray-200 pt-4">
-                                <label className="block text-sm font-medium text-gray-700 mb-2 flex items-center gap-2">
-                                    <FileText className="text-blue-600" size={18} />
-                                    Important Details
-                                </label>
-                                <textarea
-                                    value={formData.importantDetails}
-                                    onChange={(e) => setFormData({ ...formData, importantDetails: e.target.value })}
-                                    rows={4}
-                                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                                    placeholder="Enter any important details, special instructions, or notes about this drug test request..."
-                                />
                             </div>
 
                             {/* Action Buttons */}
@@ -831,44 +999,59 @@ const DrugTest = () => {
                                 )}
                             </div>
 
-                            <div className="border-t border-gray-200 pt-4">
-                                <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
-                                    <MapPin className="text-blue-600" size={20} />
-                                    Lab or Collection Site Details
-                                </h3>
-                                <div className="grid grid-cols-2 gap-6">
-                                    <div>
-                                        <label className="block text-sm font-medium text-gray-500 mb-1">Lab Name</label>
-                                        <p className="text-base text-gray-900">{selectedRequest.labName}</p>
-                                    </div>
-                                    {selectedRequest.collectionSiteName && (
-                                        <div>
-                                            <label className="block text-sm font-medium text-gray-500 mb-1">Collection Site Name</label>
-                                            <p className="text-base text-gray-900">{selectedRequest.collectionSiteName}</p>
-                                        </div>
-                                    )}
-                                    {selectedRequest.collectionSiteAddress && (
-                                        <div className="col-span-2">
-                                            <label className="block text-sm font-medium text-gray-500 mb-1">Collection Site Address</label>
-                                            <p className="text-base text-gray-900 whitespace-pre-wrap">{selectedRequest.collectionSiteAddress}</p>
-                                        </div>
-                                    )}
-                                    {selectedRequest.collectionSitePhone && (
-                                        <div>
-                                            <label className="block text-sm font-medium text-gray-500 mb-1">Collection Site Phone</label>
-                                            <p className="text-base text-gray-900">{selectedRequest.collectionSitePhone}</p>
-                                        </div>
-                                    )}
-                                </div>
+                            <div>
+                                <label className="block text-sm font-medium text-gray-500 mb-1">Lab Name</label>
+                                <p className="text-base text-gray-900">{selectedRequest.labName}</p>
                             </div>
 
-                            {selectedRequest.importantDetails && (
+                            {selectedRequest.collectionSiteAddress && (
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-500 mb-1">Collection Site Address</label>
+                                    <p className="text-base text-gray-900">{selectedRequest.collectionSiteAddress}</p>
+                                </div>
+                            )}
+
+                            {/* Documents Section */}
+                            {(selectedRequest.consentFormUrl || selectedRequest.drugTestDocumentUrl) && (
                                 <div className="border-t border-gray-200 pt-4">
-                                    <label className="block text-sm font-medium text-gray-500 mb-1 flex items-center gap-2">
-                                        <FileText className="text-blue-600" size={18} />
-                                        Important Details
-                                    </label>
-                                    <p className="text-base text-gray-900 whitespace-pre-wrap">{selectedRequest.importantDetails}</p>
+                                    <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
+                                        <FileText className="text-blue-600" size={20} />
+                                        Documents
+                                    </h3>
+                                    <div className="space-y-3">
+                                        {selectedRequest.consentFormUrl && (
+                                            <div className="flex items-center justify-between p-3 bg-green-50 border border-green-200 rounded-lg">
+                                                <div className="flex items-center gap-2">
+                                                    <FileText size={18} className="text-green-600" />
+                                                    <span className="text-sm font-medium text-gray-900">Drug Test Consent Form</span>
+                                                </div>
+                                                <a
+                                                    href={selectedRequest.consentFormUrl}
+                                                    target="_blank"
+                                                    rel="noopener noreferrer"
+                                                    className="text-sm text-blue-600 hover:text-blue-800 underline"
+                                                >
+                                                    View Document
+                                                </a>
+                                            </div>
+                                        )}
+                                        {selectedRequest.drugTestDocumentUrl && (
+                                            <div className="flex items-center justify-between p-3 bg-green-50 border border-green-200 rounded-lg">
+                                                <div className="flex items-center gap-2">
+                                                    <FileText size={18} className="text-green-600" />
+                                                    <span className="text-sm font-medium text-gray-900">Drug Test Result Document</span>
+                                                </div>
+                                                <a
+                                                    href={selectedRequest.drugTestDocumentUrl}
+                                                    target="_blank"
+                                                    rel="noopener noreferrer"
+                                                    className="text-sm text-blue-600 hover:text-blue-800 underline"
+                                                >
+                                                    View Document
+                                                </a>
+                                            </div>
+                                        )}
+                                    </div>
                                 </div>
                             )}
 

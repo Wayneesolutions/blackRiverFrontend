@@ -395,6 +395,8 @@ const DriverManagement = () => {
     fastCardNumber: '',
     fastCardExpiry: '',
     fastCardValid: false,
+    // SIN Number (mandatory)
+    sinNumber: '',
     // Canadian Worker Status
     canadianWorkerStatus: 'PERMANENT RESIDENT' as 'CANADIAN CITIZEN' | 'PERMANENT RESIDENT' | 'WORK PERMIT',
     // Permanent Residence Expiry
@@ -402,7 +404,12 @@ const DriverManagement = () => {
     // Work Permit Expiry
     workPermitExpiry: '',
     // WCB Number
-    wcbNumber: ''
+    wcbNumber: '',
+    // Document files
+    workPermitDocument: null as File | null,
+    prCardDocument: null as File | null,
+    existingWorkPermitUrl: null as string | null,
+    existingPrCardUrl: null as string | null
   });
 
   // Form state for Documents
@@ -989,6 +996,7 @@ const DriverManagement = () => {
                 return expiryValue ? new Date(expiryValue).toISOString().split('T')[0] : '';
               })(),
               fastCardValid: driver.fastCardValid !== undefined ? driver.fastCardValid : (driver.details?.fastCardValid || false),
+              sinNumber: driver.sinNo || driver.details?.sinNo || driver.socialInsuranceNumber || '',
               canadianWorkerStatus: (driver.canadianWorkerStatus || driver.details?.canadianWorkerStatus || 'PERMANENT RESIDENT') as 'CANADIAN CITIZEN' | 'PERMANENT RESIDENT' | 'WORK PERMIT',
               permanentResidenceExpiry: (() => {
                 const expiryValue = driver.permanentResidenceExpiry || driver.details?.permanentResidenceExpiry;
@@ -998,7 +1006,11 @@ const DriverManagement = () => {
                 const expiryValue = driver.workPermitExpiry || driver.details?.workPermitExpiry;
                 return expiryValue ? new Date(expiryValue).toISOString().split('T')[0] : '';
               })(),
-              wcbNumber: driver.wsibAccountNo || driver.details?.wsibAccountNo || ''
+              wcbNumber: driver.wsibAccountNo || driver.details?.wsibAccountNo || '',
+              workPermitDocument: null,
+              prCardDocument: null,
+              existingWorkPermitUrl: driver.details?.workPermitDocumentUrl || null,
+              existingPrCardUrl: driver.details?.prCardDocumentUrl || null
             });
 
           
@@ -1319,6 +1331,7 @@ const DriverManagement = () => {
                     return expiryValue ? new Date(expiryValue).toISOString().split('T')[0] : '';
                   })(),
                   fastCardValid: driver.fastCardValid !== undefined ? driver.fastCardValid : (driver.details?.fastCardValid || false),
+                  sinNumber: driver.sinNo || driver.details?.sinNo || driver.socialInsuranceNumber || '',
                   canadianWorkerStatus: (driver.canadianWorkerStatus || driver.details?.canadianWorkerStatus || 'PERMANENT RESIDENT') as 'CANADIAN CITIZEN' | 'PERMANENT RESIDENT' | 'WORK PERMIT',
                   permanentResidenceExpiry: (() => {
                     const expiryValue = driver.permanentResidenceExpiry || driver.details?.permanentResidenceExpiry;
@@ -1328,7 +1341,11 @@ const DriverManagement = () => {
                     const expiryValue = driver.workPermitExpiry || driver.details?.workPermitExpiry;
                     return expiryValue ? new Date(expiryValue).toISOString().split('T')[0] : '';
                   })(),
-                  wcbNumber: driver.wsibAccountNo || driver.details?.wsibAccountNo || ''
+                  wcbNumber: driver.wsibAccountNo || driver.details?.wsibAccountNo || '',
+                  workPermitDocument: null,
+                  prCardDocument: null,
+                  existingWorkPermitUrl: driver.details?.workPermitDocumentUrl || null,
+                  existingPrCardUrl: driver.details?.prCardDocumentUrl || null
                 },
                 notes: currentNotes || [],
                 documents: currentDocuments || [],
@@ -1674,6 +1691,23 @@ const DriverManagement = () => {
       errors.passportExpiry = 'Passport Expiry Date is required';
     }
 
+    // SIN Number Validation (mandatory)
+    if (!travelData.sinNumber || !travelData.sinNumber.trim()) {
+      errors.sinNumber = 'SIN Number is required';
+    }
+
+    // Document Validation based on Canadian Worker Status
+    if (travelData.canadianWorkerStatus === 'WORK PERMIT') {
+      if (!travelData.workPermitDocument && !travelData.existingWorkPermitUrl) {
+        errors.workPermitDocument = 'Work Permit Document is required';
+      }
+    }
+    if (travelData.canadianWorkerStatus === 'PERMANENT RESIDENT') {
+      if (!travelData.prCardDocument && !travelData.existingPrCardUrl) {
+        errors.prCardDocument = 'PR Card Document is required';
+      }
+    }
+
     // Violations Tab Validation
     violations.forEach((violation, index) => {
       if (!violation.violationType || !violation.violationType.trim()) {
@@ -1946,12 +1980,23 @@ const DriverManagement = () => {
         driverFormData.append('fastCardValid', String(travelData.fastCardValid));
       }
       
+      // Travel Information - SIN Number (mandatory, send from travel section)
+      if (travelData.sinNumber) driverFormData.append('sinNo', travelData.sinNumber);
+      
       // Travel Information - Canadian Worker Status
       // Note: createDriver doesn't accept these fields, but we'll send them for consistency
       if (travelData.canadianWorkerStatus) driverFormData.append('canadianWorkerStatus', travelData.canadianWorkerStatus);
       if (travelData.permanentResidenceExpiry) driverFormData.append('permanentResidenceExpiry', travelData.permanentResidenceExpiry);
       if (travelData.workPermitExpiry) driverFormData.append('workPermitExpiry', travelData.workPermitExpiry);
       if (travelData.wcbNumber) driverFormData.append('wsibAccountNo', travelData.wcbNumber);
+      
+      // Travel Information - Document Uploads
+      if (travelData.workPermitDocument) {
+        driverFormData.append('workPermitDocument', travelData.workPermitDocument);
+      }
+      if (travelData.prCardDocument) {
+        driverFormData.append('prCardDocument', travelData.prCardDocument);
+      }
       
       // Notes - send as JSON array for table data
       if (notes && notes.length > 0) {
@@ -2660,6 +2705,11 @@ const DriverManagement = () => {
         driverFormData.append('fastCardValid', String(travelData.fastCardValid));
       }
       
+      // Travel Information - SIN Number (mandatory, send from travel section)
+      if (hasValueChanged(travelData.sinNumber, original.travelData.sinNumber)) {
+        driverFormData.append('sinNo', travelData.sinNumber || '');
+      }
+      
       // Travel Information - Canadian Worker Status (always send if changed)
       if (hasValueChanged(travelData.canadianWorkerStatus, original.travelData.canadianWorkerStatus)) {
         driverFormData.append('canadianWorkerStatus', travelData.canadianWorkerStatus || '');
@@ -2673,6 +2723,14 @@ const DriverManagement = () => {
       }
       if (hasValueChanged(travelData.wcbNumber, original.travelData.wcbNumber)) {
         driverFormData.append('wsibAccountNo', travelData.wcbNumber);
+      }
+      
+      // Travel Information - Document Uploads (send if new files are selected)
+      if (travelData.workPermitDocument) {
+        driverFormData.append('workPermitDocument', travelData.workPermitDocument);
+      }
+      if (travelData.prCardDocument) {
+        driverFormData.append('prCardDocument', travelData.prCardDocument);
       }
       
       // Profile Image - always send if a new file is selected
@@ -5390,6 +5448,111 @@ const DriverManagement = () => {
                         className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#42aeec] focus:border-transparent max-w-md"
                       />
                     </div>
+
+                    {/* SIN Number - Mandatory */}
+                    <div className="mt-6">
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                        SIN Number <span className="text-red-500">*</span>
+                      </label>
+                      <input
+                        type="text"
+                        placeholder="SIN Number"
+                        value={travelData.sinNumber}
+                        onChange={(e) => {
+                          setTravelData({ ...travelData, sinNumber: e.target.value });
+                          if (validationErrors.sinNumber) {
+                            setValidationErrors({ ...validationErrors, sinNumber: '' });
+                          }
+                        }}
+                        className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#42aeec] focus:border-transparent max-w-md ${
+                          validationErrors.sinNumber ? 'border-red-500' : 'border-gray-300'
+                        }`}
+                        required
+                      />
+                      {validationErrors.sinNumber && (
+                        <p className="text-xs text-red-500 mt-0.5">{validationErrors.sinNumber}</p>
+                      )}
+                    </div>
+
+                    {/* Work Permit Document Upload */}
+                    {travelData.canadianWorkerStatus === 'WORK PERMIT' && (
+                      <div className="mt-6">
+                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                          Work Permit Document <span className="text-red-500">*</span>
+                        </label>
+                        {travelData.existingWorkPermitUrl && !travelData.workPermitDocument && (
+                          <div className="mb-2 p-2 bg-green-50 border border-green-200 rounded-lg">
+                            <div className="flex items-center justify-between">
+                              <div className="flex items-center gap-2">
+                                <FileText size={16} className="text-green-600" />
+                                <span className="text-sm text-green-700">Existing document uploaded</span>
+                              </div>
+                              <a
+                                href={travelData.existingWorkPermitUrl}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="text-xs text-blue-600 hover:text-blue-800 underline"
+                              >
+                                View Document
+                              </a>
+                            </div>
+                          </div>
+                        )}
+                        <input
+                          type="file"
+                          accept=".pdf,.doc,.docx,.jpg,.jpeg,.png"
+                          onChange={(e) => setTravelData({ ...travelData, workPermitDocument: e.target.files?.[0] || null })}
+                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#42aeec] focus:border-transparent max-w-md"
+                          required={!travelData.existingWorkPermitUrl}
+                        />
+                        {travelData.workPermitDocument && (
+                          <p className="text-xs text-gray-600 mt-1">Selected: {travelData.workPermitDocument.name}</p>
+                        )}
+                        {travelData.existingWorkPermitUrl && travelData.workPermitDocument && (
+                          <p className="text-xs text-amber-600 mt-1">⚠️ New file will replace existing document</p>
+                        )}
+                      </div>
+                    )}
+
+                    {/* PR Card Document Upload */}
+                    {travelData.canadianWorkerStatus === 'PERMANENT RESIDENT' && (
+                      <div className="mt-6">
+                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                          PR Card Document <span className="text-red-500">*</span>
+                        </label>
+                        {travelData.existingPrCardUrl && !travelData.prCardDocument && (
+                          <div className="mb-2 p-2 bg-green-50 border border-green-200 rounded-lg">
+                            <div className="flex items-center justify-between">
+                              <div className="flex items-center gap-2">
+                                <FileText size={16} className="text-green-600" />
+                                <span className="text-sm text-green-700">Existing document uploaded</span>
+                              </div>
+                              <a
+                                href={travelData.existingPrCardUrl}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="text-xs text-blue-600 hover:text-blue-800 underline"
+                              >
+                                View Document
+                              </a>
+                            </div>
+                          </div>
+                        )}
+                        <input
+                          type="file"
+                          accept=".pdf,.doc,.docx,.jpg,.jpeg,.png"
+                          onChange={(e) => setTravelData({ ...travelData, prCardDocument: e.target.files?.[0] || null })}
+                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#42aeec] focus:border-transparent max-w-md"
+                          required={!travelData.existingPrCardUrl}
+                        />
+                        {travelData.prCardDocument && (
+                          <p className="text-xs text-gray-600 mt-1">Selected: {travelData.prCardDocument.name}</p>
+                        )}
+                        {travelData.existingPrCardUrl && travelData.prCardDocument && (
+                          <p className="text-xs text-amber-600 mt-1">⚠️ New file will replace existing document</p>
+                        )}
+                      </div>
+                    )}
 
                     {/* Navigation Footer */}
                     <div className="flex justify-between items-center pt-4 border-t border-gray-200">
