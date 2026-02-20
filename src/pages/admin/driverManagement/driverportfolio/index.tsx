@@ -1,15 +1,183 @@
 import React, { useState, useMemo, useEffect, useRef } from 'react';
 import type { CSSProperties } from 'react';
-import { Search, Calendar, Users, DollarSign, Clock, TrendingUp, MapPin, FileText, Eye, X, User as UserIcon, Mail, AlertCircle, Download, Truck } from 'lucide-react';
+import { Search, Calendar, Users, DollarSign, Clock, TrendingUp, MapPin, FileText, Eye, X, User as UserIcon, Mail, AlertCircle, Download, Truck, Package, CheckCircle2, Loader2, AlertCircle as AlertCircleIcon, Circle, Upload, Plus, Trash2 } from 'lucide-react';
 import { FaCheckCircle, FaExclamationCircle, FaTimes } from 'react-icons/fa';
 import ExcelJS from 'exceljs';
 import { fetchUserProfiles, type UserProfileDto, type UserProfilesTimeRange } from '../../../../axios/api/hr.userProfiles';
+import { listOrder } from '../../../../axios/api/distapcher';
+import { getDriverById, uploadDriverDrugTest, deleteDriverDrugTest, getDriverDrugTestSignedUrl } from '../../../../axios/api/driver';
 import { FLEET_COLORS } from '../../fleetMaintenance/colorUtils';
 
 type TimePeriod = UserProfilesTimeRange;
 type ProfileTimePeriod = '1week' | '2weeks' | '1month' | '6months' | '1year' | '2years';
 
 type DriverProfile = UserProfileDto & { role: 'driver' };
+
+// Drug Test Upload Modal Component
+const DrugTestUploadModal: React.FC<{
+    driverId: string;
+    driverName: string;
+    onClose: () => void;
+    onSuccess: () => void;
+    editingTest?: any | null;
+}> = ({ driverId, driverName, onClose, onSuccess, editingTest }) => {
+    const [testDate, setTestDate] = useState('');
+    const [expiryDate, setExpiryDate] = useState('');
+    const [consentFormFile, setConsentFormFile] = useState<File | null>(null);
+    const [resultDocumentFile, setResultDocumentFile] = useState<File | null>(null);
+    const [loading, setLoading] = useState(false);
+    const [error, setError] = useState<string | null>(null);
+
+    useEffect(() => {
+        if (editingTest) {
+            setTestDate(editingTest.test_date ? new Date(editingTest.test_date).toISOString().split('T')[0] : '');
+            setExpiryDate(editingTest.expiry_date ? new Date(editingTest.expiry_date).toISOString().split('T')[0] : '');
+        }
+    }, [editingTest]);
+
+    const handleSubmit = async (e: React.FormEvent) => {
+        e.preventDefault();
+        setError(null);
+
+        if (!testDate) {
+            setError('Test date is required');
+            return;
+        }
+
+        try {
+            setLoading(true);
+            const formData = new FormData();
+            formData.append('test_date', testDate);
+            if (expiryDate) {
+                formData.append('expiry_date', expiryDate);
+            }
+            if (consentFormFile) {
+                formData.append('consentForm', consentFormFile);
+            }
+            if (resultDocumentFile) {
+                formData.append('resultDocument', resultDocumentFile);
+            }
+
+            const response = await uploadDriverDrugTest(driverId, formData);
+            if (response?.success) {
+                onSuccess();
+            } else {
+                setError(response?.message || 'Failed to upload drug test');
+            }
+        } catch (err: any) {
+            setError(err?.message || 'Failed to upload drug test');
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    return (
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-[10000] flex items-center justify-center p-4">
+            <div className="bg-white rounded-xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+                <div className="sticky top-0 bg-white border-b border-gray-200 px-6 py-4 flex items-center justify-between">
+                    <h2 className="text-xl font-bold text-gray-900">
+                        {editingTest ? 'Edit Drug Test' : 'Upload Drug Test'}
+                    </h2>
+                    <button
+                        onClick={onClose}
+                        className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+                    >
+                        <X className="w-5 h-5" />
+                    </button>
+                </div>
+                <form onSubmit={handleSubmit} className="p-6 space-y-6">
+                    <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                            Driver Name
+                        </label>
+                        <input
+                            type="text"
+                            value={driverName}
+                            disabled
+                            className="w-full px-4 py-2 border border-gray-300 rounded-lg bg-gray-50 text-gray-600"
+                        />
+                    </div>
+                    <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                            Test Date <span className="text-red-500">*</span>
+                        </label>
+                        <input
+                            type="date"
+                            value={testDate}
+                            onChange={(e) => setTestDate(e.target.value)}
+                            required
+                            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                        />
+                    </div>
+                    <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                            Expiry Date
+                        </label>
+                        <input
+                            type="date"
+                            value={expiryDate}
+                            onChange={(e) => setExpiryDate(e.target.value)}
+                            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                        />
+                    </div>
+                    <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                            Consent Form
+                        </label>
+                        <input
+                            type="file"
+                            accept=".pdf,.doc,.docx,.jpg,.jpeg,.png"
+                            onChange={(e) => setConsentFormFile(e.target.files?.[0] || null)}
+                            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                        />
+                    </div>
+                    <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                            Result Document
+                        </label>
+                        <input
+                            type="file"
+                            accept=".pdf,.doc,.docx,.jpg,.jpeg,.png"
+                            onChange={(e) => setResultDocumentFile(e.target.files?.[0] || null)}
+                            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                        />
+                    </div>
+                    {error && (
+                        <div className="bg-red-50 border border-red-200 rounded-lg p-4">
+                            <p className="text-sm text-red-600">{error}</p>
+                        </div>
+                    )}
+                    <div className="flex items-center justify-end gap-3 pt-4 border-t border-gray-200">
+                        <button
+                            type="button"
+                            onClick={onClose}
+                            className="px-4 py-2 text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors"
+                        >
+                            Cancel
+                        </button>
+                        <button
+                            type="submit"
+                            disabled={loading}
+                            className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+                        >
+                            {loading ? (
+                                <>
+                                    <Loader2 className="w-4 h-4 animate-spin" />
+                                    Uploading...
+                                </>
+                            ) : (
+                                <>
+                                    <Upload className="w-4 h-4" />
+                                    Upload
+                                </>
+                            )}
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    );
+};
 
 const DriverPortfolio: React.FC = () => {
     const ACCENT_PRIMARY = FLEET_COLORS.primary;
@@ -39,6 +207,15 @@ const DriverPortfolio: React.FC = () => {
     const [selectedProfile, setSelectedProfile] = useState<DriverProfile | null>(null);
     const [showProfileSidebar, setShowProfileSidebar] = useState(false);
     const [profileTimePeriod, setProfileTimePeriod] = useState<ProfileTimePeriod>('1month');
+    const [currentOrder, setCurrentOrder] = useState<any | null>(null);
+    const [loadingOrder, setLoadingOrder] = useState(false);
+    const [driverOrdersMap, setDriverOrdersMap] = useState<Record<string, any>>({});
+    const [loadingAllOrders, setLoadingAllOrders] = useState(false);
+    const [driverDetails, setDriverDetails] = useState<any | null>(null);
+    const [loadingDriverDetails, setLoadingDriverDetails] = useState(false);
+    const [drugTests, setDrugTests] = useState<any[]>([]);
+    const [showDrugTestModal, setShowDrugTestModal] = useState(false);
+    const [editingDrugTest, setEditingDrugTest] = useState<any | null>(null);
     const PAGE_SIZE = 100;
     
     // Refs for scrollbar synchronization
@@ -116,6 +293,164 @@ const DriverPortfolio: React.FC = () => {
             setSelectedProfile(updated);
         }
     }, [profiles, selectedProfile]);
+
+    // Fetch current order for selected driver
+    useEffect(() => {
+        const fetchCurrentOrder = async () => {
+            if (!selectedProfile?._id) {
+                setCurrentOrder(null);
+                return;
+            }
+
+            setLoadingOrder(true);
+            try {
+                // Fetch orders (backend may not support driver filter, so we'll filter on frontend)
+                const response = await listOrder({
+                    limit: 1000
+                } as any);
+
+                if (response?.success && Array.isArray(response.data)) {
+                    const driverId = selectedProfile._id.toString();
+                    console.log('🔍 [Driver Portfolio] Fetching orders for driver:', driverId);
+                    console.log('📦 [Driver Portfolio] Total orders fetched:', response.data.length);
+                    
+                    // Filter orders by driver (check both driver and coDriver)
+                    const driverOrders = response.data.filter((order: any) => {
+                        const orderDriverId = order.driver?._id?.toString() || order.driver?.toString() || '';
+                        const orderCoDriverId = order.coDriver?._id?.toString() || order.coDriver?.toString() || '';
+                        const matches = orderDriverId === driverId || orderCoDriverId === driverId;
+                        return matches;
+                    });
+
+                    console.log('👤 [Driver Portfolio] Orders for this driver:', driverOrders.length);
+                    console.log('📊 [Driver Portfolio] Sample order statuses:', driverOrders.slice(0, 5).map((o: any) => ({ 
+                        orderNumber: o.orderNumber, 
+                        status: o.status,
+                        driver: o.driver?._id || o.driver,
+                        coDriver: o.coDriver?._id || o.coDriver
+                    })));
+
+                    // Filter for active orders (exclude completed and canceled)
+                    // Active statuses: 'planned', 'quoted', 'in-delivery', 'delivered', 'verification_pending', 'pending_review'
+                    const inactiveStatuses = ['completed', 'canceled'];
+                    const activeOrders = driverOrders.filter((order: any) => {
+                        const status = (order.status || '').toLowerCase();
+                        const isActive = status && !inactiveStatuses.includes(status);
+                        return isActive;
+                    });
+
+                    console.log('✅ [Driver Portfolio] Active orders:', activeOrders.length);
+                    if (activeOrders.length > 0) {
+                        console.log('📋 [Driver Portfolio] Active order statuses:', activeOrders.map((o: any) => o.status));
+                    }
+
+                    // Get the most recent active order
+                    if (activeOrders.length > 0) {
+                        // Sort by order date or creation date, most recent first
+                        const sortedOrders = activeOrders.sort((a: any, b: any) => {
+                            const dateA = new Date(a.orderDate || a.createdAt || 0).getTime();
+                            const dateB = new Date(b.orderDate || b.createdAt || 0).getTime();
+                            return dateB - dateA;
+                        });
+                        setCurrentOrder(sortedOrders[0]);
+                    } else {
+                        setCurrentOrder(null);
+                    }
+                } else {
+                    setCurrentOrder(null);
+                }
+            } catch (error) {
+                console.error('Error fetching current order:', error);
+                setCurrentOrder(null);
+            } finally {
+                setLoadingOrder(false);
+            }
+        };
+
+        fetchCurrentOrder();
+    }, [selectedProfile?._id]);
+
+    // Fetch orders for all drivers when profiles are loaded
+    useEffect(() => {
+        const fetchAllDriverOrders = async () => {
+            if (profiles.length === 0) {
+                setDriverOrdersMap({});
+                return;
+            }
+
+            setLoadingAllOrders(true);
+            try {
+                const response = await listOrder({
+                    limit: 1000
+                } as any);
+
+                if (response?.success && Array.isArray(response.data)) {
+                    const inactiveStatuses = ['completed', 'canceled'];
+                    const ordersMap: Record<string, any> = {};
+
+                    profiles.forEach((profile) => {
+                        const driverId = profile._id.toString();
+                        const driverOrders = response.data.filter((order: any) => {
+                            const orderDriverId = order.driver?._id?.toString() || order.driver?.toString() || '';
+                            const orderCoDriverId = order.coDriver?._id?.toString() || order.coDriver?.toString() || '';
+                            return orderDriverId === driverId || orderCoDriverId === driverId;
+                        });
+
+                        const activeOrders = driverOrders.filter((order: any) => {
+                            const status = (order.status || '').toLowerCase();
+                            return status && !inactiveStatuses.includes(status);
+                        });
+
+                        if (activeOrders.length > 0) {
+                            const sortedOrders = activeOrders.sort((a: any, b: any) => {
+                                const dateA = new Date(a.orderDate || a.createdAt || 0).getTime();
+                                const dateB = new Date(b.orderDate || b.createdAt || 0).getTime();
+                                return dateB - dateA;
+                            });
+                            ordersMap[driverId] = sortedOrders[0];
+                        }
+                    });
+
+                    setDriverOrdersMap(ordersMap);
+                }
+            } catch (error) {
+                console.error('Error fetching driver orders:', error);
+            } finally {
+                setLoadingAllOrders(false);
+            }
+        };
+
+        fetchAllDriverOrders();
+    }, [profiles]);
+
+    // Fetch driver details when profile is selected (for drug tests)
+    useEffect(() => {
+        const fetchDriverDetails = async () => {
+            if (!selectedProfile?._id) {
+                setDriverDetails(null);
+                setDrugTests([]);
+                return;
+            }
+
+            setLoadingDriverDetails(true);
+            try {
+                const response = await getDriverById(selectedProfile._id);
+                if (response?.success && response.data) {
+                    setDriverDetails(response.data);
+                    const tests = response.data.details?.drug_tests || response.data.drug_tests || [];
+                    setDrugTests(Array.isArray(tests) ? tests : []);
+                }
+            } catch (error) {
+                console.error('Error fetching driver details:', error);
+                setDriverDetails(null);
+                setDrugTests([]);
+            } finally {
+                setLoadingDriverDetails(false);
+            }
+        };
+
+        fetchDriverDetails();
+    }, [selectedProfile?._id]);
 
     const filteredProfiles = profiles;
     const emptyStateMessage = requiresCompanySetup
@@ -575,6 +910,7 @@ const DriverPortfolio: React.FC = () => {
                             <thead className="text-white" style={{ background: ACCENT_GRADIENT }}>
                                 <tr>
                                     <th className="px-6 py-4 text-left text-sm font-semibold">Driver</th>
+                                    <th className="px-6 py-4 text-left text-sm font-semibold">Current Order</th>
                                     <th className="px-6 py-4 text-left text-sm font-semibold">Earnings</th>
                                     <th className="px-6 py-4 text-left text-sm font-semibold">Miles</th>
                                     <th className="px-6 py-4 text-left text-sm font-semibold">Trips</th>
@@ -582,19 +918,20 @@ const DriverPortfolio: React.FC = () => {
                                     <th className="px-6 py-4 text-left text-sm font-semibold">Days Worked</th>
                                     <th className="px-6 py-4 text-left text-sm font-semibold">Hours</th>
                                     <th className="px-6 py-4 text-left text-sm font-semibold">Attendance</th>
+                                    <th className="px-6 py-4 text-left text-sm font-semibold">Cross Border</th>
                                     <th className="px-6 py-4 text-left text-sm font-semibold">Actions</th>
                                 </tr>
                             </thead>
                             <tbody className="divide-y divide-gray-200">
                                 {loading ? (
                                     <tr>
-                                        <td colSpan={9} className="px-6 py-12 text-center text-gray-500">
+                                        <td colSpan={11} className="px-6 py-12 text-center text-gray-500">
                                             Loading driver profiles...
                                         </td>
                                     </tr>
                                 ) : filteredProfiles.length === 0 ? (
                                     <tr>
-                                        <td colSpan={9} className="px-6 py-12 text-center text-gray-500">
+                                        <td colSpan={11} className="px-6 py-12 text-center text-gray-500">
                                             {emptyStateMessage}
                                         </td>
                                     </tr>
@@ -621,6 +958,52 @@ const DriverPortfolio: React.FC = () => {
                                                         <p className="text-sm text-gray-500">{profile.email}</p>
                                                     </div>
                                                 </div>
+                                            </td>
+                                            <td className="px-6 py-4">
+                                                {(() => {
+                                                    const order = driverOrdersMap[profile._id];
+                                                    if (loadingAllOrders) {
+                                                        return (
+                                                            <div className="flex items-center gap-2">
+                                                                <Loader2 className="w-4 h-4 animate-spin text-gray-400" />
+                                                                <span className="text-xs text-gray-400">Loading...</span>
+                                                            </div>
+                                                        );
+                                                    }
+                                                    if (!order) {
+                                                        return (
+                                                            <span className="text-xs text-gray-400 italic">No active order</span>
+                                                        );
+                                                    }
+                                                    const status = (order.status || '').toLowerCase();
+                                                    const statusConfig: Record<string, { bg: string; text: string; icon: any; label: string }> = {
+                                                        'planned': { bg: 'bg-blue-100', text: 'text-blue-800', icon: Circle, label: 'Planned' },
+                                                        'quoted': { bg: 'bg-purple-100', text: 'text-purple-800', icon: FileText, label: 'Quoted' },
+                                                        'in-delivery': { bg: 'bg-yellow-100', text: 'text-yellow-800', icon: Truck, label: 'In Delivery' },
+                                                        'delivered': { bg: 'bg-indigo-100', text: 'text-indigo-800', icon: CheckCircle2, label: 'Delivered' },
+                                                        'completed': { bg: 'bg-green-100', text: 'text-green-800', icon: CheckCircle2, label: 'Completed' },
+                                                        'verification_pending': { bg: 'bg-amber-100', text: 'text-amber-800', icon: AlertCircleIcon, label: 'Verification Pending' },
+                                                        'pending_review': { bg: 'bg-amber-100', text: 'text-amber-800', icon: AlertCircleIcon, label: 'Pending Review' },
+                                                        'canceled': { bg: 'bg-red-100', text: 'text-red-800', icon: X, label: 'Canceled' }
+                                                    };
+                                                    const config = statusConfig[status] || { bg: 'bg-gray-100', text: 'text-gray-800', icon: Package, label: status.replace(/_/g, ' ').replace(/-/g, ' ') };
+                                                    const StatusIcon = config.icon;
+                                                    return (
+                                                        <div className="flex flex-col gap-1.5">
+                                                            <div className="flex items-center gap-2">
+                                                                <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-semibold ${config.bg} ${config.text} border border-current/20`}>
+                                                                    <StatusIcon className="w-3 h-3" />
+                                                                    {config.label}
+                                                                </span>
+                                                            </div>
+                                                            {order.orderNumber && (
+                                                                <span className="text-xs text-gray-500 font-mono">
+                                                                    {order.orderNumber}
+                                                                </span>
+                                                            )}
+                                                        </div>
+                                                    );
+                                                })()}
                                             </td>
                                             <td className="px-6 py-4">
                                                 <div>
@@ -698,6 +1081,30 @@ const DriverPortfolio: React.FC = () => {
                                                     )}
                                                 </div>
                                             </td>
+                                            <td className="px-6 py-4">
+                                                {(() => {
+                                                    const crossBorderEligible = profile.cross_border_eligible === true || profile.cross_border_eligible === 'true';
+                                                    return (
+                                                        <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-semibold ${
+                                                            crossBorderEligible 
+                                                                ? 'bg-green-100 text-green-800 border border-green-200' 
+                                                                : 'bg-gray-100 text-gray-600 border border-gray-200'
+                                                        }`}>
+                                                            {crossBorderEligible ? (
+                                                                <>
+                                                                    <CheckCircle2 className="w-3 h-3" />
+                                                                    Yes
+                                                                </>
+                                                            ) : (
+                                                                <>
+                                                                    <Circle className="w-3 h-3" />
+                                                                    No
+                                                                </>
+                                                            )}
+                                                        </span>
+                                                    );
+                                                })()}
+                                            </td>
                                             <td className="px-6 py-4" onClick={(e) => e.stopPropagation()}>
                                                 <button
                                                     onClick={() => {
@@ -747,6 +1154,133 @@ const DriverPortfolio: React.FC = () => {
                                                 <Truck className="w-4 h-4" />
                                                 Driver
                                             </p>
+                                            {/* Current Order Status */}
+                                            {loadingOrder ? (
+                                                <div className="mt-3 bg-white/10 rounded-xl p-3 backdrop-blur-sm border border-white/20">
+                                                    <div className="flex items-center gap-2 text-white/90">
+                                                        <Clock className="w-4 h-4 animate-spin" />
+                                                        <span className="text-sm font-medium">Loading order status...</span>
+                                                    </div>
+                                                </div>
+                                            ) : currentOrder ? (
+                                                (() => {
+                                                    const status = (currentOrder.status || '').toLowerCase();
+                                                    const statusConfig: Record<string, { bg: string; border: string; text: string; badge: string; icon: any; label: string }> = {
+                                                        'planned': { 
+                                                            bg: 'bg-blue-500/20', 
+                                                            border: 'border-blue-400/30', 
+                                                            text: 'text-blue-100', 
+                                                            badge: 'bg-blue-500/30 text-blue-100 border-blue-400/50',
+                                                            icon: Circle,
+                                                            label: 'Planned'
+                                                        },
+                                                        'quoted': { 
+                                                            bg: 'bg-purple-500/20', 
+                                                            border: 'border-purple-400/30', 
+                                                            text: 'text-purple-100', 
+                                                            badge: 'bg-purple-500/30 text-purple-100 border-purple-400/50',
+                                                            icon: FileText,
+                                                            label: 'Quoted'
+                                                        },
+                                                        'in-delivery': { 
+                                                            bg: 'bg-yellow-500/20', 
+                                                            border: 'border-yellow-400/30', 
+                                                            text: 'text-yellow-100', 
+                                                            badge: 'bg-yellow-500/30 text-yellow-100 border-yellow-400/50',
+                                                            icon: Truck,
+                                                            label: 'In Delivery'
+                                                        },
+                                                        'delivered': { 
+                                                            bg: 'bg-indigo-500/20', 
+                                                            border: 'border-indigo-400/30', 
+                                                            text: 'text-indigo-100', 
+                                                            badge: 'bg-indigo-500/30 text-indigo-100 border-indigo-400/50',
+                                                            icon: CheckCircle2,
+                                                            label: 'Delivered'
+                                                        },
+                                                        'completed': { 
+                                                            bg: 'bg-green-500/20', 
+                                                            border: 'border-green-400/30', 
+                                                            text: 'text-green-100', 
+                                                            badge: 'bg-green-500/30 text-green-100 border-green-400/50',
+                                                            icon: CheckCircle2,
+                                                            label: 'Completed'
+                                                        },
+                                                        'verification_pending': { 
+                                                            bg: 'bg-amber-500/20', 
+                                                            border: 'border-amber-400/30', 
+                                                            text: 'text-amber-100', 
+                                                            badge: 'bg-amber-500/30 text-amber-100 border-amber-400/50',
+                                                            icon: AlertCircleIcon,
+                                                            label: 'Verification Pending'
+                                                        },
+                                                        'pending_review': { 
+                                                            bg: 'bg-amber-500/20', 
+                                                            border: 'border-amber-400/30', 
+                                                            text: 'text-amber-100', 
+                                                            badge: 'bg-amber-500/30 text-amber-100 border-amber-400/50',
+                                                            icon: AlertCircleIcon,
+                                                            label: 'Pending Review'
+                                                        },
+                                                        'canceled': { 
+                                                            bg: 'bg-red-500/20', 
+                                                            border: 'border-red-400/30', 
+                                                            text: 'text-red-100', 
+                                                            badge: 'bg-red-500/30 text-red-100 border-red-400/50',
+                                                            icon: X,
+                                                            label: 'Canceled'
+                                                        }
+                                                    };
+                                                    const config = statusConfig[status] || { 
+                                                        bg: 'bg-gray-500/20', 
+                                                        border: 'border-gray-400/30', 
+                                                        text: 'text-gray-100', 
+                                                        badge: 'bg-gray-500/30 text-gray-100 border-gray-400/50',
+                                                        icon: Package,
+                                                        label: status.replace(/_/g, ' ').replace(/-/g, ' ')
+                                                    };
+                                                    const StatusIcon = config.icon;
+                                                    return (
+                                                        <div className={`mt-3 ${config.bg} rounded-xl p-4 backdrop-blur-sm border ${config.border} shadow-lg`}>
+                                                            <div className="flex items-start justify-between gap-3">
+                                                                <div className="flex-1">
+                                                                    <div className="flex items-center gap-2 mb-2">
+                                                                        <StatusIcon className={`w-5 h-5 ${config.text}`} />
+                                                                        <span className={`text-xs font-semibold uppercase tracking-wider ${config.text}`}>
+                                                                            Current Order
+                                                                        </span>
+                                                                    </div>
+                                                                    <div className="flex items-center gap-2 mb-3">
+                                                                        <span className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-semibold border ${config.badge} backdrop-blur-sm`}>
+                                                                            {config.label}
+                                                                        </span>
+                                                                    </div>
+                                                                    {currentOrder.orderNumber && (
+                                                                        <div className="flex items-center gap-2">
+                                                                            <Package className="w-4 h-4 text-white/70" />
+                                                                            <span className="text-white/90 text-sm font-mono font-semibold">
+                                                                                {currentOrder.orderNumber}
+                                                                            </span>
+                                                                        </div>
+                                                                    )}
+                                                                </div>
+                                                                <div className="flex-shrink-0">
+                                                                    <div className={`w-12 h-12 rounded-full ${config.bg} border-2 ${config.border} flex items-center justify-center backdrop-blur-sm`}>
+                                                                        <StatusIcon className={`w-6 h-6 ${config.text}`} />
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    );
+                                                })()
+                                            ) : (
+                                                <div className="mt-3 bg-white/10 rounded-xl p-3 backdrop-blur-sm border border-white/20">
+                                                    <div className="flex items-center gap-2 text-white/80">
+                                                        <Package className="w-4 h-4" />
+                                                        <span className="text-sm font-medium">No active order</span>
+                                                    </div>
+                                                </div>
+                                            )}
                                         </div>
                                     </div>
                                     <button
@@ -874,6 +1408,138 @@ const DriverPortfolio: React.FC = () => {
                                         </div>
                                     )}
                                 </div>
+
+                                {/* Drug Tests Section - Only show if cross_border_eligible is true */}
+                                {driverDetails?.details?.cross_border_eligible && (
+                                    <div className="bg-white border border-gray-200 rounded-xl p-6">
+                                        <div className="flex items-center justify-between mb-4">
+                                            <h3 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
+                                                <FileText className="w-5 h-5 text-red-600" />
+                                                Drug Tests
+                                            </h3>
+                                            <button
+                                                onClick={() => {
+                                                    setEditingDrugTest(null);
+                                                    setShowDrugTestModal(true);
+                                                }}
+                                                className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm font-medium"
+                                            >
+                                                <Plus className="w-4 h-4" />
+                                                Add Drug Test
+                                            </button>
+                                        </div>
+                                        {loadingDriverDetails ? (
+                                            <div className="text-center py-8">
+                                                <Loader2 className="w-6 h-6 animate-spin text-gray-400 mx-auto" />
+                                                <p className="text-sm text-gray-500 mt-2">Loading drug tests...</p>
+                                            </div>
+                                        ) : drugTests.length === 0 ? (
+                                            <div className="text-center py-8 text-gray-500">
+                                                <FileText className="w-12 h-12 mx-auto mb-2 text-gray-300" />
+                                                <p className="text-sm">No drug tests uploaded yet</p>
+                                            </div>
+                                        ) : (
+                                            <div className="space-y-4">
+                                                {drugTests.map((test: any, index: number) => (
+                                                    <div key={index} className="border border-gray-200 rounded-lg p-4 bg-gray-50">
+                                                        <div className="flex items-start justify-between mb-3">
+                                                            <div>
+                                                                <h4 className="font-semibold text-gray-900">Drug Test #{index + 1}</h4>
+                                                                <div className="flex items-center gap-4 mt-2 text-sm text-gray-600">
+                                                                    {test.test_date && (
+                                                                        <span>
+                                                                            <strong>Test Date:</strong> {new Date(test.test_date).toLocaleDateString()}
+                                                                        </span>
+                                                                    )}
+                                                                    {test.expiry_date && (
+                                                                        <span>
+                                                                            <strong>Expiry Date:</strong> {new Date(test.expiry_date).toLocaleDateString()}
+                                                                        </span>
+                                                                    )}
+                                                                </div>
+                                                            </div>
+                                                            <button
+                                                                onClick={async () => {
+                                                                    if (confirm('Are you sure you want to delete this drug test?')) {
+                                                                        try {
+                                                                            const response = await deleteDriverDrugTest(selectedProfile._id, index);
+                                                                            if (response?.success) {
+                                                                                const driverResponse = await getDriverById(selectedProfile._id);
+                                                                                if (driverResponse?.success && driverResponse.data) {
+                                                                                    setDriverDetails(driverResponse.data);
+                                                                                    const tests = driverResponse.data.details?.drug_tests || driverResponse.data.drug_tests || [];
+                                                                                    setDrugTests(Array.isArray(tests) ? tests : []);
+                                                                                }
+                                                                            } else {
+                                                                                alert(response?.message || 'Failed to delete drug test');
+                                                                            }
+                                                                        } catch (error) {
+                                                                            console.error('Error deleting drug test:', error);
+                                                                            alert('Failed to delete drug test');
+                                                                        }
+                                                                    }
+                                                                }}
+                                                                className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                                                            >
+                                                                <Trash2 className="w-4 h-4" />
+                                                            </button>
+                                                        </div>
+                                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-3">
+                                                            {test.consent_form_url && (
+                                                                <div>
+                                                                    <p className="text-xs text-gray-500 mb-1">Consent Form</p>
+                                                                    <button
+                                                                        onClick={async () => {
+                                                                            try {
+                                                                                const response = await getDriverDrugTestSignedUrl(selectedProfile._id, index, 'consent', 'inline');
+                                                                                if (response?.success && response?.url) {
+                                                                                    window.open(response.url, '_blank');
+                                                                                } else {
+                                                                                    alert('Failed to open document. Please try again.');
+                                                                                }
+                                                                            } catch (error) {
+                                                                                console.error('Error opening consent form:', error);
+                                                                                alert('Failed to open document. Please try again.');
+                                                                            }
+                                                                        }}
+                                                                        className="text-blue-600 hover:text-blue-800 text-sm font-medium flex items-center gap-1"
+                                                                    >
+                                                                        <FileText className="w-4 h-4" />
+                                                                        View Document
+                                                                    </button>
+                                                                </div>
+                                                            )}
+                                                            {test.result_document_url && (
+                                                                <div>
+                                                                    <p className="text-xs text-gray-500 mb-1">Result Document</p>
+                                                                    <button
+                                                                        onClick={async () => {
+                                                                            try {
+                                                                                const response = await getDriverDrugTestSignedUrl(selectedProfile._id, index, 'result', 'inline');
+                                                                                if (response?.success && response?.url) {
+                                                                                    window.open(response.url, '_blank');
+                                                                                } else {
+                                                                                    alert('Failed to open document. Please try again.');
+                                                                                }
+                                                                            } catch (error) {
+                                                                                console.error('Error opening result document:', error);
+                                                                                alert('Failed to open document. Please try again.');
+                                                                            }
+                                                                        }}
+                                                                        className="text-blue-600 hover:text-blue-800 text-sm font-medium flex items-center gap-1"
+                                                                    >
+                                                                        <FileText className="w-4 h-4" />
+                                                                        View Document
+                                                                    </button>
+                                                                </div>
+                                                            )}
+                                                        </div>
+                                                    </div>
+                                                ))}
+                                            </div>
+                                        )}
+                                    </div>
+                                )}
 
                                 {/* Time Period Filter */}
                                 <div
@@ -1064,8 +1730,32 @@ const DriverPortfolio: React.FC = () => {
                         </div>
                     </>
                 )}
+                {showDrugTestModal && selectedProfile && (
+                    <DrugTestUploadModal
+                        driverId={selectedProfile._id}
+                        driverName={selectedProfile.name}
+                        onClose={() => {
+                            setShowDrugTestModal(false);
+                            setEditingDrugTest(null);
+                        }}
+                        onSuccess={async () => {
+                            try {
+                                const response = await getDriverById(selectedProfile._id);
+                                if (response?.success && response.data) {
+                                    setDriverDetails(response.data);
+                                    const tests = response.data.details?.drug_tests || response.data.drug_tests || [];
+                                    setDrugTests(Array.isArray(tests) ? tests : []);
+                                }
+                            } catch (error) {
+                                console.error('Error refreshing driver details:', error);
+                            }
+                            setShowDrugTestModal(false);
+                            setEditingDrugTest(null);
+                        }}
+                        editingTest={editingDrugTest}
+                    />
+                )}
             </div>
-       
     );
 };
 

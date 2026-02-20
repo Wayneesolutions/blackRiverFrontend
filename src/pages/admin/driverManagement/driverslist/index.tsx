@@ -347,6 +347,8 @@ const DriverManagement = () => {
     dailyRate: '0',
     // Driver Type
     driverTypeSolo: true, // true = SOLO, false = TEAM
+    // Cross-border eligibility
+    cross_border_eligible: false,
     // Exemptions
     cppExempt: false,
     payrollTaxExempt: false,
@@ -969,6 +971,7 @@ const DriverManagement = () => {
                hourlyRate: String(driver.hourlyRate || driver.details?.hourlyRate || 0),
                dailyRate: '0',
                driverTypeSolo: driver.details?.driverTypeSolo !== undefined ? driver.details.driverTypeSolo : (driver.driverTypeSolo !== undefined ? driver.driverTypeSolo : (driver.solo !== undefined ? driver.solo : true)),
+               cross_border_eligible: driver.details?.cross_border_eligible !== undefined ? driver.details.cross_border_eligible : (driver.cross_border_eligible !== undefined ? driver.cross_border_eligible : false),
                cppExempt: driver.details?.cppQppExempt || driver.cppQppExempt || false,
                payrollTaxExempt: driver.details?.provTaxExempt || driver.provTaxExempt || false,
                customHst: driver.details?.customHst || driver.customHst || '',
@@ -1306,6 +1309,7 @@ const DriverManagement = () => {
                   hourlyRate: String(driver.hourlyRate || driver.details?.hourlyRate || 0),
                   dailyRate: '0',
                   driverTypeSolo: driver.details?.driverTypeSolo !== undefined ? driver.details.driverTypeSolo : (driver.driverTypeSolo !== undefined ? driver.driverTypeSolo : (driver.solo !== undefined ? driver.solo : true)),
+                  cross_border_eligible: driver.details?.cross_border_eligible !== undefined ? driver.details.cross_border_eligible : (driver.cross_border_eligible !== undefined ? driver.cross_border_eligible : false),
                   cppExempt: driver.details?.cppQppExempt || driver.cppQppExempt || false,
                   payrollTaxExempt: driver.details?.provTaxExempt || driver.provTaxExempt || false,
                   customHst: driver.details?.customHst || driver.customHst || '',
@@ -1429,6 +1433,7 @@ const DriverManagement = () => {
           hourlyRate: '0',
           dailyRate: '0',
           driverTypeSolo: true,
+          cross_border_eligible: false,
           cppExempt: false,
           payrollTaxExempt: false,
           customHst: '',
@@ -1931,6 +1936,8 @@ const DriverManagement = () => {
       driverFormData.append('driverTypeSolo', String(personalData.driverTypeSolo !== undefined ? personalData.driverTypeSolo : true));
       // Also send as solo for backward compatibility
       driverFormData.append('solo', String(personalData.driverTypeSolo !== undefined ? personalData.driverTypeSolo : true));
+      // Cross-border eligibility
+      driverFormData.append('cross_border_eligible', String(personalData.cross_border_eligible !== undefined ? personalData.cross_border_eligible : false));
       
       // Exemption and additional fields
       driverFormData.append('cppExempt', String(personalData.cppExempt || false));
@@ -2188,6 +2195,7 @@ const DriverManagement = () => {
           hourlyRate: '0',
           dailyRate: '0',
           driverTypeSolo: true,
+          cross_border_eligible: false,
           cppExempt: false,
           payrollTaxExempt: false,
           customHst: '',
@@ -2587,6 +2595,10 @@ const DriverManagement = () => {
         driverFormData.append('driverTypeSolo', String(personalData.driverTypeSolo));
         // Also send as solo for backward compatibility
         driverFormData.append('solo', String(personalData.driverTypeSolo));
+      }
+      // Cross-border eligibility
+      if (hasValueChanged(personalData.cross_border_eligible, original.personalData.cross_border_eligible)) {
+        driverFormData.append('cross_border_eligible', String(personalData.cross_border_eligible));
       }
       if (hasValueChanged(personalData.paymentMethod, original.personalData.paymentMethod)) {
         driverFormData.append('paymentMethod', personalData.paymentMethod);
@@ -5123,6 +5135,20 @@ const DriverManagement = () => {
                           <span className="text-sm font-medium text-gray-700">Payroll Tax Exempt</span>
                         </label>
                       </div>
+                    </div>
+
+                    {/* Cross-Border Eligibility */}
+                    <div className="mt-6">
+                      <h4 className="text-md font-bold text-gray-900 mb-4">Cross-Border Eligibility</h4>
+                      <label className="flex items-center gap-2 cursor-pointer">
+                        <input
+                          type="checkbox"
+                          checked={personalData.cross_border_eligible}
+                          onChange={(e) => setPersonalData({ ...personalData, cross_border_eligible: e.target.checked })}
+                          className="w-4 h-4 text-[#42aeec] border-gray-300 rounded focus:ring-[#42aeec]"
+                        />
+                        <span className="text-sm font-medium text-gray-700">Cross-Border Eligible</span>
+                      </label>
                     </div>
 
                     {/* Custom HST % */}

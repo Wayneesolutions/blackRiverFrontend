@@ -466,6 +466,38 @@ export const getTestResultById = async (id: string) => {
   }
 };
 
+export const uploadDriverDrugTest = async (driverId: string, formData: FormData) => {
+  try {
+    const res: AxiosResponse = await apiClient.post(`hr/driver/${driverId}/drug-test`, formData, {
+      headers: { 'Content-Type': 'multipart/form-data' }
+    });
+    return res.data;
+  } catch (error) {
+    console.error('❌ Error uploading drug test:', error);
+    return (error as any).response?.data;
+  }
+};
+
+export const deleteDriverDrugTest = async (driverId: string, testIndex: number) => {
+  try {
+    const res: AxiosResponse = await apiClient.delete(`hr/driver/${driverId}/drug-test/${testIndex}`);
+    return res.data;
+  } catch (error) {
+    console.error('❌ Error deleting drug test:', error);
+    return (error as any).response?.data;
+  }
+};
+
+export const getDriverDrugTestSignedUrl = async (driverId: string, testIndex: number, documentType: 'consent' | 'result', disposition: 'inline' | 'attachment' = 'inline') => {
+  try {
+    const res: AxiosResponse = await apiClient.get(`hr/driver/${driverId}/drug-test/${testIndex}/signed-url/${documentType}?disposition=${disposition}`);
+    return res.data;
+  } catch (error) {
+    console.error('❌ Error getting drug test signed URL:', error);
+    return (error as any).response?.data;
+  }
+};
+
 export const submitTestResult = async (data: {
   driverId: string;
   testType: string;

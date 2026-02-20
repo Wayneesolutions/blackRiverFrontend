@@ -32,6 +32,7 @@ export interface UserProfileDto {
   absentDays: number;
   lateDays: number;
   leaveDays: number;
+  cross_border_eligible?: boolean;
 }
 
 export interface UserProfilesResponse {
