@@ -88,5 +88,10 @@ export const DriverSidebarLinks: DriverSidebarLink[] = [
     icon: <Package className="w-5 h-5" />,
     label: "Trailers",
   },
+  {
+    key: "/admin/Management/role-based-training",
+    icon: <FaGraduationCap />,
+    label: "Role-Based Training",
+  },
 ];
 

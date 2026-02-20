@@ -29,6 +29,7 @@ const FleetMaintainRoute = lazy(() => import("./AdminFeatures/FleetMaintainRoute
 const AccountsRoute = lazy(() => import("./AdminFeatures/AccountsRoutes"))
 const HealthSafetyRoutes = lazy(() => import("./AdminFeatures/HealthSafetyRoutes"))
 const Subscription = lazy(() => import("../pages/admin/subscription/index"))
+const AdminHRTrainingView = lazy(() => import("../pages/admin/training/hrTraining/AdminHRTrainingView"))
 
 // Debug wrapper to log route changes
 const RouteDebugger = ({ children }: { children: React.ReactNode }) => {
@@ -107,6 +108,7 @@ function AdminRoute() {
           <Route path="integrations" element={<ErrorBoundary><Integrations /></ErrorBoundary>} />
           <Route path="company-documents" element={<ErrorBoundary><CompanyDocuments /></ErrorBoundary>} />
           <Route path="subscription" element={<ErrorBoundary><Subscription /></ErrorBoundary>} />
+          <Route path="hr-training-content" element={<ErrorBoundary><AdminHRTrainingView /></ErrorBoundary>} />
         </Route>
         
         {/* Protected Feature Routes */}
