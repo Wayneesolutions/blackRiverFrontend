@@ -9,7 +9,7 @@ import {
 import { BsPersonVcard } from "react-icons/bs";
 import { RiBillLine } from "react-icons/ri";
 import { RiFoldersLine } from "react-icons/ri";
-import { FaTruck,FaUsers } from "react-icons/fa";
+import { FaTruck,FaUsers, FaGraduationCap } from "react-icons/fa";
 
 export type AdminSidebarLink = {
     key: string;
@@ -60,6 +60,11 @@ export const AdminSidebarLinks: AdminSidebarLink[] = [
         key: "company-documents",
         icon: <RiFoldersLine />,
         label: "Company Documents",
+    },
+    {
+        key: "hr-training-content",
+        icon: <FaGraduationCap />,
+        label: "HR Training Content",
     },
     {
         key: "systemsetting",
