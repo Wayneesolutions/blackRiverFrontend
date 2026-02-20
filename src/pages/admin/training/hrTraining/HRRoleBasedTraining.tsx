@@ -1,98 +1,199 @@
-import React, { useState } from 'react';
-import { Upload, FileText, Image, Video, Plus, Trash2, X, MessageSquare } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { Upload, FileText, Image, Video, Plus, Trash2, X, MessageSquare, Loader2, Eye } from 'lucide-react';
+import { 
+  getTrainingContent, 
+  createTrainingContent, 
+  deleteTrainingContent, 
+  getTrainingContentSignedUrl,
+  getQuestionBanks,
+  createQuestionBank,
+  deleteQuestionBank
+} from '../../../../axios/api/driver';
 
 interface TrainingContent {
-  id: string;
-  type: 'video' | 'pdf' | 'image';
-  title: string;
+  _id: string;
+  name: string;
+  type: 'PDF' | 'VIDEO' | 'IMAGE';
+  testType: string;
   description?: string;
-  url?: string;
-  uploadedAt: string;
+  fileUrl?: string;
+  fileName?: string;
+  assignedRoles?: string[];
+  createdAt?: string;
 }
 
 interface QAItem {
-  id: string;
-  title: string;
-  description?: string;
+  _id: string;
+  testName: string;
+  testType: string;
+  passingPercentage: number;
+  mandatory: boolean;
   questions: Array<{
     question: string;
-    options: [string, string, string, string];
-    correctAnswer: number; // 0-3 index of correct option
+    options: string[];
+    correctAnswer: number;
   }>;
-  createdAt: string;
+  assignedRoles?: string[];
+  createdAt?: string;
 }
 
 const roles = [
   { value: 'dispatcher', label: 'Dispatcher' },
-  { value: 'fleet-maintenance-manager', label: 'Fleet Maintenance Manager' },
-  { value: 'compliance-manager', label: 'Compliance Manager' },
-  { value: 'safety-officer', label: 'Safety Officer' },
+  { value: 'Fleet Maintenance Manager', label: 'Fleet Maintenance Manager' },
+  { value: 'Compliance Manager', label: 'Compliance Manager' },
+  { value: 'safety officer', label: 'Safety Officer' },
   { value: 'accountant', label: 'Accountant' },
 ];
 
 const HRRoleBasedTraining: React.FC = () => {
   const [activeRole, setActiveRole] = useState<string>('dispatcher');
+  const [loading, setLoading] = useState(false);
   const [trainingContent, setTrainingContent] = useState<Record<string, TrainingContent[]>>({
     dispatcher: [],
-    'fleet-maintenance-manager': [],
-    'compliance-manager': [],
-    'safety-officer': [],
+    'Fleet Maintenance Manager': [],
+    'Compliance Manager': [],
+    'safety officer': [],
     accountant: [],
   });
   const [qaContent, setQAContent] = useState<Record<string, QAItem[]>>({
     dispatcher: [],
-    'fleet-maintenance-manager': [],
-    'compliance-manager': [],
-    'safety-officer': [],
+    'Fleet Maintenance Manager': [],
+    'Compliance Manager': [],
+    'safety officer': [],
     accountant: [],
   });
   const [showUploadModal, setShowUploadModal] = useState(false);
   const [showQAModal, setShowQAModal] = useState(false);
-  const [uploadType, setUploadType] = useState<'video' | 'pdf' | 'image'>('video');
+  const [uploadType, setUploadType] = useState<'VIDEO' | 'PDF' | 'IMAGE'>('VIDEO');
   const [uploadTitle, setUploadTitle] = useState('');
   const [uploadDescription, setUploadDescription] = useState('');
+  const [uploadFile, setUploadFile] = useState<File | null>(null);
+  const [uploading, setUploading] = useState(false);
   
   // Q&A Modal states
   const [qaTitle, setQATitle] = useState('');
   const [qaDescription, setQADescription] = useState('');
   const [qaQuestions, setQAQuestions] = useState<Array<{
     question: string;
-    options: [string, string, string, string];
+    options: string[];
     correctAnswer: number;
   }>>([]);
   const [currentQQuestion, setCurrentQQuestion] = useState('');
-  const [currentQOptions, setCurrentQOptions] = useState<[string, string, string, string]>(['', '', '', '']);
+  const [currentQOptions, setCurrentQOptions] = useState<string[]>(['', '', '', '']);
   const [currentQCorrectAnswer, setCurrentQCorrectAnswer] = useState<number>(0);
+  const [creatingQA, setCreatingQA] = useState(false);
 
-  const handleUpload = () => {
-    if (!uploadTitle.trim()) return;
+  // Fetch data on mount and when role changes
+  useEffect(() => {
+    fetchDataForRole(activeRole);
+  }, [activeRole]);
 
-    const newContent: TrainingContent = {
-      id: Date.now().toString(),
-      type: uploadType,
-      title: uploadTitle,
-      description: uploadDescription,
-      uploadedAt: new Date().toISOString(),
-    };
+  const fetchDataForRole = async (role: string) => {
+    setLoading(true);
+    try {
+      // Fetch training content for this role
+      const contentResponse = await getTrainingContent({ role });
+      if (contentResponse?.success && Array.isArray(contentResponse.data)) {
+        setTrainingContent((prev) => ({
+          ...prev,
+          [role]: contentResponse.data.filter((item: TrainingContent) => 
+            !item.assignedRoles || item.assignedRoles.length === 0 || item.assignedRoles.includes(role)
+          )
+        }));
+      }
 
-    setTrainingContent((prev) => ({
-      ...prev,
-      [activeRole]: [...(prev[activeRole] || []), newContent],
-    }));
+      // Fetch question banks for this role
+      const qaResponse = await getQuestionBanks({ role });
+      if (qaResponse?.success && Array.isArray(qaResponse.data)) {
+        setQAContent((prev) => ({
+          ...prev,
+          [role]: qaResponse.data.filter((item: QAItem) => 
+            !item.assignedRoles || item.assignedRoles.length === 0 || item.assignedRoles.includes(role)
+          )
+        }));
+      }
+    } catch (error) {
+      console.error('Error fetching data:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
 
-    setUploadTitle('');
-    setUploadDescription('');
-    setShowUploadModal(false);
+  const handleUpload = async () => {
+    if (!uploadTitle.trim() || !uploadFile) {
+      alert('Please provide a title and select a file');
+      return;
+    }
+
+    setUploading(true);
+    try {
+      const formData = new FormData();
+      formData.append('name', uploadTitle);
+      formData.append('type', uploadType);
+      formData.append('testType', 'TDG'); // Default, can be made configurable
+      formData.append('description', uploadDescription);
+      formData.append('assignedRoles', JSON.stringify([activeRole]));
+      formData.append('file', uploadFile);
+
+      const response = await createTrainingContent(formData);
+      if (response?.success) {
+        await fetchDataForRole(activeRole);
+        setUploadTitle('');
+        setUploadDescription('');
+        setUploadFile(null);
+        setShowUploadModal(false);
+      } else {
+        alert(response?.message || 'Failed to upload content');
+      }
+    } catch (error) {
+      console.error('Error uploading content:', error);
+      alert('Failed to upload content');
+    } finally {
+      setUploading(false);
+    }
+  };
+
+  const handleViewContent = async (content: TrainingContent) => {
+    try {
+      const response = await getTrainingContentSignedUrl(content._id, 'inline');
+      if (response?.success && response?.url) {
+        window.open(response.url, '_blank');
+      } else {
+        alert('Failed to open content');
+      }
+    } catch (error) {
+      console.error('Error viewing content:', error);
+      alert('Failed to open content');
+    }
+  };
+
+  const handleDeleteContent = async (id: string) => {
+    if (!confirm('Are you sure you want to delete this content?')) return;
+
+    try {
+      const response = await deleteTrainingContent(id);
+      if (response?.success) {
+        await fetchDataForRole(activeRole);
+      } else {
+        alert(response?.message || 'Failed to delete content');
+      }
+    } catch (error) {
+      console.error('Error deleting content:', error);
+      alert('Failed to delete content');
+    }
   };
 
   const handleAddQuestionToQA = () => {
-    if (!currentQQuestion.trim() || currentQOptions.some(opt => !opt.trim())) return;
+    if (!currentQQuestion.trim() || currentQOptions.some(opt => !opt.trim())) {
+      alert('Please fill in the question and all options');
+      return;
+    }
     
     setQAQuestions((prev) => [
       ...prev,
       {
         question: currentQQuestion,
-        options: [...currentQOptions] as [string, string, string, string],
+        options: currentQOptions.filter(opt => opt.trim()),
         correctAnswer: currentQCorrectAnswer,
       }
     ]);
@@ -106,56 +207,83 @@ const HRRoleBasedTraining: React.FC = () => {
     setQAQuestions((prev) => prev.filter((_, i) => i !== index));
   };
 
-  const handleAddQA = () => {
-    if (!qaTitle.trim() || qaQuestions.length === 0) return;
+  const handleAddQA = async () => {
+    if (!qaTitle.trim() || qaQuestions.length === 0) {
+      alert('Please provide a title and add at least one question');
+      return;
+    }
 
-    const newQA: QAItem = {
-      id: Date.now().toString(),
-      title: qaTitle,
-      description: qaDescription,
-      questions: qaQuestions,
-      createdAt: new Date().toISOString(),
-    };
+    setCreatingQA(true);
+    try {
+      const payload = {
+        testName: qaTitle,
+        testType: 'TDG' as 'TDG' | 'VEHICLE' | 'HOS' | 'WINTER', // Default, can be made configurable
+        passingPercentage: 80,
+        mandatory: false,
+        questions: qaQuestions,
+        assignedRoles: [activeRole]
+      };
 
-    setQAContent((prev) => ({
-      ...prev,
-      [activeRole]: [...(prev[activeRole] || []), newQA],
-    }));
-
-    setQATitle('');
-    setQADescription('');
-    setQAQuestions([]);
-    setCurrentQQuestion('');
-    setCurrentQOptions(['', '', '', '']);
-    setCurrentQCorrectAnswer(0);
-    setShowQAModal(false);
+      const response = await createQuestionBank(payload);
+      if (response?.success) {
+        await fetchDataForRole(activeRole);
+        setQATitle('');
+        setQADescription('');
+        setQAQuestions([]);
+        setCurrentQQuestion('');
+        setCurrentQOptions(['', '', '', '']);
+        setCurrentQCorrectAnswer(0);
+        setShowQAModal(false);
+      } else {
+        alert(response?.message || 'Failed to create Q&A');
+      }
+    } catch (error) {
+      console.error('Error creating Q&A:', error);
+      alert('Failed to create Q&A');
+    } finally {
+      setCreatingQA(false);
+    }
   };
 
-  const handleDeleteContent = (id: string) => {
-    setTrainingContent((prev) => ({
-      ...prev,
-      [activeRole]: prev[activeRole].filter((item) => item.id !== id),
-    }));
-  };
+  const handleDeleteQA = async (id: string) => {
+    if (!confirm('Are you sure you want to delete this Q&A?')) return;
 
-  const handleDeleteQA = (id: string) => {
-    setQAContent((prev) => ({
-      ...prev,
-      [activeRole]: prev[activeRole].filter((item) => item.id !== id),
-    }));
+    try {
+      const response = await deleteQuestionBank(id);
+      if (response?.success) {
+        await fetchDataForRole(activeRole);
+      } else {
+        alert(response?.message || 'Failed to delete Q&A');
+      }
+    } catch (error) {
+      console.error('Error deleting Q&A:', error);
+      alert('Failed to delete Q&A');
+    }
   };
-
 
   const getIcon = (type: string) => {
-    switch (type) {
-      case 'video':
+    switch (type?.toUpperCase()) {
+      case 'VIDEO':
         return <Video className="w-5 h-5" />;
-      case 'pdf':
+      case 'PDF':
         return <FileText className="w-5 h-5" />;
-      case 'image':
+      case 'IMAGE':
         return <Image className="w-5 h-5" />;
       default:
         return <FileText className="w-5 h-5" />;
+    }
+  };
+
+  const getTypeLabel = (type: string) => {
+    switch (type?.toUpperCase()) {
+      case 'VIDEO':
+        return 'Video';
+      case 'PDF':
+        return 'PDF';
+      case 'IMAGE':
+        return 'Image';
+      default:
+        return type;
     }
   };
 
@@ -193,150 +321,172 @@ const HRRoleBasedTraining: React.FC = () => {
               key={role.value}
               className={activeRole === role.value ? 'block' : 'hidden'}
             >
-              {/* Training Materials Section */}
-              <div className="bg-white rounded-lg shadow-sm mb-6">
-                <div className="p-6 border-b border-gray-200">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <h2 className="text-xl font-semibold text-gray-900">Training Materials</h2>
-                      <p className="text-sm text-gray-600 mt-1">
-                        Upload videos, PDFs, and images for {role.label} training
-                      </p>
-                    </div>
-                    <button
-                      onClick={() => {
-                        setShowUploadModal(true);
-                        setUploadType('video');
-                        setUploadTitle('');
-                        setUploadDescription('');
-                      }}
-                      className="flex items-center gap-2 px-4 py-2 bg-[#0ea3d8] !text-white rounded-lg hover:bg-[#0d8fc4] transition-colors"
-                    >
-                      <Plus className="w-4 h-4" />
-                      Upload Content
-                    </button>
-                  </div>
+              {loading ? (
+                <div className="text-center py-12">
+                  <Loader2 className="w-8 h-8 animate-spin text-[#0ea3d8] mx-auto mb-4" />
+                  <p className="text-gray-600">Loading...</p>
                 </div>
-                <div className="p-6">
-                  {trainingContent[role.value]?.length === 0 ? (
-                    <div className="text-center py-12 text-gray-500">
-                      <Upload className="w-12 h-12 mx-auto mb-4 text-gray-400" />
-                      <p>No training materials uploaded yet</p>
-                      <p className="text-sm">Click "Upload Content" to add materials</p>
-                    </div>
-                  ) : (
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                      {trainingContent[role.value].map((item) => (
-                        <div key={item.id} className="bg-gray-50 rounded-lg p-4 border border-gray-200 relative">
-                          <div className="flex items-start justify-between mb-2">
-                            <div className="flex items-center gap-2 flex-1">
-                              <div className="text-[#0ea3d8]">{getIcon(item.type)}</div>
-                              <h3 className="font-semibold text-gray-900">{item.title}</h3>
-                            </div>
-                            <button
-                              onClick={() => handleDeleteContent(item.id)}
-                              className="text-red-600 hover:text-red-700 p-1"
-                            >
-                              <Trash2 className="w-4 h-4" />
-                            </button>
-                          </div>
-                          {item.description && (
-                            <p className="text-sm text-gray-600 mt-2 mb-3">{item.description}</p>
-                          )}
-                          <div className="flex items-center justify-between text-sm text-gray-500 mt-3">
-                            <span className="capitalize bg-gray-200 px-2 py-1 rounded">{item.type}</span>
-                            <span>
-                              {new Date(item.uploadedAt).toLocaleDateString()}
-                            </span>
-                          </div>
+              ) : (
+                <>
+                  {/* Training Materials Section */}
+                  <div className="bg-white rounded-lg shadow-sm mb-6">
+                    <div className="p-6 border-b border-gray-200">
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <h2 className="text-xl font-semibold text-gray-900">Training Materials</h2>
+                          <p className="text-sm text-gray-600 mt-1">
+                            Upload videos, PDFs, and images for {role.label} training
+                          </p>
                         </div>
-                      ))}
+                        <button
+                          onClick={() => {
+                            setShowUploadModal(true);
+                            setUploadType('VIDEO');
+                            setUploadTitle('');
+                            setUploadDescription('');
+                            setUploadFile(null);
+                          }}
+                          className="flex items-center gap-2 px-4 py-2 bg-[#0ea3d8] !text-white rounded-lg hover:bg-[#0d8fc4] transition-colors"
+                        >
+                          <Plus className="w-4 h-4" />
+                          Upload Content
+                        </button>
+                      </div>
                     </div>
-                  )}
-                </div>
-              </div>
-
-              {/* Q&A Section */}
-              <div className="bg-white rounded-lg shadow-sm mt-6">
-                <div className="p-6 border-b border-gray-200">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <h2 className="text-xl font-semibold text-gray-900">Q&A Content</h2>
-                      <p className="text-sm text-gray-600 mt-1">
-                        Manage questions and answers for {role.label} training
-                      </p>
-                    </div>
-                    <button
-                      onClick={() => {
-                        setShowQAModal(true);
-                        setQATitle('');
-                        setQADescription('');
-                        setQAQuestions([]);
-                        setCurrentQQuestion('');
-                        setCurrentQOptions(['', '', '', '']);
-                        setCurrentQCorrectAnswer(0);
-                      }}
-                      className="flex items-center gap-2 px-4 py-2 bg-[#0ea3d8] !text-white rounded-lg hover:bg-[#0d8fc4] transition-colors"
-                    >
-                      <Plus className="w-4 h-4" />
-                      Add Q&A
-                    </button>
-                  </div>
-                </div>
-                <div className="p-6">
-                  {qaContent[role.value]?.length === 0 ? (
-                    <div className="text-center py-12 text-gray-500">
-                      <MessageSquare className="w-12 h-12 mx-auto mb-4 text-gray-400" />
-                      <p>No Q&A content added yet</p>
-                      <p className="text-sm">Click "Add Q&A" to create questions and answers</p>
-                    </div>
-                  ) : (
-                    <div className="space-y-4">
-                      {qaContent[role.value].map((item) => (
-                        <div key={item.id} className="bg-gray-50 rounded-lg p-4 border border-gray-200 relative">
-                          <div className="flex items-start justify-between mb-3">
-                            <div className="flex-1">
-                              <h3 className="font-semibold text-gray-900 mb-1">{item.title}</h3>
+                    <div className="p-6">
+                      {trainingContent[role.value]?.length === 0 ? (
+                        <div className="text-center py-12 text-gray-500">
+                          <Upload className="w-12 h-12 mx-auto mb-4 text-gray-400" />
+                          <p>No training materials uploaded yet</p>
+                          <p className="text-sm">Click "Upload Content" to add materials</p>
+                        </div>
+                      ) : (
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                          {trainingContent[role.value].map((item) => (
+                            <div key={item._id} className="bg-gray-50 rounded-lg p-4 border border-gray-200 relative">
+                              <div className="flex items-start justify-between mb-2">
+                                <div className="flex items-center gap-2 flex-1">
+                                  <div className="text-[#0ea3d8]">{getIcon(item.type)}</div>
+                                  <h3 className="font-semibold text-gray-900">{item.name}</h3>
+                                </div>
+                                <div className="flex items-center gap-1">
+                                  <button
+                                    onClick={() => handleViewContent(item)}
+                                    className="text-blue-600 hover:text-blue-700 p-1"
+                                    title="View"
+                                  >
+                                    <Eye className="w-4 h-4" />
+                                  </button>
+                                  <button
+                                    onClick={() => handleDeleteContent(item._id)}
+                                    className="text-red-600 hover:text-red-700 p-1"
+                                    title="Delete"
+                                  >
+                                    <Trash2 className="w-4 h-4" />
+                                  </button>
+                                </div>
+                              </div>
                               {item.description && (
-                                <p className="text-sm text-gray-600 mb-3">{item.description}</p>
+                                <p className="text-sm text-gray-600 mt-2 mb-3">{item.description}</p>
                               )}
-                              <div className="space-y-3 mt-3">
-                                {item.questions.map((q, idx) => (
-                                  <div key={idx} className="bg-white rounded p-3 border border-gray-200">
-                                    <p className="font-medium text-gray-900 mb-2">Q: {q.question}</p>
-                                    <div className="space-y-1">
-                                      {q.options.map((option, optIdx) => (
-                                        <div key={optIdx} className="flex items-center gap-2">
-                                          <input
-                                            type="radio"
-                                            checked={q.correctAnswer === optIdx}
-                                            readOnly
-                                            className="w-4 h-4"
-                                          />
-                                          <span className={`text-sm ${q.correctAnswer === optIdx ? 'text-green-600 font-medium' : 'text-gray-600'}`}>
-                                            {String.fromCharCode(65 + optIdx)}. {option}
-                                            {q.correctAnswer === optIdx && ' ✓'}
-                                          </span>
-                                        </div>
-                                      ))}
-                                    </div>
-                                  </div>
-                                ))}
+                              <div className="flex items-center justify-between text-sm text-gray-500 mt-3">
+                                <span className="capitalize bg-gray-200 px-2 py-1 rounded">{getTypeLabel(item.type)}</span>
+                                <span>
+                                  {item.createdAt ? new Date(item.createdAt).toLocaleDateString() : 'N/A'}
+                                </span>
                               </div>
                             </div>
-                            <button
-                              onClick={() => handleDeleteQA(item.id)}
-                              className="text-red-600 hover:text-red-700 p-1 ml-4"
-                            >
-                              <Trash2 className="w-4 h-4" />
-                            </button>
-                          </div>
+                          ))}
                         </div>
-                      ))}
+                      )}
                     </div>
-                  )}
-                </div>
-              </div>
+                  </div>
+
+                  {/* Q&A Section */}
+                  <div className="bg-white rounded-lg shadow-sm mt-6">
+                    <div className="p-6 border-b border-gray-200">
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <h2 className="text-xl font-semibold text-gray-900">Q&A Content</h2>
+                          <p className="text-sm text-gray-600 mt-1">
+                            Manage questions and answers for {role.label} training
+                          </p>
+                        </div>
+                        <button
+                          onClick={() => {
+                            setShowQAModal(true);
+                            setQATitle('');
+                            setQADescription('');
+                            setQAQuestions([]);
+                            setCurrentQQuestion('');
+                            setCurrentQOptions(['', '', '', '']);
+                            setCurrentQCorrectAnswer(0);
+                          }}
+                          className="flex items-center gap-2 px-4 py-2 bg-[#0ea3d8] !text-white rounded-lg hover:bg-[#0d8fc4] transition-colors"
+                        >
+                          <Plus className="w-4 h-4" />
+                          Add Q&A
+                        </button>
+                      </div>
+                    </div>
+                    <div className="p-6">
+                      {qaContent[role.value]?.length === 0 ? (
+                        <div className="text-center py-12 text-gray-500">
+                          <MessageSquare className="w-12 h-12 mx-auto mb-4 text-gray-400" />
+                          <p>No Q&A content added yet</p>
+                          <p className="text-sm">Click "Add Q&A" to create questions and answers</p>
+                        </div>
+                      ) : (
+                        <div className="space-y-4">
+                          {qaContent[role.value].map((item) => (
+                            <div key={item._id} className="bg-gray-50 rounded-lg p-4 border border-gray-200 relative">
+                              <div className="flex items-start justify-between mb-3">
+                                <div className="flex-1">
+                                  <h3 className="font-semibold text-gray-900 mb-1">{item.testName}</h3>
+                                  <div className="flex items-center gap-4 text-sm text-gray-600 mb-3">
+                                    <span>Passing: {item.passingPercentage}%</span>
+                                    <span>Questions: {item.questions.length}</span>
+                                    {item.mandatory && <span className="text-red-600">Mandatory</span>}
+                                  </div>
+                                  <div className="space-y-3 mt-3">
+                                    {item.questions.map((q, idx) => (
+                                      <div key={idx} className="bg-white rounded p-3 border border-gray-200">
+                                        <p className="font-medium text-gray-900 mb-2">Q{idx + 1}: {q.question}</p>
+                                        <div className="space-y-1">
+                                          {q.options.map((option, optIdx) => (
+                                            <div key={optIdx} className="flex items-center gap-2">
+                                              <input
+                                                type="radio"
+                                                checked={q.correctAnswer === optIdx}
+                                                readOnly
+                                                className="w-4 h-4"
+                                              />
+                                              <span className={`text-sm ${q.correctAnswer === optIdx ? 'text-green-600 font-medium' : 'text-gray-600'}`}>
+                                                {String.fromCharCode(65 + optIdx)}. {option}
+                                                {q.correctAnswer === optIdx && ' ✓'}
+                                              </span>
+                                            </div>
+                                          ))}
+                                        </div>
+                                      </div>
+                                    ))}
+                                  </div>
+                                </div>
+                                <button
+                                  onClick={() => handleDeleteQA(item._id)}
+                                  className="text-red-600 hover:text-red-700 p-1 ml-4"
+                                >
+                                  <Trash2 className="w-4 h-4" />
+                                </button>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </>
+              )}
             </div>
           ))}
         </div>
@@ -344,18 +494,15 @@ const HRRoleBasedTraining: React.FC = () => {
 
       {/* Upload Modal */}
       {showUploadModal && (
-        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50" onClick={() => setShowUploadModal(false)}>
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50" onClick={() => !uploading && setShowUploadModal(false)}>
           <div className="bg-white rounded-lg shadow-lg w-full max-w-md mx-4" onClick={(e) => e.stopPropagation()}>
             <div className="p-6 border-b border-gray-200">
               <div className="flex items-center justify-between">
                 <h3 className="text-lg font-semibold text-gray-900">Upload Training Content</h3>
                 <button
-                  onClick={() => {
-                    setShowUploadModal(false);
-                    setUploadTitle('');
-                    setUploadDescription('');
-                  }}
+                  onClick={() => !uploading && setShowUploadModal(false)}
                   className="text-gray-400 hover:text-gray-600"
+                  disabled={uploading}
                 >
                   <X className="w-5 h-5" />
                 </button>
@@ -368,36 +515,39 @@ const HRRoleBasedTraining: React.FC = () => {
                 <div className="flex gap-2">
                   <button
                     type="button"
-                    onClick={() => setUploadType('video')}
+                    onClick={() => setUploadType('VIDEO')}
+                    disabled={uploading}
                     className={`flex-1 px-4 py-2 rounded-lg border transition-colors ${
-                      uploadType === 'video'
+                      uploadType === 'VIDEO'
                         ? 'bg-[#0ea3d8] !text-white border-[#0ea3d8]'
                         : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-50'
-                    }`}
+                    } ${uploading ? 'opacity-50 cursor-not-allowed' : ''}`}
                   >
                     <Video className="w-4 h-4 inline mr-2" />
                     Video
                   </button>
                   <button
                     type="button"
-                    onClick={() => setUploadType('pdf')}
+                    onClick={() => setUploadType('PDF')}
+                    disabled={uploading}
                     className={`flex-1 px-4 py-2 rounded-lg border transition-colors ${
-                      uploadType === 'pdf'
+                      uploadType === 'PDF'
                         ? 'bg-[#0ea3d8] !text-white border-[#0ea3d8]'
                         : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-50'
-                    }`}
+                    } ${uploading ? 'opacity-50 cursor-not-allowed' : ''}`}
                   >
                     <FileText className="w-4 h-4 inline mr-2" />
                     PDF
                   </button>
                   <button
                     type="button"
-                    onClick={() => setUploadType('image')}
+                    onClick={() => setUploadType('IMAGE')}
+                    disabled={uploading}
                     className={`flex-1 px-4 py-2 rounded-lg border transition-colors ${
-                      uploadType === 'image'
+                      uploadType === 'IMAGE'
                         ? 'bg-[#0ea3d8] !text-white border-[#0ea3d8]'
                         : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-50'
-                    }`}
+                    } ${uploading ? 'opacity-50 cursor-not-allowed' : ''}`}
                   >
                     <Image className="w-4 h-4 inline mr-2" />
                     Image
@@ -414,7 +564,8 @@ const HRRoleBasedTraining: React.FC = () => {
                   value={uploadTitle}
                   onChange={(e) => setUploadTitle(e.target.value)}
                   placeholder="Enter content title"
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#0ea3d8]"
+                  disabled={uploading}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#0ea3d8] disabled:opacity-50"
                 />
               </div>
               <div>
@@ -427,25 +578,47 @@ const HRRoleBasedTraining: React.FC = () => {
                   onChange={(e) => setUploadDescription(e.target.value)}
                   placeholder="Enter content description (optional)"
                   rows={3}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#0ea3d8]"
+                  disabled={uploading}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#0ea3d8] disabled:opacity-50"
+                />
+              </div>
+              <div>
+                <label htmlFor="file" className="block text-sm font-medium text-gray-700 mb-2">
+                  File *
+                </label>
+                <input
+                  id="file"
+                  type="file"
+                  accept={uploadType === 'VIDEO' ? 'video/*' : uploadType === 'PDF' ? 'application/pdf' : 'image/*'}
+                  onChange={(e) => setUploadFile(e.target.files?.[0] || null)}
+                  disabled={uploading}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#0ea3d8] disabled:opacity-50"
                 />
               </div>
               <div className="flex gap-2 justify-end pt-4">
                 <button
-                  onClick={() => {
-                    setShowUploadModal(false);
-                    setUploadTitle('');
-                    setUploadDescription('');
-                  }}
-                  className="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors"
+                  onClick={() => !uploading && setShowUploadModal(false)}
+                  disabled={uploading}
+                  className="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors disabled:opacity-50"
                 >
                   Cancel
                 </button>
                 <button
                   onClick={handleUpload}
-                  className="px-4 py-2 bg-[#0ea3d8] !text-white rounded-lg hover:bg-[#0d8fc4] transition-colors"
+                  disabled={uploading || !uploadTitle.trim() || !uploadFile}
+                  className="px-4 py-2 bg-[#0ea3d8] !text-white rounded-lg hover:bg-[#0d8fc4] transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
                 >
-                  Upload
+                  {uploading ? (
+                    <>
+                      <Loader2 className="w-4 h-4 animate-spin" />
+                      Uploading...
+                    </>
+                  ) : (
+                    <>
+                      <Upload className="w-4 h-4" />
+                      Upload
+                    </>
+                  )}
                 </button>
               </div>
             </div>
@@ -455,22 +628,15 @@ const HRRoleBasedTraining: React.FC = () => {
 
       {/* Q&A Modal */}
       {showQAModal && (
-        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50" onClick={() => setShowQAModal(false)}>
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50" onClick={() => !creatingQA && setShowQAModal(false)}>
           <div className="bg-white rounded-lg shadow-lg w-full max-w-2xl mx-4 max-h-[90vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
             <div className="p-6 border-b border-gray-200 sticky top-0 bg-white">
               <div className="flex items-center justify-between">
                 <h3 className="text-lg font-semibold text-gray-900">Add Q&A</h3>
                 <button
-                  onClick={() => {
-                    setShowQAModal(false);
-                    setQATitle('');
-                    setQADescription('');
-                    setQAQuestions([]);
-                    setCurrentQQuestion('');
-                    setCurrentQOptions(['', '', '', '']);
-                    setCurrentQCorrectAnswer(0);
-                  }}
+                  onClick={() => !creatingQA && setShowQAModal(false)}
                   className="text-gray-400 hover:text-gray-600"
+                  disabled={creatingQA}
                 >
                   <X className="w-5 h-5" />
                 </button>
@@ -489,7 +655,8 @@ const HRRoleBasedTraining: React.FC = () => {
                   value={qaTitle}
                   onChange={(e) => setQATitle(e.target.value)}
                   placeholder="Enter Q&A title"
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#0ea3d8]"
+                  disabled={creatingQA}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#0ea3d8] disabled:opacity-50"
                 />
               </div>
 
@@ -504,7 +671,8 @@ const HRRoleBasedTraining: React.FC = () => {
                   onChange={(e) => setQADescription(e.target.value)}
                   placeholder="Enter description (optional)"
                   rows={3}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#0ea3d8]"
+                  disabled={creatingQA}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#0ea3d8] disabled:opacity-50"
                 />
               </div>
 
@@ -522,7 +690,8 @@ const HRRoleBasedTraining: React.FC = () => {
                           <button
                             type="button"
                             onClick={() => handleRemoveQuestionFromQA(index)}
-                            className="text-red-600 hover:text-red-700 ml-2"
+                            disabled={creatingQA}
+                            className="text-red-600 hover:text-red-700 ml-2 disabled:opacity-50"
                           >
                             <Trash2 className="w-4 h-4" />
                           </button>
@@ -565,14 +734,15 @@ const HRRoleBasedTraining: React.FC = () => {
                       onChange={(e) => setCurrentQQuestion(e.target.value)}
                       placeholder="Enter question"
                       rows={2}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#0ea3d8]"
+                      disabled={creatingQA}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#0ea3d8] disabled:opacity-50"
                     />
                   </div>
 
-                  {/* 4 Options */}
+                  {/* Options */}
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Options (4 required) *
+                      Options (at least 2 required) *
                     </label>
                     <div className="space-y-2">
                       {currentQOptions.map((option, idx) => (
@@ -582,6 +752,7 @@ const HRRoleBasedTraining: React.FC = () => {
                             name="correct-answer"
                             checked={currentQCorrectAnswer === idx}
                             onChange={() => setCurrentQCorrectAnswer(idx)}
+                            disabled={creatingQA}
                             className="w-4 h-4"
                           />
                           <span className="text-sm font-medium text-gray-700 w-6">
@@ -591,12 +762,13 @@ const HRRoleBasedTraining: React.FC = () => {
                             type="text"
                             value={option}
                             onChange={(e) => {
-                              const newOptions = [...currentQOptions] as [string, string, string, string];
+                              const newOptions = [...currentQOptions];
                               newOptions[idx] = e.target.value;
                               setCurrentQOptions(newOptions);
                             }}
                             placeholder={`Option ${String.fromCharCode(65 + idx)}`}
-                            className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#0ea3d8]"
+                            disabled={creatingQA}
+                            className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#0ea3d8] disabled:opacity-50"
                           />
                         </div>
                       ))}
@@ -609,7 +781,7 @@ const HRRoleBasedTraining: React.FC = () => {
                   <button
                     type="button"
                     onClick={handleAddQuestionToQA}
-                    disabled={!currentQQuestion.trim() || currentQOptions.some(opt => !opt.trim())}
+                    disabled={creatingQA || !currentQQuestion.trim() || currentQOptions.filter(opt => opt.trim()).length < 2}
                     className="w-full px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
                   >
                     <Plus className="w-4 h-4" />
@@ -620,25 +792,25 @@ const HRRoleBasedTraining: React.FC = () => {
 
               <div className="flex gap-2 justify-end pt-4 border-t border-gray-200">
                 <button
-                  onClick={() => {
-                    setShowQAModal(false);
-                    setQATitle('');
-                    setQADescription('');
-                    setQAQuestions([]);
-                    setCurrentQQuestion('');
-                    setCurrentQOptions(['', '', '', '']);
-                    setCurrentQCorrectAnswer(0);
-                  }}
-                  className="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors"
+                  onClick={() => !creatingQA && setShowQAModal(false)}
+                  disabled={creatingQA}
+                  className="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors disabled:opacity-50"
                 >
                   Cancel
                 </button>
                 <button
                   onClick={handleAddQA}
-                  disabled={!qaTitle.trim() || qaQuestions.length === 0}
-                  className="px-4 py-2 bg-[#0ea3d8] !text-white rounded-lg hover:bg-[#0d8fc4] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                  disabled={creatingQA || !qaTitle.trim() || qaQuestions.length === 0}
+                  className="px-4 py-2 bg-[#0ea3d8] !text-white rounded-lg hover:bg-[#0d8fc4] transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
                 >
-                  Add Q&A
+                  {creatingQA ? (
+                    <>
+                      <Loader2 className="w-4 h-4 animate-spin" />
+                      Creating...
+                    </>
+                  ) : (
+                    'Add Q&A'
+                  )}
                 </button>
               </div>
             </div>
@@ -651,4 +823,3 @@ const HRRoleBasedTraining: React.FC = () => {
 };
 
 export default HRRoleBasedTraining;
-

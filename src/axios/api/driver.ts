@@ -266,10 +266,11 @@ export interface QuestionBank {
   updatedAt?: string;
 }
 
-export const getQuestionBanks = async (params?: { testType?: string }) => {
+export const getQuestionBanks = async (params?: { testType?: string; role?: string }) => {
   try {
     const queryParams = new URLSearchParams();
     if (params?.testType) queryParams.append('testType', params.testType);
+    if (params?.role) queryParams.append('role', params.role);
     
     const queryString = queryParams.toString();
     const url = `hr/driver/question-bank${queryString ? `?${queryString}` : ''}`;
@@ -347,11 +348,12 @@ export interface TrainingContent {
   updatedAt?: string;
 }
 
-export const getTrainingContent = async (params?: { testType?: string; type?: string }) => {
+export const getTrainingContent = async (params?: { testType?: string; type?: string; role?: string }) => {
   try {
     const queryParams = new URLSearchParams();
     if (params?.testType) queryParams.append('testType', params.testType);
     if (params?.type) queryParams.append('type', params.type);
+    if (params?.role) queryParams.append('role', params.role);
     
     const queryString = queryParams.toString();
     const url = `hr/driver/training-content${queryString ? `?${queryString}` : ''}`;
