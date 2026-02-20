@@ -8,7 +8,6 @@ import {
   Edit,
   Trash2,
   Search,
-  Clock,
   X,
   User,
   Briefcase
@@ -26,7 +25,7 @@ interface AttendanceRecord {
   checkIn?: string;
   checkOut?: string;
   totalHours?: number;
-  status: 'present' | 'absent' | 'late' | 'leave';
+  status: 'present' | 'absent' | 'leave';
   notes?: string;
   isAutoTracked?: boolean; // True if automatically tracked from login/logout
   isActiveSession?: boolean; // True if currently logged in
@@ -73,7 +72,7 @@ const AttendanceTracking = () => {
     date: new Date().toISOString().split('T')[0],
     checkIn: '',
     checkOut: '',
-    status: 'present' as 'present' | 'absent' | 'late' | 'leave',
+    status: 'present' as 'present' | 'absent' | 'leave',
     notes: ''
   });
 
@@ -137,7 +136,6 @@ const AttendanceTracking = () => {
   });
   const presentToday = todayRecords.filter(r => r.status === 'present').length;
   const absentToday = todayRecords.filter(r => r.status === 'absent').length;
-  const lateToday = todayRecords.filter(r => r.status === 'late').length;
   const totalEmployees = employees.length;
 
   const calculateHours = (checkIn: string, checkOut: string): string => {
@@ -244,7 +242,6 @@ const AttendanceTracking = () => {
     const styles: Record<string, string> = {
       present: 'bg-green-100 text-green-800 border-green-200',
       absent: 'bg-red-100 text-red-800 border-red-200',
-      late: 'bg-yellow-100 text-yellow-800 border-yellow-200',
       leave: 'bg-purple-100 text-purple-800 border-purple-200'
     };
     return styles[status] || styles.present;
@@ -253,7 +250,9 @@ const AttendanceTracking = () => {
   const filteredRecords = attendanceRecords.filter(record => {
     const name = (typeof record.employee === 'string' ? (employees.find(e => e._id === record.employee)?.name || '') : (record.employee as any)?.name || '');
     const matchesSearch = name.toLowerCase().includes(searchQuery.toLowerCase());
-    const matchesStatus = filterStatus === 'all' || record.status === filterStatus;
+    // Treat "late" records as "present" for filtering
+    const displayStatus = record.status === 'late' ? 'present' : record.status;
+    const matchesStatus = filterStatus === 'all' || displayStatus === filterStatus || (filterStatus === 'present' && record.status === 'late');
     return matchesSearch && matchesStatus;
   });
 
@@ -385,7 +384,7 @@ const AttendanceTracking = () => {
         </div>
 
         {/* Stats Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           {/* Total Employees */}
           <div
             onClick={() => navigate(`${getBasePath()}/employee-profiles`)}
@@ -415,21 +414,6 @@ const AttendanceTracking = () => {
               </div>
               <div className="p-2 bg-green-100 rounded-full">
                 <CheckCircle className="text-green-600" size={18} />
-              </div>
-            </div>
-          </div>
-
-          {/* Late Today */}
-          <div className="rounded-lg p-4 bg-amber-50 border border-amber-200 hover:shadow-sm transition-shadow">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-xs text-amber-600 mb-0.5">Late Today</p>
-                <p className="text-2xl font-semibold text-amber-700">
-                  {lateToday}
-                </p>
-              </div>
-              <div className="p-2 bg-amber-100 rounded-full">
-                <Clock className="text-amber-600" size={18} />
               </div>
             </div>
           </div>
@@ -544,7 +528,6 @@ const AttendanceTracking = () => {
                 >
                   <option value="all">All Status</option>
                   <option value="present">Present</option>
-                  <option value="late">Late</option>
                   <option value="absent">Absent</option>
                   <option value="leave">Leave</option>
                 </select>
@@ -679,8 +662,8 @@ const AttendanceTracking = () => {
                         })()}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
-                        <span className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold border ${getStatusBadge(record.status)}`}>
-                          {record.status.charAt(0).toUpperCase() + record.status.slice(1)}
+                        <span className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold border ${getStatusBadge(record.status === 'late' ? 'present' : record.status)}`}>
+                          {record.status === 'late' ? 'Present' : (record.status.charAt(0).toUpperCase() + record.status.slice(1))}
                         </span>
                       </td>
                       <td className="px-6 py-4 text-sm text-gray-600 max-w-xs">
@@ -793,13 +776,12 @@ const AttendanceTracking = () => {
                   className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                 >
                   <option value="present">Present</option>
-                  <option value="late">Late</option>
                   <option value="absent">Absent</option>
                   <option value="leave">Leave</option>
                 </select>
               </div>
 
-              {attendanceForm.status === 'present' || attendanceForm.status === 'late' ? (
+              {attendanceForm.status === 'present' ? (
                 <>
                   <div className="grid grid-cols-2 gap-4">
                     <div>
@@ -954,8 +936,8 @@ const AttendanceTracking = () => {
                         Employee Attendance Record
                       </p>
                       {selectedRecord && (
-                        <span className={`inline-flex items-center gap-2 px-4 py-2 rounded-full text-sm font-semibold mt-2 ${getStatusBadge(selectedRecord.status)} text-black`}>
-                          {selectedRecord.status.charAt(0).toUpperCase() + selectedRecord.status.slice(1)}
+                        <span className={`inline-flex items-center gap-2 px-4 py-2 rounded-full text-sm font-semibold mt-2 ${getStatusBadge(selectedRecord.status === 'late' ? 'present' : selectedRecord.status)} text-black`}>
+                          {selectedRecord.status === 'late' ? 'Present' : (selectedRecord.status.charAt(0).toUpperCase() + selectedRecord.status.slice(1))}
                         </span>
                       )}
                     </div>
@@ -1006,8 +988,8 @@ const AttendanceTracking = () => {
                       </div>
                       <div>
                         <p className="text-sm text-gray-500 mb-1">Status</p>
-                        <span className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-semibold border ${getStatusBadge(selectedRecord.status)}`}>
-                          {selectedRecord.status.charAt(0).toUpperCase() + selectedRecord.status.slice(1)}
+                        <span className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-semibold border ${getStatusBadge(selectedRecord.status === 'late' ? 'present' : selectedRecord.status)}`}>
+                          {selectedRecord.status === 'late' ? 'Present' : (selectedRecord.status.charAt(0).toUpperCase() + selectedRecord.status.slice(1))}
                         </span>
                       </div>
                     </div>

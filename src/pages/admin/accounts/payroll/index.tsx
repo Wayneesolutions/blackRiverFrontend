@@ -329,10 +329,8 @@ const PayrollManagement = () => {
         presentDays: number;
         absentDays: number;
         leaveDays: number;
-        lateDays: number;
         totalHours: number;
         regularHours: number;
-        overtimeHours: number;
     } | null>(null);
     const [loadingAttendance, setLoadingAttendance] = useState(false);
 
@@ -380,8 +378,8 @@ const PayrollManagement = () => {
 
             const response = await getEmployees();
             if (response?.success) {
-                // Filter out superadmin, admin, driver, reporter, customer, and contact roles
-                const restrictedRoles = ['superadmin', 'admin', 'driver', 'reporter', 'customer', 'contact'];
+                // Filter out superadmin, admin, driver, reporter, customer, contact, salesperson, and operator roles
+                const restrictedRoles = ['superadmin', 'admin', 'driver', 'reporter', 'customer', 'contact', 'salesperson', 'operator'];
                 const filteredEmployees = (response.data || []).filter((emp: Employee) =>
                     !restrictedRoles.includes(emp.role?.toLowerCase())
                 );
@@ -689,43 +687,26 @@ const PayrollManagement = () => {
                     return recordDate >= start && recordDate <= end;
                 });
 
-                // Calculate summary
+                // Calculate summary - treat late as present, no overtime calculation
                 const summary = {
                     presentDays: 0,
                     absentDays: 0,
                     leaveDays: 0,
-                    lateDays: 0,
                     totalHours: 0,
-                    regularHours: 0,
-                    overtimeHours: 0
+                    regularHours: 0
                 };
 
                 filteredData.forEach((record: any) => {
-                    if (record.status === 'present') {
+                    if (record.status === 'present' || record.status === 'late') {
+                        // Treat late as present
                         summary.presentDays++;
                         const hours = record.totalHours || 0;
                         summary.totalHours += hours;
-                        // Assuming 8 hours is regular, anything over is overtime
-                        if (hours <= 8) {
-                            summary.regularHours += hours;
-                        } else {
-                            summary.regularHours += 8;
-                            summary.overtimeHours += (hours - 8);
-                        }
+                        summary.regularHours += hours; // All hours are regular, no overtime
                     } else if (record.status === 'absent') {
                         summary.absentDays++;
                     } else if (record.status === 'leave') {
                         summary.leaveDays++;
-                    } else if (record.status === 'late') {
-                        summary.lateDays++;
-                        const hours = record.totalHours || 0;
-                        summary.totalHours += hours;
-                        if (hours <= 8) {
-                            summary.regularHours += hours;
-                        } else {
-                            summary.regularHours += 8;
-                            summary.overtimeHours += (hours - 8);
-                        }
                     }
                 });
 
@@ -1615,8 +1596,14 @@ const PayrollManagement = () => {
             });
 
             if (response?.success) {
-                setBulkAIPayrolls(response.data.payrolls || []);
-                showNotification('success', `Generated payroll suggestions for ${response.data.payrolls?.length || 0} employees`);
+                // Filter out salesperson and operator roles from bulk AI payrolls
+                const restrictedRoles = ['salesperson', 'operator'];
+                const filteredPayrolls = (response.data.payrolls || []).filter((payroll: any) => {
+                    const employeeRole = payroll.userId?.role?.toLowerCase() || payroll.employee?.role?.toLowerCase() || '';
+                    return !restrictedRoles.includes(employeeRole);
+                });
+                setBulkAIPayrolls(filteredPayrolls);
+                showNotification('success', `Generated payroll suggestions for ${filteredPayrolls.length} employees`);
             } else {
                 showNotification('error', response?.message || 'Failed to generate bulk payrolls');
             }
@@ -2211,10 +2198,6 @@ const PayrollManagement = () => {
                                                         <p className="text-xs text-gray-600 mb-1">Leave Days</p>
                                                         <p className="text-xl font-bold text-purple-600">{attendanceSummary.leaveDays}</p>
                                                     </div>
-                                                    <div className="bg-white p-3 rounded-lg border border-yellow-200">
-                                                        <p className="text-xs text-gray-600 mb-1">Late Days</p>
-                                                        <p className="text-xl font-bold text-yellow-600">{attendanceSummary.lateDays}</p>
-                                                    </div>
                                                 </div>
 
                                                 <div className="bg-white p-4 rounded-lg border border-gray-200">
@@ -2222,7 +2205,7 @@ const PayrollManagement = () => {
                                                         <Clock className="text-blue-600" size={18} />
                                                         <h6 className="font-semibold text-gray-800">Hours Breakdown</h6>
                                                     </div>
-                                                    <div className="grid grid-cols-3 gap-4">
+                                                    <div className="grid grid-cols-2 gap-4">
                                                         <div>
                                                             <p className="text-xs text-gray-600 mb-1">Total Hours</p>
                                                             <p className="text-lg font-bold text-gray-900">{attendanceSummary.totalHours.toFixed(2)}</p>
@@ -2230,10 +2213,6 @@ const PayrollManagement = () => {
                                                         <div>
                                                             <p className="text-xs text-gray-600 mb-1">Regular Hours</p>
                                                             <p className="text-lg font-bold text-blue-600">{attendanceSummary.regularHours.toFixed(2)}</p>
-                                                        </div>
-                                                        <div>
-                                                            <p className="text-xs text-gray-600 mb-1">Overtime Hours</p>
-                                                            <p className="text-lg font-bold text-orange-600">{attendanceSummary.overtimeHours.toFixed(2)}</p>
                                                         </div>
                                                     </div>
                                                 </div>
@@ -2244,9 +2223,7 @@ const PayrollManagement = () => {
                                                     const hourlyRate = selectedEmployee?.details?.hourlyRate;
 
                                                     if (hourlyRate && attendanceSummary.totalHours > 0) {
-                                                        const regularPay = attendanceSummary.regularHours * hourlyRate;
-                                                        const overtimePay = attendanceSummary.overtimeHours * (hourlyRate * 1.5); // 1.5x for overtime
-                                                        const suggestedSalary = regularPay + overtimePay;
+                                                        const suggestedSalary = attendanceSummary.regularHours * hourlyRate;
 
                                                         return (
                                                             <div className="bg-gradient-to-r from-green-50 to-emerald-50 p-4 rounded-lg border border-green-300">
@@ -2255,15 +2232,9 @@ const PayrollManagement = () => {
                                                                 </p>
                                                                 <div className="space-y-1 text-sm">
                                                                     <div className="flex justify-between">
-                                                                        <span className="text-gray-600">Regular ({attendanceSummary.regularHours.toFixed(2)}h × ${hourlyRate.toFixed(2)}):</span>
-                                                                        <span className="font-medium">${regularPay.toFixed(2)}</span>
+                                                                        <span className="text-gray-600">Total Hours ({attendanceSummary.regularHours.toFixed(2)}h × ${hourlyRate.toFixed(2)}):</span>
+                                                                        <span className="font-medium">${suggestedSalary.toFixed(2)}</span>
                                                                     </div>
-                                                                    {attendanceSummary.overtimeHours > 0 && (
-                                                                        <div className="flex justify-between">
-                                                                            <span className="text-gray-600">Overtime ({attendanceSummary.overtimeHours.toFixed(2)}h × ${(hourlyRate * 1.5).toFixed(2)}):</span>
-                                                                            <span className="font-medium">${overtimePay.toFixed(2)}</span>
-                                                                        </div>
-                                                                    )}
                                                                     <div className="flex justify-between pt-2 border-t border-green-200">
                                                                         <span className="font-bold text-gray-900">Total Suggested:</span>
                                                                         <span className="font-bold text-lg text-green-700">${suggestedSalary.toFixed(2)}</span>
@@ -2285,10 +2256,10 @@ const PayrollManagement = () => {
                                                         );
                                                     }
 
-                                                    // For salary-based employees, suggest based on present days
+                                                    // For salary-based employees, suggest based on present days (late included in present)
                                                     const baseSalary = selectedEmployee?.details?.baseSalary;
                                                     if (baseSalary && !hourlyRate) {
-                                                        const totalDays = attendanceSummary.presentDays + attendanceSummary.absentDays + attendanceSummary.leaveDays + attendanceSummary.lateDays;
+                                                        const totalDays = attendanceSummary.presentDays + attendanceSummary.absentDays + attendanceSummary.leaveDays;
                                                         const workingDaysInMonth = totalDays || 22; // Default to 22 working days
                                                         const dailyRate = baseSalary / workingDaysInMonth;
                                                         const suggestedSalary = attendanceSummary.presentDays * dailyRate;
@@ -3716,10 +3687,6 @@ const PayrollManagement = () => {
                                                         <p className="text-xs text-gray-600">Leave</p>
                                                         <p className="text-lg font-bold text-purple-600">{autoGenerateData.attendance.leaveDays}</p>
                                                     </div>
-                                                    <div className="bg-white p-3 rounded-lg">
-                                                        <p className="text-xs text-gray-600">Late</p>
-                                                        <p className="text-lg font-bold text-yellow-600">{autoGenerateData.attendance.lateDays}</p>
-                                                    </div>
                                                 </div>
                                                 <p className="text-sm text-gray-600 mt-2">
                                                     Total Hours: <strong>{autoGenerateData.attendance.totalHours.toFixed(2)}</strong>
@@ -4134,13 +4101,8 @@ const PayrollManagement = () => {
                                                                     <div className="text-xs space-y-1">
                                                                         <div className="flex items-center gap-2 flex-wrap">
                                                                             <span className="text-green-600 font-medium">
-                                                                                W: {(payroll.attendance?.workedDays || (payroll.attendance?.presentDays || 0) + (payroll.attendance?.lateDays || 0))}
-                                                                            </span>
-                                                                            {(payroll.attendance?.lateDays || 0) > 0 && (
-                                                                                <span className="text-yellow-600 text-[10px]">
-                                                                                    (P:{payroll.attendance?.presentDays || 0}, L:{payroll.attendance?.lateDays})
-                                                                                </span>
-                                                                            )}
+                                                                            W: {(payroll.attendance?.workedDays || payroll.attendance?.presentDays || 0)}
+                                                                        </span>
                                                                             <span className="text-red-600">A: {payroll.attendance?.absentDays || 0}</span>
                                                                         </div>
                                                                         {payroll.attendance?.totalHours > 0 && (

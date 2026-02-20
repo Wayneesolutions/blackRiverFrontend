@@ -81,9 +81,10 @@ const UserProfilesPortfolio: React.FC = () => {
                 if (!isMounted) return;
 
                 if (response.success) {
-                    // Filter out drivers for Employee Portfolio (drivers should use Driver Portfolio)
+                    // Filter out drivers, customers, operators, and salespersons for Employee Portfolio
+                    const restrictedRoles = ['driver', 'customer', 'operator', 'salesperson'];
                     const filteredData = ((response.data as UserProfileDto[]) || []).filter(
-                        (profile) => profile.role !== 'driver'
+                        (profile) => !restrictedRoles.includes(profile.role?.toLowerCase() || '')
                     ) as UserProfile[];
                     setProfiles(filteredData);
                     setRequiresCompanySetup(!!response.requiresCompanySetup);
@@ -293,7 +294,6 @@ const UserProfilesPortfolio: React.FC = () => {
                 { header: 'Total Hours', key: 'totalHours', width: 12 },
                 { header: 'Present Days', key: 'presentDays', width: 12 },
                 { header: 'Absent Days', key: 'absentDays', width: 12 },
-                { header: 'Late Days', key: 'lateDays', width: 12 },
                 { header: 'Leave Days', key: 'leaveDays', width: 12 },
                 { header: 'Notes', key: 'notes', width: 50 }
             ];
@@ -334,7 +334,6 @@ const UserProfilesPortfolio: React.FC = () => {
                     totalHours: formatNumber(profile.totalHours),
                     presentDays: profile.presentDays,
                     absentDays: profile.absentDays,
-                    lateDays: profile.lateDays,
                     leaveDays: profile.leaveDays,
                     notes: profile.notes || 'N/A'
                 });
@@ -740,7 +739,6 @@ const UserProfilesPortfolio: React.FC = () => {
                                                     <div className="text-xs text-gray-500 mt-1 flex gap-2">
                                                         <span className="text-green-600">✓ {profile.presentDays}</span>
                                                         {profile.absentDays > 0 && <span className="text-red-600">✗ {profile.absentDays}</span>}
-                                                        {profile.lateDays > 0 && <span className="text-yellow-600">⚠ {profile.lateDays}</span>}
                                                         {profile.leaveDays > 0 && <span className="text-blue-600">L {profile.leaveDays}</span>}
                                                     </div>
                                                 </div>
@@ -763,12 +761,6 @@ const UserProfilesPortfolio: React.FC = () => {
                                                         <span className="inline-flex items-center gap-1 px-2 py-1 bg-red-100 text-red-800 text-xs font-medium rounded">
                                                             <FaTimes size={12} />
                                                             {profile.absentDays}
-                                                        </span>
-                                                    )}
-                                                    {profile.lateDays > 0 && (
-                                                        <span className="inline-flex items-center gap-1 px-2 py-1 bg-yellow-100 text-yellow-800 text-xs font-medium rounded">
-                                                            <FaExclamationCircle size={12} />
-                                                            {profile.lateDays}
                                                         </span>
                                                     )}
                                                 </div>
@@ -1045,13 +1037,12 @@ const UserProfilesPortfolio: React.FC = () => {
                                         const periodDaysWorked = Math.round(selectedProfile.daysWorked * multiplier);
                                         const periodPresentDays = Math.round(selectedProfile.presentDays * multiplier);
                                         const periodAbsentDays = Math.round(selectedProfile.absentDays * multiplier);
-                                        const periodLateDays = Math.round(selectedProfile.lateDays * multiplier);
                                         const periodLeaveDays = Math.round(selectedProfile.leaveDays * multiplier);
                                         const periodTotalHours = selectedProfile.totalHours * multiplier;
 
                                         return (
                                             <>
-                                                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                                                <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
                                                     <div className="bg-blue-50 rounded-lg p-4 border border-blue-200">
                                                         <p className="text-sm text-blue-600 mb-1">Working Days</p>
                                                         <p className="text-2xl font-bold text-blue-700">{periodDaysWorked}</p>
@@ -1063,10 +1054,6 @@ const UserProfilesPortfolio: React.FC = () => {
                                                     <div className="bg-red-50 rounded-lg p-4 border border-red-200">
                                                         <p className="text-sm text-red-600 mb-1">Absent Days</p>
                                                         <p className="text-2xl font-bold text-red-700">{periodAbsentDays}</p>
-                                                    </div>
-                                                    <div className="bg-yellow-50 rounded-lg p-4 border border-yellow-200">
-                                                        <p className="text-sm text-yellow-600 mb-1">Late Days</p>
-                                                        <p className="text-2xl font-bold text-yellow-700">{periodLateDays}</p>
                                                     </div>
                                                 </div>
                                                 <div className="mt-4 grid grid-cols-1 md:grid-cols-2 gap-4">
