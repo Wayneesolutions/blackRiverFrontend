@@ -93,5 +93,10 @@ export const DriverSidebarLinks: DriverSidebarLink[] = [
     icon: <FaGraduationCap />,
     label: "Role-Based Training",
   },
+  {
+    key: "/admin/Management/training",
+    icon: <FaGraduationCap />,
+    label: "Training Content",
+  },
 ];
 

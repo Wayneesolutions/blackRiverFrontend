@@ -1,13 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { Upload, FileText, Image, Video, Plus, Trash2, X, MessageSquare, Loader2, Eye } from 'lucide-react';
-import { 
-  getTrainingContent, 
-  createTrainingContent, 
-  deleteTrainingContent, 
+import {
+  getTrainingContent,
+  createTrainingContent,
+  deleteTrainingContent,
   getTrainingContentSignedUrl,
   getQuestionBanks,
   createQuestionBank,
-  deleteQuestionBank
+  deleteQuestionBank,
 } from '../../../../axios/api/driver';
 
 interface TrainingContent {
@@ -38,6 +38,7 @@ interface QAItem {
 }
 
 const roles = [
+  { value: 'hr', label: 'HR' },
   { value: 'dispatcher', label: 'Dispatcher' },
   { value: 'Fleet Maintenance Manager', label: 'Fleet Maintenance Manager' },
   { value: 'Compliance Manager', label: 'Compliance Manager' },
@@ -45,10 +46,11 @@ const roles = [
   { value: 'accountant', label: 'Accountant' },
 ];
 
+
 const HRRoleBasedTraining: React.FC = () => {
   const [activeRole, setActiveRole] = useState<string>('dispatcher');
-  const [loading, setLoading] = useState(false);
   const [trainingContent, setTrainingContent] = useState<Record<string, TrainingContent[]>>({
+    hr: [],
     dispatcher: [],
     'Fleet Maintenance Manager': [],
     'Compliance Manager': [],
@@ -56,6 +58,7 @@ const HRRoleBasedTraining: React.FC = () => {
     accountant: [],
   });
   const [qaContent, setQAContent] = useState<Record<string, QAItem[]>>({
+    hr: [],
     dispatcher: [],
     'Fleet Maintenance Manager': [],
     'Compliance Manager': [],
@@ -69,6 +72,7 @@ const HRRoleBasedTraining: React.FC = () => {
   const [uploadDescription, setUploadDescription] = useState('');
   const [uploadFile, setUploadFile] = useState<File | null>(null);
   const [uploading, setUploading] = useState(false);
+  const [loading, setLoading] = useState(false);
   
   // Q&A Modal states
   const [qaTitle, setQATitle] = useState('');
@@ -295,27 +299,33 @@ const HRRoleBasedTraining: React.FC = () => {
           <p className="text-gray-600">Upload and manage training materials for different roles</p>
         </div>
 
-        {/* Tabs */}
-        <div className="bg-white rounded-lg shadow-sm mb-6">
-          <div className="flex border-b border-gray-200 overflow-x-auto">
-            {roles.map((role) => (
-              <button
-                key={role.value}
-                onClick={() => setActiveRole(role.value)}
-                className={`px-6 py-3 font-medium text-sm transition-colors whitespace-nowrap ${
-                  activeRole === role.value
-                    ? "text-[#0ea3d8] border-b-2 border-[#0ea3d8]"
-                    : "text-gray-600 hover:text-gray-900"
-                }`}
-              >
-                {role.label}
-              </button>
-            ))}
+        <div className="flex gap-6">
+          {/* Vertical Role Sidebar */}
+          <div className="w-64 flex-shrink-0">
+            <div className="bg-white rounded-lg shadow-sm">
+              <div className="p-4 border-b border-gray-200">
+                <h2 className="font-semibold text-gray-900">Roles</h2>
+              </div>
+              <div className="p-2">
+                {roles.map((role) => (
+                  <button
+                    key={role.value}
+                    onClick={() => setActiveRole(role.value)}
+                    className={`w-full text-left px-4 py-3 rounded-lg mb-1 transition-colors ${
+                      activeRole === role.value
+                        ? "bg-[#0ea3d8] !text-white"
+                        : "text-gray-700 hover:bg-gray-100"
+                    }`}
+                  >
+                    {role.label}
+                  </button>
+                ))}
+              </div>
+            </div>
           </div>
-        </div>
 
-        {/* Tab Content */}
-        <div className="space-y-6">
+          {/* Tab Content */}
+          <div className="flex-1 space-y-6">
           {roles.map((role) => (
             <div
               key={role.value}
@@ -328,167 +338,168 @@ const HRRoleBasedTraining: React.FC = () => {
                 </div>
               ) : (
                 <>
-                  {/* Training Materials Section */}
-                  <div className="bg-white rounded-lg shadow-sm mb-6">
-                    <div className="p-6 border-b border-gray-200">
-                      <div className="flex items-center justify-between">
-                        <div>
-                          <h2 className="text-xl font-semibold text-gray-900">Training Materials</h2>
-                          <p className="text-sm text-gray-600 mt-1">
-                            Upload videos, PDFs, and images for {role.label} training
-                          </p>
-                        </div>
-                        <button
-                          onClick={() => {
-                            setShowUploadModal(true);
-                            setUploadType('VIDEO');
-                            setUploadTitle('');
-                            setUploadDescription('');
-                            setUploadFile(null);
-                          }}
-                          className="flex items-center gap-2 px-4 py-2 bg-[#0ea3d8] !text-white rounded-lg hover:bg-[#0d8fc4] transition-colors"
-                        >
-                          <Plus className="w-4 h-4" />
-                          Upload Content
-                        </button>
-                      </div>
+              {/* Training Materials Section */}
+              <div className="bg-white rounded-lg shadow-sm mb-6">
+                <div className="p-6 border-b border-gray-200">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <h2 className="text-xl font-semibold text-gray-900">Training Materials</h2>
+                      <p className="text-sm text-gray-600 mt-1">
+                        Upload videos, PDFs, and images for {role.label} training
+                      </p>
                     </div>
-                    <div className="p-6">
-                      {trainingContent[role.value]?.length === 0 ? (
-                        <div className="text-center py-12 text-gray-500">
-                          <Upload className="w-12 h-12 mx-auto mb-4 text-gray-400" />
-                          <p>No training materials uploaded yet</p>
-                          <p className="text-sm">Click "Upload Content" to add materials</p>
-                        </div>
-                      ) : (
-                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                          {trainingContent[role.value].map((item) => (
-                            <div key={item._id} className="bg-gray-50 rounded-lg p-4 border border-gray-200 relative">
-                              <div className="flex items-start justify-between mb-2">
-                                <div className="flex items-center gap-2 flex-1">
-                                  <div className="text-[#0ea3d8]">{getIcon(item.type)}</div>
-                                  <h3 className="font-semibold text-gray-900">{item.name}</h3>
-                                </div>
-                                <div className="flex items-center gap-1">
-                                  <button
-                                    onClick={() => handleViewContent(item)}
-                                    className="text-blue-600 hover:text-blue-700 p-1"
-                                    title="View"
-                                  >
-                                    <Eye className="w-4 h-4" />
-                                  </button>
-                                  <button
-                                    onClick={() => handleDeleteContent(item._id)}
-                                    className="text-red-600 hover:text-red-700 p-1"
-                                    title="Delete"
-                                  >
-                                    <Trash2 className="w-4 h-4" />
-                                  </button>
-                                </div>
-                              </div>
-                              {item.description && (
-                                <p className="text-sm text-gray-600 mt-2 mb-3">{item.description}</p>
-                              )}
-                              <div className="flex items-center justify-between text-sm text-gray-500 mt-3">
-                                <span className="capitalize bg-gray-200 px-2 py-1 rounded">{getTypeLabel(item.type)}</span>
-                                <span>
-                                  {item.createdAt ? new Date(item.createdAt).toLocaleDateString() : 'N/A'}
-                                </span>
-                              </div>
-                            </div>
-                          ))}
-                        </div>
-                      )}
-                    </div>
+                    <button
+                      onClick={() => {
+                        setShowUploadModal(true);
+                        setUploadType('VIDEO');
+                        setUploadTitle('');
+                        setUploadDescription('');
+                        setUploadFile(null);
+                      }}
+                      className="flex items-center gap-2 px-4 py-2 bg-[#0ea3d8] !text-white rounded-lg hover:bg-[#0d8fc4] transition-colors"
+                    >
+                      <Plus className="w-4 h-4" />
+                      Upload Content
+                    </button>
                   </div>
+                </div>
+                <div className="p-6">
+                  {trainingContent[role.value]?.length === 0 ? (
+                    <div className="text-center py-12 text-gray-500">
+                      <Upload className="w-12 h-12 mx-auto mb-4 text-gray-400" />
+                      <p>No training materials uploaded yet</p>
+                      <p className="text-sm">Click "Upload Content" to add materials</p>
+                    </div>
+                  ) : (
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                      {trainingContent[role.value].map((item) => (
+                        <div key={item._id} className="bg-gray-50 rounded-lg p-4 border border-gray-200 relative">
+                          <div className="flex items-start justify-between mb-2">
+                            <div className="flex items-center gap-2 flex-1">
+                              <div className="text-[#0ea3d8]">{getIcon(item.type)}</div>
+                              <h3 className="font-semibold text-gray-900">{item.name}</h3>
+                            </div>
+                            <div className="flex items-center gap-1">
+                              <button
+                                onClick={() => handleViewContent(item)}
+                                className="text-blue-600 hover:text-blue-700 p-1"
+                                title="View"
+                              >
+                                <Eye className="w-4 h-4" />
+                              </button>
+                              <button
+                                onClick={() => handleDeleteContent(item._id)}
+                                className="text-red-600 hover:text-red-700 p-1"
+                                title="Delete"
+                              >
+                                <Trash2 className="w-4 h-4" />
+                              </button>
+                            </div>
+                          </div>
+                          {item.description && (
+                            <p className="text-sm text-gray-600 mt-2 mb-3">{item.description}</p>
+                          )}
+                          <div className="flex items-center justify-between text-sm text-gray-500 mt-3">
+                            <span className="capitalize bg-gray-200 px-2 py-1 rounded">{getTypeLabel(item.type)}</span>
+                            <span>
+                              {item.createdAt ? new Date(item.createdAt).toLocaleDateString() : 'N/A'}
+                            </span>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              </div>
 
-                  {/* Q&A Section */}
-                  <div className="bg-white rounded-lg shadow-sm mt-6">
-                    <div className="p-6 border-b border-gray-200">
-                      <div className="flex items-center justify-between">
-                        <div>
-                          <h2 className="text-xl font-semibold text-gray-900">Q&A Content</h2>
-                          <p className="text-sm text-gray-600 mt-1">
-                            Manage questions and answers for {role.label} training
-                          </p>
-                        </div>
-                        <button
-                          onClick={() => {
-                            setShowQAModal(true);
-                            setQATitle('');
-                            setQADescription('');
-                            setQAQuestions([]);
-                            setCurrentQQuestion('');
-                            setCurrentQOptions(['', '', '', '']);
-                            setCurrentQCorrectAnswer(0);
-                          }}
-                          className="flex items-center gap-2 px-4 py-2 bg-[#0ea3d8] !text-white rounded-lg hover:bg-[#0d8fc4] transition-colors"
-                        >
-                          <Plus className="w-4 h-4" />
-                          Add Q&A
-                        </button>
-                      </div>
+              {/* Q&A Section */}
+              <div className="bg-white rounded-lg shadow-sm mt-6">
+                <div className="p-6 border-b border-gray-200">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <h2 className="text-xl font-semibold text-gray-900">Q&A Content</h2>
+                      <p className="text-sm text-gray-600 mt-1">
+                        Manage questions and answers for {role.label} training
+                      </p>
                     </div>
-                    <div className="p-6">
-                      {qaContent[role.value]?.length === 0 ? (
-                        <div className="text-center py-12 text-gray-500">
-                          <MessageSquare className="w-12 h-12 mx-auto mb-4 text-gray-400" />
-                          <p>No Q&A content added yet</p>
-                          <p className="text-sm">Click "Add Q&A" to create questions and answers</p>
-                        </div>
-                      ) : (
-                        <div className="space-y-4">
-                          {qaContent[role.value].map((item) => (
-                            <div key={item._id} className="bg-gray-50 rounded-lg p-4 border border-gray-200 relative">
-                              <div className="flex items-start justify-between mb-3">
-                                <div className="flex-1">
-                                  <h3 className="font-semibold text-gray-900 mb-1">{item.testName}</h3>
-                                  <div className="flex items-center gap-4 text-sm text-gray-600 mb-3">
-                                    <span>Passing: {item.passingPercentage}%</span>
-                                    <span>Questions: {item.questions.length}</span>
-                                    {item.mandatory && <span className="text-red-600">Mandatory</span>}
-                                  </div>
-                                  <div className="space-y-3 mt-3">
-                                    {item.questions.map((q, idx) => (
-                                      <div key={idx} className="bg-white rounded p-3 border border-gray-200">
-                                        <p className="font-medium text-gray-900 mb-2">Q{idx + 1}: {q.question}</p>
-                                        <div className="space-y-1">
-                                          {q.options.map((option, optIdx) => (
-                                            <div key={optIdx} className="flex items-center gap-2">
-                                              <input
-                                                type="radio"
-                                                checked={q.correctAnswer === optIdx}
-                                                readOnly
-                                                className="w-4 h-4"
-                                              />
-                                              <span className={`text-sm ${q.correctAnswer === optIdx ? 'text-green-600 font-medium' : 'text-gray-600'}`}>
-                                                {String.fromCharCode(65 + optIdx)}. {option}
-                                                {q.correctAnswer === optIdx && ' ✓'}
-                                              </span>
-                                            </div>
-                                          ))}
+                    <button
+                      onClick={() => {
+                        setShowQAModal(true);
+                        setQATitle('');
+                        setQADescription('');
+                        setQAQuestions([]);
+                        setCurrentQQuestion('');
+                        setCurrentQOptions(['', '', '', '']);
+                        setCurrentQCorrectAnswer(0);
+                      }}
+                      className="flex items-center gap-2 px-4 py-2 bg-[#0ea3d8] !text-white rounded-lg hover:bg-[#0d8fc4] transition-colors"
+                    >
+                      <Plus className="w-4 h-4" />
+                      Add Q&A
+                    </button>
+                  </div>
+                </div>
+                <div className="p-6">
+                  {qaContent[role.value]?.length === 0 ? (
+                    <div className="text-center py-12 text-gray-500">
+                      <MessageSquare className="w-12 h-12 mx-auto mb-4 text-gray-400" />
+                      <p>No Q&A content added yet</p>
+                      <p className="text-sm">Click "Add Q&A" to create questions and answers</p>
+                    </div>
+                  ) : (
+                    <div className="space-y-4">
+                      {qaContent[role.value].map((item) => (
+                        <div key={item._id} className="bg-gray-50 rounded-lg p-4 border border-gray-200 relative">
+                          <div className="flex items-start justify-between mb-3">
+                            <div className="flex-1">
+                              <h3 className="font-semibold text-gray-900 mb-1">{item.testName}</h3>
+                              <div className="flex items-center gap-4 text-sm text-gray-600 mb-3">
+                                <span>Passing: {item.passingPercentage}%</span>
+                                <span>Questions: {item.questions.length}</span>
+                                {item.mandatory && <span className="text-red-600">Mandatory</span>}
+                              </div>
+                              <div className="space-y-3 mt-3">
+                                {item.questions.map((q, idx) => (
+                                  <div key={idx} className="bg-white rounded p-3 border border-gray-200">
+                                    <p className="font-medium text-gray-900 mb-2">Q{idx + 1}: {q.question}</p>
+                                    <div className="space-y-1">
+                                      {q.options.map((option, optIdx) => (
+                                        <div key={optIdx} className="flex items-center gap-2">
+                                          <input
+                                            type="radio"
+                                            checked={q.correctAnswer === optIdx}
+                                            readOnly
+                                            className="w-4 h-4"
+                                          />
+                                          <span className={`text-sm ${q.correctAnswer === optIdx ? 'text-green-600 font-medium' : 'text-gray-600'}`}>
+                                            {String.fromCharCode(65 + optIdx)}. {option}
+                                            {q.correctAnswer === optIdx && ' ✓'}
+                                          </span>
                                         </div>
-                                      </div>
-                                    ))}
+                                      ))}
+                                    </div>
                                   </div>
-                                </div>
-                                <button
-                                  onClick={() => handleDeleteQA(item._id)}
-                                  className="text-red-600 hover:text-red-700 p-1 ml-4"
-                                >
-                                  <Trash2 className="w-4 h-4" />
-                                </button>
+                                ))}
                               </div>
                             </div>
-                          ))}
+                            <button
+                              onClick={() => handleDeleteQA(item._id)}
+                              className="text-red-600 hover:text-red-700 p-1 ml-4"
+                            >
+                              <Trash2 className="w-4 h-4" />
+                            </button>
+                          </div>
                         </div>
-                      )}
+                      ))}
                     </div>
-                  </div>
+                  )}
+                </div>
+              </div>
                 </>
               )}
             </div>
           ))}
+          </div>
         </div>
       </div>
 

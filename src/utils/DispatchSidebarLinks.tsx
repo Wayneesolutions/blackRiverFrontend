@@ -14,6 +14,7 @@ import {
   FaUserClock,
   FaHistory,
   FaComments,
+  FaGraduationCap,
 } from "react-icons/fa";
 
 type DispatchSidebarLinks = {
@@ -93,6 +94,11 @@ export const DispatchSidebarLinks: DispatchSidebarLinks[] = [
     key: "/admin/dispatch/chat",
     icon: <FaComments />,
     label: "Chat",
+  },
+  {
+    key: "/admin/dispatch/training",
+    icon: <FaGraduationCap />,
+    label: "Training Content",
   },
 
 ];

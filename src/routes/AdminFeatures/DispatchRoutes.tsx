@@ -26,6 +26,7 @@ const Pickups = lazy(() => import("../../pages/admin/dispatch/operations/pickups
 const DriversOnLeave = lazy(() => import("../../pages/admin/dispatch/operations/drivers-on-leave/index"))
 const AuditTrail = lazy(() => import("../../pages/admin/dispatch/operations/audit/index"))
 const ChatPage = lazy(() => import("../../pages/admin/dispatch/chat/index"))
+const TrainingContent = lazy(() => import("../../pages/admin/training/TrainingContentView"))
 
 
 function DispatchRoutes() {
@@ -58,6 +59,7 @@ function DispatchRoutes() {
           <Route path="/drivers-on-leave" element={<DriversOnLeave />} />
           <Route path="/audit" element={<AuditTrail />} />
           <Route path="/chat" element={<ChatPage />} />
+          <Route path="/training" element={<TrainingContent />} />
        
 
 

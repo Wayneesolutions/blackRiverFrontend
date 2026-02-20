@@ -13,6 +13,7 @@ const Incidents = lazy(() => import('../../pages/admin/compilance/incidents/Inci
 const InsuranceClaims = lazy(() => import('../../pages/admin/compilance/insurance-claims/InsuranceClaims'))
 const FuelReports = lazy(() => import('../../pages/admin/dispatch/resources/fuel-reports/index'))
 const Profile = lazy(() => import("../../pages/admin/dashboard/Profile/index"))
+const TrainingContent = lazy(() => import("../../pages/admin/training/TrainingContentView"))
 
 function CompilanceRoute() {
   return (
@@ -30,6 +31,7 @@ function CompilanceRoute() {
           <Route path="insurance-claims" element={<ErrorBoundary><InsuranceClaims /></ErrorBoundary>} />
           <Route path="fuel-reports" element={<ErrorBoundary><FuelReports /></ErrorBoundary>} />
           <Route path="/profile" element={<Profile />} />
+          <Route path="/training" element={<ErrorBoundary><TrainingContent /></ErrorBoundary>} />
 
         </Route>
       </Routes>
