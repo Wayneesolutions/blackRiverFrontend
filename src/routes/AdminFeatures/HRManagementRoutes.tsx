@@ -21,6 +21,8 @@ const DrugTest = lazy(() => import("../../pages/admin/driverManagement/drugTest/
 const TrainingTestManagement = lazy(() => import("../../pages/admin/driverManagement/trainingTestManagement/index"));
 const DriverTrainingCenter = lazy(() => import("../../pages/admin/driverManagement/driverTrainingCenter/index"));
 const ELDDocuments = lazy(() => import("../../pages/admin/accounts/eld-documents/index"));
+const Trucks = lazy(() => import("../../pages/admin/driverManagement/trucks/Trucks"));
+const Trailers = lazy(() => import("../../pages/admin/driverManagement/trailers/index"));
 
 function DriverManagementRoutes() {
     return (
@@ -47,6 +49,8 @@ function DriverManagementRoutes() {
                     <Route path="/drug-test" element={<DrugTest />} />
                     <Route path="/training-test-management" element={<TrainingTestManagement />} />
                     <Route path="/eld-documents" element={<ELDDocuments />} />
+                    <Route path="/trucks" element={<Trucks />} />
+                    <Route path="/trailers" element={<Trailers />} />
                 </Route>
             </Routes>
         </Suspense>

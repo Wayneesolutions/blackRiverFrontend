@@ -12,6 +12,7 @@ import { FaUsers } from "react-icons/fa";        // Customers
 import { FaFlask } from "react-icons/fa";        // Drug Test
 import { FaGraduationCap } from "react-icons/fa"; // Training & Test Management
 import { FileText } from "lucide-react";         // ELD Documents
+import { Truck, Package } from "lucide-react"; // Trucks and Trailers
 
 
 type DriverSidebarLink = {
@@ -76,6 +77,16 @@ export const DriverSidebarLinks: DriverSidebarLink[] = [
     key: "/admin/Management/eld-documents",
     icon: <FileText className="w-5 h-5" />,
     label: "ELD Documents",
+  },
+  {
+    key: "/admin/Management/trucks",
+    icon: <Truck className="w-5 h-5" />,
+    label: "Trucks",
+  },
+  {
+    key: "/admin/Management/trailers",
+    icon: <Package className="w-5 h-5" />,
+    label: "Trailers",
   },
 ];
 

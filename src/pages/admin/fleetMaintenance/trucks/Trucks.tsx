@@ -941,8 +941,12 @@ const Trucks: React.FC = () => {
                 // Fetch counts for each yard
                 for (const yard of yards) {
                     if (yard.status === 'active' && yard._id) {
-                        const yardResponse = await getAllVehicles(1, 1, undefined, undefined, undefined, undefined, undefined, yard._id);
-                        counts[yard._id] = yardResponse?.pagination?.total || 0;
+                        const yardId = yard._id.toString();
+                        console.log('🔍 [COUNT] Fetching count for yard:', yardId, yard.yardName);
+                        const yardResponse = await getAllVehicles(1, 1, undefined, undefined, undefined, undefined, undefined, yardId);
+                        const yardCount = yardResponse?.pagination?.total || 0;
+                        console.log('📊 [COUNT] Yard count result:', { yardId, yardName: yard.yardName, count: yardCount });
+                        counts[yardId] = yardCount;
                     }
                 }
                 
@@ -1038,6 +1042,56 @@ const Trucks: React.FC = () => {
                     formDataToSend.append('subType', formData.subType || '');
                 }
                 
+                // Handle operator update - check if operator has changed
+                const currentOperatorId = formData.operator || '';
+                const originalOperatorId = originalTruckData.operator 
+                    ? (typeof originalTruckData.operator === 'string' 
+                        ? originalTruckData.operator 
+                        : originalTruckData.operator._id?.toString() || '')
+                    : '';
+                
+                if (currentOperatorId !== originalOperatorId) {
+                    console.log('🔄 [UPDATE] Operator changed:', { from: originalOperatorId, to: currentOperatorId });
+                    if (currentOperatorId) {
+                        formDataToSend.append('operator', currentOperatorId);
+                    } else {
+                        formDataToSend.append('operator', '');
+                    }
+                }
+                
+                // Handle coOperator update - check if coOperator has changed
+                const currentCoOperatorId = formData.coOperator || '';
+                const originalCoOperatorId = originalTruckData.coOperator 
+                    ? (typeof originalTruckData.coOperator === 'string' 
+                        ? originalTruckData.coOperator 
+                        : originalTruckData.coOperator._id?.toString() || '')
+                    : '';
+                
+                if (currentCoOperatorId !== originalCoOperatorId) {
+                    console.log('🔄 [UPDATE] CoOperator changed:', { from: originalCoOperatorId, to: currentCoOperatorId });
+                    if (currentCoOperatorId) {
+                        formDataToSend.append('coOperator', currentCoOperatorId);
+                    } else {
+                        formDataToSend.append('coOperator', '');
+                    }
+                }
+                
+                // Handle yard update - always send yard value (even if unchanged, to ensure it's saved)
+                const currentYardId = String(formData.yard || '').trim();
+                const originalYardId = String(originalTruckData.yard || '').trim();
+                
+                console.log('🔍 [UPDATE] Yard check:', { 
+                    currentYardId, 
+                    originalYardId, 
+                    formDataYard: formData.yard,
+                    originalTruckDataYard: originalTruckData.yard,
+                    hasChanged: currentYardId !== originalYardId
+                });
+                
+                // Always send yard to ensure it's updated (even if value is empty to clear it)
+                console.log('✅ [UPDATE] Adding yard to payload:', currentYardId || '(empty - will clear yard)');
+                formDataToSend.append('yard', currentYardId);
+                
                 if (selectedImageFile) {
                     formDataToSend.append('image', selectedImageFile);
                 }
@@ -1121,6 +1175,35 @@ const Trucks: React.FC = () => {
                     // Refresh trucks list
                     const refreshResponse = await getAllVehicles(1, 1000);
                     if (refreshResponse?.success && refreshResponse?.data) {
+                        // Refresh category counts after update
+                        const counts: Record<string, number> = {};
+                        const allResponse = await getAllVehicles(1, 1);
+                        counts['All'] = allResponse?.pagination?.total || 0;
+                        
+                        const externalResponse = await getAllVehicles(1, 1, undefined, undefined, undefined, undefined, 'OWNER OPERATOR');
+                        counts['External'] = externalResponse?.pagination?.total || 0;
+                        
+                        const unassignedResponse = await getAllVehicles(1, 1000);
+                        if (unassignedResponse?.success && unassignedResponse?.data) {
+                            const unassignedCount = unassignedResponse.data.filter((truck: any) => {
+                                const truckId = truck._id?.toString();
+                                return !truckId || !assignedTruckIds.has(truckId);
+                            }).length;
+                            counts['Unassigned'] = unassignedCount;
+                        } else {
+                            counts['Unassigned'] = 0;
+                        }
+                        
+                        // Fetch counts for each yard
+                        for (const yard of yards) {
+                            if (yard.status === 'active' && yard._id) {
+                                const yardId = yard._id.toString();
+                                const yardResponse = await getAllVehicles(1, 1, undefined, undefined, undefined, undefined, undefined, yardId);
+                                counts[yardId] = yardResponse?.pagination?.total || 0;
+                            }
+                        }
+                        
+                        setCategoryCounts(counts);
                         const transformedTrucks = refreshResponse.data.map((truck: any) => ({
                             _id: truck._id,
                             id: truck._id,
@@ -1725,7 +1808,7 @@ const Trucks: React.FC = () => {
                             >
                                 <div>
                                     <div className="font-semibold">
-                                        {yard.yardName} ({getCountByCategory(yard._id!)})
+                                        {yard.yardName} ({getCountByCategory(yard._id?.toString() || '')})
                                     </div>
                                     <div className="text-xs text-gray-500 mt-1">Home to {yard.yardName}</div>
                                 </div>

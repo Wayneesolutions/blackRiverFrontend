@@ -1100,16 +1100,46 @@ const TrailersPage: React.FC = () => {
                         yard: trailer.yard || null
                     }));
                     setTrailers(transformedTrailers);
-                    // Refresh count for current tab and All tab
-                    setFetchedCounts(prev => {
-                        const updated = new Set(prev);
-                        updated.delete(activeTab);
-                        updated.delete('All');
-                        return updated;
-                    });
-                    fetchTabCount('All');
-                    if (activeTab !== 'All') {
-                        fetchTabCount(activeTab);
+                    
+                    // Refresh all counts after update
+                    try {
+                        const counts: Record<string, number> = {};
+                        
+                        // All count
+                        const allResponse = await getAllTrailers(1, 1);
+                        counts['All'] = allResponse?.pagination?.total || 0;
+                        
+                        // External count
+                        const externalResponse = await getAllTrailers(1, 1, undefined, undefined, undefined, undefined, undefined, 'THIRD PARTY ASSET');
+                        counts['External'] = externalResponse?.pagination?.total || 0;
+                        
+                        // Unassigned count
+                        const unassignedResponse = await getAllTrailers(1, 1000);
+                        if (unassignedResponse?.success && unassignedResponse?.data) {
+                            const unassignedCount = unassignedResponse.data.filter((trailer: any) => {
+                                const trailerId = trailer._id?.toString();
+                                return !trailerId || !assignedTrailerIds.has(trailerId);
+                            }).length;
+                            counts['Unassigned'] = unassignedCount;
+                        } else {
+                            counts['Unassigned'] = 0;
+                        }
+                        
+                        // Yard counts
+                        for (const yard of yards) {
+                            if (yard.status === 'active' && yard._id) {
+                                const yardId = yard._id.toString();
+                                console.log('🔄 [UPDATE] Refreshing count for yard:', yardId, yard.yardName);
+                                const yardResponse = await getAllTrailers(1, 1, undefined, undefined, undefined, undefined, yardId);
+                                const yardCount = yardResponse?.pagination?.total || 0;
+                                console.log('📊 [UPDATE] Yard count after update:', { yardId, yardName: yard.yardName, count: yardCount });
+                                counts[yardId] = yardCount;
+                            }
+                        }
+                        
+                        setYardCounts(counts);
+                    } catch (error) {
+                        console.error('Error refreshing counts:', error);
                     }
                 }
             } else {
@@ -1591,7 +1621,7 @@ const TrailersPage: React.FC = () => {
                                 >
                                     <div>
                                         <div className="font-semibold">
-                                            {yard.yardName} ({getCountByCategory(yard._id!)})
+                                            {yard.yardName} ({getCountByCategory(yard._id?.toString() || '')})
                                         </div>
                                         <div className="text-xs text-gray-500 mt-1">
                                             {yard.yardCode}

@@ -961,7 +961,7 @@ const DriverManagement = () => {
                perTripAmount: '0',
                hourlyRate: String(driver.hourlyRate || driver.details?.hourlyRate || 0),
                dailyRate: '0',
-               driverTypeSolo: true,
+               driverTypeSolo: driver.details?.driverTypeSolo !== undefined ? driver.details.driverTypeSolo : (driver.driverTypeSolo !== undefined ? driver.driverTypeSolo : (driver.solo !== undefined ? driver.solo : true)),
                cppExempt: driver.details?.cppQppExempt || driver.cppQppExempt || false,
                payrollTaxExempt: driver.details?.provTaxExempt || driver.provTaxExempt || false,
                customHst: driver.details?.customHst || driver.customHst || '',
@@ -1293,7 +1293,7 @@ const DriverManagement = () => {
                   perTripAmount: '0',
                   hourlyRate: String(driver.hourlyRate || driver.details?.hourlyRate || 0),
                   dailyRate: '0',
-                  driverTypeSolo: true,
+                  driverTypeSolo: driver.details?.driverTypeSolo !== undefined ? driver.details.driverTypeSolo : (driver.driverTypeSolo !== undefined ? driver.driverTypeSolo : (driver.solo !== undefined ? driver.solo : true)),
                   cppExempt: driver.details?.cppQppExempt || driver.cppQppExempt || false,
                   payrollTaxExempt: driver.details?.provTaxExempt || driver.provTaxExempt || false,
                   customHst: driver.details?.customHst || driver.customHst || '',
@@ -1892,6 +1892,11 @@ const DriverManagement = () => {
         const companyFlagValue = personalData.driverType === 'OWNER OPERATOR';
         driverFormData.append('companyFlag', String(companyFlagValue));
       }
+      
+      // Driver Type (SOLO/TEAM) - driverTypeSolo: true = SOLO, false = TEAM
+      driverFormData.append('driverTypeSolo', String(personalData.driverTypeSolo !== undefined ? personalData.driverTypeSolo : true));
+      // Also send as solo for backward compatibility
+      driverFormData.append('solo', String(personalData.driverTypeSolo !== undefined ? personalData.driverTypeSolo : true));
       
       // Exemption and additional fields
       driverFormData.append('cppExempt', String(personalData.cppExempt || false));
@@ -2531,6 +2536,12 @@ const DriverManagement = () => {
         // Send companyFlag: true for OWNER OPERATOR, false for COMPANY DRIVER
         const companyFlagValue = personalData.driverType === 'OWNER OPERATOR';
         driverFormData.append('companyFlag', String(companyFlagValue));
+      }
+      // Driver Type (SOLO/TEAM) - driverTypeSolo: true = SOLO, false = TEAM
+      if (hasValueChanged(personalData.driverTypeSolo, original.personalData.driverTypeSolo)) {
+        driverFormData.append('driverTypeSolo', String(personalData.driverTypeSolo));
+        // Also send as solo for backward compatibility
+        driverFormData.append('solo', String(personalData.driverTypeSolo));
       }
       if (hasValueChanged(personalData.paymentMethod, original.personalData.paymentMethod)) {
         driverFormData.append('paymentMethod', personalData.paymentMethod);
