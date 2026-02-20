@@ -21,6 +21,7 @@ const TaxSetup = lazy(() => import("../../pages/admin/accounts/tax-setup/index")
 const CashFlowInsights = lazy(() => import("../../pages/admin/accounts/cash-flow-insights/index"));
 const Profile = lazy(() => import("../../pages/admin/dashboard/Profile/index"));
 const FinanceReport = lazy(() => import("../../pages/admin/accounts/finance-report/index"));
+const TrainingContent = lazy(() => import("../../pages/admin/training/TrainingContentView"));
 
 function AccountsRoutes() {
     return (
@@ -48,6 +49,7 @@ function AccountsRoutes() {
                     <Route path="/cash-flow-insights" element={<CashFlowInsights />} />
                     <Route path="/profile" element={<Profile />} />
                     <Route path="/finance-report" element={<FinanceReport />} />
+                    <Route path="/training" element={<TrainingContent />} />
                 </Route>
             </Routes>
         </Suspense>

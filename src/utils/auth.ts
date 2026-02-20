@@ -152,6 +152,34 @@ export const isTokenValid = (): boolean => {
 };
 
 /**
+ * Get current user ID
+ * @returns string | null - user ID or null
+ */
+export const getUserId = (): string | null => {
+  try {
+    const userInfo = localStorage.getItem('userInfo');
+    if (userInfo) {
+      const parsed = JSON.parse(userInfo);
+      return parsed?.userData?._id || parsed?.userData?.id || null;
+    }
+  } catch (e) {
+    // Ignore parsing errors
+  }
+  
+  try {
+    const superAdminInfo = localStorage.getItem('superAdminInfo');
+    if (superAdminInfo) {
+      const parsed = JSON.parse(superAdminInfo);
+      return parsed?.userData?._id || parsed?.userData?.id || null;
+    }
+  } catch (e) {
+    // Ignore parsing errors
+  }
+  
+  return null;
+};
+
+/**
  * Get dashboard route based on user role
  * @returns string - dashboard route path
  */

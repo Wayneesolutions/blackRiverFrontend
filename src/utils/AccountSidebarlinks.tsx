@@ -7,7 +7,8 @@ import {
     FaHandshake,
     FaTools,
     FaReceipt,
-    FaPercentage
+    FaPercentage,
+    FaGraduationCap
 } from "react-icons/fa";
 import { BarChart3 } from "lucide-react";
 import { Sparkles } from "lucide-react";
@@ -96,6 +97,11 @@ export const AccountSidebarlinks: AccountSidebarlinks[] = [
         key: "/admin/accounts/tax-setup",
         icon: <FaPercentage />,
         label: "Tax Setup & Rate Management",
+    },
+    {
+        key: "/admin/accounts/training",
+        icon: <FaGraduationCap />,
+        label: "Training Content",
     },
 ];
 

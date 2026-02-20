@@ -2,7 +2,7 @@ import {
     MdDashboard,
 } from "react-icons/md";
 import { RiBillLine } from "react-icons/ri";
-import { FaClipboardCheck, FaChartBar, FaTicketAlt, FaExclamationTriangle, FaShieldAlt } from "react-icons/fa";
+import { FaClipboardCheck, FaChartBar, FaTicketAlt, FaExclamationTriangle, FaShieldAlt, FaGraduationCap } from "react-icons/fa";
 
 type CompilanceSidebarLink = {
     key: string;
@@ -47,5 +47,10 @@ export const CompilanceSidebarLinks: CompilanceSidebarLink[] = [
         key: "insurance-claims",
         icon: <FaShieldAlt />,
         label: "Insurance Claims",
+    },
+    {
+        key: "training",
+        icon: <FaGraduationCap />,
+        label: "Training Content",
     }
 ];

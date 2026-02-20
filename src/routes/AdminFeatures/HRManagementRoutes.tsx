@@ -24,6 +24,7 @@ const ELDDocuments = lazy(() => import("../../pages/admin/accounts/eld-documents
 const Trucks = lazy(() => import("../../pages/admin/driverManagement/trucks/Trucks"));
 const Trailers = lazy(() => import("../../pages/admin/driverManagement/trailers/index"));
 const HRRoleBasedTraining = lazy(() => import("../../pages/admin/training/hrTraining/HRRoleBasedTraining"));
+const TrainingContent = lazy(() => import("../../pages/admin/training/TrainingContentView"));
 
 function DriverManagementRoutes() {
     return (
@@ -53,6 +54,7 @@ function DriverManagementRoutes() {
                     <Route path="/trucks" element={<Trucks />} />
                     <Route path="/trailers" element={<Trailers />} />
                     <Route path="/role-based-training" element={<HRRoleBasedTraining />} />
+                    <Route path="/training" element={<TrainingContent />} />
                 </Route>
             </Routes>
         </Suspense>

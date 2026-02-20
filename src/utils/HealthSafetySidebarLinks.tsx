@@ -12,7 +12,8 @@ import {
     FaTruck, // For Trucking Operations
 
     FaAmbulance, // For Emergency Procedures
-    FaFolder
+    FaFolder,
+    FaGraduationCap // For Training Content
 } from "react-icons/fa";
 
 type HealthSafetySidebarLink = {
@@ -85,5 +86,10 @@ export const HealthSafetySidebarLinks: HealthSafetySidebarLink[] = [
         key: "reports-analytics",
         icon: <FaChartBar />,
         label: "Reports & Analytics",
+    },
+    {
+        key: "training",
+        icon: <FaGraduationCap />,
+        label: "Training Content",
     }
 ];
