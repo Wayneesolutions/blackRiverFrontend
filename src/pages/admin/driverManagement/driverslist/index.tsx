@@ -1009,8 +1009,8 @@ const DriverManagement = () => {
               wcbNumber: driver.wsibAccountNo || driver.details?.wsibAccountNo || '',
               workPermitDocument: null,
               prCardDocument: null,
-              existingWorkPermitUrl: driver.details?.workPermitDocumentUrl || null,
-              existingPrCardUrl: driver.details?.prCardDocumentUrl || null
+              existingWorkPermitUrl: driver.workPermitDocumentUrl || driver.details?.workPermitDocumentUrl || null,
+              existingPrCardUrl: driver.prCardDocumentUrl || driver.details?.prCardDocumentUrl || null
             });
 
           
@@ -1344,8 +1344,8 @@ const DriverManagement = () => {
                   wcbNumber: driver.wsibAccountNo || driver.details?.wsibAccountNo || '',
                   workPermitDocument: null,
                   prCardDocument: null,
-                  existingWorkPermitUrl: driver.details?.workPermitDocumentUrl || null,
-                  existingPrCardUrl: driver.details?.prCardDocumentUrl || null
+                  existingWorkPermitUrl: driver.workPermitDocumentUrl || driver.details?.workPermitDocumentUrl || null,
+                  existingPrCardUrl: driver.prCardDocumentUrl || driver.details?.prCardDocumentUrl || null
                 },
                 notes: currentNotes || [],
                 documents: currentDocuments || [],
