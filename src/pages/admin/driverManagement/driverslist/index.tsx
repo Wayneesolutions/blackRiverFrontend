@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
-import { Edit, Trash2, Plus, X, RefreshCw, User, Search, FileText,  MapPin, DollarSign, Upload, Save, ChevronUp, ChevronDown, Calendar, Award, AlertTriangle, FileText as FileTextIcon, PlusCircle, Check, ClipboardCheck } from 'lucide-react';
+import { Edit, Trash2, Plus, X, RefreshCw, User, Search, FileText,  MapPin, DollarSign, Upload, Save, ChevronUp, ChevronDown, Calendar, Award, AlertTriangle, FileText as FileTextIcon, PlusCircle, Check, ClipboardCheck, Ticket } from 'lucide-react';
 import { FaCheckCircle, FaExclamationCircle, FaTimes } from 'react-icons/fa';
 import * as driverApi from '../../../../axios/api/driver';
 import { getTestResults, approveTestResult, rejectTestResult } from '../../../../axios/api/driver';
@@ -173,7 +173,7 @@ const DriverManagement = () => {
   });
   const [showNewDriverModal, setShowNewDriverModal] = useState(false);
   const [editingDriver, setEditingDriver] = useState<Driver | null>(null);
-  const [activeFormTab, setActiveFormTab] = useState<'basic' | 'personal' | 'travel' | 'documents' | 'certifications' | 'violations' | 'notes' | 'deductions' | 'additions' | 'onboarding'>('basic');
+  const [activeFormTab, setActiveFormTab] = useState<'basic' | 'personal' | 'travel' | 'documents' | 'certifications' | 'tickets' | 'violations' | 'notes' | 'deductions' | 'additions' | 'onboarding'>('basic');
   const tableScrollRef = useRef<HTMLDivElement>(null);
   const topScrollRef = useRef<HTMLDivElement>(null);
   const topScrollContentRef = useRef<HTMLDivElement>(null);
@@ -495,6 +495,37 @@ const DriverManagement = () => {
   const [violationFile, setViolationFile] = useState<File | null>(null);
   const [editingViolationId, setEditingViolationId] = useState<string | null>(null);
 
+  // Form state for Tickets (fines, citations - static only)
+  const [tickets, setTickets] = useState<Array<{
+    id: string;
+    date: string;
+    title: string;
+    description: string;
+    amount: string;
+    status: string;
+    file?: File | null;
+    fileUrl?: string | null;
+    fileName?: string | null;
+  }>>([]);
+  const [newTicket, setNewTicket] = useState({
+    date: '',
+    title: '',
+    description: '',
+    amount: '',
+    status: 'Unpaid',
+    file: null as File | null
+  });
+  const [ticketFile, setTicketFile] = useState<File | null>(null);
+  const [editingTicketId, setEditingTicketId] = useState<string | null>(null);
+  const [selectedTicket, setSelectedTicket] = useState<{
+    id: string;
+    date: string;
+    title: string;
+    description: string;
+    amount: string;
+    status: string;
+  } | null>(null);
+  const [confirmDeleteTicket, setConfirmDeleteTicket] = useState<{ open: boolean; ticket: any | null }>({ open: false, ticket: null });
 
   // Form state for Notes
   const [notes, setNotes] = useState<Array<{
@@ -3778,6 +3809,7 @@ const DriverManagement = () => {
                     { id: 'travel', label: 'Travel', icon: MapPin },
                     { id: 'documents', label: 'Documents', icon: FileTextIcon },
                     { id: 'certifications', label: 'Certifications', icon: Award },
+                    { id: 'tickets', label: 'Tickets', icon: Ticket },
                     { id: 'violations', label: 'Violations', icon: AlertTriangle },
                     { id: 'notes', label: 'Notes', icon: FileTextIcon },
                     { id: 'deductions', label: 'Deductions', icon: DollarSign },
@@ -3807,7 +3839,7 @@ const DriverManagement = () => {
             </div>
 
             {/* Right Content Area */}
-            <div className={`flex-1 flex flex-col overflow-hidden transition-all ${selectedCertificate ? 'mr-96' : ''}`}>
+            <div className={`flex-1 flex flex-col overflow-hidden transition-all ${selectedCertificate || selectedTicket ? 'mr-96' : ''}`}>
               {/* Header */}
               <div className="flex items-center justify-between p-3 border-b border-gray-200 bg-white">
                 <h2 className="text-lg font-bold text-gray-900">{(editingId || editingDriver) ? 'Edit Driver' : 'New Driver'}</h2>
@@ -4532,17 +4564,6 @@ const DriverManagement = () => {
                         )}
                       </div>
                     </div>
-
-                    {/* Navigation Footer */}
-                    <div className="flex justify-between items-center pt-4 border-t border-gray-200">
-                      <div></div>
-                      <button
-                        onClick={() => setActiveFormTab('personal')}
-                        className="text-gray-600 hover:text-gray-900 flex items-center gap-2"
-                      >
-                        Personal <span>→</span>
-                      </button>
-                    </div>
                   </div>
                 )}
 
@@ -5196,21 +5217,6 @@ const DriverManagement = () => {
                       </div>
                     </div>
 
-                    {/* Navigation Footer */}
-                    <div className="flex justify-between items-center pt-4 border-t border-gray-200">
-                      <button
-                        onClick={() => setActiveFormTab('basic')}
-                        className="text-gray-600 hover:text-gray-900 flex items-center gap-2"
-                      >
-                        <span>←</span> Basic
-                      </button>
-                      <button
-                        onClick={() => setActiveFormTab('travel')}
-                        className="text-gray-600 hover:text-gray-900 flex items-center gap-2"
-                      >
-                        Travel <span>→</span>
-                      </button>
-                    </div>
                   </div>
                 )}
 
@@ -5580,21 +5586,6 @@ const DriverManagement = () => {
                       </div>
                     )}
 
-                    {/* Navigation Footer */}
-                    <div className="flex justify-between items-center pt-4 border-t border-gray-200">
-                      <button
-                        onClick={() => setActiveFormTab('personal')}
-                        className="text-gray-600 hover:text-gray-900 flex items-center gap-2"
-                      >
-                        <span>←</span> Personal
-                      </button>
-                      <button
-                        onClick={() => setActiveFormTab('documents')}
-                        className="text-gray-600 hover:text-gray-900 flex items-center gap-2"
-                      >
-                        Documents <span>→</span>
-                      </button>
-                    </div>
                   </div>
                 )}
 
@@ -5907,21 +5898,6 @@ const DriverManagement = () => {
                       </table>
                     </div>
 
-                    {/* Navigation Footer */}
-                    <div className="flex justify-between items-center pt-4 border-t border-gray-200">
-                      <button
-                        onClick={() => setActiveFormTab('travel')}
-                        className="text-gray-600 hover:text-gray-900 flex items-center gap-2"
-                      >
-                        <span>←</span> Travel
-                      </button>
-                      <button
-                        onClick={() => setActiveFormTab('certifications')}
-                        className="text-gray-600 hover:text-gray-900 flex items-center gap-2"
-                      >
-                        Certifications <span>→</span>
-                      </button>
-                    </div>
                   </div>
                 )}
 
@@ -6221,21 +6197,371 @@ const DriverManagement = () => {
                       </div>
                     )}
 
-                    {/* Navigation Footer */}
-                    <div className="flex justify-between items-center pt-4 border-t border-gray-200">
-                      <button
-                        onClick={() => setActiveFormTab('documents')}
-                        className="text-gray-600 hover:text-gray-900 flex items-center gap-2"
-                      >
-                        <span>←</span> Documents
-                      </button>
-                      <button
-                        onClick={() => setActiveFormTab('violations')}
-                        className="text-gray-600 hover:text-gray-900 flex items-center gap-2"
-                      >
-                        Violations <span>→</span>
-                      </button>
+                  </div>
+                )}
+
+                {activeFormTab === 'tickets' && (
+                  <div className="space-y-6 relative">
+                    <h3 className="text-lg font-bold text-gray-900 mb-4">Tickets & Fines</h3>
+                    <p className="text-sm text-gray-500 mb-4">Record driver tickets, fines, and citations. Static only — not sent to backend.</p>
+
+                    {/* Tickets Table with Input Row */}
+                    <div className="border border-gray-200 rounded-lg overflow-hidden">
+                      <table className="w-full">
+                        <thead className="bg-gray-50">
+                          <tr>
+                            <th className="px-3 py-2 text-left text-xs font-medium text-gray-700 uppercase">DATE</th>
+                            <th className="px-3 py-2 text-left text-xs font-medium text-gray-700 uppercase">TITLE</th>
+                            <th className="px-3 py-2 text-left text-xs font-medium text-gray-700 uppercase">DESCRIPTION</th>
+                            <th className="px-3 py-2 text-left text-xs font-medium text-gray-700 uppercase">AMOUNT</th>
+                            <th className="px-3 py-2 text-left text-xs font-medium text-gray-700 uppercase">STATUS</th>
+                            <th className="px-3 py-2 text-left text-xs font-medium text-gray-700 uppercase">DOCUMENT</th>
+                          </tr>
+                        </thead>
+                        <tbody className="bg-white">
+                          <tr className="bg-gray-50">
+                            <td className="px-3 py-2">
+                              <div className="relative">
+                                <input
+                                  type="date"
+                                  value={newTicket.date}
+                                  onChange={(e) => setNewTicket({ ...newTicket, date: e.target.value })}
+                                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#42aeec] focus:border-transparent"
+                                />
+                                <Calendar className="absolute right-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
+                              </div>
+                            </td>
+                            <td className="px-3 py-2">
+                              <input
+                                type="text"
+                                placeholder="Title"
+                                value={newTicket.title}
+                                onChange={(e) => setNewTicket({ ...newTicket, title: e.target.value })}
+                                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#42aeec] focus:border-transparent"
+                              />
+                            </td>
+                            <td className="px-3 py-2">
+                              <input
+                                type="text"
+                                placeholder="Description"
+                                value={newTicket.description}
+                                onChange={(e) => setNewTicket({ ...newTicket, description: e.target.value })}
+                                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#42aeec] focus:border-transparent"
+                              />
+                            </td>
+                            <td className="px-3 py-2">
+                              <input
+                                type="text"
+                                placeholder="Amount"
+                                value={newTicket.amount}
+                                onChange={(e) => setNewTicket({ ...newTicket, amount: e.target.value })}
+                                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#42aeec] focus:border-transparent"
+                              />
+                            </td>
+                            <td className="px-3 py-2">
+                              <select
+                                value={newTicket.status}
+                                onChange={(e) => setNewTicket({ ...newTicket, status: e.target.value })}
+                                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#42aeec] focus:border-transparent"
+                              >
+                                <option value="Unpaid">Unpaid</option>
+                                <option value="Paid">Paid</option>
+                                <option value="Contested">Contested</option>
+                                <option value="Waived">Waived</option>
+                              </select>
+                            </td>
+                            <td className="px-3 py-2">
+                              <div className="flex items-center gap-2">
+                                {ticketFile ? (
+                                  <div className="flex items-center gap-2 px-3 py-2 border border-gray-300 rounded-lg bg-white">
+                                    <FileText className="w-4 h-4 text-gray-600" />
+                                    <span className="text-sm text-gray-700 truncate max-w-[120px]">{ticketFile.name}</span>
+                                    <button
+                                      onClick={() => {
+                                        setTicketFile(null);
+                                        setNewTicket({ ...newTicket, file: null });
+                                      }}
+                                      className="text-gray-400 hover:text-red-600 transition-colors"
+                                      title="Remove file"
+                                    >
+                                      <X className="w-4 h-4" />
+                                    </button>
+                                  </div>
+                                ) : (
+                                  <label className="flex items-center gap-2 px-3 py-2 border border-gray-300 rounded-lg bg-white hover:bg-gray-50 cursor-pointer transition-colors">
+                                    <Upload className="w-4 h-4 text-gray-600" />
+                                    <span className="text-sm text-gray-700">Select File</span>
+                                    <input
+                                      type="file"
+                                      className="hidden"
+                                      accept=".pdf,.doc,.docx,.jpg,.jpeg,.png"
+                                      onChange={(e) => {
+                                        const file = e.target.files?.[0];
+                                        if (file) {
+                                          setTicketFile(file);
+                                          setNewTicket({ ...newTicket, file: file });
+                                        }
+                                      }}
+                                    />
+                                  </label>
+                                )}
+                                <button
+                                  onClick={() => {
+                                    if (newTicket.date || newTicket.title || newTicket.description || newTicket.amount) {
+                                      if (editingTicketId) {
+                                        setTickets(tickets.map(t =>
+                                          t.id === editingTicketId
+                                            ? {
+                                                ...t,
+                                                date: newTicket.date,
+                                                title: newTicket.title,
+                                                description: newTicket.description,
+                                                amount: newTicket.amount,
+                                                status: newTicket.status,
+                                                file: newTicket.file
+                                              }
+                                            : t
+                                        ));
+                                        setEditingTicketId(null);
+                                      } else {
+                                        setTickets([...tickets, {
+                                          id: Date.now().toString(),
+                                          date: newTicket.date,
+                                          title: newTicket.title,
+                                          description: newTicket.description,
+                                          amount: newTicket.amount,
+                                          status: newTicket.status,
+                                          file: newTicket.file
+                                        }]);
+                                      }
+                                      setNewTicket({
+                                        date: '',
+                                        title: '',
+                                        description: '',
+                                        amount: '',
+                                        status: 'Unpaid',
+                                        file: null
+                                      });
+                                      setTicketFile(null);
+                                    }
+                                  }}
+                                  className="w-10 h-10 bg-black !text-white rounded-lg flex items-center justify-center hover:bg-gray-800 transition-colors"
+                                >
+                                  {editingTicketId ? <Save className="w-5 h-5" /> : <Plus className="w-5 h-5" />}
+                                </button>
+                              </div>
+                            </td>
+                          </tr>
+                        </tbody>
+                      </table>
                     </div>
+
+                    {/* Tickets Data Table */}
+                    <div className="border border-gray-200 rounded-lg overflow-hidden mt-4">
+                      <table className="w-full">
+                        <thead className="bg-gray-50">
+                          <tr>
+                            <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase">DATE</th>
+                            <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase">TITLE</th>
+                            <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase">DESCRIPTION</th>
+                            <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase">AMOUNT</th>
+                            <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase">STATUS</th>
+                            <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase">DOCUMENT</th>
+                            <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase">ACTIONS</th>
+                          </tr>
+                        </thead>
+                        <tbody className="bg-white divide-y divide-gray-200">
+                          {tickets.length === 0 ? (
+                            <tr>
+                              <td colSpan={7} className="px-4 py-8 text-center text-gray-500">
+                                No Data
+                              </td>
+                            </tr>
+                          ) : (
+                            tickets.map((ticket) => (
+                              <tr
+                                key={ticket.id}
+                                className={`hover:bg-gray-50 cursor-pointer ${selectedTicket?.id === ticket.id ? 'bg-blue-50' : ''}`}
+                                onClick={() => setSelectedTicket(selectedTicket?.id === ticket.id ? null : {
+                                  id: ticket.id,
+                                  date: ticket.date,
+                                  title: ticket.title,
+                                  description: ticket.description,
+                                  amount: ticket.amount,
+                                  status: ticket.status
+                                })}
+                              >
+                                <td className="px-4 py-3 text-sm text-gray-900">{ticket.date || '-'}</td>
+                                <td className="px-4 py-3 text-sm text-gray-900">{ticket.title || '-'}</td>
+                                <td className="px-4 py-3 text-sm text-gray-900">{ticket.description || '-'}</td>
+                                <td className="px-4 py-3 text-sm text-gray-900">{ticket.amount ? `$${ticket.amount}` : '-'}</td>
+                                <td className="px-4 py-3 text-sm text-gray-900">
+                                  <span className={`px-2 py-0.5 text-xs font-medium rounded-full ${
+                                    ticket.status === 'Paid' ? 'bg-green-100 text-green-700' :
+                                    ticket.status === 'Unpaid' ? 'bg-amber-100 text-amber-700' :
+                                    ticket.status === 'Contested' ? 'bg-blue-100 text-blue-700' :
+                                    'bg-gray-100 text-gray-700'
+                                  }`}>
+                                    {ticket.status}
+                                  </span>
+                                </td>
+                                <td className="px-4 py-3 text-sm text-gray-900">
+                                  {(ticket.file instanceof File || ticket.fileUrl || ticket.fileName) ? (
+                                    <div className="flex items-center gap-2">
+                                      <FileText className="w-4 h-4 text-blue-500" />
+                                      <span className="text-sm text-gray-700 truncate max-w-[150px]" title={ticket.file instanceof File ? ticket.file.name : (ticket.fileName || 'File attached')}>
+                                        {ticket.file instanceof File ? ticket.file.name : (ticket.fileName || 'File attached')}
+                                      </span>
+                                    </div>
+                                  ) : (
+                                    <span className="text-gray-400">-</span>
+                                  )}
+                                </td>
+                                <td className="px-4 py-3 text-sm text-gray-900" onClick={(e) => e.stopPropagation()}>
+                                  <div className="flex items-center gap-2">
+                                    <button
+                                      onClick={(e) => {
+                                        e.stopPropagation();
+                                        setNewTicket({
+                                          date: ticket.date || '',
+                                          title: ticket.title || '',
+                                          description: ticket.description || '',
+                                          amount: ticket.amount || '',
+                                          status: ticket.status || 'Unpaid',
+                                          file: ticket.file || null
+                                        });
+                                        setEditingTicketId(ticket.id);
+                                        setSelectedTicket(null);
+                                        if (ticket.file instanceof File) {
+                                          setTicketFile(ticket.file);
+                                        } else {
+                                          setTicketFile(null);
+                                        }
+                                      }}
+                                      className="p-1.5 text-blue-600 hover:bg-blue-50 rounded transition-colors"
+                                      title="Edit ticket"
+                                    >
+                                      <Edit className="w-4 h-4" />
+                                    </button>
+                                    <button
+                                      onClick={(e) => {
+                                        e.stopPropagation();
+                                        setConfirmDeleteTicket({ open: true, ticket });
+                                      }}
+                                      className="p-1.5 text-red-600 hover:bg-red-50 rounded transition-colors"
+                                      title="Delete ticket"
+                                    >
+                                      <Trash2 className="w-4 h-4" />
+                                    </button>
+                                  </div>
+                                </td>
+                              </tr>
+                            ))
+                          )}
+                        </tbody>
+                      </table>
+                    </div>
+
+                    {/* Ticket Details Side Panel */}
+                    {selectedTicket && (
+                      <div className="absolute right-0 top-0 h-full w-96 bg-white shadow-2xl z-50 border-l border-gray-200 overflow-y-auto" style={{ top: 0, right: 0 }}>
+                        <div className="p-6">
+                          <div className="flex items-center justify-between mb-6">
+                            <h3 className="text-xl font-bold text-gray-900">Ticket Details</h3>
+                            <button
+                              onClick={() => setSelectedTicket(null)}
+                              className="text-gray-400 hover:text-gray-600 transition-colors"
+                            >
+                              <X className="w-6 h-6" />
+                            </button>
+                          </div>
+                          <div className="space-y-4">
+                            <div>
+                              <label className="block text-sm font-medium text-gray-700 mb-1">Date</label>
+                              <div className="px-3 py-2 bg-gray-50 border border-gray-200 rounded-lg text-gray-900">
+                                {selectedTicket.date || '-'}
+                              </div>
+                            </div>
+                            <div>
+                              <label className="block text-sm font-medium text-gray-700 mb-1">Title</label>
+                              <div className="px-3 py-2 bg-gray-50 border border-gray-200 rounded-lg text-gray-900">
+                                {selectedTicket.title || '-'}
+                              </div>
+                            </div>
+                            <div>
+                              <label className="block text-sm font-medium text-gray-700 mb-1">Description</label>
+                              <div className="px-3 py-2 bg-gray-50 border border-gray-200 rounded-lg text-gray-900">
+                                {selectedTicket.description || '-'}
+                              </div>
+                            </div>
+                            <div>
+                              <label className="block text-sm font-medium text-gray-700 mb-1">Amount</label>
+                              <div className="px-3 py-2 bg-gray-50 border border-gray-200 rounded-lg text-gray-900">
+                                {selectedTicket.amount ? `$${selectedTicket.amount}` : '-'}
+                              </div>
+                            </div>
+                            <div>
+                              <label className="block text-sm font-medium text-gray-700 mb-1">Status</label>
+                              <div className="px-3 py-2 bg-gray-50 border border-gray-200 rounded-lg text-gray-900">
+                                {selectedTicket.status}
+                              </div>
+                            </div>
+                            <div className="pt-4 border-t border-gray-200">
+                              <button
+                                onClick={() => {
+                                  setTickets(tickets.filter(t => t.id !== selectedTicket.id));
+                                  setSelectedTicket(null);
+                                }}
+                                className="w-full px-4 py-2 bg-red-500 !text-white rounded-lg hover:bg-red-600 transition-colors font-medium"
+                              >
+                                Delete Ticket
+                              </button>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Delete Ticket Confirmation Modal */}
+                    {confirmDeleteTicket.open && confirmDeleteTicket.ticket && (
+                      <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-[60] p-4">
+                        <div className="bg-white rounded-xl shadow-2xl w-full max-w-md">
+                          <div className="p-6">
+                            <div className="flex items-center gap-4 mb-4">
+                              <div className="flex-shrink-0 w-12 h-12 bg-red-100 rounded-full flex items-center justify-center">
+                                <Trash2 className="w-6 h-6 text-red-600" />
+                              </div>
+                              <div>
+                                <h3 className="text-lg font-semibold text-gray-900">Delete Ticket</h3>
+                                <p className="text-sm text-gray-500">This action cannot be undone</p>
+                              </div>
+                            </div>
+                            <p className="text-gray-700 mb-6">
+                              Are you sure you want to delete this ticket ({confirmDeleteTicket.ticket.title || 'Ticket'} — {confirmDeleteTicket.ticket.date || 'N/A'})?
+                            </p>
+                            <div className="flex items-center justify-end gap-3">
+                              <button
+                                onClick={() => setConfirmDeleteTicket({ open: false, ticket: null })}
+                                className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors font-medium"
+                              >
+                                Cancel
+                              </button>
+                              <button
+                                onClick={() => {
+                                  setTickets(tickets.filter(t => t.id !== confirmDeleteTicket.ticket!.id));
+                                  setConfirmDeleteTicket({ open: false, ticket: null });
+                                  setSelectedTicket(null);
+                                }}
+                                className="px-4 py-2 bg-red-600 !text-white rounded-lg hover:bg-red-700 transition-colors font-medium"
+                              >
+                                Delete
+                              </button>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    )}
+
                   </div>
                 )}
 
@@ -6640,24 +6966,8 @@ const DriverManagement = () => {
                       </table>
                     </div>
 
-                    {/* Navigation Footer */}
-                    <div className="flex justify-between items-center pt-4 border-t border-gray-200">
-                      <button
-                        onClick={() => setActiveFormTab('certifications')}
-                        className="text-gray-600 hover:text-gray-900 flex items-center gap-2"
-                      >
-                        <span>←</span> Certifications
-                      </button>
-                      <button
-                        onClick={() => setActiveFormTab('notes')}
-                        className="text-gray-600 hover:text-gray-900 flex items-center gap-2"
-                      >
-                        Notes <span>→</span>
-                      </button>
-                    </div>
                   </div>
                 )}
-
 
                 {activeFormTab === 'notes' && (
                   <div className="space-y-6">
@@ -6782,21 +7092,6 @@ const DriverManagement = () => {
                       )}
                     </div>
 
-                    {/* Navigation Footer */}
-                    <div className="flex justify-between items-center pt-4 border-t border-gray-200">
-                      <button
-                        onClick={() => setActiveFormTab('violations')}
-                        className="text-gray-600 hover:text-gray-900 flex items-center gap-2"
-                      >
-                        <span>←</span> Violations
-                      </button>
-                      <button
-                        onClick={() => setActiveFormTab('deductions')}
-                        className="text-gray-600 hover:text-gray-900 flex items-center gap-2"
-                      >
-                        Deductions <span>→</span>
-                      </button>
-                    </div>
                   </div>
                 )}
 
@@ -7002,21 +7297,6 @@ const DriverManagement = () => {
                       </table>
                     </div>
 
-                    {/* Navigation Footer */}
-                    <div className="flex justify-between items-center pt-4 border-t border-gray-200">
-                      <button
-                        onClick={() => setActiveFormTab('notes')}
-                        className="text-gray-600 hover:text-gray-900 flex items-center gap-2"
-                      >
-                        <span>←</span> Notes
-                      </button>
-                      <button
-                        onClick={() => setActiveFormTab('additions')}
-                        className="text-gray-600 hover:text-gray-900 flex items-center gap-2"
-                      >
-                        Additions <span>→</span>
-                      </button>
-                    </div>
                   </div>
                 )}
 
@@ -7222,21 +7502,6 @@ const DriverManagement = () => {
                       </table>
                     </div>
 
-                    {/* Navigation Footer */}
-                    <div className="flex justify-between items-center pt-4 border-t border-gray-200">
-                      <button
-                        onClick={() => setActiveFormTab('deductions')}
-                        className="text-gray-600 hover:text-gray-900 flex items-center gap-2"
-                      >
-                        <span>←</span> Deductions
-                      </button>
-                      <button
-                        onClick={() => setActiveFormTab('onboarding')}
-                        className="text-gray-600 hover:text-gray-900 flex items-center gap-2"
-                      >
-                        Onboarding <span>→</span>
-                      </button>
-                    </div>
                   </div>
                 )}
 
@@ -7621,21 +7886,52 @@ const DriverManagement = () => {
                       </div>
                     </div>
 
-                    {/* Navigation Footer */}
-                    <div className="flex justify-between items-center pt-4 border-t border-gray-200">
-                      <button
-                        onClick={() => setActiveFormTab('additions')}
-                        className="text-gray-600 hover:text-gray-900 flex items-center gap-2"
-                      >
-                        <span>←</span> Additions
-                      </button>
-                      <div></div>
-                    </div>
                   </div>
                 )}
 
-             
               </div>
+
+              {/* Tab Navigation Footer - fixed at bottom of modal */}
+              {(() => {
+                const FORM_TABS = [
+                  { id: 'basic', label: 'Basic' },
+                  { id: 'personal', label: 'Personal' },
+                  { id: 'travel', label: 'Travel' },
+                  { id: 'documents', label: 'Documents' },
+                  { id: 'certifications', label: 'Certifications' },
+                  { id: 'tickets', label: 'Tickets' },
+                  { id: 'violations', label: 'Violations' },
+                  { id: 'notes', label: 'Notes' },
+                  { id: 'deductions', label: 'Deductions' },
+                  { id: 'additions', label: 'Additions' },
+                  { id: 'onboarding', label: 'Onboarding & Tests' },
+                ];
+                const tabIndex = FORM_TABS.findIndex(t => t.id === activeFormTab);
+                const prevTab = tabIndex > 0 ? FORM_TABS[tabIndex - 1] : null;
+                const nextTab = tabIndex >= 0 && tabIndex < FORM_TABS.length - 1 ? FORM_TABS[tabIndex + 1] : null;
+                return (
+                  <div className="flex-shrink-0 border-t border-gray-200 bg-gray-50 px-4 py-3 flex justify-between items-center">
+                    {prevTab ? (
+                      <button
+                        type="button"
+                        onClick={() => setActiveFormTab(prevTab.id as any)}
+                        className="inline-flex items-center gap-2 px-4 py-2.5 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg shadow-sm hover:bg-gray-50 transition-colors"
+                      >
+                        <span aria-hidden>←</span> {prevTab.label}
+                      </button>
+                    ) : <div />}
+                    {nextTab ? (
+                      <button
+                        type="button"
+                        onClick={() => setActiveFormTab(nextTab.id as any)}
+                        className="inline-flex items-center gap-2 px-4 py-2.5 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg shadow-sm hover:bg-gray-50 transition-colors"
+                      >
+                        {nextTab.label} <span aria-hidden>→</span>
+                      </button>
+                    ) : <div />}
+                  </div>
+                );
+              })()}
             </div>
           </div>
         </div>
