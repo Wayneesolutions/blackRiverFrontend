@@ -417,6 +417,12 @@ const DrugTest = () => {
         }
     };
 
+    // Show "completed" when both documents are uploaded, otherwise use actual status
+    const getDisplayStatus = (request: DrugTestRequest) => {
+        if (request.consentFormUrl && request.drugTestDocumentUrl) return 'completed';
+        return request.status;
+    };
+
     const filteredRequests = drugTestRequests.filter(request => {
         if (searchQuery) {
             const searchLower = searchQuery.toLowerCase();
@@ -641,8 +647,8 @@ const DrugTest = () => {
                                             </div>
                                         </td>
                                         <td className="px-6 py-4 whitespace-nowrap">
-                                            <span className={`px-3 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${getStatusColor(request.status)}`}>
-                                                {request.status.toUpperCase()}
+                                            <span className={`px-3 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${getStatusColor(getDisplayStatus(request))}`}>
+                                                {getDisplayStatus(request).toUpperCase()}
                                             </span>
                                         </td>
                                         <td className="px-6 py-4 whitespace-nowrap text-sm font-medium" onClick={(e) => e.stopPropagation()}>
@@ -977,8 +983,8 @@ const DrugTest = () => {
                                 </div>
                                 <div>
                                     <label className="block text-sm font-medium text-gray-500 mb-1">Status</label>
-                                    <span className={`px-3 py-1 inline-flex text-sm font-semibold rounded-full ${getStatusColor(selectedRequest.status)}`}>
-                                        {selectedRequest.status.toUpperCase()}
+                                    <span className={`px-3 py-1 inline-flex text-sm font-semibold rounded-full ${getStatusColor(getDisplayStatus(selectedRequest))}`}>
+                                        {getDisplayStatus(selectedRequest).toUpperCase()}
                                     </span>
                                 </div>
                                 <div>
