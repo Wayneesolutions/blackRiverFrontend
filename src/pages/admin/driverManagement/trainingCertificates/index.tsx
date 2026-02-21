@@ -515,13 +515,34 @@ const TrainingCertificates = ({ hideHeader = false }: { hideHeader?: boolean }) 
                                             <div className="text-sm font-medium text-gray-900">{cert.driverName || 'Unknown'}</div>
                                         </td>
                                         <td className="px-6 py-4">
-                                            <div className="text-sm font-medium text-gray-900">{cert.certificateName}</div>
+                                            <div className="text-sm font-medium text-gray-900">
+                                                {cert.certificateName && 
+                                                 cert.certificateName.trim() !== '' && 
+                                                 cert.certificateName.toLowerCase() !== 'unknown certification'
+                                                    ? cert.certificateName
+                                                    : cert.certificateNumber 
+                                                        ? `Certificate #${cert.certificateNumber}`
+                                                        : cert.issuingAuthority
+                                                            ? `${cert.issuingAuthority} Certificate`
+                                                            : 'Certificate'}
+                                            </div>
                                             {cert.certificateNumber && (
                                                 <div className="text-xs text-gray-500">#{cert.certificateNumber}</div>
                                             )}
                                         </td>
                                         <td className="px-6 py-4 whitespace-nowrap">
-                                            <div className="text-sm text-gray-900">{cert.certificateType}</div>
+                                            <div className="text-sm text-gray-900">
+                                                {cert.certificateType && 
+                                                 cert.certificateType.trim() !== '' && 
+                                                 cert.certificateType.toLowerCase() !== 'other' &&
+                                                 cert.certificateType.toLowerCase() !== 'o'
+                                                    ? cert.certificateType
+                                                    : cert.certificateName && 
+                                                      cert.certificateName.trim() !== '' && 
+                                                      cert.certificateName.toLowerCase() !== 'unknown certification'
+                                                        ? cert.certificateName
+                                                        : 'Other'}
+                                            </div>
                                         </td>
                                         <td className="px-6 py-4 whitespace-nowrap">
                                             <div className="text-sm text-gray-900">
@@ -826,11 +847,32 @@ const TrainingCertificates = ({ hideHeader = false }: { hideHeader?: boolean }) 
                                 </div>
                                 <div>
                                     <label className="block text-sm font-medium text-gray-500 mb-1">Certificate Name</label>
-                                    <p className="text-base font-semibold text-gray-900">{selectedCertificate.certificateName}</p>
+                                    <p className="text-base font-semibold text-gray-900">
+                                        {selectedCertificate.certificateName && 
+                                         selectedCertificate.certificateName.trim() !== '' && 
+                                         selectedCertificate.certificateName.toLowerCase() !== 'unknown certification'
+                                            ? selectedCertificate.certificateName
+                                            : selectedCertificate.certificateNumber 
+                                                ? `Certificate #${selectedCertificate.certificateNumber}`
+                                                : selectedCertificate.issuingAuthority
+                                                    ? `${selectedCertificate.issuingAuthority} Certificate`
+                                                    : 'Certificate'}
+                                    </p>
                                 </div>
                                 <div>
                                     <label className="block text-sm font-medium text-gray-500 mb-1">Certificate Type</label>
-                                    <p className="text-base text-gray-900">{selectedCertificate.certificateType}</p>
+                                    <p className="text-base text-gray-900">
+                                        {selectedCertificate.certificateType && 
+                                         selectedCertificate.certificateType.trim() !== '' && 
+                                         selectedCertificate.certificateType.toLowerCase() !== 'other' &&
+                                         selectedCertificate.certificateType.toLowerCase() !== 'o'
+                                            ? selectedCertificate.certificateType
+                                            : selectedCertificate.certificateName && 
+                                              selectedCertificate.certificateName.trim() !== '' && 
+                                              selectedCertificate.certificateName.toLowerCase() !== 'unknown certification'
+                                                ? selectedCertificate.certificateName
+                                                : 'Other'}
+                                    </p>
                                 </div>
                                 <div>
                                     <label className="block text-sm font-medium text-gray-500 mb-1">Status</label>
