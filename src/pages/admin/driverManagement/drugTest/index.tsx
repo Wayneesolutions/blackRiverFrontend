@@ -120,8 +120,23 @@ const DrugTest = () => {
             if (response?.success) {
                 const userList = Array.isArray(response.data) ? response.data : [];
                 console.log('📋 User list from getAllUsersForDrugTest:', userList);
-                // Show all drivers (no cross-border filter)
-                const mappedDrivers = userList.map((user: any) => {
+                
+                // Filter: Only show drivers (role === 'driver') AND cross-border eligible (true)
+                const filteredUsers = userList.filter((user: any) => {
+                    const role = user.role?.toLowerCase() || '';
+                    const isDriver = role === 'driver';
+                    
+                    // Check cross-border eligible from both possible locations
+                    const crossBorderEligible = user.details?.cross_border_eligible !== undefined 
+                        ? user.details.cross_border_eligible 
+                        : (user.cross_border_eligible !== undefined ? user.cross_border_eligible : false);
+                    
+                    return isDriver && crossBorderEligible === true;
+                });
+                
+                console.log('📋 Filtered to cross-border eligible drivers:', filteredUsers.length);
+                
+                const mappedDrivers = filteredUsers.map((user: any) => {
                     // Handle different name formats
                     const userName = user.name || 
                                    `${user.firstName || ''} ${user.lastName || ''}`.trim() || 
@@ -133,7 +148,7 @@ const DrugTest = () => {
                     };
                 });
                 setDrivers(mappedDrivers);
-                console.log('✅ Set drivers from getAllUsersForDrugTest:', mappedDrivers);
+                console.log('✅ Set cross-border eligible drivers from getAllUsersForDrugTest:', mappedDrivers);
             } else {
                 // Fallback to getAllDrivers if the new endpoint fails
                 console.log('⚠️ getAllUsersForDrugTest failed, trying getAllDrivers fallback...');
@@ -142,17 +157,27 @@ const DrugTest = () => {
                 
                 if (fallbackResponse?.success && Array.isArray(fallbackResponse.data)) {
                     const driverList = fallbackResponse.data;
-                    // Filter out admin, superadmin, customer, and reporter (show all other drivers)
+                    // Filter: Only drivers (role === 'driver') AND cross-border eligible (true)
                     const filteredDrivers = driverList.filter((d: any) => {
                         const role = d.role?.toLowerCase() || '';
-                        return role !== 'admin' && role !== 'superadmin' && role !== 'customer' && role !== 'reporter';
+                        const isDriver = role === 'driver';
+                        
+                        // Check cross-border eligible from both possible locations
+                        const crossBorderEligible = d.details?.cross_border_eligible !== undefined 
+                            ? d.details.cross_border_eligible 
+                            : (d.cross_border_eligible !== undefined ? d.cross_border_eligible : false);
+                        
+                        return isDriver && crossBorderEligible === true;
                     });
+                    
+                    console.log('📋 Filtered to cross-border eligible drivers (fallback):', filteredDrivers.length);
+                    
                     const mappedDrivers = filteredDrivers.map((d: any) => ({
                         _id: d._id,
                         name: d.name || `${d.firstName || ''} ${d.lastName || ''}`.trim() || 'Unknown Driver'
                     }));
                     setDrivers(mappedDrivers);
-                    console.log('✅ Set drivers from getAllDrivers fallback:', mappedDrivers);
+                    console.log('✅ Set cross-border eligible drivers from getAllDrivers fallback:', mappedDrivers);
                 } else {
                     console.warn('⚠️ No drivers found in fallback response');
                     setDrivers([]);
