@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Upload, FileText, Image, Video, MessageSquare, Plus, Trash2, X, CheckCircle2, XCircle, User, Clock, Award, TrendingUp, ChevronDown, CheckCircle, Loader2, Eye } from 'lucide-react';
+import { Upload, FileText, Image, Video, MessageSquare, Plus, Trash2, X, XCircle, User, Clock, Award, TrendingUp, ChevronDown, CheckCircle, Loader2, Eye } from 'lucide-react';
 import {
   getTrainingContent,
   createTrainingContent,
@@ -10,10 +10,8 @@ import {
   deleteQuestionBank,
   getTestResults,
   getTestTypes,
-  createTestType,
-  TestType,
+  createTestType
 } from '../../../../axios/api/driver';
-import { getAllUsersForDrugTest } from '../../../../axios/api/driver';
 
 interface TrainingContent {
   _id: string;
@@ -62,6 +60,12 @@ interface TestResult {
   score: number;
   passed: boolean;
   createdAt: string;
+}
+
+interface TestType {
+  _id?: string;
+  name: string;
+  displayName?: string;
 }
 
 const HR_ROLE = 'hr';
@@ -204,7 +208,10 @@ const AdminHRTrainingView: React.FC = () => {
 
   // Helper function to get aggregate statistics for a quiz
   const getQuizStats = (qaId: string) => {
-    const quizResults = testResults.filter(r => r.questionBankId?._id === qaId);
+    const quizResults = testResults.filter(r => {
+      const qbId = typeof r.questionBankId === 'object' && r.questionBankId && '_id' in r.questionBankId ? r.questionBankId._id : (typeof r.questionBankId === 'string' ? r.questionBankId : undefined);
+      return qbId === qaId;
+    });
     if (quizResults.length === 0) return null;
     
     const totalUsers = quizResults.length;
@@ -403,7 +410,10 @@ const AdminHRTrainingView: React.FC = () => {
         assignedRoles: [HR_ROLE]
       };
 
-      const response = await createQuestionBank(payload);
+      const response = await createQuestionBank({
+        ...payload,
+        testType: payload.testType as 'TDG' | 'VEHICLE' | 'HOS' | 'WINTER'
+      });
       if (response?.success) {
         await fetchAllData();
         setQATitle('');
@@ -490,7 +500,7 @@ const AdminHRTrainingView: React.FC = () => {
     return testType ? testType.displayName : testTypeName;
   };
 
-  const handleViewContent = async (contentId: string, contentType: string) => {
+  const handleViewContent = async (contentId: string, _contentType: string) => {
     try {
       const response = await getTrainingContentSignedUrl(contentId, 'inline');
       console.log('Signed URL response:', response);
@@ -826,17 +836,26 @@ const AdminHRTrainingView: React.FC = () => {
               <div className="space-y-4">
                 {qaContent.map((item) => {
                   const stats = getQuizStats(item._id);
+                  const qbIdForItem = item._id;
                   const allUserResults = testResults
-                    .filter(r => r.questionBankId?._id === item._id)
-                    .map(result => ({
-                      userId: result.driverId?._id || '',
-                      result: {
-                        score: { correct: result.score, total: 100 },
-                        completedAt: result.createdAt
-                      },
-                      userName: result.driverId?.name || 'Unknown User',
-                      passed: result.passed
-                    }));
+                    .filter(r => {
+                      const qbId = typeof r.questionBankId === 'object' && r.questionBankId && '_id' in r.questionBankId ? r.questionBankId._id : (typeof r.questionBankId === 'string' ? r.questionBankId : undefined);
+                      return qbId === qbIdForItem;
+                    })
+                    .map(result => {
+                      const driverIdObj = typeof result.driverId === 'object' && result.driverId && '_id' in result.driverId ? result.driverId : null;
+                      const userId = driverIdObj && '_id' in driverIdObj ? driverIdObj._id : (typeof result.driverId === 'string' ? result.driverId : '');
+                      const userName = driverIdObj && 'name' in driverIdObj ? driverIdObj.name : 'Unknown User';
+                      return {
+                        userId: userId || '',
+                        result: {
+                          score: { correct: result.score, total: 100 },
+                          completedAt: result.createdAt
+                        },
+                        userName: userName || 'Unknown User',
+                        passed: result.passed
+                      };
+                    });
                           
                   return (
                     <div key={item._id} className="bg-gray-50 rounded-lg p-4 border border-gray-200 relative">
@@ -883,7 +902,7 @@ const AdminHRTrainingView: React.FC = () => {
                                             return { bg: 'bg-red-50', border: 'border-red-200', text: 'text-red-700', badge: 'bg-red-100 text-red-700' };
                                           };
                                           const colors = getScoreColor();
-                                          const initials = userName.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2);
+                                          const initials = userName.split(' ').map((n: string) => n[0]).join('').toUpperCase().slice(0, 2);
                                           
                                           return (
                                             <div key={userId} className={`bg-white rounded-lg border-2 ${colors.border} p-4 hover:shadow-md transition-shadow`}>

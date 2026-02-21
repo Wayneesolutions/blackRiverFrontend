@@ -25,7 +25,7 @@ interface AttendanceRecord {
   checkIn?: string;
   checkOut?: string;
   totalHours?: number;
-  status: 'present' | 'absent' | 'leave';
+  status: 'present' | 'absent' | 'leave' | 'late';
   notes?: string;
   isAutoTracked?: boolean; // True if automatically tracked from login/logout
   isActiveSession?: boolean; // True if currently logged in
@@ -208,7 +208,7 @@ const AttendanceTracking = () => {
       date: (record.date || '').slice(0, 10),
       checkIn: record.checkIn || '',
       checkOut: record.checkOut || '',
-      status: record.status,
+      status: record.status === 'late' ? 'present' : record.status,
       notes: record.notes || ''
     });
     setShowAddModal(true);

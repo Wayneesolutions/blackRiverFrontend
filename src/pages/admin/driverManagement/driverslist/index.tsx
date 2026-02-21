@@ -1512,10 +1512,15 @@ const DriverManagement = () => {
           fastCardNumber: '',
           fastCardExpiry: '',
           fastCardValid: false,
+          sinNumber: '',
           canadianWorkerStatus: 'PERMANENT RESIDENT',
           permanentResidenceExpiry: '',
           workPermitExpiry: '',
-          wcbNumber: ''
+          wcbNumber: '',
+          workPermitDocument: null,
+          prCardDocument: null,
+          existingWorkPermitUrl: null,
+          existingPrCardUrl: null
         });
         setDocuments([]);
         setNotes([]);
@@ -2301,10 +2306,15 @@ const DriverManagement = () => {
           fastCardNumber: '',
           fastCardExpiry: '',
           fastCardValid: false,
+          sinNumber: '',
           canadianWorkerStatus: 'PERMANENT RESIDENT',
           permanentResidenceExpiry: '',
           workPermitExpiry: '',
-          wcbNumber: ''
+          wcbNumber: '',
+          workPermitDocument: null,
+          prCardDocument: null,
+          existingWorkPermitUrl: null,
+          existingPrCardUrl: null
         });
         // Reset all form state after successful creation
         setEditingId(null);
@@ -2383,6 +2393,7 @@ const DriverManagement = () => {
       hourlyRate: '0',
       dailyRate: '0',
       driverTypeSolo: true,
+      cross_border_eligible: false,
       cppExempt: false,
       payrollTaxExempt: false,
       customHst: '',
@@ -2401,10 +2412,15 @@ const DriverManagement = () => {
       fastCardNumber: '',
       fastCardExpiry: '',
       fastCardValid: false,
+      sinNumber: '',
       canadianWorkerStatus: 'PERMANENT RESIDENT',
       permanentResidenceExpiry: '',
       workPermitExpiry: '',
-      wcbNumber: ''
+      wcbNumber: '',
+      workPermitDocument: null,
+      prCardDocument: null,
+      existingWorkPermitUrl: null,
+      existingPrCardUrl: null
     });
     
     // Reset documents
@@ -3158,6 +3174,7 @@ const DriverManagement = () => {
                   return expiryValue ? new Date(expiryValue).toISOString().split('T')[0] : '';
                 })(),
                 fastCardValid: driver.fastCardValid !== undefined ? driver.fastCardValid : (driver.details?.fastCardValid || false),
+                sinNumber: driver.details?.sinNumber || travelData.sinNumber || '',
                 canadianWorkerStatus: (driver.canadianWorkerStatus || driver.details?.canadianWorkerStatus || 'PERMANENT RESIDENT') as 'CANADIAN CITIZEN' | 'PERMANENT RESIDENT' | 'WORK PERMIT',
                 permanentResidenceExpiry: (() => {
                   const expiryValue = driver.permanentResidenceExpiry || driver.details?.permanentResidenceExpiry;
@@ -3167,7 +3184,11 @@ const DriverManagement = () => {
                   const expiryValue = driver.workPermitExpiry || driver.details?.workPermitExpiry;
                   return expiryValue ? new Date(expiryValue).toISOString().split('T')[0] : '';
                 })(),
-                wcbNumber: driver.wsibAccountNo || driver.details?.wsibAccountNo || ''
+                wcbNumber: driver.wsibAccountNo || driver.details?.wsibAccountNo || '',
+                workPermitDocument: null,
+                prCardDocument: null,
+                existingWorkPermitUrl: travelData.existingWorkPermitUrl,
+                existingPrCardUrl: travelData.existingPrCardUrl
               });
               console.log('✅ All data refreshed after update');
             }

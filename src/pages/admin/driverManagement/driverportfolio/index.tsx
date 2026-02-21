@@ -1,11 +1,11 @@
 import React, { useState, useMemo, useEffect, useRef } from 'react';
 import type { CSSProperties } from 'react';
-import { Search, Calendar, Users, DollarSign, Clock, TrendingUp, MapPin, FileText, Eye, X, User as UserIcon, Mail, AlertCircle, Download, Truck, Package, CheckCircle2, Loader2, AlertCircle as AlertCircleIcon, Circle, Upload, Plus, Trash2 } from 'lucide-react';
+import { Search, Calendar, Users, DollarSign, Clock, TrendingUp, MapPin, FileText, Eye, X, User as UserIcon, Mail, AlertCircle, Download, Truck, Package, CheckCircle2, Loader2, AlertCircle as AlertCircleIcon, Circle, Upload } from 'lucide-react';
 import { FaCheckCircle, FaExclamationCircle, FaTimes } from 'react-icons/fa';
 import ExcelJS from 'exceljs';
 import { fetchUserProfiles, type UserProfileDto, type UserProfilesTimeRange } from '../../../../axios/api/hr.userProfiles';
 import { listOrder } from '../../../../axios/api/distapcher';
-import { getDriverById, uploadDriverDrugTest, deleteDriverDrugTest, getDriverDrugTestSignedUrl } from '../../../../axios/api/driver';
+import { getDriverById, uploadDriverDrugTest } from '../../../../axios/api/driver';
 import { FLEET_COLORS } from '../../fleetMaintenance/colorUtils';
 
 type TimePeriod = UserProfilesTimeRange;
@@ -206,14 +206,14 @@ const DriverPortfolio: React.FC = () => {
     });
     const [selectedProfile, setSelectedProfile] = useState<DriverProfile | null>(null);
     const [showProfileSidebar, setShowProfileSidebar] = useState(false);
-    const [profileTimePeriod, setProfileTimePeriod] = useState<ProfileTimePeriod>('1month');
+    const [profileTimePeriod] = useState<ProfileTimePeriod>('1month');
     const [currentOrder, setCurrentOrder] = useState<any | null>(null);
     const [loadingOrder, setLoadingOrder] = useState(false);
     const [driverOrdersMap, setDriverOrdersMap] = useState<Record<string, any>>({});
     const [loadingAllOrders, setLoadingAllOrders] = useState(false);
-    const [driverDetails, setDriverDetails] = useState<any | null>(null);
-    const [loadingDriverDetails, setLoadingDriverDetails] = useState(false);
-    const [drugTests, setDrugTests] = useState<any[]>([]);
+    const [, setDriverDetails] = useState<any | null>(null);
+    const [, setLoadingDriverDetails] = useState(false);
+    const [, setDrugTests] = useState<any[]>([]);
     const [showDrugTestModal, setShowDrugTestModal] = useState(false);
     const [editingDrugTest, setEditingDrugTest] = useState<any | null>(null);
     const PAGE_SIZE = 100;
@@ -1083,7 +1083,7 @@ const DriverPortfolio: React.FC = () => {
                                             </td>
                                             <td className="px-6 py-4">
                                                 {(() => {
-                                                    const crossBorderEligible = profile.cross_border_eligible === true || profile.cross_border_eligible === 'true';
+                                                    const crossBorderEligible = profile.cross_border_eligible === true || String(profile.cross_border_eligible) === 'true';
                                                     return (
                                                         <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-semibold ${
                                                             crossBorderEligible 

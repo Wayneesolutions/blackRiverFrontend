@@ -7,8 +7,7 @@ import {
   getTrainingContentSignedUrl,
   getQuestionBanks,
   submitTestResult,
-  getTestTypes,
-  TestType,
+  getTestTypes
 } from '../../../axios/api/driver';
 
 interface TrainingContent {
@@ -46,6 +45,12 @@ interface TestResult {
   createdAt: string;
 }
 
+interface TestType {
+  _id?: string;
+  name: string;
+  displayName?: string;
+}
+
 const TrainingContentView: React.FC = () => {
   const location = useLocation();
   const userRole = getUserRole();
@@ -58,7 +63,7 @@ const TrainingContentView: React.FC = () => {
   const [submittedQA, setSubmittedQA] = useState<Record<string, boolean>>({});
   const [scores, setScores] = useState<Record<string, { correct: number; total: number; passed: boolean }>>({});
   const [submitting, setSubmitting] = useState<Record<string, boolean>>({});
-  const [testResults, setTestResults] = useState<Record<string, TestResult>>({});
+  const [, setTestResults] = useState<Record<string, TestResult>>({});
 
   // Determine target role based on route
   // If accessed from /dispatch/training, show Dispatcher content
@@ -192,7 +197,7 @@ const TrainingContentView: React.FC = () => {
     return testType ? testType.displayName : testTypeName;
   };
 
-  const handleViewContent = async (contentId: string, contentType: string) => {
+  const handleViewContent = async (contentId: string, _contentType: string) => {
     try {
       const response = await getTrainingContentSignedUrl(contentId, 'inline');
       console.log('Signed URL response:', response);
@@ -428,9 +433,7 @@ const TrainingContentView: React.FC = () => {
                               <span className="text-sm text-gray-600">Questions: {item.questions.length}</span>
                               {item.mandatory && <span className="text-xs text-red-600 font-medium">Mandatory</span>}
                             </div>
-                            {item.description && (
-                              <p className="text-sm text-gray-600">{item.description}</p>
-                            )}
+                         
                           </div>
                           {isSubmitted && score && (
                             <div className="flex items-center gap-2 px-4 py-2 bg-white rounded-lg border border-gray-200">
