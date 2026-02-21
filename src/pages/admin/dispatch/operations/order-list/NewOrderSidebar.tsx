@@ -4,7 +4,7 @@ import { FaCheckCircle, FaExclamationCircle, FaTimes } from "react-icons/fa";
 import { listCustomer, createOrder, updateOrder, getAuditTrail } from "../../../../../axios/api/distapcher";
 import { listTrucks } from "../../../../../axios/api/truckTracking";
 import { listTrailers } from "../../../../../axios/api/trailerTracking";
-import { getAllDrivers, getDriverOnboardingStatus, getDrugTests } from "../../../../../axios/api/driver";
+import { getAllDrivers, getDriverOnboardingStatus } from "../../../../../axios/api/driver";
 import { getAllEmployees } from "../../../../../axios/api/employee";
 import { getUserInfo } from "../../../../../utils/auth";
 import AddressSearch from "../../../../../components/common/AddressSearch";
@@ -2282,36 +2282,12 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
                         const driversData = Array.isArray(response.data) ? response.data : response.data.data || [];
                         console.log('📋 Total drivers fetched:', driversData.length);
                         
-                        // Fetch onboarding status and drug test status for each driver and calculate percentage
+                        // Fetch onboarding status for each driver and calculate percentage
                         const driversWithOnboarding = await Promise.all(
                             driversData.map(async (driver: any) => {
                                 try {
                                     const driverId = driver._id || driver.id;
                                     const onboardingResponse = await getDriverOnboardingStatus(driverId);
-                                    
-                                    // Check if driver is cross-border eligible
-                                    const isCrossBorderEligible = driver.details?.cross_border_eligible !== undefined 
-                                        ? driver.details.cross_border_eligible 
-                                        : (driver.cross_border_eligible !== undefined ? driver.cross_border_eligible : false);
-                                    
-                                    // Fetch drug test status for cross-border eligible drivers
-                                    let drugTestStatus: 'pending' | 'completed' | 'not-created' | null = null;
-                                    if (isCrossBorderEligible) {
-                                        try {
-                                            const drugTestResponse = await getDrugTests({ driverId });
-                                            if (drugTestResponse?.success && Array.isArray(drugTestResponse.data) && drugTestResponse.data.length > 0) {
-                                                // Get the most recent drug test
-                                                const latestDrugTest = drugTestResponse.data[0];
-                                                drugTestStatus = latestDrugTest.status === 'completed' ? 'completed' : 
-                                                                 latestDrugTest.status === 'pending' ? 'pending' : 'pending';
-                                            } else {
-                                                drugTestStatus = 'not-created';
-                                            }
-                                        } catch (error) {
-                                            console.error(`❌ Error fetching drug test for driver ${driverId}:`, error);
-                                            drugTestStatus = 'not-created';
-                                        }
-                                    }
                                     
                                     if (onboardingResponse && onboardingResponse.success && onboardingResponse.data) {
                                         const onboarding = onboardingResponse.data;
@@ -2335,7 +2311,7 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
                                             }
                                         }
                                         
-                                        console.log(`📊 Driver ${driver.name || driverId}: Training=${onboarding.trainingCompleted}, Tests=${onboarding.testsCompleted}, HR=${onboarding.hrApprovalStatus}, Percentage=${percentage}%, DrugTest=${drugTestStatus}`);
+                                        console.log(`📊 Driver ${driver.name || driverId}: Training=${onboarding.trainingCompleted}, Tests=${onboarding.testsCompleted}, HR=${onboarding.hrApprovalStatus}, Percentage=${percentage}%`);
                                         
                                         return {
                                             ...driver,
@@ -2344,8 +2320,7 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
                                             trainingCompleted: onboarding.trainingCompleted,
                                             testsCompleted: onboarding.testsCompleted,
                                             hrApprovalStatus: onboarding.hrApprovalStatus,
-                                            allTestsApprovedByHR: onboarding.allTestsApprovedByHR,
-                                            drugTestStatus: drugTestStatus
+                                            allTestsApprovedByHR: onboarding.allTestsApprovedByHR
                                         };
                                     } else {
                                         console.warn(`⚠️ No onboarding data for driver ${driver.name || driverId}:`, onboardingResponse);
@@ -2355,8 +2330,7 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
                                             onboardingStatus: 'NOT_STARTED',
                                             trainingCompleted: false,
                                             testsCompleted: false,
-                                            hrApprovalStatus: 'PENDING',
-                                            drugTestStatus: drugTestStatus
+                                            hrApprovalStatus: 'PENDING'
                                         };
                                     }
                                 } catch (error) {
@@ -2367,8 +2341,7 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
                                         onboardingStatus: 'NOT_STARTED',
                                         trainingCompleted: false,
                                         testsCompleted: false,
-                                        hrApprovalStatus: 'PENDING',
-                                        drugTestStatus: null
+                                        hrApprovalStatus: 'PENDING'
                                     };
                                 }
                             })
@@ -5385,12 +5358,12 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
                                                                                         addAuditTrailEntry(`Receiver - Driver Added`);
                                                                                     }
                                                                                 }}
-                                                                                className="p-3 hover:bg-gray-100 cursor-pointer text-sm border-b border-gray-100 last:border-b-0 w-full"
+                                                                                className="p-3 hover:bg-gray-100 cursor-pointer text-sm border-b border-gray-100 last:border-b-0"
                                                                             >
-                                                                                <div className="font-medium text-gray-900 flex items-center justify-between mb-1 w-full">
-                                                                                    <span className="flex-1 min-w-0">{driver.name || driver.internalId || 'N/A'}</span>
+                                                                                <div className="font-medium text-gray-900 flex items-center justify-between mb-1">
+                                                                                    <span>{driver.name || driver.internalId || 'N/A'}</span>
                                                                                     {driver.onboardingPercentage !== undefined && (
-                                                                                        <span className={`text-xs font-semibold px-2 py-0.5 rounded flex-shrink-0 ml-2 ${
+                                                                                        <span className={`text-xs font-semibold px-2 py-0.5 rounded flex-shrink-0 ${
                                                                                             driver.onboardingPercentage >= 80 
                                                                                                 ? 'bg-green-100 text-green-700' 
                                                                                                 : 'bg-yellow-100 text-yellow-700'
@@ -5399,37 +5372,23 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
                                                                                         </span>
                                                                                     )}
                                                                                 </div>
-                                                                                <div className="text-xs text-gray-600 space-y-1 w-full">
-                                                                                    {driver.internalId && <div className="w-full">Internal ID: {driver.internalId}</div>}
-                                                                                    {driver.phone && <div className="w-full">Phone: {driver.phone}</div>}
-                                                                                    {driver.email && <div className="w-full break-words">Email: {driver.email}</div>}
-                                                                                    {driver.licenseNumber && <div className="w-full">License: {driver.licenseNumber}</div>}
-                                                                                    <div className="w-full">Cross-Border Eligible: {driver.details?.cross_border_eligible !== undefined 
+                                                                                <div className="text-xs text-gray-600 space-y-1">
+                                                                                    {driver.internalId && <div>Internal ID: {driver.internalId}</div>}
+                                                                                    {driver.phone && <div>Phone: {driver.phone}</div>}
+                                                                                    {driver.email && <div>Email: {driver.email}</div>}
+                                                                                    {driver.licenseNumber && <div>License: {driver.licenseNumber}</div>}
+                                                                                    <div>Cross-Border Eligible: {driver.details?.cross_border_eligible !== undefined 
                                                                                         ? (driver.details.cross_border_eligible ? 'Yes' : 'No')
                                                                                         : (driver.cross_border_eligible !== undefined 
                                                                                             ? (driver.cross_border_eligible ? 'Yes' : 'No')
                                                                                             : 'No')}</div>
                                                                                     {driver.onboardingPercentage !== undefined && (
-                                                                                        <div className="mt-2 pt-2 border-t border-gray-200 w-full">
-                                                                                            <div className="font-medium text-gray-700 mb-1 w-full">Onboarding Status:</div>
-                                                                                            <div className="space-y-0.5 w-full">
-                                                                                                <div className="w-full">Training: {driver.trainingCompleted ? '✓ Completed' : '✗ Pending'}</div>
-                                                                                                <div className="w-full">Tests: {driver.testsCompleted ? '✓ Completed' : '✗ Pending'}</div>
-                                                                                                <div className="w-full">HR Approval: {driver.hrApprovalStatus === 'APPROVED' ? '✓ Approved' : driver.hrApprovalStatus === 'IN_REVIEW' ? '⏳ In Review' : '✗ Pending'}</div>
-                                                                                                {(driver.details?.cross_border_eligible || driver.cross_border_eligible) && driver.drugTestStatus !== null && (
-                                                                                                    <div className="w-full mt-1 pt-1 border-t border-gray-200">
-                                                                                                        <div className="font-medium text-gray-700 mb-0.5 w-full">Drug Test:</div>
-                                                                                                        <div className={`w-full ${
-                                                                                                            driver.drugTestStatus === 'completed' ? 'text-green-600 font-medium' :
-                                                                                                            driver.drugTestStatus === 'pending' ? 'text-yellow-600 font-medium' :
-                                                                                                            'text-red-600 font-medium'
-                                                                                                        }`}>
-                                                                                                            {driver.drugTestStatus === 'completed' ? '✓ Completed' :
-                                                                                                             driver.drugTestStatus === 'pending' ? '⏳ Pending' :
-                                                                                                             '✗ Not Created'}
-                                                                                                        </div>
-                                                                                                    </div>
-                                                                                                )}
+                                                                                        <div className="mt-2 pt-2 border-t border-gray-200">
+                                                                                            <div className="font-medium text-gray-700 mb-1">Onboarding Status:</div>
+                                                                                            <div className="space-y-0.5">
+                                                                                                <div>Training: {driver.trainingCompleted ? '✓ Completed' : '✗ Pending'}</div>
+                                                                                                <div>Tests: {driver.testsCompleted ? '✓ Completed' : '✗ Pending'}</div>
+                                                                                                <div>HR Approval: {driver.hrApprovalStatus === 'APPROVED' ? '✓ Approved' : driver.hrApprovalStatus === 'IN_REVIEW' ? '⏳ In Review' : '✗ Pending'}</div>
                                                                                             </div>
                                                                                         </div>
                                                                                     )}
@@ -5506,9 +5465,9 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
                                                                     </span>
                                                                 </div>
                                                                 {selectedDriver.onboardingPercentage !== undefined && (
-                                                                    <div className="mt-3 pt-3 border-t border-purple-300 w-full">
+                                                                    <div className="mt-3 pt-3 border-t border-purple-300">
                                                                         <div className="font-semibold text-purple-900 mb-2 text-sm">Onboarding Progress</div>
-                                                                        <div className="flex items-center gap-2 mb-2 w-full">
+                                                                        <div className="flex items-center gap-2 mb-2">
                                                                             <div className="flex-1 bg-gray-200 rounded-full h-2.5">
                                                                                 <div 
                                                                                     className={`h-2.5 rounded-full transition-all ${
@@ -5519,21 +5478,21 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
                                                                             </div>
                                                                             <span className="font-semibold text-sm text-gray-700 min-w-[3rem] text-right">{selectedDriver.onboardingPercentage.toFixed(0)}%</span>
                                                                         </div>
-                                                                        <div className="space-y-1.5 mt-2 w-full">
-                                                                            <div className="flex items-center w-full">
-                                                                                <span className="w-28 flex-shrink-0">Training:</span>
+                                                                        <div className="space-y-1.5 mt-2">
+                                                                            <div className="flex items-center">
+                                                                                <span className="w-24 flex-shrink-0">Training:</span>
                                                                                 <span className={selectedDriver.trainingCompleted ? 'text-green-600 font-medium' : 'text-gray-500'}>
                                                                                     {selectedDriver.trainingCompleted ? '✓ Completed' : '✗ Pending'}
                                                                                 </span>
                                                                             </div>
-                                                                            <div className="flex items-center w-full">
-                                                                                <span className="w-28 flex-shrink-0">Tests:</span>
+                                                                            <div className="flex items-center">
+                                                                                <span className="w-24 flex-shrink-0">Tests:</span>
                                                                                 <span className={selectedDriver.testsCompleted ? 'text-green-600 font-medium' : 'text-gray-500'}>
                                                                                     {selectedDriver.testsCompleted ? '✓ Completed' : '✗ Pending'}
                                                                                 </span>
                                                                             </div>
-                                                                            <div className="flex items-center w-full">
-                                                                                <span className="w-28 flex-shrink-0">HR Approval:</span>
+                                                                            <div className="flex items-center">
+                                                                                <span className="w-24 flex-shrink-0">HR Approval:</span>
                                                                                 <span className={
                                                                                     selectedDriver.hrApprovalStatus === 'APPROVED' ? 'text-green-600 font-medium' : 
                                                                                     selectedDriver.hrApprovalStatus === 'IN_REVIEW' ? 'text-yellow-600 font-medium' : 
@@ -5544,20 +5503,6 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
                                                                                      '✗ Pending'}
                                                                                 </span>
                                                                             </div>
-                                                                            {(selectedDriver.details?.cross_border_eligible || selectedDriver.cross_border_eligible) && selectedDriver.drugTestStatus !== null && (
-                                                                                <div className="flex items-center w-full mt-1 pt-1 border-t border-purple-200">
-                                                                                    <span className="w-28 flex-shrink-0">Drug Test:</span>
-                                                                                    <span className={
-                                                                                        selectedDriver.drugTestStatus === 'completed' ? 'text-green-600 font-medium' :
-                                                                                        selectedDriver.drugTestStatus === 'pending' ? 'text-yellow-600 font-medium' :
-                                                                                        'text-red-600 font-medium'
-                                                                                    }>
-                                                                                        {selectedDriver.drugTestStatus === 'completed' ? '✓ Completed' :
-                                                                                         selectedDriver.drugTestStatus === 'pending' ? '⏳ Pending' :
-                                                                                         '✗ Not Created'}
-                                                                                    </span>
-                                                                                </div>
-                                                                            )}
                                                                         </div>
                                                                     </div>
                                                                 )}
@@ -5619,12 +5564,12 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
                                                                                         addAuditTrailEntry(`Receiver - Codriver Added`);
                                                                                     }
                                                                                 }}
-                                                                                className="p-3 hover:bg-gray-100 cursor-pointer text-sm border-b border-gray-100 last:border-b-0 w-full"
+                                                                                className="p-3 hover:bg-gray-100 cursor-pointer text-sm border-b border-gray-100 last:border-b-0"
                                                                             >
-                                                                                <div className="font-medium text-gray-900 flex items-center justify-between mb-1 w-full">
-                                                                                    <span className="flex-1 min-w-0">{driver.name || driver.internalId || 'N/A'}</span>
+                                                                                <div className="font-medium text-gray-900 flex items-center justify-between mb-1">
+                                                                                    <span>{driver.name || driver.internalId || 'N/A'}</span>
                                                                                     {driver.onboardingPercentage !== undefined && (
-                                                                                        <span className={`text-xs font-semibold px-2 py-0.5 rounded flex-shrink-0 ml-2 ${
+                                                                                        <span className={`text-xs font-semibold px-2 py-0.5 rounded flex-shrink-0 ${
                                                                                             driver.onboardingPercentage >= 80 
                                                                                                 ? 'bg-green-100 text-green-700' 
                                                                                                 : 'bg-yellow-100 text-yellow-700'
@@ -5633,37 +5578,23 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
                                                                                         </span>
                                                                                     )}
                                                                                 </div>
-                                                                                <div className="text-xs text-gray-600 space-y-1 w-full">
-                                                                                    {driver.internalId && <div className="w-full">Internal ID: {driver.internalId}</div>}
-                                                                                    {driver.phone && <div className="w-full">Phone: {driver.phone}</div>}
-                                                                                    {driver.email && <div className="w-full break-words">Email: {driver.email}</div>}
-                                                                                    {driver.licenseNumber && <div className="w-full">License: {driver.licenseNumber}</div>}
-                                                                                    <div className="w-full">Cross-Border Eligible: {driver.details?.cross_border_eligible !== undefined 
+                                                                                <div className="text-xs text-gray-600 space-y-1">
+                                                                                    {driver.internalId && <div>Internal ID: {driver.internalId}</div>}
+                                                                                    {driver.phone && <div>Phone: {driver.phone}</div>}
+                                                                                    {driver.email && <div>Email: {driver.email}</div>}
+                                                                                    {driver.licenseNumber && <div>License: {driver.licenseNumber}</div>}
+                                                                                    <div>Cross-Border Eligible: {driver.details?.cross_border_eligible !== undefined 
                                                                                         ? (driver.details.cross_border_eligible ? 'Yes' : 'No')
                                                                                         : (driver.cross_border_eligible !== undefined 
                                                                                             ? (driver.cross_border_eligible ? 'Yes' : 'No')
                                                                                             : 'No')}</div>
                                                                                     {driver.onboardingPercentage !== undefined && (
-                                                                                        <div className="mt-2 pt-2 border-t border-gray-200 w-full">
-                                                                                            <div className="font-medium text-gray-700 mb-1 w-full">Onboarding Status:</div>
-                                                                                            <div className="space-y-0.5 w-full">
-                                                                                                <div className="w-full">Training: {driver.trainingCompleted ? '✓ Completed' : '✗ Pending'}</div>
-                                                                                                <div className="w-full">Tests: {driver.testsCompleted ? '✓ Completed' : '✗ Pending'}</div>
-                                                                                                <div className="w-full">HR Approval: {driver.hrApprovalStatus === 'APPROVED' ? '✓ Approved' : driver.hrApprovalStatus === 'IN_REVIEW' ? '⏳ In Review' : '✗ Pending'}</div>
-                                                                                                {(driver.details?.cross_border_eligible || driver.cross_border_eligible) && driver.drugTestStatus !== null && (
-                                                                                                    <div className="w-full mt-1 pt-1 border-t border-gray-200">
-                                                                                                        <div className="font-medium text-gray-700 mb-0.5 w-full">Drug Test:</div>
-                                                                                                        <div className={`w-full ${
-                                                                                                            driver.drugTestStatus === 'completed' ? 'text-green-600 font-medium' :
-                                                                                                            driver.drugTestStatus === 'pending' ? 'text-yellow-600 font-medium' :
-                                                                                                            'text-red-600 font-medium'
-                                                                                                        }`}>
-                                                                                                            {driver.drugTestStatus === 'completed' ? '✓ Completed' :
-                                                                                                             driver.drugTestStatus === 'pending' ? '⏳ Pending' :
-                                                                                                             '✗ Not Created'}
-                                                                                                        </div>
-                                                                                                    </div>
-                                                                                                )}
+                                                                                        <div className="mt-2 pt-2 border-t border-gray-200">
+                                                                                            <div className="font-medium text-gray-700 mb-1">Onboarding Status:</div>
+                                                                                            <div className="space-y-0.5">
+                                                                                                <div>Training: {driver.trainingCompleted ? '✓ Completed' : '✗ Pending'}</div>
+                                                                                                <div>Tests: {driver.testsCompleted ? '✓ Completed' : '✗ Pending'}</div>
+                                                                                                <div>HR Approval: {driver.hrApprovalStatus === 'APPROVED' ? '✓ Approved' : driver.hrApprovalStatus === 'IN_REVIEW' ? '⏳ In Review' : '✗ Pending'}</div>
                                                                                             </div>
                                                                                         </div>
                                                                                     )}
@@ -5740,9 +5671,9 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
                                                                     </span>
                                                                 </div>
                                                                 {selectedCoDriver.onboardingPercentage !== undefined && (
-                                                                    <div className="mt-3 pt-3 border-t border-orange-300 w-full">
+                                                                    <div className="mt-3 pt-3 border-t border-orange-300">
                                                                         <div className="font-semibold text-orange-900 mb-2 text-sm">Onboarding Progress</div>
-                                                                        <div className="flex items-center gap-2 mb-2 w-full">
+                                                                        <div className="flex items-center gap-2 mb-2">
                                                                             <div className="flex-1 bg-gray-200 rounded-full h-2.5">
                                                                                 <div 
                                                                                     className={`h-2.5 rounded-full transition-all ${
@@ -5753,21 +5684,21 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
                                                                             </div>
                                                                             <span className="font-semibold text-sm text-gray-700 min-w-[3rem] text-right">{selectedCoDriver.onboardingPercentage.toFixed(0)}%</span>
                                                                         </div>
-                                                                        <div className="space-y-1.5 mt-2 w-full">
-                                                                            <div className="flex items-center w-full">
-                                                                                <span className="w-28 flex-shrink-0">Training:</span>
+                                                                        <div className="space-y-1.5 mt-2">
+                                                                            <div className="flex items-center">
+                                                                                <span className="w-24 flex-shrink-0">Training:</span>
                                                                                 <span className={selectedCoDriver.trainingCompleted ? 'text-green-600 font-medium' : 'text-gray-500'}>
                                                                                     {selectedCoDriver.trainingCompleted ? '✓ Completed' : '✗ Pending'}
                                                                                 </span>
                                                                             </div>
-                                                                            <div className="flex items-center w-full">
-                                                                                <span className="w-28 flex-shrink-0">Tests:</span>
+                                                                            <div className="flex items-center">
+                                                                                <span className="w-24 flex-shrink-0">Tests:</span>
                                                                                 <span className={selectedCoDriver.testsCompleted ? 'text-green-600 font-medium' : 'text-gray-500'}>
                                                                                     {selectedCoDriver.testsCompleted ? '✓ Completed' : '✗ Pending'}
                                                                                 </span>
                                                                             </div>
-                                                                            <div className="flex items-center w-full">
-                                                                                <span className="w-28 flex-shrink-0">HR Approval:</span>
+                                                                            <div className="flex items-center">
+                                                                                <span className="w-24 flex-shrink-0">HR Approval:</span>
                                                                                 <span className={
                                                                                     selectedCoDriver.hrApprovalStatus === 'APPROVED' ? 'text-green-600 font-medium' : 
                                                                                     selectedCoDriver.hrApprovalStatus === 'IN_REVIEW' ? 'text-yellow-600 font-medium' : 
@@ -5778,20 +5709,6 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
                                                                                      '✗ Pending'}
                                                                                 </span>
                                                                             </div>
-                                                                            {(selectedCoDriver.details?.cross_border_eligible || selectedCoDriver.cross_border_eligible) && selectedCoDriver.drugTestStatus !== null && (
-                                                                                <div className="flex items-center w-full mt-1 pt-1 border-t border-orange-200">
-                                                                                    <span className="w-28 flex-shrink-0">Drug Test:</span>
-                                                                                    <span className={
-                                                                                        selectedCoDriver.drugTestStatus === 'completed' ? 'text-green-600 font-medium' :
-                                                                                        selectedCoDriver.drugTestStatus === 'pending' ? 'text-yellow-600 font-medium' :
-                                                                                        'text-red-600 font-medium'
-                                                                                    }>
-                                                                                        {selectedCoDriver.drugTestStatus === 'completed' ? '✓ Completed' :
-                                                                                         selectedCoDriver.drugTestStatus === 'pending' ? '⏳ Pending' :
-                                                                                         '✗ Not Created'}
-                                                                                    </span>
-                                                                                </div>
-                                                                            )}
                                                                         </div>
                                                                     </div>
                                                                 )}

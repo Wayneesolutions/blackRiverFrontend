@@ -265,15 +265,15 @@ const TrainingContentView: React.FC = () => {
         const totalQuestions = qaItem.questions.length;
         const correctAnswers = Math.round((score / 100) * totalQuestions);
 
-        setScores((prev) => ({
-          ...prev,
+    setScores((prev) => ({
+      ...prev,
           [qaId]: { correct: correctAnswers, total: totalQuestions, passed }
-        }));
+    }));
 
-        setSubmittedQA((prev) => ({
-          ...prev,
-          [qaId]: true,
-        }));
+    setSubmittedQA((prev) => ({
+      ...prev,
+      [qaId]: true,
+    }));
 
         setTestResults((prev) => ({
           ...prev,

@@ -542,6 +542,16 @@ export const deleteDriverDrugTest = async (driverId: string, testIndex: number) 
   }
 };
 
+export const getDriverTicketSignedUrl = async (ticketId: string, disposition: 'inline' | 'attachment' = 'inline') => {
+  try {
+    const res: AxiosResponse = await apiClient.get(`hr/driver/ticket/${ticketId}/signed-url?disposition=${disposition}`);
+    return res.data;
+  } catch (error) {
+    console.error('❌ Error fetching ticket signed URL:', error);
+    return (error as any).response?.data;
+  }
+};
+
 export const getDriverDrugTestSignedUrl = async (driverId: string, testIndex: number, documentType: 'consent' | 'result', disposition: 'inline' | 'attachment' = 'inline') => {
   try {
     const res: AxiosResponse = await apiClient.get(`hr/driver/${driverId}/drug-test/${testIndex}/signed-url/${documentType}?disposition=${disposition}`);

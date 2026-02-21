@@ -2,7 +2,7 @@ import { useState, useEffect, useRef } from 'react';
 import { Edit, Trash2, Plus, X, RefreshCw, User, Search, FileText,  MapPin, DollarSign, Upload, Save, ChevronUp, ChevronDown, Calendar, Award, AlertTriangle, FileText as FileTextIcon, PlusCircle, Check, ClipboardCheck, Ticket } from 'lucide-react';
 import { FaCheckCircle, FaExclamationCircle, FaTimes } from 'react-icons/fa';
 import * as driverApi from '../../../../axios/api/driver';
-import { getTestResults, approveTestResult, rejectTestResult } from '../../../../axios/api/driver';
+import { getTestResults, approveTestResult, rejectTestResult, getDriverTicketSignedUrl } from '../../../../axios/api/driver';
 import { listDriver } from '../../../../axios/api/distapcher';
 import { getSignedEmployeeDocumentUrl, deleteEmployeeDocument } from '../../../../axios/api/employeeDocument';
 import type { EmployeeDocument } from '../../../../axios/api/employeeDocument';
@@ -502,16 +502,19 @@ const DriverManagement = () => {
     title: string;
     description: string;
     amount: string;
+    currency: string;
     status: string;
     file?: File | null;
     fileUrl?: string | null;
     fileName?: string | null;
+    ticketId?: string; // MongoDB _id for existing tickets
   }>>([]);
   const [newTicket, setNewTicket] = useState({
     date: '',
     title: '',
     description: '',
     amount: '',
+    currency: 'CAD',
     status: 'Unpaid',
     file: null as File | null
   });
@@ -523,6 +526,7 @@ const DriverManagement = () => {
     title: string;
     description: string;
     amount: string;
+    currency: string;
     status: string;
   } | null>(null);
   const [confirmDeleteTicket, setConfirmDeleteTicket] = useState<{ open: boolean; ticket: any | null }>({ open: false, ticket: null });
@@ -1105,6 +1109,33 @@ const DriverManagement = () => {
             } catch (certError) {
               console.error('Error loading certifications:', certError);
               setCertifications([]);
+            }
+
+            // Load tickets (Tickets & Fines) from getDriverById response
+            try {
+              if (driver.tickets && Array.isArray(driver.tickets) && driver.tickets.length > 0) {
+                const existingTickets = driver.tickets.map((ticket: any) => ({
+                  id: `existing-${ticket._id}`,
+                  ticketId: ticket._id, // Store MongoDB ID for signed URL
+                  date: ticket.date ? new Date(ticket.date).toISOString().split('T')[0] : '',
+                  title: ticket.title || '',
+                  description: ticket.description || '',
+                  amount: ticket.amount?.toString() || '0',
+                  currency: ticket.currency || 'CAD',
+                  status: ticket.status || 'Unpaid',
+                  file: null, // Don't set file for existing tickets (it's a File object, not needed for display)
+                  fileUrl: ticket.fileUrl || null, // Include fileUrl for displaying existing files
+                  fileName: ticket.fileName || null // Include fileName for displaying existing files
+                }));
+                setTickets(existingTickets);
+                console.log(`✅ Tickets loaded (${existingTickets.length} tickets)`, existingTickets.map((t: any) => ({ id: t.id, ticketId: t.ticketId, hasFile: !!t.fileUrl, fileName: t.fileName })));
+              } else {
+                console.log('⚠️ No tickets found for this driver');
+                setTickets([]);
+              }
+            } catch (ticketError) {
+              console.error('Error loading tickets:', ticketError);
+              setTickets([]);
             }
 
             // Load violations (Violations) from getDriverById response
@@ -2094,6 +2125,33 @@ const DriverManagement = () => {
         });
       }
       
+      // Tickets - send as JSON array
+      if (tickets && tickets.length > 0) {
+        const ticketsData = tickets.map(ticket => ({
+          id: ticket.id,
+          date: ticket.date || '',
+          title: ticket.title || '',
+          description: ticket.description || '',
+          amount: ticket.amount || '0',
+          currency: ticket.currency || 'CAD',
+          status: ticket.status || 'Unpaid',
+          fileUrl: ticket.fileUrl || null,
+          fileName: ticket.fileName || null,
+          hasFile: !!(ticket.file instanceof File) // Only true if it's a new File object
+        }));
+        driverFormData.append('tickets', JSON.stringify(ticketsData));
+        console.log('🎫 Sending tickets:', ticketsData.length, 'tickets');
+        
+        // Append ticket files directly (multer expects array, not indexed)
+        // Only append actual File objects (new files), not metadata from existing tickets
+        tickets.forEach((ticket) => {
+          if (ticket.file instanceof File) {
+            driverFormData.append('ticketFiles', ticket.file);
+            console.log('📎 Appending ticket file:', ticket.file.name, ticket.file.size, 'bytes');
+          }
+        });
+      }
+      
       // Violations - send as JSON array
       if (violations && violations.length > 0) {
         const violationsData = violations.map(viol => ({
@@ -2852,6 +2910,33 @@ const DriverManagement = () => {
         console.log('📄 Sending documents:', documentsData.length, 'documents');
       }
       
+      // Tickets - send as JSON array (always send if exists, backend handles updates)
+      if (tickets && tickets.length > 0) {
+        const ticketsData = tickets.map(ticket => ({
+          id: ticket.id,
+          date: ticket.date || '',
+          title: ticket.title || '',
+          description: ticket.description || '',
+          amount: ticket.amount || '0',
+          currency: ticket.currency || 'CAD',
+          status: ticket.status || 'Unpaid',
+          fileUrl: ticket.fileUrl || null,
+          fileName: ticket.fileName || null,
+          hasFile: !!(ticket.file instanceof File) // Only true if it's a new File object
+        }));
+        driverFormData.append('tickets', JSON.stringify(ticketsData));
+        console.log('🎫 Sending tickets:', ticketsData.length, 'tickets');
+        
+        // Append ticket files directly (multer expects array, not indexed)
+        // Only append actual File objects (new files), not metadata from existing tickets
+        tickets.forEach((ticket) => {
+          if (ticket.file instanceof File) {
+            driverFormData.append('ticketFiles', ticket.file);
+            console.log('📎 Appending ticket file:', ticket.file.name, ticket.file.size, 'bytes');
+          }
+        });
+      }
+      
       // Violations - send as JSON array (always send if exists, backend handles updates)
       if (violations && violations.length > 0) {
         const violationsData = violations.map(vio => ({
@@ -2918,6 +3003,7 @@ const DriverManagement = () => {
       // Check if there are documents, certifications, violations, tickets, deductions, or additions to send
       const hasDocuments = documents && documents.length > 0;
       const hasCertifications = certifications && certifications.length > 0;
+      const hasTickets = tickets && tickets.length > 0;
       const hasViolations = violations && violations.length > 0;
       const hasDeductions = deductions && deductions.length > 0;
       const hasAdditions = additions && additions.length > 0;
@@ -2927,13 +3013,14 @@ const DriverManagement = () => {
         hasProfileImage: !!formData.profileImage,
         hasDocuments,
         hasCertifications,
+        hasTickets,
         hasViolations,
         hasDeductions,
         hasAdditions
       });
       
       // Only proceed if there are changes or related data to update
-      if (changedFields.length === 0 && !formData.profileImage && !hasDocuments && !hasCertifications && !hasViolations && !hasDeductions && !hasAdditions) {
+      if (changedFields.length === 0 && !formData.profileImage && !hasDocuments && !hasCertifications && !hasTickets && !hasViolations && !hasDeductions && !hasAdditions) {
         addNotification('info', 'No changes detected. Please modify at least one field before updating.');
         setIsSubmitting(false);
         return;
@@ -2984,6 +3071,25 @@ const DriverManagement = () => {
                   ignoreExpiration: false
                 }));
                 setCertifications(existingCertifications);
+              }
+              
+              // Update tickets from response
+              if (driver.tickets && Array.isArray(driver.tickets)) {
+                const existingTickets = driver.tickets.map((ticket: any) => ({
+                  id: `existing-${ticket._id}`,
+                  ticketId: ticket._id, // Store MongoDB ID for signed URL
+                  date: ticket.date ? new Date(ticket.date).toISOString().split('T')[0] : '',
+                  title: ticket.title || '',
+                  description: ticket.description || '',
+                  amount: ticket.amount?.toString() || '0',
+                  currency: ticket.currency || 'CAD',
+                  status: ticket.status || 'Unpaid',
+                  file: null, // Don't set file for existing tickets (it's a File object, not needed for display)
+                  fileUrl: ticket.fileUrl || null, // Include fileUrl for displaying existing files
+                  fileName: ticket.fileName || null // Include fileName for displaying existing files
+                }));
+                setTickets(existingTickets);
+                console.log('✅ Tickets reloaded after update:', existingTickets.map((t: any) => ({ id: t.id, ticketId: t.ticketId, hasFile: !!t.fileUrl, fileName: t.fileName })));
               }
               
               // Update violations from response
@@ -6206,8 +6312,8 @@ const DriverManagement = () => {
                     <p className="text-sm text-gray-500 mb-4">Record driver tickets, fines, and citations. Static only — not sent to backend.</p>
 
                     {/* Tickets Table with Input Row */}
-                    <div className="border border-gray-200 rounded-lg overflow-hidden">
-                      <table className="w-full">
+                    <div className="border border-gray-200 rounded-lg overflow-hidden overflow-x-auto">
+                      <table className="w-full min-w-[800px]">
                         <thead className="bg-gray-50">
                           <tr>
                             <th className="px-3 py-2 text-left text-xs font-medium text-gray-700 uppercase">DATE</th>
@@ -6250,13 +6356,23 @@ const DriverManagement = () => {
                               />
                             </td>
                             <td className="px-3 py-2">
-                              <input
-                                type="text"
-                                placeholder="Amount"
-                                value={newTicket.amount}
-                                onChange={(e) => setNewTicket({ ...newTicket, amount: e.target.value })}
-                                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#42aeec] focus:border-transparent"
-                              />
+                              <div className="flex items-center gap-2">
+                                <input
+                                  type="text"
+                                  placeholder="Amount"
+                                  value={newTicket.amount}
+                                  onChange={(e) => setNewTicket({ ...newTicket, amount: e.target.value })}
+                                  className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#42aeec] focus:border-transparent"
+                                />
+                                <select
+                                  value={newTicket.currency}
+                                  onChange={(e) => setNewTicket({ ...newTicket, currency: e.target.value })}
+                                  className="w-20 px-2 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#42aeec] focus:border-transparent text-sm"
+                                >
+                                  <option value="CAD">CAD</option>
+                                  <option value="USD">USD</option>
+                                </select>
+                              </div>
                             </td>
                             <td className="px-3 py-2">
                               <select
@@ -6271,26 +6387,26 @@ const DriverManagement = () => {
                               </select>
                             </td>
                             <td className="px-3 py-2">
-                              <div className="flex items-center gap-2">
+                              <div className="flex items-center gap-2 min-w-0">
                                 {ticketFile ? (
-                                  <div className="flex items-center gap-2 px-3 py-2 border border-gray-300 rounded-lg bg-white">
-                                    <FileText className="w-4 h-4 text-gray-600" />
-                                    <span className="text-sm text-gray-700 truncate max-w-[120px]">{ticketFile.name}</span>
+                                  <div className="flex items-center gap-2 px-3 py-2 border border-gray-300 rounded-lg bg-white flex-1 min-w-0">
+                                    <FileText className="w-4 h-4 text-gray-600 flex-shrink-0" />
+                                    <span className="text-sm text-gray-700 truncate flex-1 min-w-0">{ticketFile.name}</span>
                                     <button
                                       onClick={() => {
                                         setTicketFile(null);
                                         setNewTicket({ ...newTicket, file: null });
                                       }}
-                                      className="text-gray-400 hover:text-red-600 transition-colors"
+                                      className="text-gray-400 hover:text-red-600 transition-colors flex-shrink-0"
                                       title="Remove file"
                                     >
                                       <X className="w-4 h-4" />
                                     </button>
                                   </div>
                                 ) : (
-                                  <label className="flex items-center gap-2 px-3 py-2 border border-gray-300 rounded-lg bg-white hover:bg-gray-50 cursor-pointer transition-colors">
-                                    <Upload className="w-4 h-4 text-gray-600" />
-                                    <span className="text-sm text-gray-700">Select File</span>
+                                  <label className="flex items-center gap-2 px-3 py-2 border border-gray-300 rounded-lg bg-white hover:bg-gray-50 cursor-pointer transition-colors flex-1 min-w-0">
+                                    <Upload className="w-4 h-4 text-gray-600 flex-shrink-0" />
+                                    <span className="text-sm text-gray-700 truncate">Select File</span>
                                     <input
                                       type="file"
                                       className="hidden"
@@ -6317,6 +6433,7 @@ const DriverManagement = () => {
                                                 title: newTicket.title,
                                                 description: newTicket.description,
                                                 amount: newTicket.amount,
+                                                currency: newTicket.currency,
                                                 status: newTicket.status,
                                                 file: newTicket.file
                                               }
@@ -6330,6 +6447,7 @@ const DriverManagement = () => {
                                           title: newTicket.title,
                                           description: newTicket.description,
                                           amount: newTicket.amount,
+                                          currency: newTicket.currency,
                                           status: newTicket.status,
                                           file: newTicket.file
                                         }]);
@@ -6339,13 +6457,15 @@ const DriverManagement = () => {
                                         title: '',
                                         description: '',
                                         amount: '',
+                                        currency: 'CAD',
                                         status: 'Unpaid',
                                         file: null
                                       });
                                       setTicketFile(null);
                                     }
                                   }}
-                                  className="w-10 h-10 bg-black !text-white rounded-lg flex items-center justify-center hover:bg-gray-800 transition-colors"
+                                  className="w-10 h-10 bg-black !text-white rounded-lg flex items-center justify-center hover:bg-gray-800 transition-colors flex-shrink-0"
+                                  title={editingTicketId ? "Save changes" : "Add ticket"}
                                 >
                                   {editingTicketId ? <Save className="w-5 h-5" /> : <Plus className="w-5 h-5" />}
                                 </button>
@@ -6357,14 +6477,15 @@ const DriverManagement = () => {
                     </div>
 
                     {/* Tickets Data Table */}
-                    <div className="border border-gray-200 rounded-lg overflow-hidden mt-4">
-                      <table className="w-full">
+                    <div className="border border-gray-200 rounded-lg overflow-hidden overflow-x-auto mt-4">
+                      <table className="w-full min-w-[800px]">
                         <thead className="bg-gray-50">
                           <tr>
                             <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase">DATE</th>
                             <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase">TITLE</th>
                             <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase">DESCRIPTION</th>
                             <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase">AMOUNT</th>
+                            <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase">CURRENCY</th>
                             <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase">STATUS</th>
                             <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase">DOCUMENT</th>
                             <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase">ACTIONS</th>
@@ -6388,13 +6509,21 @@ const DriverManagement = () => {
                                   title: ticket.title,
                                   description: ticket.description,
                                   amount: ticket.amount,
+                                  currency: ticket.currency,
                                   status: ticket.status
                                 })}
                               >
                                 <td className="px-4 py-3 text-sm text-gray-900">{ticket.date || '-'}</td>
                                 <td className="px-4 py-3 text-sm text-gray-900">{ticket.title || '-'}</td>
                                 <td className="px-4 py-3 text-sm text-gray-900">{ticket.description || '-'}</td>
-                                <td className="px-4 py-3 text-sm text-gray-900">{ticket.amount ? `$${ticket.amount}` : '-'}</td>
+                                <td className="px-4 py-3 text-sm text-gray-900">
+                                  {ticket.amount ? (
+                                    <div className="flex items-center gap-2">
+                                      <span>{ticket.currency === 'USD' ? '$' : 'C$'}{ticket.amount}</span>
+                                      <span className="text-xs text-gray-500">({ticket.currency || 'CAD'})</span>
+                                    </div>
+                                  ) : '-'}
+                                </td>
                                 <td className="px-4 py-3 text-sm text-gray-900">
                                   <span className={`px-2 py-0.5 text-xs font-medium rounded-full ${
                                     ticket.status === 'Paid' ? 'bg-green-100 text-green-700' :
@@ -6409,9 +6538,62 @@ const DriverManagement = () => {
                                   {(ticket.file instanceof File || ticket.fileUrl || ticket.fileName) ? (
                                     <div className="flex items-center gap-2">
                                       <FileText className="w-4 h-4 text-blue-500" />
-                                      <span className="text-sm text-gray-700 truncate max-w-[150px]" title={ticket.file instanceof File ? ticket.file.name : (ticket.fileName || 'File attached')}>
-                                        {ticket.file instanceof File ? ticket.file.name : (ticket.fileName || 'File attached')}
-                                      </span>
+                                      {(ticket.fileUrl || ticket.file instanceof File) ? (
+                                        <button
+                                          onClick={async (e) => {
+                                            e.stopPropagation();
+                                            try {
+                                              // For existing tickets saved to backend, use signed URL
+                                              if (ticket.ticketId || (ticket.id && ticket.id.toString().startsWith('existing-'))) {
+                                                const ticketId = ticket.ticketId || (ticket.id.toString().startsWith('existing-') ? ticket.id.toString().replace('existing-', '') : null);
+                                                if (ticketId) {
+                                                  const signedUrlResponse = await getDriverTicketSignedUrl(ticketId, 'inline');
+                                                  if (signedUrlResponse?.success && signedUrlResponse.url) {
+                                                    window.open(signedUrlResponse.url, '_blank');
+                                                    return;
+                                                  }
+                                                }
+                                              }
+                                              
+                                              // For newly uploaded files (not yet saved), create a local object URL
+                                              if (ticket.file instanceof File) {
+                                                const objectUrl = URL.createObjectURL(ticket.file);
+                                                window.open(objectUrl, '_blank');
+                                                // Clean up the object URL after a delay
+                                                setTimeout(() => URL.revokeObjectURL(objectUrl), 100);
+                                                return;
+                                              }
+                                              
+                                              // Fallback to direct fileUrl
+                                              if (ticket.fileUrl) {
+                                                window.open(ticket.fileUrl, '_blank');
+                                              } else {
+                                                alert('Unable to open file');
+                                              }
+                                            } catch (error) {
+                                              console.error('Error opening ticket file:', error);
+                                              // Fallback to direct fileUrl
+                                              if (ticket.fileUrl) {
+                                                window.open(ticket.fileUrl, '_blank');
+                                              } else if (ticket.file instanceof File) {
+                                                const objectUrl = URL.createObjectURL(ticket.file);
+                                                window.open(objectUrl, '_blank');
+                                                setTimeout(() => URL.revokeObjectURL(objectUrl), 100);
+                                              } else {
+                                                alert('Unable to open file');
+                                              }
+                                            }
+                                          }}
+                                          className="text-sm text-blue-600 hover:underline truncate max-w-[150px] cursor-pointer"
+                                          title={ticket.fileName || (ticket.file instanceof File ? ticket.file.name : 'View Document')}
+                                        >
+                                          {ticket.fileName || (ticket.file instanceof File ? ticket.file.name : 'View Document')}
+                                        </button>
+                                      ) : (
+                                        <span className="text-sm text-gray-700 truncate max-w-[150px]" title={ticket.fileName || 'File attached'}>
+                                          {ticket.fileName || 'File attached'}
+                                        </span>
+                                      )}
                                     </div>
                                   ) : (
                                     <span className="text-gray-400">-</span>
@@ -6427,6 +6609,7 @@ const DriverManagement = () => {
                                           title: ticket.title || '',
                                           description: ticket.description || '',
                                           amount: ticket.amount || '',
+                                          currency: ticket.currency || 'CAD',
                                           status: ticket.status || 'Unpaid',
                                           file: ticket.file || null
                                         });
