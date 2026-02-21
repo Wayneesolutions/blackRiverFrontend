@@ -1601,17 +1601,6 @@ const EmployeesPage = () => {
                         </select>
                       </div>
                     </div>
-
-                    {/* Navigation Footer */}
-                    <div className="flex justify-between items-center pt-4 border-t border-gray-200">
-                      <div></div>
-                      <button
-                        onClick={() => setActiveFormTab('personal')}
-                        className="text-gray-600 hover:text-gray-900 flex items-center gap-2"
-                      >
-                        Personal Information <span>→</span>
-                      </button>
-                    </div>
                   </div>
                 )}
 
@@ -1920,21 +1909,6 @@ const EmployeesPage = () => {
                       </div>
                     </div>
 
-                    {/* Navigation Footer */}
-                    <div className="flex justify-between items-center pt-4 border-t border-gray-200">
-                      <button
-                        onClick={() => setActiveFormTab('basic')}
-                        className="text-gray-600 hover:text-gray-900 flex items-center gap-2"
-                      >
-                        <span>←</span> Basic
-                      </button>
-                      <button
-                        onClick={() => setActiveFormTab('documents')}
-                        className="text-gray-600 hover:text-gray-900 flex items-center gap-2"
-                      >
-                        Documents <span>→</span>
-                      </button>
-                    </div>
                   </div>
                 )}
 
@@ -2274,21 +2248,6 @@ const EmployeesPage = () => {
                       </div>
                     )}
 
-                    {/* Navigation Footer */}
-                    <div className="flex justify-between items-center pt-4 border-t border-gray-200">
-                      <button
-                        onClick={() => setActiveFormTab('personal')}
-                        className="text-gray-600 hover:text-gray-900 flex items-center gap-2"
-                      >
-                        <span>←</span> Personal Information
-                      </button>
-                      <button
-                        onClick={() => setActiveFormTab('notes')}
-                        className="text-gray-600 hover:text-gray-900 flex items-center gap-2"
-                      >
-                        Notes / Benefits <span>→</span>
-                      </button>
-                    </div>
                   </div>
                 )}
 
@@ -2306,21 +2265,6 @@ const EmployeesPage = () => {
                       className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#42aeec] focus:border-transparent resize-none"
                     />
 
-                    {/* Navigation Footer */}
-                    <div className="flex justify-between items-center pt-4 border-t border-gray-200">
-                      <button
-                        onClick={() => setActiveFormTab('documents')}
-                        className="text-gray-600 hover:text-gray-900 flex items-center gap-2"
-                      >
-                        <span>←</span> Documents
-                      </button>
-                      <button
-                        onClick={() => setActiveFormTab('deductions')}
-                        className="text-gray-600 hover:text-gray-900 flex items-center gap-2"
-                      >
-                        Deductions <span>→</span>
-                      </button>
-                    </div>
                   </div>
                 )}
 
@@ -2523,21 +2467,6 @@ const EmployeesPage = () => {
                       </table>
                     </div>
 
-                    {/* Navigation Footer */}
-                    <div className="flex justify-between items-center pt-4 border-t border-gray-200">
-                      <button
-                        onClick={() => setActiveFormTab('notes')}
-                        className="text-gray-600 hover:text-gray-900 flex items-center gap-2"
-                      >
-                        <span>←</span> Notes / Benefits
-                      </button>
-                      <button
-                        onClick={() => setActiveFormTab('additions')}
-                        className="text-gray-600 hover:text-gray-900 flex items-center gap-2"
-                      >
-                        Additions <span>→</span>
-                      </button>
-                    </div>
                   </div>
                 )}
 
@@ -2740,18 +2669,47 @@ const EmployeesPage = () => {
                       </table>
                     </div>
 
-                    {/* Navigation Footer */}
-                    <div className="flex justify-between items-center pt-4 border-t border-gray-200">
-                      <button
-                        onClick={() => setActiveFormTab('deductions')}
-                        className="text-gray-600 hover:text-gray-900 flex items-center gap-2"
-                      >
-                        <span>←</span> Deductions
-                      </button>
-                    </div>
                   </div>
                 )}
+
               </div>
+
+              {/* Tab Navigation Footer - fixed at bottom of modal */}
+              {(() => {
+                const FORM_TABS = [
+                  { id: 'basic', label: 'Basic' },
+                  { id: 'personal', label: 'Personal Information' },
+                  { id: 'documents', label: 'Documents' },
+                  { id: 'notes', label: 'Notes / Benefits' },
+                  { id: 'deductions', label: 'Deductions' },
+                  { id: 'additions', label: 'Additions' },
+                ];
+                const tabIndex = FORM_TABS.findIndex(t => t.id === activeFormTab);
+                const prevTab = tabIndex > 0 ? FORM_TABS[tabIndex - 1] : null;
+                const nextTab = tabIndex >= 0 && tabIndex < FORM_TABS.length - 1 ? FORM_TABS[tabIndex + 1] : null;
+                return (
+                  <div className="flex-shrink-0 border-t border-gray-200 bg-gray-50 px-4 py-3 flex justify-between items-center">
+                    {prevTab ? (
+                      <button
+                        type="button"
+                        onClick={() => setActiveFormTab(prevTab.id as any)}
+                        className="inline-flex items-center gap-2 px-4 py-2.5 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg shadow-sm hover:bg-gray-50 transition-colors"
+                      >
+                        <span aria-hidden>←</span> {prevTab.label}
+                      </button>
+                    ) : <div />}
+                    {nextTab ? (
+                      <button
+                        type="button"
+                        onClick={() => setActiveFormTab(nextTab.id as any)}
+                        className="inline-flex items-center gap-2 px-4 py-2.5 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg shadow-sm hover:bg-gray-50 transition-colors"
+                      >
+                        {nextTab.label} <span aria-hidden>→</span>
+                      </button>
+                    ) : <div />}
+                  </div>
+                );
+              })()}
             </div>
           </div>
         </div>
