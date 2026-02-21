@@ -458,6 +458,58 @@ export const getTestResults = async (params?: { driverId?: string; testType?: st
   }
 };
 
+// ==================== TEST TYPE APIs ====================
+export interface TestType {
+  _id: string;
+  name: string;
+  displayName: string;
+  company: string;
+  createdBy: string;
+  isActive: boolean;
+  createdAt?: string;
+  updatedAt?: string;
+}
+
+export const createTestType = async (data: { name: string; displayName: string }) => {
+  try {
+    const res: AxiosResponse = await apiClient.post('hr/driver/test-type', data);
+    return res.data;
+  } catch (error) {
+    console.error('❌ Error creating test type:', error);
+    return (error as any).response?.data;
+  }
+};
+
+export const getTestTypes = async () => {
+  try {
+    const res: AxiosResponse = await apiClient.get('hr/driver/test-type');
+    return res.data;
+  } catch (error) {
+    console.error('❌ Error fetching test types:', error);
+    return (error as any).response?.data;
+  }
+};
+
+export const updateTestType = async (id: string, data: { displayName?: string; isActive?: boolean }) => {
+  try {
+    const res: AxiosResponse = await apiClient.put(`hr/driver/test-type/${id}`, data);
+    return res.data;
+  } catch (error) {
+    console.error('❌ Error updating test type:', error);
+    return (error as any).response?.data;
+  }
+};
+
+export const deleteTestType = async (id: string) => {
+  try {
+    const res: AxiosResponse = await apiClient.delete(`hr/driver/test-type/${id}`);
+    return res.data;
+  } catch (error) {
+    console.error('❌ Error deleting test type:', error);
+    return (error as any).response?.data;
+  }
+};
+
 export const getTestResultById = async (id: string) => {
   try {
     const res: AxiosResponse = await apiClient.get(`hr/driver/test-result/${id}`);

@@ -1,180 +1,327 @@
-import React, { useState } from 'react';
-import { Upload, FileText, Image, Video, MessageSquare, Plus, Trash2, X, CheckCircle2, XCircle, User, Clock, Award, TrendingUp, ChevronDown, CheckCircle } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { Upload, FileText, Image, Video, MessageSquare, Plus, Trash2, X, CheckCircle2, XCircle, User, Clock, Award, TrendingUp, ChevronDown, CheckCircle, Loader2, Eye } from 'lucide-react';
+import {
+  getTrainingContent,
+  createTrainingContent,
+  deleteTrainingContent,
+  getTrainingContentSignedUrl,
+  getQuestionBanks,
+  createQuestionBank,
+  deleteQuestionBank,
+  getTestResults,
+  getTestTypes,
+  createTestType,
+  TestType,
+} from '../../../../axios/api/driver';
+import { getAllUsersForDrugTest } from '../../../../axios/api/driver';
 
 interface TrainingContent {
-  id: string;
-  type: 'video' | 'pdf' | 'image';
-  title: string;
+  _id: string;
+  name: string;
+  type: 'PDF' | 'VIDEO' | 'IMAGE';
+  testType: string;
   description?: string;
-  url?: string;
-  uploadedAt: string;
+  fileUrl?: string;
+  fileName?: string;
+  assignedRoles?: string[];
+  createdAt?: string;
 }
 
 interface QAItem {
-  id: string;
-  title: string;
-  description?: string;
+  _id: string;
+  testName: string;
+  testType: string;
+  passingPercentage: number;
+  mandatory: boolean;
   questions: Array<{
     question: string;
-    options: [string, string, string, string];
+    options: string[];
     correctAnswer: number;
   }>;
+  assignedRoles?: string[];
+  createdAt?: string;
+}
+
+interface HRUser {
+  _id: string;
+  name: string;
+  email: string;
+}
+
+interface TestResult {
+  _id: string;
+  driverId: {
+    _id?: string;
+    name?: string;
+    email?: string;
+  } | string;
+  questionBankId?: {
+    _id?: string;
+    testName?: string;
+  } | string;
+  score: number;
+  passed: boolean;
   createdAt: string;
 }
 
-const roles = [
-  { value: 'dispatcher', label: 'Dispatcher' },
-  { value: 'fleet-maintenance-manager', label: 'Fleet Maintenance Manager' },
-  { value: 'compliance-manager', label: 'Compliance Manager' },
-  { value: 'safety-officer', label: 'Safety Officer' },
-  { value: 'accountant', label: 'Accountant' },
-];
-
-// Static user list for HR role with pass/fail status
-const staticUsersByRole: Record<string, Array<{ id: string; name: string; status: 'passed' | 'failed' | 'not-attempted'; score?: number; total?: number }>> = {
-  hr: [
-    { id: 'user1', name: 'Sarah Johnson', status: 'passed', score: 5, total: 5 },
-    { id: 'user2', name: 'Michael Brown', status: 'passed', score: 4, total: 5 },
-    { id: 'user3', name: 'Emily Davis', status: 'passed', score: 5, total: 5 },
-    { id: 'user4', name: 'David Wilson', status: 'failed', score: 2, total: 5 },
-    { id: 'user5', name: 'Lisa Anderson', status: 'not-attempted' },
-    { id: 'user6', name: 'James Taylor', status: 'passed', score: 4, total: 5 }
-  ]
-};
-
-// Static results data for admin view - structure: role -> userId -> qaId -> results
-// This tracks results for multiple users of the same role
-const adminStaticResults: Record<string, Record<string, Record<string, { answers: Record<number, number>; score: { correct: number; total: number }; completedAt: string; userName?: string }>>> = {
-  dispatcher: {
-    'user1': {
-      'qa1': { answers: { 0: 1, 1: 1, 2: 1, 3: 1 }, score: { correct: 4, total: 4 }, completedAt: new Date().toISOString(), userName: 'John Doe' },
-      'qa2': { answers: { 0: 1, 1: 0, 2: 1 }, score: { correct: 2, total: 3 }, completedAt: new Date(Date.now() - 86400000).toISOString(), userName: 'John Doe' }
-    },
-    'user2': {
-      'qa1': { answers: { 0: 1, 1: 0, 2: 1, 3: 1 }, score: { correct: 3, total: 4 }, completedAt: new Date(Date.now() - 172800000).toISOString(), userName: 'Jane Smith' }
-    },
-    'user3': {
-      'qa1': { answers: { 0: 1, 1: 1, 2: 0, 3: 1 }, score: { correct: 3, total: 4 }, completedAt: new Date(Date.now() - 259200000).toISOString(), userName: 'Mike Johnson' }
-    }
-  },
-  'fleet-maintenance-manager': {
-    'user1': {
-      'qa3': { answers: { 0: 1, 1: 1 }, score: { correct: 2, total: 2 }, completedAt: new Date().toISOString(), userName: 'Tom Wilson' }
-    },
-    'user2': {
-      'qa3': { answers: { 0: 1, 1: 0 }, score: { correct: 1, total: 2 }, completedAt: new Date(Date.now() - 86400000).toISOString(), userName: 'Sarah Brown' }
-    }
-  },
-  'compliance-manager': {
-    'user1': {
-      'qa4': { answers: { 0: 0, 1: 1, 2: 1 }, score: { correct: 2, total: 3 }, completedAt: new Date().toISOString(), userName: 'David Lee' }
-    }
-  },
-  'safety-officer': {
-    'user1': {
-      'qa5': { answers: { 0: 1, 1: 1 }, score: { correct: 2, total: 2 }, completedAt: new Date().toISOString(), userName: 'Emily Davis' }
-    }
-  },
-  accountant: {
-    'user1': {
-      'qa6': { answers: { 0: 1, 1: 1 }, score: { correct: 2, total: 2 }, completedAt: new Date().toISOString(), userName: 'Robert Taylor' }
-    }
-  }
-};
+const HR_ROLE = 'hr';
 
 const AdminHRTrainingView: React.FC = () => {
+  const [loading, setLoading] = useState(true);
   const [openDropdown, setOpenDropdown] = useState<string | null>(null);
-  const [trainingContent, setTrainingContent] = useState<Record<string, TrainingContent[]>>({
-    dispatcher: [],
-    'fleet-maintenance-manager': [],
-    'compliance-manager': [],
-    'safety-officer': [],
-    accountant: [],
-  });
+  const [trainingContent, setTrainingContent] = useState<TrainingContent[]>([]);
+  const [qaContent, setQAContent] = useState<QAItem[]>([]);
+  const [hrUsers, setHrUsers] = useState<HRUser[]>([]);
+  const [testResults, setTestResults] = useState<TestResult[]>([]);
+  const [testTypes, setTestTypes] = useState<TestType[]>([]);
+  const [showAddTestTypeModal, setShowAddTestTypeModal] = useState(false);
+  const [newTestTypeName, setNewTestTypeName] = useState('');
+  const [newTestTypeDisplayName, setNewTestTypeDisplayName] = useState('');
+  const [creatingTestType, setCreatingTestType] = useState(false);
   
-  const [qaContent, setQAContent] = useState<Record<string, QAItem[]>>({
-    dispatcher: [],
-    'fleet-maintenance-manager': [],
-    'compliance-manager': [],
-    'safety-officer': [],
-    accountant: [],
-  });
-  
-  // Static results state - structure: role -> userId -> qaId -> results
-  const [qaResults] = useState<Record<string, Record<string, Record<string, { answers: Record<number, number>; score: { correct: number; total: number }; completedAt: string; userName?: string }>>>>(adminStaticResults);
-  
-  // Helper function to get aggregate statistics for a role and quiz
-  const getQuizStats = (role: string, qaId: string) => {
-    const roleResults = qaResults[role] || {};
-    const allUserResults = Object.values(roleResults).map(userResults => userResults[qaId]).filter(Boolean);
+  // Fetch all data on mount
+  useEffect(() => {
+    fetchAllData();
+  }, []);
+
+  const fetchAllData = async () => {
+    setLoading(true);
+    try {
+      // Fetch training content for HR role only
+      const contentResponse = await getTrainingContent({ role: HR_ROLE });
+      if (contentResponse?.success && Array.isArray(contentResponse.data)) {
+        const hrContent = contentResponse.data.filter((item: TrainingContent) => 
+          !item.assignedRoles || item.assignedRoles.length === 0 || item.assignedRoles.includes(HR_ROLE)
+        );
+        setTrainingContent(hrContent);
+      }
+
+      // Fetch question banks for HR role only
+      const qaResponse = await getQuestionBanks({ role: HR_ROLE });
+      let hrQA: QAItem[] = [];
+      let hrQuestionBankIds: string[] = [];
+      if (qaResponse?.success && Array.isArray(qaResponse.data)) {
+        hrQA = qaResponse.data.filter((item: QAItem) => 
+          !item.assignedRoles || item.assignedRoles.length === 0 || item.assignedRoles.includes(HR_ROLE)
+        );
+        hrQuestionBankIds = hrQA.map(qa => qa._id);
+        setQAContent(hrQA);
+      }
+
+      // Fetch HR users
+      const usersResponse = await getAllUsersForDrugTest();
+      let hrUsersList: HRUser[] = [];
+      if (usersResponse?.success && Array.isArray(usersResponse.data)) {
+        hrUsersList = usersResponse.data.filter((user: any) => user.role === 'hr');
+        setHrUsers(hrUsersList);
+      }
+
+      // Fetch test results for HR users
+      // Filter for HR users AND HR-assigned question banks
+      const resultsResponse = await getTestResults();
+      console.log('Test results response:', resultsResponse);
+      
+      if (resultsResponse?.success && Array.isArray(resultsResponse.data)) {
+        // Get HR user IDs
+        const hrUserIds = hrUsersList.map(u => u._id);
+        console.log('HR User IDs:', hrUserIds);
+        console.log('HR Question Bank IDs:', hrQuestionBankIds);
+        
+        // Filter results for HR users AND HR-assigned question banks
+        const hrResults = resultsResponse.data.filter((result: TestResult) => {
+          // Handle both populated and non-populated driverId
+          let driverId: string | undefined;
+          if (typeof result.driverId === 'string') {
+            driverId = result.driverId;
+          } else if (result.driverId && typeof result.driverId === 'object') {
+            driverId = result.driverId._id || (result.driverId as any).toString();
+          }
+          
+          // Handle both populated and non-populated questionBankId
+          let questionBankId: string | undefined;
+          if (typeof result.questionBankId === 'string') {
+            questionBankId = result.questionBankId;
+          } else if (result.questionBankId && typeof result.questionBankId === 'object') {
+            questionBankId = (result.questionBankId as any)._id || (result.questionBankId as any).toString();
+          }
+          
+          // Check if user is HR AND question bank is assigned to HR
+          const isHRUser = driverId && hrUserIds.includes(driverId);
+          const isHRQuestionBank = questionBankId && hrQuestionBankIds.includes(questionBankId);
+          
+          // Include result if: HR user submitted it AND it's for an HR-assigned question bank
+          const shouldInclude = isHRUser && isHRQuestionBank;
+          
+          if (shouldInclude) {
+            console.log('Found HR test result:', {
+              driverId,
+              questionBankId,
+              score: result.score,
+              passed: result.passed
+            });
+          }
+          
+          return shouldInclude;
+        });
+        
+        console.log('HR Users:', hrUsersList.length);
+        console.log('HR Question Banks:', hrQuestionBankIds.length);
+        console.log('All Test Results:', resultsResponse.data.length);
+        console.log('HR Test Results (filtered):', hrResults.length);
+        setTestResults(hrResults);
+      } else {
+        console.warn('Test results response not successful:', resultsResponse);
+        setTestResults([]);
+      }
+
+      // Fetch test types
+      const testTypesResponse = await getTestTypes();
+      if (testTypesResponse?.success && Array.isArray(testTypesResponse.data)) {
+        setTestTypes(testTypesResponse.data);
+      }
+    } catch (error) {
+      console.error('Error fetching data:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Helper function to get aggregate statistics for a quiz
+  const getQuizStats = (qaId: string) => {
+    const quizResults = testResults.filter(r => r.questionBankId?._id === qaId);
+    if (quizResults.length === 0) return null;
     
-    if (allUserResults.length === 0) return null;
-    
-    const totalUsers = allUserResults.length;
-    const avgScore = allUserResults.reduce((sum, r) => sum + (r.score.correct / r.score.total), 0) / totalUsers;
-    const totalQuestions = allUserResults[0]?.score.total || 0;
+    const totalUsers = quizResults.length;
+    const avgScore = quizResults.reduce((sum, r) => sum + (r.score / 100), 0) / totalUsers;
     
     return {
       totalUsers,
       avgScore,
-      totalQuestions,
       completedCount: totalUsers
     };
+  };
+
+  // Get HR users with their test status from actual test results
+  const getHRUsersWithStatus = () => {
+    return hrUsers.map(user => {
+      // Find all test results for this HR user
+      const userResults = testResults.filter(r => {
+        // Handle both populated and non-populated driverId
+        let driverId: string | undefined;
+        if (typeof r.driverId === 'string') {
+          driverId = r.driverId;
+        } else if (r.driverId && typeof r.driverId === 'object') {
+          driverId = r.driverId._id || (r.driverId as any).toString();
+        }
+        return driverId === user._id;
+      });
+      
+      let status: 'passed' | 'failed' | 'not-attempted' = 'not-attempted';
+      let score: number | undefined;
+      let total: number | undefined;
+      
+      if (userResults.length > 0) {
+        // Get the most recent result across all question banks
+        const sortedResults = [...userResults].sort((a, b) => 
+          new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+        );
+        const latestResult = sortedResults[0];
+        
+        // Determine status based on latest result
+        if (latestResult.passed) {
+          status = 'passed';
+        } else {
+          status = 'failed';
+        }
+        
+        score = latestResult.score;
+        total = 100; // Score is already a percentage
+      }
+      
+      return {
+        id: user._id,
+        name: user.name,
+        status,
+        score,
+        total
+      };
+    });
   };
   
   const [showUploadModal, setShowUploadModal] = useState(false);
   const [showQAModal, setShowQAModal] = useState(false);
-  const [uploadType, setUploadType] = useState<'video' | 'pdf' | 'image'>('video');
+  const [uploadType, setUploadType] = useState<'VIDEO' | 'PDF' | 'IMAGE'>('VIDEO');
+  const [uploadTestType, setUploadTestType] = useState<string>('');
   const [uploadTitle, setUploadTitle] = useState('');
   const [uploadDescription, setUploadDescription] = useState('');
+  const [uploadFile, setUploadFile] = useState<File | null>(null);
+  const [uploading, setUploading] = useState(false);
   
   // Q&A Modal states
   const [qaTitle, setQATitle] = useState('');
+  const [qaTestType, setQATestType] = useState<string>('');
   const [qaDescription, setQADescription] = useState('');
   const [qaQuestions, setQAQuestions] = useState<Array<{
     question: string;
-    options: [string, string, string, string];
+    options: string[];
     correctAnswer: number;
   }>>([]);
   const [currentQQuestion, setCurrentQQuestion] = useState('');
-  const [currentQOptions, setCurrentQOptions] = useState<[string, string, string, string]>(['', '', '', '']);
+  const [currentQOptions, setCurrentQOptions] = useState<string[]>(['', '', '', '']);
   const [currentQCorrectAnswer, setCurrentQCorrectAnswer] = useState<number>(0);
-  
-  const [activeRole, setActiveRole] = useState<string>('dispatcher');
+  const [creatingQA, setCreatingQA] = useState(false);
 
-  const handleUpload = () => {
-    if (!uploadTitle.trim()) return;
+  const handleUpload = async () => {
+    if (!uploadTitle.trim() || !uploadFile) {
+      alert('Please provide a title and select a file');
+      return;
+    }
 
-    const newContent: TrainingContent = {
-      id: Date.now().toString(),
-      type: uploadType,
-      title: uploadTitle,
-      description: uploadDescription,
-      uploadedAt: new Date().toISOString(),
-    };
+    if (!uploadTestType) {
+      alert('Please select a test type');
+      return;
+    }
 
-    // Add to all roles since admin doesn't select role
-    setTrainingContent((prev) => {
-      const updated = { ...prev };
-      roles.forEach((role) => {
-        updated[role.value] = [...(updated[role.value] || []), newContent];
-      });
-      return updated;
-    });
+    setUploading(true);
+    try {
+      const formData = new FormData();
+      formData.append('name', uploadTitle);
+      formData.append('type', uploadType);
+      formData.append('testType', uploadTestType);
+      formData.append('description', uploadDescription);
+      formData.append('assignedRoles', JSON.stringify([HR_ROLE]));
+      formData.append('file', uploadFile);
 
-    setUploadTitle('');
-    setUploadDescription('');
-    setShowUploadModal(false);
+      const response = await createTrainingContent(formData);
+      if (response?.success) {
+        await fetchAllData();
+        setUploadTitle('');
+        setUploadDescription('');
+        setUploadFile(null);
+        setShowUploadModal(false);
+        alert('Training content uploaded successfully');
+      } else {
+        alert(response?.message || 'Failed to upload content');
+      }
+    } catch (error) {
+      console.error('Error uploading content:', error);
+      alert('Failed to upload content');
+    } finally {
+      setUploading(false);
+    }
   };
 
   const handleAddQuestionToQA = () => {
-    if (!currentQQuestion.trim() || currentQOptions.some(opt => !opt.trim())) return;
+    if (!currentQQuestion.trim() || currentQOptions.filter(opt => opt.trim()).length < 2) {
+      alert('Please fill in the question and at least 2 options');
+      return;
+    }
     
     setQAQuestions((prev) => [
       ...prev,
       {
         question: currentQQuestion,
-        options: [...currentQOptions] as [string, string, string, string],
+        options: currentQOptions.filter(opt => opt.trim()),
         correctAnswer: currentQCorrectAnswer,
       }
     ]);
@@ -188,61 +335,176 @@ const AdminHRTrainingView: React.FC = () => {
     setQAQuestions((prev) => prev.filter((_, i) => i !== index));
   };
 
-  const handleAddQA = () => {
-    if (!qaTitle.trim() || qaQuestions.length === 0) return;
+  const handleAddTestType = async () => {
+    if (!newTestTypeName.trim() || !newTestTypeDisplayName.trim()) {
+      alert('Please provide both name and display name');
+      return;
+    }
 
-    const newQA: QAItem = {
-      id: Date.now().toString(),
-      title: qaTitle,
-      description: qaDescription,
-      questions: qaQuestions,
-      createdAt: new Date().toISOString(),
-    };
-
-    // Add to all roles since admin doesn't select role
-    setQAContent((prev) => {
-      const updated = { ...prev };
-      roles.forEach((role) => {
-        updated[role.value] = [...(updated[role.value] || []), newQA];
+    setCreatingTestType(true);
+    try {
+      const response = await createTestType({
+        name: newTestTypeName.trim(),
+        displayName: newTestTypeDisplayName.trim()
       });
-      return updated;
-    });
-
-    setQATitle('');
-    setQADescription('');
-    setQAQuestions([]);
-    setCurrentQQuestion('');
-    setCurrentQOptions(['', '', '', '']);
-    setCurrentQCorrectAnswer(0);
-    setShowQAModal(false);
+      
+      if (response?.success) {
+        await fetchAllData();
+        setNewTestTypeName('');
+        setNewTestTypeDisplayName('');
+        setShowAddTestTypeModal(false);
+        alert('Test type created successfully');
+      } else {
+        alert(response?.message || 'Failed to create test type');
+      }
+    } catch (error) {
+      console.error('Error creating test type:', error);
+      alert('Failed to create test type');
+    } finally {
+      setCreatingTestType(false);
+    }
   };
 
-  const handleDeleteContent = (id: string, role: string) => {
-    setTrainingContent((prev) => ({
-      ...prev,
-      [role]: prev[role].filter((item) => item.id !== id),
-    }));
+  const handleAddQA = async () => {
+    if (!qaTitle.trim() || qaQuestions.length === 0) {
+      alert('Please provide a title and add at least one question');
+      return;
+    }
+
+    if (!qaTestType) {
+      alert('Please select a test type');
+      return;
+    }
+
+    setCreatingQA(true);
+    try {
+      const payload = {
+        testName: qaTitle,
+        testType: qaTestType,
+        passingPercentage: 80,
+        mandatory: false,
+        questions: qaQuestions,
+        assignedRoles: [HR_ROLE]
+      };
+
+      const response = await createQuestionBank(payload);
+      if (response?.success) {
+        await fetchAllData();
+        setQATitle('');
+        setQADescription('');
+        setQAQuestions([]);
+        setCurrentQQuestion('');
+        setCurrentQOptions(['', '', '', '']);
+        setCurrentQCorrectAnswer(0);
+        setShowQAModal(false);
+        alert('Q&A created successfully');
+      } else {
+        alert(response?.message || 'Failed to create Q&A');
+      }
+    } catch (error) {
+      console.error('Error creating Q&A:', error);
+      alert('Failed to create Q&A');
+    } finally {
+      setCreatingQA(false);
+    }
   };
 
-  const handleDeleteQA = (id: string, role: string) => {
-    setQAContent((prev) => ({
-      ...prev,
-      [role]: prev[role].filter((item) => item.id !== id),
-    }));
+  const handleDeleteContent = async (id: string) => {
+    if (!confirm('Are you sure you want to delete this content?')) return;
+
+    try {
+      const response = await deleteTrainingContent(id);
+      if (response?.success) {
+        await fetchAllData();
+        alert('Content deleted successfully');
+      } else {
+        alert(response?.message || 'Failed to delete content');
+      }
+    } catch (error) {
+      console.error('Error deleting content:', error);
+      alert('Failed to delete content');
+    }
+  };
+
+  const handleDeleteQA = async (id: string) => {
+    if (!confirm('Are you sure you want to delete this Q&A?')) return;
+
+    try {
+      const response = await deleteQuestionBank(id);
+      if (response?.success) {
+        await fetchAllData();
+        alert('Q&A deleted successfully');
+      } else {
+        alert(response?.message || 'Failed to delete Q&A');
+      }
+    } catch (error) {
+      console.error('Error deleting Q&A:', error);
+      alert('Failed to delete Q&A');
+    }
   };
 
   const getIcon = (type: string) => {
-    switch (type) {
-      case 'video':
+    switch (type?.toUpperCase()) {
+      case 'VIDEO':
         return <Video className="w-5 h-5" />;
-      case 'pdf':
+      case 'PDF':
         return <FileText className="w-5 h-5" />;
-      case 'image':
+      case 'IMAGE':
         return <Image className="w-5 h-5" />;
       default:
         return <FileText className="w-5 h-5" />;
     }
   };
+
+  const getTypeLabel = (type: string) => {
+    switch (type?.toUpperCase()) {
+      case 'VIDEO':
+        return 'Video';
+      case 'PDF':
+        return 'PDF';
+      case 'IMAGE':
+        return 'Image';
+      default:
+        return type;
+    }
+  };
+
+  const getTestTypeDisplayName = (testTypeName: string) => {
+    const testType = testTypes.find(t => t.name === testTypeName);
+    return testType ? testType.displayName : testTypeName;
+  };
+
+  const handleViewContent = async (contentId: string, contentType: string) => {
+    try {
+      const response = await getTrainingContentSignedUrl(contentId, 'inline');
+      console.log('Signed URL response:', response);
+      
+      // Backend returns: { success: true, url: signedUrl } or { success: true, data: { url: signedUrl } }
+      const signedUrl = response?.url || response?.data?.url;
+      
+      if (response?.success && signedUrl) {
+        window.open(signedUrl, '_blank');
+      } else {
+        console.error('Invalid response structure:', response);
+        alert(response?.message || 'Failed to get content URL. Please try again.');
+      }
+    } catch (error: any) {
+      console.error('Error getting signed URL:', error);
+      const errorMessage = error?.response?.data?.message || error?.message || 'Failed to open content';
+      alert(errorMessage);
+    }
+  };
+
+  if (loading) {
+    return (
+      <div className="p-6 bg-[#EDF8FF] min-h-screen flex items-center justify-center">
+        <div className="text-center">
+          <Loader2 className="w-8 h-8 animate-spin text-[#0ea3d8] mx-auto mb-4" />
+          <p className="text-gray-600">Loading training content...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="p-6 bg-[#EDF8FF] min-h-screen">
@@ -264,31 +526,36 @@ const AdminHRTrainingView: React.FC = () => {
               </div>
               <div className="p-4 space-y-3">
                 {(() => {
-                  const hrRole = { value: 'hr', label: 'HR' };
-                  const roleResults = qaResults['hr'] || {};
-                  const roleQAs = qaContent['hr'] || [];
-                  
-                  // Calculate aggregate stats across all HR users
-                  let totalUsersCompleted = 0;
-                  let totalCompletions = 0;
-                  let totalScoreSum = 0;
-                  
-                  roleQAs.forEach((qa) => {
-                    const stats = getQuizStats('hr', qa.id);
-                    if (stats) {
-                      totalUsersCompleted = Math.max(totalUsersCompleted, stats.totalUsers);
-                      totalCompletions += stats.completedCount;
-                      totalScoreSum += stats.avgScore;
-                    }
-                  });
-                  
-                  const avgScore = roleQAs.length > 0 ? totalScoreSum / roleQAs.length : 0;
-                  const uniqueUsers = new Set(Object.keys(roleResults)).size;
-                  const roleUsers = staticUsersByRole['hr'] || [];
+                  // Calculate aggregate stats from actual test results
+                  const roleUsers = getHRUsersWithStatus();
                   const isDropdownOpen = openDropdown === 'hr';
+                  
+                  // Count users by status from actual test results
                   const passedCount = roleUsers.filter(u => u.status === 'passed').length;
                   const failedCount = roleUsers.filter(u => u.status === 'failed').length;
                   const notAttemptedCount = roleUsers.filter(u => u.status === 'not-attempted').length;
+                  
+                  // Calculate total completions (total number of test results submitted)
+                  const totalCompletions = testResults.length;
+                  
+                  // Calculate average score from all test results
+                  let avgScore = 0;
+                  if (testResults.length > 0) {
+                    const totalScore = testResults.reduce((sum, r) => sum + r.score, 0);
+                    avgScore = totalScore / testResults.length / 100; // Convert percentage to decimal
+                  }
+                  
+                  // Count unique users who have completed at least one test
+                  const uniqueUsersCompleted = new Set(
+                    testResults.map(r => {
+                      if (typeof r.driverId === 'string') {
+                        return r.driverId;
+                      } else if (r.driverId && typeof r.driverId === 'object') {
+                        return r.driverId._id || (r.driverId as any).toString();
+                      }
+                      return null;
+                    }).filter(Boolean)
+                  ).size;
 
                   return (
                     <div className="rounded-lg border-2 transition-all border-gray-200 bg-gray-50 hover:border-gray-300">
@@ -308,12 +575,18 @@ const AdminHRTrainingView: React.FC = () => {
                         <div className="space-y-1.5">
                           <div className="flex items-center gap-2 text-xs text-gray-600">
                             <User className="w-3.5 h-3.5" />
-                            <span>{uniqueUsers || roleUsers.length} user{(uniqueUsers || roleUsers.length) !== 1 ? 's' : ''} completed</span>
+                            <span>{roleUsers.length} user{roleUsers.length !== 1 ? 's' : ''}</span>
                           </div>
                           <div className="flex items-center gap-2 text-xs text-gray-600">
                             <Award className="w-3.5 h-3.5" />
-                            <span>{totalCompletions || passedCount} total completion{(totalCompletions || passedCount) !== 1 ? 's' : ''}</span>
+                            <span>{totalCompletions} total completion{totalCompletions !== 1 ? 's' : ''}</span>
                           </div>
+                          {uniqueUsersCompleted > 0 && (
+                            <div className="flex items-center gap-2 text-xs text-gray-600">
+                              <CheckCircle className="w-3.5 h-3.5" />
+                              <span>{uniqueUsersCompleted} user{uniqueUsersCompleted !== 1 ? 's' : ''} completed</span>
+                            </div>
+                          )}
                           {avgScore > 0 && (
                             <div className="w-full bg-gray-200 rounded-full h-1.5 mt-2">
                               <div
@@ -427,16 +700,17 @@ const AdminHRTrainingView: React.FC = () => {
               <div>
                 <h2 className="text-xl font-semibold text-gray-900">Training Materials</h2>
                 <p className="text-sm text-gray-600 mt-1">
-                  All training materials across all roles
+                  Training materials for HR role
                 </p>
               </div>
               <button
                 onClick={() => {
                   setShowUploadModal(true);
-                  setUploadType('video');
+                  setUploadType('VIDEO');
+                  setUploadTestType(testTypes.length > 0 ? testTypes[0].name : '');
                   setUploadTitle('');
                   setUploadDescription('');
-                  setActiveRole('dispatcher');
+                  setUploadFile(null);
                 }}
                 className="flex items-center gap-2 px-4 py-2 bg-[#0ea3d8] !text-white rounded-lg hover:bg-[#0d8fc4] transition-colors"
               >
@@ -446,52 +720,52 @@ const AdminHRTrainingView: React.FC = () => {
             </div>
           </div>
           <div className="p-6">
-            {Object.keys(trainingContent).every(key => trainingContent[key].length === 0) ? (
+            {trainingContent.length === 0 ? (
               <div className="text-center py-12 text-gray-500">
                 <Upload className="w-12 h-12 mx-auto mb-4 text-gray-400" />
                 <p>No training materials uploaded yet</p>
-                <p className="text-sm mt-2">HR can upload training materials for different roles</p>
+                <p className="text-sm mt-2">Admin can upload training materials for HR role</p>
               </div>
             ) : (
-              <div className="space-y-6">
-                {roles.map((role) => {
-                  const roleContent = trainingContent[role.value] || [];
-                  if (roleContent.length === 0) return null;
-                  return (
-                    <div key={role.value} className="mb-6">
-                      <h3 className="text-lg font-semibold text-gray-800 mb-4 pb-2 border-b border-gray-200">
-                        {role.label}
-                      </h3>
-                      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                        {roleContent.map((item) => (
-                          <div key={item.id} className="bg-gray-50 rounded-lg p-4 border border-gray-200">
-                            <div className="flex items-start justify-between mb-2">
-                              <div className="flex items-center gap-2 flex-1">
-                                <div className="text-[#0ea3d8]">{getIcon(item.type)}</div>
-                                <h3 className="font-semibold text-gray-900">{item.title}</h3>
-                              </div>
-                              <button
-                                onClick={() => handleDeleteContent(item.id, role.value)}
-                                className="text-red-600 hover:text-red-700 p-1"
-                              >
-                                <Trash2 className="w-4 h-4" />
-                              </button>
-                            </div>
-                            {item.description && (
-                              <p className="text-sm text-gray-600 mt-2 mb-3">{item.description}</p>
-                            )}
-                            <div className="flex items-center justify-between text-sm text-gray-500 mt-3">
-                              <span className="capitalize bg-gray-200 px-2 py-1 rounded">{item.type}</span>
-                              <span>
-                                {new Date(item.uploadedAt).toLocaleDateString()}
-                              </span>
-                            </div>
-                          </div>
-                        ))}
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                {trainingContent.map((item) => (
+                  <div key={item._id} className="bg-gray-50 rounded-lg p-4 border border-gray-200">
+                    <div className="flex items-start justify-between mb-2">
+                      <div className="flex items-center gap-2 flex-1">
+                        <div className="text-[#0ea3d8]">{getIcon(item.type)}</div>
+                        <h3 className="font-semibold text-gray-900">{item.name}</h3>
+                      </div>
+                      <div className="flex items-center gap-1">
+                        <button
+                          onClick={() => handleViewContent(item._id, item.type)}
+                          className="text-[#0ea3d8] hover:text-[#0d8fc4] p-1"
+                          title="View content"
+                        >
+                          <Eye className="w-4 h-4" />
+                        </button>
+                        <button
+                          onClick={() => handleDeleteContent(item._id)}
+                          className="text-red-600 hover:text-red-700 p-1"
+                          title="Delete content"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </button>
                       </div>
                     </div>
-                  );
-                })}
+                    {item.description && (
+                      <p className="text-sm text-gray-600 mt-2 mb-3">{item.description}</p>
+                    )}
+                    <div className="flex items-center justify-between text-sm text-gray-500 mt-3">
+                      <div className="flex items-center gap-2">
+                        <span className="capitalize bg-gray-200 px-2 py-1 rounded">{getTypeLabel(item.type)}</span>
+                        <span className="bg-blue-100 text-blue-700 px-2 py-1 rounded text-xs">{getTestTypeDisplayName(item.testType)}</span>
+                      </div>
+                      <span>
+                        {item.createdAt ? new Date(item.createdAt).toLocaleDateString() : 'N/A'}
+                      </span>
+                    </div>
+                  </div>
+                ))}
               </div>
             )}
           </div>
@@ -504,19 +778,19 @@ const AdminHRTrainingView: React.FC = () => {
               <div>
                 <h2 className="text-xl font-semibold text-gray-900">Q&A Content</h2>
                 <p className="text-sm text-gray-600 mt-1">
-                  All questions and answers across all roles
+                  Questions and answers for HR role
                 </p>
               </div>
               <button
                 onClick={() => {
                   setShowQAModal(true);
                   setQATitle('');
+                  setQATestType(testTypes.length > 0 ? testTypes[0].name : '');
                   setQADescription('');
                   setQAQuestions([]);
                   setCurrentQQuestion('');
                   setCurrentQOptions(['', '', '', '']);
                   setCurrentQCorrectAnswer(0);
-                  setActiveRole('dispatcher');
                 }}
                 className="flex items-center gap-2 px-4 py-2 bg-[#0ea3d8] !text-white rounded-lg hover:bg-[#0d8fc4] transition-colors"
               >
@@ -526,58 +800,55 @@ const AdminHRTrainingView: React.FC = () => {
             </div>
           </div>
           <div className="p-6">
-            {Object.keys(qaContent).every(key => qaContent[key].length === 0) ? (
+            {qaContent.length === 0 ? (
               <div className="text-center py-12 text-gray-500">
                 <MessageSquare className="w-12 h-12 mx-auto mb-4 text-gray-400" />
                 <p>No Q&A content added yet</p>
-                <p className="text-sm mt-2">HR can add Q&A content for different roles</p>
+                <p className="text-sm mt-2">Admin can add Q&A content for HR role</p>
               </div>
             ) : (
-              <div className="space-y-6">
-                {roles.map((role) => {
-                  const roleQA = qaContent[role.value] || [];
-                  if (roleQA.length === 0) return null;
-                  return (
-                    <div key={role.value} className="mb-6">
-                      <h3 className="text-lg font-semibold text-gray-800 mb-4 pb-2 border-b border-gray-200">
-                        {role.label}
-                      </h3>
-                      <div className="space-y-4">
-                        {roleQA.map((item) => {
-                          const stats = getQuizStats(role.value, item.id);
-                          const roleResults = qaResults[role.value] || {};
-                          const allUserResults = Object.entries(roleResults)
-                            .map(([userId, userResults]) => ({
-                              userId,
-                              result: userResults[item.id],
-                              userName: userResults[item.id]?.userName || `User ${userId.slice(-4)}`
-                            }))
-                            .filter(entry => entry.result);
+              <div className="space-y-4">
+                {qaContent.map((item) => {
+                  const stats = getQuizStats(item._id);
+                  const allUserResults = testResults
+                    .filter(r => r.questionBankId?._id === item._id)
+                    .map(result => ({
+                      userId: result.driverId?._id || '',
+                      result: {
+                        score: { correct: result.score, total: 100 },
+                        completedAt: result.createdAt
+                      },
+                      userName: result.driverId?.name || 'Unknown User',
+                      passed: result.passed
+                    }));
                           
-                          return (
-                            <div key={item.id} className="bg-gray-50 rounded-lg p-4 border border-gray-200 relative">
-                              <div className="flex items-start justify-between mb-3">
-                                <div className="flex-1">
-                                  <div className="flex items-center justify-between mb-2">
-                                    <h3 className="font-semibold text-gray-900">{item.title}</h3>
-                                    {stats && (
-                                      <div className="flex items-center gap-3">
-                                        <div className="flex items-center gap-2 px-3 py-1 bg-white rounded-lg border border-gray-200">
-                                          <span className="text-xs font-medium text-gray-600">Avg Score:</span>
-                                          <span className={`text-sm font-bold ${stats.avgScore >= 0.9 ? 'text-green-600' : stats.avgScore >= 0.7 ? 'text-yellow-600' : 'text-red-600'}`}>
-                                            {Math.round(stats.avgScore * 100)}%
-                                          </span>
-                                        </div>
-                                        <div className="flex items-center gap-2 px-3 py-1 bg-white rounded-lg border border-gray-200">
-                                          <span className="text-xs font-medium text-gray-600">Completed:</span>
-                                          <span className="text-sm font-bold text-gray-700">{stats.totalUsers} user{stats.totalUsers !== 1 ? 's' : ''}</span>
-                                        </div>
-                                      </div>
-                                    )}
-                                  </div>
-                                  {item.description && (
-                                    <p className="text-sm text-gray-600 mb-3">{item.description}</p>
-                                  )}
+                  return (
+                    <div key={item._id} className="bg-gray-50 rounded-lg p-4 border border-gray-200 relative">
+                      <div className="flex items-start justify-between mb-3">
+                        <div className="flex-1">
+                          <div className="flex items-center justify-between mb-2">
+                            <div className="flex items-center gap-3">
+                              <h3 className="font-semibold text-gray-900">{item.testName}</h3>
+                              <span className="bg-blue-100 text-blue-700 px-2 py-1 rounded text-xs">{getTestTypeDisplayName(item.testType)}</span>
+                              <span className="text-sm text-gray-600">Passing: {item.passingPercentage}%</span>
+                              <span className="text-sm text-gray-600">Questions: {item.questions.length}</span>
+                              {item.mandatory && <span className="text-xs text-red-600 font-medium">Mandatory</span>}
+                            </div>
+                            {stats && (
+                              <div className="flex items-center gap-3">
+                                <div className="flex items-center gap-2 px-3 py-1 bg-white rounded-lg border border-gray-200">
+                                  <span className="text-xs font-medium text-gray-600">Avg Score:</span>
+                                  <span className={`text-sm font-bold ${stats.avgScore >= 0.9 ? 'text-green-600' : stats.avgScore >= 0.7 ? 'text-yellow-600' : 'text-red-600'}`}>
+                                    {Math.round(stats.avgScore * 100)}%
+                                  </span>
+                                </div>
+                                <div className="flex items-center gap-2 px-3 py-1 bg-white rounded-lg border border-gray-200">
+                                  <span className="text-xs font-medium text-gray-600">Completed:</span>
+                                  <span className="text-sm font-bold text-gray-700">{stats.totalUsers} user{stats.totalUsers !== 1 ? 's' : ''}</span>
+                                </div>
+                              </div>
+                            )}
+                          </div>
                                   
                                   {/* User Results Cards */}
                                   {allUserResults.length > 0 && (
@@ -588,10 +859,10 @@ const AdminHRTrainingView: React.FC = () => {
                                         <span className="text-xs text-gray-500">({allUserResults.length} {allUserResults.length === 1 ? 'user' : 'users'})</span>
                                       </div>
                                       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
-                                        {allUserResults.map(({ userId, result, userName }) => {
-                                          const percentage = (result.score.correct / result.score.total) * 100;
+                                        {allUserResults.map(({ userId, result, userName, passed }) => {
+                                          const percentage = result.score.correct; // Score is already a percentage
                                           const getScoreColor = () => {
-                                            if (percentage >= 90) return { bg: 'bg-green-50', border: 'border-green-200', text: 'text-green-700', badge: 'bg-green-100 text-green-700' };
+                                            if (percentage >= 90 || passed) return { bg: 'bg-green-50', border: 'border-green-200', text: 'text-green-700', badge: 'bg-green-100 text-green-700' };
                                             if (percentage >= 70) return { bg: 'bg-yellow-50', border: 'border-yellow-200', text: 'text-yellow-700', badge: 'bg-yellow-100 text-yellow-700' };
                                             return { bg: 'bg-red-50', border: 'border-red-200', text: 'text-red-700', badge: 'bg-red-100 text-red-700' };
                                           };
@@ -609,7 +880,7 @@ const AdminHRTrainingView: React.FC = () => {
                                                   </div>
                                                   <div>
                                                     <h5 className="font-semibold text-gray-900 text-sm">{userName}</h5>
-                                                    <p className="text-xs text-gray-500 mt-0.5">{role.label}</p>
+                                                    <p className="text-xs text-gray-500 mt-0.5">HR</p>
                                                   </div>
                                                 </div>
                                                 <div className={`px-2.5 py-1 rounded-full ${colors.badge} text-xs font-semibold`}>
@@ -662,44 +933,40 @@ const AdminHRTrainingView: React.FC = () => {
                                     </div>
                                   )}
                                   
-                                  {/* Questions Display (showing correct answers) */}
-                                  <div className="space-y-3 mt-3">
-                                    {item.questions.map((q, idx) => (
-                                      <div key={idx} className="bg-white rounded p-3 border border-gray-200">
-                                        <p className="font-medium text-gray-900 mb-2">Q{idx + 1}: {q.question}</p>
-                                        <div className="space-y-1">
-                                          {q.options.map((option, optIdx) => {
-                                            const isCorrectOption = q.correctAnswer === optIdx;
-                                            return (
-                                              <div key={optIdx} className="flex items-center gap-2">
-                                                <input
-                                                  type="radio"
-                                                  checked={isCorrectOption}
-                                                  readOnly
-                                                  className="w-4 h-4"
-                                                />
-                                                <span className={`text-sm ${isCorrectOption ? 'text-green-600 font-medium' : 'text-gray-600'} flex items-center gap-2`}>
-                                                  {String.fromCharCode(65 + optIdx)}. {option}
-                                                  {isCorrectOption && ' ✓ (Correct Answer)'}
-                                                </span>
-                                              </div>
-                                            );
-                                          })}
-                                        </div>
+                          {/* Questions Display (showing correct answers) */}
+                          <div className="space-y-3 mt-3">
+                            {item.questions.map((q, idx) => (
+                              <div key={idx} className="bg-white rounded p-3 border border-gray-200">
+                                <p className="font-medium text-gray-900 mb-2">Q{idx + 1}: {q.question}</p>
+                                <div className="space-y-1">
+                                  {q.options.map((option, optIdx) => {
+                                    const isCorrectOption = q.correctAnswer === optIdx;
+                                    return (
+                                      <div key={optIdx} className="flex items-center gap-2">
+                                        <input
+                                          type="radio"
+                                          checked={isCorrectOption}
+                                          readOnly
+                                          className="w-4 h-4"
+                                        />
+                                        <span className={`text-sm ${isCorrectOption ? 'text-green-600 font-medium' : 'text-gray-600'} flex items-center gap-2`}>
+                                          {String.fromCharCode(65 + optIdx)}. {option}
+                                          {isCorrectOption && ' ✓ (Correct Answer)'}
+                                        </span>
                                       </div>
-                                    ))}
-                                  </div>
+                                    );
+                                  })}
                                 </div>
-                                <button
-                                  onClick={() => handleDeleteQA(item.id, role.value)}
-                                  className="text-red-600 hover:text-red-700 p-1 ml-4"
-                                >
-                                  <Trash2 className="w-4 h-4" />
-                                </button>
                               </div>
-                            </div>
-                          );
-                        })}
+                            ))}
+                          </div>
+                        </div>
+                        <button
+                          onClick={() => handleDeleteQA(item._id)}
+                          className="text-red-600 hover:text-red-700 p-1 ml-4"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </button>
                       </div>
                     </div>
                   );
@@ -734,40 +1001,70 @@ const AdminHRTrainingView: React.FC = () => {
             </div>
             <div className="p-6 space-y-4">
               <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Test Type *</label>
+                <div className="flex gap-2">
+                  <select
+                    value={uploadTestType}
+                    onChange={(e) => setUploadTestType(e.target.value)}
+                    disabled={uploading}
+                    className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#0ea3d8] disabled:opacity-50"
+                  >
+                    <option value="">Select Test Type</option>
+                    {testTypes.map((type) => (
+                      <option key={type._id} value={type.name}>
+                        {type.displayName}
+                      </option>
+                    ))}
+                  </select>
+                  <button
+                    type="button"
+                    onClick={() => setShowAddTestTypeModal(true)}
+                    disabled={uploading}
+                    className="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors disabled:opacity-50 flex items-center gap-2"
+                  >
+                    <Plus className="w-4 h-4" />
+                    Add Type
+                  </button>
+                </div>
+              </div>
+              <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">Content Type</label>
                 <div className="flex gap-2">
                   <button
                     type="button"
-                    onClick={() => setUploadType('video')}
+                    onClick={() => setUploadType('VIDEO')}
+                    disabled={uploading}
                     className={`flex-1 px-4 py-2 rounded-lg border transition-colors ${
-                      uploadType === 'video'
+                      uploadType === 'VIDEO'
                         ? 'bg-[#0ea3d8] !text-white border-[#0ea3d8]'
                         : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-50'
-                    }`}
+                    } ${uploading ? 'opacity-50 cursor-not-allowed' : ''}`}
                   >
                     <Video className="w-4 h-4 inline mr-2" />
                     Video
                   </button>
                   <button
                     type="button"
-                    onClick={() => setUploadType('pdf')}
+                    onClick={() => setUploadType('PDF')}
+                    disabled={uploading}
                     className={`flex-1 px-4 py-2 rounded-lg border transition-colors ${
-                      uploadType === 'pdf'
+                      uploadType === 'PDF'
                         ? 'bg-[#0ea3d8] !text-white border-[#0ea3d8]'
                         : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-50'
-                    }`}
+                    } ${uploading ? 'opacity-50 cursor-not-allowed' : ''}`}
                   >
                     <FileText className="w-4 h-4 inline mr-2" />
                     PDF
                   </button>
                   <button
                     type="button"
-                    onClick={() => setUploadType('image')}
+                    onClick={() => setUploadType('IMAGE')}
+                    disabled={uploading}
                     className={`flex-1 px-4 py-2 rounded-lg border transition-colors ${
-                      uploadType === 'image'
+                      uploadType === 'IMAGE'
                         ? 'bg-[#0ea3d8] !text-white border-[#0ea3d8]'
                         : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-50'
-                    }`}
+                    } ${uploading ? 'opacity-50 cursor-not-allowed' : ''}`}
                   >
                     <Image className="w-4 h-4 inline mr-2" />
                     Image
@@ -784,7 +1081,8 @@ const AdminHRTrainingView: React.FC = () => {
                   value={uploadTitle}
                   onChange={(e) => setUploadTitle(e.target.value)}
                   placeholder="Enter content title"
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#0ea3d8]"
+                  disabled={uploading}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#0ea3d8] disabled:opacity-50"
                 />
               </div>
               <div>
@@ -797,25 +1095,47 @@ const AdminHRTrainingView: React.FC = () => {
                   onChange={(e) => setUploadDescription(e.target.value)}
                   placeholder="Enter content description (optional)"
                   rows={3}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#0ea3d8]"
+                  disabled={uploading}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#0ea3d8] disabled:opacity-50"
+                />
+              </div>
+              <div>
+                <label htmlFor="file" className="block text-sm font-medium text-gray-700 mb-2">
+                  File *
+                </label>
+                <input
+                  id="file"
+                  type="file"
+                  accept={uploadType === 'VIDEO' ? 'video/*' : uploadType === 'PDF' ? 'application/pdf' : 'image/*'}
+                  onChange={(e) => setUploadFile(e.target.files?.[0] || null)}
+                  disabled={uploading}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#0ea3d8] disabled:opacity-50"
                 />
               </div>
               <div className="flex gap-2 justify-end pt-4">
                 <button
-                  onClick={() => {
-                    setShowUploadModal(false);
-                    setUploadTitle('');
-                    setUploadDescription('');
-                  }}
-                  className="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors"
+                  onClick={() => !uploading && setShowUploadModal(false)}
+                  disabled={uploading}
+                  className="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors disabled:opacity-50"
                 >
                   Cancel
                 </button>
                 <button
                   onClick={handleUpload}
-                  className="px-4 py-2 bg-[#0ea3d8] !text-white rounded-lg hover:bg-[#0d8fc4] transition-colors"
+                  disabled={uploading || !uploadTitle.trim() || !uploadFile}
+                  className="px-4 py-2 bg-[#0ea3d8] !text-white rounded-lg hover:bg-[#0d8fc4] transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
                 >
-                  Upload
+                  {uploading ? (
+                    <>
+                      <Loader2 className="w-4 h-4 animate-spin" />
+                      Uploading...
+                    </>
+                  ) : (
+                    <>
+                      <Upload className="w-4 h-4" />
+                      Upload
+                    </>
+                  )}
                 </button>
               </div>
             </div>
@@ -859,8 +1179,38 @@ const AdminHRTrainingView: React.FC = () => {
                   value={qaTitle}
                   onChange={(e) => setQATitle(e.target.value)}
                   placeholder="Enter Q&A title"
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#0ea3d8]"
+                  disabled={creatingQA}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#0ea3d8] disabled:opacity-50"
                 />
+              </div>
+
+              {/* Test Type */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Test Type *</label>
+                <div className="flex gap-2">
+                  <select
+                    value={qaTestType}
+                    onChange={(e) => setQATestType(e.target.value)}
+                    disabled={creatingQA}
+                    className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#0ea3d8] disabled:opacity-50"
+                  >
+                    <option value="">Select Test Type</option>
+                    {testTypes.map((type) => (
+                      <option key={type._id} value={type.name}>
+                        {type.displayName}
+                      </option>
+                    ))}
+                  </select>
+                  <button
+                    type="button"
+                    onClick={() => setShowAddTestTypeModal(true)}
+                    disabled={creatingQA}
+                    className="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors disabled:opacity-50 flex items-center gap-2"
+                  >
+                    <Plus className="w-4 h-4" />
+                    Add Type
+                  </button>
+                </div>
               </div>
 
               {/* Description */}
@@ -874,7 +1224,8 @@ const AdminHRTrainingView: React.FC = () => {
                   onChange={(e) => setQADescription(e.target.value)}
                   placeholder="Enter description (optional)"
                   rows={3}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#0ea3d8]"
+                  disabled={creatingQA}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#0ea3d8] disabled:opacity-50"
                 />
               </div>
 
@@ -892,7 +1243,8 @@ const AdminHRTrainingView: React.FC = () => {
                           <button
                             type="button"
                             onClick={() => handleRemoveQuestionFromQA(index)}
-                            className="text-red-600 hover:text-red-700 ml-2"
+                            disabled={creatingQA}
+                            className="text-red-600 hover:text-red-700 ml-2 disabled:opacity-50"
                           >
                             <Trash2 className="w-4 h-4" />
                           </button>
@@ -935,14 +1287,15 @@ const AdminHRTrainingView: React.FC = () => {
                       onChange={(e) => setCurrentQQuestion(e.target.value)}
                       placeholder="Enter question"
                       rows={2}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#0ea3d8]"
+                      disabled={creatingQA}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#0ea3d8] disabled:opacity-50"
                     />
                   </div>
 
-                  {/* 4 Options */}
+                  {/* Options */}
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Options (4 required) *
+                      Options (at least 2 required) *
                     </label>
                     <div className="space-y-2">
                       {currentQOptions.map((option, idx) => (
@@ -952,6 +1305,7 @@ const AdminHRTrainingView: React.FC = () => {
                             name="correct-answer"
                             checked={currentQCorrectAnswer === idx}
                             onChange={() => setCurrentQCorrectAnswer(idx)}
+                            disabled={creatingQA}
                             className="w-4 h-4"
                           />
                           <span className="text-sm font-medium text-gray-700 w-6">
@@ -961,12 +1315,13 @@ const AdminHRTrainingView: React.FC = () => {
                             type="text"
                             value={option}
                             onChange={(e) => {
-                              const newOptions = [...currentQOptions] as [string, string, string, string];
+                              const newOptions = [...currentQOptions];
                               newOptions[idx] = e.target.value;
                               setCurrentQOptions(newOptions);
                             }}
                             placeholder={`Option ${String.fromCharCode(65 + idx)}`}
-                            className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#0ea3d8]"
+                            disabled={creatingQA}
+                            className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#0ea3d8] disabled:opacity-50"
                           />
                         </div>
                       ))}
@@ -979,7 +1334,7 @@ const AdminHRTrainingView: React.FC = () => {
                   <button
                     type="button"
                     onClick={handleAddQuestionToQA}
-                    disabled={!currentQQuestion.trim() || currentQOptions.some(opt => !opt.trim())}
+                    disabled={creatingQA || !currentQQuestion.trim() || currentQOptions.filter(opt => opt.trim()).length < 2}
                     className="w-full px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
                   >
                     <Plus className="w-4 h-4" />
@@ -990,25 +1345,104 @@ const AdminHRTrainingView: React.FC = () => {
 
               <div className="flex gap-2 justify-end pt-4 border-t border-gray-200">
                 <button
-                  onClick={() => {
-                    setShowQAModal(false);
-                    setQATitle('');
-                    setQADescription('');
-                    setQAQuestions([]);
-                    setCurrentQQuestion('');
-                    setCurrentQOptions(['', '', '', '']);
-                    setCurrentQCorrectAnswer(0);
-                  }}
-                  className="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors"
+                  onClick={() => !creatingQA && setShowQAModal(false)}
+                  disabled={creatingQA}
+                  className="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors disabled:opacity-50"
                 >
                   Cancel
                 </button>
                 <button
                   onClick={handleAddQA}
-                  disabled={!qaTitle.trim() || qaQuestions.length === 0}
-                  className="px-4 py-2 bg-[#0ea3d8] !text-white rounded-lg hover:bg-[#0d8fc4] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                  disabled={creatingQA || !qaTitle.trim() || qaQuestions.length === 0}
+                  className="px-4 py-2 bg-[#0ea3d8] !text-white rounded-lg hover:bg-[#0d8fc4] transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
                 >
-                  Add Q&A
+                  {creatingQA ? (
+                    <>
+                      <Loader2 className="w-4 h-4 animate-spin" />
+                      Creating...
+                    </>
+                  ) : (
+                    'Add Q&A'
+                  )}
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Add Test Type Modal */}
+      {showAddTestTypeModal && (
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50" onClick={() => !creatingTestType && setShowAddTestTypeModal(false)}>
+          <div className="bg-white rounded-lg shadow-lg w-full max-w-md mx-4" onClick={(e) => e.stopPropagation()}>
+            <div className="p-6 border-b border-gray-200">
+              <div className="flex items-center justify-between">
+                <h3 className="text-lg font-semibold text-gray-900">Add Test Type</h3>
+                <button
+                  onClick={() => !creatingTestType && setShowAddTestTypeModal(false)}
+                  disabled={creatingTestType}
+                  className="text-gray-400 hover:text-gray-600 disabled:opacity-50"
+                >
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
+              <p className="text-sm text-gray-600 mt-1">Create a new test type</p>
+            </div>
+            <div className="p-6 space-y-4">
+              <div>
+                <label htmlFor="test-type-name" className="block text-sm font-medium text-gray-700 mb-2">
+                  Name * (e.g., TDG, VEHICLE)
+                </label>
+                <input
+                  id="test-type-name"
+                  type="text"
+                  value={newTestTypeName}
+                  onChange={(e) => setNewTestTypeName(e.target.value.toUpperCase())}
+                  placeholder="Enter test type name (uppercase)"
+                  disabled={creatingTestType}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#0ea3d8] disabled:opacity-50"
+                />
+                <p className="text-xs text-gray-500 mt-1">This will be stored in uppercase</p>
+              </div>
+              <div>
+                <label htmlFor="test-type-display-name" className="block text-sm font-medium text-gray-700 mb-2">
+                  Display Name * (e.g., TDG, Vehicle Inspection)
+                </label>
+                <input
+                  id="test-type-display-name"
+                  type="text"
+                  value={newTestTypeDisplayName}
+                  onChange={(e) => setNewTestTypeDisplayName(e.target.value)}
+                  placeholder="Enter display name"
+                  disabled={creatingTestType}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#0ea3d8] disabled:opacity-50"
+                />
+                <p className="text-xs text-gray-500 mt-1">This is how it will appear in dropdowns</p>
+              </div>
+              <div className="flex gap-2 justify-end pt-4">
+                <button
+                  onClick={() => !creatingTestType && setShowAddTestTypeModal(false)}
+                  disabled={creatingTestType}
+                  className="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors disabled:opacity-50"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={handleAddTestType}
+                  disabled={creatingTestType || !newTestTypeName.trim() || !newTestTypeDisplayName.trim()}
+                  className="px-4 py-2 bg-[#0ea3d8] !text-white rounded-lg hover:bg-[#0d8fc4] transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+                >
+                  {creatingTestType ? (
+                    <>
+                      <Loader2 className="w-4 h-4 animate-spin" />
+                      Creating...
+                    </>
+                  ) : (
+                    <>
+                      <Plus className="w-4 h-4" />
+                      Create
+                    </>
+                  )}
                 </button>
               </div>
             </div>

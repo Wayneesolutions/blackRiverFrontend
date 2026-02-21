@@ -1,461 +1,219 @@
-import React, { useState, useMemo, useEffect } from 'react';
-import { FileText, Image, Video, MessageSquare, Upload, CheckCircle2, XCircle } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { FileText, Image, Video, MessageSquare, Upload, CheckCircle2, XCircle, Eye, Loader2 } from 'lucide-react';
+import { useLocation } from 'react-router-dom';
 import { getUserRole, getUserId } from '../../../utils/auth';
+import {
+  getTrainingContent,
+  getTrainingContentSignedUrl,
+  getQuestionBanks,
+  submitTestResult,
+  getTestTypes,
+  TestType,
+} from '../../../axios/api/driver';
 
 interface TrainingContent {
-  id: string;
-  type: 'video' | 'pdf' | 'image';
-  title: string;
+  _id: string;
+  name: string;
+  type: 'PDF' | 'VIDEO' | 'IMAGE';
+  testType: string;
   description?: string;
-  url?: string;
-  uploadedAt: string;
-  questions?: Array<{
-    question: string;
-    answer: string;
-  }>;
+  fileUrl?: string;
+  fileName?: string;
+  assignedRoles?: string[];
+  createdAt?: string;
 }
 
 interface QAItem {
-  id: string;
-  title: string;
-  description?: string;
+  _id: string;
+  testName: string;
+  testType: string;
+  passingPercentage: number;
+  mandatory: boolean;
   questions: Array<{
+    _id?: string;
     question: string;
-    options: [string, string, string, string];
+    options: string[];
     correctAnswer: number;
   }>;
+  assignedRoles?: string[];
+  createdAt?: string;
+}
+
+interface TestResult {
+  _id: string;
+  score: number;
+  passed: boolean;
   createdAt: string;
 }
 
-// Role mapping: user role -> training content role key
-const roleMapping: Record<string, string> = {
-  'dispatcher': 'dispatcher',
-  'Fleet Maintenance Manager': 'fleet-maintenance-manager',
-  'Compliance Manager': 'compliance-manager',
-  'safety officer': 'safety-officer',
-  'accountant': 'accountant',
-  'hr': 'dispatcher', // HR can view all, but default to dispatcher for now
-};
-
-// Static training content data (would come from API in real app)
-const staticTrainingContent: Record<string, TrainingContent[]> = {
-  dispatcher: [
-    {
-      id: '1',
-      type: 'video',
-      title: 'Dispatching Best Practices',
-      description: 'Learn the fundamentals of efficient load dispatching and route optimization.',
-      uploadedAt: new Date().toISOString(),
-      questions: [
-        { question: 'What is the most important factor in load dispatching?', answer: 'Safety and driver availability' },
-        { question: 'How often should you check driver status?', answer: 'Every 2-4 hours during active trips' }
-      ]
-    },
-    {
-      id: '2',
-      type: 'pdf',
-      title: 'Route Planning Guide',
-      description: 'Comprehensive guide to planning efficient routes and managing deliveries.',
-      uploadedAt: new Date(Date.now() - 86400000).toISOString(),
-    },
-    {
-      id: '3',
-      type: 'image',
-      title: 'Load Securement Standards',
-      description: 'Visual guide to proper load securement techniques.',
-      uploadedAt: new Date(Date.now() - 172800000).toISOString(),
-    },
-    {
-      id: '4',
-      type: 'video',
-      title: 'Customer Communication Skills',
-      description: 'Effective communication strategies for dispatchers when interacting with customers.',
-      uploadedAt: new Date(Date.now() - 259200000).toISOString(),
-    },
-    {
-      id: '5',
-      type: 'pdf',
-      title: 'Emergency Response Procedures',
-      description: 'Step-by-step guide for handling emergencies and breakdowns.',
-      uploadedAt: new Date(Date.now() - 345600000).toISOString(),
-    }
-  ],
-  'fleet-maintenance-manager': [
-    {
-      id: '4',
-      type: 'video',
-      title: 'Preventive Maintenance Schedule',
-      description: 'Understanding maintenance intervals and scheduling for fleet vehicles.',
-      uploadedAt: new Date().toISOString(),
-    },
-    {
-      id: '5',
-      type: 'pdf',
-      title: 'Vehicle Inspection Checklist',
-      description: 'Complete checklist for daily vehicle inspections.',
-      uploadedAt: new Date(Date.now() - 86400000).toISOString(),
-    }
-  ],
-  'compliance-manager': [
-    {
-      id: '6',
-      type: 'video',
-      title: 'DOT Compliance Requirements',
-      description: 'Overview of Department of Transportation compliance standards.',
-      uploadedAt: new Date().toISOString(),
-    },
-    {
-      id: '7',
-      type: 'pdf',
-      title: 'HOS Regulations Guide',
-      description: 'Hours of Service regulations and logging requirements.',
-      uploadedAt: new Date(Date.now() - 86400000).toISOString(),
-    }
-  ],
-  'safety-officer': [
-    {
-      id: '8',
-      type: 'video',
-      title: 'Workplace Safety Protocols',
-      description: 'Essential safety protocols for trucking operations.',
-      uploadedAt: new Date().toISOString(),
-    },
-    {
-      id: '9',
-      type: 'pdf',
-      title: 'Incident Reporting Procedures',
-      description: 'Step-by-step guide for reporting safety incidents.',
-      uploadedAt: new Date(Date.now() - 86400000).toISOString(),
-    }
-  ],
-  accountant: [
-    {
-      id: '10',
-      type: 'video',
-      title: 'Financial Reporting Basics',
-      description: 'Introduction to financial reporting and accounting practices.',
-      uploadedAt: new Date().toISOString(),
-    },
-    {
-      id: '11',
-      type: 'pdf',
-      title: 'Invoice Processing Guide',
-      description: 'How to process invoices and manage accounts payable.',
-      uploadedAt: new Date(Date.now() - 86400000).toISOString(),
-    }
-  ],
-};
-
-// Static Q&A content data (would come from API in real app)
-const staticQAContent: Record<string, QAItem[]> = {
-  dispatcher: [
-    {
-      id: 'qa1',
-      title: 'Dispatching Fundamentals Quiz',
-      description: 'Test your knowledge of basic dispatching principles.',
-      questions: [
-        {
-          question: 'What is the primary responsibility of a dispatcher?',
-          options: ['Managing driver schedules', 'Coordinating loads and routes', 'Maintaining vehicles', 'Processing invoices'],
-          correctAnswer: 1
-        },
-        {
-          question: 'How should you prioritize loads?',
-          options: ['By customer size', 'By delivery deadline and driver availability', 'By distance only', 'Alphabetically'],
-          correctAnswer: 1
-        },
-        {
-          question: 'What information is essential when assigning a load?',
-          options: ['Only pickup location', 'Pickup location, delivery location, and special requirements', 'Only delivery location', 'Driver name only'],
-          correctAnswer: 1
-        },
-        {
-          question: 'When should you communicate with drivers?',
-          options: ['Only at the start of the day', 'Regularly throughout the day for updates', 'Never', 'Only in emergencies'],
-          correctAnswer: 1
-        }
-      ],
-      createdAt: new Date().toISOString()
-    },
-    {
-      id: 'qa2',
-      title: 'Route Optimization Quiz',
-      description: 'Assess your understanding of efficient route planning.',
-      questions: [
-        {
-          question: 'What is route optimization?',
-          options: ['Finding the shortest distance', 'Minimizing time, fuel, and costs while meeting delivery requirements', 'Using GPS only', 'Following the same route daily'],
-          correctAnswer: 1
-        },
-        {
-          question: 'Which factor is most important in route planning?',
-          options: ['Driver preference', 'Delivery windows and traffic patterns', 'Vehicle color', 'Weather only'],
-          correctAnswer: 1
-        },
-        {
-          question: 'What tool is most effective for route optimization?',
-          options: ['Paper maps', 'Route optimization software', 'Guessing', 'Asking drivers'],
-          correctAnswer: 1
-        }
-      ],
-      createdAt: new Date(Date.now() - 86400000).toISOString()
-    },
-    {
-      id: 'qa7',
-      title: 'Customer Service Quiz',
-      description: 'Test your customer service skills as a dispatcher.',
-      questions: [
-        {
-          question: 'How should you handle customer complaints?',
-          options: ['Ignore them', 'Listen actively, apologize, and find a solution', 'Blame the driver', 'Hang up'],
-          correctAnswer: 1
-        },
-        {
-          question: 'What is the best way to provide delivery updates?',
-          options: ['Never update', 'Proactively communicate delays and ETAs', 'Only when asked', 'Send updates to wrong customer'],
-          correctAnswer: 1
-        }
-      ],
-      createdAt: new Date(Date.now() - 172800000).toISOString()
-    }
-  ],
-  'fleet-maintenance-manager': [
-    {
-      id: 'qa3',
-      title: 'Maintenance Management Quiz',
-      description: 'Test your knowledge of fleet maintenance procedures.',
-      questions: [
-        {
-          question: 'What is preventive maintenance?',
-          options: ['Fixing things when they break', 'Regular scheduled maintenance to prevent failures', 'Only oil changes', 'Ignoring maintenance'],
-          correctAnswer: 1
-        },
-        {
-          question: 'How often should vehicles be inspected?',
-          options: ['Once a year', 'Daily pre-trip and periodic comprehensive inspections', 'Never', 'Only when problems occur'],
-          correctAnswer: 1
-        }
-      ],
-      createdAt: new Date().toISOString()
-    }
-  ],
-  'compliance-manager': [
-    {
-      id: 'qa4',
-      title: 'DOT Compliance Quiz',
-      description: 'Evaluate your understanding of DOT regulations.',
-      questions: [
-        {
-          question: 'What does HOS stand for?',
-          options: ['Hours of Service', 'Hours of Safety', 'Hours of Shipping', 'Hours of Storage'],
-          correctAnswer: 0
-        },
-        {
-          question: 'What is the maximum driving time for a property-carrying driver?',
-          options: ['8 hours', '11 hours', '12 hours', 'Unlimited'],
-          correctAnswer: 1
-        },
-        {
-          question: 'When must a driver take a 30-minute break?',
-          options: ['After 4 hours', 'After 8 hours of driving', 'Never required', 'After 2 hours'],
-          correctAnswer: 1
-        },
-        {
-          question: 'What is the maximum on-duty time in a 14-hour period?',
-          options: ['10 hours', '14 hours', '16 hours', 'No limit'],
-          correctAnswer: 1
-        }
-      ],
-      createdAt: new Date().toISOString()
-    },
-    {
-      id: 'qa8',
-      title: 'ELD Compliance Quiz',
-      description: 'Test your knowledge of Electronic Logging Device requirements.',
-      questions: [
-        {
-          question: 'When did the ELD mandate become effective?',
-          options: ['2015', '2017', '2019', '2020'],
-          correctAnswer: 1
-        },
-        {
-          question: 'What must drivers do if their ELD malfunctions?',
-          options: ['Continue driving', 'Use paper logs and report within 24 hours', 'Ignore it', 'Stop driving permanently'],
-          correctAnswer: 1
-        }
-      ],
-      createdAt: new Date(Date.now() - 86400000).toISOString()
-    }
-  ],
-  'safety-officer': [
-    {
-      id: 'qa5',
-      title: 'Safety Protocols Quiz',
-      description: 'Test your knowledge of workplace safety procedures.',
-      questions: [
-        {
-          question: 'What should be done first in case of an accident?',
-          options: ['Call insurance', 'Ensure safety of all involved and call emergency services', 'Take photos only', 'Leave the scene'],
-          correctAnswer: 1
-        },
-        {
-          question: 'Who is responsible for workplace safety?',
-          options: ['Only management', 'Everyone in the organization', 'Only drivers', 'Only safety officers'],
-          correctAnswer: 1
-        }
-      ],
-      createdAt: new Date().toISOString()
-    }
-  ],
-  accountant: [
-    {
-      id: 'qa6',
-      title: 'Accounting Basics Quiz',
-      description: 'Assess your understanding of financial management.',
-      questions: [
-        {
-          question: 'What is accounts payable?',
-          options: ['Money owed to the company', 'Money the company owes to suppliers', 'Employee salaries', 'Vehicle expenses only'],
-          correctAnswer: 1
-        },
-        {
-          question: 'What is the purpose of financial reporting?',
-          options: ['To track expenses only', 'To provide accurate financial information for decision-making', 'To hide expenses', 'To avoid taxes'],
-          correctAnswer: 1
-        }
-      ],
-      createdAt: new Date().toISOString()
-    }
-  ],
-};
-
-// Static results data - structure: role -> userId -> qaId -> results
-// This allows multiple users of the same role to have their own results
-const staticResults: Record<string, Record<string, Record<string, { answers: Record<number, number>; score: { correct: number; total: number }; completedAt: string }>>> = {
-  dispatcher: {
-    'user1': {
-      'qa1': {
-        answers: { 0: 1, 1: 1, 2: 1, 3: 1 },
-        score: { correct: 4, total: 4 },
-        completedAt: new Date().toISOString()
-      },
-      'qa2': {
-        answers: { 0: 1, 1: 0, 2: 1 },
-        score: { correct: 2, total: 3 },
-        completedAt: new Date(Date.now() - 86400000).toISOString()
-      }
-    },
-    'user2': {
-      'qa1': {
-        answers: { 0: 1, 1: 0, 2: 1, 3: 1 },
-        score: { correct: 3, total: 4 },
-        completedAt: new Date(Date.now() - 172800000).toISOString()
-      }
-    }
-  },
-  'fleet-maintenance-manager': {
-    'user1': {
-      'qa3': {
-        answers: { 0: 1, 1: 1 },
-        score: { correct: 2, total: 2 },
-        completedAt: new Date().toISOString()
-      }
-    }
-  },
-  'compliance-manager': {
-    'user1': {
-      'qa4': {
-        answers: { 0: 0, 1: 1, 2: 1 },
-        score: { correct: 2, total: 3 },
-        completedAt: new Date().toISOString()
-      }
-    }
-  },
-  'safety-officer': {
-    'user1': {
-      'qa5': {
-        answers: { 0: 1, 1: 1 },
-        score: { correct: 2, total: 2 },
-        completedAt: new Date().toISOString()
-      }
-    }
-  },
-  accountant: {
-    'user1': {
-      'qa6': {
-        answers: { 0: 1, 1: 1 },
-        score: { correct: 2, total: 2 },
-        completedAt: new Date().toISOString()
-      }
-    }
-  }
-};
-
 const TrainingContentView: React.FC = () => {
+  const location = useLocation();
   const userRole = getUserRole();
-  const userId = getUserId() || 'default-user'; // Get current user ID
-  
-  // State to track user answers for each Q&A set (per user)
+  const userId = getUserId() || '';
+  const [loading, setLoading] = useState(true);
+  const [trainingContent, setTrainingContent] = useState<TrainingContent[]>([]);
+  const [qaContent, setQAContent] = useState<QAItem[]>([]);
+  const [testTypes, setTestTypes] = useState<TestType[]>([]);
   const [userAnswers, setUserAnswers] = useState<Record<string, Record<number, number>>>({});
-  // State to track submitted Q&A sets (per user)
   const [submittedQA, setSubmittedQA] = useState<Record<string, boolean>>({});
-  // State to track scores (per user)
-  const [scores, setScores] = useState<Record<string, { correct: number; total: number }>>({});
-  
-  // Map user role to training content role key
-  const contentRoleKey = useMemo(() => {
-    if (!userRole) return null;
-    return roleMapping[userRole] || null;
-  }, [userRole]);
+  const [scores, setScores] = useState<Record<string, { correct: number; total: number; passed: boolean }>>({});
+  const [submitting, setSubmitting] = useState<Record<string, boolean>>({});
+  const [testResults, setTestResults] = useState<Record<string, TestResult>>({});
 
-  // Get role label for display
-  const roleLabel = useMemo(() => {
-    if (!userRole) return 'Your Role';
-    const roleLabels: Record<string, string> = {
-      'dispatcher': 'Dispatcher',
-      'Fleet Maintenance Manager': 'Fleet Maintenance Manager',
-      'Compliance Manager': 'Compliance Manager',
-      'safety officer': 'Safety Officer',
-      'accountant': 'Accountant',
-      'hr': 'HR',
-    };
-    return roleLabels[userRole] || userRole;
-  }, [userRole]);
-
-  // Fallback to dispatcher if role detection fails
-  const effectiveRoleKey = contentRoleKey || 'dispatcher';
-  const effectiveRoleLabel = roleLabel || 'Dispatcher';
+  // Determine target role based on route
+  // If accessed from /dispatch/training, show Dispatcher content
+  // If accessed from /fleetmaintenance/training, show Fleet Maintenance Manager content
+  // If accessed from /compliance/training, show Compliance Manager content
+  // If accessed from /accounts/training, show Accountant content
+  // If accessed from /Management/training, show HR content
+  const isDispatchRoute = location.pathname.includes('/dispatch/training');
+  const isFleetMaintenanceRoute = location.pathname.includes('/fleetmaintenance/training');
+  const isComplianceRoute = location.pathname.includes('/compliance/training');
+  const isAccountsRoute = location.pathname.includes('/accounts/training');
   
-  // Initialize with static results for current user
+  let targetRole: string;
+  let roleLabel: string;
+  
+  if (isDispatchRoute) {
+    targetRole = 'dispatcher';
+    roleLabel = 'Dispatcher';
+  } else if (isFleetMaintenanceRoute) {
+    targetRole = 'Fleet Maintenance Manager';
+    roleLabel = 'Fleet Maintenance';
+  } else if (isComplianceRoute) {
+    targetRole = 'Compliance Manager';
+    roleLabel = 'Compliance';
+  } else if (isAccountsRoute) {
+    targetRole = 'accountant';
+    roleLabel = 'Accountant';
+  } else {
+    // Default to HR for Management route
+    targetRole = 'hr';
+    roleLabel = 'HR';
+  }
+  
+  console.log('TrainingContentView - Path:', location.pathname);
+  console.log('TrainingContentView - User role:', userRole, 'Target role:', targetRole);
+
   useEffect(() => {
-    const roleResults = staticResults[effectiveRoleKey] || {};
-    const userResults = roleResults[userId] || {};
-    
-    // Set static results as submitted for current user
-    Object.keys(userResults).forEach((qaId) => {
-      setSubmittedQA((prev) => ({ ...prev, [qaId]: true }));
-      setUserAnswers((prev) => ({ ...prev, [qaId]: userResults[qaId].answers }));
-      setScores((prev) => ({ ...prev, [qaId]: userResults[qaId].score }));
-    });
-  }, [effectiveRoleKey, userId]);
+    fetchAllData();
+  }, [targetRole]);
 
+  const fetchAllData = async () => {
+    setLoading(true);
+    try {
+      console.log('=== Fetching Training Data ===');
+      console.log('User role:', userRole);
+      console.log('Target role:', targetRole);
+      console.log('User ID:', userId);
+      
+      // Fetch training content assigned to the target role
+      const contentResponse = await getTrainingContent({ role: targetRole });
+      console.log(`Training content response for ${targetRole}:`, contentResponse);
+      
+      if (contentResponse?.success && Array.isArray(contentResponse.data)) {
+        // Filter content assigned to the target role
+        const roleContent = contentResponse.data.filter((item: TrainingContent) => {
+          // Include if assignedRoles includes target role or if no assignedRoles (backward compatibility)
+          return !item.assignedRoles || item.assignedRoles.length === 0 || item.assignedRoles.includes(targetRole);
+        });
+        console.log('Total content from API:', contentResponse.data.length);
+        console.log(`${targetRole} training content:`, roleContent.length, 'items');
+        setTrainingContent(roleContent);
+      } else {
+        console.warn('Training content response not successful or not array:', contentResponse);
+        setTrainingContent([]);
+      }
+
+      // Fetch question banks assigned to the target role
+      const qaResponse = await getQuestionBanks({ role: targetRole });
+      console.log(`Question banks response for ${targetRole}:`, qaResponse);
+      
+      if (qaResponse?.success && Array.isArray(qaResponse.data)) {
+        // Filter Q&A assigned to the target role
+        const roleQA = qaResponse.data.filter((item: QAItem) => {
+          // Include if assignedRoles includes target role or if no assignedRoles (backward compatibility)
+          return !item.assignedRoles || item.assignedRoles.length === 0 || item.assignedRoles.includes(targetRole);
+        });
+        console.log('Total Q&A from API:', qaResponse.data.length);
+        console.log(`${targetRole} question banks:`, roleQA.length, 'items');
+        setQAContent(roleQA);
+      } else {
+        console.warn('Question banks response not successful or not array:', qaResponse);
+        setQAContent([]);
+      }
+      
+      console.log('=== Fetch Complete ===');
+
+      // Fetch test types
+      const testTypesResponse = await getTestTypes();
+      if (testTypesResponse?.success && Array.isArray(testTypesResponse.data)) {
+        setTestTypes(testTypesResponse.data);
+      }
+
+      // Fetch existing test results for this user
+      // This would be done via a separate API call if available
+    } catch (error) {
+      console.error('Error fetching data:', error);
+      alert('Failed to load training content. Please refresh the page.');
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const getIcon = (type: string) => {
-    switch (type) {
-      case 'video':
+    switch (type?.toUpperCase()) {
+      case 'VIDEO':
         return <Video className="w-5 h-5" />;
-      case 'pdf':
+      case 'PDF':
         return <FileText className="w-5 h-5" />;
-      case 'image':
+      case 'IMAGE':
         return <Image className="w-5 h-5" />;
       default:
         return <FileText className="w-5 h-5" />;
     }
   };
 
-  // Handle answer selection
+  const getTypeLabel = (type: string) => {
+    switch (type?.toUpperCase()) {
+      case 'VIDEO':
+        return 'Video';
+      case 'PDF':
+        return 'PDF';
+      case 'IMAGE':
+        return 'Image';
+      default:
+        return type;
+    }
+  };
+
+  const getTestTypeDisplayName = (testTypeName: string) => {
+    const testType = testTypes.find(t => t.name === testTypeName);
+    return testType ? testType.displayName : testTypeName;
+  };
+
+  const handleViewContent = async (contentId: string, contentType: string) => {
+    try {
+      const response = await getTrainingContentSignedUrl(contentId, 'inline');
+      console.log('Signed URL response:', response);
+      
+      const signedUrl = response?.url || response?.data?.url;
+      
+      if (response?.success && signedUrl) {
+        window.open(signedUrl, '_blank');
+      } else {
+        console.error('Invalid response structure:', response);
+        alert(response?.message || 'Failed to get content URL. Please try again.');
+      }
+    } catch (error: any) {
+      console.error('Error getting signed URL:', error);
+      const errorMessage = error?.response?.data?.message || error?.message || 'Failed to open content';
+      alert(errorMessage);
+    }
+  };
+
   const handleAnswerSelect = (qaId: string, questionIndex: number, answerIndex: number) => {
-    if (submittedQA[qaId]) return; // Don't allow changes after submission
+    if (submittedQA[qaId]) return;
     
     setUserAnswers((prev) => ({
       ...prev,
@@ -466,34 +224,79 @@ const TrainingContentView: React.FC = () => {
     }));
   };
 
-  // Handle Q&A submission (saves per user)
-  const handleSubmitQA = (qaId: string, questions: QAItem['questions']) => {
+  const handleSubmitQA = async (qaId: string, qaItem: QAItem) => {
+    if (!userId) {
+      alert('User ID not found. Please login again.');
+      return;
+    }
+
     const answers = userAnswers[qaId] || {};
-    let correct = 0;
-    const total = questions.length;
+    const allAnswered = qaItem.questions.every((_, idx) => answers[idx] !== undefined);
 
-    questions.forEach((q, idx) => {
-      if (answers[idx] === q.correctAnswer) {
-        correct++;
+    if (!allAnswered) {
+      alert('Please answer all questions before submitting.');
+      return;
+    }
+
+    setSubmitting((prev) => ({ ...prev, [qaId]: true }));
+
+    try {
+      // Format answers for submission
+      const formattedAnswers = qaItem.questions.map((q, index) => {
+        const questionId = q._id || index.toString();
+        const selectedAnswer = answers[index] ?? -1;
+        return {
+          questionId,
+          selectedAnswer
+        };
+      });
+
+      const response = await submitTestResult({
+        driverId: userId,
+        testType: qaItem.testType,
+        questionBankId: qaId,
+        answers: formattedAnswers
+      });
+
+      if (response?.success && response.data) {
+        const result = response.data;
+        const score = result.score || 0;
+        const passed = result.passed || false;
+        const totalQuestions = qaItem.questions.length;
+        const correctAnswers = Math.round((score / 100) * totalQuestions);
+
+        setScores((prev) => ({
+          ...prev,
+          [qaId]: { correct: correctAnswers, total: totalQuestions, passed }
+        }));
+
+        setSubmittedQA((prev) => ({
+          ...prev,
+          [qaId]: true,
+        }));
+
+        setTestResults((prev) => ({
+          ...prev,
+          [qaId]: {
+            _id: result._id || '',
+            score,
+            passed,
+            createdAt: result.createdAt || new Date().toISOString()
+          }
+        }));
+
+        alert(`Test submitted successfully! Score: ${score}% (${correctAnswers}/${totalQuestions}) - ${passed ? 'Passed' : 'Failed'}`);
+      } else {
+        alert(response?.message || 'Failed to submit test. Please try again.');
       }
-    });
-
-    // Save results (in real app, this would be sent to API with userId)
-    setScores((prev) => ({
-      ...prev,
-      [qaId]: { correct, total },
-    }));
-
-    setSubmittedQA((prev) => ({
-      ...prev,
-      [qaId]: true,
-    }));
-
-    // In a real app, you would save to backend:
-    // saveQuizResult(userId, effectiveRoleKey, qaId, { answers, score: { correct, total } });
+    } catch (error: any) {
+      console.error('Error submitting test:', error);
+      alert(error?.response?.data?.message || 'Failed to submit test. Please try again.');
+    } finally {
+      setSubmitting((prev) => ({ ...prev, [qaId]: false }));
+    }
   };
 
-  // Reset Q&A to allow retaking
   const handleResetQA = (qaId: string) => {
     setUserAnswers((prev) => {
       const newAnswers = { ...prev };
@@ -510,17 +313,23 @@ const TrainingContentView: React.FC = () => {
       delete newScores[qaId];
       return newScores;
     });
+    setTestResults((prev) => {
+      const newResults = { ...prev };
+      delete newResults[qaId];
+      return newResults;
+    });
   };
 
-  // Get training content for current role (with fallback)
-  const effectiveTrainingContent = useMemo(() => {
-    return staticTrainingContent[effectiveRoleKey] || staticTrainingContent['dispatcher'] || [];
-  }, [effectiveRoleKey]);
-
-  // Get Q&A content for current role (with fallback)
-  const effectiveQAContent = useMemo(() => {
-    return staticQAContent[effectiveRoleKey] || staticQAContent['dispatcher'] || [];
-  }, [effectiveRoleKey]);
+  if (loading) {
+    return (
+      <div className="p-6 bg-[#EDF8FF] min-h-screen flex items-center justify-center">
+        <div className="text-center">
+          <Loader2 className="w-8 h-8 animate-spin text-[#0ea3d8] mx-auto mb-4" />
+          <p className="text-gray-600">Loading training content...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="p-6 bg-[#EDF8FF] min-h-screen">
@@ -528,8 +337,7 @@ const TrainingContentView: React.FC = () => {
         <div className="mb-6">
           <h1 className="text-3xl font-bold text-gray-900 mb-2">Training Content</h1>
           <p className="text-gray-600">
-            Training materials and Q&A for {effectiveRoleLabel}
-            {!userRole && <span className="text-xs text-gray-500 ml-2">(Default view)</span>}
+            Training materials and Q&A for {roleLabel}
           </p>
         </div>
 
@@ -542,42 +350,39 @@ const TrainingContentView: React.FC = () => {
             </p>
           </div>
           <div className="p-6">
-            {effectiveTrainingContent.length === 0 ? (
+            {trainingContent.length === 0 ? (
               <div className="text-center py-12 text-gray-500">
                 <Upload className="w-12 h-12 mx-auto mb-4 text-gray-400" />
                 <p>No training materials available yet</p>
-                <p className="text-sm mt-2">Training materials will appear here when uploaded by HR or Admin</p>
+                <p className="text-sm mt-2">Training materials will appear here when uploaded</p>
               </div>
             ) : (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                {effectiveTrainingContent.map((item) => (
-                  <div key={item.id} className="bg-gray-50 rounded-lg p-4 border border-gray-200">
+                {trainingContent.map((item) => (
+                  <div key={item._id} className="bg-gray-50 rounded-lg p-4 border border-gray-200">
                     <div className="flex items-start justify-between mb-2">
                       <div className="flex items-center gap-2 flex-1">
                         <div className="text-[#0ea3d8]">{getIcon(item.type)}</div>
-                        <h3 className="font-semibold text-gray-900">{item.title}</h3>
+                        <h3 className="font-semibold text-gray-900">{item.name}</h3>
                       </div>
+                      <button
+                        onClick={() => handleViewContent(item._id, item.type)}
+                        className="text-[#0ea3d8] hover:text-[#0d8fc4] p-1"
+                        title="View content"
+                      >
+                        <Eye className="w-4 h-4" />
+                      </button>
                     </div>
                     {item.description && (
                       <p className="text-sm text-gray-600 mt-2 mb-3">{item.description}</p>
                     )}
-                    {item.questions && item.questions.length > 0 && (
-                      <div className="mt-3 pt-3 border-t border-gray-200">
-                        <p className="text-xs font-medium text-gray-700 mb-2">Questions & Answers:</p>
-                        <div className="space-y-2">
-                          {item.questions.map((q, idx) => (
-                            <div key={idx} className="bg-white rounded p-2 text-xs">
-                              <p className="font-medium text-gray-900 mb-1">Q: {q.question}</p>
-                              <p className="text-gray-600">A: {q.answer}</p>
-                            </div>
-                          ))}
-                        </div>
-                      </div>
-                    )}
                     <div className="flex items-center justify-between text-sm text-gray-500 mt-3">
-                      <span className="capitalize bg-gray-200 px-2 py-1 rounded">{item.type}</span>
+                      <div className="flex items-center gap-2">
+                        <span className="capitalize bg-gray-200 px-2 py-1 rounded">{getTypeLabel(item.type)}</span>
+                        <span className="bg-blue-100 text-blue-700 px-2 py-1 rounded text-xs">{getTestTypeDisplayName(item.testType)}</span>
+                      </div>
                       <span>
-                        {new Date(item.uploadedAt).toLocaleDateString()}
+                        {item.createdAt ? new Date(item.createdAt).toLocaleDateString() : 'N/A'}
                       </span>
                     </div>
                   </div>
@@ -596,26 +401,33 @@ const TrainingContentView: React.FC = () => {
             </p>
           </div>
           <div className="p-6">
-            {effectiveQAContent.length === 0 ? (
+            {qaContent.length === 0 ? (
               <div className="text-center py-12 text-gray-500">
                 <MessageSquare className="w-12 h-12 mx-auto mb-4 text-gray-400" />
                 <p>No Q&A content available yet</p>
-                <p className="text-sm mt-2">Q&A content will appear here when added by HR or Admin</p>
+                <p className="text-sm mt-2">Q&A content will appear here when added</p>
               </div>
             ) : (
               <div className="space-y-4">
-                {effectiveQAContent.map((item) => {
-                  const isSubmitted = submittedQA[item.id];
-                  const answers = userAnswers[item.id] || {};
-                  const score = scores[item.id];
+                {qaContent.map((item) => {
+                  const isSubmitted = submittedQA[item._id];
+                  const answers = userAnswers[item._id] || {};
+                  const score = scores[item._id];
                   const allAnswered = item.questions.every((_, idx) => answers[idx] !== undefined);
+                  const isSubmitting = submitting[item._id];
 
                   return (
-                    <div key={item.id} className="bg-gray-50 rounded-lg p-4 border border-gray-200">
+                    <div key={item._id} className="bg-gray-50 rounded-lg p-4 border border-gray-200">
                       <div className="flex-1">
                         <div className="flex items-center justify-between mb-3">
                           <div>
-                            <h3 className="font-semibold text-gray-900 mb-1">{item.title}</h3>
+                            <div className="flex items-center gap-3 mb-2">
+                              <h3 className="font-semibold text-gray-900">{item.testName}</h3>
+                              <span className="bg-blue-100 text-blue-700 px-2 py-1 rounded text-xs">{getTestTypeDisplayName(item.testType)}</span>
+                              <span className="text-sm text-gray-600">Passing: {item.passingPercentage}%</span>
+                              <span className="text-sm text-gray-600">Questions: {item.questions.length}</span>
+                              {item.mandatory && <span className="text-xs text-red-600 font-medium">Mandatory</span>}
+                            </div>
                             {item.description && (
                               <p className="text-sm text-gray-600">{item.description}</p>
                             )}
@@ -623,12 +435,15 @@ const TrainingContentView: React.FC = () => {
                           {isSubmitted && score && (
                             <div className="flex items-center gap-2 px-4 py-2 bg-white rounded-lg border border-gray-200">
                               <span className="text-sm font-medium text-gray-700">Score:</span>
-                              <span className={`text-lg font-bold ${score.correct === score.total ? 'text-green-600' : score.correct / score.total >= 0.7 ? 'text-yellow-600' : 'text-red-600'}`}>
+                              <span className={`text-lg font-bold ${score.passed ? 'text-green-600' : score.correct / score.total >= 0.7 ? 'text-yellow-600' : 'text-red-600'}`}>
                                 {score.correct}/{score.total}
                               </span>
                               <span className="text-sm text-gray-500">
                                 ({Math.round((score.correct / score.total) * 100)}%)
                               </span>
+                              {score.passed && (
+                                <CheckCircle2 className="w-5 h-5 text-green-600" />
+                              )}
                             </div>
                           )}
                         </div>
@@ -659,10 +474,10 @@ const TrainingContentView: React.FC = () => {
                                       <div key={optIdx} className="flex items-center gap-2">
                                         <input
                                           type="radio"
-                                          name={`qa-${item.id}-q${idx}`}
+                                          name={`qa-${item._id}-q${idx}`}
                                           checked={isSelected}
-                                          onChange={() => handleAnswerSelect(item.id, idx, optIdx)}
-                                          disabled={isSubmitted}
+                                          onChange={() => handleAnswerSelect(item._id, idx, optIdx)}
+                                          disabled={isSubmitted || isSubmitting}
                                           className="w-4 h-4"
                                         />
                                         <span className={`text-sm ${optionClass} flex items-center gap-2`}>
@@ -690,15 +505,22 @@ const TrainingContentView: React.FC = () => {
                         <div className="mt-4 flex gap-2">
                           {!isSubmitted ? (
                             <button
-                              onClick={() => handleSubmitQA(item.id, item.questions)}
-                              disabled={!allAnswered}
-                              className="px-4 py-2 bg-[#0ea3d8] !text-white rounded-lg hover:bg-[#0d8fc4] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                              onClick={() => handleSubmitQA(item._id, item)}
+                              disabled={!allAnswered || isSubmitting}
+                              className="px-4 py-2 bg-[#0ea3d8] !text-white rounded-lg hover:bg-[#0d8fc4] transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
                             >
-                              Submit Answers
+                              {isSubmitting ? (
+                                <>
+                                  <Loader2 className="w-4 h-4 animate-spin" />
+                                  Submitting...
+                                </>
+                              ) : (
+                                'Submit Answers'
+                              )}
                             </button>
                           ) : (
                             <button
-                              onClick={() => handleResetQA(item.id)}
+                              onClick={() => handleResetQA(item._id)}
                               className="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition-colors"
                             >
                               Retake Quiz
@@ -719,4 +541,3 @@ const TrainingContentView: React.FC = () => {
 };
 
 export default TrainingContentView;
-

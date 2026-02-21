@@ -38,7 +38,6 @@ interface QAItem {
 }
 
 const roles = [
-  { value: 'hr', label: 'HR' },
   { value: 'dispatcher', label: 'Dispatcher' },
   { value: 'Fleet Maintenance Manager', label: 'Fleet Maintenance Manager' },
   { value: 'Compliance Manager', label: 'Compliance Manager' },
@@ -50,7 +49,6 @@ const roles = [
 const HRRoleBasedTraining: React.FC = () => {
   const [activeRole, setActiveRole] = useState<string>('dispatcher');
   const [trainingContent, setTrainingContent] = useState<Record<string, TrainingContent[]>>({
-    hr: [],
     dispatcher: [],
     'Fleet Maintenance Manager': [],
     'Compliance Manager': [],
@@ -58,7 +56,6 @@ const HRRoleBasedTraining: React.FC = () => {
     accountant: [],
   });
   const [qaContent, setQAContent] = useState<Record<string, QAItem[]>>({
-    hr: [],
     dispatcher: [],
     'Fleet Maintenance Manager': [],
     'Compliance Manager': [],

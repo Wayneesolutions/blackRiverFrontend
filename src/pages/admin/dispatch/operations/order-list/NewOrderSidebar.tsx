@@ -5377,6 +5377,11 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
                                                                                     {driver.phone && <div>Phone: {driver.phone}</div>}
                                                                                     {driver.email && <div>Email: {driver.email}</div>}
                                                                                     {driver.licenseNumber && <div>License: {driver.licenseNumber}</div>}
+                                                                                    <div>Cross-Border Eligible: {driver.details?.cross_border_eligible !== undefined 
+                                                                                        ? (driver.details.cross_border_eligible ? 'Yes' : 'No')
+                                                                                        : (driver.cross_border_eligible !== undefined 
+                                                                                            ? (driver.cross_border_eligible ? 'Yes' : 'No')
+                                                                                            : 'No')}</div>
                                                                                     {driver.onboardingPercentage !== undefined && (
                                                                                         <div className="mt-2 pt-2 border-t border-gray-200">
                                                                                             <div className="font-medium text-gray-700 mb-1">Onboarding Status:</div>
@@ -5449,6 +5454,16 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
                                                                         }`}>{selectedDriver.status}</span>
                                                                     </div>
                                                                 )}
+                                                                <div className="flex">
+                                                                    <span className="font-medium w-24 flex-shrink-0">Cross-Border Eligible:</span>
+                                                                    <span className="font-medium">
+                                                                        {selectedDriver.details?.cross_border_eligible !== undefined 
+                                                                            ? (selectedDriver.details.cross_border_eligible ? 'Yes' : 'No')
+                                                                            : (selectedDriver.cross_border_eligible !== undefined 
+                                                                                ? (selectedDriver.cross_border_eligible ? 'Yes' : 'No')
+                                                                                : 'No')}
+                                                                    </span>
+                                                                </div>
                                                                 {selectedDriver.onboardingPercentage !== undefined && (
                                                                     <div className="mt-3 pt-3 border-t border-purple-300">
                                                                         <div className="font-semibold text-purple-900 mb-2 text-sm">Onboarding Progress</div>
@@ -5568,6 +5583,11 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
                                                                                     {driver.phone && <div>Phone: {driver.phone}</div>}
                                                                                     {driver.email && <div>Email: {driver.email}</div>}
                                                                                     {driver.licenseNumber && <div>License: {driver.licenseNumber}</div>}
+                                                                                    <div>Cross-Border Eligible: {driver.details?.cross_border_eligible !== undefined 
+                                                                                        ? (driver.details.cross_border_eligible ? 'Yes' : 'No')
+                                                                                        : (driver.cross_border_eligible !== undefined 
+                                                                                            ? (driver.cross_border_eligible ? 'Yes' : 'No')
+                                                                                            : 'No')}</div>
                                                                                     {driver.onboardingPercentage !== undefined && (
                                                                                         <div className="mt-2 pt-2 border-t border-gray-200">
                                                                                             <div className="font-medium text-gray-700 mb-1">Onboarding Status:</div>
@@ -5640,6 +5660,16 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
                                                                         }`}>{selectedCoDriver.status}</span>
                                                                     </div>
                                                                 )}
+                                                                <div className="flex">
+                                                                    <span className="font-medium w-24 flex-shrink-0">Cross-Border Eligible:</span>
+                                                                    <span className="font-medium">
+                                                                        {selectedCoDriver.details?.cross_border_eligible !== undefined 
+                                                                            ? (selectedCoDriver.details.cross_border_eligible ? 'Yes' : 'No')
+                                                                            : (selectedCoDriver.cross_border_eligible !== undefined 
+                                                                                ? (selectedCoDriver.cross_border_eligible ? 'Yes' : 'No')
+                                                                                : 'No')}
+                                                                    </span>
+                                                                </div>
                                                                 {selectedCoDriver.onboardingPercentage !== undefined && (
                                                                     <div className="mt-3 pt-3 border-t border-orange-300">
                                                                         <div className="font-semibold text-orange-900 mb-2 text-sm">Onboarding Progress</div>
