@@ -4,7 +4,7 @@ import { FaCheckCircle, FaExclamationCircle, FaTimes } from "react-icons/fa";
 import { listCustomer, createOrder, updateOrder, getAuditTrail } from "../../../../../axios/api/distapcher";
 import { listTrucks } from "../../../../../axios/api/truckTracking";
 import { listTrailers } from "../../../../../axios/api/trailerTracking";
-import { getAllDrivers, getDriverOnboardingStatus } from "../../../../../axios/api/driver";
+import { getAllDrivers, getDriverOnboardingStatus, getDrugTests } from "../../../../../axios/api/driver";
 import { getAllEmployees } from "../../../../../axios/api/employee";
 import { getUserInfo } from "../../../../../utils/auth";
 import AddressSearch from "../../../../../components/common/AddressSearch";
@@ -396,6 +396,9 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
     const [coDriverSearch, setCoDriverSearch] = useState("");
     const [coDriverDropdownOpen, setCoDriverDropdownOpen] = useState(false);
     const [coDrivers, setCoDrivers] = useState<any[]>([]);
+    
+    // Drug test statuses for drivers (key: driverId, value: 'pending' | 'completed' | 'not-created')
+    const [driverDrugTestStatuses, setDriverDrugTestStatuses] = useState<Record<string, 'pending' | 'completed' | 'not-created'>>({});
     
     const [selectedCarrier, setSelectedCarrier] = useState<any>(null);
     const [carrierSearch, setCarrierSearch] = useState("");
@@ -2380,6 +2383,49 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
                         
                         setDrivers(eligibleDrivers);
                         setCoDrivers(eligibleDrivers); // Co-drivers use the same filtered list
+                        
+                        // Fetch drug test statuses for cross-border eligible drivers
+                        const crossBorderDrivers = eligibleDrivers.filter((driver: any) => {
+                            const crossBorderEligible = driver.details?.cross_border_eligible !== undefined 
+                                ? driver.details.cross_border_eligible 
+                                : (driver.cross_border_eligible !== undefined ? driver.cross_border_eligible : false);
+                            return crossBorderEligible === true;
+                        });
+                        
+                        if (crossBorderDrivers.length > 0) {
+                            const drugTestStatuses: Record<string, 'pending' | 'completed' | 'not-created'> = {};
+                            
+                            await Promise.all(
+                                crossBorderDrivers.map(async (driver: any) => {
+                                    const driverId = driver._id || driver.id;
+                                    try {
+                                        const drugTestResponse = await getDrugTests({ driverId });
+                                        if (drugTestResponse?.success && Array.isArray(drugTestResponse.data) && drugTestResponse.data.length > 0) {
+                                            // Get the most recent drug test
+                                            const latestTest = drugTestResponse.data.sort((a: any, b: any) => 
+                                                new Date(b.createdAt || 0).getTime() - new Date(a.createdAt || 0).getTime()
+                                            )[0];
+                                            
+                                            if (latestTest.status === 'completed') {
+                                                drugTestStatuses[driverId] = 'completed';
+                                            } else if (latestTest.status === 'pending' || latestTest.status === 'scheduled') {
+                                                drugTestStatuses[driverId] = 'pending';
+                                            } else {
+                                                drugTestStatuses[driverId] = 'not-created';
+                                            }
+                                        } else {
+                                            drugTestStatuses[driverId] = 'not-created';
+                                        }
+                                    } catch (error) {
+                                        console.error(`❌ Error fetching drug test for driver ${driverId}:`, error);
+                                        drugTestStatuses[driverId] = 'not-created';
+                                    }
+                                })
+                            );
+                            
+                            setDriverDrugTestStatuses(drugTestStatuses);
+                            console.log('💊 Drug test statuses:', drugTestStatuses);
+                        }
                     } else {
                         console.error('❌ Failed to fetch drivers:', response);
                     }
@@ -5503,6 +5549,24 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
                                                                                      '✗ Pending'}
                                                                                 </span>
                                                                             </div>
+                                                                            {(selectedDriver.details?.cross_border_eligible || selectedDriver.cross_border_eligible) && (() => {
+                                                                                const driverId = selectedDriver._id || selectedDriver.id;
+                                                                                const drugTestStatus = driverDrugTestStatuses[driverId];
+                                                                                return (
+                                                                                    <div className="flex items-center mt-1">
+                                                                                        <span className="w-24 flex-shrink-0">Drug Test:</span>
+                                                                                        <span className={`font-medium ${
+                                                                                            drugTestStatus === 'completed' ? 'text-green-600' :
+                                                                                            drugTestStatus === 'pending' ? 'text-yellow-600' :
+                                                                                            'text-red-600'
+                                                                                        }`}>
+                                                                                            {drugTestStatus === 'completed' ? '✓ Completed' :
+                                                                                             drugTestStatus === 'pending' ? '⏳ Pending' :
+                                                                                             '✗ Not Created'}
+                                                                                        </span>
+                                                                                    </div>
+                                                                                );
+                                                                            })()}
                                                                         </div>
                                                                     </div>
                                                                 )}
@@ -5595,6 +5659,24 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
                                                                                                 <div>Training: {driver.trainingCompleted ? '✓ Completed' : '✗ Pending'}</div>
                                                                                                 <div>Tests: {driver.testsCompleted ? '✓ Completed' : '✗ Pending'}</div>
                                                                                                 <div>HR Approval: {driver.hrApprovalStatus === 'APPROVED' ? '✓ Approved' : driver.hrApprovalStatus === 'IN_REVIEW' ? '⏳ In Review' : '✗ Pending'}</div>
+                                                                                                {(driver.details?.cross_border_eligible || driver.cross_border_eligible) && (() => {
+                                                                                                    const driverId = driver._id || driver.id;
+                                                                                                    const drugTestStatus = driverDrugTestStatuses[driverId];
+                                                                                                    return (
+                                                                                                        <div className="mt-1 pt-1 border-t border-gray-200">
+                                                                                                            <div className="font-medium text-gray-700 mb-0.5">Drug Test:</div>
+                                                                                                            <div className={`${
+                                                                                                                drugTestStatus === 'completed' ? 'text-green-600 font-medium' :
+                                                                                                                drugTestStatus === 'pending' ? 'text-yellow-600 font-medium' :
+                                                                                                                'text-red-600 font-medium'
+                                                                                                            }`}>
+                                                                                                                {drugTestStatus === 'completed' ? '✓ Completed' :
+                                                                                                                 drugTestStatus === 'pending' ? '⏳ Pending' :
+                                                                                                                 '✗ Not Created'}
+                                                                                                            </div>
+                                                                                                        </div>
+                                                                                                    );
+                                                                                                })()}
                                                                                             </div>
                                                                                         </div>
                                                                                     )}
@@ -5709,6 +5791,24 @@ const NewOrderSidebar = ({ order, onClose, onSave }: NewOrderSidebarProps) => {
                                                                                      '✗ Pending'}
                                                                                 </span>
                                                                             </div>
+                                                                            {(selectedCoDriver.details?.cross_border_eligible || selectedCoDriver.cross_border_eligible) && (() => {
+                                                                                const driverId = selectedCoDriver._id || selectedCoDriver.id;
+                                                                                const drugTestStatus = driverDrugTestStatuses[driverId];
+                                                                                return (
+                                                                                    <div className="flex items-center mt-1">
+                                                                                        <span className="w-24 flex-shrink-0">Drug Test:</span>
+                                                                                        <span className={`font-medium ${
+                                                                                            drugTestStatus === 'completed' ? 'text-green-600' :
+                                                                                            drugTestStatus === 'pending' ? 'text-yellow-600' :
+                                                                                            'text-red-600'
+                                                                                        }`}>
+                                                                                            {drugTestStatus === 'completed' ? '✓ Completed' :
+                                                                                             drugTestStatus === 'pending' ? '⏳ Pending' :
+                                                                                             '✗ Not Created'}
+                                                                                        </span>
+                                                                                    </div>
+                                                                                );
+                                                                            })()}
                                                                         </div>
                                                                     </div>
                                                                 )}

@@ -108,35 +108,16 @@ const AdminHRTrainingView: React.FC = () => {
         setQAContent(hrQA);
       }
 
-      // Fetch HR users
-      const usersResponse = await getAllUsersForDrugTest();
-      let hrUsersList: HRUser[] = [];
-      if (usersResponse?.success && Array.isArray(usersResponse.data)) {
-        hrUsersList = usersResponse.data.filter((user: any) => user.role === 'hr');
-        setHrUsers(hrUsersList);
-      }
-
-      // Fetch test results for HR users
-      // Filter for HR users AND HR-assigned question banks
+      // Fetch test results first - we'll extract HR users from results
       const resultsResponse = await getTestResults();
       console.log('Test results response:', resultsResponse);
       
+      let hrUsersList: HRUser[] = [];
+      let hrResults: TestResult[] = [];
+      
       if (resultsResponse?.success && Array.isArray(resultsResponse.data)) {
-        // Get HR user IDs
-        const hrUserIds = hrUsersList.map(u => u._id);
-        console.log('HR User IDs:', hrUserIds);
-        console.log('HR Question Bank IDs:', hrQuestionBankIds);
-        
-        // Filter results for HR users AND HR-assigned question banks
-        const hrResults = resultsResponse.data.filter((result: TestResult) => {
-          // Handle both populated and non-populated driverId
-          let driverId: string | undefined;
-          if (typeof result.driverId === 'string') {
-            driverId = result.driverId;
-          } else if (result.driverId && typeof result.driverId === 'object') {
-            driverId = result.driverId._id || (result.driverId as any).toString();
-          }
-          
+        // First, filter results for HR-assigned question banks
+        const hrResultsFiltered = resultsResponse.data.filter((result: TestResult) => {
           // Handle both populated and non-populated questionBankId
           let questionBankId: string | undefined;
           if (typeof result.questionBankId === 'string') {
@@ -145,32 +126,67 @@ const AdminHRTrainingView: React.FC = () => {
             questionBankId = (result.questionBankId as any)._id || (result.questionBankId as any).toString();
           }
           
-          // Check if user is HR AND question bank is assigned to HR
-          const isHRUser = driverId && hrUserIds.includes(driverId);
+          // Check if question bank is assigned to HR
           const isHRQuestionBank = questionBankId && hrQuestionBankIds.includes(questionBankId);
-          
-          // Include result if: HR user submitted it AND it's for an HR-assigned question bank
-          const shouldInclude = isHRUser && isHRQuestionBank;
-          
-          if (shouldInclude) {
-            console.log('Found HR test result:', {
-              driverId,
-              questionBankId,
-              score: result.score,
-              passed: result.passed
-            });
-          }
-          
-          return shouldInclude;
+          return isHRQuestionBank;
         });
         
-        console.log('HR Users:', hrUsersList.length);
-        console.log('HR Question Banks:', hrQuestionBankIds.length);
+        console.log('HR Question Bank IDs:', hrQuestionBankIds);
         console.log('All Test Results:', resultsResponse.data.length);
-        console.log('HR Test Results (filtered):', hrResults.length);
+        console.log('HR Test Results (filtered by question bank):', hrResultsFiltered.length);
+        
+        // Extract unique user IDs from HR test results
+        const uniqueUserIds = new Set<string>();
+        hrResultsFiltered.forEach((result: TestResult) => {
+          let driverId: string | undefined;
+          if (typeof result.driverId === 'string') {
+            driverId = result.driverId;
+          } else if (result.driverId && typeof result.driverId === 'object') {
+            driverId = result.driverId._id || (result.driverId as any).toString();
+          }
+          if (driverId) {
+            uniqueUserIds.add(driverId);
+          }
+        });
+        
+        console.log('Unique User IDs from test results:', Array.from(uniqueUserIds));
+        
+        // Build HR users list from test results (with populated user data if available)
+        const hrUsersMap = new Map<string, HRUser>();
+        
+        hrResultsFiltered.forEach((result: TestResult) => {
+          let driverId: string | undefined;
+          let userName: string | undefined;
+          let userEmail: string | undefined;
+          
+          if (typeof result.driverId === 'string') {
+            driverId = result.driverId;
+          } else if (result.driverId && typeof result.driverId === 'object') {
+            driverId = result.driverId._id || (result.driverId as any).toString();
+            userName = result.driverId.name;
+            userEmail = result.driverId.email;
+          }
+          
+          if (driverId && !hrUsersMap.has(driverId)) {
+            hrUsersMap.set(driverId, {
+              _id: driverId,
+              name: userName || 'Unknown User',
+              email: userEmail || ''
+            });
+          }
+        });
+        
+        hrUsersList = Array.from(hrUsersMap.values());
+        hrResults = hrResultsFiltered;
+        
+        console.log('HR Users extracted from test results:', hrUsersList.length);
+        console.log('HR Test Results:', hrResults.length);
+        
+        setHrUsers(hrUsersList);
         setTestResults(hrResults);
       } else {
         console.warn('Test results response not successful:', resultsResponse);
+        setHrUsers([]);
         setTestResults([]);
       }
 
