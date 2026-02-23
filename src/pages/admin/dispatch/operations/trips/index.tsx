@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback, useRef } from "react";
 import { Plus, Edit, Trash2, Eye, Search, X, File, Download, MessageCircle } from "lucide-react";
 import { FaCheckCircle, FaExclamationCircle, FaTimes, FaTruck, FaUser, FaTrailer } from "react-icons/fa";
 import NewTripSidebar from "./NewTripSidebar";
-import { listTrip, deleteTrip, getTripById, startTrip as startTripAPI, completeTrip as completeTripAPI, approveTripCompletion, listDriver, listVehicle, getTripDocumentSignedUrl, updateTrip } from "../../../../../axios/api/distapcher";
+import { listTrip, deleteTrip, getTripById, startTrip as startTripAPI, completeTrip as completeTripAPI, approveTripCompletion, approveTripDocuments, listDriver, listVehicle, getTripDocumentSignedUrl, updateTrip } from "../../../../../axios/api/distapcher";
 import ConfirmationModal from "../../../../../components/common/ConfirmationModal";
 import { FLEET_COLORS, getFocusStyles } from "../../../fleetMaintenance/colorUtils";
 import { getUnreadMessageCount } from "../../../../../axios/api/chat";
@@ -63,6 +63,14 @@ interface Trip {
   };
   completionApprovedAt?: string;
   completionRejectionReason?: string;
+  documentsApproved?: boolean;
+  documentsApprovedBy?: {
+    _id: string;
+    name: string;
+    email?: string;
+  };
+  documentsApprovedAt?: string;
+  approvedWithoutDocuments?: boolean;
   plannedStartDate?: string | null | undefined;
   plannedEndDate?: string;
   actualStartDate?: string;
@@ -958,10 +966,22 @@ const Trips = () => {
         addNotification('success', 'Trip started successfully. Order statuses updated to in-delivery.');
         fetchTrips();
       } else {
-        addNotification('error', response?.message || 'Failed to start trip');
+        // Check if error is about pending review orders
+        const errorMessage = response?.message || 'Failed to start trip';
+        if (errorMessage.includes('pending review')) {
+          addNotification('warning', 'Cannot start trip without completing verification of other trips. Please complete or resolve all pending review orders before starting a new trip.');
+        } else {
+          addNotification('error', errorMessage);
+        }
       }
     } catch (error: any) {
-      addNotification('error', error?.message || 'An error occurred while starting trip');
+      const errorMessage = error?.response?.data?.message || error?.message || 'An error occurred while starting trip';
+      // Check if error is about pending review orders
+      if (errorMessage.includes('pending review')) {
+        addNotification('warning', 'Cannot start trip without completing verification of other trips. Please complete or resolve all pending review orders before starting a new trip.');
+      } else {
+        addNotification('error', errorMessage);
+      }
     } finally {
       setStartConfirm({ show: false, trip: null });
     }
@@ -992,6 +1012,7 @@ const Trips = () => {
   };
 
   const handleCompleteTrip = async (trip: Trip) => {
+    // Backend will handle document approval validation
     setCompleteConfirm({ show: true, trip });
   };
 
@@ -1007,7 +1028,7 @@ const Trips = () => {
         addNotification('error', response?.message || 'Failed to complete trip');
       }
     } catch (error: any) {
-      addNotification('error', error?.message || 'An error occurred while completing trip');
+      addNotification('error', error?.response?.data?.message || error?.message || 'An error occurred while completing trip');
     } finally {
       setCompleteConfirm({ show: false, trip: null });
     }
@@ -1055,20 +1076,44 @@ const Trips = () => {
 
   // Helper function to get document status for a trip
   const getDocumentStatus = (trip: Trip) => {
-    const documents = trip.documents || [];
-    const hasPOD = documents.some((doc: any) => 
+    // Check both trip documents and order attachments
+    const tripDocuments = trip.documents || [];
+    
+    // Get documents from orders (attachments)
+    const orderDocuments: any[] = [];
+    if (trip.orders && Array.isArray(trip.orders)) {
+      trip.orders.forEach((order: any) => {
+        if (order.attachments && Array.isArray(order.attachments)) {
+          order.attachments.forEach((att: any) => {
+            orderDocuments.push({
+              type: att.type,
+              fileName: att.name,
+              fileUrl: att.url,
+              uploadedAt: att.uploadedAt,
+              uploadedBy: att.uploadedBy
+            });
+          });
+        }
+      });
+    }
+    
+    // Combine trip documents and order documents
+    const allDocuments = [...tripDocuments, ...orderDocuments];
+    
+    const hasPOD = allDocuments.some((doc: any) => 
       doc.type === 'pod' || doc.type === 'proof_of_delivery'
     );
     const isCanada = isCanadaTrip(trip);
-    const hasBorderManifest = documents.some((doc: any) => 
-      doc.type === 'stamped_manifest' || doc.type === 'manifest'
+    const hasBorderManifest = allDocuments.some((doc: any) => 
+      doc.type === 'stamped_manifest' || doc.type === 'manifest' || doc.type === 'border_manifest'
     );
     
     return {
       hasPOD,
       hasBorderManifest,
       isCanada,
-      isComplete: hasPOD && (!isCanada || hasBorderManifest)
+      isComplete: hasPOD && (!isCanada || hasBorderManifest),
+      allDocuments // Return all documents for display
     };
   };
 
@@ -1436,16 +1481,19 @@ const Trips = () => {
                             value={trip.status}
                             onChange={async (e) => {
                               const newStatus = e.target.value;
+                              const previousStatus = trip.status;
                               e.stopPropagation(); // Stop row click
 
                               try {
                                 if (newStatus === 'in-progress') {
                                   await handleStartTrip(trip);
                                 } else if (newStatus === 'completed') {
+                                  // Backend will handle document approval validation
                                   const isPaid = trip.orders?.every((o: any) => o.accountingStatus === 'paid');
                                   if (!isPaid) {
                                     addNotification('error', 'Cannot complete trip: Payment Pending');
-                                    // Revert selection by forcing re-render or just letting the current state persist until fetch
+                                    // Revert dropdown to previous status
+                                    e.target.value = previousStatus;
                                     return;
                                   }
                                   await handleCompleteTrip(trip);
@@ -1456,12 +1504,16 @@ const Trips = () => {
                                     addNotification('success', 'Trip status updated');
                                     fetchTrips();
                                   } else {
-                                    addNotification('error', 'Failed to update trip status');
+                                    addNotification('error', res?.message || 'Failed to update trip status');
+                                    // Revert dropdown to previous status if update failed
+                                    e.target.value = previousStatus;
                                   }
                                 }
-                              } catch (err) {
+                              } catch (err: any) {
                                 console.error('Error updating trip status:', err);
-                                addNotification('error', 'Error updating trip status');
+                                addNotification('error', err?.response?.data?.message || err?.message || 'Error updating trip status');
+                                // Revert dropdown to previous status on error
+                                e.target.value = previousStatus;
                               }
                             }}
                             className="text-xs border rounded px-2 py-1"
@@ -1504,9 +1556,11 @@ const Trips = () => {
                           )}
                           {trip.status === 'in-progress' && (
                             <button
-                              onClick={() => handleCompleteTrip(trip)}
+                              onClick={() => {
+                                handleCompleteTrip(trip);
+                              }}
+                              className="px-3 py-1.5 text-xs font-medium rounded transition-all !text-white hover:opacity-90 hover:shadow-md"
                               style={primaryButtonStyle}
-                              className="px-3 py-1.5 text-xs font-medium !text-white rounded transition-all hover:opacity-90 hover:shadow-md"
                               title="Complete Trip"
                             >
                               Complete
@@ -1948,19 +2002,147 @@ const Trips = () => {
                               </div>
                             </div>
                           );
-                        })}
-                      </div>
-                    ) : (
-                      <div className="p-4 bg-gray-50 border border-gray-200 rounded-lg text-center text-gray-500">
-                        <File className="w-6 h-6 mx-auto mb-2 text-gray-400" />
-                        <p className="text-sm">No documents uploaded</p>
-                      </div>
-                    )}
+                          })}
+                        </div>
+                      ) : (
+                        <div className="p-4 bg-gray-50 border border-gray-200 rounded-lg text-center text-gray-500">
+                          <File className="w-6 h-6 mx-auto mb-2 text-gray-400" />
+                          <p className="text-sm">No documents uploaded</p>
+                        </div>
+                      );
+                    })()}
                   </div>
+
+                  {/* Document Approval Section - Only show if documents are not approved */}
+                  {(() => {
+                    // Show approval section if trip is not completed and documents are not approved
+                    const isNotCompleted = viewingTrip.status !== 'completed';
+                    const isNotApproved = !viewingTrip.documentsApproved; // true if false, undefined, or null
+                    
+                    // Debug logging
+                    console.log('🔍 Approval Section Check:', {
+                      tripId: viewingTrip._id,
+                      tripNumber: viewingTrip.tripNumber,
+                      status: viewingTrip.status,
+                      isNotCompleted,
+                      documentsApproved: viewingTrip.documentsApproved,
+                      isNotApproved,
+                      hasTripDocuments: !!(viewingTrip.documents && viewingTrip.documents.length > 0),
+                      hasOrderAttachments: !!(viewingTrip.orders && viewingTrip.orders.some((order: any) => order.attachments && order.attachments.length > 0)),
+                      ordersCount: viewingTrip.orders?.length || 0
+                    });
+                    
+                    // Don't show if trip is completed or already approved
+                    if (!isNotCompleted || !isNotApproved) {
+                      console.log('❌ Not showing approval section:', { isNotCompleted, isNotApproved });
+                      return null;
+                    }
+                    
+                    const docStatus = getDocumentStatus(viewingTrip);
+                    // Check if there are any documents (from trip or orders)
+                    const hasDocuments = (viewingTrip.documents && viewingTrip.documents.length > 0) || 
+                      (viewingTrip.orders && viewingTrip.orders.some((order: any) => order.attachments && order.attachments.length > 0));
+                    
+                    console.log('✅ Showing approval section:', { hasDocuments, docStatus });
+                    
+                    return (
+                      <div className="mt-4 p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
+                        <div className="text-sm font-semibold text-gray-700 mb-3">Document Approval</div>
+                        <div className="flex flex-col gap-2">
+                          {hasDocuments && (
+                            <button
+                              onClick={async () => {
+                                if (!viewingTrip?._id) return;
+                                try {
+                                  const response = await approveTripDocuments(viewingTrip._id, false);
+                                  if (response?.success) {
+                                    addNotification('success', 'Documents approved successfully. Trip can now be completed.');
+                                    // Refresh trip data
+                                    const updatedTrip = await getTripById(viewingTrip._id);
+                                    if (updatedTrip?.success && updatedTrip?.data) {
+                                      setViewingTrip(updatedTrip.data);
+                                    }
+                                    fetchTrips();
+                                  } else {
+                                    addNotification('error', response?.message || 'Failed to approve documents');
+                                  }
+                                } catch (error: any) {
+                                  addNotification('error', error?.message || 'An error occurred while approving documents');
+                                }
+                              }}
+                              className="px-4 py-2 bg-green-600 text-white rounded-lg font-medium transition-all hover:bg-green-700 hover:shadow-md text-sm"
+                            >
+                              Approve Documents
+                            </button>
+                          )}
+                          <button
+                            onClick={async () => {
+                              if (!viewingTrip?._id) return;
+                              if (!window.confirm('Are you sure you want to approve this trip without documents? This will allow the trip to be completed even without required documents.')) {
+                                return;
+                              }
+                              try {
+                                const response = await approveTripDocuments(viewingTrip._id, true);
+                                if (response?.success) {
+                                  addNotification('success', 'Trip approved without documents. Trip can now be completed.');
+                                  // Refresh trip data
+                                  const updatedTrip = await getTripById(viewingTrip._id);
+                                  if (updatedTrip?.success && updatedTrip?.data) {
+                                    setViewingTrip(updatedTrip.data);
+                                  }
+                                  fetchTrips();
+                                } else {
+                                  addNotification('error', response?.message || 'Failed to approve trip');
+                                }
+                              } catch (error: any) {
+                                addNotification('error', error?.message || 'An error occurred while approving trip');
+                              }
+                            }}
+                            className="px-4 py-2 bg-orange-600 text-white rounded-lg font-medium transition-all hover:bg-orange-700 hover:shadow-md text-sm"
+                          >
+                            Approve Trip Without Documents
+                          </button>
+                        </div>
+                      </div>
+                    );
+                  })()}
+
+                  {/* Show approval status if approved */}
+                  {viewingTrip.documentsApproved && (
+                    <div className="mt-4 p-3 bg-green-50 border border-green-200 rounded-lg">
+                      <div className="flex items-center gap-2 text-sm text-green-800">
+                        <FaCheckCircle className="text-green-600" size={16} />
+                        <span className="font-semibold">
+                          Documents {viewingTrip.approvedWithoutDocuments ? 'Approved (Without Documents)' : 'Approved'}
+                        </span>
+                      </div>
+                      {viewingTrip.documentsApprovedBy && (
+                        <div className="text-xs text-green-700 mt-1">
+                          Approved by {viewingTrip.documentsApprovedBy.name || 'Dispatcher'}
+                          {viewingTrip.documentsApprovedAt && (
+                            <span> on {new Date(viewingTrip.documentsApprovedAt).toLocaleDateString()}</span>
+                          )}
+                        </div>
+                      )}
+                    </div>
+                  )}
                 </div>
               </div>
               {!showChat && (
-                <div className="sticky bottom-0 bg-gray-50 px-6 py-4 flex justify-end border-t rounded-b-xl">
+                <div className="sticky bottom-0 bg-gray-50 px-6 py-4 flex justify-between items-center border-t rounded-b-xl">
+                  <div>
+                    {viewingTrip.status !== 'completed' && (
+                      <button
+                        onClick={() => {
+                          handleCompleteTrip(viewingTrip);
+                        }}
+                        className="px-6 py-2 rounded-lg font-medium transition-all bg-green-600 text-white hover:bg-green-700 hover:shadow-md"
+                        title="Complete Trip"
+                      >
+                        Complete Trip
+                      </button>
+                    )}
+                  </div>
                   <button
                     onClick={() => {
                       setViewingTrip(null);

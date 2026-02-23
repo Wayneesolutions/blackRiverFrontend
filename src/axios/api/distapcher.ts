@@ -793,6 +793,18 @@ export const getOrderById = async (id: string) => {
   }
 }
 
+export const approveOrderDocuments = async (id: string, approveWithoutDocuments: boolean = false) => {
+  try {
+    const res: AxiosResponse = await apiClient.post(`dispatcher/order/${id}/approve-documents`, {
+      approveWithoutDocuments
+    });
+    return res.data;
+  } catch (error: any) {
+    console.error('approveOrderDocuments API error:', error);
+    throw error?.response?.data || error;
+  }
+};
+
 export const updateOrder = async (id: string, data: FormData | any) => {
   try {
     const res: AxiosResponse = await apiClient.put(`dispatcher/order/${id}`, data, {
@@ -978,6 +990,18 @@ export const approveTripCompletion = async (id: string, action: 'approve' | 'rej
     return res.data;
   } catch (error: any) {
     console.error('approveTripCompletion API error:', error);
+    throw error?.response?.data || error;
+  }
+};
+
+export const approveTripDocuments = async (id: string, approveWithoutDocuments: boolean = false) => {
+  try {
+    const res: AxiosResponse = await apiClient.post(`dispatcher/trip/${id}/approve-documents`, {
+      approveWithoutDocuments
+    });
+    return res.data;
+  } catch (error: any) {
+    console.error('approveTripDocuments API error:', error);
     throw error?.response?.data || error;
   }
 };

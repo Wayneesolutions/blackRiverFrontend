@@ -3,7 +3,7 @@ import { Edit, Plus, X, Package, DollarSign, Route, Truck, MessageCircle, File, 
 import { FaCheckCircle, FaExclamationCircle, FaTimes, FaTruck } from "react-icons/fa";
 import { useNavigate, useLocation } from "react-router-dom";
 import NewOrderSidebar from "./NewOrderSidebar";
-import { listOrder, deleteOrder, getOrderById, updateOrder } from "../../../../../axios/api/distapcher";
+import { listOrder, deleteOrder, getOrderById, updateOrder, approveOrderDocuments } from "../../../../../axios/api/distapcher";
 import { listPlace } from "../../../../../axios/api/dispatcher.places";
 import ConfirmationModal from "../../../../../components/common/ConfirmationModal";
 import OrderChat from "../../../../../components/chat/OrderChat";
@@ -264,6 +264,14 @@ interface Order {
     };
     verificationStatus?: string;
   };
+  documentsApproved?: boolean;
+  documentsApprovedBy?: {
+    _id: string;
+    name: string;
+    email?: string;
+  };
+  documentsApprovedAt?: string;
+  approvedWithoutDocuments?: boolean;
 }
 
 const OrderList = () => {
@@ -1406,17 +1414,23 @@ const OrderList = () => {
                           onChange={async (e) => {
                             e.stopPropagation();
                             const newStatus = e.target.value;
+                            const previousStatus = order.status || 'quoted';
+                            
                             try {
                               const res = await updateOrder(order.id, { status: newStatus });
                               if (res?.success) {
                                 addNotification('success', 'Order status updated');
                                 fetchOrders();
                               } else {
-                                addNotification('error', 'Failed to update status');
+                                addNotification('error', res?.message || 'Failed to update status');
+                                // Revert dropdown to previous status if update failed
+                                e.target.value = previousStatus;
                               }
-                            } catch (err) {
+                            } catch (err: any) {
                               console.error('Error updating status:', err);
-                              addNotification('error', 'Error updating status');
+                              addNotification('error', err?.response?.data?.message || err?.message || 'Error updating status');
+                              // Revert dropdown to previous status on error
+                              e.target.value = previousStatus;
                             }
                           }}
                           onClick={(e) => e.stopPropagation()}
@@ -1772,6 +1786,80 @@ const OrderList = () => {
                   );
                 })()}
               </div>
+
+              {/* Document Approval Section */}
+              {(() => {
+                const orderData = selectedOrderForDocuments as any;
+                const isNotCompleted = orderData?.status !== 'completed';
+                const isNotApproved = !orderData?.documentsApproved;
+                const shouldShow = isNotCompleted && isNotApproved;
+                
+                if (!shouldShow) {
+                  // Show approval status if approved
+                  if (orderData?.documentsApproved) {
+                    return (
+                      <div className="mt-4 p-3 bg-green-50 border border-green-200 rounded-lg">
+                        <div className="flex items-center gap-2 text-sm text-green-800">
+                          <FaCheckCircle className="text-green-600" size={16} />
+                          <span className="font-semibold">
+                            Documents {orderData.approvedWithoutDocuments ? 'Approved (Without Documents)' : 'Approved'}
+                          </span>
+                        </div>
+                        {orderData.documentsApprovedBy && (
+                          <div className="text-xs text-green-700 mt-1">
+                            Approved by {orderData.documentsApprovedBy.name || 'Dispatcher'}
+                            {orderData.documentsApprovedAt && (
+                              <span> on {new Date(orderData.documentsApprovedAt).toLocaleDateString()}</span>
+                            )}
+                          </div>
+                        )}
+                      </div>
+                    );
+                  }
+                  return null;
+                }
+                
+                const attachments = orderData?.attachments || [];
+                const hasDocuments = attachments.length > 0;
+                
+                return (
+                  <div className="mt-4 p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
+                    <div className="text-sm font-semibold text-gray-700 mb-3">Document Approval</div>
+                    <button
+                      onClick={async () => {
+                        if (!orderData?._id) return;
+                        try {
+                          const response = await approveOrderDocuments(orderData._id, false);
+                          if (response?.success) {
+                            // Refresh order data
+                            const updatedOrder = await getOrderById(orderData._id);
+                            if (updatedOrder?.success && updatedOrder?.data) {
+                              setSelectedOrderForDocuments(updatedOrder.data);
+                            }
+                            // Refresh orders list
+                            fetchOrders();
+                            // Show success notification
+                            alert('Documents approved successfully. Order can now be completed.');
+                          } else {
+                            alert(response?.message || 'Failed to approve documents');
+                          }
+                        } catch (error: any) {
+                          alert(error?.message || 'An error occurred while approving documents');
+                        }
+                      }}
+                      disabled={!hasDocuments}
+                      className={`px-4 py-2 rounded-lg font-medium transition-all text-sm ${
+                        hasDocuments
+                          ? 'bg-green-600 text-white hover:bg-green-700 hover:shadow-md cursor-pointer'
+                          : 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                      }`}
+                      title={!hasDocuments ? 'No documents to approve' : 'Approve Documents'}
+                    >
+                      Approve Documents
+                    </button>
+                  </div>
+                );
+              })()}
             </div>
             <div className="flex-shrink-0 bg-gray-50 px-6 py-4 flex justify-end border-t rounded-b-xl">
               <button
