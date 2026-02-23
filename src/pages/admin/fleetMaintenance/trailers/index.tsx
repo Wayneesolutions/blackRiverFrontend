@@ -63,9 +63,8 @@ const TrailersPage: React.FC = () => {
 
     // Sidebar modal state
     const [showSidebar, setShowSidebar] = useState(false);
-    const [activeStep, setActiveStep] = useState<'Details' | 'Inspections' | 'Documents' | 'Notes'>('Details');
+    const [activeStep, setActiveStep] = useState<'Details' | 'Inspections' | 'Documents' | 'Invoice' | 'Notes'>('Details');
     const [inspectionType, setInspectionType] = useState<'One Time' | 'Recurring'>('One Time');
-    const [documentType, setDocumentType] = useState<'General' | 'Ownership' | 'Plate' | 'Safety' | 'Insurance'>('General');
     const [selectedImage, setSelectedImage] = useState<string | null>(null);
 
     // Confirmation modal states
@@ -134,10 +133,11 @@ const TrailersPage: React.FC = () => {
     const [editingInspectionType, setEditingInspectionType] = useState<'oneTime' | 'recurring' | null>(null);
     const fileInputRef = useRef<HTMLInputElement>(null);
 
-    // Documents data
-    const [documents, setDocuments] = useState<Record<string, Array<{
+    // Documents data (single list, no tabs)
+    const [documents, setDocuments] = useState<Array<{
         id: string;
         _id?: string;
+        title: string;
         expiryDate: string;
         description: string;
         file: File | null;
@@ -145,15 +145,10 @@ const TrailersPage: React.FC = () => {
         fileName?: string;
         ignoreExpiration: boolean;
         isExisting?: boolean;
-    }>>>({
-        General: [],
-        Ownership: [],
-        Plate: [],
-        Safety: [],
-        Insurance: []
-    });
+    }>>([]);
 
     const [documentForm, setDocumentForm] = useState({
+        title: '',
         expiryDate: '',
         description: '',
         file: null as File | null,
@@ -161,7 +156,6 @@ const TrailersPage: React.FC = () => {
     });
 
     const [editingDocumentId, setEditingDocumentId] = useState<string | null>(null);
-    const [editingDocumentType, setEditingDocumentType] = useState<string | null>(null);
     const documentFileInputRef = useRef<HTMLInputElement>(null);
 
 
@@ -180,9 +174,17 @@ const TrailersPage: React.FC = () => {
         isExisting?: boolean;
     }>>([]);
 
-  
+    const [invoiceForm, setInvoiceForm] = useState({
+        invoiceNumber: '',
+        vendorWorkshop: '',
+        amount: '',
+        invoiceDate: '',
+        file: null as File | null,
+        notes: ''
+    });
 
-
+    const [editingInvoiceId, setEditingInvoiceId] = useState<string | null>(null);
+    const invoiceFileInputRef = useRef<HTMLInputElement>(null);
 
     // Notes data
     const [notes, setNotes] = useState<Array<{
@@ -195,6 +197,7 @@ const TrailersPage: React.FC = () => {
         note: '',
         category: 'Category'
     });
+    const [editingNoteId, setEditingNoteId] = useState<string | null>(null);
 
     // Column filters
     const [filters, setFilters] = useState({
@@ -616,31 +619,30 @@ const TrailersPage: React.FC = () => {
     };
 
     // Document handlers
-    const handleEditDocument = (doc: any, docType: string) => {
+    const handleEditDocument = (doc: any) => {
         setEditingDocumentId(doc.id);
-        setEditingDocumentType(docType);
         setDocumentForm({
-            expiryDate: doc.expiryDate,
-            description: doc.description,
+            title: doc.title || '',
+            expiryDate: doc.expiryDate || '',
+            description: doc.description || '',
             file: doc.file || null,
-            ignoreExpiration: doc.ignoreExpiration
+            ignoreExpiration: doc.ignoreExpiration || false
         });
     };
 
     const handleSaveDocument = () => {
-        if (!documentForm.description) {
-            alert('Please enter a description');
+        if (!documentForm.description && !documentForm.title && !documentForm.file) {
+            alert('Please enter a title, description, or attach a file');
             return;
         }
 
-        if (editingDocumentId && editingDocumentType) {
-            // Update existing document
-            setDocuments(prev => ({
-                ...prev,
-                [editingDocumentType]: prev[editingDocumentType].map(doc =>
+        if (editingDocumentId) {
+            setDocuments(prev =>
+                prev.map(doc =>
                     doc.id === editingDocumentId
                         ? {
                             ...doc,
+                            title: documentForm.title,
                             expiryDate: documentForm.expiryDate,
                             description: documentForm.description,
                             ignoreExpiration: documentForm.ignoreExpiration,
@@ -649,13 +651,12 @@ const TrailersPage: React.FC = () => {
                         }
                         : doc
                 )
-            }));
+            );
             setEditingDocumentId(null);
-            setEditingDocumentType(null);
         } else {
-            // Add new document
             const newDoc = {
                 id: Date.now().toString(),
+                title: documentForm.title,
                 expiryDate: documentForm.expiryDate,
                 description: documentForm.description,
                 file: documentForm.file,
@@ -663,37 +664,20 @@ const TrailersPage: React.FC = () => {
                 ignoreExpiration: documentForm.ignoreExpiration,
                 isExisting: false
             };
-            setDocuments(prev => ({
-                ...prev,
-                [documentType]: [...prev[documentType], newDoc]
-            }));
+            setDocuments(prev => [...prev, newDoc]);
         }
 
-        setDocumentForm({
-            expiryDate: '',
-            description: '',
-            file: null,
-            ignoreExpiration: false
-        });
+        setDocumentForm({ title: '', expiryDate: '', description: '', file: null, ignoreExpiration: false });
         if (documentFileInputRef.current) {
             documentFileInputRef.current.value = '';
         }
     };
 
-    const handleDeleteDocument = (docId: string, docType: string) => {
-        setDocuments(prev => ({
-            ...prev,
-            [docType]: prev[docType].filter(doc => doc.id !== docId)
-        }));
+    const handleDeleteDocument = (docId: string) => {
+        setDocuments(prev => prev.filter(doc => doc.id !== docId));
         if (editingDocumentId === docId) {
             setEditingDocumentId(null);
-            setEditingDocumentType(null);
-            setDocumentForm({
-                expiryDate: '',
-                description: '',
-                file: null,
-                ignoreExpiration: false
-            });
+            setDocumentForm({ title: '', expiryDate: '', description: '', file: null, ignoreExpiration: false });
             if (documentFileInputRef.current) {
                 documentFileInputRef.current.value = '';
             }
@@ -702,13 +686,7 @@ const TrailersPage: React.FC = () => {
 
     const handleCancelEditDocument = () => {
         setEditingDocumentId(null);
-        setEditingDocumentType(null);
-        setDocumentForm({
-            expiryDate: '',
-            description: '',
-            file: null,
-            ignoreExpiration: false
-        });
+        setDocumentForm({ title: '', expiryDate: '', description: '', file: null, ignoreExpiration: false });
         if (documentFileInputRef.current) {
             documentFileInputRef.current.value = '';
         }
@@ -922,98 +900,44 @@ const TrailersPage: React.FC = () => {
                 
                 console.log('💾 Saving trailer, ID:', trailerId);
                 
-                // Save documents if trailer was created/updated successfully
+                // Save documents if trailer was created/updated successfully (single list, no tabs)
                 if (trailerId) {
-                    // Separate new documents and existing documents that need updates
-                    const newDocuments: Array<{ type: string; doc: any }> = [];
-                    const updatedDocuments: Array<{ type: string; doc: any }> = [];
-                    
-                    Object.keys(documents).forEach((docType) => {
-                        documents[docType].forEach((doc) => {
-                            if (!doc.isExisting) {
-                                // New documents - create them
-                                newDocuments.push({ type: docType, doc });
-                            } else if (doc._id) {
-                                // Existing documents - update them if they have changes
-                                updatedDocuments.push({ type: docType, doc });
-                            }
-                        });
-                    });
+                    const newDocs = documents.filter((doc) => !doc.isExisting && (doc.file || doc.description || doc.title));
+                    const existingDocs = documents.filter((doc) => doc.isExisting && doc._id);
 
-                    console.log('📄 New documents to create:', newDocuments.length);
-                    console.log('📄 Existing documents to update:', updatedDocuments.length);
-
-                    // Create new documents
-                    if (newDocuments.length > 0) {
+                    if (newDocs.length > 0) {
                         try {
-                            await Promise.all(newDocuments.map(async ({ type, doc }) => {
+                            await Promise.all(newDocs.map(async (doc) => {
                                 const docFormData = new FormData();
                                 docFormData.append('trailerId', trailerId.toString());
                                 docFormData.append('assetType', 'trailer');
-                                docFormData.append('documentType', type);
+                                docFormData.append('documentType', 'General');
                                 docFormData.append('documentNumber', doc.description || '');
-                                if (doc.expiryDate) {
-                                    docFormData.append('expiryDate', doc.expiryDate);
-                                }
-                                if (doc.file) {
-                                    docFormData.append('file', doc.file);
-                                }
-                                
-                                console.log('📤 Creating document:', { type, description: doc.description, hasFile: !!doc.file });
+                                if (doc.title) docFormData.append('title', doc.title);
+                                if (doc.expiryDate) docFormData.append('expiryDate', doc.expiryDate);
+                                if (doc.file) docFormData.append('file', doc.file);
                                 const docResponse = await createVehicleDocument(docFormData);
-                                if (!docResponse?.success) {
-                                    console.error('❌ Error creating document:', docResponse);
-                                } else {
-                                    console.log('✅ Document created successfully');
-                                }
+                                if (!docResponse?.success) console.error('❌ Error creating document:', docResponse);
                             }));
                         } catch (docError) {
                             console.error('❌ Error creating documents:', docError);
                         }
                     }
 
-                    // Update existing documents
-                    if (updatedDocuments.length > 0) {
+                    if (existingDocs.length > 0) {
                         try {
-                            await Promise.all(updatedDocuments.map(async ({ type, doc }) => {
+                            await Promise.all(existingDocs.map(async (doc) => {
                                 const docFormData = new FormData();
-                                // Always include required fields for update
                                 docFormData.append('trailerId', trailerId.toString());
                                 docFormData.append('assetType', 'trailer');
-                                docFormData.append('documentType', type);
+                                docFormData.append('documentType', 'General');
                                 docFormData.append('documentNumber', doc.description || '');
-                                
-                                // Include expiryDate if it exists
-                                if (doc.expiryDate) {
-                                    docFormData.append('expiryDate', doc.expiryDate);
-                                } else {
-                                    // If no expiry date, send empty string to clear it
-                                    docFormData.append('expiryDate', '');
-                                }
-                                
-                                // Only append file if a new file was selected (doc.file is a File object)
-                                if (doc.file && doc.file instanceof File) {
-                                    docFormData.append('file', doc.file);
-                                    console.log('📎 Including new file in update:', doc.file.name);
-                                }
-                                
-                                // Log FormData contents for debugging
-                                const formDataEntries: string[] = [];
-                                for (const [key, value] of docFormData.entries()) {
-                                    if (value instanceof File) {
-                                        formDataEntries.push(`${key}: File(${value.name}, ${value.size} bytes)`);
-                                    } else {
-                                        formDataEntries.push(`${key}: ${value}`);
-                                    }
-                                }
-                                console.log('📤 Updating document payload:', { id: doc._id, type, entries: formDataEntries });
-                                
+                                if (doc.title) docFormData.append('title', doc.title);
+                                if (doc.expiryDate) docFormData.append('expiryDate', doc.expiryDate);
+                                else docFormData.append('expiryDate', '');
+                                if (doc.file && doc.file instanceof File) docFormData.append('file', doc.file);
                                 const docResponse = await updateVehicleDocument(doc._id!, docFormData);
-                                if (!docResponse?.success) {
-                                    console.error('❌ Error updating document:', docResponse);
-                                } else {
-                                    console.log('✅ Document updated successfully');
-                                }
+                                if (!docResponse?.success) console.error('❌ Error updating document:', docResponse);
                             }));
                         } catch (docError) {
                             console.error('❌ Error updating documents:', docError);
@@ -1043,13 +967,7 @@ const TrailersPage: React.FC = () => {
                 setSelectedImage(null);
                 setSelectedImageFile(null);
                 setOriginalTrailerData(null);
-                setDocuments({
-                    General: [],
-                    Ownership: [],
-                    Plate: [],
-                    Safety: [],
-                    Insurance: []
-                });
+                setDocuments([]);
                 // Clear inspection state
                 setOneTimeInspections([]);
                 setRecurringInspections([]);
@@ -1064,6 +982,8 @@ const TrailersPage: React.FC = () => {
                 });
                 setEditingInspectionId(null);
                 setEditingInspectionType(null);
+                setEditingDocumentId(null);
+                setEditingNoteId(null);
                 // Refresh trailers list with current filter (same logic as fetchTrailers)
                 let yardFilter: string | undefined = undefined;
                 let ownershipFilter: string | undefined = undefined;
@@ -1100,46 +1020,16 @@ const TrailersPage: React.FC = () => {
                         yard: trailer.yard || null
                     }));
                     setTrailers(transformedTrailers);
-                    
-                    // Refresh all counts after update
-                    try {
-                        const counts: Record<string, number> = {};
-                        
-                        // All count
-                        const allResponse = await getAllTrailers(1, 1);
-                        counts['All'] = allResponse?.pagination?.total || 0;
-                        
-                        // External count
-                        const externalResponse = await getAllTrailers(1, 1, undefined, undefined, undefined, undefined, undefined, 'THIRD PARTY ASSET');
-                        counts['External'] = externalResponse?.pagination?.total || 0;
-                        
-                        // Unassigned count
-                        const unassignedResponse = await getAllTrailers(1, 1000);
-                        if (unassignedResponse?.success && unassignedResponse?.data) {
-                            const unassignedCount = unassignedResponse.data.filter((trailer: any) => {
-                                const trailerId = trailer._id?.toString();
-                                return !trailerId || !assignedTrailerIds.has(trailerId);
-                            }).length;
-                            counts['Unassigned'] = unassignedCount;
-                        } else {
-                            counts['Unassigned'] = 0;
-                        }
-                        
-                        // Yard counts
-                        for (const yard of yards) {
-                            if (yard.status === 'active' && yard._id) {
-                                const yardId = yard._id.toString();
-                                console.log('🔄 [UPDATE] Refreshing count for yard:', yardId, yard.yardName);
-                                const yardResponse = await getAllTrailers(1, 1, undefined, undefined, undefined, undefined, yardId);
-                                const yardCount = yardResponse?.pagination?.total || 0;
-                                console.log('📊 [UPDATE] Yard count after update:', { yardId, yardName: yard.yardName, count: yardCount });
-                                counts[yardId] = yardCount;
-                            }
-                        }
-                        
-                        setYardCounts(counts);
-                    } catch (error) {
-                        console.error('Error refreshing counts:', error);
+                    // Refresh count for current tab and All tab
+                    setFetchedCounts(prev => {
+                        const updated = new Set(prev);
+                        updated.delete(activeTab);
+                        updated.delete('All');
+                        return updated;
+                    });
+                    fetchTabCount('All');
+                    if (activeTab !== 'All') {
+                        fetchTabCount(activeTab);
                     }
                 }
             } else {
@@ -1232,71 +1122,31 @@ const TrailersPage: React.FC = () => {
                     console.log('📥 Documents from trailer response:', trailerDocuments.length);
                     
                     if (Array.isArray(trailerDocuments) && trailerDocuments.length > 0) {
-                        const docsByType: Record<string, Array<any>> = {
-                            General: [],
-                            Ownership: [],
-                            Plate: [],
-                            Safety: [],
-                            Insurance: []
-                        };
-                        
-                        // Process documents with signed URLs (already signed by backend)
-                        for (const doc of trailerDocuments) {
-                            const docType = doc.documentType || 'General';
-                            // Map document types to match frontend categories
-                            const mappedType = docType === 'General' || docType === 'Ownership' || docType === 'Plate' || docType === 'Safety' || docType === 'Insurance' 
-                                ? docType 
-                                : 'General';
-                            
-                            if (mappedType in docsByType) {
-                                // Get file URL - use signed URL from backend (already signed)
-                                let fileUrl = doc.files?.[0]?.fileUrl || doc.documentLocation || null;
-                                let fileName = doc.files?.[0]?.fileName || 'Document';
-                                
-                                docsByType[mappedType].push({
-                                    id: doc._id || `existing-${doc._id}`,
-                                    _id: doc._id,
-                                    expiryDate: doc.expiryDate ? new Date(doc.expiryDate).toISOString().split('T')[0] : '',
-                                    description: doc.documentNumber || doc.documentType || doc.description || '',
-                                    file: null, // No file object for existing documents
-                                    fileUrl: fileUrl,
-                                    fileName: fileName,
-                                    ignoreExpiration: false,
-                                    isExisting: true
-                                });
-                            }
-                        }
-                        
-                        console.log('📋 Loaded documents by type:', docsByType);
-                        console.log('📊 Document counts:', {
-                            General: docsByType.General.length,
-                            Ownership: docsByType.Ownership.length,
-                            Plate: docsByType.Plate.length,
-                            Safety: docsByType.Safety.length,
-                            Insurance: docsByType.Insurance.length
+                        const flatDocs = trailerDocuments.map((doc: any) => {
+                            const fileUrl = doc.files?.[0]?.fileUrl || doc.documentLocation || null;
+                            const fileName = doc.files?.[0]?.fileName || 'Document';
+                            return {
+                                id: doc._id || `existing-${doc._id}`,
+                                _id: doc._id,
+                                title: doc.title || doc.documentType || doc.documentNumber || '',
+                                expiryDate: doc.expiryDate ? new Date(doc.expiryDate).toISOString().split('T')[0] : '',
+                                description: doc.documentNumber || doc.documentType || doc.description || '',
+                                file: null,
+                                fileUrl,
+                                fileName,
+                                ignoreExpiration: doc.ignoreExpiration || false,
+                                isExisting: true
+                            };
                         });
-                        setDocuments(docsByType);
+                        console.log('📋 Loaded documents (flat list):', flatDocs.length);
+                        setDocuments(flatDocs);
                     } else {
                         console.log('⚠️ No documents found in trailer response');
-                        // Reset documents if none found
-                        setDocuments({
-                            General: [],
-                            Ownership: [],
-                            Plate: [],
-                            Safety: [],
-                            Insurance: []
-                        });
+                        setDocuments([]);
                     }
                 } catch (docError) {
                     console.error('❌ Error loading documents:', docError);
-                    // Reset documents on error
-                    setDocuments({
-                        General: [],
-                        Ownership: [],
-                        Plate: [],
-                        Safety: [],
-                        Insurance: []
-                    });
+                    setDocuments([]);
                 }
                 
                 // Load inspections from trailer response
@@ -1508,7 +1358,7 @@ const TrailersPage: React.FC = () => {
     };
 
     // Navigation helper functions for sidebar steps
-    const steps: Array<'Details' | 'Inspections' | 'Documents' | 'Notes'> = ['Details', 'Inspections', 'Documents', 'Notes'];
+    const steps: Array<'Details' | 'Inspections' | 'Documents' | 'Invoice' | 'Notes'> = ['Details', 'Inspections', 'Documents', 'Invoice', 'Notes'];
     
     const getNextStep = () => {
         const currentIndex = steps.indexOf(activeStep);
@@ -1574,6 +1424,8 @@ const TrailersPage: React.FC = () => {
                                     });
                                     setSelectedImage(null);
                                     setSelectedImageFile(null);
+                                    setEditingDocumentId(null);
+                                    setEditingNoteId(null);
                                     setShowSidebar(true);
                                     setActiveStep('Details');
                                 }}
@@ -1621,7 +1473,7 @@ const TrailersPage: React.FC = () => {
                                 >
                                     <div>
                                         <div className="font-semibold">
-                                            {yard.yardName} ({getCountByCategory(yard._id?.toString() || '')})
+                                            {yard.yardName} ({getCountByCategory(yard._id!)})
                                         </div>
                                         <div className="text-xs text-gray-500 mt-1">
                                             {yard.yardCode}
@@ -2056,7 +1908,7 @@ const TrailersPage: React.FC = () => {
                             {/* Navigation Tabs */}
                             <div className="flex-1 overflow-y-auto p-2">
                                 <nav className="flex flex-col gap-1.5">
-                                    {(['Details', 'Inspections', 'Documents', 'Notes'] as const).map((step) => (
+                                    {(['Details', 'Inspections', 'Documents', 'Invoice', 'Notes'] as const).map((step) => (
                                         <button
                                             key={step}
                                             onClick={() => setActiveStep(step)}
@@ -2095,8 +1947,8 @@ const TrailersPage: React.FC = () => {
                                 </div>
                             </div>
 
-                            {/* Content Area */}
-                            <div className="flex-1 overflow-y-auto p-4 bg-gray-50">
+                            {/* Content Area - scrollable; footer stays at bottom */}
+                            <div className="flex-1 min-h-0 overflow-y-auto p-4 bg-gray-50">
                                 {/* Details Step */}
                                 {activeStep === 'Details' && (
                                     <div className="space-y-4">
@@ -2536,7 +2388,7 @@ const TrailersPage: React.FC = () => {
                                                                     <tr 
                                                                         key={inspection.id} 
                                                                         onClick={() => handleEditInspection(inspection, 'oneTime')}
-                                                                        className="border-t border-gray-200 hover:bg-gray-50 cursor-pointer"
+                                                                        className={`border-t border-gray-200 hover:bg-gray-50 cursor-pointer ${editingInspectionId === inspection.id ? 'bg-blue-50' : ''}`}
                                                                     >
                                                                         <td className="px-4 py-2 text-sm text-gray-900">{inspection.expiryDate}</td>
                                                                         <td className="px-4 py-2 text-sm text-gray-900">{inspection.description}</td>
@@ -2569,16 +2421,22 @@ const TrailersPage: React.FC = () => {
                                                                         </td>
                                                                         <td className="px-4 py-2 text-sm text-gray-900">{inspection.ignoreExpiration ? 'Yes' : 'No'}</td>
                                                                         <td className="px-4 py-2 text-sm">
-                                                                            <button
-                                                                                onClick={(e) => {
-                                                                                    e.stopPropagation();
-                                                                                    handleDeleteInspection(inspection.id, 'oneTime');
-                                                                                }}
-                                                                                className="text-red-600 hover:text-red-800"
-                                                                                title="Delete"
-                                                                            >
-                                                                                <Trash2 className="w-4 h-4" />
-                                                                            </button>
+                                                                            <div className="flex items-center gap-2" onClick={(e) => e.stopPropagation()}>
+                                                                                <button
+                                                                                    onClick={() => handleEditInspection(inspection, 'oneTime')}
+                                                                                    className="p-1 text-blue-600 hover:bg-blue-50 rounded"
+                                                                                    title="Edit"
+                                                                                >
+                                                                                    <Edit className="w-4 h-4" />
+                                                                                </button>
+                                                                                <button
+                                                                                    onClick={() => handleDeleteInspection(inspection.id, 'oneTime')}
+                                                                                    className="p-1 text-red-600 hover:bg-red-50 rounded"
+                                                                                    title="Delete"
+                                                                                >
+                                                                                    <Trash2 className="w-4 h-4" />
+                                                                                </button>
+                                                                            </div>
                                                                         </td>
                                                                     </tr>
                                                                 ))
@@ -2762,7 +2620,7 @@ const TrailersPage: React.FC = () => {
                                                                     <tr 
                                                                         key={inspection.id} 
                                                                         onClick={() => handleEditInspection(inspection, 'recurring')}
-                                                                        className="border-t border-gray-200 hover:bg-gray-50 cursor-pointer"
+                                                                        className={`border-t border-gray-200 hover:bg-gray-50 cursor-pointer ${editingInspectionId === inspection.id ? 'bg-blue-50' : ''}`}
                                                                     >
                                                                         <td className="px-4 py-2 text-sm text-gray-900">{inspection.scheduledOn}</td>
                                                                         <td className="px-4 py-2 text-sm text-gray-900">{inspection.after}</td>
@@ -2797,16 +2655,22 @@ const TrailersPage: React.FC = () => {
                                                                         </td>
                                                                         <td className="px-4 py-2 text-sm text-gray-900">{inspection.ignoreExpiration ? 'Yes' : 'No'}</td>
                                                                         <td className="px-4 py-2 text-sm">
-                                                                            <button
-                                                                                onClick={(e) => {
-                                                                                    e.stopPropagation();
-                                                                                    handleDeleteInspection(inspection.id, 'recurring');
-                                                                                }}
-                                                                                className="text-red-600 hover:text-red-800"
-                                                                                title="Delete"
-                                                                            >
-                                                                                <Trash2 className="w-4 h-4" />
-                                                                            </button>
+                                                                            <div className="flex items-center gap-2" onClick={(e) => e.stopPropagation()}>
+                                                                                <button
+                                                                                    onClick={() => handleEditInspection(inspection, 'recurring')}
+                                                                                    className="p-1 text-blue-600 hover:bg-blue-50 rounded"
+                                                                                    title="Edit"
+                                                                                >
+                                                                                    <Edit className="w-4 h-4" />
+                                                                                </button>
+                                                                                <button
+                                                                                    onClick={() => handleDeleteInspection(inspection.id, 'recurring')}
+                                                                                    className="p-1 text-red-600 hover:bg-red-50 rounded"
+                                                                                    title="Delete"
+                                                                                >
+                                                                                    <Trash2 className="w-4 h-4" />
+                                                                                </button>
+                                                                            </div>
                                                                         </td>
                                                                     </tr>
                                                                 ))
@@ -2819,144 +2683,136 @@ const TrailersPage: React.FC = () => {
                                     </div>
                                 )}
 
-                                {/* Documents Step */}
+                                {/* Documents Step (no tabs; single list with Title) */}
                                 {activeStep === 'Documents' && (
                                     <div className="space-y-4">
                                         <h3 className="text-base font-semibold text-gray-900">Documents</h3>
 
-                                        {/* Document Type Tabs */}
-                                        <div className="flex gap-2 border-b border-gray-200">
-                                            {(['General', 'Ownership', 'Plate', 'Safety', 'Insurance'] as const).map((type) => (
-                                                <button
-                                                    key={type}
-                                                    type="button"
-                                                    onClick={() => setDocumentType(type)}
-                                                    className={`px-4 py-2 text-sm font-medium transition-colors border-b-2 ${documentType === type
-                                                        ? 'border-gray-700 text-gray-900'
-                                                        : 'border-transparent text-gray-500 hover:text-gray-700'
-                                                        }`}
-                                                >
-                                                    {type}
-                                                </button>
-                                            ))}
-                                        </div>
-
                                         {/* Document Form */}
-                                        <div className="flex gap-2 items-end bg-gray-100 p-4 rounded-lg">
-                                            <div className="flex-1">
-                                                <label className="block text-sm font-medium text-gray-700 mb-1">Expiry Date</label>
-                                                <div className="relative">
-                                                    <Calendar className="absolute left-2 top-2.5 w-4 h-4 text-gray-400" />
+                                        <div className="bg-gray-100 p-4 rounded-lg space-y-4">
+                                            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                                                <div>
+                                                    <label className="block text-sm font-medium text-gray-700 mb-1">Title</label>
                                                     <input
-                                                        type="date"
-                                                        value={documentForm.expiryDate}
-                                                        onChange={(e) => setDocumentForm({ ...documentForm, expiryDate: e.target.value })}
-                                                        className="w-full pl-8 pr-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#42aeec]"
+                                                        type="text"
+                                                        placeholder="Title"
+                                                        value={documentForm.title}
+                                                        onChange={(e) => setDocumentForm({ ...documentForm, title: e.target.value })}
+                                                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#42aeec]"
+                                                    />
+                                                </div>
+                                                <div>
+                                                    <label className="block text-sm font-medium text-gray-700 mb-1">Expiry Date</label>
+                                                    <div className="relative">
+                                                        <Calendar className="absolute left-2 top-2.5 w-4 h-4 text-gray-400" />
+                                                        <input
+                                                            type="date"
+                                                            value={documentForm.expiryDate}
+                                                            onChange={(e) => setDocumentForm({ ...documentForm, expiryDate: e.target.value })}
+                                                            className="w-full pl-8 pr-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#42aeec]"
+                                                        />
+                                                    </div>
+                                                </div>
+                                                <div>
+                                                    <label className="block text-sm font-medium text-gray-700 mb-1">Description</label>
+                                                    <input
+                                                        type="text"
+                                                        placeholder="Description"
+                                                        value={documentForm.description}
+                                                        onChange={(e) => setDocumentForm({ ...documentForm, description: e.target.value })}
+                                                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#42aeec]"
                                                     />
                                                 </div>
                                             </div>
-                                            <div className="flex-1">
-                                                <label className="block text-sm font-medium text-gray-700 mb-1">Description</label>
-                                                <input
-                                                    type="text"
-                                                    placeholder="Description"
-                                                    value={documentForm.description}
-                                                    onChange={(e) => setDocumentForm({ ...documentForm, description: e.target.value })}
-                                                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#42aeec]"
-                                                />
-                                            </div>
-                                            <div>
-                                                <label className="block text-sm font-medium text-gray-700 mb-1">File</label>
-                                                {documentForm.file ? (
-                                                    <div className="flex items-center gap-2 px-3 py-2 border border-gray-300 rounded-lg bg-white">
-                                                        <FileText className="w-4 h-4 text-gray-600 flex-shrink-0" />
-                                                        <span className="text-sm text-gray-700 truncate flex-1">
-                                                            {documentForm.file.name}
-                                                        </span>
-                                                        <button
-                                                            type="button"
-                                                            onClick={() => {
-                                                                setDocumentForm({ ...documentForm, file: null });
-                                                                if (documentFileInputRef.current) {
-                                                                    documentFileInputRef.current.value = '';
-                                                                }
-                                                            }}
-                                                            className="text-gray-400 hover:text-red-600 transition-colors flex-shrink-0"
-                                                            title="Remove file"
-                                                        >
-                                                            <X className="w-4 h-4" />
-                                                        </button>
-                                                    </div>
-                                                ) : (
+                                            <div className="flex flex-wrap gap-4 items-end">
+                                                <div className="min-w-[200px]">
+                                                    <label className="block text-sm font-medium text-gray-700 mb-1">File</label>
+                                                    {documentForm.file ? (
+                                                        <div className="flex items-center gap-2 px-3 py-2 border border-gray-300 rounded-lg bg-white">
+                                                            <FileText className="w-4 h-4 text-gray-600 flex-shrink-0" />
+                                                            <span className="text-sm text-gray-700 truncate flex-1">{documentForm.file.name}</span>
+                                                            <button
+                                                                type="button"
+                                                                onClick={() => {
+                                                                    setDocumentForm({ ...documentForm, file: null });
+                                                                    if (documentFileInputRef.current) documentFileInputRef.current.value = '';
+                                                                }}
+                                                                className="text-gray-400 hover:text-red-600 transition-colors flex-shrink-0"
+                                                                title="Remove file"
+                                                            >
+                                                                <X className="w-4 h-4" />
+                                                            </button>
+                                                        </div>
+                                                    ) : (
+                                                        <>
+                                                            <input
+                                                                ref={documentFileInputRef}
+                                                                type="file"
+                                                                onChange={(e) => {
+                                                                    if (e.target.files?.[0]) setDocumentForm({ ...documentForm, file: e.target.files[0] });
+                                                                }}
+                                                                className="hidden"
+                                                            />
+                                                            <button
+                                                                type="button"
+                                                                onClick={() => documentFileInputRef.current?.click()}
+                                                                className="w-full px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 text-sm font-medium flex items-center justify-center gap-2"
+                                                            >
+                                                                <Upload className="w-4 h-4" />
+                                                                <span>Select File</span>
+                                                            </button>
+                                                        </>
+                                                    )}
+                                                </div>
+                                                <div className="flex items-center gap-2">
+                                                    <input
+                                                        type="checkbox"
+                                                        checked={documentForm.ignoreExpiration}
+                                                        onChange={(e) => setDocumentForm({ ...documentForm, ignoreExpiration: e.target.checked })}
+                                                        className="w-4 h-4"
+                                                    />
+                                                    <label className="text-sm text-gray-700">Ignore Expiration</label>
+                                                </div>
+                                                {editingDocumentId ? (
                                                     <>
-                                                        <input
-                                                            ref={documentFileInputRef}
-                                                            type="file"
-                                                            onChange={(e) => {
-                                                                if (e.target.files && e.target.files[0]) {
-                                                                    setDocumentForm({ ...documentForm, file: e.target.files[0] });
-                                                                }
-                                                            }}
-                                                            className="hidden"
-                                                        />
                                                         <button
                                                             type="button"
-                                                            onClick={() => documentFileInputRef.current?.click()}
-                                                            className="w-full px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 text-sm font-medium flex items-center justify-center gap-2"
+                                                            onClick={handleSaveDocument}
+                                                            className="w-10 h-10 bg-green-600 !text-white rounded-lg flex items-center justify-center hover:bg-green-700"
+                                                            title="Save"
                                                         >
-                                                            <Upload className="w-4 h-4" />
-                                                            <span>Select File</span>
+                                                            <Plus className="w-5 h-5" />
+                                                        </button>
+                                                        <button
+                                                            type="button"
+                                                            onClick={handleCancelEditDocument}
+                                                            className="w-10 h-10 bg-gray-500 !text-white rounded-lg flex items-center justify-center hover:bg-gray-600"
+                                                            title="Cancel"
+                                                        >
+                                                            <X className="w-5 h-5" />
                                                         </button>
                                                     </>
-                                                )}
-                                            </div>
-                                            <div className="flex items-center gap-2">
-                                                <input
-                                                    type="checkbox"
-                                                    checked={documentForm.ignoreExpiration}
-                                                    onChange={(e) => setDocumentForm({ ...documentForm, ignoreExpiration: e.target.checked })}
-                                                    className="w-4 h-4"
-                                                />
-                                                <label className="text-sm text-gray-700">Ignore Expiration</label>
-                                            </div>
-                                            {editingDocumentId ? (
-                                                <>
+                                                ) : (
                                                     <button
                                                         type="button"
                                                         onClick={handleSaveDocument}
-                                                        className="w-10 h-10 bg-green-600 !text-white rounded-lg flex items-center justify-center hover:bg-green-700"
-                                                        title="Save"
+                                                        className="w-10 h-10 bg-gray-700 !text-white rounded-lg flex items-center justify-center hover:bg-gray-800"
+                                                        title="Add"
                                                     >
                                                         <Plus className="w-5 h-5" />
                                                     </button>
-                                                    <button
-                                                        type="button"
-                                                        onClick={handleCancelEditDocument}
-                                                        className="w-10 h-10 bg-gray-500 !text-white rounded-lg flex items-center justify-center hover:bg-gray-600"
-                                                        title="Cancel"
-                                                    >
-                                                        <X className="w-5 h-5" />
-                                                    </button>
-                                                </>
-                                            ) : (
-                                                <button
-                                                    type="button"
-                                                    onClick={handleSaveDocument}
-                                                    className="w-10 h-10 bg-gray-700 !text-white rounded-lg flex items-center justify-center hover:bg-gray-800"
-                                                    title="Add"
-                                                >
-                                                    <Plus className="w-5 h-5" />
-                                                </button>
-                                            )}
+                                                )}
+                                            </div>
                                         </div>
 
-                                        <p className="text-sm text-gray-500">Click row to edit • Drag to reorder</p>
+                                        <p className="text-sm text-gray-500">Click row to edit</p>
 
                                         {/* Documents Table */}
-                                        <div className="bg-white rounded-lg border border-gray-200 overflow-hidden">
-                                            <table className="w-full">
+                                        <div className="bg-white rounded-lg border border-gray-200 overflow-x-auto">
+                                            <table className="w-full min-w-[800px]">
                                                 <thead className="bg-gray-50">
                                                     <tr>
+                                                        <th className="px-4 py-2 text-left text-xs font-medium text-gray-700">Title</th>
                                                         <th className="px-4 py-2 text-left text-xs font-medium text-gray-700">Expiry Date</th>
                                                         <th className="px-4 py-2 text-left text-xs font-medium text-gray-700">Description</th>
                                                         <th className="px-4 py-2 text-left text-xs font-medium text-gray-700">File</th>
@@ -2965,19 +2821,20 @@ const TrailersPage: React.FC = () => {
                                                     </tr>
                                                 </thead>
                                                 <tbody>
-                                                    {documents[documentType].length === 0 ? (
+                                                    {documents.length === 0 ? (
                                                         <tr>
-                                                            <td colSpan={5} className="px-4 py-8 text-center text-gray-500">No Data</td>
+                                                            <td colSpan={6} className="px-4 py-8 text-center text-gray-500">No Data</td>
                                                         </tr>
                                                     ) : (
-                                                        documents[documentType].map((doc) => (
-                                                            <tr 
-                                                                key={doc.id} 
-                                                                onClick={() => handleEditDocument(doc, documentType)}
-                                                                className="border-t border-gray-200 hover:bg-gray-50 cursor-pointer"
+                                                        documents.map((doc) => (
+                                                            <tr
+                                                                key={doc.id}
+                                                                onClick={() => handleEditDocument(doc)}
+                                                                className={`border-t border-gray-200 hover:bg-gray-50 cursor-pointer ${editingDocumentId === doc.id ? 'bg-blue-50' : ''}`}
                                                             >
-                                                                <td className="px-4 py-2 text-sm text-gray-900">{doc.expiryDate}</td>
-                                                                <td className="px-4 py-2 text-sm text-gray-900">{doc.description}</td>
+                                                                <td className="px-4 py-2 text-sm text-gray-900">{doc.title || '-'}</td>
+                                                                <td className="px-4 py-2 text-sm text-gray-900">{doc.expiryDate || '-'}</td>
+                                                                <td className="px-4 py-2 text-sm text-gray-900">{doc.description || '-'}</td>
                                                                 <td className="px-4 py-2 text-sm text-gray-900">
                                                                     {doc.fileUrl ? (
                                                                         <a
@@ -3000,17 +2857,23 @@ const TrailersPage: React.FC = () => {
                                                                     )}
                                                                 </td>
                                                                 <td className="px-4 py-2 text-sm text-gray-900">{doc.ignoreExpiration ? 'Yes' : 'No'}</td>
-                                                                <td className="px-4 py-2 text-sm">
-                                                                    <button
-                                                                        onClick={(e) => {
-                                                                            e.stopPropagation();
-                                                                            handleDeleteDocument(doc.id, documentType);
-                                                                        }}
-                                                                        className="text-red-600 hover:text-red-800 p-1"
-                                                                        title="Delete"
-                                                                    >
-                                                                        <Trash2 className="w-4 h-4" />
-                                                                    </button>
+                                                                <td className="px-4 py-2 text-sm" onClick={(e) => e.stopPropagation()}>
+                                                                    <div className="flex items-center gap-2">
+                                                                        <button
+                                                                            onClick={() => handleEditDocument(doc)}
+                                                                            className="p-1 text-blue-600 hover:bg-blue-50 rounded"
+                                                                            title="Edit"
+                                                                        >
+                                                                            <Edit className="w-4 h-4" />
+                                                                        </button>
+                                                                        <button
+                                                                            onClick={() => handleDeleteDocument(doc.id)}
+                                                                            className="p-1 text-red-600 hover:bg-red-50 rounded"
+                                                                            title="Delete"
+                                                                        >
+                                                                            <Trash2 className="w-4 h-4" />
+                                                                        </button>
+                                                                    </div>
                                                                 </td>
                                                             </tr>
                                                         ))
@@ -3018,6 +2881,300 @@ const TrailersPage: React.FC = () => {
                                                 </tbody>
                                             </table>
                                         </div>
+                                    </div>
+                                )}
+
+                                {/* Invoice Step */}
+                                {activeStep === 'Invoice' && (
+                                    <div className="space-y-4">
+
+                                            {/* Invoice Form */}
+                                            <div className="bg-gray-100 p-4 rounded-lg">
+                                                <div className="grid grid-cols-2 gap-4 mb-4">
+                                                    <div>
+                                                        <label className="block text-sm font-medium text-gray-700 mb-1">Invoice Number<span className="text-red-500">*</span></label>
+                                                        <input
+                                                            type="text"
+                                                            placeholder="Invoice Number"
+                                                            value={invoiceForm.invoiceNumber}
+                                                            onChange={(e) => setInvoiceForm({ ...invoiceForm, invoiceNumber: e.target.value })}
+                                                            className="w-full px-3 py-2 bg-white border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#42aeec] text-sm"
+                                                        />
+                                                    </div>
+                                                    <div>
+                                                        <label className="block text-sm font-medium text-gray-700 mb-1">Vendor / Workshop<span className="text-red-500">*</span></label>
+                                                        <input
+                                                            type="text"
+                                                            placeholder="Vendor / Workshop"
+                                                            value={invoiceForm.vendorWorkshop}
+                                                            onChange={(e) => setInvoiceForm({ ...invoiceForm, vendorWorkshop: e.target.value })}
+                                                            className="w-full px-3 py-2 bg-white border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#42aeec] text-sm"
+                                                        />
+                                                    </div>
+                                                    <div>
+                                                        <label className="block text-sm font-medium text-gray-700 mb-1">Amount<span className="text-red-500">*</span></label>
+                                                        <div className="relative">
+                                                            <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400">$</span>
+                                                            <input
+                                                                type="number"
+                                                                placeholder="0.00"
+                                                                value={invoiceForm.amount}
+                                                                onChange={(e) => {
+                                                                    const value = e.target.value;
+                                                                    if (value === '' || /^\d*\.?\d{0,2}$/.test(value)) {
+                                                                        setInvoiceForm({ ...invoiceForm, amount: value });
+                                                                    }
+                                                                }}
+                                                                min="0"
+                                                                step="0.01"
+                                                                className="w-full pl-7 pr-3 py-2 bg-white border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#42aeec] text-sm"
+                                                            />
+                                                        </div>
+                                                    </div>
+                                                    <div>
+                                                        <label className="block text-sm font-medium text-gray-700 mb-1">Invoice Date<span className="text-red-500">*</span></label>
+                                                        <div className="relative">
+                                                            <Calendar className="absolute left-2 top-2.5 w-4 h-4 text-gray-400 pointer-events-none" />
+                                                            <input
+                                                                type="date"
+                                                                value={invoiceForm.invoiceDate}
+                                                                onChange={(e) => setInvoiceForm({ ...invoiceForm, invoiceDate: e.target.value })}
+                                                                className="w-full pl-8 pr-3 py-2 bg-white border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#42aeec] text-sm"
+                                                            />
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                <div className="mb-4">
+                                                    <label className="block text-sm font-medium text-gray-700 mb-1">Upload Invoice (PDF / Image)</label>
+                                                    {invoiceForm.file ? (
+                                                        <div className="flex items-center gap-2 px-3 py-2 border border-gray-300 rounded-lg bg-white">
+                                                            <FileText className="w-4 h-4 text-gray-600 flex-shrink-0" />
+                                                            <span className="text-sm text-gray-700 truncate flex-1">
+                                                                {invoiceForm.file.name}
+                                                            </span>
+                                                            <button
+                                                                type="button"
+                                                                onClick={() => {
+                                                                    setInvoiceForm({ ...invoiceForm, file: null });
+                                                                    if (invoiceFileInputRef.current) {
+                                                                        invoiceFileInputRef.current.value = '';
+                                                                    }
+                                                                }}
+                                                                className="text-gray-400 hover:text-red-600 transition-colors flex-shrink-0"
+                                                                title="Remove file"
+                                                            >
+                                                                <X className="w-4 h-4" />
+                                                            </button>
+                                                        </div>
+                                                    ) : (
+                                                        <>
+                                                            <input
+                                                                ref={invoiceFileInputRef}
+                                                                type="file"
+                                                                accept=".pdf,.jpg,.jpeg,.png,.gif"
+                                                                onChange={(e) => {
+                                                                    if (e.target.files && e.target.files[0]) {
+                                                                        setInvoiceForm({ ...invoiceForm, file: e.target.files[0] });
+                                                                    }
+                                                                }}
+                                                                className="hidden"
+                                                            />
+                                                            <button
+                                                                type="button"
+                                                                onClick={() => invoiceFileInputRef.current?.click()}
+                                                                className="w-full px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 text-sm font-medium bg-white flex items-center justify-center gap-2"
+                                                            >
+                                                                <Upload className="w-4 h-4" />
+                                                                <span>Select File</span>
+                                                            </button>
+                                                        </>
+                                                    )}
+                                                </div>
+                                                <div className="mb-4">
+                                                    <label className="block text-sm font-medium text-gray-700 mb-1">Notes</label>
+                                                    <textarea
+                                                        placeholder="Notes"
+                                                        value={invoiceForm.notes}
+                                                        onChange={(e) => setInvoiceForm({ ...invoiceForm, notes: e.target.value })}
+                                                        className="w-full px-3 py-2 bg-white border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#42aeec] min-h-[80px] text-sm resize-none"
+                                                    />
+                                                </div>
+                                                <div className="flex justify-end gap-2">
+                                                    {editingInvoiceId && (
+                                                        <button
+                                                            onClick={() => {
+                                                                setEditingInvoiceId(null);
+                                                                setInvoiceForm({
+                                                                    invoiceNumber: '',
+                                                                    vendorWorkshop: '',
+                                                                    amount: '',
+                                                                    invoiceDate: '',
+                                                                    file: null,
+                                                                    notes: ''
+                                                                });
+                                                                if (invoiceFileInputRef.current) {
+                                                                    invoiceFileInputRef.current.value = '';
+                                                                }
+                                                            }}
+                                                            className="px-4 py-2 bg-gray-500 !text-white rounded-lg flex items-center gap-2 hover:bg-gray-600 transition-colors"
+                                                        >
+                                                            <X className="w-4 h-4" />
+                                                            <span>Cancel</span>
+                                                        </button>
+                                                    )}
+                                                    <button
+                                                        onClick={() => {
+                                                            if (invoiceForm.invoiceNumber && invoiceForm.vendorWorkshop && invoiceForm.amount && invoiceForm.invoiceDate) {
+                                                                if (editingInvoiceId) {
+                                                                    setInvoices(invoices.map(inv =>
+                                                                        inv.id === editingInvoiceId
+                                                                            ? {
+                                                                                ...inv,
+                                                                                invoiceNumber: invoiceForm.invoiceNumber,
+                                                                                vendorWorkshop: invoiceForm.vendorWorkshop,
+                                                                                amount: invoiceForm.amount,
+                                                                                invoiceDate: invoiceForm.invoiceDate,
+                                                                                file: invoiceForm.file || inv.file,
+                                                                                fileName: invoiceForm.file?.name || inv.fileName,
+                                                                                notes: invoiceForm.notes
+                                                                            }
+                                                                            : inv
+                                                                    ));
+                                                                    setEditingInvoiceId(null);
+                                                                } else {
+                                                                    setInvoices([...invoices, {
+                                                                        id: Date.now().toString(),
+                                                                        invoiceNumber: invoiceForm.invoiceNumber,
+                                                                        vendorWorkshop: invoiceForm.vendorWorkshop,
+                                                                        amount: invoiceForm.amount,
+                                                                        invoiceDate: invoiceForm.invoiceDate,
+                                                                        file: invoiceForm.file,
+                                                                        fileName: invoiceForm.file?.name || '',
+                                                                        notes: invoiceForm.notes
+                                                                    }]);
+                                                                }
+                                                                setInvoiceForm({
+                                                                    invoiceNumber: '',
+                                                                    vendorWorkshop: '',
+                                                                    amount: '',
+                                                                    invoiceDate: '',
+                                                                    file: null,
+                                                                    notes: ''
+                                                                });
+                                                                if (invoiceFileInputRef.current) {
+                                                                    invoiceFileInputRef.current.value = '';
+                                                                }
+                                                            }
+                                                        }}
+                                                        className="px-4 py-2 bg-gray-700 !text-white rounded-lg flex items-center gap-2 hover:bg-gray-800 transition-colors"
+                                                    >
+                                                        <Plus className="w-4 h-4" />
+                                                        <span>{editingInvoiceId ? 'Update' : 'Add'} Invoice</span>
+                                                    </button>
+                                                </div>
+                                            </div>
+
+                                            {/* Invoices Table */}
+                                            <div className="bg-white rounded-lg border border-gray-200 overflow-x-auto">
+                                                <table className="w-full min-w-[1000px]">
+                                                    <thead className="bg-gray-50 border-b border-gray-200">
+                                                        <tr>
+                                                            <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase">Invoice Number</th>
+                                                            <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase">Vendor / Workshop</th>
+                                                            <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase">Amount</th>
+                                                            <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase">Invoice Date</th>
+                                                            <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase">File</th>
+                                                            <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase">Notes</th>
+                                                            <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase">Actions</th>
+                                                        </tr>
+                                                    </thead>
+                                                    <tbody className="divide-y divide-gray-200">
+                                                        {invoices.length === 0 ? (
+                                                            <tr>
+                                                                <td colSpan={7} className="px-4 py-12 text-center text-gray-500 text-sm">No Invoices</td>
+                                                            </tr>
+                                                        ) : (
+                                                            invoices.map((invoice) => (
+                                                                <tr key={invoice.id} className="hover:bg-gray-50 transition-colors">
+                                                                    <td className="px-4 py-3 text-sm text-gray-900">{invoice.invoiceNumber}</td>
+                                                                    <td className="px-4 py-3 text-sm text-gray-900">{invoice.vendorWorkshop}</td>
+                                                                    <td className="px-4 py-3 text-sm text-gray-900">${parseFloat(invoice.amount || '0').toFixed(2)}</td>
+                                                                    <td className="px-4 py-3 text-sm text-gray-900">{invoice.invoiceDate || '-'}</td>
+                                                                    <td className="px-4 py-3 text-sm text-gray-900">
+                                                                        {invoice.fileUrl ? (
+                                                                            <a
+                                                                                href={invoice.fileUrl}
+                                                                                target="_blank"
+                                                                                rel="noopener noreferrer"
+                                                                                className="flex items-center gap-2 text-blue-600 hover:text-blue-800 hover:underline"
+                                                                                onClick={(e) => e.stopPropagation()}
+                                                                            >
+                                                                                <FileText className="w-4 h-4" />
+                                                                                <span>{invoice.fileName || 'View File'}</span>
+                                                                            </a>
+                                                                        ) : invoice.fileName || invoice.file ? (
+                                                                            <div className="flex items-center gap-2 text-blue-600">
+                                                                                <FileText className="w-4 h-4" />
+                                                                                <span className="truncate max-w-[150px]">
+                                                                                    {invoice.fileName || (invoice.file instanceof File ? invoice.file.name : 'File attached')}
+                                                                                </span>
+                                                                            </div>
+                                                                        ) : (
+                                                                            <span className="text-gray-400">No file</span>
+                                                                        )}
+                                                                    </td>
+                                                                    <td className="px-4 py-3 text-sm text-gray-900">
+                                                                        <span className="truncate max-w-[200px] block" title={invoice.notes}>
+                                                                            {invoice.notes || '-'}
+                                                                        </span>
+                                                                    </td>
+                                                                    <td className="px-4 py-3 text-sm text-gray-900">
+                                                                        <div className="flex items-center gap-2">
+                                                                            <button
+                                                                                onClick={() => {
+                                                                                    setEditingInvoiceId(invoice.id);
+                                                                                    setInvoiceForm({
+                                                                                        invoiceNumber: invoice.invoiceNumber,
+                                                                                        vendorWorkshop: invoice.vendorWorkshop,
+                                                                                        amount: invoice.amount,
+                                                                                        invoiceDate: invoice.invoiceDate,
+                                                                                        file: invoice.file,
+                                                                                        notes: invoice.notes
+                                                                                    });
+                                                                                }}
+                                                                                className="p-1 text-blue-600 hover:bg-blue-50 rounded"
+                                                                                title="Edit"
+                                                                            >
+                                                                                <Edit className="w-4 h-4" />
+                                                                            </button>
+                                                                            <button
+                                                                                onClick={() => {
+                                                                                    setInvoices(invoices.filter(i => i.id !== invoice.id));
+                                                                                    if (editingInvoiceId === invoice.id) {
+                                                                                        setEditingInvoiceId(null);
+                                                                                        setInvoiceForm({
+                                                                                            invoiceNumber: '',
+                                                                                            vendorWorkshop: '',
+                                                                                            amount: '',
+                                                                                            invoiceDate: '',
+                                                                                            file: null,
+                                                                                            notes: ''
+                                                                                        });
+                                                                                    }
+                                                                                }}
+                                                                                className="p-1 text-red-600 hover:bg-red-50 rounded"
+                                                                                title="Delete"
+                                                                            >
+                                                                                <Trash2 className="w-4 h-4" />
+                                                                            </button>
+                                                                        </div>
+                                                                    </td>
+                                                                </tr>
+                                                            ))
+                                                        )}
+                                                    </tbody>
+                                                </table>
+                                            </div>
                                     </div>
                                 )}
 
@@ -3056,20 +3213,42 @@ const TrailersPage: React.FC = () => {
                                                     <ChevronDown className="absolute right-2 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
                                                 </div>
                                             </div>
+                                            {editingNoteId && (
+                                                <button
+                                                    onClick={() => {
+                                                        setEditingNoteId(null);
+                                                        setNoteForm({ note: '', category: 'Category' });
+                                                    }}
+                                                    className="w-10 h-10 bg-gray-400 !text-white rounded-lg flex items-center justify-center hover:bg-gray-500 transition-colors flex-shrink-0"
+                                                    title="Cancel"
+                                                >
+                                                    <X className="w-5 h-5" />
+                                                </button>
+                                            )}
                                             <button
                                                 onClick={() => {
                                                     if (noteForm.note && noteForm.category !== 'Category') {
-                                                        setNotes([...notes, {
-                                                            id: Date.now().toString(),
-                                                            note: noteForm.note,
-                                                            category: noteForm.category
-                                                        }]);
+                                                        if (editingNoteId) {
+                                                            setNotes(notes.map(n =>
+                                                                n.id === editingNoteId
+                                                                    ? { ...n, note: noteForm.note, category: noteForm.category }
+                                                                    : n
+                                                            ));
+                                                            setEditingNoteId(null);
+                                                        } else {
+                                                            setNotes([...notes, {
+                                                                id: Date.now().toString(),
+                                                                note: noteForm.note,
+                                                                category: noteForm.category
+                                                            }]);
+                                                        }
                                                         setNoteForm({ note: '', category: 'Category' });
                                                     }
                                                 }}
                                                 className="w-10 h-10 bg-gray-700 !text-white rounded-lg flex items-center justify-center hover:bg-gray-800 transition-colors flex-shrink-0"
+                                                title={editingNoteId ? 'Update Note' : 'Add Note'}
                                             >
-                                                <Plus className="w-5 h-5" />
+                                                {editingNoteId ? <Edit className="w-5 h-5" /> : <Plus className="w-5 h-5" />}
                                             </button>
                                         </div>
 
@@ -3080,18 +3259,46 @@ const TrailersPage: React.FC = () => {
                                                     <tr>
                                                         <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase">Note</th>
                                                         <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase">Category</th>
+                                                        <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase">Actions</th>
                                                     </tr>
                                                 </thead>
                                                 <tbody className="divide-y divide-gray-200">
                                                     {notes.length === 0 ? (
                                                         <tr>
-                                                            <td colSpan={2} className="px-4 py-12 text-center text-gray-500 text-sm">No Data</td>
+                                                            <td colSpan={3} className="px-4 py-12 text-center text-gray-500 text-sm">No Data</td>
                                                         </tr>
                                                     ) : (
                                                         notes.map((note) => (
-                                                            <tr key={note.id} className="hover:bg-gray-50 transition-colors">
+                                                            <tr key={note.id} className={`hover:bg-gray-50 transition-colors ${editingNoteId === note.id ? 'bg-blue-50' : ''}`}>
                                                                 <td className="px-4 py-3 text-sm text-gray-900">{note.note}</td>
                                                                 <td className="px-4 py-3 text-sm text-gray-900">{note.category}</td>
+                                                                <td className="px-4 py-3 text-sm text-gray-900">
+                                                                    <div className="flex items-center gap-2">
+                                                                        <button
+                                                                            onClick={() => {
+                                                                                setEditingNoteId(note.id);
+                                                                                setNoteForm({ note: note.note, category: note.category });
+                                                                            }}
+                                                                            className="p-1 text-blue-600 hover:bg-blue-50 rounded"
+                                                                            title="Edit"
+                                                                        >
+                                                                            <Edit className="w-4 h-4" />
+                                                                        </button>
+                                                                        <button
+                                                                            onClick={() => {
+                                                                                setNotes(notes.filter(n => n.id !== note.id));
+                                                                                if (editingNoteId === note.id) {
+                                                                                    setEditingNoteId(null);
+                                                                                    setNoteForm({ note: '', category: 'Category' });
+                                                                                }
+                                                                            }}
+                                                                            className="p-1 text-red-600 hover:bg-red-50 rounded"
+                                                                            title="Delete"
+                                                                        >
+                                                                            <Trash2 className="w-4 h-4" />
+                                                                        </button>
+                                                                    </div>
+                                                                </td>
                                                             </tr>
                                                         ))
                                                     )}
@@ -3101,34 +3308,34 @@ const TrailersPage: React.FC = () => {
                                     </div>
                                 )}
 
-                                {/* Navigation Buttons */}
-                                <div className="mt-4 pt-4 border-t border-gray-200">
-                                    <div className="flex justify-between gap-3">
-                                        <button
-                                            onClick={handlePrevious}
-                                            disabled={!getPreviousStep()}
-                                            className={`flex items-center justify-center gap-2 px-4 py-1.5 rounded-lg text-sm font-medium transition-colors ${
-                                                getPreviousStep()
-                                                    ? 'bg-gray-700 !text-white hover:bg-gray-800'
-                                                    : 'bg-gray-200 text-gray-400 cursor-not-allowed'
-                                            }`}
-                                        >
-                                            <ChevronLeft className="w-3.5 h-3.5" />
-                                            Previous
-                                        </button>
-                                        <button
-                                            onClick={handleNext}
-                                            disabled={!getNextStep()}
-                                            className={`flex items-center justify-center gap-2 px-4 py-1.5 rounded-lg text-sm font-medium transition-colors ${
-                                                getNextStep()
-                                                    ? 'bg-gray-700 !text-white hover:bg-gray-800'
-                                                    : 'bg-gray-200 text-gray-400 cursor-not-allowed'
-                                            }`}
-                                        >
-                                            Next
-                                            <ChevronRight className="w-3.5 h-3.5" />
-                                        </button>
-                                    </div>
+                            </div>
+                            {/* Footer: Previous/Next fixed at bottom */}
+                            <div className="flex-shrink-0 border-t border-gray-200 bg-white px-4 py-3">
+                                <div className="flex justify-between gap-3">
+                                    <button
+                                        onClick={handlePrevious}
+                                        disabled={!getPreviousStep()}
+                                        className={`flex items-center justify-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+                                            getPreviousStep()
+                                                ? 'bg-gray-700 !text-white hover:bg-gray-800'
+                                                : 'bg-gray-200 text-gray-400 cursor-not-allowed'
+                                        }`}
+                                    >
+                                        <ChevronLeft className="w-3.5 h-3.5" />
+                                        Previous
+                                    </button>
+                                    <button
+                                        onClick={handleNext}
+                                        disabled={!getNextStep()}
+                                        className={`flex items-center justify-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+                                            getNextStep()
+                                                ? 'bg-gray-700 !text-white hover:bg-gray-800'
+                                                : 'bg-gray-200 text-gray-400 cursor-not-allowed'
+                                        }`}
+                                    >
+                                        Next
+                                        <ChevronRight className="w-3.5 h-3.5" />
+                                    </button>
                                 </div>
                             </div>
                         </div>

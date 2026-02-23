@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useParams } from 'react-router-dom';
 import { Plus, Upload, ChevronUp, ChevronDown, Clock, X, Image as ImageIcon, Calendar, ChevronLeft, ChevronRight, Edit, Trash2, FileText, Check } from 'lucide-react';
 import { getAllVehicles, createVehicle, updateVehicle, deleteVehicle, getVehicleById } from '../../../../axios/api/vehicle';
@@ -82,7 +82,7 @@ const Trucks: React.FC = () => {
 
     // Sidebar modal state
     const [showSidebar, setShowSidebar] = useState(false);
-    const [activeStep, setActiveStep] = useState<'Details' | 'Inspections' | 'Documents' | 'Notes' | 'Payroll' | 'Deductions' | 'Additions'>('Details');
+    const [activeStep, setActiveStep] = useState<'Details' | 'Inspections' | 'Documents' | 'Invoice' | 'Notes' | 'Payroll' | 'Deductions' | 'Additions'>('Details');
     const [inspectionType, setInspectionType] = useState<'One Time' | 'Recurring'>('One Time');
     const [selectedImage, setSelectedImage] = useState<string | null>(null);
 
@@ -238,11 +238,11 @@ const Trucks: React.FC = () => {
         console.log('🗑️ Deleted inspection:', id);
     };
 
-    // Documents data
-    const [documentType, setDocumentType] = useState<'General' | 'Ownership' | 'Cab Card' | 'Plate' | 'Safety' | 'Insurance'>('General');
-    const [documents, setDocuments] = useState<Record<string, Array<{
+    // Documents data (single list, no tabs)
+    const [documents, setDocuments] = useState<Array<{
         id: string;
         _id?: string;
+        title: string;
         expiryDate: string;
         description: string;
         file: File | null;
@@ -250,20 +250,15 @@ const Trucks: React.FC = () => {
         fileName?: string;
         ignoreExpiration: boolean;
         isExisting?: boolean;
-    }>>>({
-        General: [],
-        Ownership: [],
-        'Cab Card': [],
-        Plate: [],
-        Safety: [],
-        Insurance: []
-    });
+    }>>([]);
     const [documentForm, setDocumentForm] = useState({
+        title: '',
         expiryDate: '',
         description: '',
         file: null as File | null,
         ignoreExpiration: false
     });
+    const [editingDocumentId, setEditingDocumentId] = useState<string | null>(null);
 
     // Invoices data
     const [invoices, setInvoices] = useState<Array<{
@@ -280,6 +275,17 @@ const Trucks: React.FC = () => {
         isExisting?: boolean;
     }>>([]);
 
+    const [invoiceForm, setInvoiceForm] = useState({
+        invoiceNumber: '',
+        vendorWorkshop: '',
+        amount: '',
+        invoiceDate: '',
+        file: null as File | null,
+        notes: ''
+    });
+
+    const [editingInvoiceId, setEditingInvoiceId] = useState<string | null>(null);
+    const invoiceFileInputRef = useRef<HTMLInputElement>(null);
 
     // Notes data
     const [notes, setNotes] = useState<Array<{
@@ -291,6 +297,7 @@ const Trucks: React.FC = () => {
         note: '',
         category: 'Category'
     });
+    const [editingNoteId, setEditingNoteId] = useState<string | null>(null);
 
     // Payroll data
     const [paymentMethod, setPaymentMethod] = useState<'PAID PER MILE' | 'PAID PERCENT' | 'PAID BY TRIP' | 'PAID PER HOUR'>('PAID PER MILE');
@@ -694,69 +701,37 @@ const Trucks: React.FC = () => {
                             
                             console.log('📄 Found vehicle entry:', vehicleEntry);
                             
-                            const docsByType: Record<string, Array<any>> = {
-                                General: [],
-                                Ownership: [],
-                                'Cab Card': [],
-                                Plate: [],
-                                Safety: [],
-                                Insurance: []
-                            };
-                            
-                            // Extract documents from the vehicle entry
+                            // Flatten all document types into a single list (no tabs)
                             const vehicleDocuments = vehicleEntry?.documents || [];
                             console.log('📄 Vehicle documents:', vehicleDocuments);
-                            
-                            vehicleDocuments.forEach((doc: any) => {
-                                const type = doc.documentType || 'General';
-                                console.log('📄 Processing document:', { 
-                                    type, 
+                            const flatDocs = vehicleDocuments.map((doc: any) => {
+                                console.log('📄 Processing document:', {
                                     documentNumber: doc.documentNumber,
                                     hasFiles: !!doc.files?.length,
-                                    fileUrl: doc.documentLocation 
+                                    fileUrl: doc.documentLocation
                                 });
-                                if (docsByType[type]) {
-                                    docsByType[type].push({
-                                        id: doc._id,
-                                        _id: doc._id,
-                                        expiryDate: doc.expiryDate ? new Date(doc.expiryDate).toISOString().split('T')[0] : '',
-                                        description: doc.documentNumber || doc.description || '',
-                                        file: null,
-                                        fileUrl: doc.files?.[0]?.fileUrl || doc.documentLocation,
-                                        fileName: doc.files?.[0]?.fileName || (doc.files?.[0] ? 'Document' : null),
-                                        ignoreExpiration: doc.ignoreExpiration || false,
-                                        isExisting: true
-                                    });
-                                } else {
-                                    console.warn('⚠️ Unknown document type:', type);
-                                }
+                                return {
+                                    id: doc._id,
+                                    _id: doc._id,
+                                    title: doc.title || doc.documentType || doc.documentNumber || '',
+                                    expiryDate: doc.expiryDate ? new Date(doc.expiryDate).toISOString().split('T')[0] : '',
+                                    description: doc.documentNumber || doc.description || '',
+                                    file: null,
+                                    fileUrl: doc.files?.[0]?.fileUrl || doc.documentLocation,
+                                    fileName: doc.files?.[0]?.fileName || (doc.files?.[0] ? 'Document' : null),
+                                    ignoreExpiration: doc.ignoreExpiration || false,
+                                    isExisting: true
+                                };
                             });
-                            
-                            console.log('📄 Documents organized by type:', docsByType);
-                            setDocuments(docsByType);
+                            console.log('📄 Documents (flat list):', flatDocs);
+                            setDocuments(flatDocs);
                         } else {
                             console.log('📄 No documents found or API error');
-                            // Initialize empty documents
-                            setDocuments({
-                                General: [],
-                                Ownership: [],
-                                'Cab Card': [],
-                                Plate: [],
-                                Safety: [],
-                                Insurance: []
-                            });
+                            setDocuments([]);
                         }
                     } catch (error) {
                         console.error('❌ Error fetching documents:', error);
-                        // Initialize empty documents on error
-                        setDocuments({
-                            General: [],
-                            Ownership: [],
-                            'Cab Card': [],
-                            Plate: [],
-                            Safety: [],
-                            Insurance: []
-                        });
+                        setDocuments([]);
                     }
                     
                     // Load inspections
@@ -941,12 +916,8 @@ const Trucks: React.FC = () => {
                 // Fetch counts for each yard
                 for (const yard of yards) {
                     if (yard.status === 'active' && yard._id) {
-                        const yardId = yard._id.toString();
-                        console.log('🔍 [COUNT] Fetching count for yard:', yardId, yard.yardName);
-                        const yardResponse = await getAllVehicles(1, 1, undefined, undefined, undefined, undefined, undefined, yardId);
-                        const yardCount = yardResponse?.pagination?.total || 0;
-                        console.log('📊 [COUNT] Yard count result:', { yardId, yardName: yard.yardName, count: yardCount });
-                        counts[yardId] = yardCount;
+                        const yardResponse = await getAllVehicles(1, 1, undefined, undefined, undefined, undefined, undefined, yard._id);
+                        counts[yard._id] = yardResponse?.pagination?.total || 0;
                     }
                 }
                 
@@ -1042,56 +1013,6 @@ const Trucks: React.FC = () => {
                     formDataToSend.append('subType', formData.subType || '');
                 }
                 
-                // Handle operator update - check if operator has changed
-                const currentOperatorId = formData.operator || '';
-                const originalOperatorId = originalTruckData.operator 
-                    ? (typeof originalTruckData.operator === 'string' 
-                        ? originalTruckData.operator 
-                        : originalTruckData.operator._id?.toString() || '')
-                    : '';
-                
-                if (currentOperatorId !== originalOperatorId) {
-                    console.log('🔄 [UPDATE] Operator changed:', { from: originalOperatorId, to: currentOperatorId });
-                    if (currentOperatorId) {
-                        formDataToSend.append('operator', currentOperatorId);
-                    } else {
-                        formDataToSend.append('operator', '');
-                    }
-                }
-                
-                // Handle coOperator update - check if coOperator has changed
-                const currentCoOperatorId = formData.coOperator || '';
-                const originalCoOperatorId = originalTruckData.coOperator 
-                    ? (typeof originalTruckData.coOperator === 'string' 
-                        ? originalTruckData.coOperator 
-                        : originalTruckData.coOperator._id?.toString() || '')
-                    : '';
-                
-                if (currentCoOperatorId !== originalCoOperatorId) {
-                    console.log('🔄 [UPDATE] CoOperator changed:', { from: originalCoOperatorId, to: currentCoOperatorId });
-                    if (currentCoOperatorId) {
-                        formDataToSend.append('coOperator', currentCoOperatorId);
-                    } else {
-                        formDataToSend.append('coOperator', '');
-                    }
-                }
-                
-                // Handle yard update - always send yard value (even if unchanged, to ensure it's saved)
-                const currentYardId = String(formData.yard || '').trim();
-                const originalYardId = String(originalTruckData.yard || '').trim();
-                
-                console.log('🔍 [UPDATE] Yard check:', { 
-                    currentYardId, 
-                    originalYardId, 
-                    formDataYard: formData.yard,
-                    originalTruckDataYard: originalTruckData.yard,
-                    hasChanged: currentYardId !== originalYardId
-                });
-                
-                // Always send yard to ensure it's updated (even if value is empty to clear it)
-                console.log('✅ [UPDATE] Adding yard to payload:', currentYardId || '(empty - will clear yard)');
-                formDataToSend.append('yard', currentYardId);
-                
                 if (selectedImageFile) {
                     formDataToSend.append('image', selectedImageFile);
                 }
@@ -1175,35 +1096,6 @@ const Trucks: React.FC = () => {
                     // Refresh trucks list
                     const refreshResponse = await getAllVehicles(1, 1000);
                     if (refreshResponse?.success && refreshResponse?.data) {
-                        // Refresh category counts after update
-                        const counts: Record<string, number> = {};
-                        const allResponse = await getAllVehicles(1, 1);
-                        counts['All'] = allResponse?.pagination?.total || 0;
-                        
-                        const externalResponse = await getAllVehicles(1, 1, undefined, undefined, undefined, undefined, 'OWNER OPERATOR');
-                        counts['External'] = externalResponse?.pagination?.total || 0;
-                        
-                        const unassignedResponse = await getAllVehicles(1, 1000);
-                        if (unassignedResponse?.success && unassignedResponse?.data) {
-                            const unassignedCount = unassignedResponse.data.filter((truck: any) => {
-                                const truckId = truck._id?.toString();
-                                return !truckId || !assignedTruckIds.has(truckId);
-                            }).length;
-                            counts['Unassigned'] = unassignedCount;
-                        } else {
-                            counts['Unassigned'] = 0;
-                        }
-                        
-                        // Fetch counts for each yard
-                        for (const yard of yards) {
-                            if (yard.status === 'active' && yard._id) {
-                                const yardId = yard._id.toString();
-                                const yardResponse = await getAllVehicles(1, 1, undefined, undefined, undefined, undefined, undefined, yardId);
-                                counts[yardId] = yardResponse?.pagination?.total || 0;
-                            }
-                        }
-                        
-                        setCategoryCounts(counts);
                         const transformedTrucks = refreshResponse.data.map((truck: any) => ({
                             _id: truck._id,
                             id: truck._id,
@@ -1360,34 +1252,22 @@ const Trucks: React.FC = () => {
                 if (response?.success) {
                     const newTruckId = response?.data?._id || response?.data?.id;
                     
-                    // Handle documents for newly created truck
+                    // Handle documents for newly created truck (single list, no tabs)
                     if (newTruckId) {
-                        const newDocuments: Array<{ type: string; doc: any }> = [];
-                        
-                        Object.entries(documents).forEach(([type, docs]) => {
-                            docs.forEach((doc) => {
-                                if (!doc.isExisting && (doc.file || doc.description)) {
-                                    newDocuments.push({ type, doc });
-                                }
-                            });
-                        });
-                        
-                        // Create new documents
-                        if (newDocuments.length > 0) {
+                        const docsToCreate = documents.filter(
+                            (doc) => !doc.isExisting && (doc.file || doc.description || doc.title)
+                        );
+                        if (docsToCreate.length > 0) {
                             try {
-                                await Promise.all(newDocuments.map(async ({ type, doc }) => {
+                                await Promise.all(docsToCreate.map(async (doc) => {
                                     const docFormData = new FormData();
                                     docFormData.append('vehicleId', newTruckId);
                                     docFormData.append('assetType', 'vehicle');
-                                    docFormData.append('documentType', type);
+                                    docFormData.append('documentType', 'General');
                                     docFormData.append('documentNumber', doc.description || '');
-                                    if (doc.expiryDate) {
-                                        docFormData.append('expiryDate', doc.expiryDate);
-                                    }
-                                    if (doc.file) {
-                                        docFormData.append('file', doc.file);
-                                    }
-                                    
+                                    if (doc.title) docFormData.append('title', doc.title);
+                                    if (doc.expiryDate) docFormData.append('expiryDate', doc.expiryDate);
+                                    if (doc.file) docFormData.append('file', doc.file);
                                     await createVehicleDocument(docFormData);
                                 }));
                             } catch (docError) {
@@ -1434,63 +1314,42 @@ const Trucks: React.FC = () => {
                 }
             }
             
-            // Handle documents for updates
+            // Handle documents for updates (single list, no tabs)
             if (editingId) {
-                const trailerId = editingId;
-                const newDocuments: Array<{ type: string; doc: any }> = [];
-                const updatedDocuments: Array<{ type: string; doc: any }> = [];
-                
-                Object.entries(documents).forEach(([type, docs]) => {
-                    docs.forEach((doc) => {
-                        if (doc.isExisting && doc._id) {
-                            updatedDocuments.push({ type, doc });
-                        } else if (!doc.isExisting && (doc.file || doc.description)) {
-                            newDocuments.push({ type, doc });
-                        }
-                    });
-                });
-                
-                // Create new documents
-                if (newDocuments.length > 0) {
+                const vehicleId = editingId;
+                const newDocs = documents.filter((doc) => !doc.isExisting && (doc.file || doc.description || doc.title));
+                const existingDocs = documents.filter((doc) => doc.isExisting && doc._id);
+
+                if (newDocs.length > 0) {
                     try {
-                        await Promise.all(newDocuments.map(async ({ type, doc }) => {
+                        await Promise.all(newDocs.map(async (doc) => {
                             const docFormData = new FormData();
-                            docFormData.append('vehicleId', trailerId);
+                            docFormData.append('vehicleId', vehicleId);
                             docFormData.append('assetType', 'vehicle');
-                            docFormData.append('documentType', type);
+                            docFormData.append('documentType', 'General');
                             docFormData.append('documentNumber', doc.description || '');
-                            if (doc.expiryDate) {
-                                docFormData.append('expiryDate', doc.expiryDate);
-                            }
-                            if (doc.file) {
-                                docFormData.append('file', doc.file);
-                            }
-                            
+                            if (doc.title) docFormData.append('title', doc.title);
+                            if (doc.expiryDate) docFormData.append('expiryDate', doc.expiryDate);
+                            if (doc.file) docFormData.append('file', doc.file);
                             await createVehicleDocument(docFormData);
                         }));
                     } catch (docError) {
                         console.error('❌ Error creating documents:', docError);
                     }
                 }
-                
-                // Update existing documents
-                if (updatedDocuments.length > 0) {
+
+                if (existingDocs.length > 0) {
                     try {
-                        await Promise.all(updatedDocuments.map(async ({ type, doc }) => {
+                        await Promise.all(existingDocs.map(async (doc) => {
                             const docFormData = new FormData();
-                            docFormData.append('vehicleId', trailerId);
+                            docFormData.append('vehicleId', vehicleId);
                             docFormData.append('assetType', 'vehicle');
-                            docFormData.append('documentType', type);
+                            docFormData.append('documentType', 'General');
                             docFormData.append('documentNumber', doc.description || '');
-                            if (doc.expiryDate) {
-                                docFormData.append('expiryDate', doc.expiryDate);
-                            } else {
-                                docFormData.append('expiryDate', '');
-                            }
-                            if (doc.file && doc.file instanceof File) {
-                                docFormData.append('file', doc.file);
-                            }
-                            
+                            if (doc.title) docFormData.append('title', doc.title);
+                            if (doc.expiryDate) docFormData.append('expiryDate', doc.expiryDate);
+                            else docFormData.append('expiryDate', '');
+                            if (doc.file && doc.file instanceof File) docFormData.append('file', doc.file);
                             await updateVehicleDocument(doc._id!, docFormData);
                         }));
                     } catch (docError) {
@@ -1528,17 +1387,12 @@ const Trucks: React.FC = () => {
             setSelectedImageFile(null);
             setEditingId(null);
             setOriginalTruckData(null);
-            setDocuments({
-                General: [],
-                Ownership: [],
-                'Cab Card': [],
-                Plate: [],
-                Safety: [],
-                Insurance: []
-            });
+            setDocuments([]);
             setOneTimeInspections([]);
             setRecurringInspections([]);
             setNotes([]);
+            setEditingDocumentId(null);
+            setEditingNoteId(null);
             setShowSidebar(false);
         } catch (error) {
             console.error('Error saving truck:', error);
@@ -1660,7 +1514,7 @@ const Trucks: React.FC = () => {
     };
 
     // Navigation helper functions for sidebar steps
-    const steps: Array<'Details' | 'Inspections' | 'Documents' | 'Notes'> = ['Details', 'Inspections', 'Documents', 'Notes'];
+    const steps: Array<'Details' | 'Inspections' | 'Documents' | 'Invoice' | 'Notes'> = ['Details', 'Inspections', 'Documents', 'Invoice', 'Notes'];
     
     const getNextStep = () => {
         // If on a conditional step (Payroll, Deductions, Additions), return null (no next step)
@@ -1742,17 +1596,12 @@ const Trucks: React.FC = () => {
                                     setSelectedImageFile(null);
                                     setEditingId(null);
                                     setOriginalTruckData(null);
-                                    setDocuments({
-                                        General: [],
-                                        Ownership: [],
-                                        'Cab Card': [],
-                                        Plate: [],
-                                        Safety: [],
-                                        Insurance: []
-                                    });
+                                    setDocuments([]);
                                     setOneTimeInspections([]);
                                     setRecurringInspections([]);
                                     setNotes([]);
+                                    setEditingDocumentId(null);
+                                    setEditingNoteId(null);
                                     setEditingId(null);
                                     setOriginalTruckData(null);
                                     setSelectedImage(null);
@@ -1808,7 +1657,7 @@ const Trucks: React.FC = () => {
                             >
                                 <div>
                                     <div className="font-semibold">
-                                        {yard.yardName} ({getCountByCategory(yard._id?.toString() || '')})
+                                        {yard.yardName} ({getCountByCategory(yard._id!)})
                                     </div>
                                     <div className="text-xs text-gray-500 mt-1">Home to {yard.yardName}</div>
                                 </div>
@@ -2168,7 +2017,7 @@ const Trucks: React.FC = () => {
                             {/* Navigation Tabs */}
                             <div className="flex-1 overflow-y-auto p-2">
                                 <nav className="flex flex-col gap-1.5">
-                                    {(['Details', 'Inspections', 'Documents', 'Notes'] as const).map((step) => (
+                                    {(['Details', 'Inspections', 'Documents', 'Invoice', 'Notes'] as const).map((step) => (
                                         <button
                                             key={step}
                                             onClick={() => setActiveStep(step)}
@@ -2229,8 +2078,8 @@ const Trucks: React.FC = () => {
                                 </div>
                             </div>
 
-                            {/* Content Area */}
-                            <div className="flex-1 overflow-y-auto p-4 bg-gray-50">
+                            {/* Content Area - scrollable; footer stays at bottom */}
+                            <div className="flex-1 min-h-0 overflow-y-auto p-4 bg-gray-50">
                                 {/* Details Step */}
                                 {activeStep === 'Details' && (
                                     <div className="space-y-4">
@@ -2694,16 +2543,22 @@ const Trucks: React.FC = () => {
                                                                         </td>
                                                                         <td className="px-4 py-2 text-sm text-gray-900">{inspection.ignoreExpiration ? 'Yes' : 'No'}</td>
                                                                         <td className="px-4 py-2 text-sm text-gray-900">
-                                                                            <button
-                                                                                onClick={(e) => {
-                                                                                    e.stopPropagation();
-                                                                                    handleDeleteInspection(inspection.id, 'oneTime');
-                                                                                }}
-                                                                                className="p-1 text-red-600 hover:bg-red-50 rounded"
-                                                                                title="Delete"
-                                                                            >
-                                                                                <Trash2 className="w-4 h-4" />
-                                                                            </button>
+                                                                            <div className="flex items-center gap-2" onClick={(e) => e.stopPropagation()}>
+                                                                                <button
+                                                                                    onClick={() => handleEditInspection(inspection, 'oneTime')}
+                                                                                    className="p-1 text-blue-600 hover:bg-blue-50 rounded"
+                                                                                    title="Edit"
+                                                                                >
+                                                                                    <Edit className="w-4 h-4" />
+                                                                                </button>
+                                                                                <button
+                                                                                    onClick={() => handleDeleteInspection(inspection.id, 'oneTime')}
+                                                                                    className="p-1 text-red-600 hover:bg-red-50 rounded"
+                                                                                    title="Delete"
+                                                                                >
+                                                                                    <Trash2 className="w-4 h-4" />
+                                                                                </button>
+                                                                            </div>
                                                                         </td>
                                                                     </tr>
                                                                 ))
@@ -2900,16 +2755,22 @@ const Trucks: React.FC = () => {
                                                                         </td>
                                                                         <td className="px-4 py-2 text-sm text-gray-900">{inspection.ignoreExpiration ? 'Yes' : 'No'}</td>
                                                                         <td className="px-4 py-2 text-sm text-gray-900">
-                                                                            <button
-                                                                                onClick={(e) => {
-                                                                                    e.stopPropagation();
-                                                                                    handleDeleteInspection(inspection.id, 'recurring');
-                                                                                }}
-                                                                                className="p-1 text-red-600 hover:bg-red-50 rounded"
-                                                                                title="Delete"
-                                                                            >
-                                                                                <Trash2 className="w-4 h-4" />
-                                                                            </button>
+                                                                            <div className="flex items-center gap-2" onClick={(e) => e.stopPropagation()}>
+                                                                                <button
+                                                                                    onClick={() => handleEditInspection(inspection, 'recurring')}
+                                                                                    className="p-1 text-blue-600 hover:bg-blue-50 rounded"
+                                                                                    title="Edit"
+                                                                                >
+                                                                                    <Edit className="w-4 h-4" />
+                                                                                </button>
+                                                                                <button
+                                                                                    onClick={() => handleDeleteInspection(inspection.id, 'recurring')}
+                                                                                    className="p-1 text-red-600 hover:bg-red-50 rounded"
+                                                                                    title="Delete"
+                                                                                >
+                                                                                    <Trash2 className="w-4 h-4" />
+                                                                                </button>
+                                                                            </div>
                                                                         </td>
                                                                     </tr>
                                                                 ))
@@ -2922,41 +2783,25 @@ const Trucks: React.FC = () => {
                                     </div>
                                 )}
 
-                                {/* Documents Step */}
+                                {/* Documents Step (no tabs; single list with Title) */}
                                 {activeStep === 'Documents' && (
                                     <div className="space-y-4">
                                         <h3 className="text-base font-semibold text-gray-900">Documents</h3>
 
-                                        {/* Document Type Tabs */}
-                                        <div className="flex gap-2 border-b border-gray-200">
-                                            {(['General', 'Ownership', 'Cab Card', 'Plate', 'Safety', 'Insurance'] as const).map((type) => (
-                                                <button
-                                                    key={type}
-                                                    type="button"
-                                                    onClick={() => {
-                                                        console.log('📑 Switching to document type:', type);
-                                                        console.log('📑 Documents for', type, ':', documents[type]);
-                                                        setDocumentType(type);
-                                                    }}
-                                                    className={`px-4 py-2 text-sm font-medium transition-colors border-b-2 ${documentType === type
-                                                        ? 'border-gray-700 text-gray-900'
-                                                        : 'border-transparent text-gray-500 hover:text-gray-700'
-                                                        }`}
-                                                >
-                                                    {type}
-                                                    {documents[type] && documents[type].length > 0 && (
-                                                        <span className="ml-2 px-2 py-0.5 bg-blue-500 text-white text-xs rounded-full">
-                                                            {documents[type].length}
-                                                        </span>
-                                                    )}
-                                                </button>
-                                            ))}
-                                        </div>
-
                                         {/* Document Form */}
                                         <div className="bg-gray-100 p-4 rounded-lg space-y-4">
-                                            {/* Row 1: Expiry Date and Description */}
-                                            <div className="grid grid-cols-2 gap-4">
+                                            {/* Row 1: Title, Expiry Date, Description */}
+                                            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                                                <div>
+                                                    <label className="block text-sm font-medium text-gray-700 mb-1">Title</label>
+                                                    <input
+                                                        type="text"
+                                                        placeholder="Title"
+                                                        value={documentForm.title}
+                                                        onChange={(e) => setDocumentForm({ ...documentForm, title: e.target.value })}
+                                                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#42aeec]"
+                                                    />
+                                                </div>
                                                 <div>
                                                     <label className="block text-sm font-medium text-gray-700 mb-1">Expiry Date</label>
                                                     <div className="relative">
@@ -3018,7 +2863,7 @@ const Trucks: React.FC = () => {
                                                 )}
                                             </div>
 
-                                            {/* Row 3: Checkbox and Action Button */}
+                                            {/* Row 3: Checkbox and Action Buttons */}
                                             <div className="flex items-center justify-between">
                                                 <div className="flex items-center gap-2">
                                                     <input
@@ -3029,36 +2874,56 @@ const Trucks: React.FC = () => {
                                                     />
                                                     <label className="text-sm text-gray-700">Ignore Expiration</label>
                                                 </div>
-                                                <button
-                                                    onClick={() => {
-                                                        console.log('📄 Adding document to type:', documentType);
-                                                        console.log('📄 Current documents:', documents);
-                                                        if (documentForm.description) {
-                                                            const newDoc = {
-                                                                id: Date.now().toString(),
-                                                                expiryDate: documentForm.expiryDate,
-                                                                description: documentForm.description,
-                                                                file: documentForm.file,
-                                                                fileName: documentForm.file?.name || '',
-                                                                ignoreExpiration: documentForm.ignoreExpiration
-                                                            };
-                                                            console.log('📄 New document:', newDoc);
-                                                            const updatedDocuments = {
-                                                                ...documents,
-                                                                [documentType]: [...(documents[documentType] || []), newDoc]
-                                                            };
-                                                            console.log('📄 Updated documents:', updatedDocuments);
-                                                            setDocuments(updatedDocuments);
-                                                            setDocumentForm({ expiryDate: '', description: '', file: null, ignoreExpiration: false });
-                                                        } else {
-                                                            console.warn('⚠️ Cannot add document: description is required');
-                                                        }
-                                                    }}
-                                                    className="px-4 py-2 bg-gray-700 !text-white rounded-lg flex items-center gap-2 hover:bg-gray-800"
-                                                >
-                                                    <Plus className="w-4 h-4" />
-                                                    <span>Add</span>
-                                                </button>
+                                                <div className="flex items-center gap-2">
+                                                    {editingDocumentId && (
+                                                        <button
+                                                            onClick={() => {
+                                                                setEditingDocumentId(null);
+                                                                setDocumentForm({ title: '', expiryDate: '', description: '', file: null, ignoreExpiration: false });
+                                                            }}
+                                                            className="px-4 py-2 bg-gray-400 !text-white rounded-lg hover:bg-gray-500"
+                                                        >
+                                                            Cancel
+                                                        </button>
+                                                    )}
+                                                    <button
+                                                        onClick={() => {
+                                                            if (documentForm.description || documentForm.title || documentForm.file) {
+                                                                if (editingDocumentId) {
+                                                                    setDocuments(documents.map(d =>
+                                                                        d.id === editingDocumentId
+                                                                            ? {
+                                                                                ...d,
+                                                                                title: documentForm.title,
+                                                                                expiryDate: documentForm.expiryDate,
+                                                                                description: documentForm.description,
+                                                                                file: documentForm.file ?? d.file,
+                                                                                fileName: documentForm.file?.name ?? d.fileName,
+                                                                                ignoreExpiration: documentForm.ignoreExpiration
+                                                                            }
+                                                                            : d
+                                                                    ));
+                                                                    setEditingDocumentId(null);
+                                                                } else {
+                                                                    setDocuments([...documents, {
+                                                                        id: Date.now().toString(),
+                                                                        title: documentForm.title || '',
+                                                                        expiryDate: documentForm.expiryDate,
+                                                                        description: documentForm.description,
+                                                                        file: documentForm.file,
+                                                                        fileName: documentForm.file?.name || '',
+                                                                        ignoreExpiration: documentForm.ignoreExpiration
+                                                                    }]);
+                                                                }
+                                                                setDocumentForm({ title: '', expiryDate: '', description: '', file: null, ignoreExpiration: false });
+                                                            }
+                                                        }}
+                                                        className="px-4 py-2 bg-gray-700 !text-white rounded-lg flex items-center gap-2 hover:bg-gray-800"
+                                                    >
+                                                        {editingDocumentId ? <Edit className="w-4 h-4" /> : <Plus className="w-4 h-4" />}
+                                                        <span>{editingDocumentId ? 'Update' : 'Add'}</span>
+                                                    </button>
+                                                </div>
                                             </div>
                                         </div>
 
@@ -3067,6 +2932,7 @@ const Trucks: React.FC = () => {
                                             <table className="w-full min-w-[800px]">
                                                 <thead className="bg-gray-50">
                                                     <tr>
+                                                        <th className="px-4 py-2 text-left text-xs font-medium text-gray-700">Title</th>
                                                         <th className="px-4 py-2 text-left text-xs font-medium text-gray-700">Expiry Date</th>
                                                         <th className="px-4 py-2 text-left text-xs font-medium text-gray-700">Description</th>
                                                         <th className="px-4 py-2 text-left text-xs font-medium text-gray-700">File</th>
@@ -3075,15 +2941,16 @@ const Trucks: React.FC = () => {
                                                     </tr>
                                                 </thead>
                                                 <tbody>
-                                                    {(!documents[documentType] || documents[documentType].length === 0) ? (
+                                                    {documents.length === 0 ? (
                                                         <tr>
-                                                            <td colSpan={5} className="px-4 py-8 text-center text-gray-500">No Data</td>
+                                                            <td colSpan={6} className="px-4 py-8 text-center text-gray-500">No Data</td>
                                                         </tr>
                                                     ) : (
-                                                        documents[documentType].map((doc) => (
-                                                            <tr key={doc.id} className="border-t border-gray-200 hover:bg-gray-50">
+                                                        documents.map((doc) => (
+                                                            <tr key={doc.id} className={`border-t border-gray-200 hover:bg-gray-50 ${editingDocumentId === doc.id ? 'bg-blue-50' : ''}`}>
+                                                                <td className="px-4 py-2 text-sm text-gray-900">{doc.title || '-'}</td>
                                                                 <td className="px-4 py-2 text-sm text-gray-900">{doc.expiryDate || '-'}</td>
-                                                                <td className="px-4 py-2 text-sm text-gray-900">{doc.description}</td>
+                                                                <td className="px-4 py-2 text-sm text-gray-900">{doc.description || '-'}</td>
                                                                 <td className="px-4 py-2 text-sm text-gray-900">
                                                                     {doc.fileName || doc.fileUrl || doc.file ? (
                                                                         doc.fileUrl ? (
@@ -3111,19 +2978,37 @@ const Trucks: React.FC = () => {
                                                                 </td>
                                                                 <td className="px-4 py-2 text-sm text-gray-900">{doc.ignoreExpiration ? 'Yes' : 'No'}</td>
                                                                 <td className="px-4 py-2 text-sm text-gray-900">
-                                                                    <button
-                                                                        onClick={() => {
-                                                                            console.log('🗑️ Deleting document from type:', documentType, 'id:', doc.id);
-                                                                            setDocuments({
-                                                                                ...documents,
-                                                                                [documentType]: (documents[documentType] || []).filter(d => d.id !== doc.id)
-                                                                            });
-                                                                        }}
-                                                                        className="p-1 text-red-600 hover:bg-red-50 rounded"
-                                                                        title="Delete"
-                                                                    >
-                                                                        <Trash2 className="w-4 h-4" />
-                                                                    </button>
+                                                                    <div className="flex items-center gap-2">
+                                                                        <button
+                                                                            onClick={() => {
+                                                                                setEditingDocumentId(doc.id);
+                                                                                setDocumentForm({
+                                                                                    title: doc.title || '',
+                                                                                    expiryDate: doc.expiryDate || '',
+                                                                                    description: doc.description || '',
+                                                                                    file: doc.file || null,
+                                                                                    ignoreExpiration: doc.ignoreExpiration
+                                                                                });
+                                                                            }}
+                                                                            className="p-1 text-blue-600 hover:bg-blue-50 rounded"
+                                                                            title="Edit"
+                                                                        >
+                                                                            <Edit className="w-4 h-4" />
+                                                                        </button>
+                                                                        <button
+                                                                            onClick={() => {
+                                                                                setDocuments(documents.filter((d) => d.id !== doc.id));
+                                                                                if (editingDocumentId === doc.id) {
+                                                                                    setEditingDocumentId(null);
+                                                                                    setDocumentForm({ title: '', expiryDate: '', description: '', file: null, ignoreExpiration: false });
+                                                                                }
+                                                                            }}
+                                                                            className="p-1 text-red-600 hover:bg-red-50 rounded"
+                                                                            title="Delete"
+                                                                        >
+                                                                            <Trash2 className="w-4 h-4" />
+                                                                        </button>
+                                                                    </div>
                                                                 </td>
                                                             </tr>
                                                         ))
@@ -3131,6 +3016,300 @@ const Trucks: React.FC = () => {
                                                 </tbody>
                                             </table>
                                         </div>
+                                    </div>
+                                )}
+
+                                {/* Invoice Step */}
+                                {activeStep === 'Invoice' && (
+                                    <div className="space-y-4">
+
+                                            {/* Invoice Form */}
+                                            <div className="bg-gray-100 p-4 rounded-lg">
+                                                <div className="grid grid-cols-2 gap-4 mb-4">
+                                                    <div>
+                                                        <label className="block text-sm font-medium text-gray-700 mb-1">Invoice Number<span className="text-red-500">*</span></label>
+                                                        <input
+                                                            type="text"
+                                                            placeholder="Invoice Number"
+                                                            value={invoiceForm.invoiceNumber}
+                                                            onChange={(e) => setInvoiceForm({ ...invoiceForm, invoiceNumber: e.target.value })}
+                                                            className="w-full px-3 py-2 bg-white border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#42aeec] text-sm"
+                                                        />
+                                                    </div>
+                                                    <div>
+                                                        <label className="block text-sm font-medium text-gray-700 mb-1">Vendor / Workshop<span className="text-red-500">*</span></label>
+                                                        <input
+                                                            type="text"
+                                                            placeholder="Vendor / Workshop"
+                                                            value={invoiceForm.vendorWorkshop}
+                                                            onChange={(e) => setInvoiceForm({ ...invoiceForm, vendorWorkshop: e.target.value })}
+                                                            className="w-full px-3 py-2 bg-white border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#42aeec] text-sm"
+                                                        />
+                                                    </div>
+                                                    <div>
+                                                        <label className="block text-sm font-medium text-gray-700 mb-1">Amount<span className="text-red-500">*</span></label>
+                                                        <div className="relative">
+                                                            <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400">$</span>
+                                                            <input
+                                                                type="number"
+                                                                placeholder="0.00"
+                                                                value={invoiceForm.amount}
+                                                                onChange={(e) => {
+                                                                    const value = e.target.value;
+                                                                    if (value === '' || /^\d*\.?\d{0,2}$/.test(value)) {
+                                                                        setInvoiceForm({ ...invoiceForm, amount: value });
+                                                                    }
+                                                                }}
+                                                                min="0"
+                                                                step="0.01"
+                                                                className="w-full pl-7 pr-3 py-2 bg-white border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#42aeec] text-sm"
+                                                            />
+                                                        </div>
+                                                    </div>
+                                                    <div>
+                                                        <label className="block text-sm font-medium text-gray-700 mb-1">Invoice Date<span className="text-red-500">*</span></label>
+                                                        <div className="relative">
+                                                            <Calendar className="absolute left-2 top-2.5 w-4 h-4 text-gray-400 pointer-events-none" />
+                                                            <input
+                                                                type="date"
+                                                                value={invoiceForm.invoiceDate}
+                                                                onChange={(e) => setInvoiceForm({ ...invoiceForm, invoiceDate: e.target.value })}
+                                                                className="w-full pl-8 pr-3 py-2 bg-white border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#42aeec] text-sm"
+                                                            />
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                <div className="mb-4">
+                                                    <label className="block text-sm font-medium text-gray-700 mb-1">Upload Invoice (PDF / Image)</label>
+                                                    {invoiceForm.file ? (
+                                                        <div className="flex items-center gap-2 px-3 py-2 border border-gray-300 rounded-lg bg-white">
+                                                            <FileText className="w-4 h-4 text-gray-600 flex-shrink-0" />
+                                                            <span className="text-sm text-gray-700 truncate flex-1">
+                                                                {invoiceForm.file.name}
+                                                            </span>
+                                                            <button
+                                                                type="button"
+                                                                onClick={() => {
+                                                                    setInvoiceForm({ ...invoiceForm, file: null });
+                                                                    if (invoiceFileInputRef.current) {
+                                                                        invoiceFileInputRef.current.value = '';
+                                                                    }
+                                                                }}
+                                                                className="text-gray-400 hover:text-red-600 transition-colors flex-shrink-0"
+                                                                title="Remove file"
+                                                            >
+                                                                <X className="w-4 h-4" />
+                                                            </button>
+                                                        </div>
+                                                    ) : (
+                                                        <>
+                                                            <input
+                                                                ref={invoiceFileInputRef}
+                                                                type="file"
+                                                                accept=".pdf,.jpg,.jpeg,.png,.gif"
+                                                                onChange={(e) => {
+                                                                    if (e.target.files && e.target.files[0]) {
+                                                                        setInvoiceForm({ ...invoiceForm, file: e.target.files[0] });
+                                                                    }
+                                                                }}
+                                                                className="hidden"
+                                                            />
+                                                            <button
+                                                                type="button"
+                                                                onClick={() => invoiceFileInputRef.current?.click()}
+                                                                className="w-full px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 text-sm font-medium bg-white flex items-center justify-center gap-2"
+                                                            >
+                                                                <Upload className="w-4 h-4" />
+                                                                <span>Select File</span>
+                                                            </button>
+                                                        </>
+                                                    )}
+                                                </div>
+                                                <div className="mb-4">
+                                                    <label className="block text-sm font-medium text-gray-700 mb-1">Notes</label>
+                                                    <textarea
+                                                        placeholder="Notes"
+                                                        value={invoiceForm.notes}
+                                                        onChange={(e) => setInvoiceForm({ ...invoiceForm, notes: e.target.value })}
+                                                        className="w-full px-3 py-2 bg-white border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#42aeec] min-h-[80px] text-sm resize-none"
+                                                    />
+                                                </div>
+                                                <div className="flex justify-end gap-2">
+                                                    {editingInvoiceId && (
+                                                        <button
+                                                            onClick={() => {
+                                                                setEditingInvoiceId(null);
+                                                                setInvoiceForm({
+                                                                    invoiceNumber: '',
+                                                                    vendorWorkshop: '',
+                                                                    amount: '',
+                                                                    invoiceDate: '',
+                                                                    file: null,
+                                                                    notes: ''
+                                                                });
+                                                                if (invoiceFileInputRef.current) {
+                                                                    invoiceFileInputRef.current.value = '';
+                                                                }
+                                                            }}
+                                                            className="px-4 py-2 bg-gray-500 !text-white rounded-lg flex items-center gap-2 hover:bg-gray-600 transition-colors"
+                                                        >
+                                                            <X className="w-4 h-4" />
+                                                            <span>Cancel</span>
+                                                        </button>
+                                                    )}
+                                                    <button
+                                                        onClick={() => {
+                                                            if (invoiceForm.invoiceNumber && invoiceForm.vendorWorkshop && invoiceForm.amount && invoiceForm.invoiceDate) {
+                                                                if (editingInvoiceId) {
+                                                                    setInvoices(invoices.map(inv =>
+                                                                        inv.id === editingInvoiceId
+                                                                            ? {
+                                                                                ...inv,
+                                                                                invoiceNumber: invoiceForm.invoiceNumber,
+                                                                                vendorWorkshop: invoiceForm.vendorWorkshop,
+                                                                                amount: invoiceForm.amount,
+                                                                                invoiceDate: invoiceForm.invoiceDate,
+                                                                                file: invoiceForm.file || inv.file,
+                                                                                fileName: invoiceForm.file?.name || inv.fileName,
+                                                                                notes: invoiceForm.notes
+                                                                            }
+                                                                            : inv
+                                                                    ));
+                                                                    setEditingInvoiceId(null);
+                                                                } else {
+                                                                    setInvoices([...invoices, {
+                                                                        id: Date.now().toString(),
+                                                                        invoiceNumber: invoiceForm.invoiceNumber,
+                                                                        vendorWorkshop: invoiceForm.vendorWorkshop,
+                                                                        amount: invoiceForm.amount,
+                                                                        invoiceDate: invoiceForm.invoiceDate,
+                                                                        file: invoiceForm.file,
+                                                                        fileName: invoiceForm.file?.name || '',
+                                                                        notes: invoiceForm.notes
+                                                                    }]);
+                                                                }
+                                                                setInvoiceForm({
+                                                                    invoiceNumber: '',
+                                                                    vendorWorkshop: '',
+                                                                    amount: '',
+                                                                    invoiceDate: '',
+                                                                    file: null,
+                                                                    notes: ''
+                                                                });
+                                                                if (invoiceFileInputRef.current) {
+                                                                    invoiceFileInputRef.current.value = '';
+                                                                }
+                                                            }
+                                                        }}
+                                                        className="px-4 py-2 bg-gray-700 !text-white rounded-lg flex items-center gap-2 hover:bg-gray-800 transition-colors"
+                                                    >
+                                                        <Plus className="w-4 h-4" />
+                                                        <span>{editingInvoiceId ? 'Update' : 'Add'} Invoice</span>
+                                                    </button>
+                                                </div>
+                                            </div>
+
+                                            {/* Invoices Table */}
+                                            <div className="bg-white rounded-lg border border-gray-200 overflow-x-auto">
+                                                <table className="w-full min-w-[1000px]">
+                                                    <thead className="bg-gray-50 border-b border-gray-200">
+                                                        <tr>
+                                                            <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase">Invoice Number</th>
+                                                            <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase">Vendor / Workshop</th>
+                                                            <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase">Amount</th>
+                                                            <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase">Invoice Date</th>
+                                                            <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase">File</th>
+                                                            <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase">Notes</th>
+                                                            <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase">Actions</th>
+                                                        </tr>
+                                                    </thead>
+                                                    <tbody className="divide-y divide-gray-200">
+                                                        {invoices.length === 0 ? (
+                                                            <tr>
+                                                                <td colSpan={7} className="px-4 py-12 text-center text-gray-500 text-sm">No Invoices</td>
+                                                            </tr>
+                                                        ) : (
+                                                            invoices.map((invoice) => (
+                                                                <tr key={invoice.id} className="hover:bg-gray-50 transition-colors">
+                                                                    <td className="px-4 py-3 text-sm text-gray-900">{invoice.invoiceNumber}</td>
+                                                                    <td className="px-4 py-3 text-sm text-gray-900">{invoice.vendorWorkshop}</td>
+                                                                    <td className="px-4 py-3 text-sm text-gray-900">${parseFloat(invoice.amount || '0').toFixed(2)}</td>
+                                                                    <td className="px-4 py-3 text-sm text-gray-900">{invoice.invoiceDate || '-'}</td>
+                                                                    <td className="px-4 py-3 text-sm text-gray-900">
+                                                                        {invoice.fileUrl ? (
+                                                                            <a
+                                                                                href={invoice.fileUrl}
+                                                                                target="_blank"
+                                                                                rel="noopener noreferrer"
+                                                                                className="flex items-center gap-2 text-blue-600 hover:text-blue-800 hover:underline"
+                                                                                onClick={(e) => e.stopPropagation()}
+                                                                            >
+                                                                                <FileText className="w-4 h-4" />
+                                                                                <span>{invoice.fileName || 'View File'}</span>
+                                                                            </a>
+                                                                        ) : invoice.fileName || invoice.file ? (
+                                                                            <div className="flex items-center gap-2 text-blue-600">
+                                                                                <FileText className="w-4 h-4" />
+                                                                                <span className="truncate max-w-[150px]">
+                                                                                    {invoice.fileName || (invoice.file instanceof File ? invoice.file.name : 'File attached')}
+                                                                                </span>
+                                                                            </div>
+                                                                        ) : (
+                                                                            <span className="text-gray-400">No file</span>
+                                                                        )}
+                                                                    </td>
+                                                                    <td className="px-4 py-3 text-sm text-gray-900">
+                                                                        <span className="truncate max-w-[200px] block" title={invoice.notes}>
+                                                                            {invoice.notes || '-'}
+                                                                        </span>
+                                                                    </td>
+                                                                    <td className="px-4 py-3 text-sm text-gray-900">
+                                                                        <div className="flex items-center gap-2">
+                                                                            <button
+                                                                                onClick={() => {
+                                                                                    setEditingInvoiceId(invoice.id);
+                                                                                    setInvoiceForm({
+                                                                                        invoiceNumber: invoice.invoiceNumber,
+                                                                                        vendorWorkshop: invoice.vendorWorkshop,
+                                                                                        amount: invoice.amount,
+                                                                                        invoiceDate: invoice.invoiceDate,
+                                                                                        file: invoice.file,
+                                                                                        notes: invoice.notes
+                                                                                    });
+                                                                                }}
+                                                                                className="p-1 text-blue-600 hover:bg-blue-50 rounded"
+                                                                                title="Edit"
+                                                                            >
+                                                                                <Edit className="w-4 h-4" />
+                                                                            </button>
+                                                                            <button
+                                                                                onClick={() => {
+                                                                                    setInvoices(invoices.filter(i => i.id !== invoice.id));
+                                                                                    if (editingInvoiceId === invoice.id) {
+                                                                                        setEditingInvoiceId(null);
+                                                                                        setInvoiceForm({
+                                                                                            invoiceNumber: '',
+                                                                                            vendorWorkshop: '',
+                                                                                            amount: '',
+                                                                                            invoiceDate: '',
+                                                                                            file: null,
+                                                                                            notes: ''
+                                                                                        });
+                                                                                    }
+                                                                                }}
+                                                                                className="p-1 text-red-600 hover:bg-red-50 rounded"
+                                                                                title="Delete"
+                                                                            >
+                                                                                <Trash2 className="w-4 h-4" />
+                                                                            </button>
+                                                                        </div>
+                                                                    </td>
+                                                                </tr>
+                                                            ))
+                                                        )}
+                                                    </tbody>
+                                                </table>
+                                            </div>
                                     </div>
                                 )}
 
@@ -3169,20 +3348,42 @@ const Trucks: React.FC = () => {
                                                     <ChevronDown className="absolute right-2 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
                                                 </div>
                                             </div>
+                                            {editingNoteId && (
+                                                <button
+                                                    onClick={() => {
+                                                        setEditingNoteId(null);
+                                                        setNoteForm({ note: '', category: 'Category' });
+                                                    }}
+                                                    className="w-10 h-10 bg-gray-400 !text-white rounded-lg flex items-center justify-center hover:bg-gray-500 transition-colors flex-shrink-0"
+                                                    title="Cancel"
+                                                >
+                                                    <X className="w-5 h-5" />
+                                                </button>
+                                            )}
                                             <button
                                                 onClick={() => {
                                                     if (noteForm.note && noteForm.category !== 'Category') {
-                                                        setNotes([...notes, {
-                                                            id: Date.now().toString(),
-                                                            note: noteForm.note,
-                                                            category: noteForm.category
-                                                        }]);
+                                                        if (editingNoteId) {
+                                                            setNotes(notes.map(n =>
+                                                                n.id === editingNoteId
+                                                                    ? { ...n, note: noteForm.note, category: noteForm.category }
+                                                                    : n
+                                                            ));
+                                                            setEditingNoteId(null);
+                                                        } else {
+                                                            setNotes([...notes, {
+                                                                id: Date.now().toString(),
+                                                                note: noteForm.note,
+                                                                category: noteForm.category
+                                                            }]);
+                                                        }
                                                         setNoteForm({ note: '', category: 'Category' });
                                                     }
                                                 }}
                                                 className="w-10 h-10 bg-gray-700 !text-white rounded-lg flex items-center justify-center hover:bg-gray-800 transition-colors flex-shrink-0"
+                                                title={editingNoteId ? 'Update Note' : 'Add Note'}
                                             >
-                                                <Plus className="w-5 h-5" />
+                                                {editingNoteId ? <Edit className="w-5 h-5" /> : <Plus className="w-5 h-5" />}
                                             </button>
                                         </div>
 
@@ -3193,18 +3394,46 @@ const Trucks: React.FC = () => {
                                                     <tr>
                                                         <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase">Note</th>
                                                         <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase">Category</th>
+                                                        <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase">Actions</th>
                                                     </tr>
                                                 </thead>
                                                 <tbody className="divide-y divide-gray-200">
                                                     {notes.length === 0 ? (
                                                         <tr>
-                                                            <td colSpan={2} className="px-4 py-12 text-center text-gray-500 text-sm">No Data</td>
+                                                            <td colSpan={3} className="px-4 py-12 text-center text-gray-500 text-sm">No Data</td>
                                                         </tr>
                                                     ) : (
                                                         notes.map((note) => (
-                                                            <tr key={note.id} className="hover:bg-gray-50 transition-colors">
+                                                            <tr key={note.id} className={`hover:bg-gray-50 transition-colors ${editingNoteId === note.id ? 'bg-blue-50' : ''}`}>
                                                                 <td className="px-4 py-3 text-sm text-gray-900">{note.note}</td>
                                                                 <td className="px-4 py-3 text-sm text-gray-900">{note.category}</td>
+                                                                <td className="px-4 py-3 text-sm text-gray-900">
+                                                                    <div className="flex items-center gap-2">
+                                                                        <button
+                                                                            onClick={() => {
+                                                                                setEditingNoteId(note.id);
+                                                                                setNoteForm({ note: note.note, category: note.category });
+                                                                            }}
+                                                                            className="p-1 text-blue-600 hover:bg-blue-50 rounded"
+                                                                            title="Edit"
+                                                                        >
+                                                                            <Edit className="w-4 h-4" />
+                                                                        </button>
+                                                                        <button
+                                                                            onClick={() => {
+                                                                                setNotes(notes.filter(n => n.id !== note.id));
+                                                                                if (editingNoteId === note.id) {
+                                                                                    setEditingNoteId(null);
+                                                                                    setNoteForm({ note: '', category: 'Category' });
+                                                                                }
+                                                                            }}
+                                                                            className="p-1 text-red-600 hover:bg-red-50 rounded"
+                                                                            title="Delete"
+                                                                        >
+                                                                            <Trash2 className="w-4 h-4" />
+                                                                        </button>
+                                                                    </div>
+                                                                </td>
                                                             </tr>
                                                         ))
                                                     )}
@@ -3670,34 +3899,34 @@ const Trucks: React.FC = () => {
                                     </>
                                 )}
 
-                                {/* Navigation Buttons */}
-                                <div className="mt-4 pt-4 border-t border-gray-200">
-                                    <div className="flex justify-between gap-3">
-                                        <button
-                                            onClick={handlePrevious}
-                                            disabled={!getPreviousStep()}
-                                            className={`flex items-center justify-center gap-2 px-4 py-1.5 rounded-lg text-sm font-medium transition-colors ${
-                                                getPreviousStep()
-                                                    ? 'bg-gray-700 !text-white hover:bg-gray-800'
-                                                    : 'bg-gray-200 text-gray-400 cursor-not-allowed'
-                                            }`}
-                                        >
-                                            <ChevronLeft className="w-3.5 h-3.5" />
-                                            Previous
-                                        </button>
-                                        <button
-                                            onClick={handleNext}
-                                            disabled={!getNextStep()}
-                                            className={`flex items-center justify-center gap-2 px-4 py-1.5 rounded-lg text-sm font-medium transition-colors ${
-                                                getNextStep()
-                                                    ? 'bg-gray-700 !text-white hover:bg-gray-800'
-                                                    : 'bg-gray-200 text-gray-400 cursor-not-allowed'
-                                            }`}
-                                        >
-                                            Next
-                                            <ChevronRight className="w-3.5 h-3.5" />
-                                        </button>
-                                    </div>
+                            </div>
+                            {/* Footer: Previous/Next fixed at bottom */}
+                            <div className="flex-shrink-0 border-t border-gray-200 bg-white px-4 py-3">
+                                <div className="flex justify-between gap-3">
+                                    <button
+                                        onClick={handlePrevious}
+                                        disabled={!getPreviousStep()}
+                                        className={`flex items-center justify-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+                                            getPreviousStep()
+                                                ? 'bg-gray-700 !text-white hover:bg-gray-800'
+                                                : 'bg-gray-200 text-gray-400 cursor-not-allowed'
+                                        }`}
+                                    >
+                                        <ChevronLeft className="w-3.5 h-3.5" />
+                                        Previous
+                                    </button>
+                                    <button
+                                        onClick={handleNext}
+                                        disabled={!getNextStep()}
+                                        className={`flex items-center justify-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+                                            getNextStep()
+                                                ? 'bg-gray-700 !text-white hover:bg-gray-800'
+                                                : 'bg-gray-200 text-gray-400 cursor-not-allowed'
+                                        }`}
+                                    >
+                                        Next
+                                        <ChevronRight className="w-3.5 h-3.5" />
+                                    </button>
                                 </div>
                             </div>
                         </div>
