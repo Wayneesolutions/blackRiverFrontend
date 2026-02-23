@@ -1568,6 +1568,8 @@ const Trucks: React.FC = () => {
                             </button>
                             <button
                                 onClick={() => {
+                                    setEditingId(null);
+                                    setOriginalTruckData(null);
                                     setFormData({
                                         unitNumber: '',
                                         vinNumber: '',
@@ -1594,18 +1596,20 @@ const Trucks: React.FC = () => {
                                     });
                                     setSelectedImage(null);
                                     setSelectedImageFile(null);
-                                    setEditingId(null);
-                                    setOriginalTruckData(null);
                                     setDocuments([]);
                                     setOneTimeInspections([]);
                                     setRecurringInspections([]);
                                     setNotes([]);
+                                    setInvoices([]);
+                                    setInspectionForm({ expiryDate: '', description: '', ignoreExpiration: false, scheduledOn: '', after: '', unit: '', file: null });
+                                    setEditingInspectionId(null);
+                                    setEditingInspectionType(null);
+                                    setDocumentForm({ title: '', expiryDate: '', description: '', file: null, ignoreExpiration: false });
                                     setEditingDocumentId(null);
+                                    setInvoiceForm({ invoiceNumber: '', vendorWorkshop: '', amount: '', invoiceDate: '', file: null, notes: '' });
+                                    setEditingInvoiceId(null);
+                                    setNoteForm({ note: '', category: 'Category' });
                                     setEditingNoteId(null);
-                                    setEditingId(null);
-                                    setOriginalTruckData(null);
-                                    setSelectedImage(null);
-                                    setSelectedImageFile(null);
                                     setShowSidebar(true);
                                     setActiveStep('Details');
                                 }}

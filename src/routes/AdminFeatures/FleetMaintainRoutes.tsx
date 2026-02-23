@@ -14,7 +14,7 @@ const Trailers = lazy(() => import("../../pages/admin/fleetMaintenance/trailers/
 const ComplianceDashboard = lazy(() => import("../../pages/admin/fleetMaintenance/Dashboard/index"))
 const ScheduledServicesLog = lazy(() => import("../../pages/admin/fleetMaintenance/scheduledServicesLog/index"))
 const GeneralRepairsLog = lazy(() => import("../../pages/admin/fleetMaintenance/generalRepairsLog/index"))
-const RegulatorySafety = lazy(() => import("../../pages/admin/fleetMaintenance/regulatorySafety/index"))
+// const RegulatorySafety = lazy(() => import("../../pages/admin/fleetMaintenance/regulatorySafety/index"))
 const VehicleDocuments = lazy(() => import("../../pages/admin/fleetMaintenance/vehicleDocument/VehicleDocuments"))
 const FuelReports = lazy(() => import('../../pages/admin/dispatch/resources/fuel-reports/index'))
 const FleetInvoices = lazy(() => import("../../pages/admin/compilance/invoices"))
@@ -33,7 +33,7 @@ function FleetMaintainRoutes() {
                     <Route path="/vehicle-monitor" element={<VehicleEldMonitor />} />
                     <Route path="/profile" element={<Profile />} />
 
-                    <Route path="/spare-parts" element={<SpareParts />} />
+                    <Route path="/parts" element={<SpareParts />} />
                     <Route path="/vehicle-documents" element={<VehicleDocuments />} />
                     <Route path="/cost-reports" element={<CostReports />} />
                     <Route path="/fleet-units" element={<FleetUnits />} />
@@ -43,7 +43,7 @@ function FleetMaintainRoutes() {
                     <Route path="/compliance-dashboard" element={<ComplianceDashboard />} />
                     <Route path="/scheduled-services-log" element={<ScheduledServicesLog />} />
                     <Route path="/general-repairs-log" element={<GeneralRepairsLog />} />
-                    <Route path="/regulatory-safety" element={<RegulatorySafety />} />
+                    {/* <Route path="/regulatory-safety" element={<RegulatorySafety />} /> */}
                     <Route path="/fuel-reports" element={<FuelReports />} />
                     <Route path="/invoices" element={<FleetInvoices />} />
                     <Route path="/yards" element={<Yards />} />
