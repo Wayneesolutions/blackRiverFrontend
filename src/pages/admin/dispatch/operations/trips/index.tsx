@@ -2009,8 +2009,7 @@ const Trips = () => {
                           <File className="w-6 h-6 mx-auto mb-2 text-gray-400" />
                           <p className="text-sm">No documents uploaded</p>
                         </div>
-                      );
-                    })()}
+                      )}
                   </div>
 
                   {/* Document Approval Section - Only show if documents are not approved */}

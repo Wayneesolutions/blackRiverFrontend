@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { Building, Mail, Phone, MapPin, Upload, Save, Edit, X, AlertCircle, Settings, Key, Check, Wrench, Truck, Info, Plus, Trash2 } from 'lucide-react';
+import { Building, Mail, Phone, MapPin, Upload, Save, Edit, X, AlertCircle, Settings, Key, Check, Wrench, Info, Plus, Trash2 } from 'lucide-react';
 import { getCompany, updateCompany, updateApiCredentials, updateMaintenancePolicy } from '../../../../axios/api/admin';
 import { useDispatch } from 'react-redux';
 import { setUserCredentials } from '../../../../redux/slices/userSlice';

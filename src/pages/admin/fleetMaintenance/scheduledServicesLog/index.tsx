@@ -179,7 +179,7 @@ const ScheduledServicesLog: React.FC = () => {
           setCustomServices(services);
           
           // Create service type options ONLY from custom services (no hardcoded defaults)
-          const customOptions = services.map(service => ({
+          const customOptions = services.map((service: { name: string }) => ({
             label: service.name,
             value: nameToServiceType(service.name)
           }));
