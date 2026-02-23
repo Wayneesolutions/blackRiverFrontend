@@ -2,7 +2,8 @@
 import apiClient from "../apiClient";
 import { type AxiosResponse } from 'axios';
 
-export type VehicleServiceType =
+// Base service types for backward compatibility
+export type BaseVehicleServiceType =
   | 'oil-change'
   | 'dpf-filter'
   | 'valve-adjustment'
@@ -16,6 +17,10 @@ export type VehicleServiceType =
   | 'general-maintenance'
   | 'inspection'
   | 'other';
+
+// Extended type to support custom service types (kebab-case format)
+// Custom service types are generated from company service names
+export type VehicleServiceType = BaseVehicleServiceType | string;
 
 export type VehicleServicePriority = 'low' | 'medium' | 'high' | 'urgent';
 export type VehicleServiceStatus = 'pending' | 'in-progress' | 'completed';

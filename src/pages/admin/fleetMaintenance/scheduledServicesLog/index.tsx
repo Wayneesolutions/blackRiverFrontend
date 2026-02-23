@@ -16,6 +16,8 @@ import {
   type ServiceFilters
 } from '../../../../axios/api/vehicleService';
 import { getAllVehicles } from '../../../../axios/api/vehicle';
+import { getAllTrailers } from '../../../../axios/api/trailer';
+import { getCompany } from '../../../../axios/api/admin';
 import { FLEET_COLORS } from '../colorUtils';
 
 const ACCENT_PRIMARY = FLEET_COLORS.primary;
@@ -37,7 +39,16 @@ const ACCENT_VARS = {
   '--accent-soft-border': ACCENT_SOFT_BORDER
 } as CSSProperties;
 
-const SERVICE_TYPE_OPTIONS: { label: string; value: VehicleServiceType }[] = [
+// Helper function to convert service name to service type key (kebab-case)
+const nameToServiceType = (name: string): string => {
+  return name
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-+|-+$/g, '');
+};
+
+// Default service types for backward compatibility
+const DEFAULT_SERVICE_TYPE_OPTIONS: { label: string; value: VehicleServiceType }[] = [
   { label: 'Oil Change', value: 'oil-change' },
   { label: 'DPF Filter', value: 'dpf-filter' },
   { label: 'Valve Adjustment', value: 'valve-adjustment' },
@@ -46,10 +57,14 @@ const SERVICE_TYPE_OPTIONS: { label: string; value: VehicleServiceType }[] = [
   { label: 'Coolant Filter', value: 'coolant-filter' },
   { label: 'After Treatment System', value: 'after-treatment-system' },
   { label: 'Transmission Service', value: 'transmission-service' },
-  { label: 'Brake Inspection', value: 'brake-inspection' }
+  { label: 'Brake Inspection', value: 'brake-inspection' },
+  { label: 'Tire Rotation', value: 'tire-rotation' },
+  { label: 'General Maintenance', value: 'general-maintenance' },
+  { label: 'Inspection', value: 'inspection' },
+  { label: 'Other', value: 'other' }
 ];
 
-type ServiceTypeFilter = 'all' | VehicleServiceType;
+type ServiceTypeFilter = 'all' | VehicleServiceType | string; // Allow custom service types
 
 interface ScheduledService {
   _id: string;
@@ -80,9 +95,19 @@ interface UnitOption {
   serviceIntervalMileage?: number;
 }
 
-const getServiceTypeLabel = (value: string) => {
-  const match = SERVICE_TYPE_OPTIONS.find(option => option.value === value);
+// This will be updated to use dynamic services
+const getServiceTypeLabel = (value: string, customServices?: Array<{ name: string }>) => {
+  // First check custom services
+  if (customServices) {
+    const customMatch = customServices.find(service => nameToServiceType(service.name) === value);
+    if (customMatch) return customMatch.name;
+  }
+  
+  // Then check default options
+  const match = DEFAULT_SERVICE_TYPE_OPTIONS.find(option => option.value === value);
   if (match) return match.label;
+  
+  // Fallback: format the value
   return value.replace(/-/g, ' ').replace(/\b\w/g, (char) => char.toUpperCase());
 };
 
@@ -121,6 +146,8 @@ const ScheduledServicesLog: React.FC = () => {
   const [loading, setLoading] = useState(false);
   const [, setLoadingSamsara] = useState(false);
   const [showServiceDetails, setShowServiceDetails] = useState(false);
+  const [customServices, setCustomServices] = useState<Array<{ name: string }>>([]);
+  const [serviceTypeOptions, setServiceTypeOptions] = useState<Array<{ label: string; value: string }>>([]);
   
   // Refs for scrollbar synchronization
   const topScrollRef = useRef<HTMLDivElement>(null);
@@ -134,13 +161,52 @@ const ScheduledServicesLog: React.FC = () => {
   const [formData, setFormData] = useState<ServiceFormState>({
     serviceDate: new Date().toISOString().split('T')[0],
     unitNo: '',
-    serviceType: SERVICE_TYPE_OPTIONS[0].value,
+    serviceType: '' as VehicleServiceType, // Will be set when custom services load
     odometer: '',
     invoiceNo: '',
     notes: '',
     status: 'pending',
     amount: ''
   });
+
+  // Fetch company custom services on mount
+  useEffect(() => {
+    const fetchCustomServices = async () => {
+      try {
+        const response = await getCompany();
+        if (response?.success && response?.data?.maintenancePolicies?.customServices) {
+          const services = response.data.maintenancePolicies.customServices;
+          setCustomServices(services);
+          
+          // Create service type options ONLY from custom services (no hardcoded defaults)
+          const customOptions = services.map(service => ({
+            label: service.name,
+            value: nameToServiceType(service.name)
+          }));
+          
+          // Set only custom services (no hardcoded defaults)
+          setServiceTypeOptions(customOptions);
+          
+          // Update form default to first custom service if available
+          if (customOptions.length > 0) {
+            setFormData(prev => ({
+              ...prev,
+              serviceType: (prev.serviceType || customOptions[0].value) as VehicleServiceType
+            }));
+          }
+        } else {
+          // No custom services configured - show empty state
+          setServiceTypeOptions([]);
+        }
+      } catch (error) {
+        console.error('Error fetching custom services:', error);
+        // Show empty on error - user needs to configure services first
+        setServiceTypeOptions([]);
+      }
+    };
+    
+    fetchCustomServices();
+  }, []);
 
   // Check URL query parameter for incoming maintenance filter
   useEffect(() => {
@@ -185,22 +251,59 @@ const ScheduledServicesLog: React.FC = () => {
 
   const fetchUnits = useCallback(async () => {
     try {
-      const response = await getAllVehicles(1, 1000);
-      if (response?.success && response?.data) {
-        const unitOptions = (response.data as any[]).map((vehicle) => ({
+      // Fetch both trucks and trailers in parallel
+      const [vehiclesResponse, trailersResponse] = await Promise.all([
+        getAllVehicles(1, 1000),
+        getAllTrailers(1, 1000)
+      ]);
+
+      const unitOptions: Array<{
+        unitNo: string;
+        unitType: string;
+        makeModel?: string;
+        referenceType: 'vehicle' | 'trailer';
+        referenceId: string;
+        currentOdometer: number;
+        serviceIntervalDays?: number;
+        serviceIntervalMileage?: number;
+      }> = [];
+
+      // Map trucks/vehicles
+      if (vehiclesResponse?.success && vehiclesResponse?.data) {
+        const vehicleUnits = (vehiclesResponse.data as any[]).map((vehicle) => ({
           unitNo: vehicle.unitNumber || vehicle.internalId || vehicle.plateNumber || '',
           unitType: vehicle.type || 'Truck',
           makeModel: [vehicle.make, vehicle.model].filter(Boolean).join(' ').trim() || undefined,
-          referenceType: 'vehicle',
+          referenceType: 'vehicle' as const,
           referenceId: vehicle._id,
           currentOdometer: vehicle.odometer || 0,
-          serviceIntervalDays: undefined, // Vehicles don't have service interval days in the model
-          serviceIntervalMileage: undefined // Vehicles don't have service interval mileage in the model
+          serviceIntervalDays: undefined,
+          serviceIntervalMileage: undefined
         }));
-        setUnits(unitOptions);
+        unitOptions.push(...vehicleUnits);
       }
+
+      // Map trailers
+      if (trailersResponse?.success && trailersResponse?.data) {
+        const trailerUnits = (trailersResponse.data as any[]).map((trailer) => ({
+          unitNo: trailer.trailer || trailer.plateNumber || trailer.trailerId || '',
+          unitType: trailer.type || 'Trailer',
+          makeModel: [trailer.make, trailer.model].filter(Boolean).join(' ').trim() || undefined,
+          referenceType: 'trailer' as const,
+          referenceId: trailer._id,
+          currentOdometer: trailer.odometer || 0,
+          serviceIntervalDays: undefined,
+          serviceIntervalMileage: undefined
+        }));
+        unitOptions.push(...trailerUnits);
+      }
+
+      // Sort by unit number for better UX
+      unitOptions.sort((a, b) => a.unitNo.localeCompare(b.unitNo));
+      
+      setUnits(unitOptions);
     } catch (err) {
-      console.error('Failed to load vehicles', err);
+      console.error('Failed to load units (trucks and trailers)', err);
     }
   }, []);
 
@@ -577,7 +680,7 @@ const ScheduledServicesLog: React.FC = () => {
 
     // Get service type breakdown for recent activity
     const serviceTypeBreakdown = recentServices.reduce((acc, service) => {
-      const type = getServiceTypeLabel(service.serviceType);
+      const type = getServiceTypeLabel(service.serviceType, customServices);
       acc[type] = (acc[type] || 0) + 1;
       return acc;
     }, {} as Record<string, number>);
@@ -633,17 +736,17 @@ const ScheduledServicesLog: React.FC = () => {
           unitNo: service.unitNo,
           unitType: service.unitType || 'N/A',
           makeModel: service.makeModel || 'N/A',
-          serviceType: getServiceTypeLabel(service.serviceType),
+          serviceType: getServiceTypeLabel(service.serviceType, customServices),
           serviceDate: formatDate(service.serviceDate),
           dueDate: formatDate(service.dueDate),
           odometer: service.odometer ?? 'N/A',
           invoiceNo: service.invoiceNo || 'N/A',
-          amount: service.amount ? new Intl.NumberFormat('en-CA', {
+          amount: (service.amount !== undefined && service.amount !== null) || service.amount === 0 ? new Intl.NumberFormat('en-CA', {
             style: 'currency',
             currency: 'CAD',
             minimumFractionDigits: 2,
             maximumFractionDigits: 2,
-          }).format(service.amount) : 'N/A',
+          }).format(service.amount || 0) : 'N/A',
           status: service.status.replace(/-/g, ' ').toUpperCase(),
           priority: service.priority || 'Standard',
           notes: service.notes || ''
@@ -677,7 +780,7 @@ const ScheduledServicesLog: React.FC = () => {
     setFormData({
       serviceDate: new Date().toISOString().split('T')[0],
       unitNo: '',
-      serviceType: SERVICE_TYPE_OPTIONS[0].value,
+      serviceType: (serviceTypeOptions[0]?.value || '') as VehicleServiceType,
       odometer: '',
       invoiceNo: '',
       notes: '',
@@ -700,7 +803,7 @@ const ScheduledServicesLog: React.FC = () => {
       invoiceNo: service.invoiceNo || '',
       notes: service.notes || '',
       status: service.status || 'pending',
-      amount: service.amount?.toString() || ''
+      amount: service.amount !== undefined && service.amount !== null ? service.amount.toString() : ''
     });
     setShowEditModal(true);
   };
@@ -740,7 +843,7 @@ const ScheduledServicesLog: React.FC = () => {
       odometer: formData.odometer ? Number(formData.odometer) : undefined,
       invoiceNumber: formData.invoiceNo || undefined,
       notes: formData.notes || undefined,
-      amount: formData.amount ? Number(formData.amount) : undefined
+      amount: formData.amount && formData.amount.trim() !== '' ? (Number(formData.amount) || 0) : undefined
     };
 
     setSaving(true);
@@ -958,9 +1061,13 @@ const ScheduledServicesLog: React.FC = () => {
                   onBlur={(e) => { e.target.style.borderColor = ''; e.target.style.boxShadow = ''; }}
                 >
                   <option value="all">All Types</option>
-                  {SERVICE_TYPE_OPTIONS.map(type => (
-                    <option key={type.value} value={type.value}>{type.label}</option>
-                  ))}
+                  {serviceTypeOptions.length > 0 ? (
+                    serviceTypeOptions.map(type => (
+                      <option key={type.value} value={type.value}>{type.label}</option>
+                    ))
+                  ) : (
+                    <option value="" disabled>No services configured</option>
+                  )}
                 </select>
               </div>
             </div>
@@ -1092,7 +1199,7 @@ const ScheduledServicesLog: React.FC = () => {
                         <td className="px-6 py-4 text-gray-900">{service.makeModel || '—'}</td>
                         <td className="px-6 py-4">
                           <span className="inline-flex px-3 py-1 text-xs font-semibold rounded-full" style={{ backgroundColor: '#398bc3', color: '#063f6f' }}>
-                            {getServiceTypeLabel(service.serviceType)}
+                            {getServiceTypeLabel(service.serviceType, customServices)}
                           </span>
                         </td>
                         <td className="px-6 py-4 text-gray-900">
@@ -1186,7 +1293,7 @@ const ScheduledServicesLog: React.FC = () => {
                         <div className="flex-1">
                           <h3 className="text-2xl font-bold mb-1">{selectedService.unitNo || 'N/A'}</h3>
                           <p className="text-blue-100 text-sm mb-2">
-                            {getServiceTypeLabel(selectedService.serviceType)}
+                            {getServiceTypeLabel(selectedService.serviceType, customServices)}
                           </p>
                           <span
                             className={`inline-flex items-center gap-2 px-4 py-2 rounded-full text-sm font-semibold ${selectedService.status === 'completed'
@@ -1220,7 +1327,7 @@ const ScheduledServicesLog: React.FC = () => {
                         </div>
                         <div>
                           <p className="text-sm text-gray-500 mb-1">Service Type</p>
-                          <p className="font-medium text-gray-900">{getServiceTypeLabel(selectedService.serviceType)}</p>
+                          <p className="font-medium text-gray-900">{getServiceTypeLabel(selectedService.serviceType, customServices)}</p>
                         </div>
                         <div>
                           <p className="text-sm text-gray-500 mb-1">Service Date</p>
@@ -1243,7 +1350,7 @@ const ScheduledServicesLog: React.FC = () => {
                         <div>
                           <p className="text-sm text-gray-500 mb-1">Amount</p>
                           <p className="font-medium text-gray-900">
-                            {selectedService.amount ? new Intl.NumberFormat('en-CA', {
+                            {selectedService.amount !== undefined && selectedService.amount !== null ? new Intl.NumberFormat('en-CA', {
                               style: 'currency',
                               currency: 'CAD',
                               minimumFractionDigits: 2,
@@ -1370,18 +1477,36 @@ const ScheduledServicesLog: React.FC = () => {
                       </div>
                       <div>
                         <label className="block text-sm font-medium text-gray-700 mb-2">Service Type *</label>
-                        <select
-                          value={formData.serviceType}
-                          onChange={(e) => setFormData({ ...formData, serviceType: e.target.value as VehicleServiceType })}
-                          className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:border-transparent"
-                          style={{ '--tw-ring-color': '#016ab2' } as React.CSSProperties & { '--tw-ring-color': string }}
-                          onFocus={(e) => { e.target.style.borderColor = '#016ab2'; e.target.style.boxShadow = '0 0 0 2px rgba(1, 106, 178, 0.2)'; }}
-                          onBlur={(e) => { e.target.style.borderColor = ''; e.target.style.boxShadow = ''; }}
-                        >
-                          {SERVICE_TYPE_OPTIONS.map(type => (
-                            <option key={type.value} value={type.value}>{type.label}</option>
-                          ))}
-                        </select>
+                        {serviceTypeOptions.length === 0 ? (
+                          <div className="w-full px-4 py-2 border border-yellow-300 bg-yellow-50 rounded-lg">
+                            <p className="text-sm text-yellow-800">
+                              No services configured. Please add services in{' '}
+                              <a 
+                                href="/admin/company" 
+                                target="_blank" 
+                                className="underline font-semibold hover:text-yellow-900"
+                              >
+                                Company Settings
+                              </a>
+                              {' '}first.
+                            </p>
+                          </div>
+                        ) : (
+                          <select
+                            value={formData.serviceType}
+                            onChange={(e) => setFormData({ ...formData, serviceType: e.target.value as VehicleServiceType })}
+                            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:border-transparent"
+                            style={{ '--tw-ring-color': '#016ab2' } as React.CSSProperties & { '--tw-ring-color': string }}
+                            onFocus={(e) => { e.target.style.borderColor = '#016ab2'; e.target.style.boxShadow = '0 0 0 2px rgba(1, 106, 178, 0.2)'; }}
+                            onBlur={(e) => { e.target.style.borderColor = ''; e.target.style.boxShadow = ''; }}
+                            required
+                          >
+                            <option value="">Select Service Type</option>
+                            {serviceTypeOptions.map(type => (
+                              <option key={type.value} value={type.value}>{type.label}</option>
+                            ))}
+                          </select>
+                        )}
                       </div>
                       <div>
                         <label className="block text-sm font-medium text-gray-700 mb-2">Odometer/Hour</label>

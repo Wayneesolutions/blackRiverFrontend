@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { Building, Mail, Phone, MapPin, Upload, Save, Edit, X, AlertCircle, Settings, Key, Check } from 'lucide-react';
-import { getCompany, updateCompany, updateApiCredentials } from '../../../../axios/api/admin';
+import { Building, Mail, Phone, MapPin, Upload, Save, Edit, X, AlertCircle, Settings, Key, Check, Wrench, Truck, Info, Plus, Trash2 } from 'lucide-react';
+import { getCompany, updateCompany, updateApiCredentials, updateMaintenancePolicy } from '../../../../axios/api/admin';
 import { useDispatch } from 'react-redux';
 import { setUserCredentials } from '../../../../redux/slices/userSlice';
 
@@ -23,6 +23,17 @@ interface ThermoKingConfig {
   apiKey: string;
   apiSecret: string;
   apiVersion: string;
+}
+
+interface CustomService {
+  name: string;
+  truck: { value: number; unit: 'days' | 'miles' | 'km' };
+  trailer: { value: number; unit: 'days' | 'miles' | 'km' };
+  excludeTypes?: string[]; // Optional: Trailer types that don't need this service
+}
+
+interface MaintenancePolicy {
+  customServices: CustomService[]; // Dynamic array of custom services (including Oil Change)
 }
 
 const Company = () => {
@@ -56,6 +67,15 @@ const Company = () => {
     apiSecret: '',
     apiVersion: 'v1'
   });
+
+  const [maintenancePolicy, setMaintenancePolicy] = useState<MaintenancePolicy>({
+    customServices: [] // Start with empty array - users can add services (including Oil Change)
+  });
+
+  const [isEditingPolicy, setIsEditingPolicy] = useState(false);
+  const [policyLoading, setPolicyLoading] = useState(false);
+  const [policyError, setPolicyError] = useState('');
+  const [policySuccess, setPolicySuccess] = useState('');
 
   const [editForm, setEditForm] = useState<CompanyInfo>(companyInfo);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
@@ -138,6 +158,11 @@ const Company = () => {
             apiVersion: data.thermokingConfig.apiVersion || 'v1'
           });
         }
+        
+        // Handle Maintenance Policy (use defaults if not set)
+        setMaintenancePolicy({
+          customServices: data.maintenancePolicies?.customServices || [] // Load custom services or empty array
+        });
         
         // Set preview URL for logo
         if (data.logoUrl) {
@@ -297,6 +322,139 @@ const Company = () => {
     }
   };
 
+
+  const handleCustomServiceChange = (
+    index: number,
+    field: 'name' | 'truck' | 'trailer' | 'excludeTypes',
+    subField?: 'value' | 'unit',
+    value?: string | number | string[]
+  ) => {
+    setMaintenancePolicy(prev => {
+      const newServices = [...prev.customServices];
+      if (field === 'name') {
+        newServices[index] = { ...newServices[index], name: value as string };
+      } else if (field === 'truck' && subField) {
+        newServices[index] = {
+          ...newServices[index],
+          truck: { ...newServices[index].truck, [subField]: value }
+        };
+      } else if (field === 'trailer' && subField) {
+        newServices[index] = {
+          ...newServices[index],
+          trailer: { ...newServices[index].trailer, [subField]: value }
+        };
+      } else if (field === 'excludeTypes') {
+        newServices[index] = {
+          ...newServices[index],
+          excludeTypes: value as string[]
+        };
+      }
+      return { ...prev, customServices: newServices };
+    });
+  };
+
+  const addCustomService = () => {
+    setMaintenancePolicy(prev => ({
+      ...prev,
+      customServices: [
+        ...prev.customServices,
+        {
+          name: '',
+          truck: { value: 0, unit: 'days' },
+          trailer: { value: 0, unit: 'days' },
+          excludeTypes: []
+        }
+      ]
+    }));
+  };
+
+  const removeCustomService = (index: number) => {
+    setMaintenancePolicy(prev => ({
+      ...prev,
+      customServices: prev.customServices.filter((_, i) => i !== index)
+    }));
+  };
+
+
+  const handleSavePolicy = async () => {
+    setPolicyLoading(true);
+    setPolicyError('');
+    setPolicySuccess('');
+    
+    try {
+      // Filter out incomplete services before sending
+      const validServices = maintenancePolicy.customServices.filter(service => {
+        return (
+          service.name && 
+          service.name.trim() !== '' && 
+          typeof service.truck?.value === 'number' && 
+          service.truck.value > 0 &&
+          service.truck.unit &&
+          typeof service.trailer?.value === 'number' && 
+          service.trailer.value > 0 &&
+          service.trailer.unit
+        );
+      });
+
+      // Check if there are any incomplete services
+      const incompleteServices = maintenancePolicy.customServices.filter(service => {
+        return !(
+          service.name && 
+          service.name.trim() !== '' && 
+          typeof service.truck?.value === 'number' && 
+          service.truck.value > 0 &&
+          service.truck.unit &&
+          typeof service.trailer?.value === 'number' && 
+          service.trailer.value > 0 &&
+          service.trailer.unit
+        );
+      });
+
+      if (incompleteServices.length > 0) {
+        setPolicyError(`Please complete all service fields. ${incompleteServices.length} service(s) have missing or invalid data (name, value > 0, and unit are required).`);
+        setPolicyLoading(false);
+        return;
+      }
+
+      if (validServices.length === 0) {
+        setPolicyError('Please add at least one service before saving.');
+        setPolicyLoading(false);
+        return;
+      }
+
+      const response = await updateMaintenancePolicy({
+        maintenancePolicies: {
+          customServices: validServices
+        }
+      });
+      
+      if (response?.success) {
+        setPolicySuccess('Maintenance policy settings saved successfully!');
+        // Update local state with validated services
+        setMaintenancePolicy(prev => ({
+          ...prev,
+          customServices: validServices
+        }));
+        setIsEditingPolicy(false);
+        setTimeout(() => setPolicySuccess(''), 3000);
+      } else {
+        setPolicyError(response?.message || 'Failed to save maintenance policy. Please try again.');
+      }
+    } catch (error) {
+      console.error('Error saving maintenance policy:', error);
+      setPolicyError('Failed to save maintenance policy. Please try again.');
+    } finally {
+      setPolicyLoading(false);
+    }
+  };
+
+  const handleCancelPolicy = () => {
+    // Reset to original values from fetch
+    fetchCompanyData();
+    setIsEditingPolicy(false);
+    setPolicyError('');
+  };
+
   if (fetchLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
@@ -337,6 +495,20 @@ const Company = () => {
           <div className="fixed top-6 right-6 bg-red-500 text-white px-6 py-4 rounded-lg shadow-lg flex items-center gap-3 animate-slide-in z-50 max-w-md">
             <AlertCircle className="w-5 h-5 flex-shrink-0" />
             <span className="text-sm font-medium">{apiError}</span>
+          </div>
+        )}
+
+        {policySuccess && (
+          <div className="fixed top-6 right-6 bg-green-500 text-white px-6 py-4 rounded-lg shadow-lg flex items-center gap-3 animate-slide-in z-50 max-w-md">
+            <Check className="w-5 h-5 flex-shrink-0" />
+            <span className="text-sm font-medium">{policySuccess}</span>
+          </div>
+        )}
+        
+        {policyError && (
+          <div className="fixed top-6 right-6 bg-red-500 text-white px-6 py-4 rounded-lg shadow-lg flex items-center gap-3 animate-slide-in z-50 max-w-md">
+            <AlertCircle className="w-5 h-5 flex-shrink-0" />
+            <span className="text-sm font-medium">{policyError}</span>
           </div>
         )}
 
@@ -654,6 +826,305 @@ const Company = () => {
                   <strong>Note:</strong> API configurations are stored securely and linked to your company. 
                   These settings are required for integrating with Samsara and ThermoKing services.
                 </p>
+              </div>
+            </div>
+          </div>
+
+          {/* Maintenance Policy Settings */}
+          <div className="bg-white rounded-xl shadow-sm border border-gray-200 lg:col-span-2">
+            <div className="p-6 border-b border-gray-200">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <Wrench className="text-green-600" size={24} />
+                  <h2 className="text-xl font-bold text-gray-900">Maintenance Policy Settings</h2>
+                </div>
+                <div className="flex gap-3">
+                  {isEditingPolicy ? (
+                    <>
+                      <button
+                        onClick={handleCancelPolicy}
+                        disabled={policyLoading}
+                        className="px-4 py-2 text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors font-medium flex items-center gap-2 disabled:opacity-50"
+                      >
+                        <X size={16} />
+                        Cancel
+                      </button>
+                      <button
+                        onClick={handleSavePolicy}
+                        disabled={policyLoading}
+                        className="px-4 py-2 bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 !text-white rounded-lg transition-all font-medium flex items-center gap-2 disabled:opacity-50"
+                      >
+                        {policyLoading ? (
+                          <>
+                            <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                            Saving...
+                          </>
+                        ) : (
+                          <>
+                            <Save size={16} />
+                            Save Policy
+                          </>
+                        )}
+                      </button>
+                    </>
+                  ) : (
+                    <button
+                      onClick={() => setIsEditingPolicy(true)}
+                      className="px-4 py-2 bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 !text-white rounded-lg transition-all font-medium flex items-center gap-2"
+                    >
+                      <Edit size={16} />
+                      Edit Policy
+                    </button>
+                  )}
+                </div>
+              </div>
+            </div>
+            
+            <div className="p-6 space-y-8">
+              {/* Info Banner */}
+              <div className="p-4 bg-blue-50 border border-blue-200 rounded-lg">
+                <div className="flex items-start gap-3">
+                  <Info className="text-blue-600 flex-shrink-0 mt-0.5" size={20} />
+                  <div className="text-sm text-blue-800">
+                    <p className="font-semibold mb-1">Maintenance Policy Configuration</p>
+                    <p>Configure maintenance intervals for trucks and trailers. Add services with your own names (e.g., "Oil Change", "Full Inspection", "Service A", "Preventive Maintenance"). Each service can be configured for trucks and trailers with intervals based on days, miles, or kilometers. You can also exclude specific trailer types (reefer, dryvan, flatbed) from certain services.</p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Services - All Dynamic */}
+              <div className="border-t border-gray-200 pt-6">
+                <div className="flex items-center justify-between mb-4">
+                  <div className="flex items-center gap-2">
+                    <Wrench className="text-purple-600" size={20} />
+                    <h3 className="text-lg font-semibold text-gray-900">Services</h3>
+                  </div>
+                  {isEditingPolicy && (
+                    <button
+                      onClick={addCustomService}
+                      className="px-4 py-2 bg-gradient-to-r from-purple-600 to-purple-700 hover:from-purple-700 hover:to-purple-800 !text-white rounded-lg transition-all font-medium flex items-center gap-2 text-sm"
+                    >
+                      <Plus size={16} />
+                      Add Service
+                    </button>
+                  )}
+                </div>
+
+                {maintenancePolicy.customServices.length === 0 ? (
+                  <div className="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center">
+                    <Wrench className="text-gray-400 mx-auto mb-3" size={48} />
+                    <p className="text-gray-600 font-medium mb-2">No services configured</p>
+                    <p className="text-sm text-gray-500 mb-4">Add your first service to get started (e.g., Oil Change, Full Inspection, etc.)</p>
+                    {isEditingPolicy && (
+                      <button
+                        onClick={addCustomService}
+                        className="px-4 py-2 bg-gradient-to-r from-purple-600 to-purple-700 hover:from-purple-700 hover:to-purple-800 !text-white rounded-lg transition-all font-medium flex items-center gap-2 mx-auto"
+                      >
+                        <Plus size={16} />
+                        Add First Service
+                      </button>
+                    )}
+                  </div>
+                ) : (
+                  <div className="space-y-6">
+                    {maintenancePolicy.customServices.map((service, index) => (
+                      <div key={index} className="border border-gray-200 rounded-lg p-6 bg-gray-50">
+                        <div className="flex items-center justify-between mb-4">
+                          <div className="flex-1">
+                            {isEditingPolicy ? (
+                              <input
+                                type="text"
+                                value={service.name}
+                                onChange={(e) => handleCustomServiceChange(index, 'name', undefined, e.target.value)}
+                                className="px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 font-semibold text-lg w-full max-w-md"
+                                placeholder="Service Name (e.g., Full Inspection, Service A)"
+                              />
+                            ) : (
+                              <h4 className="text-lg font-semibold text-gray-900">{service.name || 'Unnamed Service'}</h4>
+                            )}
+                          </div>
+                          {isEditingPolicy && (
+                            <button
+                              onClick={() => removeCustomService(index)}
+                              className="ml-4 p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                              title="Remove Service"
+                            >
+                              <Trash2 size={20} />
+                            </button>
+                          )}
+                        </div>
+
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                          {/* Truck Configuration */}
+                          <div className="border border-gray-200 rounded-lg p-4 bg-white">
+                            <label className="block text-sm font-semibold text-gray-700 mb-3">
+                              Truck Configuration
+                            </label>
+                            <div className="space-y-3">
+                              <div>
+                                <label className="block text-xs text-gray-600 mb-1">Interval Value</label>
+                                {isEditingPolicy ? (
+                                  <input
+                                    type="number"
+                                    value={service.truck.value}
+                                    onChange={(e) => handleCustomServiceChange(index, 'truck', 'value', parseInt(e.target.value) || 0)}
+                                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
+                                    placeholder="30"
+                                    min="0"
+                                  />
+                                ) : (
+                                  <div className="px-3 py-2 bg-gray-50 rounded-lg">
+                                    <p className="text-gray-900 font-medium">{service.truck.value.toLocaleString()}</p>
+                                  </div>
+                                )}
+                              </div>
+                              <div>
+                                <label className="block text-xs text-gray-600 mb-1">Unit</label>
+                                {isEditingPolicy ? (
+                                  <select
+                                    value={service.truck.unit}
+                                    onChange={(e) => handleCustomServiceChange(index, 'truck', 'unit', e.target.value)}
+                                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
+                                  >
+                                    <option value="days">Days</option>
+                                    <option value="miles">Miles</option>
+                                    <option value="km">Kilometers</option>
+                                  </select>
+                                ) : (
+                                  <div className="px-3 py-2 bg-gray-50 rounded-lg">
+                                    <p className="text-gray-900 font-medium uppercase">{service.truck.unit}</p>
+                                  </div>
+                                )}
+                              </div>
+                            </div>
+                          </div>
+
+                          {/* Trailer Configuration */}
+                          <div className="border border-gray-200 rounded-lg p-4 bg-white">
+                            <label className="block text-sm font-semibold text-gray-700 mb-3">
+                              Trailer Configuration
+                            </label>
+                            <div className="space-y-3">
+                              <div>
+                                <label className="block text-xs text-gray-600 mb-1">Interval Value</label>
+                                {isEditingPolicy ? (
+                                  <input
+                                    type="number"
+                                    value={service.trailer.value}
+                                    onChange={(e) => handleCustomServiceChange(index, 'trailer', 'value', parseInt(e.target.value) || 0)}
+                                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
+                                    placeholder="30"
+                                    min="0"
+                                  />
+                                ) : (
+                                  <div className="px-3 py-2 bg-gray-50 rounded-lg">
+                                    <p className="text-gray-900 font-medium">{service.trailer.value.toLocaleString()}</p>
+                                  </div>
+                                )}
+                              </div>
+                              <div>
+                                <label className="block text-xs text-gray-600 mb-1">Unit</label>
+                                {isEditingPolicy ? (
+                                  <select
+                                    value={service.trailer.unit}
+                                    onChange={(e) => handleCustomServiceChange(index, 'trailer', 'unit', e.target.value)}
+                                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
+                                  >
+                                    <option value="days">Days</option>
+                                    <option value="miles">Miles</option>
+                                    <option value="km">Kilometers</option>
+                                  </select>
+                                ) : (
+                                  <div className="px-3 py-2 bg-gray-50 rounded-lg">
+                                    <p className="text-gray-900 font-medium uppercase">{service.trailer.unit}</p>
+                                  </div>
+                                )}
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+
+                        {/* Excluded Trailer Types */}
+                        <div className="mt-4 border border-gray-200 rounded-lg p-4 bg-yellow-50">
+                          <label className="block text-sm font-semibold text-gray-700 mb-2">
+                            Trailer Types Excluded (Optional)
+                          </label>
+                          <p className="text-xs text-gray-600 mb-3">
+                            Select trailer types that do not require this service
+                          </p>
+                          {isEditingPolicy ? (
+                            <div className="space-y-2">
+                              {['reefer', 'dryvan', 'flatbed'].map((type) => (
+                                <label key={type} className="flex items-center gap-2 cursor-pointer">
+                                  <input
+                                    type="checkbox"
+                                    checked={(service.excludeTypes || []).includes(type)}
+                                    onChange={(e) => {
+                                      const currentTypes = service.excludeTypes || [];
+                                      let newTypes;
+                                      if (e.target.checked) {
+                                        newTypes = [...currentTypes, type];
+                                      } else {
+                                        newTypes = currentTypes.filter(t => t !== type);
+                                      }
+                                      handleCustomServiceChange(index, 'excludeTypes', undefined, newTypes);
+                                    }}
+                                    className="w-4 h-4 text-purple-600 border-gray-300 rounded focus:ring-purple-500"
+                                  />
+                                  <span className="text-sm text-gray-700 capitalize">{type}</span>
+                                </label>
+                              ))}
+                            </div>
+                          ) : (
+                            <div className="px-3 py-2 bg-white rounded-lg border border-gray-200">
+                              <p className="text-gray-900 font-medium">
+                                {(service.excludeTypes || []).length > 0 
+                                  ? (service.excludeTypes || []).map(t => t.charAt(0).toUpperCase() + t.slice(1)).join(', ')
+                                  : 'None'}
+                              </p>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+
+              {/* Summary */}
+              <div className="border-t border-gray-200 pt-6">
+                <h3 className="text-lg font-semibold text-gray-900 mb-4">Policy Summary</h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="bg-gray-50 rounded-lg p-4">
+                    <h4 className="font-semibold text-gray-700 mb-2">Truck Maintenance</h4>
+                    <ul className="text-sm text-gray-600 space-y-1">
+                      {maintenancePolicy.customServices.map((service, index) => (
+                        <li key={index}>
+                          • {service.name || 'Unnamed Service'}: Every {service.truck.value.toLocaleString()} {service.truck.unit}
+                        </li>
+                      ))}
+                      {maintenancePolicy.customServices.length === 0 && (
+                        <li className="text-gray-400 italic">• No services configured</li>
+                      )}
+                    </ul>
+                  </div>
+                  <div className="bg-gray-50 rounded-lg p-4">
+                    <h4 className="font-semibold text-gray-700 mb-2">Trailer Maintenance</h4>
+                    <ul className="text-sm text-gray-600 space-y-1">
+                      {maintenancePolicy.customServices.map((service, index) => (
+                        <li key={index}>
+                          • {service.name || 'Unnamed Service'}: Every {service.trailer.value.toLocaleString()} {service.trailer.unit}
+                          {(service.excludeTypes || []).length > 0 && (
+                            <span className="text-orange-600 ml-1">(Excluded: {(service.excludeTypes || []).map(t => t.charAt(0).toUpperCase() + t.slice(1)).join(', ')})</span>
+                          )}
+                        </li>
+                      ))}
+                      {maintenancePolicy.customServices.length === 0 && (
+                        <li className="text-gray-400 italic">• No services configured</li>
+                      )}
+                    </ul>
+                  </div>
+                </div>
               </div>
             </div>
           </div>

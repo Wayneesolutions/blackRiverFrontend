@@ -400,7 +400,7 @@ const ComplianceDashboard: React.FC = () => {
   const currentInvoices =
     selectedPeriod === 'month' ? invoiceSummary?.month : invoiceSummary?.ytd;
 
-  const totalOverdueServices = pmStatus.reduce((sum, unit) => sum + unit.overdueCount, 0);
+  // Overdue services count is now calculated from actual VehicleService records in the backend
 
   if (loading) {
     return (
@@ -409,6 +409,58 @@ const ComplianceDashboard: React.FC = () => {
       </div>
     );
   }
+
+  // Create dynamic service type cards from pending services
+  // Deduplicate by service name (case-insensitive) to prevent duplicate cards
+  const pendingServiceCards = data?.pendingServicesByType 
+    ? (() => {
+        console.log('🎴 Frontend: Received pendingServicesByType:', data.pendingServicesByType);
+        console.log('🎴 Frontend: Keys:', Object.keys(data.pendingServicesByType));
+        
+        const deduplicated = new Map();
+        
+        Object.entries(data.pendingServicesByType).forEach(([serviceName, count]) => {
+          const numCount = typeof count === 'number' ? count : 0;
+          console.log(`  🎴 Processing: "${serviceName}": ${numCount}`);
+          
+          if (numCount > 0) {
+            // Use lowercase as key for case-insensitive deduplication
+            const normalizedKey = serviceName.toLowerCase().trim();
+            
+            if (deduplicated.has(normalizedKey)) {
+              // Merge counts if duplicate found
+              const existing = deduplicated.get(normalizedKey);
+              if (existing) {
+                existing.count += numCount;
+                console.log(`  ⚠️ Frontend: Merged duplicate "${serviceName}" -> "${existing.name}": ${existing.count} total`);
+              }
+            } else {
+              // New service - use original name for display
+              deduplicated.set(normalizedKey, {
+                name: serviceName.trim(),
+                count: numCount
+              });
+              console.log(`  ➕ Frontend: Added "${serviceName}": ${numCount}`);
+            }
+          }
+        });
+        
+        console.log('🎴 Frontend: Final deduplicated cards:', Array.from(deduplicated.values()));
+        
+        // Convert to array of card objects
+        return Array.from(deduplicated.values()).map(({ name, count }) => ({
+          id: `pending-${name.toLowerCase().replace(/\s+/g, '-')}`,
+          title: name,
+          value: count,
+          subtitle: 'Pending',
+          icon: Clock,
+          bgColor: 'bg-yellow-100',
+          iconColor: 'text-yellow-700',
+          cardBg: 'bg-gradient-to-br from-yellow-50 to-yellow-100',
+          onClick: () => navigate(`${getBasePath()}/scheduled-services-log`)
+        }));
+      })()
+    : [];
 
   const features = [
     {
@@ -444,17 +496,7 @@ const ComplianceDashboard: React.FC = () => {
       cardBg: 'bg-gradient-to-br from-orange-50 to-orange-100',
       onClick: () => navigate(`${getBasePath()}/general-repairs-log`)
     },
-    {
-      id: 'pending-service',
-      title: 'Pending Service',
-      value: fleetOperational.vehiclesWithPendingService,
-      subtitle: 'Service due',
-      icon: Clock,
-      bgColor: 'bg-yellow-100',
-      iconColor: 'text-yellow-700',
-      cardBg: 'bg-gradient-to-br from-yellow-50 to-yellow-100',
-      onClick: () => navigate(`${getBasePath()}/scheduled-services-log`)
-    },
+    // Note: pendingServiceCards are rendered separately, not added to features array
     {
       id: 'safety',
       title: 'Safety Alerts',
@@ -469,7 +511,7 @@ const ComplianceDashboard: React.FC = () => {
     {
       id: 'overdue',
       title: 'Overdue Services',
-      value: totalOverdueServices,
+      value: data?.overdueServicesCount || 0,
       subtitle: 'Requires attention',
       icon: Clock,
       bgColor: 'bg-orange-100',
@@ -606,8 +648,8 @@ const ComplianceDashboard: React.FC = () => {
 
           {/* Stats Cards */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3 mb-4">
-            {/* Fleet Operational Stats - First Row */}
-            {features.slice(0, 4).map((feature) => {
+            {/* Fleet Operational Stats - First Row (Active Trucks, Out of Service, Under Repair) */}
+            {features.slice(0, 3).map((feature) => {
               const Icon = feature.icon;
               return (
                 <div
@@ -632,11 +674,35 @@ const ComplianceDashboard: React.FC = () => {
                 </div>
               );
             })}
+            {/* Dynamic Pending Service Cards - Show first pending service card in first row if available */}
+            {pendingServiceCards.slice(0, 1).map((serviceCard) => (
+              <div
+                key={serviceCard.id}
+                onClick={serviceCard.onClick}
+                className={`${serviceCard.cardBg} rounded-lg p-3 shadow-sm hover:shadow-md transition-all cursor-pointer border border-transparent hover:border-[#42aeec]/20 hover:scale-[1.02] active:scale-[0.98]`}
+              >
+                <div className="flex items-start justify-between mb-2">
+                  <div className="flex-1">
+                    <h3 className="text-sm font-bold text-gray-900 mb-1">
+                      {serviceCard.title}
+                    </h3>
+                    <div className="flex items-baseline gap-2 mb-0.5">
+                      <span className="text-xl font-bold text-gray-900">{serviceCard.value}</span>
+                    </div>
+                    <p className="text-xs text-gray-400">{serviceCard.subtitle}</p>
+                  </div>
+                  <div className={`${serviceCard.bgColor} rounded-lg p-2 shadow-sm`}>
+                    <Clock className={serviceCard.iconColor} size={21} strokeWidth={2} />
+                  </div>
+                </div>
+              </div>
+            ))}
           </div>
 
-          {/* Additional Stats Cards - Second Row */}
+          {/* Additional Stats Cards - Second Row (Safety, Overdue, Maintenance, Inactive, and remaining Pending Service Cards) */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3 mb-4">
-            {features.slice(4).map((feature) => {
+            {/* Safety, Overdue, Maintenance, Inactive cards */}
+            {features.slice(3).map((feature) => {
               const Icon = feature.icon;
               return (
                 <div
@@ -656,6 +722,31 @@ const ComplianceDashboard: React.FC = () => {
                     </div>
                     <div className={`${feature.bgColor} rounded-lg p-2 shadow-sm`}>
                       <Icon className={feature.iconColor} size={21} strokeWidth={2} />
+                    </div>
+                  </div>
+                </div>
+              );
+            })}
+            {/* Remaining Pending Service Cards (skip first one as it's in first row) */}
+            {pendingServiceCards.slice(1).map((serviceCard) => {
+              return (
+                <div
+                  key={serviceCard.id}
+                  onClick={serviceCard.onClick}
+                  className={`${serviceCard.cardBg} rounded-lg p-3 shadow-sm hover:shadow-md transition-all cursor-pointer border border-transparent hover:border-[#42aeec]/20 hover:scale-[1.02] active:scale-[0.98]`}
+                >
+                  <div className="flex items-start justify-between mb-2">
+                    <div className="flex-1">
+                      <h3 className="text-sm font-bold text-gray-900 mb-1">
+                        {serviceCard.title}
+                      </h3>
+                      <div className="flex items-baseline gap-2 mb-0.5">
+                        <span className="text-xl font-bold text-gray-900">{serviceCard.value}</span>
+                      </div>
+                      <p className="text-xs text-gray-400">{serviceCard.subtitle}</p>
+                    </div>
+                    <div className={`${serviceCard.bgColor} rounded-lg p-2 shadow-sm`}>
+                      <Clock className={serviceCard.iconColor} size={21} strokeWidth={2} />
                     </div>
                   </div>
                 </div>
@@ -907,6 +998,7 @@ const ComplianceDashboard: React.FC = () => {
                 <thead className="bg-gray-50">
                   <tr>
                     <th className="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase">Unit No.</th>
+                    <th className="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase">Type</th>
                     <th className="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase">Make/Model</th>
                     <th className="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase">Current Odometer</th>
                     <th className="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase">Next Service Due</th>
@@ -916,15 +1008,23 @@ const ComplianceDashboard: React.FC = () => {
                 <tbody className="divide-y divide-gray-200">
                   {pmStatus.length === 0 ? (
                     <tr>
-                      <td colSpan={5} className="px-6 py-12 text-center text-gray-500">
-                        No data available. Schedule preventive maintenance to populate this section.
+                      <td colSpan={6} className="px-6 py-12 text-center text-gray-500">
+                        No data available. Please configure custom services in Company Settings and ensure units have completed service history.
                       </td>
                     </tr>
                   ) : (
                     pmStatus.map((unit) => {
+                      // Get the earliest upcoming service (including "ok" status to show what's next)
                       const nextService = [...unit.nextServices]
-                        .filter((svc) => svc.status !== 'ok')
-                        .sort((a, b) => a.kmRemaining - b.kmRemaining)[0];
+                        .sort((a, b) => {
+                          // Sort by dueDate if available (days-based), otherwise by kmRemaining
+                          if (a.dueDate && b.dueDate) {
+                            return new Date(a.dueDate).getTime() - new Date(b.dueDate).getTime();
+                          }
+                          if (a.dueDate) return -1; // Days-based services come first
+                          if (b.dueDate) return 1;
+                          return a.kmRemaining - b.kmRemaining;
+                        })[0];
 
                       return (
                         <tr
@@ -933,6 +1033,15 @@ const ComplianceDashboard: React.FC = () => {
                             }`}
                         >
                           <td className="px-6 py-4 font-medium text-gray-900">{unit.unitNo}</td>
+                          <td className="px-6 py-4">
+                            <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
+                              unit.unitType === 'Truck' 
+                                ? 'bg-blue-100 text-blue-800' 
+                                : 'bg-purple-100 text-purple-800'
+                            }`}>
+                              {unit.unitType || 'N/A'}
+                            </span>
+                          </td>
                           <td className="px-6 py-4 text-gray-900">{unit.makeModel || '—'}</td>
                           <td className="px-6 py-4 text-gray-900">{unit.currentOdometer.toLocaleString()} km</td>
                           <td className="px-6 py-4">
@@ -940,13 +1049,35 @@ const ComplianceDashboard: React.FC = () => {
                               <div>
                                 <p className="font-medium text-gray-900">{nextService.type}</p>
                                 <p className="text-sm text-gray-500">
-                                  {nextService.kmRemaining <= 0
-                                    ? `OVERDUE by ${Math.abs(nextService.kmRemaining).toLocaleString()} km`
-                                    : `${nextService.kmRemaining.toLocaleString()} km remaining`}
+                                  {nextService.dueDate ? (
+                                    // Days-based service
+                                    (() => {
+                                      const today = new Date();
+                                      today.setHours(0, 0, 0, 0);
+                                      const dueDate = new Date(nextService.dueDate);
+                                      const daysRemaining = Math.ceil((dueDate.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
+                                      if (daysRemaining < 0) {
+                                        return `OVERDUE by ${Math.abs(daysRemaining)} day${Math.abs(daysRemaining) !== 1 ? 's' : ''}`;
+                                      } else if (daysRemaining <= 7) {
+                                        return `${daysRemaining} day${daysRemaining !== 1 ? 's' : ''} remaining (${dueDate.toLocaleDateString()})`;
+                                      } else {
+                                        return `${daysRemaining} day${daysRemaining !== 1 ? 's' : ''} until due (${dueDate.toLocaleDateString()})`;
+                                      }
+                                    })()
+                                  ) : (
+                                    // Km/miles-based service
+                                    nextService.kmRemaining <= 0
+                                      ? `OVERDUE by ${Math.abs(nextService.kmRemaining).toLocaleString()} km`
+                                      : nextService.status === 'ok'
+                                        ? `${nextService.kmRemaining.toLocaleString()} km until due`
+                                        : `${nextService.kmRemaining.toLocaleString()} km remaining`
+                                  )}
                                 </p>
                               </div>
+                            ) : unit.nextServices.length === 0 ? (
+                              <span className="text-gray-500 text-sm">No services configured</span>
                             ) : (
-                              <span className="text-green-600 font-medium">All services up to date</span>
+                              <span className="text-gray-500 text-sm">No upcoming services</span>
                             )}
                           </td>
                           <td className="px-6 py-4">

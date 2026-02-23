@@ -13,10 +13,12 @@ export interface CompliancePmService {
   dueAt: number;
   kmRemaining: number;
   status: "due" | "overdue" | "ok";
+  dueDate?: string; // For days-based services
 }
 
 export interface CompliancePmUnit {
   unitNo: string;
+  unitType?: string; // 'Truck' or 'Trailer'
   makeModel?: string;
   currentOdometer: number;
   nextServices: CompliancePmService[];
@@ -69,6 +71,8 @@ export interface ComplianceDashboardResponse {
     inactiveUnits: number;
     fleetOperational: FleetOperational;
     complianceDocuments: ComplianceDocument[];
+    pendingServicesByType?: { [serviceName: string]: number }; // Pending services grouped by service type
+    overdueServicesCount?: number; // Count of overdue services from scheduled-services-log
   };
   message?: string;
 }
