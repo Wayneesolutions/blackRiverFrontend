@@ -11,6 +11,9 @@ export interface GeneralRepairDto {
   parts?: string;
   notes?: string;
   serviceProvider: string;
+  customer?: string;
+  customerId?: string;
+  taxes?: { name: string; percentage: number }[];
   invoiceNumber: string;
   amount?: number;
   unitSource?: string;
@@ -29,6 +32,9 @@ export interface GeneralRepairPayload {
   parts?: string;
   notes?: string;
   serviceProvider: string;
+  customer?: string;
+  customerId?: string;
+  taxes?: { name: string; percentage: number }[];
   invoiceNumber: string;
   amount?: number;
   unitSource?: string;

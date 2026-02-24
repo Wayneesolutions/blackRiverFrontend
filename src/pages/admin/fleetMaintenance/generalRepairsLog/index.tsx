@@ -13,6 +13,7 @@ import {
 } from '../../../../axios/api/generalRepairs';
 import { getAllVehicles } from '../../../../axios/api/vehicle';
 import { getAllEmployees } from '../../../../axios/api/employee';
+import { getAllDrivers } from '../../../../axios/api/driver';
 import { FLEET_COLORS } from '../colorUtils';
 
 const ACCENT_PRIMARY = FLEET_COLORS.primary;
@@ -56,6 +57,11 @@ interface NotificationState {
   message: string;
 }
 
+interface TaxEntry {
+  name: string;
+  percentage: string;
+}
+
 interface FormState {
   serviceDate: string;
   unitNumber: string;
@@ -65,6 +71,9 @@ interface FormState {
   notes: string;
   serviceProvider: string;
   serviceProviderId?: string;
+  customer: string;
+  customerId?: string;
+  taxes: TaxEntry[];
   invoiceNumber: string;
   amount: string;
 }
@@ -116,6 +125,9 @@ const GeneralRepairsLog: React.FC = () => {
     notes: '',
     serviceProvider: '',
     serviceProviderId: undefined,
+    customer: '',
+    customerId: undefined,
+    taxes: [],
     invoiceNumber: '',
     amount: ''
   });
@@ -129,6 +141,9 @@ const GeneralRepairsLog: React.FC = () => {
   const [serviceProviders, setServiceProviders] = useState<ServiceProviderOption[]>([]);
   const [serviceProvidersLoading, setServiceProvidersLoading] = useState(false);
   const [serviceProvidersError, setServiceProvidersError] = useState<string | null>(null);
+  const [driverCustomers, setDriverCustomers] = useState<ServiceProviderOption[]>([]);
+  const [driverCustomersLoading, setDriverCustomersLoading] = useState(false);
+  const [driverCustomersError, setDriverCustomersError] = useState<string | null>(null);
   const [useCustomProvider, setUseCustomProvider] = useState(true);
   const [exporting, setExporting] = useState(false);
   
@@ -202,6 +217,36 @@ const GeneralRepairsLog: React.FC = () => {
     }
   }, [showEditModal]);
 
+  const loadDriverCustomers = useCallback(async () => {
+    setDriverCustomersLoading(true);
+    setDriverCustomersError(null);
+    try {
+      const response = await getAllDrivers(1, 500, undefined, undefined, true);
+      if (response?.success && response?.data) {
+        // Only owner operators: companyFlag true = Owner-Operator, false = Company Driver
+        const ownerOperators = (response.data as { _id: string; name?: string; internalId?: string; details?: { companyFlag?: boolean } }[]).filter(
+          (driver) => driver.details?.companyFlag === true
+        );
+        const list = ownerOperators.map((driver) => ({
+          id: driver._id,
+          name: driver.name || driver.internalId || 'Driver',
+          role: 'Driver (Customer)',
+          internalId: driver.internalId
+        }));
+        setDriverCustomers(list);
+      } else {
+        setDriverCustomers([]);
+        setDriverCustomersError(response?.message || 'Unable to load driver customers.');
+      }
+    } catch (err: any) {
+      console.error('Failed to load owner-operator drivers (customers)', err);
+      setDriverCustomers([]);
+      setDriverCustomersError(err?.response?.data?.message || err?.message || 'Unable to load driver customers.');
+    } finally {
+      setDriverCustomersLoading(false);
+    }
+  }, []);
+
   const loadRepairs = useCallback(async () => {
     setLoading(true);
     setError(null);
@@ -230,6 +275,10 @@ const GeneralRepairsLog: React.FC = () => {
   useEffect(() => {
     loadServiceProviders();
   }, [loadServiceProviders]);
+
+  useEffect(() => {
+    loadDriverCustomers();
+  }, [loadDriverCustomers]);
 
   useEffect(() => {
     loadRepairs();
@@ -313,7 +362,7 @@ const GeneralRepairsLog: React.FC = () => {
       if (!selectedRepair.serviceProvider) {
         return prev.serviceProviderId ? { ...prev, serviceProviderId: undefined } : prev;
       }
-      const match = serviceProviders.find((provider) => provider.name === selectedRepair.serviceProvider);
+      const match = serviceProviders.find((p) => p.name === selectedRepair.serviceProvider);
       if (match && prev.serviceProviderId !== match.id) {
         setUseCustomProvider(false);
         return { ...prev, serviceProviderId: match.id };
@@ -324,6 +373,22 @@ const GeneralRepairsLog: React.FC = () => {
       return prev;
     });
   }, [serviceProviders, selectedRepair, showEditModal, useCustomProvider]);
+
+  const formatTaxesDisplay = useCallback((taxes: { name: string; percentage: number }[] | undefined) => {
+    if (!taxes?.length) return '—';
+    return taxes.map((t) => `${t.name || 'Tax'}${t.percentage != null ? ` ${t.percentage}%` : ''}`).filter(Boolean).join(', ') || '—';
+  }, []);
+
+  useEffect(() => {
+    if (!showEditModal || !selectedRepair) return;
+    setFormData((prev) => {
+      const customerName = selectedRepair.customer || '';
+      const match = customerName ? driverCustomers.find((d) => d.name === customerName) : null;
+      const nextCustomerId = match?.id;
+      if (prev.customer === customerName && prev.customerId === nextCustomerId) return prev;
+      return { ...prev, customer: customerName, customerId: nextCustomerId };
+    });
+  }, [selectedRepair, showEditModal, driverCustomers]);
 
   const filteredRepairs = useMemo(() => {
     if (!searchTerm) return repairs;
@@ -429,6 +494,8 @@ const GeneralRepairsLog: React.FC = () => {
         { header: 'Parts', key: 'parts', width: 28 },
         { header: 'Notes', key: 'notes', width: 32 },
         { header: 'Service Provider', key: 'serviceProvider', width: 24 },
+        { header: 'Customer', key: 'customer', width: 20 },
+        { header: 'Taxes', key: 'taxes', width: 24 },
         { header: 'Invoice #', key: 'invoiceNumber', width: 18 },
         { header: 'Amount', key: 'amount', width: 16 }
       ];
@@ -450,6 +517,8 @@ const GeneralRepairsLog: React.FC = () => {
           parts: repair.parts || 'N/A',
           notes: repair.notes || '',
           serviceProvider: repair.serviceProvider,
+          customer: repair.customer || '',
+          taxes: formatTaxesDisplay(repair.taxes),
           invoiceNumber: repair.invoiceNumber || 'N/A',
           amount: repair.amount ? new Intl.NumberFormat('en-CA', {
             style: 'currency',
@@ -498,6 +567,9 @@ const GeneralRepairsLog: React.FC = () => {
       notes: '',
       serviceProvider: '',
       serviceProviderId: undefined,
+      customer: '',
+      customerId: undefined,
+      taxes: [],
       invoiceNumber: '',
       amount: ''
     });
@@ -509,6 +581,8 @@ const GeneralRepairsLog: React.FC = () => {
   const handleEditRepair = (repair: GeneralRepairDto) => {
     setSelectedRepair(repair);
     setFormError(null);
+    const providerMatch = serviceProviders.find((p) => p.name === repair.serviceProvider);
+    const customerMatch = repair.customer ? driverCustomers.find((d) => d.name === repair.customer) : null;
     setFormData({
       serviceDate: repair.serviceDate ? repair.serviceDate.split('T')[0] : '',
       unitNumber: repair.unitNumber,
@@ -517,11 +591,16 @@ const GeneralRepairsLog: React.FC = () => {
       parts: repair.parts || '',
       notes: repair.notes || '',
       serviceProvider: repair.serviceProvider,
-      serviceProviderId: serviceProviders.find((provider) => provider.name === repair.serviceProvider)?.id,
+      serviceProviderId: providerMatch?.id,
+      customer: repair.customer || '',
+      customerId: customerMatch?.id,
+      taxes: Array.isArray(repair.taxes) && repair.taxes.length > 0
+        ? repair.taxes.map((t) => ({ name: t.name || '', percentage: t.percentage != null ? String(t.percentage) : '' }))
+        : [],
       invoiceNumber: repair.invoiceNumber,
       amount: repair.amount?.toString() || ''
     });
-    setUseCustomProvider(!serviceProviders.find((provider) => provider.name === repair.serviceProvider));
+    setUseCustomProvider(!providerMatch);
     setShowEditModal(true);
   };
 
@@ -559,10 +638,17 @@ const GeneralRepairsLog: React.FC = () => {
       parts: formData.parts || undefined,
       notes: formData.notes || undefined,
       serviceProvider: formData.serviceProvider,
+      customer: formData.customer || undefined,
+      customerId: formData.customerId || undefined,
+      taxes: formData.taxes?.length
+        ? formData.taxes
+            .filter((t) => (t.name || '').trim() !== '')
+            .map((t) => ({ name: (t.name || '').trim(), percentage: Math.min(100, Math.max(0, parseFloat(t.percentage) || 0)) }))
+        : undefined,
       invoiceNumber: formData.invoiceNumber,
       amount: formData.amount ? Number(formData.amount) : undefined,
       unitSource: selectedUnit?.referenceType,
-      unitReference: selectedUnit?._id || selectedUnit?.referenceId // Use Vehicle _id if available, fallback to referenceId
+      unitReference: selectedUnit?._id || selectedUnit?.referenceId
     };
   };
 
@@ -816,6 +902,8 @@ const GeneralRepairsLog: React.FC = () => {
                     <th className="px-6 py-4 text-left text-sm font-semibold">Odometer</th>
                     <th className="px-6 py-4 text-left text-sm font-semibold">Parts</th>
                     <th className="px-6 py-4 text-left text-sm font-semibold">Service Provider</th>
+                    <th className="px-6 py-4 text-left text-sm font-semibold">Customer</th>
+                    <th className="px-6 py-4 text-left text-sm font-semibold">Taxes</th>
                     <th className="px-6 py-4 text-left text-sm font-semibold">Invoice Number</th>
                     <th className="px-6 py-4 text-left text-sm font-semibold">Amount</th>
                     <th className="px-6 py-4 text-left text-sm font-semibold">Actions</th>
@@ -824,13 +912,13 @@ const GeneralRepairsLog: React.FC = () => {
                 <tbody className="divide-y divide-gray-200">
                   {loading ? (
                     <tr>
-                      <td colSpan={11} className="px-6 py-12 text-center text-gray-500">
+                      <td colSpan={13} className="px-6 py-12 text-center text-gray-500">
                         Loading repairs...
                       </td>
                     </tr>
                   ) : filteredRepairs.length === 0 ? (
                     <tr>
-                      <td colSpan={11} className="px-6 py-12 text-center text-gray-500">
+                      <td colSpan={13} className="px-6 py-12 text-center text-gray-500">
                         No repairs found
                       </td>
                     </tr>
@@ -862,6 +950,10 @@ const GeneralRepairsLog: React.FC = () => {
                           </div>
                         </td>
                         <td className="px-6 py-4 text-gray-900">{repair.serviceProvider}</td>
+                        <td className="px-6 py-4 text-gray-900">{repair.customer || '—'}</td>
+                        <td className="px-6 py-4 text-gray-600 text-sm max-w-[140px]">
+                          <span className="truncate block" title={formatTaxesDisplay(repair.taxes)}>{formatTaxesDisplay(repair.taxes)}</span>
+                        </td>
                         <td className="px-6 py-4 text-gray-600 font-mono text-sm">{repair.invoiceNumber}</td>
                         <td className="px-6 py-4 text-gray-900">
                           {repair.amount ? new Intl.NumberFormat('en-CA', {
@@ -970,6 +1062,14 @@ const GeneralRepairsLog: React.FC = () => {
                         <div>
                           <p className="text-sm text-gray-500 mb-1">Service Provider</p>
                           <p className="font-medium text-gray-900">{selectedRepair.serviceProvider || "—"}</p>
+                        </div>
+                        <div>
+                          <p className="text-sm text-gray-500 mb-1">Customer</p>
+                          <p className="font-medium text-gray-900">{selectedRepair.customer || "—"}</p>
+                        </div>
+                        <div>
+                          <p className="text-sm text-gray-500 mb-1">Taxes</p>
+                          <p className="font-medium text-gray-900">{formatTaxesDisplay(selectedRepair.taxes)}</p>
                         </div>
                         <div>
                           <p className="text-sm text-gray-500 mb-1">Invoice Number</p>
@@ -1193,13 +1293,119 @@ const GeneralRepairsLog: React.FC = () => {
                               placeholder="Enter shop or vendor name"
                             />
                             <p className="text-xs text-gray-500 mt-2">
-                              Add an employee with a mechanic role to auto-populate this list.
+                              Add an employee with a mechanic role to list service providers.
                             </p>
                           </>
                         )}
                         {serviceProvidersError && (
                           <p className="text-sm text-red-600 mt-2">{serviceProvidersError}</p>
                         )}
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">Customer</label>
+                        {driverCustomersLoading ? (
+                          <div className="flex items-center gap-2 text-sm text-gray-500">
+                            <span className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-500 inline-block" />
+                            Loading...
+                          </div>
+                        ) : (
+                          <select
+                            value={formData.customerId || ''}
+                            onChange={(e) => {
+                              const value = e.target.value;
+                              if (!value) {
+                                setFormData((prev) => ({ ...prev, customerId: undefined, customer: '' }));
+                                return;
+                              }
+                              const customer = driverCustomers.find((d) => d.id === value);
+                              setFormData((prev) => ({
+                                ...prev,
+                                customerId: customer?.id,
+                                customer: customer?.name || ''
+                              }));
+                            }}
+                            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:border-transparent"
+                            style={{ '--tw-ring-color': '#016ab2' } as React.CSSProperties & { '--tw-ring-color': string }}
+                            onFocus={(e) => {
+                              e.target.style.borderColor = '#016ab2';
+                              e.target.style.boxShadow = '0 0 0 2px rgba(1, 106, 178, 0.2)';
+                            }}
+                            onBlur={(e) => {
+                              e.target.style.borderColor = '';
+                              e.target.style.boxShadow = '';
+                            }}
+                          >
+                            <option value="">Select customer</option>
+                            {driverCustomers.map((customer) => (
+                              <option key={customer.id} value={customer.id}>
+                                {customer.name}
+                              </option>
+                            ))}
+                          </select>
+                        )}
+                        {driverCustomersError && (
+                          <p className="text-sm text-red-600 mt-2">{driverCustomersError}</p>
+                        )}
+                      </div>
+                      <div className="md:col-span-2">
+                        <div className="flex items-center justify-between gap-2 mb-2">
+                          <label className="block text-sm font-medium text-gray-700">Sales tax</label>
+                          <button
+                            type="button"
+                            onClick={() => setFormData((prev) => ({ ...prev, taxes: [...(prev.taxes || []), { name: '', percentage: '' }] }))}
+                            className="inline-flex items-center gap-1 px-2 py-1 text-sm font-medium text-blue-600 hover:text-blue-700 hover:bg-blue-50 rounded border border-blue-200 transition-colors"
+                          >
+                            <Plus className="w-4 h-4" />
+                            Add tax
+                          </button>
+                        </div>
+                        <p className="text-xs text-gray-500 mb-2">Add tax name and percentage (0–100). Optional.</p>
+                        <div className="border border-gray-300 rounded-lg p-3 bg-gray-50/50 space-y-3 max-h-48 overflow-y-auto">
+                          {(formData.taxes || []).length === 0 ? (
+                            <p className="text-sm text-gray-500 py-1">No taxes added. Click &quot;Add tax&quot; to add one.</p>
+                          ) : (
+                            (formData.taxes || []).map((tax, index) => (
+                              <div key={index} className="flex items-center gap-2 flex-wrap">
+                                <input
+                                  type="text"
+                                  value={tax.name}
+                                  onChange={(e) => {
+                                    const next = [...(formData.taxes || [])];
+                                    next[index] = { ...next[index], name: e.target.value };
+                                    setFormData((prev) => ({ ...prev, taxes: next }));
+                                  }}
+                                  placeholder="Tax name (e.g. GST)"
+                                  className="flex-1 min-w-[100px] px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:border-transparent focus:ring-blue-500"
+                                />
+                                <div className="flex items-center gap-1">
+                                  <input
+                                    type="number"
+                                    min={0}
+                                    max={100}
+                                    step={0.01}
+                                    value={tax.percentage}
+                                    onChange={(e) => {
+                                      const next = [...(formData.taxes || [])];
+                                      next[index] = { ...next[index], percentage: e.target.value };
+                                      setFormData((prev) => ({ ...prev, taxes: next }));
+                                    }}
+                                    placeholder="0"
+                                    className="w-20 px-3 py-2 border border-gray-300 rounded-lg text-sm text-right focus:ring-2 focus:border-transparent focus:ring-blue-500"
+                                  />
+                                  <span className="text-sm text-gray-500 w-6">%</span>
+                                </div>
+                                <button
+                                  type="button"
+                                  onClick={() => setFormData((prev) => ({ ...prev, taxes: (prev.taxes || []).filter((_, i) => i !== index) }))}
+                                  className="p-2 text-red-600 hover:bg-red-50 rounded transition-colors"
+                                  title="Remove tax"
+                                >
+                                  <Trash2 className="w-4 h-4" />
+                                </button>
+                              </div>
+                            ))
+                          )}
+                        </div>
                       </div>
                       <div className="md:col-span-2">
                         <label className="block text-sm font-medium text-gray-700 mb-2">Description *</label>

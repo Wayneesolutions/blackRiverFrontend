@@ -30,16 +30,23 @@ export interface Driver {
 }
 
 // API Functions
-export const getAllDrivers = async (page: number = 1, limit: number = 10, search?: string, status?: string) => {
+export const getAllDrivers = async (
+  page: number = 1,
+  limit: number = 10,
+  search?: string,
+  status?: string,
+  ownerOperatorOnly?: boolean
+) => {
   try {
     const params = new URLSearchParams({
       page: page.toString(),
       limit: limit.toString(),
     });
-    
+
     if (search) params.append('search', search);
     if (status) params.append('status', status);
-    
+    if (ownerOperatorOnly === true) params.append('ownerOperator', 'true');
+
     const res: AxiosResponse = await apiClient.get(`hr/driver?${params.toString()}`);
     console.log('🔍 Driver API response:', res.data);
     return res.data;
