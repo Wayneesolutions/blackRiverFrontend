@@ -30,7 +30,7 @@ type MechanicInvoice = {
   vinOrPlate: string;
   description: string;
   odometer: number;
-  parts: { name: string; cost: number }[];
+  parts: Array<{ name?: string; partName?: string; partNumber?: string; quantity?: number; cost?: number }>;
   notes: string;
   serviceProvider: string;
   invoiceNumber: string;
@@ -38,6 +38,10 @@ type MechanicInvoice = {
   driver: string;
   serviceCategory: string;
   location: string;
+  amount?: number;
+  taxes?: Array<{ name: string; percentage: number }>;
+  taxAmount?: number;
+  totalAmount?: number;
 };
 
 // Removed static data - now fetching from API
@@ -97,7 +101,11 @@ const ComplianceInvoices = () => {
             passedInspection: invoice.passedInspection !== false,
             driver: invoice.driver || 'N/A',
             serviceCategory: invoice.serviceCategory || 'N/A',
-            location: invoice.location || 'N/A'
+            location: invoice.location || 'N/A',
+            amount: invoice.amount || 0,
+            taxes: invoice.taxes || [],
+            taxAmount: invoice.taxAmount || 0,
+            totalAmount: invoice.totalAmount || invoice.amount || 0
           }));
 
           setInvoices(mappedInvoices);
@@ -217,11 +225,15 @@ const ComplianceInvoices = () => {
         (invoice.parts || []).reduce((partsSum, part) => partsSum + (Number(part.cost) || 0), 0)
       );
     }, 0);
+    const totalAmount = filteredInvoices.reduce((sum, invoice) => {
+      return sum + (invoice.totalAmount || invoice.amount || 0);
+    }, 0);
     return {
       total: filteredInvoices.length,
       passed,
       followUps,
       totalPartsSpend,
+      totalAmount,
     };
   }, [filteredInvoices]);
 
@@ -272,7 +284,12 @@ const ComplianceInvoices = () => {
           description: invoice.description || "N/A",
           odometer: invoice.odometer ? invoice.odometer.toLocaleString() : "N/A",
           parts: invoice.parts && invoice.parts.length > 0
-            ? invoice.parts.map((part) => `${part.name || 'Part'} ($${(part.cost || 0).toFixed(2)})`).join(", ")
+            ? invoice.parts.map((part: any) => {
+                const partName = part.partName || part.name || part.partNumber || 'Part';
+                const quantity = part.quantity || 1;
+                const cost = part.cost || 0;
+                return `${partName}${quantity > 1 ? ` (Qty: ${quantity})` : ''}${cost > 0 ? ` ($${cost.toFixed(2)})` : ''}`;
+              }).join(", ")
             : "No parts listed",
           serviceProvider: invoice.serviceProvider || "N/A",
           location: invoice.location || "N/A",
@@ -337,6 +354,7 @@ const ComplianceInvoices = () => {
           <div className="grid grid-cols-1 md:grid-cols-3 gap-3 -mt-2 mb-4">
             <StatCard title="Total Invoices" value={summary.total} subtitle="All time" icon={FaClipboardList} bgColor="bg-blue-50" iconColor="text-blue-600" />
             <StatCard title="Total Parts Spend" value={`$${summary.totalPartsSpend.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`} subtitle="Parts & Materials" icon={FaFileInvoiceDollar} bgColor="bg-green-50" iconColor="text-green-600" />
+            <StatCard title="Total Amount (with GST)" value={`$${summary.totalAmount.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`} subtitle="Including all taxes" icon={FaFileInvoiceDollar} bgColor="bg-purple-50" iconColor="text-purple-600" />
             <StatCard title="Follow-up Required" value={summary.followUps} subtitle="Pending inspections" icon={FaTools} bgColor="bg-orange-50" iconColor="text-orange-600" />
           </div>
 
@@ -468,7 +486,6 @@ const ComplianceInvoices = () => {
                     {[
                       "Service Date",
                       "Unit",
-                      "Driver",
                       "Service Provider",
                       "Description",
                       "Service Performed",
@@ -476,6 +493,7 @@ const ComplianceInvoices = () => {
                       "Parts",
                       "Invoice #",
                       "Location / Notes",
+                      "Total Amount",
                       "Passed",
                     ].map((header) => (
                       <th
@@ -510,12 +528,6 @@ const ComplianceInvoices = () => {
                         )}
                       </td>
                       <td className="px-6 py-2 text-xs text-gray-900">
-                        {invoice.driver && invoice.driver !== 'N/A' ? invoice.driver : '—'}
-                        {invoice.serviceCategory && invoice.serviceCategory !== 'N/A' && (
-                          <div className="text-[10px] text-gray-500">{invoice.serviceCategory}</div>
-                        )}
-                      </td>
-                      <td className="px-6 py-2 text-xs text-gray-900">
                         <span className="inline-flex items-center rounded-full border border-blue-100 bg-blue-50 px-2 py-0.5 text-[10px] font-semibold text-blue-700">
                           {invoice.serviceProvider && invoice.serviceProvider !== 'N/A' ? invoice.serviceProvider : '—'}
                         </span>
@@ -536,14 +548,20 @@ const ComplianceInvoices = () => {
                       <td className="px-6 py-2 text-xs text-gray-900">
                         {invoice.parts && invoice.parts.length > 0 ? (
                           <div className="flex flex-wrap gap-1">
-                            {invoice.parts.map((part, idx) => (
-                              <span
-                                key={`${invoice.id}-${part.name || idx}`}
-                                className="rounded-full bg-gray-100 px-1.5 py-0.5 text-[10px] font-medium text-gray-700"
-                              >
-                                {part.name || 'Part'} ${(Number(part.cost) || 0).toFixed(2)}
-                              </span>
-                            ))}
+                            {invoice.parts.map((part, idx) => {
+                              const partName = part.partName || part.name || part.partNumber || 'Part';
+                              const quantity = part.quantity || 1;
+                              const cost = part.cost || 0;
+                              return (
+                                <span
+                                  key={`${invoice.id}-${partName}-${idx}`}
+                                  className="rounded-full bg-gray-100 px-1.5 py-0.5 text-[10px] font-medium text-gray-700"
+                                  title={cost > 0 ? `${partName} (Qty: ${quantity}) - $${cost.toFixed(2)}` : `${partName} (Qty: ${quantity})`}
+                                >
+                                  {partName} {quantity > 1 ? `(Qty: ${quantity})` : ''} {cost > 0 ? `$${cost.toFixed(2)}` : ''}
+                                </span>
+                              );
+                            })}
                           </div>
                         ) : (
                           <span className="text-gray-400 text-[10px]">No parts listed</span>
@@ -560,6 +578,30 @@ const ComplianceInvoices = () => {
                         ) : (
                           <div className="font-semibold text-gray-400">—</div>
                         )}
+                      </td>
+                      <td className="px-6 py-2 text-xs text-gray-900">
+                        <div className="font-semibold">
+                          {invoice.totalAmount && invoice.totalAmount > 0 ? (
+                            <>
+                              ${invoice.totalAmount.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                              {invoice.taxes && invoice.taxes.length > 0 && (
+                                <div className="text-[10px] text-gray-500 mt-0.5">
+                                  {invoice.amount && invoice.amount > 0 && (
+                                    <>Subtotal: ${invoice.amount.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}<br /></>
+                                  )}
+                                  {invoice.taxes.map((tax: any, idx: number) => (
+                                    <span key={idx}>
+                                      {tax.name || 'Tax'}: {tax.percentage}% (${((invoice.amount || 0) * (tax.percentage || 0) / 100).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })})
+                                      {idx < invoice.taxes.length - 1 ? <br /> : ''}
+                                    </span>
+                                  ))}
+                                </div>
+                              )}
+                            </>
+                          ) : (
+                            '—'
+                          )}
+                        </div>
                       </td>
                       <td className="px-6 py-2 text-xs">
                         <span
@@ -721,20 +763,30 @@ const ComplianceInvoices = () => {
                       <div className="bg-gray-50 p-6 rounded-lg border border-gray-200">
                         <h4 className="font-semibold text-gray-900 mb-4 text-lg">Parts Used</h4>
                         <div className="space-y-3">
-                          {selectedInvoice.parts.map((part, idx) => (
-                            <div key={idx} className="bg-white rounded-lg p-4 border border-gray-200">
-                              <div className="flex justify-between items-start">
-                                <div>
-                                  <div className="font-medium text-gray-900">{part.name || 'Part'}</div>
-                                </div>
-                                <div className="text-right">
-                                  <div className="font-medium text-gray-900">
-                                    ${(Number(part.cost) || 0).toFixed(2)}
+                          {selectedInvoice.parts.map((part, idx) => {
+                            const partName = part.partName || part.name || part.partNumber || 'Part';
+                            const quantity = part.quantity || 1;
+                            const cost = part.cost || 0;
+                            return (
+                              <div key={idx} className="bg-white rounded-lg p-4 border border-gray-200">
+                                <div className="flex justify-between items-start">
+                                  <div>
+                                    <div className="font-medium text-gray-900">{partName}</div>
+                                    {quantity > 1 && (
+                                      <div className="text-sm text-gray-500 mt-1">Quantity: {quantity}</div>
+                                    )}
+                                  </div>
+                                  <div className="text-right">
+                                    {cost > 0 && (
+                                      <div className="font-medium text-gray-900">
+                                        ${cost.toFixed(2)}
+                                      </div>
+                                    )}
                                   </div>
                                 </div>
                               </div>
-                            </div>
-                          ))}
+                            );
+                          })}
                         </div>
                         <div className="mt-4 pt-4 border-t border-gray-200">
                           <div className="flex justify-between text-sm">

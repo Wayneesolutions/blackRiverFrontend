@@ -7,7 +7,7 @@ import { useNavigate } from "react-router-dom";
 import type { RootState } from "../../redux/store";
 import { getUserRole } from "../../utils/auth";
 import { useQuickActions } from "../common/QuickAction";
-import { getIncomingMaintenanceCount, getSamsaraUpcomingServices, type VehicleServiceResponse } from "../../axios/api/vehicleService";
+import { getIncomingMaintenanceCount, getSamsaraUpcomingServices, listVehicleServices, type VehicleServiceResponse } from "../../axios/api/vehicleService";
 
 function Header({ onToggleSidebar }: { onToggleSidebar: () => void }) {
     const [showLogoutModal, setShowLogoutModal] = useState(false);
@@ -86,12 +86,58 @@ function Header({ onToggleSidebar }: { onToggleSidebar: () => void }) {
         if (loadingNotifications) return;
         setLoadingNotifications(true);
         try {
-            const [maintenanceResponse, samsaraResponse] = await Promise.all([
+            const [maintenanceResponse, samsaraResponse, maintenanceServicesResponse] = await Promise.all([
                 getIncomingMaintenanceCount(),
-                getSamsaraUpcomingServices()
+                getSamsaraUpcomingServices(),
+                listVehicleServices({ status: 'pending' }) // Fetch pending services
             ]);
             
             const services: VehicleServiceResponse[] = [];
+            
+            // Add maintenance services (pending and in-progress)
+            if (maintenanceServicesResponse?.success && maintenanceServicesResponse.data) {
+                const allServices = Array.isArray(maintenanceServicesResponse.data) 
+                    ? maintenanceServicesResponse.data 
+                    : [];
+                
+                // Filter for incoming services (due within 30 days or 7500 km)
+                const today = new Date();
+                today.setHours(0, 0, 0, 0);
+                const thirtyDaysFromNow = new Date();
+                thirtyDaysFromNow.setDate(thirtyDaysFromNow.getDate() + 30);
+                thirtyDaysFromNow.setHours(23, 59, 59, 999);
+                
+                const incomingServices = allServices.filter((service) => {
+                    // Check if service is due within 30 days
+                    if (service.dueDate) {
+                        const dueDate = new Date(service.dueDate);
+                        if (dueDate >= today && dueDate <= thirtyDaysFromNow) {
+                            return true;
+                        }
+                    }
+                    
+                    // Check if service is due within 7500 km
+                    if (service.dueMileage && service.odometer !== undefined) {
+                        const remainingKm = service.dueMileage - service.odometer;
+                        if (remainingKm >= 0 && remainingKm <= 7500) {
+                            return true;
+                        }
+                    }
+                    
+                    // Check vehicle odometer if service odometer is not available
+                    if (service.dueMileage && service.vehicleId && (service.vehicleId as any).odometer !== undefined) {
+                        const vehicleOdometer = (service.vehicleId as any).odometer;
+                        const remainingKm = service.dueMileage - vehicleOdometer;
+                        if (remainingKm >= 0 && remainingKm <= 7500) {
+                            return true;
+                        }
+                    }
+                    
+                    return false;
+                });
+                
+                services.push(...incomingServices);
+            }
             
             // Add Samsara services
             if (samsaraResponse?.success && samsaraResponse.data) {

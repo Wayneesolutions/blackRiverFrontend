@@ -8,7 +8,7 @@ export interface GeneralRepairDto {
   vinLicensePlate?: string;
   description: string;
   odometer?: number;
-  parts?: string;
+  parts?: string | Array<{ partId?: string; partName: string; partNumber: string; quantity: number }>;
   notes?: string;
   serviceProvider: string;
   customer?: string;
@@ -29,7 +29,7 @@ export interface GeneralRepairPayload {
   vinLicensePlate?: string;
   description: string;
   odometer?: number | string;
-  parts?: string;
+  parts?: string | Array<{ partId?: string; partName: string; partNumber: string; quantity: number }>;
   notes?: string;
   serviceProvider: string;
   customer?: string;

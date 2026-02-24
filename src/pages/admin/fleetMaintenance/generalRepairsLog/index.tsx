@@ -14,6 +14,7 @@ import {
 import { getAllVehicles } from '../../../../axios/api/vehicle';
 import { getAllEmployees } from '../../../../axios/api/employee';
 import { getAllDrivers } from '../../../../axios/api/driver';
+import { getAllSpareParts } from '../../../../axios/api/fleet.spareparts';
 import { FLEET_COLORS } from '../colorUtils';
 
 const ACCENT_PRIMARY = FLEET_COLORS.primary;
@@ -62,12 +63,19 @@ interface TaxEntry {
   percentage: string;
 }
 
+interface PartEntry {
+  partId: string;
+  partName: string;
+  partNumber: string;
+  quantity: number;
+}
+
 interface FormState {
   serviceDate: string;
   unitNumber: string;
   description: string;
   odometer: string;
-  parts: string;
+  parts: PartEntry[];
   notes: string;
   serviceProvider: string;
   serviceProviderId?: string;
@@ -121,7 +129,7 @@ const GeneralRepairsLog: React.FC = () => {
     unitNumber: '',
     description: '',
     odometer: '',
-    parts: '',
+    parts: [],
     notes: '',
     serviceProvider: '',
     serviceProviderId: undefined,
@@ -131,6 +139,8 @@ const GeneralRepairsLog: React.FC = () => {
     invoiceNumber: '',
     amount: ''
   });
+  const [spareParts, setSpareParts] = useState<Array<{ _id: string; partNumber: string; partName: string; stockQty: number }>>([]);
+  const [sparePartsLoading, setSparePartsLoading] = useState(false);
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
   const [deleting, setDeleting] = useState(false);
@@ -217,6 +227,29 @@ const GeneralRepairsLog: React.FC = () => {
     }
   }, [showEditModal]);
 
+  const loadSpareParts = useCallback(async () => {
+    setSparePartsLoading(true);
+    try {
+      const response = await getAllSpareParts();
+      if (response?.success && response?.data) {
+        const parts = Array.isArray(response.data) ? response.data : [];
+        setSpareParts(parts.map((part: any) => ({
+          _id: part._id,
+          partNumber: part.partNumber || '',
+          partName: part.partName || '',
+          stockQty: part.stockQty || 0
+        })));
+      } else {
+        setSpareParts([]);
+      }
+    } catch (err: any) {
+      console.error('Failed to load spare parts', err);
+      setSpareParts([]);
+    } finally {
+      setSparePartsLoading(false);
+    }
+  }, []);
+
   const loadDriverCustomers = useCallback(async () => {
     setDriverCustomersLoading(true);
     setDriverCustomersError(null);
@@ -275,6 +308,10 @@ const GeneralRepairsLog: React.FC = () => {
   useEffect(() => {
     loadServiceProviders();
   }, [loadServiceProviders]);
+
+  useEffect(() => {
+    loadSpareParts();
+  }, [loadSpareParts]);
 
   useEffect(() => {
     loadDriverCustomers();
@@ -514,7 +551,9 @@ const GeneralRepairsLog: React.FC = () => {
           makeModel: repair.makeModel || 'N/A',
           description: repair.description,
           odometer: repair.odometer ?? 'N/A',
-          parts: repair.parts || 'N/A',
+          parts: Array.isArray(repair.parts) 
+            ? repair.parts.map((p: any) => `${p.partName || p.partNumber || 'Part'} (Qty: ${p.quantity || 1})`).join(', ')
+            : (repair.parts || 'N/A'),
           notes: repair.notes || '',
           serviceProvider: repair.serviceProvider,
           customer: repair.customer || '',
@@ -563,7 +602,7 @@ const GeneralRepairsLog: React.FC = () => {
       unitNumber: '',
       description: '',
       odometer: '',
-      parts: '',
+      parts: [],
       notes: '',
       serviceProvider: '',
       serviceProviderId: undefined,
@@ -588,7 +627,11 @@ const GeneralRepairsLog: React.FC = () => {
       unitNumber: repair.unitNumber,
       description: repair.description,
       odometer: repair.odometer?.toString() || '',
-      parts: repair.parts || '',
+      parts: Array.isArray(repair.parts) 
+        ? repair.parts 
+        : (typeof repair.parts === 'string' && repair.parts.trim() 
+          ? [{ partId: '', partName: repair.parts, partNumber: '', quantity: 1 }] 
+          : []),
       notes: repair.notes || '',
       serviceProvider: repair.serviceProvider,
       serviceProviderId: providerMatch?.id,
@@ -616,6 +659,49 @@ const GeneralRepairsLog: React.FC = () => {
     setFormError(null);
   };
 
+  // Parts management functions
+  const addPart = () => {
+    setFormData(prev => ({
+      ...prev,
+      parts: [...prev.parts, { partId: '', partName: '', partNumber: '', quantity: 1 }]
+    }));
+  };
+
+  const removePart = (index: number) => {
+    setFormData(prev => ({
+      ...prev,
+      parts: prev.parts.filter((_, i) => i !== index)
+    }));
+  };
+
+  const updatePart = (index: number, field: keyof PartEntry, value: string | number) => {
+    setFormData(prev => ({
+      ...prev,
+      parts: prev.parts.map((part, i) => 
+        i === index ? { ...part, [field]: value } : part
+      )
+    }));
+  };
+
+  const handlePartSelect = (index: number, partId: string) => {
+    const selectedPart = spareParts.find(p => p._id === partId);
+    if (selectedPart) {
+      setFormData(prev => ({
+        ...prev,
+        parts: prev.parts.map((part, i) => 
+          i === index 
+            ? { 
+                partId: selectedPart._id, 
+                partName: selectedPart.partName, 
+                partNumber: selectedPart.partNumber,
+                quantity: part.quantity || 1
+              } 
+            : part
+        )
+      }));
+    }
+  };
+
   const buildPayload = (): GeneralRepairPayload | null => {
     if (
       !formData.serviceDate ||
@@ -635,7 +721,14 @@ const GeneralRepairsLog: React.FC = () => {
       vinLicensePlate: selectedUnit?.vin,
       description: formData.description,
       odometer: formData.odometer ? Number(formData.odometer) : undefined,
-      parts: formData.parts || undefined,
+      parts: formData.parts.length > 0 
+        ? formData.parts.map(p => ({
+            partId: p.partId,
+            partName: p.partName,
+            partNumber: p.partNumber,
+            quantity: p.quantity
+          }))
+        : undefined,
       notes: formData.notes || undefined,
       serviceProvider: formData.serviceProvider,
       customer: formData.customer || undefined,
@@ -945,8 +1038,18 @@ const GeneralRepairsLog: React.FC = () => {
                           {typeof repair.odometer === 'number' ? `${repair.odometer.toLocaleString()} km` : '—'}
                         </td>
                         <td className="px-6 py-4 text-gray-600 max-w-xs">
-                          <div className="truncate" title={repair.parts || undefined}>
-                            {repair.parts || 'N/A'}
+                          <div className="space-y-1">
+                            {Array.isArray(repair.parts) && repair.parts.length > 0 ? (
+                              repair.parts.map((p: any, idx: number) => (
+                                <div key={idx} className="text-xs">
+                                  {p.partName || p.partNumber || 'Part'} (Qty: {p.quantity || 1})
+                                </div>
+                              ))
+                            ) : (
+                              <div className="text-sm">
+                                {typeof repair.parts === 'string' ? repair.parts : 'N/A'}
+                              </div>
+                            )}
                           </div>
                         </td>
                         <td className="px-6 py-4 text-gray-900">{repair.serviceProvider}</td>
@@ -1094,7 +1197,17 @@ const GeneralRepairsLog: React.FC = () => {
                       {selectedRepair.parts && (
                         <div className="mt-4">
                           <p className="text-sm text-gray-500 mb-1">Parts</p>
-                          <p className="font-medium text-gray-900">{selectedRepair.parts}</p>
+                          {Array.isArray(selectedRepair.parts) && selectedRepair.parts.length > 0 ? (
+                            <div className="space-y-1">
+                              {selectedRepair.parts.map((p: any, idx: number) => (
+                                <p key={idx} className="font-medium text-gray-900">
+                                  {p.partName || p.partNumber || 'Part'} - Quantity: {p.quantity || 1}
+                                </p>
+                              ))}
+                            </div>
+                          ) : (
+                            <p className="font-medium text-gray-900">{typeof selectedRepair.parts === 'string' ? selectedRepair.parts : 'N/A'}</p>
+                          )}
                         </div>
                       )}
                       {selectedRepair.notes && (
@@ -1428,22 +1541,63 @@ const GeneralRepairsLog: React.FC = () => {
                       </div>
                       <div className="md:col-span-2">
                         <label className="block text-sm font-medium text-gray-700 mb-2">Parts</label>
-                        <textarea
-                          value={formData.parts}
-                          onChange={(e) => setFormData({ ...formData, parts: e.target.value })}
-                          rows={2}
-                          className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:border-transparent"
-                          style={{ '--tw-ring-color': '#016ab2' } as React.CSSProperties & { '--tw-ring-color': string }}
-                          onFocus={(e) => {
-                            e.target.style.borderColor = '#016ab2';
-                            e.target.style.boxShadow = '0 0 0 2px rgba(1, 106, 178, 0.2)';
-                          }}
-                          onBlur={(e) => {
-                            e.target.style.borderColor = '';
-                            e.target.style.boxShadow = '';
-                          }}
-                          placeholder="List major parts used"
-                        />
+                        <div className="space-y-3">
+                          {formData.parts.length === 0 ? (
+                            <p className="text-sm text-gray-500 py-2">No parts added. Click &quot;Add Part&quot; to add one.</p>
+                          ) : (
+                            formData.parts.map((part, index) => (
+                              <div key={index} className="flex gap-2 items-start p-3 border border-gray-200 rounded-lg bg-gray-50/50">
+                                <div className="flex-1 grid grid-cols-2 gap-2">
+                                  <select
+                                    value={part.partId}
+                                    onChange={(e) => handlePartSelect(index, e.target.value)}
+                                    className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:border-transparent text-sm bg-white"
+                                    style={{ '--tw-ring-color': '#016ab2' } as React.CSSProperties & { '--tw-ring-color': string }}
+                                  >
+                                    <option value="">Select Part</option>
+                                    {sparePartsLoading ? (
+                                      <option disabled>Loading parts...</option>
+                                    ) : (
+                                      spareParts.map((sp) => (
+                                        <option key={sp._id} value={sp._id}>
+                                          {sp.partNumber} - {sp.partName} {sp.stockQty > 0 ? `(Stock: ${sp.stockQty})` : '(Out of Stock)'}
+                                        </option>
+                                      ))
+                                    )}
+                                  </select>
+                                  <div className="flex gap-2">
+                                    <input
+                                      type="number"
+                                      min="1"
+                                      step="1"
+                                      value={part.quantity}
+                                      onChange={(e) => updatePart(index, 'quantity', parseInt(e.target.value) || 1)}
+                                      placeholder="Quantity"
+                                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:border-transparent text-sm bg-white"
+                                      style={{ '--tw-ring-color': '#016ab2' } as React.CSSProperties & { '--tw-ring-color': string }}
+                                    />
+                                    <button
+                                      type="button"
+                                      onClick={() => removePart(index)}
+                                      className="px-3 py-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors flex items-center justify-center"
+                                      title="Remove part"
+                                    >
+                                      <Trash2 className="w-4 h-4" />
+                                    </button>
+                                  </div>
+                                </div>
+                              </div>
+                            ))
+                          )}
+                          <button
+                            type="button"
+                            onClick={addPart}
+                            className="flex items-center gap-2 px-4 py-2 text-sm bg-blue-50 text-blue-600 rounded-lg hover:bg-blue-100 transition-colors border border-blue-200"
+                          >
+                            <Plus className="w-4 h-4" />
+                            Add Part
+                          </button>
+                        </div>
                       </div>
                       <div>
                         <label className="block text-sm font-medium text-gray-700 mb-2">Invoice Number *</label>
