@@ -57,3 +57,57 @@ export const updateStatusFuelReport = async (id:string, status: any) =>{
     return (error as Error).response?.data;
   }
 }
+
+export const getFuelTypes = async () => {
+  try {
+    const res: AxiosResponse = await apiClient.get('dispatcher/fuel-types');
+    return res.data;
+  } catch (error) {
+    return (error as Error).response?.data;
+  }
+}
+
+export const createFuelType = async (name: string) => {
+  try {
+    const res: AxiosResponse = await apiClient.post('dispatcher/fuel-types', { name });
+    return res.data;
+  } catch (error) {
+    return (error as Error).response?.data;
+  }
+}
+
+export const getUnits = async () => {
+  try {
+    const res: AxiosResponse = await apiClient.get('dispatcher/units');
+    return res.data;
+  } catch (error) {
+    return (error as Error).response?.data;
+  }
+}
+
+export const createUnit = async (name: string) => {
+  try {
+    const res: AxiosResponse = await apiClient.post('dispatcher/units', { name });
+    return res.data;
+  } catch (error) {
+    return (error as Error).response?.data;
+  }
+}
+
+export const getFuelVendors = async () => {
+  try {
+    const res: AxiosResponse = await apiClient.get('dispatcher/fuel-vendors');
+    return res.data;
+  } catch (error) {
+    return (error as Error).response?.data;
+  }
+}
+
+export const createFuelVendor = async (name: string) => {
+  try {
+    const res: AxiosResponse = await apiClient.post('dispatcher/fuel-vendors', { name });
+    return res.data;
+  } catch (error) {
+    return (error as Error).response?.data;
+  }
+}

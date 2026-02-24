@@ -18,39 +18,29 @@ interface FuelReportType {
   reporter: { _id: string; name?: string; email?: string };
   reporterName?: string;
   reporterEmail?: string;
-  driver: { _id: string; name: string };
+  driver?: { _id: string; name: string }; // Keep for backward compatibility
   vehicle: { _id: string; plateNumber?: string; vinNumber?: string; unitNo?: string; unitType?: string; makeModel?: string };
-  trip?: {
-    _id: string;
-    tripNumber?: string;
-    status?: string;
-    plannedStartDate?: string | Date;
-    plannedEndDate?: string | Date;
-    actualStartDate?: string | Date;
-    actualEndDate?: string | Date;
-    startLocation?: {
-      place?: string;
-      latitude?: string;
-      longitude?: string;
-    };
-    endLocation?: {
-      place?: string;
-      latitude?: string;
-      longitude?: string;
-    };
-    driver?: {
-      _id: string;
-      name?: string;
-    };
-    coDriver?: {
-      _id: string;
-      name?: string;
-    };
-  } | null;
-  volume: string;
-  type: string;
-  odometer: string;
-  cost?: number; // Added cost field
+  trip?: any; // Keep for backward compatibility
+  // New fields
+  state?: string;
+  unit?: { _id: string; unitNo?: string; unitType?: string; makeModel?: string };
+  types?: string[];
+  fuelAmounts?: number[];
+  transactionAmount?: number;
+  currentOdometer?: string;
+  units?: string[];
+  measurementUnit?: string;
+  currency?: string;
+  date?: string | Date;
+  fuelVendors?: string[];
+  fuelVendor?: string;
+  fuelAmount?: number;
+  transactionNumber?: string;
+  // Legacy fields
+  volume?: string;
+  type?: string;
+  odometer?: string;
+  cost?: number;
   status: string;
   createdAt: string;
 }
@@ -135,17 +125,26 @@ const FuelReports = () => {
         };
       }
       const primary =
-        report.vehicle?.unitNo ||
+        (report.vehicle?.unitNo && report.vehicle.unitNo !== 'N/A' ? report.vehicle.unitNo : null) ||
         report.vehicle?.plateNumber ||
         report.vehicle?.vinNumber ||
+        (report.unit?.unitNo && report.unit.unitNo !== 'N/A' ? report.unit.unitNo : null) ||
+        report.unit?.makeModel ||
         "N/A";
-      const secondary = [report.vehicle?.makeModel, report.vehicle?.plateNumber, report.vehicle?.vinNumber]
+      const secondary = [
+        report.vehicle?.makeModel, 
+        report.unit?.makeModel,
+        report.vehicle?.plateNumber, 
+        report.vehicle?.vinNumber
+      ]
         .filter(Boolean)
         .join(" · ");
       return {
         primary,
         secondary,
-        badge: report.vehicle?.unitType || ""
+        badge: (report.vehicle?.unitType && report.vehicle.unitType !== 'N/A' ? report.vehicle.unitType : null) ||
+               (report.unit?.unitType && report.unit.unitType !== 'N/A' ? report.unit.unitType : null) ||
+               ""
       };
     },
     [unitsMap]
@@ -546,9 +545,31 @@ const FuelReports = () => {
   );
 
   const totalReports = fuelReports.length;
-  // Parse volume as float just in case
-  const totalVolume = fuelReports.reduce((acc, r) => acc + (parseFloat(r.volume) || 0), 0);
-  const totalCost = fuelReports.reduce((acc, r) => acc + (Number(r.cost) || 0), 0);
+  
+  // Calculate total volume - use fuelAmount (new) or volume (legacy), convert to liters if needed
+  const totalVolume = fuelReports.reduce((acc, r) => {
+    // Try new field first (fuelAmount)
+    if (r.fuelAmount !== null && r.fuelAmount !== undefined) {
+      return acc + r.fuelAmount;
+    }
+    // Try fuelAmounts array
+    if (r.fuelAmounts && r.fuelAmounts.length > 0) {
+      return acc + r.fuelAmounts.reduce((sum, amt) => sum + amt, 0);
+    }
+    // Fall back to legacy volume field
+    const volume = parseFloat(r.volume || '0');
+    return acc + volume;
+  }, 0);
+  
+  // Calculate total cost - use transactionAmount (new) or cost (legacy)
+  const totalCost = fuelReports.reduce((acc, r) => {
+    // Try new field first (transactionAmount)
+    if (r.transactionAmount !== null && r.transactionAmount !== undefined) {
+      return acc + Number(r.transactionAmount);
+    }
+    // Fall back to legacy cost field
+    return acc + (Number(r.cost) || 0);
+  }, 0);
 
   if (loading) {
     return (
@@ -602,7 +623,14 @@ const FuelReports = () => {
           <div className="grid grid-cols-1 md:grid-cols-3 gap-3 -mt-2 mb-4">
             <StatCard title="Total Reports" value={totalReports} subtitle="All time" icon={FaClipboardList} bgColor="bg-blue-50" iconColor="text-blue-600" />
             <StatCard title="Total Fuel Cost" value={`$${totalCost.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`} subtitle="Estimated spend" icon={FaFileInvoiceDollar} bgColor="bg-green-50" iconColor="text-green-600" />
-            <StatCard title="Total Volume" value={`${totalVolume.toLocaleString()} L`} subtitle="Fuel consumed" icon={FaGasPump} bgColor="bg-orange-50" iconColor="text-orange-600" />
+            <StatCard 
+              title="Total Volume" 
+              value={`${totalVolume.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })} ${fuelReports.length > 0 && fuelReports[0]?.measurementUnit ? fuelReports[0].measurementUnit : 'L'}`} 
+              subtitle="Fuel consumed" 
+              icon={FaGasPump} 
+              bgColor="bg-orange-50" 
+              iconColor="text-orange-600" 
+            />
           </div>
 
           <div className="bg-white rounded-xl shadow-lg border border-gray-200 p-4 flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4 mb-4">
@@ -644,28 +672,37 @@ const FuelReports = () => {
               <thead className="bg-gray-50">
                 <tr>
                   <th className="px-6 py-2 text-xs font-semibold text-gray-600 uppercase tracking-wider text-left">
-                    Reporter
+                    Transaction #
                   </th>
                   <th className="px-6 py-2 text-xs font-semibold text-gray-600 uppercase tracking-wider text-left">
-                    Driver
+                    State
                   </th>
                   <th className="px-6 py-2 text-xs font-semibold text-gray-600 uppercase tracking-wider text-left">
-                    Vehicle
+                    Unit
                   </th>
                   <th className="px-6 py-2 text-xs font-semibold text-gray-600 uppercase tracking-wider text-left">
-                    Trip
+                    Type
                   </th>
                   <th className="px-6 py-2 text-xs font-semibold text-gray-600 uppercase tracking-wider text-left">
-                    Status
+                    Fuel Amount
                   </th>
                   <th className="px-6 py-2 text-xs font-semibold text-gray-600 uppercase tracking-wider text-left">
-                    Volume
+                    Transaction Amount
                   </th>
                   <th className="px-6 py-2 text-xs font-semibold text-gray-600 uppercase tracking-wider text-left">
-                    Cost
+                    Current Odometer
                   </th>
                   <th className="px-6 py-2 text-xs font-semibold text-gray-600 uppercase tracking-wider text-left">
-                    Odometer
+                    Units
+                  </th>
+                  <th className="px-6 py-2 text-xs font-semibold text-gray-600 uppercase tracking-wider text-left">
+                    Currency
+                  </th>
+                  <th className="px-6 py-2 text-xs font-semibold text-gray-600 uppercase tracking-wider text-left">
+                    Date
+                  </th>
+                  <th className="px-6 py-2 text-xs font-semibold text-gray-600 uppercase tracking-wider text-left">
+                    Fuel Vendor
                   </th>
                   <th className="px-6 py-2 text-xs font-semibold text-gray-600 uppercase tracking-wider text-left">
                     Actions
@@ -676,134 +713,134 @@ const FuelReports = () => {
                 {filteredReports.length === 0 ? (
                   <tr>
                     <td
-                      colSpan={9}
+                      colSpan={12}
                       className="px-6 py-8 text-center text-gray-500"
                     >
                       No fuel reports found
                     </td>
                   </tr>
                 ) : (
-                  filteredReports.map((report) => (
-                    <tr key={report._id} className="hover:bg-gray-50">
-                      <td className="px-6 py-2 text-xs">
-                        {(() => {
-                          const reporterInfo = getReporterDetails(report);
-                          return (
-                            <>
-                              <div className="font-semibold text-gray-900">
-                                {reporterInfo.name}
-                              </div>
-                              {reporterInfo.email && (
-                                <div className="text-[10px] text-gray-500">
-                                  {reporterInfo.email}
-                                </div>
-                              )}
-                            </>
-                          );
-                        })()}
-                      </td>
-                      <td className="px-6 py-2 text-xs text-gray-500">
-                        {report.driver?.name || "N/A"}
-                      </td>
-                      <td className="px-6 py-2 text-xs text-gray-500">
-                        {(() => {
-                          const vehicleDetails = getVehicleDetails(report);
-                          return (
-                            <div className="space-y-0.5">
-                              <div className="font-semibold text-gray-900">{vehicleDetails.primary}</div>
-                              {vehicleDetails.secondary && (
-                                <div className="text-[10px] text-gray-500">{vehicleDetails.secondary}</div>
-                              )}
-                              {vehicleDetails.badge && (
-                                <span
-                                  className="inline-flex px-1.5 py-0.5 rounded-full text-[10px] font-semibold uppercase tracking-wide"
-                                  style={{
-                                    backgroundColor:
-                                      vehicleDetails.badge.toLowerCase().includes("trailer")
-                                        ? "rgba(34, 197, 94, 0.15)"
-                                        : "rgba(1, 106, 178, 0.15)",
-                                    color:
-                                      vehicleDetails.badge.toLowerCase().includes("trailer")
-                                        ? "#15803d"
-                                        : FLEET_COLORS.primary
-                                  }}
-                                >
-                                  {vehicleDetails.badge}
-                                </span>
-                              )}
-                            </div>
-                          );
-                        })()}
-                      </td>
-                      <td className="px-6 py-2 text-xs">
-                        {report.trip ? (
-                          <div className="space-y-1">
+                  filteredReports.map((report) => {
+                    // Use unit if available, otherwise use vehicle
+                    const unitData = report.unit || report.vehicle;
+                    const unitDetails = unitData ? getVehicleDetails({ vehicle: unitData } as any) : getVehicleDetails(report);
+                    const types = report.types || (report.type ? [report.type] : []);
+                    const fuelAmounts = report.fuelAmounts || [];
+                    const fuelAmount = report.fuelAmount || null;
+                    const units = report.units || [];
+                    const fuelVendors = report.fuelVendors || [];
+                    const fuelVendor = report.fuelVendor || '';
+                    const measurementUnit = report.measurementUnit || '';
+                    const transactionNumber = report.transactionNumber || report._id.slice(-8);
+                    
+                    return (
+                      <tr key={report._id} className="hover:bg-gray-50">
+                        <td className="px-6 py-2 text-xs font-semibold text-gray-900">
+                          {transactionNumber}
+                        </td>
+                        <td className="px-6 py-2 text-xs text-gray-500">
+                          {report.state || 'N/A'}
+                        </td>
+                        <td className="px-6 py-2 text-xs text-gray-500">
+                          <div className="space-y-0.5">
                             <div className="font-semibold text-gray-900">
-                              {report.trip.tripNumber || 'N/A'}
+                              {unitDetails.primary !== 'N/A' ? unitDetails.primary : (report.vehicle?.plateNumber || report.unit?.makeModel || 'N/A')}
                             </div>
-                            <div className="text-[10px] text-gray-500">
-                              {report.trip.status || 'N/A'}
-                            </div>
-                            {report.trip.startLocation?.place && (
-                              <div className="text-[10px] text-gray-400">
-                                From: {report.trip.startLocation.place}
-                              </div>
+                            {unitDetails.secondary && unitDetails.secondary !== 'N/A' && (
+                              <div className="text-[10px] text-gray-500">{unitDetails.secondary}</div>
                             )}
-                            {report.trip.endLocation?.place && (
-                              <div className="text-[10px] text-gray-400">
-                                To: {report.trip.endLocation.place}
-                              </div>
+                            {unitDetails.badge && unitDetails.badge !== 'N/A' && (
+                              <span
+                                className="inline-flex px-1.5 py-0.5 rounded-full text-[10px] font-semibold uppercase tracking-wide"
+                                style={{
+                                  backgroundColor:
+                                    unitDetails.badge.toLowerCase().includes("trailer")
+                                      ? "rgba(34, 197, 94, 0.15)"
+                                      : "rgba(1, 106, 178, 0.15)",
+                                  color:
+                                    unitDetails.badge.toLowerCase().includes("trailer")
+                                      ? "#15803d"
+                                      : FLEET_COLORS.primary
+                                }}
+                              >
+                                {unitDetails.badge}
+                              </span>
                             )}
                           </div>
-                        ) : (
-                          <span className="text-gray-400 italic">No trip</span>
-                        )}
-                      </td>
-                      <td className="px-6 py-2">
-                        <span
-                          className={`inline-flex px-2 py-0.5 text-[10px] font-semibold rounded-full ${getStatusColor(
-                            report.status
-                          )}`}
-                          onClick={() =>
-                            handleStatusUpdate(
-                              report._id,
-                              report.status === "approved" ? "pending" : "approved"
-                            )
-                          }
-                          style={{ cursor: "pointer" }}
-                        >
-                          {report.status}
-                        </span>
-                      </td>
-                      <td className="px-6 py-2 text-xs text-gray-500">
-                        {report.volume} {report.type}
-                      </td>
-                      <td className="px-6 py-2 text-xs text-gray-500">
-                        {report.cost ? `$${Number(report.cost).toFixed(2)}` : '-'}
-                      </td>
-                      <td className="px-6 py-2 text-xs text-gray-500">
-                        {report.odometer}
-                      </td>
-                      <td className="px-6 py-2">
-                        <div className="flex items-center gap-2">
-                          <button
-                            onClick={() => openEditModal(report)}
-                            className="inline-flex items-center justify-center rounded-full bg-blue-50 text-blue-600 hover:bg-blue-100 transition-colors h-7 w-7 shadow-sm border border-blue-100"
-                            title="Edit fuel report"
-                          >
-                            <Edit className="w-3 h-3" />
-                          </button>
-                          <button
-                            onClick={() => openDeleteModal(report)}
-                            className="inline-flex items-center justify-center rounded-full bg-red-50 text-red-600 hover:bg-red-100 transition-colors h-7 w-7 shadow-sm border border-red-100"
-                            title="Delete fuel report"
-                          >
-                            <Trash2 className="w-3 h-3" />
-                          </button>
-                        </div>
-                      </td>
-                    </tr>
-                  ))
+                        </td>
+                        <td className="px-6 py-2 text-xs text-gray-500">
+                          {types.length > 0 ? (
+                            <div className="space-y-1">
+                              {types.map((type, idx) => (
+                                <div key={idx} className="font-medium">{type}</div>
+                              ))}
+                            </div>
+                          ) : (report.type ? report.type : 'N/A')}
+                        </td>
+                        <td className="px-6 py-2 text-xs text-gray-500">
+                          {fuelAmounts.length > 0 ? (
+                            <div className="space-y-1">
+                              {fuelAmounts.map((amount, idx) => (
+                                <div key={idx}>{amount.toFixed(2)}</div>
+                              ))}
+                            </div>
+                          ) : (fuelAmount !== null && fuelAmount !== undefined ? fuelAmount.toFixed(2) : (report.volume ? `${report.volume} ${report.type || ''}` : 'N/A'))}
+                        </td>
+                        <td className="px-6 py-2 text-xs text-gray-500">
+                          {report.transactionAmount 
+                            ? `${report.currency === 'CAD' ? 'C$' : '$'}${Number(report.transactionAmount).toFixed(2)}`
+                            : (report.cost ? `$${Number(report.cost).toFixed(2)}` : '-')}
+                        </td>
+                        <td className="px-6 py-2 text-xs text-gray-500">
+                          {report.currentOdometer || report.odometer || 'N/A'}
+                        </td>
+                        <td className="px-6 py-2 text-xs text-gray-500">
+                          {units.length > 0 ? (
+                            <div className="space-y-1">
+                              {units.map((unit, idx) => (
+                                <div key={idx}>{unit}</div>
+                              ))}
+                            </div>
+                          ) : (measurementUnit ? measurementUnit : 'N/A')}
+                        </td>
+                        <td className="px-6 py-2 text-xs text-gray-500">
+                          {report.currency || 'USA'}
+                        </td>
+                        <td className="px-6 py-2 text-xs text-gray-500">
+                          {report.date 
+                            ? new Date(report.date).toLocaleDateString()
+                            : new Date(report.createdAt).toLocaleDateString()}
+                        </td>
+                        <td className="px-6 py-2 text-xs text-gray-500">
+                          {fuelVendors.length > 0 ? (
+                            <div className="space-y-1">
+                              {fuelVendors.map((vendor, idx) => (
+                                <div key={idx}>{vendor}</div>
+                              ))}
+                            </div>
+                          ) : (fuelVendor ? fuelVendor : 'N/A')}
+                        </td>
+                        <td className="px-6 py-2">
+                          <div className="flex items-center gap-2">
+                            <button
+                              onClick={() => openEditModal(report)}
+                              className="inline-flex items-center justify-center rounded-full bg-blue-50 text-blue-600 hover:bg-blue-100 transition-colors h-7 w-7 shadow-sm border border-blue-100"
+                              title="Edit fuel report"
+                            >
+                              <Edit className="w-3 h-3" />
+                            </button>
+                            <button
+                              onClick={() => openDeleteModal(report)}
+                              className="inline-flex items-center justify-center rounded-full bg-red-50 text-red-600 hover:bg-red-100 transition-colors h-7 w-7 shadow-sm border border-red-100"
+                              title="Delete fuel report"
+                            >
+                              <Trash2 className="w-3 h-3" />
+                            </button>
+                          </div>
+                        </td>
+                      </tr>
+                    );
+                  })
                 )}
               </tbody>
             </table>
