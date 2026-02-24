@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useCallback, useMemo, useRef } from "react";
-import { Plus, Search, Edit, Trash2, ChevronLeft, ChevronRight } from "lucide-react";
+import { Plus, Search, Edit, Trash2, ChevronLeft, ChevronRight, X } from "lucide-react";
 import { FaFileInvoiceDollar, FaGasPump, FaClipboardList } from "react-icons/fa";
 import { message } from "antd";
 import NewFuelReportSidebar from "./NewFuelReportSidebar";
@@ -8,10 +8,17 @@ import {
   deleteFuelReport,
   updateStatusFuelReport,
   updateFuelReport,
+  getFuelTypes,
+  createFuelType,
+  getUnits,
+  createUnit,
+  getFuelVendors,
+  createFuelVendor,
 } from "../../../../../axios/api/dispatcher.fuelreport";
 import { useDrivers } from "../../../../../customHooks/useDrivers";
 import { listFleetUnits } from "../../../../../axios/api/fleet.units";
 import { FLEET_COLORS } from "../../../fleetMaintenance/colorUtils";
+import AddressSearch from "../../../../../components/common/AddressSearch";
 
 interface FuelReportType {
   _id: string;
@@ -46,11 +53,23 @@ interface FuelReportType {
 }
 
 interface FuelReportEditForm {
-  driverId: string;
-  vehicleId: string;
-  volume: string;
+  unit: string;
+  state: string;
+  address: string;
+  city: string;
+  postalCode: string;
+  country: string;
+  latitude: string;
+  longitude: string;
+  fullAddress: string;
   type: string;
-  odometer: string;
+  transactionAmount: string;
+  currentOdometer: string;
+  measurementUnit: string;
+  currency: string;
+  date: string;
+  fuelVendor: string;
+  fuelAmount: string;
   status: string;
 }
 
@@ -75,15 +94,42 @@ const FuelReports = () => {
   const [totalPages, setTotalPages] = useState(0);
   const [editingReport, setEditingReport] = useState<FuelReportType | null>(null);
   const [editForm, setEditForm] = useState<FuelReportEditForm>({
-    driverId: "",
-    vehicleId: "",
-    volume: "",
-    type: "l",
-    odometer: "",
+    unit: "",
+    state: "",
+    address: "",
+    city: "",
+    postalCode: "",
+    country: "",
+    latitude: "",
+    longitude: "",
+    fullAddress: "",
+    type: "",
+    transactionAmount: "",
+    currentOdometer: "",
+    measurementUnit: "",
+    currency: "USA",
+    date: new Date().toISOString().split('T')[0],
+    fuelVendor: "",
+    fuelAmount: "",
     status: "pending",
   });
   const [editModalOpen, setEditModalOpen] = useState(false);
   const [editSubmitting, setEditSubmitting] = useState(false);
+  const [editFuelTypes, setEditFuelTypes] = useState<Array<{ _id: string; name: string }>>([]);
+  const [loadingEditFuelTypes, setLoadingEditFuelTypes] = useState(false);
+  const [showEditAddTypeModal, setShowEditAddTypeModal] = useState(false);
+  const [newEditTypeName, setNewEditTypeName] = useState('');
+  const [addingEditType, setAddingEditType] = useState(false);
+  const [editMeasurementUnits, setEditMeasurementUnits] = useState<Array<{ _id: string; name: string }>>([]);
+  const [loadingEditMeasurementUnits, setLoadingEditMeasurementUnits] = useState(false);
+  const [showEditAddUnitModal, setShowEditAddUnitModal] = useState(false);
+  const [newEditUnitName, setNewEditUnitName] = useState('');
+  const [addingEditUnit, setAddingEditUnit] = useState(false);
+  const [editFuelVendors, setEditFuelVendors] = useState<Array<{ _id: string; name: string }>>([]);
+  const [loadingEditFuelVendors, setLoadingEditFuelVendors] = useState(false);
+  const [showEditAddVendorModal, setShowEditAddVendorModal] = useState(false);
+  const [newEditVendorName, setNewEditVendorName] = useState('');
+  const [addingEditVendor, setAddingEditVendor] = useState(false);
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
   const [deleteTarget, setDeleteTarget] = useState<FuelReportType | null>(null);
   const [deleteLoading, setDeleteLoading] = useState(false);
@@ -419,14 +465,170 @@ const FuelReports = () => {
     }
   };
 
+  // Fetch fuel types, units, and vendors for edit modal
+  const fetchEditFuelTypes = useCallback(async () => {
+    setLoadingEditFuelTypes(true);
+    try {
+      const response = await getFuelTypes();
+      if (response?.success) {
+        setEditFuelTypes(response.data || []);
+      }
+    } catch (error) {
+      console.error('Error fetching fuel types:', error);
+    } finally {
+      setLoadingEditFuelTypes(false);
+    }
+  }, []);
+
+  const fetchEditMeasurementUnits = useCallback(async () => {
+    setLoadingEditMeasurementUnits(true);
+    try {
+      const response = await getUnits();
+      if (response?.success) {
+        setEditMeasurementUnits(response.data || []);
+      }
+    } catch (error) {
+      console.error('Error fetching measurement units:', error);
+    } finally {
+      setLoadingEditMeasurementUnits(false);
+    }
+  }, []);
+
+  const fetchEditFuelVendors = useCallback(async () => {
+    setLoadingEditFuelVendors(true);
+    try {
+      const response = await getFuelVendors();
+      if (response?.success) {
+        setEditFuelVendors(response.data || []);
+      }
+    } catch (error) {
+      console.error('Error fetching fuel vendors:', error);
+    } finally {
+      setLoadingEditFuelVendors(false);
+    }
+  }, []);
+
+  const handleEditAddNewType = async () => {
+    if (!newEditTypeName.trim()) {
+      message.warning('Please enter a fuel type name');
+      return;
+    }
+    setAddingEditType(true);
+    try {
+      const response = await createFuelType(newEditTypeName.trim());
+      if (response?.success) {
+        await fetchEditFuelTypes();
+        setShowEditAddTypeModal(false);
+        setNewEditTypeName('');
+        if (response.data) {
+          setEditForm(prev => ({
+            ...prev,
+            type: response.data.name
+          }));
+        }
+        message.success('Fuel type added successfully');
+      } else {
+        message.error(response?.message || 'Failed to create fuel type');
+      }
+    } catch (error: any) {
+      message.error(error?.message || 'Failed to create fuel type');
+    } finally {
+      setAddingEditType(false);
+    }
+  };
+
+  const handleEditAddNewUnit = async () => {
+    if (!newEditUnitName.trim()) {
+      message.warning('Please enter a unit name');
+      return;
+    }
+    setAddingEditUnit(true);
+    try {
+      const response = await createUnit(newEditUnitName.trim());
+      if (response?.success) {
+        await fetchEditMeasurementUnits();
+        setShowEditAddUnitModal(false);
+        setNewEditUnitName('');
+        if (response.data) {
+          setEditForm(prev => ({
+            ...prev,
+            measurementUnit: response.data.name
+          }));
+        }
+        message.success('Unit added successfully');
+      } else {
+        message.error(response?.message || 'Failed to create unit');
+      }
+    } catch (error: any) {
+      message.error(error?.message || 'Failed to create unit');
+    } finally {
+      setAddingEditUnit(false);
+    }
+  };
+
+  const handleEditAddNewVendor = async () => {
+    if (!newEditVendorName.trim()) {
+      message.warning('Please enter a fuel vendor name');
+      return;
+    }
+    setAddingEditVendor(true);
+    try {
+      const response = await createFuelVendor(newEditVendorName.trim());
+      if (response?.success) {
+        await fetchEditFuelVendors();
+        setShowEditAddVendorModal(false);
+        setNewEditVendorName('');
+        if (response.data) {
+          setEditForm(prev => ({
+            ...prev,
+            fuelVendor: response.data.name
+          }));
+        }
+        message.success('Fuel vendor added successfully');
+      } else {
+        message.error(response?.message || 'Failed to create fuel vendor');
+      }
+    } catch (error: any) {
+      message.error(error?.message || 'Failed to create fuel vendor');
+    } finally {
+      setAddingEditVendor(false);
+    }
+  };
+
   const openEditModal = (report: FuelReportType) => {
     setEditingReport(report);
+    // Fetch fuel types, units, and vendors when opening modal
+    fetchEditFuelTypes();
+    fetchEditMeasurementUnits();
+    fetchEditFuelVendors();
+    
+    // Get location data
+    const location = report.location || {};
+    const fullAddress = location.address || report.state || '';
+    
+    // Format date
+    const reportDate = report.date 
+      ? (typeof report.date === 'string' ? report.date.split('T')[0] : new Date(report.date).toISOString().split('T')[0])
+      : new Date().toISOString().split('T')[0];
+
     setEditForm({
-      driverId: report.driver?._id || "",
-      vehicleId: report.vehicle?._id || "",
-      volume: report.volume || "",
-      type: report.type || "l",
-      odometer: report.odometer || "",
+      unit: report.unit?._id || report.vehicle?._id || "",
+      state: report.state || "",
+      address: location.address || "",
+      city: "",
+      postalCode: "",
+      country: "",
+      latitude: location.latitude || "",
+      longitude: location.longitude || "",
+      fullAddress: fullAddress,
+      type: report.type || (report.types && report.types.length > 0 ? report.types[0] : ""),
+      transactionAmount: report.transactionAmount?.toString() || "",
+      currentOdometer: report.currentOdometer || report.odometer || "",
+      measurementUnit: report.measurementUnit || (report.units && report.units.length > 0 ? report.units[0] : ""),
+      currency: report.currency || "USA",
+      date: reportDate,
+      fuelVendor: report.fuelVendor || (report.fuelVendors && report.fuelVendors.length > 0 ? report.fuelVendors[0] : ""),
+      fuelAmount: report.fuelAmount?.toString() || "",
       status: report.status || "pending",
     });
     setEditModalOpen(true);
@@ -437,11 +639,23 @@ const FuelReports = () => {
     setEditModalOpen(false);
     setEditingReport(null);
     setEditForm({
-      driverId: "",
-      vehicleId: "",
-      volume: "",
-      type: "l",
-      odometer: "",
+      unit: "",
+      state: "",
+      address: "",
+      city: "",
+      postalCode: "",
+      country: "",
+      latitude: "",
+      longitude: "",
+      fullAddress: "",
+      type: "",
+      transactionAmount: "",
+      currentOdometer: "",
+      measurementUnit: "",
+      currency: "USA",
+      date: new Date().toISOString().split('T')[0],
+      fuelVendor: "",
+      fuelAmount: "",
       status: "pending",
     });
   };
@@ -458,24 +672,38 @@ const FuelReports = () => {
 
   const handleUpdateSubmit = async () => {
     if (!editingReport) return;
-    if (
-      !editForm.driverId ||
-      !editForm.vehicleId ||
-      !editForm.volume ||
-      !editForm.odometer
-    ) {
-      message.warning("Please fill in all required fields.");
+    if (!editForm.unit) {
+      message.warning("Please select a unit");
+      return;
+    }
+    if (!editForm.fullAddress && !editForm.state) {
+      message.warning("Please select a location");
+      return;
+    }
+    if (!editForm.type || !editForm.type.trim()) {
+      message.warning("Please select a fuel type");
       return;
     }
     try {
       setEditSubmitting(true);
       const payload = {
-        driver: editForm.driverId,
-        vehicle: editForm.vehicleId,
-        volume: editForm.volume,
+        unit: editForm.unit,
+        state: editForm.state,
+        address: editForm.address || editForm.fullAddress,
+        location: {
+          address: editForm.fullAddress || editForm.address || '',
+          latitude: editForm.latitude || '',
+          longitude: editForm.longitude || ''
+        },
         type: editForm.type,
-        odometer: editForm.odometer,
-        status: editForm.status,
+        transactionAmount: editForm.transactionAmount ? parseFloat(editForm.transactionAmount) : null,
+        currentOdometer: editForm.currentOdometer || null,
+        measurementUnit: editForm.measurementUnit,
+        currency: editForm.currency,
+        date: editForm.date || new Date().toISOString(),
+        fuelVendor: editForm.fuelVendor,
+        fuelAmount: editForm.fuelAmount ? parseFloat(editForm.fuelAmount) : null,
+        status: editForm.status || 'pending',
       };
       const res = await updateFuelReport(editingReport._id, payload);
       if (res.success) {
@@ -939,137 +1167,261 @@ const FuelReports = () => {
       />
 
       {/* Edit Modal */}
-      {/* Edit Sidebar */}
       {editModalOpen && editingReport && (
         <>
           <div className="fixed inset-0 bg-gray-900/50 backdrop-blur-sm z-[100]" onClick={closeEditModal} />
-          <div className="fixed right-0 top-0 h-full w-full sm:w-[500px] bg-white border-l border-gray-200 shadow-lg z-[101] flex flex-col">
+          <div className="fixed right-0 top-0 h-full w-full sm:w-[600px] bg-white border-l border-gray-200 shadow-lg z-[101] flex flex-col">
             <div className="p-4 border-b border-gray-200 flex-shrink-0" style={{ background: FLEET_COLORS.gradient }}>
               <div className="flex items-center justify-between">
-                <h2 className="text-xl font-semibold text-white">Edit Fuel Report</h2>
-                <button
-                  onClick={closeEditModal}
-                  className="text-white/80 hover:text-white transition-colors"
-                >
-                  <span className="text-2xl">×</span>
+                <h2 className="text-lg font-semibold text-white">Edit Fuel Report</h2>
+                <button onClick={closeEditModal} className="text-white/80 hover:text-white">
+                  <X className="w-5 h-5" />
                 </button>
               </div>
             </div>
 
-            <div className="flex-1 overflow-y-auto p-6 space-y-6">
-              <div className="grid grid-cols-1 gap-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Reporter</label>
-                  <div className="w-full border border-gray-300 px-3 py-2 rounded bg-gray-50 text-sm text-gray-700">
-                    <div className="font-semibold">
-                      {getReporterDetails(editingReport).name}
-                    </div>
+            <div className="flex-1 overflow-y-auto p-4 space-y-6 pb-20">
+              <div className="bg-gray-50 p-4 rounded-md shadow-sm">
+                <div className="space-y-4">
+                  <div className="bg-white border border-gray-200 rounded-lg px-4 py-3">
+                    <p className="text-xs font-semibold tracking-wide text-gray-500 uppercase">Reporter</p>
+                    <p className="text-gray-900 font-semibold">{getReporterDetails(editingReport).name}</p>
                     {getReporterDetails(editingReport).email && (
-                      <div className="text-xs text-gray-500">
-                        {getReporterDetails(editingReport).email}
-                      </div>
+                      <p className="text-xs text-gray-500">{getReporterDetails(editingReport).email}</p>
                     )}
                   </div>
-                </div>
 
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Driver</label>
-                  <select
-                    value={editForm.driverId}
-                    onChange={(e) => handleEditFieldChange("driverId", e.target.value)}
-                    className="w-full border border-gray-300 px-3 py-2 rounded focus:ring-2 focus:border-transparent"
-                    style={focusRingStyle}
-                  >
-                    <option value="">Select Driver</option>
-                    {drivers.map((driver) => (
-                      <option key={driver._id} value={driver._id}>
-                        {driver.name}
-                      </option>
-                    ))}
-                    {editForm.driverId &&
-                      !drivers.some((driver) => driver._id === editForm.driverId) && (
-                        <option value={editForm.driverId}>
-                          {editingReport.driver?.name || "Current driver"}
-                        </option>
-                      )}
-                  </select>
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Vehicle</label>
-                  <select
-                    value={editForm.vehicleId}
-                    onChange={(e) => handleEditFieldChange("vehicleId", e.target.value)}
-                    className="w-full border border-gray-300 px-3 py-2 rounded focus:ring-2 focus:border-transparent"
-                    style={focusRingStyle}
-                  >
-                    <option value="">Select Unit</option>
-                    {units.map((unit) => (
-                      <option key={unit.id} value={unit.id}>
-                        {formatUnitLabel(unit)}
-                      </option>
-                    ))}
-                    {editForm.vehicleId && !unitsMap.has(editForm.vehicleId) && (
-                      <option value={editForm.vehicleId}>{renderVehicleLabel(editingReport)}</option>
-                    )}
-                  </select>
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Status</label>
-                  <select
-                    value={editForm.status}
-                    onChange={(e) => handleEditFieldChange("status", e.target.value)}
-                    className="w-full border border-gray-300 px-3 py-2 rounded focus:ring-2 focus:border-transparent"
-                    style={focusRingStyle}
-                  >
-                    <option value="pending">Pending</option>
-                    <option value="approved">Approved</option>
-                    <option value="rejected">Rejected</option>
-                  </select>
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Volume</label>
-                  <div className="flex">
-                    <input
-                      type="number"
-                      min={0}
-                      value={editForm.volume}
-                      onChange={(e) => handleEditFieldChange("volume", e.target.value)}
-                      placeholder="Enter volume"
-                      className="flex-1 px-3 py-2 border border-gray-300 rounded-l-md focus:ring-2 focus:border-transparent"
-                      style={focusRingStyle}
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Location <span className="text-red-500">*</span></label>
+                    <AddressSearch
+                      placeholder="Search for an address..."
+                      value={editForm.fullAddress}
+                      onAddressSelect={(addressData) => {
+                        setEditForm(prev => ({
+                          ...prev,
+                          state: addressData.state || prev.state,
+                          address: addressData.address || '',
+                          city: addressData.city || '',
+                          postalCode: addressData.postalCode || '',
+                          country: addressData.country || '',
+                          latitude: addressData.latitude || '',
+                          longitude: addressData.longitude || '',
+                          fullAddress: addressData.fullAddress || ''
+                        }));
+                      }}
+                      onChange={(value) => {
+                        setEditForm(prev => ({
+                          ...prev,
+                          fullAddress: value
+                        }));
+                      }}
+                      className="w-full"
                     />
+                    {editForm.state && (
+                      <p className="text-xs text-gray-500 mt-1">
+                        Selected: {editForm.state} {editForm.city && `- ${editForm.city}`}
+                      </p>
+                    )}
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Unit <span className="text-red-500">*</span></label>
                     <select
-                      value={editForm.type}
-                      onChange={(e) => handleEditFieldChange("type", e.target.value)}
-                      className="px-3 py-2 border border-gray-300 rounded-r-md focus:ring-2 focus:border-transparent"
+                      value={editForm.unit}
+                      onChange={(e) => handleEditFieldChange("unit", e.target.value)}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:border-transparent"
                       style={focusRingStyle}
                     >
-                      <option value="ml">ml</option>
-                      <option value="cl">cl</option>
-                      <option value="dl">dl</option>
-                      <option value="dm³">dm³</option>
-                      <option value="l">L</option>
-                      <option value="gal">gal</option>
-                      <option value="pt">pt</option>
-                      <option value="qt">qt</option>
+                      <option value="">Select Unit</option>
+                      {unitsLoading ? (
+                        <option>Loading units...</option>
+                      ) : (
+                        units?.map(unit => (
+                          <option key={unit.id} value={unit.id}>
+                            {formatUnitLabel(unit)}
+                          </option>
+                        ))
+                      )}
                     </select>
                   </div>
-                </div>
 
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Odometer</label>
-                  <input
-                    type="number"
-                    min={0}
-                    value={editForm.odometer}
-                    onChange={(e) => handleEditFieldChange("odometer", e.target.value)}
-                    placeholder="Enter odometer"
-                    className="w-full border border-gray-300 px-3 py-2 rounded focus:ring-2 focus:border-transparent"
-                    style={focusRingStyle}
-                  />
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Type <span className="text-red-500">*</span></label>
+                    <div className="flex gap-2">
+                      <select
+                        value={editForm.type}
+                        onChange={(e) => handleEditFieldChange("type", e.target.value)}
+                        className="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:border-transparent"
+                        style={focusRingStyle}
+                      >
+                        <option value="">Select Fuel Type</option>
+                        {loadingEditFuelTypes ? (
+                          <option disabled>Loading...</option>
+                        ) : (
+                          editFuelTypes.map((ft) => (
+                            <option key={ft._id} value={ft.name}>
+                              {ft.name}
+                            </option>
+                          ))
+                        )}
+                      </select>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setShowEditAddTypeModal(true);
+                          setNewEditTypeName('');
+                        }}
+                        className="px-3 py-2 bg-green-50 text-green-600 rounded-md hover:bg-green-100 transition-colors whitespace-nowrap"
+                        title="Add new fuel type"
+                      >
+                        <Plus className="w-4 h-4" />
+                      </button>
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Transaction Amount</label>
+                    <input
+                      type="number"
+                      step="0.01"
+                      value={editForm.transactionAmount}
+                      onChange={(e) => handleEditFieldChange("transactionAmount", e.target.value)}
+                      placeholder="0.00"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:border-transparent"
+                      style={focusRingStyle}
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Current Odometer</label>
+                    <input
+                      type="text"
+                      value={editForm.currentOdometer}
+                      onChange={(e) => handleEditFieldChange("currentOdometer", e.target.value)}
+                      placeholder="Enter odometer reading"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:border-transparent"
+                      style={focusRingStyle}
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Unit</label>
+                    <div className="flex gap-2">
+                      <select
+                        value={editForm.measurementUnit}
+                        onChange={(e) => handleEditFieldChange("measurementUnit", e.target.value)}
+                        className="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:border-transparent"
+                        style={focusRingStyle}
+                      >
+                        <option value="">Select Unit</option>
+                        {loadingEditMeasurementUnits ? (
+                          <option disabled>Loading...</option>
+                        ) : (
+                          editMeasurementUnits.map((u) => (
+                            <option key={u._id} value={u.name}>
+                              {u.name}
+                            </option>
+                          ))
+                        )}
+                      </select>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setShowEditAddUnitModal(true);
+                          setNewEditUnitName('');
+                        }}
+                        className="px-3 py-2 bg-green-50 text-green-600 rounded-md hover:bg-green-100 transition-colors whitespace-nowrap"
+                        title="Add new unit"
+                      >
+                        <Plus className="w-4 h-4" />
+                      </button>
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Currency</label>
+                    <select
+                      value={editForm.currency}
+                      onChange={(e) => handleEditFieldChange("currency", e.target.value)}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:border-transparent"
+                      style={focusRingStyle}
+                    >
+                      <option value="USA">USA</option>
+                      <option value="CAD">CAD</option>
+                    </select>
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Date</label>
+                    <input
+                      type="date"
+                      value={editForm.date}
+                      onChange={(e) => handleEditFieldChange("date", e.target.value)}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:border-transparent"
+                      style={focusRingStyle}
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Fuel Vendor</label>
+                    <div className="flex gap-2">
+                      <select
+                        value={editForm.fuelVendor}
+                        onChange={(e) => handleEditFieldChange("fuelVendor", e.target.value)}
+                        className="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:border-transparent"
+                        style={focusRingStyle}
+                      >
+                        <option value="">Select Fuel Vendor</option>
+                        {loadingEditFuelVendors ? (
+                          <option disabled>Loading...</option>
+                        ) : (
+                          editFuelVendors.map((v) => (
+                            <option key={v._id} value={v.name}>
+                              {v.name}
+                            </option>
+                          ))
+                        )}
+                      </select>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setShowEditAddVendorModal(true);
+                          setNewEditVendorName('');
+                        }}
+                        className="px-3 py-2 bg-green-50 text-green-600 rounded-md hover:bg-green-100 transition-colors whitespace-nowrap"
+                        title="Add new fuel vendor"
+                      >
+                        <Plus className="w-4 h-4" />
+                      </button>
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Fuel Amount</label>
+                    <input
+                      type="number"
+                      step="0.01"
+                      value={editForm.fuelAmount}
+                      onChange={(e) => handleEditFieldChange("fuelAmount", e.target.value)}
+                      placeholder="0.00"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:border-transparent"
+                      style={focusRingStyle}
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Status</label>
+                    <select
+                      value={editForm.status}
+                      onChange={(e) => handleEditFieldChange("status", e.target.value)}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:border-transparent"
+                      style={focusRingStyle}
+                    >
+                      <option value="pending">Pending</option>
+                      <option value="approved">Approved</option>
+                      <option value="rejected">Rejected</option>
+                    </select>
+                  </div>
                 </div>
               </div>
             </div>
@@ -1078,20 +1430,179 @@ const FuelReports = () => {
               <button
                 onClick={closeEditModal}
                 disabled={editSubmitting}
-                className="px-6 py-2 rounded-lg border border-gray-300 text-gray-700 hover:bg-gray-50 transition-colors disabled:opacity-60"
+                className="px-6 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors disabled:opacity-60"
               >
                 Cancel
               </button>
               <button
                 onClick={handleUpdateSubmit}
                 disabled={editSubmitting}
-                className="px-6 py-2 rounded-lg !text-white transition-colors disabled:opacity-60"
+                className="px-6 py-2 rounded-lg !text-white font-semibold transition-colors disabled:opacity-60"
                 style={{ background: FLEET_COLORS.gradient }}
               >
-                {editSubmitting ? "Saving..." : "Save Changes"}
+                {editSubmitting ? 'Saving...' : 'Save Changes'}
               </button>
             </div>
           </div>
+
+          {/* Add Fuel Type Modal for Edit */}
+          {showEditAddTypeModal && (
+            <>
+              <div className="fixed inset-0 bg-gray-900/50 backdrop-blur-sm z-[102]" onClick={() => setShowEditAddTypeModal(false)}></div>
+              <div className="fixed inset-0 flex items-center justify-center z-[103] px-4">
+                <div className="bg-white rounded-lg shadow-xl p-6 w-full max-w-md">
+                  <h3 className="text-lg font-semibold text-gray-900 mb-4">Add New Fuel Type</h3>
+                  <div className="space-y-4">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                        Fuel Type Name <span className="text-red-500">*</span>
+                      </label>
+                      <input
+                        type="text"
+                        value={newEditTypeName}
+                        onChange={(e) => setNewEditTypeName(e.target.value)}
+                        placeholder="e.g., Diesel, Gasoline, Electric"
+                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:border-transparent"
+                        style={focusRingStyle}
+                        onKeyPress={(e) => {
+                          if (e.key === 'Enter') {
+                            handleEditAddNewType();
+                          }
+                        }}
+                        autoFocus
+                      />
+                    </div>
+                    <div className="flex justify-end gap-3 pt-2">
+                      <button
+                        onClick={() => {
+                          setShowEditAddTypeModal(false);
+                          setNewEditTypeName('');
+                        }}
+                        disabled={addingEditType}
+                        className="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors disabled:opacity-60"
+                      >
+                        Cancel
+                      </button>
+                      <button
+                        onClick={handleEditAddNewType}
+                        disabled={addingEditType || !newEditTypeName.trim()}
+                        className="px-4 py-2 rounded-lg !text-white transition-colors disabled:opacity-60"
+                        style={{ background: FLEET_COLORS.gradient }}
+                      >
+                        {addingEditType ? 'Adding...' : 'Add Type'}
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </>
+          )}
+
+          {/* Add Unit Modal for Edit */}
+          {showEditAddUnitModal && (
+            <>
+              <div className="fixed inset-0 bg-gray-900/50 backdrop-blur-sm z-[102]" onClick={() => setShowEditAddUnitModal(false)}></div>
+              <div className="fixed inset-0 flex items-center justify-center z-[103] px-4">
+                <div className="bg-white rounded-lg shadow-xl p-6 w-full max-w-md">
+                  <h3 className="text-lg font-semibold text-gray-900 mb-4">Add New Unit</h3>
+                  <div className="space-y-4">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                        Unit Name <span className="text-red-500">*</span>
+                      </label>
+                      <input
+                        type="text"
+                        value={newEditUnitName}
+                        onChange={(e) => setNewEditUnitName(e.target.value)}
+                        placeholder="e.g., L, gal, ml"
+                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:border-transparent"
+                        style={focusRingStyle}
+                        onKeyPress={(e) => {
+                          if (e.key === 'Enter') {
+                            handleEditAddNewUnit();
+                          }
+                        }}
+                        autoFocus
+                      />
+                    </div>
+                    <div className="flex justify-end gap-3 pt-2">
+                      <button
+                        onClick={() => {
+                          setShowEditAddUnitModal(false);
+                          setNewEditUnitName('');
+                        }}
+                        disabled={addingEditUnit}
+                        className="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors disabled:opacity-60"
+                      >
+                        Cancel
+                      </button>
+                      <button
+                        onClick={handleEditAddNewUnit}
+                        disabled={addingEditUnit || !newEditUnitName.trim()}
+                        className="px-4 py-2 rounded-lg !text-white transition-colors disabled:opacity-60"
+                        style={{ background: FLEET_COLORS.gradient }}
+                      >
+                        {addingEditUnit ? 'Adding...' : 'Add Unit'}
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </>
+          )}
+
+          {/* Add Fuel Vendor Modal for Edit */}
+          {showEditAddVendorModal && (
+            <>
+              <div className="fixed inset-0 bg-gray-900/50 backdrop-blur-sm z-[102]" onClick={() => setShowEditAddVendorModal(false)}></div>
+              <div className="fixed inset-0 flex items-center justify-center z-[103] px-4">
+                <div className="bg-white rounded-lg shadow-xl p-6 w-full max-w-md">
+                  <h3 className="text-lg font-semibold text-gray-900 mb-4">Add New Fuel Vendor</h3>
+                  <div className="space-y-4">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                        Fuel Vendor Name <span className="text-red-500">*</span>
+                      </label>
+                      <input
+                        type="text"
+                        value={newEditVendorName}
+                        onChange={(e) => setNewEditVendorName(e.target.value)}
+                        placeholder="e.g., Shell, Chevron, Petro-Canada"
+                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:border-transparent"
+                        style={focusRingStyle}
+                        onKeyPress={(e) => {
+                          if (e.key === 'Enter') {
+                            handleEditAddNewVendor();
+                          }
+                        }}
+                        autoFocus
+                      />
+                    </div>
+                    <div className="flex justify-end gap-3 pt-2">
+                      <button
+                        onClick={() => {
+                          setShowEditAddVendorModal(false);
+                          setNewEditVendorName('');
+                        }}
+                        disabled={addingEditVendor}
+                        className="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors disabled:opacity-60"
+                      >
+                        Cancel
+                      </button>
+                      <button
+                        onClick={handleEditAddNewVendor}
+                        disabled={addingEditVendor || !newEditVendorName.trim()}
+                        className="px-4 py-2 rounded-lg !text-white transition-colors disabled:opacity-60"
+                        style={{ background: FLEET_COLORS.gradient }}
+                      >
+                        {addingEditVendor ? 'Adding...' : 'Add Vendor'}
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </>
+          )}
         </>
       )}
 
