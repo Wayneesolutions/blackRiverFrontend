@@ -46,7 +46,7 @@ const Company = () => {
   const [success, setSuccess] = useState('');
   const [apiError, setApiError] = useState('');
   const [apiSuccess, setApiSuccess] = useState('');
-  
+
   const [companyInfo, setCompanyInfo] = useState<CompanyInfo>({
     companyName: '',
     companyCode: '',
@@ -80,37 +80,38 @@ const Company = () => {
   const [editForm, setEditForm] = useState<CompanyInfo>(companyInfo);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string>('');
+  const [activeTab, setActiveTab] = useState<'company' | 'maintenance'>('company');
 
   const updateStoredUserCompany = useCallback(
     (company: { _id: string; companyName?: string } | null) => {
-    try {
-      const stored = localStorage.getItem('userInfo');
-      if (!stored) {
-        return;
+      try {
+        const stored = localStorage.getItem('userInfo');
+        if (!stored) {
+          return;
+        }
+
+        const parsed = JSON.parse(stored);
+        if (!parsed?.userData) {
+          return;
+        }
+
+        const updated = {
+          ...parsed,
+          userData: {
+            ...parsed.userData,
+            company: company || undefined
+          },
+          role: parsed.userData?.role || parsed.role,
+          company: company || undefined,
+        };
+
+        localStorage.setItem('userInfo', JSON.stringify(updated));
+        dispatch(setUserCredentials(updated));
+      } catch (err) {
+        console.error('Error updating stored userInfo with company details:', err);
       }
-
-      const parsed = JSON.parse(stored);
-      if (!parsed?.userData) {
-        return;
-      }
-
-      const updated = {
-        ...parsed,
-        userData: {
-          ...parsed.userData,
-          company: company || undefined
-        },
-        role: parsed.userData?.role || parsed.role,
-        company: company || undefined,
-      };
-
-      localStorage.setItem('userInfo', JSON.stringify(updated));
-      dispatch(setUserCredentials(updated));
-    } catch (err) {
-      console.error('Error updating stored userInfo with company details:', err);
-    }
-  },
-  [dispatch]);
+    },
+    [dispatch]);
 
   // Fetch company data on component mount
   useEffect(() => {
@@ -120,13 +121,13 @@ const Company = () => {
   const fetchCompanyData = async () => {
     setFetchLoading(true);
     setError('');
-    
+
     try {
       const response = await getCompany();
-      
+
       if (response?.success && response?.data) {
         const data = response.data;
-        
+
         const companyData: CompanyInfo = {
           companyName: data.companyName || '',
           companyCode: data.companyCode || '',
@@ -135,13 +136,13 @@ const Company = () => {
           contactPhone: data.contactPhone || '',
           logoUrl: data.logoUrl || ''
         };
-        
+
         setCompanyInfo(companyData);
         setEditForm(companyData);
         if (data._id) {
           updateStoredUserCompany({ _id: data._id, companyName: data.companyName || '' });
         }
-        
+
         // Handle API configurations
         if (data.samsaraConfig) {
           setSamsaraConfig({
@@ -149,7 +150,7 @@ const Company = () => {
             apiToken: data.samsaraConfig.apiToken || ''
           });
         }
-        
+
         if (data.thermokingConfig) {
           setThermokingConfig({
             apiBaseUrl: data.thermokingConfig.apiBaseUrl || '',
@@ -158,12 +159,12 @@ const Company = () => {
             apiVersion: data.thermokingConfig.apiVersion || 'v1'
           });
         }
-        
+
         // Handle Maintenance Policy (use defaults if not set)
         setMaintenancePolicy({
           customServices: data.maintenancePolicies?.customServices || [] // Load custom services or empty array
         });
-        
+
         // Set preview URL for logo
         if (data.logoUrl) {
           setPreviewUrl(data.logoUrl);
@@ -207,11 +208,11 @@ const Company = () => {
     setLoading(true);
     setError('');
     setSuccess('');
-    
+
     try {
       // Create FormData for file upload
       const formData = new FormData();
-      
+
       // Add company info fields only (no API configs)
       (Object.keys(editForm) as Array<keyof CompanyInfo>).forEach((key) => {
         const value = editForm[key];
@@ -219,14 +220,14 @@ const Company = () => {
           formData.append(key, value);
         }
       });
-      
+
       // Add logo file if selected
       if (selectedFile) {
         formData.append('file', selectedFile);
       }
-      
+
       const response = await updateCompany(formData);
-      
+
       if (response?.success) {
         setSuccess('Company settings updated successfully!');
         setCompanyInfo(editForm);
@@ -237,7 +238,7 @@ const Company = () => {
         } else {
           updateStoredUserCompany(null);
         }
-        
+
         // Update logo URL if returned in response
         if (response.data?.logoUrl) {
           setCompanyInfo(prev => ({
@@ -246,7 +247,7 @@ const Company = () => {
           }));
           setPreviewUrl(response.data.logoUrl);
         }
-        
+
         // Clear success message after 3 seconds
         setTimeout(() => setSuccess(''), 3000);
       } else {
@@ -272,13 +273,13 @@ const Company = () => {
     setApiLoading(true);
     setApiError('');
     setApiSuccess('');
-    
+
     try {
       const response = await updateApiCredentials({
         samsaraConfig,
         thermokingConfig
       });
-      
+
       if (response?.success) {
         setApiSuccess('API credentials updated successfully!');
         // Clear success message after 3 seconds
@@ -302,16 +303,16 @@ const Company = () => {
         setError('Please select a valid image file.');
         return;
       }
-      
+
       // Validate file size (max 5MB)
       if (file.size > 5 * 1024 * 1024) {
         setError('File size should be less than 5MB.');
         return;
       }
-      
+
       setSelectedFile(file);
       setError('');
-      
+
       // Create preview URL
       const reader = new FileReader();
       reader.onload = (event) => {
@@ -380,17 +381,17 @@ const Company = () => {
     setPolicyLoading(true);
     setPolicyError('');
     setPolicySuccess('');
-    
+
     try {
       // Filter out incomplete services before sending
       const validServices = maintenancePolicy.customServices.filter(service => {
         return (
-          service.name && 
-          service.name.trim() !== '' && 
-          typeof service.truck?.value === 'number' && 
+          service.name &&
+          service.name.trim() !== '' &&
+          typeof service.truck?.value === 'number' &&
           service.truck.value > 0 &&
           service.truck.unit &&
-          typeof service.trailer?.value === 'number' && 
+          typeof service.trailer?.value === 'number' &&
           service.trailer.value > 0 &&
           service.trailer.unit
         );
@@ -399,12 +400,12 @@ const Company = () => {
       // Check if there are any incomplete services
       const incompleteServices = maintenancePolicy.customServices.filter(service => {
         return !(
-          service.name && 
-          service.name.trim() !== '' && 
-          typeof service.truck?.value === 'number' && 
+          service.name &&
+          service.name.trim() !== '' &&
+          typeof service.truck?.value === 'number' &&
           service.truck.value > 0 &&
           service.truck.unit &&
-          typeof service.trailer?.value === 'number' && 
+          typeof service.trailer?.value === 'number' &&
           service.trailer.value > 0 &&
           service.trailer.unit
         );
@@ -427,7 +428,7 @@ const Company = () => {
           customServices: validServices
         }
       });
-      
+
       if (response?.success) {
         setPolicySuccess('Maintenance policy settings saved successfully!');
         // Update local state with validated services
@@ -476,21 +477,21 @@ const Company = () => {
             <span className="text-sm font-medium">{success}</span>
           </div>
         )}
-        
+
         {error && (
           <div className="fixed top-6 right-6 bg-red-500 text-white px-6 py-4 rounded-lg shadow-lg flex items-center gap-3 animate-slide-in z-50 max-w-md">
             <AlertCircle className="w-5 h-5 flex-shrink-0" />
             <span className="text-sm font-medium">{error}</span>
           </div>
         )}
-        
+
         {apiSuccess && (
           <div className="fixed top-6 right-6 bg-green-500 text-white px-6 py-4 rounded-lg shadow-lg flex items-center gap-3 animate-slide-in z-50 max-w-md">
             <Check className="w-5 h-5 flex-shrink-0" />
             <span className="text-sm font-medium">{apiSuccess}</span>
           </div>
         )}
-        
+
         {apiError && (
           <div className="fixed top-6 right-6 bg-red-500 text-white px-6 py-4 rounded-lg shadow-lg flex items-center gap-3 animate-slide-in z-50 max-w-md">
             <AlertCircle className="w-5 h-5 flex-shrink-0" />
@@ -504,7 +505,7 @@ const Company = () => {
             <span className="text-sm font-medium">{policySuccess}</span>
           </div>
         )}
-        
+
         {policyError && (
           <div className="fixed top-6 right-6 bg-red-500 text-white px-6 py-4 rounded-lg shadow-lg flex items-center gap-3 animate-slide-in z-50 max-w-md">
             <AlertCircle className="w-5 h-5 flex-shrink-0" />
@@ -520,22 +521,237 @@ const Company = () => {
               <p className="text-gray-600">Manage your company information and preferences</p>
             </div>
             <div className="flex gap-3">
-              {isEditing ? (
-                <>
+              {activeTab === 'company' && (
+                isEditing ? (
+                  <>
+                    <button
+                      onClick={handleCancel}
+                      disabled={loading}
+                      className="px-4 py-2 text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors font-medium flex items-center gap-2 disabled:opacity-50"
+                    >
+                      <X size={16} />
+                      Cancel
+                    </button>
+                    <button
+                      onClick={handleSave}
+                      disabled={loading}
+                      className="px-4 py-2 bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 !text-white rounded-lg transition-all font-medium flex items-center gap-2 disabled:opacity-50"
+                    >
+                      {loading ? (
+                        <>
+                          <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                          Saving...
+                        </>
+                      ) : (
+                        <>
+                          <Save size={16} />
+                          Save Changes
+                        </>
+                      )}
+                    </button>
+                  </>
+                ) : (
                   <button
-                    onClick={handleCancel}
-                    disabled={loading}
-                    className="px-4 py-2 text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors font-medium flex items-center gap-2 disabled:opacity-50"
+                    onClick={() => setIsEditing(true)}
+                    style={{
+                      background: "linear-gradient(90deg, #42aeec 0%, #1db5f5 40%, #0ea3d8 100%)",
+                    }}
+                    className="px-4 py-2   !text-white rounded-lg transition-all font-medium flex items-center gap-2"
                   >
-                    <X size={16} />
-                    Cancel
+                    <Edit size={16} />
+                    Edit Settings
                   </button>
+                )
+              )}
+            </div>
+          </div>
+          {/* Tabs */}
+          <div className="flex border-b border-gray-200 mt-6 -mb-px">
+            <button
+              type="button"
+              onClick={() => setActiveTab('company')}
+              className={`px-5 py-3 text-sm font-medium border-b-2 transition-colors ${activeTab === 'company'
+                  ? 'border-blue-600 text-blue-600'
+                  : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                }`}
+            >
+              Company & API
+            </button>
+            <button
+              type="button"
+              onClick={() => setActiveTab('maintenance')}
+              className={`px-5 py-3 text-sm font-medium border-b-2 transition-colors ${activeTab === 'maintenance'
+                  ? 'border-blue-600 text-blue-600'
+                  : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                }`}
+            >
+              Maintenance Policy Settings
+            </button>
+          </div>
+        </div>
+
+        {activeTab === 'company' && (
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+            {/* Company Information */}
+            <div className="bg-white rounded-xl shadow-sm border border-gray-200">
+              <div className="p-6 border-b border-gray-200">
+                <div className="flex items-center gap-3">
+                  <Building className="text-blue-600" size={24} />
+                  <h2 className="text-xl font-bold text-gray-900">Company Information</h2>
+                </div>
+              </div>
+
+              <div className="p-6 space-y-6">
+                {/* Company Logo */}
+                <div className="flex flex-col items-center">
+                  <div className="relative group">
+                    <div className="w-24 h-24 rounded-full overflow-hidden border-4 border-gray-200 bg-gray-100">
+                      <img
+                        src={previewUrl || companyInfo.logoUrl || 'https://via.placeholder.com/200x200/3B82F6/FFFFFF?text=LOGO'}
+                        alt="Company Logo"
+                        className="w-full h-full object-cover"
+                        onError={(e) => {
+                          const target = e.target as HTMLImageElement;
+                          target.src = 'https://via.placeholder.com/200x200/3B82F6/FFFFFF?text=LOGO';
+                        }}
+                      />
+                    </div>
+                    {isEditing && (
+                      <label className="absolute inset-0 flex items-center justify-center bg-black bg-opacity-50 rounded-full opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer">
+                        <Upload size={20} className="text-white" />
+                        <input
+                          type="file"
+                          accept="image/*"
+                          onChange={handleLogoUpload}
+                          className="hidden"
+                        />
+                      </label>
+                    )}
+                  </div>
+                  <p className="text-sm text-gray-500 mt-2">Company Logo</p>
+                  {selectedFile && (
+                    <p className="text-xs text-green-600 mt-1">New logo selected: {selectedFile.name}</p>
+                  )}
+                </div>
+
+                {/* Company Details */}
+                <div className="space-y-4">
+                  <div>
+                    <label className="block text-sm font-semibold text-gray-700 mb-2">Company Name</label>
+                    {isEditing ? (
+                      <input
+                        type="text"
+                        name="companyName"
+                        value={editForm.companyName}
+                        onChange={handleInputChange}
+                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+                        placeholder="Enter company name"
+                      />
+                    ) : (
+                      <div className="px-4 py-3 bg-gray-50 rounded-lg">
+                        <p className="text-gray-900 font-medium">{companyInfo.companyName || 'Not set'}</p>
+                      </div>
+                    )}
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-semibold text-gray-700 mb-2">Company Code</label>
+                    {isEditing ? (
+                      <input
+                        type="text"
+                        name="companyCode"
+                        value={editForm.companyCode}
+                        onChange={handleInputChange}
+                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+                        placeholder="Enter company code"
+                      />
+                    ) : (
+                      <div className="px-4 py-3 bg-gray-50 rounded-lg">
+                        <p className="text-gray-900 font-medium">{companyInfo.companyCode || 'Not set'}</p>
+                      </div>
+                    )}
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-semibold text-gray-700 mb-2">
+                      <MapPin size={16} className="inline mr-1" />
+                      Address
+                    </label>
+                    {isEditing ? (
+                      <textarea
+                        name="address"
+                        value={editForm.address}
+                        onChange={handleInputChange}
+                        rows={3}
+                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all resize-none"
+                        placeholder="Enter company address"
+                      />
+                    ) : (
+                      <div className="px-4 py-3 bg-gray-50 rounded-lg">
+                        <p className="text-gray-900">{companyInfo.address || 'Not set'}</p>
+                      </div>
+                    )}
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-semibold text-gray-700 mb-2">
+                      <Mail size={16} className="inline mr-1" />
+                      Contact Email
+                    </label>
+                    {isEditing ? (
+                      <input
+                        type="email"
+                        name="contactEmail"
+                        value={editForm.contactEmail}
+                        onChange={handleInputChange}
+                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+                        placeholder="Enter contact email"
+                      />
+                    ) : (
+                      <div className="px-4 py-3 bg-gray-50 rounded-lg">
+                        <p className="text-gray-900">{companyInfo.contactEmail || 'Not set'}</p>
+                      </div>
+                    )}
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-semibold text-gray-700 mb-2">
+                      <Phone size={16} className="inline mr-1" />
+                      Contact Phone
+                    </label>
+                    {isEditing ? (
+                      <input
+                        type="tel"
+                        name="contactPhone"
+                        value={editForm.contactPhone}
+                        onChange={handleInputChange}
+                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+                        placeholder="Enter contact phone"
+                      />
+                    ) : (
+                      <div className="px-4 py-3 bg-gray-50 rounded-lg">
+                        <p className="text-gray-900">{companyInfo.contactPhone || 'Not set'}</p>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* API Configuration */}
+            <div className="bg-white rounded-xl shadow-sm border border-gray-200">
+              <div className="p-6 border-b border-gray-200">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <Settings className="text-blue-600" size={24} />
+                    <h2 className="text-xl font-bold text-gray-900">API Configuration</h2>
+                  </div>
                   <button
-                    onClick={handleSave}
-                    disabled={loading}
-                    className="px-4 py-2 bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 !text-white rounded-lg transition-all font-medium flex items-center gap-2 disabled:opacity-50"
+                    onClick={handleSaveApiCredentials}
+                    disabled={apiLoading}
+                    className="px-4 py-2 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 !text-white rounded-lg transition-all font-medium flex items-center gap-2 disabled:opacity-50"
                   >
-                    {loading ? (
+                    {apiLoading ? (
                       <>
                         <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
                         Saving...
@@ -543,295 +759,108 @@ const Company = () => {
                     ) : (
                       <>
                         <Save size={16} />
-                        Save Changes
+                        Save API Credentials
                       </>
                     )}
                   </button>
-                </>
-              ) : (
-                <button
-                  onClick={() => setIsEditing(true)}
-                  style={{
-                    background: "linear-gradient(90deg, #42aeec 0%, #1db5f5 40%, #0ea3d8 100%)",
-                  }}
-                  className="px-4 py-2   !text-white rounded-lg transition-all font-medium flex items-center gap-2"
-                >
-                  <Edit size={16} />
-                  Edit Settings
-                </button>
-              )}
-            </div>
-          </div>
-        </div>
-
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-          {/* Company Information */}
-          <div className="bg-white rounded-xl shadow-sm border border-gray-200">
-            <div className="p-6 border-b border-gray-200">
-              <div className="flex items-center gap-3">
-                <Building className="text-blue-600" size={24} />
-                <h2 className="text-xl font-bold text-gray-900">Company Information</h2>
+                </div>
               </div>
-            </div>
-            
-            <div className="p-6 space-y-6">
-              {/* Company Logo */}
-              <div className="flex flex-col items-center">
-                <div className="relative group">
-                  <div className="w-24 h-24 rounded-full overflow-hidden border-4 border-gray-200 bg-gray-100">
-                    <img
-                      src={previewUrl || companyInfo.logoUrl || 'https://via.placeholder.com/200x200/3B82F6/FFFFFF?text=LOGO'}
-                      alt="Company Logo"
-                      className="w-full h-full object-cover"
-                      onError={(e) => {
-                        const target = e.target as HTMLImageElement;
-                        target.src = 'https://via.placeholder.com/200x200/3B82F6/FFFFFF?text=LOGO';
-                      }}
-                    />
+
+              <div className="p-6 space-y-8">
+                {/* Samsara Configuration */}
+                <div>
+                  <div className="flex items-center gap-2 mb-4">
+                    <Key className="text-blue-600" size={20} />
+                    <h3 className="text-lg font-semibold text-gray-900">Samsara API</h3>
                   </div>
-                  {isEditing && (
-                    <label className="absolute inset-0 flex items-center justify-center bg-black bg-opacity-50 rounded-full opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer">
-                      <Upload size={20} className="text-white" />
+                  <div className="space-y-4">
+                    <div>
+                      <label className="block text-sm font-semibold text-gray-700 mb-2">API Base URL</label>
                       <input
-                        type="file"
-                        accept="image/*"
-                        onChange={handleLogoUpload}
-                        className="hidden"
+                        type="text"
+                        value={samsaraConfig.apiBaseUrl}
+                        onChange={(e) => handleSamsaraChange('apiBaseUrl', e.target.value)}
+                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+                        placeholder="https://api.samsara.com"
                       />
-                    </label>
-                  )}
-                </div>
-                <p className="text-sm text-gray-500 mt-2">Company Logo</p>
-                {selectedFile && (
-                  <p className="text-xs text-green-600 mt-1">New logo selected: {selectedFile.name}</p>
-                )}
-              </div>
-
-              {/* Company Details */}
-              <div className="space-y-4">
-                <div>
-                  <label className="block text-sm font-semibold text-gray-700 mb-2">Company Name</label>
-                  {isEditing ? (
-                    <input
-                      type="text"
-                      name="companyName"
-                      value={editForm.companyName}
-                      onChange={handleInputChange}
-                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
-                      placeholder="Enter company name"
-                    />
-                  ) : (
-                    <div className="px-4 py-3 bg-gray-50 rounded-lg">
-                      <p className="text-gray-900 font-medium">{companyInfo.companyName || 'Not set'}</p>
                     </div>
-                  )}
+                    <div>
+                      <label className="block text-sm font-semibold text-gray-700 mb-2">API Token</label>
+                      <input
+                        type="password"
+                        value={samsaraConfig.apiToken}
+                        onChange={(e) => handleSamsaraChange('apiToken', e.target.value)}
+                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+                        placeholder="Enter Samsara API token"
+                      />
+                    </div>
+                  </div>
                 </div>
 
-                <div>
-                  <label className="block text-sm font-semibold text-gray-700 mb-2">Company Code</label>
-                  {isEditing ? (
-                    <input
-                      type="text"
-                      name="companyCode"
-                      value={editForm.companyCode}
-                      onChange={handleInputChange}
-                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
-                      placeholder="Enter company code"
-                    />
-                  ) : (
-                    <div className="px-4 py-3 bg-gray-50 rounded-lg">
-                      <p className="text-gray-900 font-medium">{companyInfo.companyCode || 'Not set'}</p>
+                {/* ThermoKing Configuration */}
+                <div className="border-t border-gray-200 pt-6">
+                  <div className="flex items-center gap-2 mb-4">
+                    <Key className="text-orange-600" size={20} />
+                    <h3 className="text-lg font-semibold text-gray-900">ThermoKing API</h3>
+                  </div>
+                  <div className="space-y-4">
+                    <div>
+                      <label className="block text-sm font-semibold text-gray-700 mb-2">API Base URL</label>
+                      <input
+                        type="text"
+                        value={thermokingConfig.apiBaseUrl}
+                        onChange={(e) => handleThermokingChange('apiBaseUrl', e.target.value)}
+                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all"
+                        placeholder="https://api.thermoking.com"
+                      />
                     </div>
-                  )}
+                    <div>
+                      <label className="block text-sm font-semibold text-gray-700 mb-2">API Key</label>
+                      <input
+                        type="password"
+                        value={thermokingConfig.apiKey}
+                        onChange={(e) => handleThermokingChange('apiKey', e.target.value)}
+                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all"
+                        placeholder="Enter ThermoKing API key"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-semibold text-gray-700 mb-2">API Secret</label>
+                      <input
+                        type="password"
+                        value={thermokingConfig.apiSecret}
+                        onChange={(e) => handleThermokingChange('apiSecret', e.target.value)}
+                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all"
+                        placeholder="Enter ThermoKing API secret"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-semibold text-gray-700 mb-2">API Version</label>
+                      <input
+                        type="text"
+                        value={thermokingConfig.apiVersion}
+                        onChange={(e) => handleThermokingChange('apiVersion', e.target.value)}
+                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all"
+                        placeholder="v1"
+                      />
+                    </div>
+                  </div>
                 </div>
 
-                <div>
-                  <label className="block text-sm font-semibold text-gray-700 mb-2">
-                    <MapPin size={16} className="inline mr-1" />
-                    Address
-                  </label>
-                  {isEditing ? (
-                    <textarea
-                      name="address"
-                      value={editForm.address}
-                      onChange={handleInputChange}
-                      rows={3}
-                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all resize-none"
-                      placeholder="Enter company address"
-                    />
-                  ) : (
-                    <div className="px-4 py-3 bg-gray-50 rounded-lg">
-                      <p className="text-gray-900">{companyInfo.address || 'Not set'}</p>
-                    </div>
-                  )}
-                </div>
-
-                <div>
-                  <label className="block text-sm font-semibold text-gray-700 mb-2">
-                    <Mail size={16} className="inline mr-1" />
-                    Contact Email
-                  </label>
-                  {isEditing ? (
-                    <input
-                      type="email"
-                      name="contactEmail"
-                      value={editForm.contactEmail}
-                      onChange={handleInputChange}
-                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
-                      placeholder="Enter contact email"
-                    />
-                  ) : (
-                    <div className="px-4 py-3 bg-gray-50 rounded-lg">
-                      <p className="text-gray-900">{companyInfo.contactEmail || 'Not set'}</p>
-                    </div>
-                  )}
-                </div>
-
-                <div>
-                  <label className="block text-sm font-semibold text-gray-700 mb-2">
-                    <Phone size={16} className="inline mr-1" />
-                    Contact Phone
-                  </label>
-                  {isEditing ? (
-                    <input
-                      type="tel"
-                      name="contactPhone"
-                      value={editForm.contactPhone}
-                      onChange={handleInputChange}
-                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
-                      placeholder="Enter contact phone"
-                    />
-                  ) : (
-                    <div className="px-4 py-3 bg-gray-50 rounded-lg">
-                      <p className="text-gray-900">{companyInfo.contactPhone || 'Not set'}</p>
-                    </div>
-                  )}
+                {/* Info Note */}
+                <div className="mt-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+                  <p className="text-sm text-blue-800">
+                    <strong>Note:</strong> API configurations are stored securely and linked to your company.
+                    These settings are required for integrating with Samsara and ThermoKing services.
+                  </p>
                 </div>
               </div>
             </div>
           </div>
+        )}
 
-          {/* API Configuration */}
+        {activeTab === 'maintenance' && (
           <div className="bg-white rounded-xl shadow-sm border border-gray-200">
-            <div className="p-6 border-b border-gray-200">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                  <Settings className="text-blue-600" size={24} />
-                  <h2 className="text-xl font-bold text-gray-900">API Configuration</h2>
-                </div>
-                <button
-                  onClick={handleSaveApiCredentials}
-                  disabled={apiLoading}
-                  className="px-4 py-2 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 !text-white rounded-lg transition-all font-medium flex items-center gap-2 disabled:opacity-50"
-                >
-                  {apiLoading ? (
-                    <>
-                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
-                      Saving...
-                    </>
-                  ) : (
-                    <>
-                      <Save size={16} />
-                      Save API Credentials
-                    </>
-                  )}
-                </button>
-              </div>
-            </div>
-            
-            <div className="p-6 space-y-8">
-              {/* Samsara Configuration */}
-              <div>
-                <div className="flex items-center gap-2 mb-4">
-                  <Key className="text-blue-600" size={20} />
-                  <h3 className="text-lg font-semibold text-gray-900">Samsara API</h3>
-                </div>
-                <div className="space-y-4">
-                  <div>
-                    <label className="block text-sm font-semibold text-gray-700 mb-2">API Base URL</label>
-                    <input
-                      type="text"
-                      value={samsaraConfig.apiBaseUrl}
-                      onChange={(e) => handleSamsaraChange('apiBaseUrl', e.target.value)}
-                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
-                      placeholder="https://api.samsara.com"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-semibold text-gray-700 mb-2">API Token</label>
-                    <input
-                      type="password"
-                      value={samsaraConfig.apiToken}
-                      onChange={(e) => handleSamsaraChange('apiToken', e.target.value)}
-                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
-                      placeholder="Enter Samsara API token"
-                    />
-                  </div>
-                </div>
-              </div>
-
-              {/* ThermoKing Configuration */}
-              <div className="border-t border-gray-200 pt-6">
-                <div className="flex items-center gap-2 mb-4">
-                  <Key className="text-orange-600" size={20} />
-                  <h3 className="text-lg font-semibold text-gray-900">ThermoKing API</h3>
-                </div>
-                <div className="space-y-4">
-                  <div>
-                    <label className="block text-sm font-semibold text-gray-700 mb-2">API Base URL</label>
-                    <input
-                      type="text"
-                      value={thermokingConfig.apiBaseUrl}
-                      onChange={(e) => handleThermokingChange('apiBaseUrl', e.target.value)}
-                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all"
-                      placeholder="https://api.thermoking.com"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-semibold text-gray-700 mb-2">API Key</label>
-                    <input
-                      type="password"
-                      value={thermokingConfig.apiKey}
-                      onChange={(e) => handleThermokingChange('apiKey', e.target.value)}
-                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all"
-                      placeholder="Enter ThermoKing API key"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-semibold text-gray-700 mb-2">API Secret</label>
-                    <input
-                      type="password"
-                      value={thermokingConfig.apiSecret}
-                      onChange={(e) => handleThermokingChange('apiSecret', e.target.value)}
-                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all"
-                      placeholder="Enter ThermoKing API secret"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-semibold text-gray-700 mb-2">API Version</label>
-                    <input
-                      type="text"
-                      value={thermokingConfig.apiVersion}
-                      onChange={(e) => handleThermokingChange('apiVersion', e.target.value)}
-                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all"
-                      placeholder="v1"
-                    />
-                  </div>
-                </div>
-              </div>
-
-              {/* Info Note */}
-              <div className="mt-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
-                <p className="text-sm text-blue-800">
-                  <strong>Note:</strong> API configurations are stored securely and linked to your company. 
-                  These settings are required for integrating with Samsara and ThermoKing services.
-                </p>
-              </div>
-            </div>
-          </div>
-
-          {/* Maintenance Policy Settings */}
-          <div className="bg-white rounded-xl shadow-sm border border-gray-200 lg:col-span-2">
             <div className="p-6 border-b border-gray-200">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-3">
@@ -879,7 +908,7 @@ const Company = () => {
                 </div>
               </div>
             </div>
-            
+
             <div className="p-6 space-y-8">
               {/* Info Banner */}
               <div className="p-4 bg-blue-50 border border-blue-200 rounded-lg">
@@ -1078,7 +1107,7 @@ const Company = () => {
                           ) : (
                             <div className="px-3 py-2 bg-white rounded-lg border border-gray-200">
                               <p className="text-gray-900 font-medium">
-                                {(service.excludeTypes || []).length > 0 
+                                {(service.excludeTypes || []).length > 0
                                   ? (service.excludeTypes || []).map(t => t.charAt(0).toUpperCase() + t.slice(1)).join(', ')
                                   : 'None'}
                               </p>
@@ -1128,10 +1157,10 @@ const Company = () => {
               </div>
             </div>
           </div>
-        </div>
+        )}
 
       </div>
-      
+
       <style>{`
         @keyframes slide-in {
           from {
