@@ -102,6 +102,7 @@ const ComplianceInvoices = () => {
             driver: invoice.driver || 'N/A',
             serviceCategory: invoice.serviceCategory || 'N/A',
             location: invoice.location || 'N/A',
+            customer: invoice.customer || 'N/A',
             amount: invoice.amount || 0,
             taxes: invoice.taxes || [],
             taxAmount: invoice.taxAmount || 0,
@@ -487,6 +488,7 @@ const ComplianceInvoices = () => {
                       "Service Date",
                       "Unit",
                       "Service Provider",
+                      "Customer",
                       "Description",
                       "Service Performed",
                       "Odometer",
@@ -534,6 +536,9 @@ const ComplianceInvoices = () => {
                         {invoice.location && invoice.location !== 'N/A' && (
                           <div className="text-[10px] text-gray-500 mt-0.5">{invoice.location}</div>
                         )}
+                      </td>
+                      <td className="px-6 py-2 text-xs text-gray-900">
+                        {invoice.customer && invoice.customer !== 'N/A' ? invoice.customer : '—'}
                       </td>
                       <td className="px-6 py-2 text-xs text-gray-700">
                         <div className="font-medium text-gray-900">{invoice.description || '—'}</div>
@@ -617,14 +622,14 @@ const ComplianceInvoices = () => {
                   ))}
                   {loading && (
                     <tr>
-                      <td className="px-6 py-8 text-center text-xs text-gray-500" colSpan={11}>
+                      <td className="px-6 py-8 text-center text-xs text-gray-500" colSpan={12}>
                         Loading invoices...
                       </td>
                     </tr>
                   )}
                   {!loading && filteredInvoices.length === 0 && (
                     <tr>
-                      <td className="px-6 py-8 text-center text-xs text-gray-500" colSpan={11}>
+                      <td className="px-6 py-8 text-center text-xs text-gray-500" colSpan={12}>
                         No invoices found. {total > 0 ? 'Try adjusting your filters.' : 'No invoices have been created yet.'}
                       </td>
                     </tr>
