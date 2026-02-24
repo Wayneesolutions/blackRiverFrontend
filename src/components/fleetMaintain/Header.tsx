@@ -410,7 +410,7 @@ function Header({ onToggleSidebar }: { onToggleSidebar: () => void }) {
                                                 navigate(`${basePath}/scheduled-services-log?filter=incoming`);
                                                 setIsNotificationOpen(false);
                                             }}
-                                            className="w-full flex items-center justify-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm font-medium"
+                                            className="w-full flex items-center justify-center gap-2 px-4 py-2 bg-blue-600 !text-white rounded-lg hover:bg-blue-700 transition-colors text-sm font-medium"
                                         >
                                             View All Services
                                             <ArrowRight size={16} />

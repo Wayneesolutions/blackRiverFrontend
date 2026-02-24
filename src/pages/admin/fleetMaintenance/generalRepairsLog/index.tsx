@@ -72,6 +72,7 @@ interface PartEntry {
 
 interface FormState {
   serviceDate: string;
+  duePayment: string;
   unitNumber: string;
   description: string;
   odometer: string;
@@ -91,6 +92,15 @@ const formatDate = (value?: string) => {
   const parsed = new Date(value);
   if (Number.isNaN(parsed.getTime())) return 'N/A';
   return parsed.toLocaleDateString();
+};
+
+/** Normalize a date value to YYYY-MM-DD for use in <input type="date"> */
+const toDateInputValue = (value?: string | null): string => {
+  if (value == null || value === '') return '';
+  if (typeof value === 'string' && /^\d{4}-\d{2}-\d{2}/.test(value)) return value.slice(0, 10);
+  const parsed = new Date(value);
+  if (Number.isNaN(parsed.getTime())) return '';
+  return parsed.toISOString().slice(0, 10);
 };
 
 const Toast: React.FC<{ notification: NotificationState; onClose: () => void }> = ({ notification, onClose }) => {
@@ -126,6 +136,7 @@ const GeneralRepairsLog: React.FC = () => {
   const [showRepairDetails, setShowRepairDetails] = useState(false);
   const [formData, setFormData] = useState<FormState>({
     serviceDate: new Date().toISOString().split('T')[0],
+    duePayment: '',
     unitNumber: '',
     description: '',
     odometer: '',
@@ -599,6 +610,7 @@ const GeneralRepairsLog: React.FC = () => {
   const handleAddRepair = () => {
     setFormData({
       serviceDate: new Date().toISOString().split('T')[0],
+      duePayment: '',
       unitNumber: '',
       description: '',
       odometer: '',
@@ -623,14 +635,15 @@ const GeneralRepairsLog: React.FC = () => {
     const providerMatch = serviceProviders.find((p) => p.name === repair.serviceProvider);
     const customerMatch = repair.customer ? driverCustomers.find((d) => d.name === repair.customer) : null;
     setFormData({
-      serviceDate: repair.serviceDate ? repair.serviceDate.split('T')[0] : '',
+      serviceDate: toDateInputValue(repair.serviceDate),
+      duePayment: toDateInputValue(repair.duePayment),
       unitNumber: repair.unitNumber,
       description: repair.description,
       odometer: repair.odometer?.toString() || '',
-      parts: Array.isArray(repair.parts) 
-        ? repair.parts 
-        : (typeof repair.parts === 'string' && repair.parts.trim() 
-          ? [{ partId: '', partName: repair.parts, partNumber: '', quantity: 1 }] 
+      parts: Array.isArray(repair.parts)
+        ? repair.parts
+        : (typeof repair.parts === 'string' && repair.parts.trim()
+          ? [{ partId: '', partName: repair.parts, partNumber: '', quantity: 1 }]
           : []),
       notes: repair.notes || '',
       serviceProvider: repair.serviceProvider,
@@ -740,6 +753,7 @@ const GeneralRepairsLog: React.FC = () => {
         : undefined,
       invoiceNumber: formData.invoiceNumber,
       amount: formData.amount ? Number(formData.amount) : undefined,
+      duePayment: formData.duePayment || undefined,
       unitSource: selectedUnit?.referenceType,
       unitReference: selectedUnit?._id || selectedUnit?.referenceId
     };
@@ -1267,6 +1281,24 @@ const GeneralRepairsLog: React.FC = () => {
                           type="date"
                           value={formData.serviceDate}
                           onChange={(e) => setFormData({ ...formData, serviceDate: e.target.value })}
+                          className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:border-transparent"
+                          style={{ '--tw-ring-color': '#016ab2' } as React.CSSProperties & { '--tw-ring-color': string }}
+                          onFocus={(e) => {
+                            e.target.style.borderColor = '#016ab2';
+                            e.target.style.boxShadow = '0 0 0 2px rgba(1, 106, 178, 0.2)';
+                          }}
+                          onBlur={(e) => {
+                            e.target.style.borderColor = '';
+                            e.target.style.boxShadow = '';
+                          }}
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">Due Payment</label>
+                        <input
+                          type="date"
+                          value={formData.duePayment}
+                          onChange={(e) => setFormData({ ...formData, duePayment: e.target.value })}
                           className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:border-transparent"
                           style={{ '--tw-ring-color': '#016ab2' } as React.CSSProperties & { '--tw-ring-color': string }}
                           onFocus={(e) => {

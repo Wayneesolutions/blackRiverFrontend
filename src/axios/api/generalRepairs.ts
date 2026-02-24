@@ -16,6 +16,7 @@ export interface GeneralRepairDto {
   taxes?: { name: string; percentage: number }[];
   invoiceNumber: string;
   amount?: number;
+  duePayment?: string;
   unitSource?: string;
   unitReference?: string;
   createdAt: string;
@@ -37,6 +38,7 @@ export interface GeneralRepairPayload {
   taxes?: { name: string; percentage: number }[];
   invoiceNumber: string;
   amount?: number;
+  duePayment?: string;
   unitSource?: string;
   unitReference?: string;
 }
