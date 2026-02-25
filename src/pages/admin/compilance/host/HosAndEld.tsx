@@ -1,12 +1,13 @@
 import { useState, useEffect } from 'react';
 import {
     RefreshCw, ShieldCheck, 
-    Download, Upload, FileText, X, FileCheck
+    Download, Upload, FileText, X, FileCheck, Plus, Eye
 } from 'lucide-react';
 import { 
     getHOSEldData, 
     syncHOSFromSamsara, 
-    submitHOSAudit,
+    createHosAuditForm,
+    getHosAuditForms,
     uploadELogFile,
     getELogs,
     deleteELog,
@@ -20,6 +21,7 @@ interface Driver {
   name: string;
   email?: string;
   phone?: string;
+  internalId?: string;
 }
 
 interface ELogFile {
@@ -42,6 +44,25 @@ interface ELogFile {
   };
 }
 
+interface AuditTableRow {
+  id: string;
+  driverName: string;
+  driverId: string;
+  reportingTo: string;
+  auditDate: string;
+  incidentDate: string;
+  drivingHours: number;
+  onDutyHours: number;
+  offDutyHours: number;
+  incidentTypes: string[];
+  priorCounseling: string;
+  correctiveActionType: string;
+  violations: string[];
+  notes: string;
+  auditorName: string;
+  documents: { name: string; size: number }[];
+}
+
 const VehicleEldMonitor = () => {
   const [activeTab, setActiveTab] = useState<'tracker' | 'audit-form' | 'e-logs'>('tracker');
   const [loading, setLoading] = useState(false);
@@ -60,15 +81,36 @@ const VehicleEldMonitor = () => {
   const [drivers, setDrivers] = useState<Driver[]>([]);
   const [auditFormData, setAuditFormData] = useState({
     driverId: '',
+    driverIdDisplay: '',       // Driver ID (text)
+    reportingTo: '',           // Reporting To (text)
     auditDate: new Date().toISOString().split('T')[0],
+    incidentDate: '',          // Incident Date (distinct from Audit Date)
     drivingHours: 0,
     onDutyHours: 0,
     offDutyHours: 0,
     violations: [] as string[],
+    incidentTypes: [] as string[],           // Incident Type checkboxes
+    incidentTypeCustomOptions: [] as string[], // User-added incident type options
+    priorCounseling: '' as '' | 'yes' | 'no', // Prior Counseling Yes/No
+    correctiveActionType: '',                 // Corrective Action Type
+    correctiveActionCustomOptions: [] as string[], // User-added corrective action options
     notes: '',
     auditorName: ''
   });
+
+  // Static options for Incident Type (user can add more)
+  const defaultIncidentTypeOptions = ['Performance', 'Attendance', 'Safety', 'Documentation', 'Other'];
+  const defaultCorrectiveActionOptions = ['Verbal Warning', 'Written Warning', 'Training', 'Suspension', 'Termination', 'Other'];
+
+  // HOS Audit Form table data from API
+  const [auditTableData, setAuditTableData] = useState<AuditTableRow[]>([]);
+  const [auditTableLoading, setAuditTableLoading] = useState(false);
+  const [detailSidebarOpen, setDetailSidebarOpen] = useState(false);
+  const [selectedAuditDetail, setSelectedAuditDetail] = useState<AuditTableRow | null>(null);
   const [submittingAudit, setSubmittingAudit] = useState(false);
+  const [newIncidentTypeOption, setNewIncidentTypeOption] = useState('');
+  const [newCorrectiveActionOption, setNewCorrectiveActionOption] = useState('');
+  const [auditFormDocuments, setAuditFormDocuments] = useState<File[]>([]);
 
   // E-Logs State
   const [eLogs, setELogs] = useState<ELogFile[]>([]);
@@ -109,7 +151,8 @@ const VehicleEldMonitor = () => {
           _id: d._id,
           name: d.name || `${d.firstName || ''} ${d.lastName || ''}`.trim() || 'Unknown Driver',
           email: d.email,
-          phone: d.phone || d.mobile
+          phone: d.phone || d.mobile,
+          internalId: d.internalId || d.details?.internalId || ''
         })));
       }
     } catch (error) {
@@ -132,6 +175,42 @@ const VehicleEldMonitor = () => {
     }
   };
 
+  // Fetch HOS Audit Form list from API
+  const fetchAuditForms = async () => {
+    setAuditTableLoading(true);
+    try {
+      const response = await getHosAuditForms({ page: 1, limit: 100 });
+      if (response?.success && Array.isArray(response?.data)) {
+        const rows: AuditTableRow[] = response.data.map((row: any) => ({
+          id: row.id || row._id?.toString() || '',
+          driverName: row.driverName || 'Unknown',
+          driverId: row.driverIdDisplay ?? row.driverId?._id ?? '',
+          reportingTo: row.reportingTo ?? '',
+          auditDate: typeof row.auditDate === 'string' ? row.auditDate : row.auditDate?.toISOString?.()?.split('T')[0] ?? '',
+          incidentDate: row.incidentDate ? (typeof row.incidentDate === 'string' ? row.incidentDate : row.incidentDate?.toISOString?.()?.split('T')[0]) : '—',
+          drivingHours: row.drivingHours ?? 0,
+          onDutyHours: row.onDutyHours ?? 0,
+          offDutyHours: row.offDutyHours ?? 0,
+          incidentTypes: Array.isArray(row.incidentTypes) ? row.incidentTypes : [],
+          priorCounseling: row.priorCounseling ?? '—',
+          correctiveActionType: row.correctiveActionType ?? '—',
+          violations: Array.isArray(row.violations) ? row.violations : [],
+          notes: row.notes ?? '',
+          auditorName: row.auditorName ?? '',
+          documents: Array.isArray(row.documents) ? row.documents : []
+        }));
+        setAuditTableData(rows);
+      } else {
+        setAuditTableData([]);
+      }
+    } catch (error) {
+      console.error('Error fetching HOS audit forms:', error);
+      setAuditTableData([]);
+    } finally {
+      setAuditTableLoading(false);
+    }
+  };
+
   // Sync HOS data from Samsara
   const handleSyncHOS = async () => {
     setSyncing(true);
@@ -151,7 +230,7 @@ const VehicleEldMonitor = () => {
     }
   };
 
-  // Submit HOS Audit
+  // Submit HOS Audit (saves via audit-form API and refreshes list)
   const handleSubmitAudit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!auditFormData.driverId) {
@@ -161,21 +240,48 @@ const VehicleEldMonitor = () => {
 
     setSubmittingAudit(true);
     try {
-      const response = await submitHOSAudit(auditFormData);
+      const response = await createHosAuditForm({
+        driverId: auditFormData.driverId,
+        driverIdDisplay: auditFormData.driverIdDisplay || undefined,
+        reportingTo: auditFormData.reportingTo || undefined,
+        auditDate: auditFormData.auditDate,
+        incidentDate: auditFormData.incidentDate || undefined,
+        drivingHours: auditFormData.drivingHours,
+        onDutyHours: auditFormData.onDutyHours,
+        offDutyHours: auditFormData.offDutyHours,
+        violations: auditFormData.violations,
+        incidentTypes: auditFormData.incidentTypes,
+        priorCounseling: auditFormData.priorCounseling || undefined,
+        correctiveActionType: auditFormData.correctiveActionType || undefined,
+        notes: auditFormData.notes || undefined,
+        auditorName: auditFormData.auditorName || undefined,
+        documents: auditFormDocuments.length > 0
+          ? auditFormDocuments.map((f) => ({ name: f.name, size: f.size }))
+          : undefined
+      });
+
       if (response?.success) {
         alert('HOS Audit submitted successfully!');
-        // Reset form
+        setAuditFormDocuments([]);
         setAuditFormData({
           driverId: '',
+          driverIdDisplay: '',
+          reportingTo: '',
           auditDate: new Date().toISOString().split('T')[0],
+          incidentDate: '',
           drivingHours: 0,
           onDutyHours: 0,
           offDutyHours: 0,
           violations: [],
+          incidentTypes: [],
+          incidentTypeCustomOptions: auditFormData.incidentTypeCustomOptions,
+          priorCounseling: '',
+          correctiveActionType: '',
+          correctiveActionCustomOptions: auditFormData.correctiveActionCustomOptions,
           notes: '',
           auditorName: ''
         });
-        // Refresh audit logs
+        await fetchAuditForms();
         await fetchHOSData();
       } else {
         alert(response?.message || 'Failed to submit audit');
@@ -260,9 +366,9 @@ const VehicleEldMonitor = () => {
 
 
   useEffect(() => {
-    fetchHOSData();
     if (activeTab === 'audit-form') {
       fetchDrivers();
+      fetchAuditForms();
     }
     if (activeTab === 'e-logs') {
       fetchELogs();
@@ -270,6 +376,10 @@ const VehicleEldMonitor = () => {
     }
   }, [activeTab]);
 
+  // Ensure HOS/ELD API is called on initial mount so it appears in Network tab (same as compliance dashboard)
+  useEffect(() => {
+    fetchHOSData();
+  }, []);
 
   const violationOptions = [
     '11-Hour Driving Limit',
@@ -441,7 +551,15 @@ const VehicleEldMonitor = () => {
                                   </label>
                                   <select
                                       value={auditFormData.driverId}
-                                      onChange={(e) => setAuditFormData({ ...auditFormData, driverId: e.target.value })}
+                                      onChange={(e) => {
+                                          const selectedId = e.target.value;
+                                          const selectedDriver = drivers.find((d) => d._id === selectedId);
+                                          setAuditFormData({
+                                              ...auditFormData,
+                                              driverId: selectedId,
+                                              driverIdDisplay: selectedDriver ? (selectedDriver.internalId || selectedDriver._id) : ''
+                                          });
+                                      }}
                                       className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                                       required
                                   >
@@ -452,6 +570,30 @@ const VehicleEldMonitor = () => {
                                           </option>
                                       ))}
                                   </select>
+                              </div>
+
+                              {/* Driver ID */}
+                              <div>
+                                  <label className="block text-sm font-medium text-gray-700 mb-2">Driver ID</label>
+                                  <input
+                                      type="text"
+                                      value={auditFormData.driverIdDisplay}
+                                      onChange={(e) => setAuditFormData({ ...auditFormData, driverIdDisplay: e.target.value })}
+                                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                      placeholder="e.g. DRV-001"
+                                  />
+                              </div>
+
+                              {/* Reporting To */}
+                              <div>
+                                  <label className="block text-sm font-medium text-gray-700 mb-2">Reporting To</label>
+                                  <input
+                                      type="text"
+                                      value={auditFormData.reportingTo}
+                                      onChange={(e) => setAuditFormData({ ...auditFormData, reportingTo: e.target.value })}
+                                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                      placeholder="Name or role of person reported to"
+                                  />
                               </div>
 
                               {/* Audit Date */}
@@ -466,6 +608,19 @@ const VehicleEldMonitor = () => {
                                       className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                                       required
                                   />
+                              </div>
+
+                              {/* Incident Date (distinct from Audit Date) */}
+                              <div>
+                                  <label className="block text-sm font-medium text-gray-700 mb-2">Incident Date</label>
+                                  <input
+                                      type="date"
+                                      value={auditFormData.incidentDate}
+                                      onChange={(e) => setAuditFormData({ ...auditFormData, incidentDate: e.target.value })}
+                                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                      placeholder="Date when incident occurred"
+                                  />
+                                  <p className="text-xs text-gray-500 mt-1">Date the incident occurred (may differ from audit date)</p>
                               </div>
 
                               {/* Hours Section */}
@@ -511,6 +666,150 @@ const VehicleEldMonitor = () => {
                                           className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                                           required
                                       />
+                                  </div>
+                              </div>
+
+                              {/* Incident Type (multi-select checkboxes + add option) */}
+                              <div>
+                                  <label className="block text-sm font-medium text-gray-700 mb-2">Incident Type</label>
+                                  <div className="space-y-2 flex flex-wrap gap-x-6 gap-y-2">
+                                      {[...defaultIncidentTypeOptions, ...auditFormData.incidentTypeCustomOptions].map((option) => (
+                                          <label key={option} className="flex items-center gap-2 cursor-pointer">
+                                              <input
+                                                  type="checkbox"
+                                                  checked={auditFormData.incidentTypes.includes(option)}
+                                                  onChange={(e) => {
+                                                      if (e.target.checked) {
+                                                          setAuditFormData({ ...auditFormData, incidentTypes: [...auditFormData.incidentTypes, option] });
+                                                      } else {
+                                                          setAuditFormData({ ...auditFormData, incidentTypes: auditFormData.incidentTypes.filter(t => t !== option) });
+                                                      }
+                                                  }}
+                                                  className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+                                              />
+                                              <span className="text-sm text-gray-700">{option}</span>
+                                          </label>
+                                      ))}
+                                  </div>
+                                  <div className="mt-2 flex items-center gap-2">
+                                      <input
+                                          type="text"
+                                          value={newIncidentTypeOption}
+                                          onChange={(e) => setNewIncidentTypeOption(e.target.value)}
+                                          placeholder="Add custom option"
+                                          className="flex-1 max-w-xs px-3 py-1.5 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                          onKeyDown={(e) => {
+                                              if (e.key === 'Enter') {
+                                                  e.preventDefault();
+                                                  const val = newIncidentTypeOption.trim();
+                                                  if (val && !auditFormData.incidentTypeCustomOptions.includes(val)) {
+                                                      setAuditFormData({
+                                                          ...auditFormData,
+                                                          incidentTypeCustomOptions: [...auditFormData.incidentTypeCustomOptions, val]
+                                                      });
+                                                      setNewIncidentTypeOption('');
+                                                  }
+                                              }
+                                          }}
+                                      />
+                                      <button
+                                          type="button"
+                                          onClick={() => {
+                                              const val = newIncidentTypeOption.trim();
+                                              if (val && !auditFormData.incidentTypeCustomOptions.includes(val)) {
+                                                  setAuditFormData({
+                                                      ...auditFormData,
+                                                      incidentTypeCustomOptions: [...auditFormData.incidentTypeCustomOptions, val]
+                                                  });
+                                                  setNewIncidentTypeOption('');
+                                              }
+                                          }}
+                                          className="flex items-center gap-1 text-sm text-blue-600 hover:text-blue-800 font-medium"
+                                      >
+                                          <Plus size={16} /> Add option
+                                      </button>
+                                  </div>
+                              </div>
+
+                              {/* Prior Counseling (Yes/No) */}
+                              <div>
+                                  <label className="block text-sm font-medium text-gray-700 mb-2">Prior Counseling</label>
+                                  <div className="flex gap-6">
+                                      <label className="flex items-center gap-2 cursor-pointer">
+                                          <input
+                                              type="radio"
+                                              name="priorCounseling"
+                                              checked={auditFormData.priorCounseling === 'yes'}
+                                              onChange={() => setAuditFormData({ ...auditFormData, priorCounseling: 'yes' })}
+                                              className="w-4 h-4 text-blue-600 border-gray-300 focus:ring-blue-500"
+                                          />
+                                          <span className="text-sm text-gray-700">Yes</span>
+                                      </label>
+                                      <label className="flex items-center gap-2 cursor-pointer">
+                                          <input
+                                              type="radio"
+                                              name="priorCounseling"
+                                              checked={auditFormData.priorCounseling === 'no'}
+                                              onChange={() => setAuditFormData({ ...auditFormData, priorCounseling: 'no' })}
+                                              className="w-4 h-4 text-blue-600 border-gray-300 focus:ring-blue-500"
+                                          />
+                                          <span className="text-sm text-gray-700">No</span>
+                                      </label>
+                                  </div>
+                              </div>
+
+                              {/* Corrective Action Type (dropdown + add option) */}
+                              <div>
+                                  <label className="block text-sm font-medium text-gray-700 mb-2">Corrective Action Type</label>
+                                  <div className="flex gap-2 flex-wrap items-center">
+                                      <select
+                                          value={auditFormData.correctiveActionType}
+                                          onChange={(e) => setAuditFormData({ ...auditFormData, correctiveActionType: e.target.value })}
+                                          className="px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 min-w-[200px]"
+                                      >
+                                          <option value="">Select corrective action</option>
+                                          {[...defaultCorrectiveActionOptions, ...auditFormData.correctiveActionCustomOptions].map((opt) => (
+                                              <option key={opt} value={opt}>{opt}</option>
+                                          ))}
+                                      </select>
+                                      <input
+                                          type="text"
+                                          value={newCorrectiveActionOption}
+                                          onChange={(e) => setNewCorrectiveActionOption(e.target.value)}
+                                          placeholder="Add new action type"
+                                          className="px-3 py-1.5 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 max-w-[180px]"
+                                          onKeyDown={(e) => {
+                                              if (e.key === 'Enter') {
+                                                  e.preventDefault();
+                                                  const val = newCorrectiveActionOption.trim();
+                                                  if (val && !auditFormData.correctiveActionCustomOptions.includes(val)) {
+                                                      setAuditFormData({
+                                                          ...auditFormData,
+                                                          correctiveActionCustomOptions: [...auditFormData.correctiveActionCustomOptions, val],
+                                                          correctiveActionType: val
+                                                      });
+                                                      setNewCorrectiveActionOption('');
+                                                  }
+                                              }
+                                          }}
+                                      />
+                                      <button
+                                          type="button"
+                                          onClick={() => {
+                                              const val = newCorrectiveActionOption.trim();
+                                              if (val && !auditFormData.correctiveActionCustomOptions.includes(val)) {
+                                                  setAuditFormData({
+                                                      ...auditFormData,
+                                                      correctiveActionCustomOptions: [...auditFormData.correctiveActionCustomOptions, val],
+                                                      correctiveActionType: val
+                                                  });
+                                                  setNewCorrectiveActionOption('');
+                                              }
+                                          }}
+                                          className="flex items-center gap-1 text-sm text-blue-600 hover:text-blue-800 font-medium"
+                                      >
+                                          <Plus size={16} /> Add
+                                      </button>
                                   </div>
                               </div>
 
@@ -574,20 +873,80 @@ const VehicleEldMonitor = () => {
                                   />
                               </div>
 
+                              {/* Document Upload */}
+                              <div>
+                                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                                      Attach Documents
+                                  </label>
+                                  <div className="space-y-2">
+                                      <label className="flex flex-col gap-2 cursor-pointer">
+                                          <div className="px-4 py-3 border border-gray-300 rounded-lg border-dashed hover:bg-gray-50 text-center">
+                                              <input
+                                                  type="file"
+                                                  multiple
+                                                  accept=".pdf,.doc,.docx,.xls,.xlsx,.txt,.jpg,.jpeg,.png"
+                                                  onChange={(e) => {
+                                                      const files = e.target.files;
+                                                      if (files?.length) {
+                                                          setAuditFormDocuments(prev => [...prev, ...Array.from(files)]);
+                                                      }
+                                                      e.target.value = '';
+                                                  }}
+                                                  className="hidden"
+                                              />
+                                              <Upload size={24} className="mx-auto mb-1 text-gray-500" />
+                                              <span className="text-sm text-gray-600">Click to upload or drag and drop</span>
+                                              <p className="text-xs text-gray-400 mt-1">PDF, DOC, XLS, TXT, JPG, PNG (optional)</p>
+                                          </div>
+                                      </label>
+                                      {auditFormDocuments.length > 0 && (
+                                          <ul className="mt-2 space-y-1">
+                                              {auditFormDocuments.map((file, index) => (
+                                                  <li key={`${file.name}-${index}`} className="flex items-center justify-between px-3 py-2 bg-gray-50 rounded-lg text-sm">
+                                                      <span className="flex items-center gap-2 text-gray-700">
+                                                          <FileText size={16} className="text-blue-500" />
+                                                          {file.name} ({(file.size / 1024).toFixed(1)} KB)
+                                                      </span>
+                                                      <button
+                                                          type="button"
+                                                          onClick={() => setAuditFormDocuments(prev => prev.filter((_, i) => i !== index))}
+                                                          className="text-red-500 hover:text-red-700 p-1"
+                                                          title="Remove"
+                                                      >
+                                                          <X size={18} />
+                                                      </button>
+                                                  </li>
+                                              ))}
+                                          </ul>
+                                      )}
+                                  </div>
+                              </div>
+
                               {/* Submit Button */}
                               <div className="flex justify-end gap-4">
                                   <button
                                       type="button"
-                                      onClick={() => setAuditFormData({
-                                          driverId: '',
-                                          auditDate: new Date().toISOString().split('T')[0],
-                                          drivingHours: 0,
-                                          onDutyHours: 0,
-                                          offDutyHours: 0,
-                                          violations: [],
-                                          notes: '',
-                                          auditorName: ''
-                                      })}
+                                      onClick={() => {
+                                          setAuditFormData({
+                                              driverId: '',
+                                              driverIdDisplay: '',
+                                              reportingTo: '',
+                                              auditDate: new Date().toISOString().split('T')[0],
+                                              incidentDate: '',
+                                              drivingHours: 0,
+                                              onDutyHours: 0,
+                                              offDutyHours: 0,
+                                              violations: [],
+                                              incidentTypes: [],
+                                              incidentTypeCustomOptions: auditFormData.incidentTypeCustomOptions,
+                                              priorCounseling: '',
+                                              correctiveActionType: '',
+                                              correctiveActionCustomOptions: auditFormData.correctiveActionCustomOptions,
+                                              notes: '',
+                                              auditorName: ''
+                                          });
+                                          setAuditFormDocuments([]);
+                                      }}
                                       className="px-6 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50"
                                   >
                                       Reset
@@ -605,6 +964,224 @@ const VehicleEldMonitor = () => {
                               </div>
                           </form>
                       </div>
+
+                      {/* HOS Audit Table (from API) */}
+                      <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+                          <div className="px-6 py-4 border-b bg-gray-50 flex justify-between items-center">
+                              <h3 className="font-bold text-gray-800">HOS Audit Records</h3>
+                              <button
+                                  type="button"
+                                  onClick={fetchAuditForms}
+                                  disabled={auditTableLoading}
+                                  className="text-sm font-medium text-blue-600 hover:text-blue-800 disabled:opacity-50 flex items-center gap-1"
+                              >
+                                  <RefreshCw size={16} className={auditTableLoading ? 'animate-spin' : ''} />
+                                  Refresh
+                              </button>
+                          </div>
+                          <div className="overflow-x-auto">
+                              <table className="w-full text-sm text-left">
+                                  <thead className="bg-gray-100 text-gray-600 uppercase text-[11px] font-bold">
+                                      <tr>
+                                          <th className="px-6 py-4">Driver</th>
+                                          <th className="px-6 py-4">Driver ID</th>
+                                          <th className="px-6 py-4">Reporting To</th>
+                                          <th className="px-6 py-4">Audit Date</th>
+                                          <th className="px-6 py-4">Incident Date</th>
+                                          <th className="px-6 py-4">Incident Type</th>
+                                          <th className="px-6 py-4">Prior Counseling</th>
+                                          <th className="px-6 py-4">Corrective Action</th>
+                                          <th className="px-6 py-4">Documents</th>
+                                          <th className="px-6 py-4">Actions</th>
+                                      </tr>
+                                  </thead>
+                                  <tbody className="divide-y divide-gray-100">
+                                      {auditTableLoading ? (
+                                          <tr>
+                                              <td colSpan={10} className="px-6 py-12 text-center text-gray-500">
+                                                  <RefreshCw className="animate-spin h-6 w-6 mx-auto mb-2" />
+                                                  Loading audit records...
+                                              </td>
+                                          </tr>
+                                      ) : auditTableData.length === 0 ? (
+                                          <tr>
+                                              <td colSpan={10} className="px-6 py-12 text-center text-gray-500">
+                                                  No audit records yet. Submit the form above to create one.
+                                              </td>
+                                          </tr>
+                                      ) : (
+                                          auditTableData.map((row) => (
+                                              <tr key={row.id} className="hover:bg-blue-50/30">
+                                                  <td className="px-6 py-4 font-medium text-gray-900">{row.driverName}</td>
+                                                  <td className="px-6 py-4 text-gray-600">{row.driverId || '—'}</td>
+                                                  <td className="px-6 py-4 text-gray-600">{row.reportingTo || '—'}</td>
+                                                  <td className="px-6 py-4 text-gray-600">{row.auditDate ? new Date(row.auditDate).toLocaleDateString() : '—'}</td>
+                                                  <td className="px-6 py-4 text-gray-600">{row.incidentDate === '—' || !row.incidentDate ? '—' : new Date(row.incidentDate).toLocaleDateString()}</td>
+                                                  <td className="px-6 py-4 text-gray-600">{row.incidentTypes?.length ? row.incidentTypes.join(', ') : '—'}</td>
+                                                  <td className="px-6 py-4 text-gray-600 capitalize">{row.priorCounseling || '—'}</td>
+                                                  <td className="px-6 py-4 text-gray-600">{row.correctiveActionType || '—'}</td>
+                                                  <td className="px-6 py-4 text-gray-600">
+                                                      {row.documents?.length ? `${row.documents.length} file(s)` : '—'}
+                                                  </td>
+                                                  <td className="px-6 py-4">
+                                                      <button
+                                                          type="button"
+                                                          onClick={() => {
+                                                              setSelectedAuditDetail(row);
+                                                              setDetailSidebarOpen(true);
+                                                          }}
+                                                          className="flex items-center gap-1 text-blue-600 hover:text-blue-800 font-medium"
+                                                      >
+                                                          <Eye size={16} /> View details
+                                                      </button>
+                                                  </td>
+                                              </tr>
+                                          ))
+                                      )}
+                                  </tbody>
+                              </table>
+                          </div>
+                      </div>
+
+                      {/* View Details Sidebar Modal */}
+                      {detailSidebarOpen && selectedAuditDetail && (
+                          <>
+                              <div
+                                  className="fixed inset-0 bg-black/40 z-40 !mb-0 !pb-0"
+                                  onClick={() => { setDetailSidebarOpen(false); setSelectedAuditDetail(null); }}
+                                  aria-hidden="true"
+                              />
+                              <div className="fixed top-0 right-0 h-full w-full max-w-md bg-white shadow-xl z-50 flex flex-col !mb-0 !pb-0">
+                                  <div className="flex-shrink-0 border-b border-gray-200 px-6 py-4 flex justify-between items-center bg-gray-50/80">
+                                      <h3 className="text-lg font-bold text-gray-900">Audit Details</h3>
+                                      <button
+                                          type="button"
+                                          onClick={() => { setDetailSidebarOpen(false); setSelectedAuditDetail(null); }}
+                                          className="p-2 text-gray-500 hover:text-gray-700 hover:bg-gray-200 rounded-lg transition-colors"
+                                          aria-label="Close"
+                                      >
+                                          <X size={20} />
+                                      </button>
+                                  </div>
+                                  <div className="flex-1 overflow-y-auto p-6">
+                                      <div className="space-y-6">
+                                          {/* Driver & identification */}
+                                          <section>
+                                              <h4 className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-3">Driver & identification</h4>
+                                              <div className="space-y-3">
+                                                  <div className="flex flex-col gap-1">
+                                                      <span className="text-xs font-medium text-gray-500">Driver</span>
+                                                      <p className="text-gray-900 font-medium">{selectedAuditDetail.driverName}</p>
+                                                  </div>
+                                                  <div className="flex flex-col gap-1">
+                                                      <span className="text-xs font-medium text-gray-500">Driver ID</span>
+                                                      <p className="text-gray-900">{selectedAuditDetail.driverId || '—'}</p>
+                                                  </div>
+                                                  <div className="flex flex-col gap-1">
+                                                      <span className="text-xs font-medium text-gray-500">Reporting To</span>
+                                                      <p className="text-gray-900">{selectedAuditDetail.reportingTo || '—'}</p>
+                                                  </div>
+                                              </div>
+                                          </section>
+
+                                          <div className="border-t border-gray-100" />
+
+                                          {/* Dates */}
+                                          <section>
+                                              <h4 className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-3">Dates</h4>
+                                              <div className="grid grid-cols-1 gap-3">
+                                                  <div className="flex flex-col gap-1">
+                                                      <span className="text-xs font-medium text-gray-500">Audit Date</span>
+                                                      <p className="text-gray-900">{new Date(selectedAuditDetail.auditDate).toLocaleDateString()}</p>
+                                                  </div>
+                                                  <div className="flex flex-col gap-1">
+                                                      <span className="text-xs font-medium text-gray-500">Incident Date</span>
+                                                      <p className="text-gray-900">{selectedAuditDetail.incidentDate === '—' ? '—' : new Date(selectedAuditDetail.incidentDate).toLocaleDateString()}</p>
+                                                  </div>
+                                              </div>
+                                          </section>
+
+                                          <div className="border-t border-gray-100" />
+
+                                          {/* Hours */}
+                                          <section>
+                                              <h4 className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-3">Hours</h4>
+                                              <div className="flex flex-col gap-1">
+                                                  <span className="text-xs font-medium text-gray-500">Driving / On-Duty / Off-Duty</span>
+                                                  <p className="text-gray-900 font-mono text-sm">{selectedAuditDetail.drivingHours} / {selectedAuditDetail.onDutyHours} / {selectedAuditDetail.offDutyHours}</p>
+                                              </div>
+                                          </section>
+
+                                          <div className="border-t border-gray-100" />
+
+                                          {/* Incident & action */}
+                                          <section>
+                                              <h4 className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-3">Incident & action</h4>
+                                              <div className="space-y-3">
+                                                  <div className="flex flex-col gap-1">
+                                                      <span className="text-xs font-medium text-gray-500">Incident Type</span>
+                                                      <p className="text-gray-900">{selectedAuditDetail.incidentTypes.length ? selectedAuditDetail.incidentTypes.join(', ') : '—'}</p>
+                                                  </div>
+                                                  <div className="flex flex-col gap-1">
+                                                      <span className="text-xs font-medium text-gray-500">Prior Counseling</span>
+                                                      <p className="text-gray-900 capitalize">{selectedAuditDetail.priorCounseling || '—'}</p>
+                                                  </div>
+                                                  <div className="flex flex-col gap-1">
+                                                      <span className="text-xs font-medium text-gray-500">Corrective Action Type</span>
+                                                      <p className="text-gray-900">{selectedAuditDetail.correctiveActionType || '—'}</p>
+                                                  </div>
+                                              </div>
+                                          </section>
+
+                                          <div className="border-t border-gray-100" />
+
+                                          {/* Violations */}
+                                          <section>
+                                              <h4 className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-3">Violations</h4>
+                                              <p className="text-gray-900">{selectedAuditDetail.violations.length ? selectedAuditDetail.violations.join(', ') : 'None'}</p>
+                                          </section>
+
+                                          <div className="border-t border-gray-100" />
+
+                                          {/* Documents */}
+                                          <section>
+                                              <h4 className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-3">Documents</h4>
+                                              {selectedAuditDetail.documents?.length ? (
+                                                  <ul className="space-y-2">
+                                                      {selectedAuditDetail.documents.map((d, i) => (
+                                                          <li key={i} className="flex items-center gap-2 text-sm text-gray-700">
+                                                              <FileText size={16} className="text-blue-500 flex-shrink-0" />
+                                                              <span>{d.name}</span>
+                                                              <span className="text-gray-400 text-xs">({(d.size / 1024).toFixed(1)} KB)</span>
+                                                          </li>
+                                                      ))}
+                                                  </ul>
+                                              ) : (
+                                                  <p className="text-gray-500 text-sm">None</p>
+                                              )}
+                                          </section>
+
+                                          <div className="border-t border-gray-100" />
+
+                                          {/* Auditor & notes */}
+                                          <section>
+                                              <h4 className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-3">Auditor & notes</h4>
+                                              <div className="space-y-3">
+                                                  <div className="flex flex-col gap-1">
+                                                      <span className="text-xs font-medium text-gray-500">Auditor</span>
+                                                      <p className="text-gray-900">{selectedAuditDetail.auditorName || '—'}</p>
+                                                  </div>
+                                                  <div className="flex flex-col gap-1">
+                                                      <span className="text-xs font-medium text-gray-500">Notes</span>
+                                                      <p className="text-gray-900 text-sm leading-relaxed bg-gray-50 rounded-lg p-3 border border-gray-100">{selectedAuditDetail.notes || '—'}</p>
+                                                  </div>
+                                              </div>
+                                          </section>
+                                      </div>
+                                  </div>
+                              </div>
+                          </>
+                      )}
                   </div>
               )}
 

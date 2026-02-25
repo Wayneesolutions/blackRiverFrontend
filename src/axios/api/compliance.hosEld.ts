@@ -92,6 +92,57 @@ export const submitHOSAudit = async (auditData: {
     }
 };
 
+// Create HOS Audit Form record (full form with all fields)
+export const createHosAuditForm = async (payload: {
+    driverId: string;
+    driverIdDisplay?: string;
+    reportingTo?: string;
+    auditDate: string;
+    incidentDate?: string;
+    drivingHours: number;
+    onDutyHours: number;
+    offDutyHours: number;
+    violations: string[];
+    incidentTypes: string[];
+    priorCounseling?: string;
+    correctiveActionType?: string;
+    notes?: string;
+    auditorName?: string;
+    documents?: { name: string; size: number }[];
+}) => {
+    try {
+        const res: AxiosResponse = await apiClient.post(`compliance/hos-eld/audit-form`, payload);
+        return res.data;
+    } catch (error: any) {
+        const err = error as Error;
+        return err.response?.data;
+    }
+};
+
+// Get HOS Audit Form list
+export const getHosAuditForms = async (params?: {
+    driverId?: string;
+    startDate?: string;
+    endDate?: string;
+    page?: number;
+    limit?: number;
+}) => {
+    try {
+        const queryParams = new URLSearchParams();
+        if (params?.driverId) queryParams.append('driverId', params.driverId);
+        if (params?.startDate) queryParams.append('startDate', params.startDate);
+        if (params?.endDate) queryParams.append('endDate', params.endDate);
+        if (params?.page != null) queryParams.append('page', params.page.toString());
+        if (params?.limit != null) queryParams.append('limit', params.limit.toString());
+        const url = `compliance/hos-eld/audit-form${queryParams.toString() ? `?${queryParams.toString()}` : ''}`;
+        const res: AxiosResponse = await apiClient.get(url);
+        return res.data;
+    } catch (error: any) {
+        const err = error as Error;
+        return err.response?.data;
+    }
+};
+
 // Upload E-Log file
 export const uploadELogFile = async (formData: FormData) => {
     try {
