@@ -17,9 +17,10 @@ import {
   FaInfoCircle,
   FaCalendarAlt,
   FaDatabase,
-  FaTrashAlt
+  FaTrashAlt,
+  FaUpload
 } from 'react-icons/fa';
-import { getCvsaMonthlyReport, deleteOldCvsaData } from '../../../../axios/api/admin';
+import { getCvsaMonthlyReport, deleteOldCvsaData, uploadCarrierProfileDocument, saveCarrierProfileData } from '../../../../axios/api/admin';
 import { getViolationsForMonthlyReport, getViolationStats } from '../../../../axios/api/violations';
 import jsPDF from 'jspdf';
 
@@ -164,6 +165,11 @@ const MonthlyReport: React.FC = () => {
   const [deleteMessage, setDeleteMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
   const [violationStats, setViolationStats] = useState<any>(null);
   const [, setRealViolationsData] = useState<any>(null);
+  const [isUploading, setIsUploading] = useState<boolean>(false);
+  const [uploadMessage, setUploadMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
+  const [showExtractedDataModal, setShowExtractedDataModal] = useState<boolean>(false);
+  const [extractedData, setExtractedData] = useState<any>(null);
+  const [isSaving, setIsSaving] = useState<boolean>(false);
 
   // Calculate 2-year performance data statically from monthlyData
   const calculateTwoYearData = (): TwoYearData | null => {
@@ -394,6 +400,110 @@ const MonthlyReport: React.FC = () => {
     } catch (error) {
       console.error('Error fetching real violations:', error);
       // Violations are optional, don't block the page
+    }
+  };
+
+  // Handle save extracted data
+  const handleSaveExtractedData = async () => {
+    if (!extractedData) return;
+
+    setIsSaving(true);
+    try {
+      const response = await saveCarrierProfileData(extractedData);
+      
+      if (response?.success) {
+        setUploadMessage({
+          type: 'success',
+          text: `Successfully saved! Created ${response.data?.createdCount || 0} inspection record(s).`
+        });
+        
+        // Close modal and refresh data
+        setShowExtractedDataModal(false);
+        setExtractedData(null);
+        
+        // Refresh data after successful save
+        setTimeout(() => {
+          window.location.reload();
+        }, 2000);
+      } else {
+        setUploadMessage({
+          type: 'error',
+          text: response?.message || 'Failed to save data. Please try again.'
+        });
+      }
+    } catch (error: any) {
+      console.error('Error saving extracted data:', error);
+      setUploadMessage({
+        type: 'error',
+        text: error?.response?.data?.message || 'An error occurred while saving the data.'
+      });
+    } finally {
+      setIsSaving(false);
+      setTimeout(() => setUploadMessage(null), 5000);
+    }
+  };
+
+  // Handle cancel - close modal without saving
+  const handleCancelSave = () => {
+    setShowExtractedDataModal(false);
+    setExtractedData(null);
+  };
+
+  // Handle carrier profile document upload
+  const handleDocumentUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    // Validate file type
+    const allowedTypes = ['image/jpeg', 'image/png', 'image/jpg', 'application/pdf'];
+    if (!allowedTypes.includes(file.type)) {
+      setUploadMessage({
+        type: 'error',
+        text: 'Invalid file type. Please upload an image (JPEG, PNG) or PDF file.'
+      });
+      setTimeout(() => setUploadMessage(null), 5000);
+      return;
+    }
+
+    setIsUploading(true);
+    setUploadMessage(null);
+
+    try {
+      // Upload with preview mode (extract only, don't save)
+      const response = await uploadCarrierProfileDocument(file, true);
+      
+      if (response?.success && response?.data?.preview) {
+        // Show modal with extracted data
+        setExtractedData(response.data.extractedData);
+        setShowExtractedDataModal(true);
+      } else if (response?.success) {
+        // Legacy support: if not preview mode, save directly
+        setUploadMessage({
+          type: 'success',
+          text: `Successfully processed document! Created ${response.data?.createdCount || 0} inspection record(s).`
+        });
+        
+        // Refresh data after successful upload
+        setTimeout(() => {
+          window.location.reload();
+        }, 2000);
+      } else {
+        setUploadMessage({
+          type: 'error',
+          text: response?.message || 'Failed to process document. Please try again.'
+        });
+      }
+    } catch (error: any) {
+      console.error('Error uploading document:', error);
+      setUploadMessage({
+        type: 'error',
+        text: error?.response?.data?.message || 'An error occurred while processing the document.'
+      });
+    } finally {
+      setIsUploading(false);
+      // Reset file input
+      event.target.value = '';
+      setTimeout(() => setUploadMessage(null), 5000);
     }
   };
 
@@ -1005,6 +1115,266 @@ const MonthlyReport: React.FC = () => {
         </div>
       )}
 
+      {/* Upload Success/Error Notification */}
+      {uploadMessage && (
+        <div className="fixed top-20 right-4 z-50 animate-slide-in-right">
+          <div className={`flex items-center gap-3 px-6 py-4 rounded-lg shadow-2xl ${
+            uploadMessage.type === 'success' 
+              ? 'bg-green-50 border-2 border-green-500' 
+              : 'bg-red-50 border-2 border-red-500'
+          }`}>
+            {uploadMessage.type === 'success' ? (
+              <FaCheckCircle className="text-green-600 flex-shrink-0" size={24} />
+            ) : (
+              <FaTimesCircle className="text-red-600 flex-shrink-0" size={24} />
+            )}
+            <div className="flex-1">
+              <p className={`font-semibold ${
+                uploadMessage.type === 'success' ? 'text-green-900' : 'text-red-900'
+              }`}>
+                {uploadMessage.text}
+              </p>
+            </div>
+            <button
+              onClick={() => setUploadMessage(null)}
+              className="text-gray-500 hover:text-gray-700"
+            >
+              <FaTimesCircle size={18} />
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* Extracted Data Review Modal */}
+      {showExtractedDataModal && extractedData && (
+        <div className="fixed inset-0 flex items-center justify-center z-50 p-4" style={{ backgroundColor: 'rgba(0, 0, 0, 0)' }}>
+          <div className="bg-white rounded-lg shadow-xl max-w-5xl w-full max-h-[90vh] overflow-hidden flex flex-col border-2 border-gray-300">
+            {/* Modal Header */}
+            <div className="px-6 py-4 border-b border-gray-200 flex items-center justify-between bg-gray-50">
+              <div>
+                <h2 className="text-xl font-bold text-gray-900">Review Extracted Data</h2>
+                <p className="text-sm text-gray-600 mt-1">Please review the extracted data before saving</p>
+              </div>
+              <button
+                onClick={handleCancelSave}
+                className="text-gray-400 hover:text-gray-600 transition-colors"
+                disabled={isSaving}
+              >
+                <FaTimesCircle size={24} />
+              </button>
+            </div>
+
+            {/* Modal Body */}
+            <div className="px-6 py-4 overflow-y-auto flex-1">
+              {/* Summary Section */}
+              {extractedData.summary && (() => {
+                // Calculate Canada/USA counts from individual inspections if summary values are missing or 0
+                let canadaCount = extractedData.summary.canadaInspections || 0;
+                let usaCount = extractedData.summary.usaInspections || 0;
+                
+                if ((canadaCount === 0 && usaCount === 0) && extractedData.inspections && Array.isArray(extractedData.inspections)) {
+                  canadaCount = extractedData.inspections.filter((i: any) => i.country && i.country.toLowerCase() === 'canada').length;
+                  usaCount = extractedData.inspections.filter((i: any) => i.country && i.country.toLowerCase() === 'usa').length;
+                }
+                
+                return (
+                  <div className="mb-6">
+                    <h3 className="text-lg font-semibold text-gray-900 mb-3 flex items-center gap-2">
+                      <FaChartBar /> Summary Statistics
+                    </h3>
+                    <div className="bg-gray-50 rounded-lg p-4 border border-gray-200">
+                      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-4">
+                        <div className="bg-white rounded p-3 border border-gray-200">
+                          <p className="text-sm text-gray-600 mb-1">Total Inspections</p>
+                          <p className="text-2xl font-bold text-gray-900">{extractedData.summary.totalInspections || 0}</p>
+                        </div>
+                        <div className="bg-white rounded p-3 border border-gray-200">
+                          <p className="text-sm text-gray-600 mb-1">Pass</p>
+                          <p className="text-2xl font-bold text-green-600">{extractedData.summary.totalPass || 0}</p>
+                        </div>
+                        <div className="bg-white rounded p-3 border border-gray-200">
+                          <p className="text-sm text-gray-600 mb-1">Fail</p>
+                          <p className="text-2xl font-bold text-red-600">{extractedData.summary.totalFail || 0}</p>
+                        </div>
+                        <div className="bg-white rounded p-3 border border-gray-200">
+                          <p className="text-sm text-gray-600 mb-1">Out of Service</p>
+                          <p className="text-2xl font-bold text-orange-600">{extractedData.summary.totalOutOfService || 0}</p>
+                        </div>
+                      </div>
+                      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-4">
+                        {extractedData.summary.totalWarning !== undefined && extractedData.summary.totalWarning > 0 && (
+                          <div className="bg-white rounded p-3 border border-gray-200">
+                            <p className="text-sm text-gray-600 mb-1">Warning</p>
+                            <p className="text-xl font-bold text-yellow-600">{extractedData.summary.totalWarning || 0}</p>
+                          </div>
+                        )}
+                        <div className="bg-white rounded p-3 border border-gray-200">
+                          <p className="text-sm text-gray-600 mb-1 flex items-center gap-2">
+                            <FaFlag /> Canada Inspections
+                          </p>
+                          <p className="text-xl font-bold text-blue-600">{canadaCount}</p>
+                          {canadaCount === 0 && usaCount === 0 && (
+                            <p className="text-xs text-gray-500 mt-1">Calculated from individual inspections</p>
+                          )}
+                        </div>
+                        <div className="bg-white rounded p-3 border border-gray-200">
+                          <p className="text-sm text-gray-600 mb-1 flex items-center gap-2">
+                            <FaFlagUsa /> USA Inspections
+                          </p>
+                          <p className="text-xl font-bold text-blue-600">{usaCount}</p>
+                          {canadaCount === 0 && usaCount === 0 && (
+                            <p className="text-xs text-gray-500 mt-1">Calculated from individual inspections</p>
+                          )}
+                        </div>
+                      </div>
+                      {extractedData.summary.period && (
+                        <div className="mt-4 pt-4 border-t border-gray-200">
+                          <p className="text-sm text-gray-600 mb-1">Period</p>
+                          <p className="text-lg font-semibold text-gray-900">{extractedData.summary.period}</p>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                );
+              })()}
+
+              {/* Inspections List */}
+              {extractedData.inspections && Array.isArray(extractedData.inspections) && extractedData.inspections.length > 0 && (
+                <div className="mb-6">
+                  <h3 className="text-lg font-semibold text-gray-900 mb-3 flex items-center gap-2">
+                    <FaTruck /> Individual Inspections ({extractedData.inspections.length})
+                  </h3>
+                  <div className="bg-gray-50 rounded-lg p-4 border border-gray-200 max-h-96 overflow-y-auto">
+                    <div className="space-y-3">
+                      {extractedData.inspections.map((inspection: any, index: number) => (
+                        <div key={index} className="bg-white rounded-lg p-4 border border-gray-200 shadow-sm">
+                          <div className="flex items-center justify-between mb-3">
+                            <div className="flex items-center gap-3">
+                              <span className="font-semibold text-gray-900">
+                                {inspection.inspectionId || `Inspection ${index + 1}`}
+                              </span>
+                              {inspection.reportNumber && (
+                                <span className="text-sm text-gray-500">Report #: {inspection.reportNumber}</span>
+                              )}
+                            </div>
+                            <span className={`px-3 py-1 rounded text-xs font-semibold ${
+                              inspection.status === 'pass' ? 'bg-green-100 text-green-800' :
+                              inspection.status === 'fail' ? 'bg-red-100 text-red-800' :
+                              inspection.status === 'out-of-service' ? 'bg-orange-100 text-orange-800' :
+                              'bg-yellow-100 text-yellow-800'
+                            }`}>
+                              {inspection.status ? inspection.status.toUpperCase().replace('-', ' ') : 'UNKNOWN'}
+                            </span>
+                          </div>
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-sm">
+                            <div>
+                              {inspection.date && (
+                                <p className="text-gray-600">
+                                  <span className="font-medium">Date:</span> {new Date(inspection.date).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}
+                                </p>
+                              )}
+                              {inspection.location && (
+                                <p className="text-gray-600 mt-1">
+                                  <span className="font-medium">Location:</span> {inspection.location}
+                                </p>
+                              )}
+                              {inspection.country && (
+                                <p className="text-gray-600 mt-1">
+                                  <span className="font-medium">Country:</span> {inspection.country.toUpperCase()}
+                                </p>
+                              )}
+                            </div>
+                            <div>
+                              {inspection.inspectionType && (
+                                <p className="text-gray-600">
+                                  <span className="font-medium">Type:</span> {inspection.inspectionType.replace('-', ' ').toUpperCase()}
+                                </p>
+                              )}
+                              {inspection.inspectorName && (
+                                <p className="text-gray-600 mt-1">
+                                  <span className="font-medium">Inspector:</span> {inspection.inspectorName}
+                                </p>
+                              )}
+                              {inspection.driverName && (
+                                <p className="text-gray-600 mt-1">
+                                  <span className="font-medium">Driver:</span> {inspection.driverName}
+                                </p>
+                              )}
+                              {inspection.vehicleUnitNo && (
+                                <p className="text-gray-600 mt-1">
+                                  <span className="font-medium">Vehicle:</span> {inspection.vehicleUnitNo}
+                                </p>
+                              )}
+                            </div>
+                          </div>
+                          {inspection.violations && Array.isArray(inspection.violations) && inspection.violations.length > 0 && (
+                            <div className="mt-3 pt-3 border-t border-gray-200">
+                              <p className="text-sm font-medium text-gray-700 mb-2">Violations ({inspection.violations.length}):</p>
+                              <div className="space-y-1">
+                                {inspection.violations.slice(0, 3).map((violation: any, vIndex: number) => (
+                                  <p key={vIndex} className="text-xs text-gray-600">
+                                    • {violation.code || 'N/A'}: {violation.description || 'No description'} 
+                                    {violation.severity && <span className="ml-2 text-orange-600">({violation.severity})</span>}
+                                  </p>
+                                ))}
+                                {inspection.violations.length > 3 && (
+                                  <p className="text-xs text-gray-500 italic">... and {inspection.violations.length - 3} more violations</p>
+                                )}
+                              </div>
+                            </div>
+                          )}
+                          {inspection.notes && (
+                            <div className="mt-3 pt-3 border-t border-gray-200">
+                              <p className="text-sm font-medium text-gray-700 mb-1">Notes:</p>
+                              <p className="text-xs text-gray-600">{inspection.notes}</p>
+                            </div>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {(!extractedData.summary && (!extractedData.inspections || extractedData.inspections.length === 0)) && (
+                <div className="text-center py-8 text-gray-500">
+                  <FaInfoCircle size={48} className="mx-auto mb-4 text-gray-400" />
+                  <p>No data extracted from the document.</p>
+                </div>
+              )}
+            </div>
+
+            {/* Modal Footer */}
+            <div className="px-6 py-4 border-t border-gray-200 flex items-center justify-end gap-3 bg-gray-50">
+              <button
+                onClick={handleCancelSave}
+                disabled={isSaving}
+                className="px-6 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition-colors font-medium disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleSaveExtractedData}
+                disabled={isSaving}
+                className="px-6 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors font-medium disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+              >
+                {isSaving ? (
+                  <>
+                    <span className="animate-spin">⏳</span>
+                    Saving...
+                  </>
+                ) : (
+                  <>
+                    <FaCheckCircle />
+                    Save to Database
+                  </>
+                )}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
     <div className="min-h-screen pb-10" style={{ backgroundColor: '#EDF8FF' }}>
       <div className="relative w-full mx-auto p-2">
 
@@ -1021,6 +1391,17 @@ const MonthlyReport: React.FC = () => {
                 </div>
               </div>
               <div className="flex items-center gap-3">
+                <label className="flex items-center gap-2 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors shadow-sm cursor-pointer">
+                  <FaUpload size={16} />
+                  {isUploading ? 'Processing...' : 'Upload Carrier Profile'}
+                  <input
+                    type="file"
+                    accept="image/jpeg,image/png,image/jpg,application/pdf"
+                    onChange={handleDocumentUpload}
+                    disabled={isUploading}
+                    className="hidden"
+                  />
+                </label>
                 <button
                   onClick={handleDownloadPDF}
                   className="flex items-center gap-2 px-4 py-2 bg-blue-600 !text-white rounded-lg hover:bg-blue-700 transition-colors shadow-sm"

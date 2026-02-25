@@ -210,6 +210,40 @@ export const deleteOldCvsaData = async () => {
   }
 };
 
+export const uploadCarrierProfileDocument = async (file: File, preview: boolean = true) => {
+  try {
+    const formData = new FormData();
+    formData.append('document', file);
+    
+    const res: AxiosResponse = await apiClient.post(
+      `admin/cvsa-inspections/upload-carrier-profile?preview=${preview}`,
+      formData,
+      {
+        headers: {
+          'Content-Type': 'multipart/form-data'
+        }
+      }
+    );
+    return res.data;
+  } catch (error) {
+    console.log(error);
+    return (error as Error).response?.data;
+  }
+};
+
+export const saveCarrierProfileData = async (extractedData: any) => {
+  try {
+    const res: AxiosResponse = await apiClient.post(
+      'admin/cvsa-inspections/save-carrier-profile',
+      { extractedData }
+    );
+    return res.data;
+  } catch (error) {
+    console.log(error);
+    return (error as Error).response?.data;
+  }
+};
+
 // Ticket API Functions
 export const getTickets = async (params?: { status?: string; search?: string; page?: number; limit?: number }) => {
   try {
