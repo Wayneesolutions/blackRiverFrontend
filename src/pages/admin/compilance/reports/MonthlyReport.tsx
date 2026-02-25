@@ -170,6 +170,7 @@ const MonthlyReport: React.FC = () => {
   const [showExtractedDataModal, setShowExtractedDataModal] = useState<boolean>(false);
   const [extractedData, setExtractedData] = useState<any>(null);
   const [isSaving, setIsSaving] = useState<boolean>(false);
+  const [duplicateWarnings, setDuplicateWarnings] = useState<string[]>([]);
 
   // Calculate 2-year performance data statically from monthlyData
   const calculateTwoYearData = (): TwoYearData | null => {
@@ -447,6 +448,7 @@ const MonthlyReport: React.FC = () => {
   const handleCancelSave = () => {
     setShowExtractedDataModal(false);
     setExtractedData(null);
+    setDuplicateWarnings([]);
   };
 
   // Handle carrier profile document upload
@@ -475,6 +477,7 @@ const MonthlyReport: React.FC = () => {
       if (response?.success && response?.data?.preview) {
         // Show modal with extracted data
         setExtractedData(response.data.extractedData);
+        setDuplicateWarnings(response.data.duplicateWarnings || []);
         setShowExtractedDataModal(true);
       } else if (response?.success) {
         // Legacy support: if not preview mode, save directly
@@ -1164,17 +1167,122 @@ const MonthlyReport: React.FC = () => {
               </button>
             </div>
 
+            {/* Duplicate Warnings */}
+            {duplicateWarnings && duplicateWarnings.length > 0 && (
+              <div className="px-6 py-3 bg-yellow-50 border-b border-yellow-200">
+                <div className="flex items-start gap-3">
+                  <FaExclamationTriangle className="text-yellow-600 flex-shrink-0 mt-0.5" size={20} />
+                  <div className="flex-1">
+                    <p className="text-sm font-semibold text-yellow-900 mb-1">
+                      Duplicate Warnings ({duplicateWarnings.length})
+                    </p>
+                    <ul className="text-xs text-yellow-800 space-y-1 max-h-32 overflow-y-auto">
+                      {duplicateWarnings.slice(0, 5).map((warning, index) => (
+                        <li key={index}>• {warning}</li>
+                      ))}
+                      {duplicateWarnings.length > 5 && (
+                        <li className="text-yellow-600 italic">... and {duplicateWarnings.length - 5} more</li>
+                      )}
+                    </ul>
+                    <p className="text-xs text-yellow-700 mt-2 font-medium">
+                      ⚠️ These inspections may already exist in the database. Duplicates will be skipped during save.
+                    </p>
+                  </div>
+                </div>
+              </div>
+            )}
+
             {/* Modal Body */}
             <div className="px-6 py-4 overflow-y-auto flex-1">
               {/* Summary Section */}
               {extractedData.summary && (() => {
+                // Helper function to infer country from location
+                const inferCountryFromLocation = (location: string | null | undefined): string | null => {
+                  if (!location) return null;
+                  const locationUpper = location.toUpperCase();
+                  const locationLower = location.toLowerCase();
+                  
+                  // Canadian province/territory codes (2-letter) - most reliable
+                  const canadaProvinceCodes = ['MB', 'BC', 'ON', 'AB', 'SK', 'QC', 'NS', 'NB', 'NL', 'PE', 'YT', 'NT', 'NU'];
+                  
+                  // US state codes (2-letter)
+                  const usaStateCodes = ['AL', 'AK', 'AZ', 'AR', 'CA', 'CO', 'CT', 'DE', 'FL', 'GA', 'HI', 'ID', 'IL', 'IN', 'IA', 'KS', 'KY', 'LA', 'ME', 'MD', 'MA', 'MI', 'MN', 'MS', 'MO', 'MT', 'NE', 'NV', 'NH', 'NJ', 'NM', 'NY', 'NC', 'ND', 'OH', 'OK', 'OR', 'PA', 'RI', 'SC', 'SD', 'TN', 'TX', 'UT', 'VT', 'VA', 'WA', 'WV', 'WI', 'WY', 'DC'];
+                  
+                  // Check for province/state codes first (most reliable)
+                  for (const code of canadaProvinceCodes) {
+                    // Check if location contains the code as a standalone word or at start/end
+                    if (locationUpper.includes(` ${code} `) || locationUpper.startsWith(`${code} `) || locationUpper.endsWith(` ${code}`) || locationUpper === code) {
+                      return 'canada';
+                    }
+                  }
+                  
+                  for (const code of usaStateCodes) {
+                    if (locationUpper.includes(` ${code} `) || locationUpper.startsWith(`${code} `) || locationUpper.endsWith(` ${code}`) || locationUpper === code) {
+                      return 'usa';
+                    }
+                  }
+                  
+                  // Canada indicators (full names and cities)
+                  const canadaIndicators = ['ontario', 'quebec', 'british columbia', 'alberta', 'manitoba', 'saskatchewan', 'nova scotia', 'new brunswick', 'newfoundland', 'prince edward island', 'yukon', 'northwest territories', 'nunavut', 'toronto', 'vancouver', 'montreal', 'calgary', 'edmonton', 'ottawa', 'winnipeg', 'halifax', 'quebec city', 'canada', 'cad', 'cbsa'];
+                  
+                  // USA indicators
+                  const usaIndicators = ['california', 'texas', 'florida', 'new york', 'illinois', 'pennsylvania', 'ohio', 'georgia', 'north carolina', 'michigan', 'new jersey', 'virginia', 'washington', 'arizona', 'massachusetts', 'tennessee', 'indiana', 'missouri', 'maryland', 'wisconsin', 'colorado', 'minnesota', 'south carolina', 'alabama', 'louisiana', 'kentucky', 'oregon', 'oklahoma', 'connecticut', 'utah', 'iowa', 'nevada', 'arkansas', 'mississippi', 'kansas', 'new mexico', 'nebraska', 'west virginia', 'idaho', 'hawaii', 'new hampshire', 'maine', 'montana', 'rhode island', 'delaware', 'south dakota', 'north dakota', 'alaska', 'vermont', 'wyoming', 'usa', 'us', 'united states', 'dot', 'federal', 'cvs'];
+                  
+                  for (const indicator of canadaIndicators) {
+                    if (locationLower.includes(indicator)) return 'canada';
+                  }
+                  
+                  for (const indicator of usaIndicators) {
+                    if (locationLower.includes(indicator)) return 'usa';
+                  }
+                  
+                  return null;
+                };
+
                 // Calculate Canada/USA counts from individual inspections if summary values are missing or 0
                 let canadaCount = extractedData.summary.canadaInspections || 0;
                 let usaCount = extractedData.summary.usaInspections || 0;
                 
-                if ((canadaCount === 0 && usaCount === 0) && extractedData.inspections && Array.isArray(extractedData.inspections)) {
-                  canadaCount = extractedData.inspections.filter((i: any) => i.country && i.country.toLowerCase() === 'canada').length;
-                  usaCount = extractedData.inspections.filter((i: any) => i.country && i.country.toLowerCase() === 'usa').length;
+                // If counts are 0, try to calculate from individual inspections
+                if ((canadaCount === 0 && usaCount === 0) && extractedData.inspections && Array.isArray(extractedData.inspections) && extractedData.inspections.length > 0) {
+                  let calculatedCanada = 0;
+                  let calculatedUSA = 0;
+                  
+                  for (const inspection of extractedData.inspections) {
+                    let country: string | null = null;
+                    
+                    // Check explicit country field first
+                    if (inspection.country) {
+                      country = inspection.country.toLowerCase();
+                    } 
+                    // Check province/state codes (most reliable)
+                    else if (inspection.province) {
+                      // Canadian provinces
+                      const canadaProvinces = ['MB', 'BC', 'ON', 'AB', 'SK', 'QC', 'NS', 'NB', 'NL', 'PE', 'YT', 'NT', 'NU'];
+                      if (canadaProvinces.includes(inspection.province.toUpperCase())) {
+                        country = 'canada';
+                      }
+                    } else if (inspection.state) {
+                      // US states (2-letter codes)
+                      const usaStates = ['AL', 'AK', 'AZ', 'AR', 'CA', 'CO', 'CT', 'DE', 'FL', 'GA', 'HI', 'ID', 'IL', 'IN', 'IA', 'KS', 'KY', 'LA', 'ME', 'MD', 'MA', 'MI', 'MN', 'MS', 'MO', 'MT', 'NE', 'NV', 'NH', 'NJ', 'NM', 'NY', 'NC', 'ND', 'OH', 'OK', 'OR', 'PA', 'RI', 'SC', 'SD', 'TN', 'TX', 'UT', 'VT', 'VA', 'WA', 'WV', 'WI', 'WY', 'DC'];
+                      if (usaStates.includes(inspection.state.toUpperCase())) {
+                        country = 'usa';
+                      }
+                    }
+                    // Infer from location if country/province/state not set
+                    else if (inspection.location) {
+                      country = inferCountryFromLocation(inspection.location);
+                    }
+                    
+                    if (country === 'canada') {
+                      calculatedCanada++;
+                    } else if (country === 'usa') {
+                      calculatedUSA++;
+                    }
+                  }
+                  
+                  canadaCount = calculatedCanada;
+                  usaCount = calculatedUSA;
                 }
                 
                 return (
@@ -1213,8 +1321,11 @@ const MonthlyReport: React.FC = () => {
                             <FaFlag /> Canada Inspections
                           </p>
                           <p className="text-xl font-bold text-blue-600">{canadaCount}</p>
-                          {canadaCount === 0 && usaCount === 0 && (
-                            <p className="text-xs text-gray-500 mt-1">Calculated from individual inspections</p>
+                          {canadaCount === 0 && usaCount === 0 && (!extractedData.inspections || extractedData.inspections.length === 0) && (
+                            <p className="text-xs text-orange-600 mt-1 italic">⚠️ Individual inspections not extracted - cannot calculate country breakdown</p>
+                          )}
+                          {canadaCount === 0 && usaCount === 0 && extractedData.inspections && extractedData.inspections.length > 0 && (
+                            <p className="text-xs text-gray-500 mt-1 italic">Country not specified in document</p>
                           )}
                         </div>
                         <div className="bg-white rounded p-3 border border-gray-200">
@@ -1222,8 +1333,11 @@ const MonthlyReport: React.FC = () => {
                             <FaFlagUsa /> USA Inspections
                           </p>
                           <p className="text-xl font-bold text-blue-600">{usaCount}</p>
-                          {canadaCount === 0 && usaCount === 0 && (
-                            <p className="text-xs text-gray-500 mt-1">Calculated from individual inspections</p>
+                          {canadaCount === 0 && usaCount === 0 && (!extractedData.inspections || extractedData.inspections.length === 0) && (
+                            <p className="text-xs text-orange-600 mt-1 italic">⚠️ Individual inspections not extracted - cannot calculate country breakdown</p>
+                          )}
+                          {canadaCount === 0 && usaCount === 0 && extractedData.inspections && extractedData.inspections.length > 0 && (
+                            <p className="text-xs text-gray-500 mt-1 italic">Country not specified in document</p>
                           )}
                         </div>
                       </div>

@@ -93,25 +93,13 @@ export const submitHOSAudit = async (auditData: {
 };
 
 // Create HOS Audit Form record (full form with all fields)
-export const createHosAuditForm = async (payload: {
-    driverId: string;
-    driverIdDisplay?: string;
-    reportingTo?: string;
-    auditDate: string;
-    incidentDate?: string;
-    drivingHours: number;
-    onDutyHours: number;
-    offDutyHours: number;
-    violations: string[];
-    incidentTypes: string[];
-    priorCounseling?: string;
-    correctiveActionType?: string;
-    notes?: string;
-    auditorName?: string;
-    documents?: { name: string; size: number }[];
-}) => {
+export const createHosAuditForm = async (formData: FormData) => {
     try {
-        const res: AxiosResponse = await apiClient.post(`compliance/hos-eld/audit-form`, payload);
+        const res: AxiosResponse = await apiClient.post(`compliance/hos-eld/audit-form`, formData, {
+            headers: {
+                'Content-Type': 'multipart/form-data',
+            },
+        });
         return res.data;
     } catch (error: any) {
         const err = error as Error;
@@ -136,6 +124,17 @@ export const getHosAuditForms = async (params?: {
         if (params?.limit != null) queryParams.append('limit', params.limit.toString());
         const url = `compliance/hos-eld/audit-form${queryParams.toString() ? `?${queryParams.toString()}` : ''}`;
         const res: AxiosResponse = await apiClient.get(url);
+        return res.data;
+    } catch (error: any) {
+        const err = error as Error;
+        return err.response?.data;
+    }
+};
+
+// Get signed URL for HOS Audit Form document
+export const getHosAuditDocumentUrl = async (auditId: string, documentIndex: number) => {
+    try {
+        const res: AxiosResponse = await apiClient.get(`compliance/hos-eld/audit-form/${auditId}/document/${documentIndex}`);
         return res.data;
     } catch (error: any) {
         const err = error as Error;

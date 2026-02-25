@@ -8,6 +8,7 @@ import {
     syncHOSFromSamsara, 
     createHosAuditForm,
     getHosAuditForms,
+    getHosAuditDocumentUrl,
     uploadELogFile,
     getELogs,
     deleteELog,
@@ -60,7 +61,7 @@ interface AuditTableRow {
   violations: string[];
   notes: string;
   auditorName: string;
-  documents: { name: string; size: number }[];
+  documents: { name: string; size: number; url?: string; key?: string; mimeType?: string }[];
 }
 
 const VehicleEldMonitor = () => {
@@ -197,7 +198,13 @@ const VehicleEldMonitor = () => {
           violations: Array.isArray(row.violations) ? row.violations : [],
           notes: row.notes ?? '',
           auditorName: row.auditorName ?? '',
-          documents: Array.isArray(row.documents) ? row.documents : []
+          documents: Array.isArray(row.documents) ? row.documents.map((doc: any) => ({
+            name: doc.name || 'Unknown',
+            size: doc.size || 0,
+            url: doc.url || undefined,
+            key: doc.key || undefined,
+            mimeType: doc.mimeType || undefined
+          })) : []
         }));
         setAuditTableData(rows);
       } else {
@@ -240,25 +247,34 @@ const VehicleEldMonitor = () => {
 
     setSubmittingAudit(true);
     try {
-      const response = await createHosAuditForm({
-        driverId: auditFormData.driverId,
-        driverIdDisplay: auditFormData.driverIdDisplay || undefined,
-        reportingTo: auditFormData.reportingTo || undefined,
-        auditDate: auditFormData.auditDate,
-        incidentDate: auditFormData.incidentDate || undefined,
-        drivingHours: auditFormData.drivingHours,
-        onDutyHours: auditFormData.onDutyHours,
-        offDutyHours: auditFormData.offDutyHours,
-        violations: auditFormData.violations,
-        incidentTypes: auditFormData.incidentTypes,
-        priorCounseling: auditFormData.priorCounseling || undefined,
-        correctiveActionType: auditFormData.correctiveActionType || undefined,
-        notes: auditFormData.notes || undefined,
-        auditorName: auditFormData.auditorName || undefined,
-        documents: auditFormDocuments.length > 0
-          ? auditFormDocuments.map((f) => ({ name: f.name, size: f.size }))
-          : undefined
+      // Create FormData for file upload
+      const formData = new FormData();
+      
+      // Append all form fields
+      formData.append('driverId', auditFormData.driverId);
+      if (auditFormData.driverIdDisplay) formData.append('driverIdDisplay', auditFormData.driverIdDisplay);
+      if (auditFormData.reportingTo) formData.append('reportingTo', auditFormData.reportingTo);
+      formData.append('auditDate', auditFormData.auditDate);
+      if (auditFormData.incidentDate) formData.append('incidentDate', auditFormData.incidentDate);
+      formData.append('drivingHours', auditFormData.drivingHours.toString());
+      formData.append('onDutyHours', auditFormData.onDutyHours.toString());
+      formData.append('offDutyHours', auditFormData.offDutyHours.toString());
+      
+      // Append arrays
+      auditFormData.violations.forEach(v => formData.append('violations[]', v));
+      auditFormData.incidentTypes.forEach(t => formData.append('incidentTypes[]', t));
+      
+      if (auditFormData.priorCounseling) formData.append('priorCounseling', auditFormData.priorCounseling);
+      if (auditFormData.correctiveActionType) formData.append('correctiveActionType', auditFormData.correctiveActionType);
+      if (auditFormData.notes) formData.append('notes', auditFormData.notes);
+      if (auditFormData.auditorName) formData.append('auditorName', auditFormData.auditorName);
+      
+      // Append files
+      auditFormDocuments.forEach((file) => {
+        formData.append('documents', file);
       });
+
+      const response = await createHosAuditForm(formData);
 
       if (response?.success) {
         alert('HOS Audit submitted successfully!');
@@ -887,37 +903,55 @@ const VehicleEldMonitor = () => {
                                                   accept=".pdf,.doc,.docx,.xls,.xlsx,.txt,.jpg,.jpeg,.png"
                                                   onChange={(e) => {
                                                       const files = e.target.files;
-                                                      if (files?.length) {
-                                                          setAuditFormDocuments(prev => [...prev, ...Array.from(files)]);
+                                                      if (files && files.length > 0) {
+                                                          const fileArray = Array.from(files);
+                                                          setAuditFormDocuments(prev => {
+                                                              // Create unique list by checking for duplicates
+                                                              const existingNames = new Set(prev.map(f => `${f.name}-${f.size}`));
+                                                              const newFiles = fileArray.filter(f => !existingNames.has(`${f.name}-${f.size}`));
+                                                              return [...prev, ...newFiles];
+                                                          });
                                                       }
+                                                      // Reset input to allow selecting same file again
                                                       e.target.value = '';
                                                   }}
                                                   className="hidden"
+                                                  id="audit-document-upload"
                                               />
-                                              <Upload size={24} className="mx-auto mb-1 text-gray-500" />
-                                              <span className="text-sm text-gray-600">Click to upload or drag and drop</span>
-                                              <p className="text-xs text-gray-400 mt-1">PDF, DOC, XLS, TXT, JPG, PNG (optional)</p>
+                                              <label htmlFor="audit-document-upload" className="cursor-pointer">
+                                                  <Upload size={24} className="mx-auto mb-1 text-gray-500" />
+                                                  <span className="text-sm text-gray-600">Click to upload or drag and drop</span>
+                                                  <p className="text-xs text-gray-400 mt-1">PDF, DOC, XLS, TXT, JPG, PNG (optional)</p>
+                                              </label>
                                           </div>
                                       </label>
                                       {auditFormDocuments.length > 0 && (
-                                          <ul className="mt-2 space-y-1">
-                                              {auditFormDocuments.map((file, index) => (
-                                                  <li key={`${file.name}-${index}`} className="flex items-center justify-between px-3 py-2 bg-gray-50 rounded-lg text-sm">
-                                                      <span className="flex items-center gap-2 text-gray-700">
-                                                          <FileText size={16} className="text-blue-500" />
-                                                          {file.name} ({(file.size / 1024).toFixed(1)} KB)
-                                                      </span>
-                                                      <button
-                                                          type="button"
-                                                          onClick={() => setAuditFormDocuments(prev => prev.filter((_, i) => i !== index))}
-                                                          className="text-red-500 hover:text-red-700 p-1"
-                                                          title="Remove"
-                                                      >
-                                                          <X size={18} />
-                                                      </button>
-                                                  </li>
-                                              ))}
-                                          </ul>
+                                          <div className="mt-2 space-y-2">
+                                              <p className="text-xs text-gray-500 font-medium">Selected Documents ({auditFormDocuments.length}):</p>
+                                              <ul className="space-y-1">
+                                                  {auditFormDocuments.map((file, index) => (
+                                                      <li key={`doc-${index}-${file.name}-${file.size}-${file.lastModified}`} className="flex items-center justify-between px-3 py-2 bg-gray-50 rounded-lg text-sm border border-gray-200">
+                                                          <span className="flex items-center gap-2 text-gray-700 flex-1 min-w-0">
+                                                              <FileText size={16} className="text-blue-500 flex-shrink-0" />
+                                                              <span className="truncate" title={file.name}>{file.name}</span>
+                                                              <span className="text-gray-400 text-xs flex-shrink-0">({(file.size / 1024).toFixed(1)} KB)</span>
+                                                          </span>
+                                                          <button
+                                                              type="button"
+                                                              onClick={(e) => {
+                                                                  e.preventDefault();
+                                                                  e.stopPropagation();
+                                                                  setAuditFormDocuments(prev => prev.filter((_, i) => i !== index));
+                                                              }}
+                                                              className="text-red-500 hover:text-red-700 p-1 ml-2 flex-shrink-0"
+                                                              title="Remove"
+                                                          >
+                                                              <X size={18} />
+                                                          </button>
+                                                      </li>
+                                                  ))}
+                                              </ul>
+                                          </div>
                                       )}
                                   </div>
                               </div>
@@ -1021,12 +1055,41 @@ const VehicleEldMonitor = () => {
                                                   <td className="px-6 py-4 text-gray-600 capitalize">{row.priorCounseling || '—'}</td>
                                                   <td className="px-6 py-4 text-gray-600">{row.correctiveActionType || '—'}</td>
                                                   <td className="px-6 py-4 text-gray-600">
-                                                      {row.documents?.length ? `${row.documents.length} file(s)` : '—'}
+                                                      {row.documents?.length ? (
+                                                          <button
+                                                              type="button"
+                                                              onClick={async (e) => {
+                                                                  e.stopPropagation();
+                                                                  try {
+                                                                      const auditId = row.id || row._id;
+                                                                      // Always fetch signed URL for the first document
+                                                                      const response = await getHosAuditDocumentUrl(auditId, 0);
+                                                                      if (response?.success && response?.data?.url) {
+                                                                          window.open(response.data.url, '_blank');
+                                                                      } else {
+                                                                          // If no URL available, open details sidebar
+                                                                          setSelectedAuditDetail(row);
+                                                                          setDetailSidebarOpen(true);
+                                                                      }
+                                                                  } catch (error: any) {
+                                                                      console.error('Error loading document:', error);
+                                                                      // On error, open details sidebar as fallback
+                                                                      setSelectedAuditDetail(row);
+                                                                      setDetailSidebarOpen(true);
+                                                                  }
+                                                              }}
+                                                              className="text-blue-600 hover:text-blue-800 underline cursor-pointer text-sm font-medium"
+                                                              title={row.documents.length === 1 ? `Open ${row.documents[0].name}` : `Click to view ${row.documents.length} files`}
+                                                          >
+                                                              {row.documents.length} file(s)
+                                                          </button>
+                                                      ) : '—'}
                                                   </td>
                                                   <td className="px-6 py-4">
                                                       <button
                                                           type="button"
-                                                          onClick={() => {
+                                                          onClick={(e) => {
+                                                              e.stopPropagation();
                                                               setSelectedAuditDetail(row);
                                                               setDetailSidebarOpen(true);
                                                           }}
@@ -1148,13 +1211,47 @@ const VehicleEldMonitor = () => {
                                               <h4 className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-3">Documents</h4>
                                               {selectedAuditDetail.documents?.length ? (
                                                   <ul className="space-y-2">
-                                                      {selectedAuditDetail.documents.map((d, i) => (
-                                                          <li key={i} className="flex items-center gap-2 text-sm text-gray-700">
-                                                              <FileText size={16} className="text-blue-500 flex-shrink-0" />
-                                                              <span>{d.name}</span>
-                                                              <span className="text-gray-400 text-xs">({(d.size / 1024).toFixed(1)} KB)</span>
-                                                          </li>
-                                                      ))}
+                                                      {selectedAuditDetail.documents.map((d, i) => {
+                                                          const doc = d as any;
+                                                          const hasUrl = doc?.url || doc?.key;
+                                                          return (
+                                                              <li key={i} className="flex items-center justify-between gap-2 text-sm text-gray-700 group">
+                                                                  <button
+                                                                      type="button"
+                                                                      onClick={async (e) => {
+                                                                          e.preventDefault();
+                                                                          e.stopPropagation();
+                                                                          try {
+                                                                              const auditId = selectedAuditDetail.id;
+                                                                              const response = await getHosAuditDocumentUrl(auditId, i);
+                                                                              if (response?.success && response?.data?.url) {
+                                                                                  window.open(response.data.url, '_blank');
+                                                                              } else {
+                                                                                  alert(response?.message || `File "${d.name}" is not available. The document was not uploaded with a file URL.`);
+                                                                              }
+                                                                          } catch (error: any) {
+                                                                              console.error('Error loading document:', error);
+                                                                              alert(`Error loading document: ${error?.response?.data?.message || error.message || 'Unknown error'}`);
+                                                                          }
+                                                                      }}
+                                                                      className={`flex items-center gap-2 flex-1 text-left transition-colors ${
+                                                                          hasUrl 
+                                                                              ? 'text-blue-600 hover:text-blue-800 cursor-pointer hover:underline' 
+                                                                              : 'text-gray-500 cursor-not-allowed'
+                                                                      }`}
+                                                                      disabled={!hasUrl}
+                                                                      title={hasUrl ? `Click to open ${d.name}` : `File "${d.name}" is not available`}
+                                                                  >
+                                                                      <FileText size={16} className={`flex-shrink-0 ${hasUrl ? 'text-blue-500' : 'text-gray-400'}`} />
+                                                                      <span className="truncate">{d.name}</span>
+                                                                      <span className="text-gray-400 text-xs flex-shrink-0">({(d.size / 1024).toFixed(1)} KB)</span>
+                                                                  </button>
+                                                                  {hasUrl && (
+                                                                      <Download size={14} className="text-blue-500 flex-shrink-0 opacity-0 group-hover:opacity-100 transition-opacity" />
+                                                                  )}
+                                                              </li>
+                                                          );
+                                                      })}
                                                   </ul>
                                               ) : (
                                                   <p className="text-gray-500 text-sm">None</p>

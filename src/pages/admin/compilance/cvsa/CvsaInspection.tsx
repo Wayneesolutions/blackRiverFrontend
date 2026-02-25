@@ -1618,12 +1618,15 @@ const CvsaInspection: React.FC = () => {
                       <div>
                         <label className="block text-sm font-medium text-gray-700 mb-1">Country <span className="text-red-500">*</span></label>
                         <select
-                          value={inspectionForm.country}
+                          value={inspectionForm.country || activeTab}
                           onChange={(e) => setInspectionForm(prev => ({ ...prev, country: e.target.value as 'canada' | 'usa' }))}
                           className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[var(--accent-color)] focus:border-transparent"
                         >
-                          <option value="canada">Canada</option>
-                          <option value="usa">USA</option>
+                          {activeTab === 'canada' ? (
+                            <option value="canada">Canada</option>
+                          ) : (
+                            <option value="usa">USA</option>
+                          )}
                         </select>
                       </div>
                       <div>
@@ -1908,12 +1911,15 @@ const CvsaInspection: React.FC = () => {
                       <div>
                         <label className="block text-sm font-medium text-gray-700 mb-1">Country <span className="text-red-500">*</span></label>
                         <select
-                          value={inspectionForm.country}
+                          value={inspectionForm.country || (selectedInspection?.country || activeTab)}
                           onChange={(e) => setInspectionForm(prev => ({ ...prev, country: e.target.value as 'canada' | 'usa' }))}
                           className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[var(--accent-color)] focus:border-transparent"
                         >
-                          <option value="canada">Canada</option>
-                          <option value="usa">USA</option>
+                          {(inspectionForm.country || selectedInspection?.country || activeTab) === 'canada' ? (
+                            <option value="canada">Canada</option>
+                          ) : (
+                            <option value="usa">USA</option>
+                          )}
                         </select>
                       </div>
                       <div>
