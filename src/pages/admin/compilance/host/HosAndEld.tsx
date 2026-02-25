@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import {
     RefreshCw, ShieldCheck, 
-    Download, Upload, FileText, X, FileCheck, Plus, Eye
+    Download, Upload, FileText, X, FileCheck, Plus, Eye, Pencil, Check
 } from 'lucide-react';
 import { 
     getHOSEldData, 
@@ -64,6 +64,8 @@ interface AuditTableRow {
   documents: { name: string; size: number; url?: string; key?: string; mimeType?: string }[];
 }
 
+const ELOG_DISPLAY_NAMES_KEY = 'compliance-elog-display-names';
+
 const VehicleEldMonitor = () => {
   const [activeTab, setActiveTab] = useState<'tracker' | 'audit-form' | 'e-logs'>('tracker');
   const [loading, setLoading] = useState(false);
@@ -119,6 +121,9 @@ const VehicleEldMonitor = () => {
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [selectedDriverForLog, setSelectedDriverForLog] = useState('');
   const [eLogsLoading, setELogsLoading] = useState(false);
+  const [eLogDisplayNames, setELogDisplayNames] = useState<Record<string, string>>({});
+  const [editingELogId, setEditingELogId] = useState<string | null>(null);
+  const [editingELogValue, setEditingELogValue] = useState('');
 
   // Fetch HOS/ELD data
   const fetchHOSData = async () => {
@@ -397,6 +402,16 @@ const VehicleEldMonitor = () => {
     fetchHOSData();
   }, []);
 
+  // Load E-Log display names from localStorage (renames)
+  useEffect(() => {
+    try {
+      const stored = localStorage.getItem(ELOG_DISPLAY_NAMES_KEY);
+      if (stored) setELogDisplayNames(JSON.parse(stored));
+    } catch {
+      // ignore
+    }
+  }, []);
+
   const violationOptions = [
     '11-Hour Driving Limit',
     '14-Hour On-Duty Limit',
@@ -405,6 +420,47 @@ const VehicleEldMonitor = () => {
     'Rest Break Violation',
     'Other'
   ];
+
+  const getELogDisplayName = (log: ELogFile) => eLogDisplayNames[log._id] || log.fileName;
+
+  const getFileExtension = (fileName: string) => {
+    const i = fileName.lastIndexOf('.');
+    return i > 0 ? fileName.slice(i) : '';
+  };
+
+  const startRenameELog = (log: ELogFile) => {
+    setEditingELogId(log._id);
+    const displayName = eLogDisplayNames[log._id] || log.fileName;
+    const ext = getFileExtension(log.fileName);
+    const nameOnly = ext && displayName.endsWith(ext) ? displayName.slice(0, -ext.length) : displayName;
+    setEditingELogValue(nameOnly);
+  };
+
+  const saveRenameELog = (logId: string) => {
+    const trimmed = editingELogValue.trim();
+    if (!trimmed) {
+      setEditingELogId(null);
+      setEditingELogValue('');
+      return;
+    }
+    const log = eLogs.find((l) => l._id === logId);
+    const ext = log ? getFileExtension(log.fileName) : '';
+    const finalName = ext && !trimmed.endsWith(ext) ? trimmed + ext : trimmed;
+    const next = { ...eLogDisplayNames, [logId]: finalName };
+    setELogDisplayNames(next);
+    try {
+      localStorage.setItem(ELOG_DISPLAY_NAMES_KEY, JSON.stringify(next));
+    } catch {
+      // ignore
+    }
+    setEditingELogId(null);
+    setEditingELogValue('');
+  };
+
+  const cancelRenameELog = () => {
+    setEditingELogId(null);
+    setEditingELogValue('');
+  };
 
   return (
       <div className="min-h-screen bg-[#EDF8FF] font-sans pb-12">
@@ -1360,7 +1416,7 @@ const VehicleEldMonitor = () => {
                                       style={{
                                           background: (!selectedFile || uploadingFile) ? '#9CA3AF' : 'linear-gradient(90deg, #42aeec 0%, #1db5f5 40%, #0ea3d8 100%)',
                                       }}
-                                      className="px-6 py-2 text-white font-semibold rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+                                      className="px-6 py-2 !text-white font-semibold rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
                                   >
                                       {uploadingFile ? (
                                           <>
@@ -1410,9 +1466,51 @@ const VehicleEldMonitor = () => {
                                       <tbody className="divide-y divide-gray-100">
                                           {eLogs.map((log) => (
                                               <tr key={log._id} className="hover:bg-blue-50/30">
-                                                  <td className="px-6 py-4 font-medium text-gray-900 flex items-center gap-2">
-                                                      <FileText size={16} className="text-blue-500" />
-                                                      {log.fileName}
+                                                  <td className="px-6 py-4 font-medium text-gray-900">
+                                                      {editingELogId === log._id ? (
+                                                          <div className="flex items-center gap-2">
+                                                              <input
+                                                                  type="text"
+                                                                  value={editingELogValue}
+                                                                  onChange={(e) => setEditingELogValue(e.target.value)}
+                                                                  onKeyDown={(e) => {
+                                                                      if (e.key === 'Enter') saveRenameELog(log._id);
+                                                                      if (e.key === 'Escape') cancelRenameELog();
+                                                                  }}
+                                                                  className="flex-1 min-w-0 px-2 py-1.5 text-sm border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                                                  autoFocus
+                                                              />
+                                                              <button
+                                                                  type="button"
+                                                                  onClick={() => saveRenameELog(log._id)}
+                                                                  className="p-1.5 text-green-600 hover:bg-green-50 rounded"
+                                                                  title="Save"
+                                                              >
+                                                                  <Check size={16} />
+                                                              </button>
+                                                              <button
+                                                                  type="button"
+                                                                  onClick={cancelRenameELog}
+                                                                  className="p-1.5 text-gray-500 hover:bg-gray-100 rounded"
+                                                                  title="Cancel"
+                                                              >
+                                                                  <X size={16} />
+                                                              </button>
+                                                          </div>
+                                                      ) : (
+                                                          <div className="flex items-center gap-2">
+                                                              <FileText size={16} className="text-blue-500 flex-shrink-0" />
+                                                              <span className="min-w-0 truncate">{getELogDisplayName(log)}</span>
+                                                              <button
+                                                                  type="button"
+                                                                  onClick={() => startRenameELog(log)}
+                                                                  className="p-1 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded flex-shrink-0"
+                                                                  title="Rename"
+                                                              >
+                                                                  <Pencil size={14} />
+                                                              </button>
+                                                          </div>
+                                                      )}
                                                   </td>
                                                   <td className="px-6 py-4 text-gray-600">
                                                       {typeof log.driverId === 'object' && log.driverId?.name 
