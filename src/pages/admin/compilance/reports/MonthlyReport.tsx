@@ -20,7 +20,7 @@ import {
   FaTrashAlt,
   FaUpload
 } from 'react-icons/fa';
-import { getCvsaMonthlyReport, deleteOldCvsaData, uploadCarrierProfileDocument, saveCarrierProfileData } from '../../../../axios/api/admin';
+import { getCvsaMonthlyReport, deleteOldCvsaData, uploadCarrierProfileDocument, saveCarrierProfileData, getCarrierPerformance } from '../../../../axios/api/admin';
 import { getViolationsForMonthlyReport, getViolationStats } from '../../../../axios/api/violations';
 import jsPDF from 'jspdf';
 
@@ -171,6 +171,8 @@ const MonthlyReport: React.FC = () => {
   const [extractedData, setExtractedData] = useState<any>(null);
   const [isSaving, setIsSaving] = useState<boolean>(false);
   const [duplicateWarnings, setDuplicateWarnings] = useState<string[]>([]);
+  const [carrierPerformance, setCarrierPerformance] = useState<any>(null);
+  const [performanceLoading, setPerformanceLoading] = useState<boolean>(false);
 
   // Calculate 2-year performance data statically from monthlyData
   const calculateTwoYearData = (): TwoYearData | null => {
@@ -404,6 +406,22 @@ const MonthlyReport: React.FC = () => {
     }
   };
 
+  // Fetch carrier performance data
+  const fetchCarrierPerformance = async () => {
+    setPerformanceLoading(true);
+    try {
+      const response = await getCarrierPerformance();
+      if (response?.success && response?.data) {
+        setCarrierPerformance(response.data);
+        console.log('✅ Carrier performance data fetched:', response.data);
+      }
+    } catch (error) {
+      console.error('Error fetching carrier performance:', error);
+    } finally {
+      setPerformanceLoading(false);
+    }
+  };
+
   // Handle save extracted data
   const handleSaveExtractedData = async () => {
     if (!extractedData) return;
@@ -424,8 +442,9 @@ const MonthlyReport: React.FC = () => {
         
         // Refresh data after successful save
         setTimeout(() => {
-          window.location.reload();
-        }, 2000);
+          fetchMonthlyReport();
+          fetchCarrierPerformance();
+        }, 1000);
       } else {
         setUploadMessage({
           type: 'error',
@@ -545,6 +564,7 @@ const MonthlyReport: React.FC = () => {
 
     fetchMonthlyReport();
     fetchRealViolations();
+    fetchCarrierPerformance();
   }, [selectedYear, selectedCountry]);
 
   // Update current month data when selection changes
@@ -1580,6 +1600,153 @@ const MonthlyReport: React.FC = () => {
               </button>
             </div>
           </div>
+
+          {/* Carrier Performance Dashboard - Auto-Tracked from Documents */}
+          {carrierPerformance && (
+            <div className="mb-6 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-lg shadow-sm border border-blue-200 p-6">
+              <div className="flex items-center justify-between mb-4">
+                <div className="flex items-center gap-3">
+                  <div className="p-3 bg-blue-100 rounded-lg">
+                    <FaTachometerAlt className="text-blue-600" size={24} />
+                  </div>
+                  <div>
+                    <h2 className="text-xl font-bold text-gray-900">Carrier Performance Dashboard</h2>
+                    <p className="text-sm text-gray-600">Automatically tracked from carrier profile documents</p>
+                  </div>
+                </div>
+                {carrierPerformance.trends && (
+                  <div className={`px-4 py-2 rounded-lg font-semibold ${
+                    carrierPerformance.trends.isImproving 
+                      ? 'bg-green-100 text-green-700' 
+                      : carrierPerformance.trends.isDeclining
+                      ? 'bg-red-100 text-red-700'
+                      : 'bg-gray-100 text-gray-700'
+                  }`}>
+                    {carrierPerformance.trends.isImproving && '↗ Improving'}
+                    {carrierPerformance.trends.isDeclining && '↘ Declining'}
+                    {!carrierPerformance.trends.isImproving && !carrierPerformance.trends.isDeclining && '→ Stable'}
+                  </div>
+                )}
+              </div>
+
+              {/* Latest Performance Summary */}
+              {carrierPerformance.summary?.latestRecord && (
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+                  <div className="bg-white rounded-lg p-4 border border-gray-200">
+                    <p className="text-xs text-gray-500 mb-1">Latest Month</p>
+                    <p className="text-lg font-bold text-gray-900">
+                      {new Date(carrierPerformance.summary.latestRecord.year, carrierPerformance.summary.latestRecord.month - 1).toLocaleString('default', { month: 'long', year: 'numeric' })}
+                    </p>
+                  </div>
+                  <div className="bg-white rounded-lg p-4 border border-gray-200">
+                    <p className="text-xs text-gray-500 mb-1">Pass Rate</p>
+                    <p className={`text-2xl font-bold ${carrierPerformance.summary.latestRecord.passRate >= 80 ? 'text-green-600' : carrierPerformance.summary.latestRecord.passRate >= 60 ? 'text-yellow-600' : 'text-red-600'}`}>
+                      {carrierPerformance.summary.latestRecord.passRate}%
+                    </p>
+                  </div>
+                  <div className="bg-white rounded-lg p-4 border border-gray-200">
+                    <p className="text-xs text-gray-500 mb-1">OOS Rate</p>
+                    <p className={`text-2xl font-bold ${carrierPerformance.summary.latestRecord.ossRate <= 10 ? 'text-green-600' : carrierPerformance.summary.latestRecord.ossRate <= 20 ? 'text-yellow-600' : 'text-red-600'}`}>
+                      {carrierPerformance.summary.latestRecord.ossRate}%
+                    </p>
+                  </div>
+                  <div className="bg-white rounded-lg p-4 border border-gray-200">
+                    <p className="text-xs text-gray-500 mb-1">Safety Rating</p>
+                    <p className={`text-lg font-bold ${
+                      carrierPerformance.summary.latestRecord.safetyRating === 'Satisfactory' ? 'text-green-600' :
+                      carrierPerformance.summary.latestRecord.safetyRating === 'Conditional' ? 'text-yellow-600' :
+                      carrierPerformance.summary.latestRecord.safetyRating === 'Unsatisfactory' ? 'text-red-600' :
+                      'text-gray-600'
+                    }`}>
+                      {carrierPerformance.summary.latestRecord.safetyRating || 'N/A'}
+                    </p>
+                  </div>
+                </div>
+              )}
+
+              {/* Performance Trends */}
+              {carrierPerformance.trends && (
+                <div className="bg-white rounded-lg p-4 border border-gray-200 mb-4">
+                  <h3 className="text-sm font-bold text-gray-700 mb-3">Performance Trend (Last 3 Months vs Previous 3 Months)</h3>
+                  <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                    <div>
+                      <p className="text-xs text-gray-500">Recent Avg Pass Rate</p>
+                      <p className="text-lg font-bold text-gray-900">{carrierPerformance.trends.recentAvgPassRate}%</p>
+                    </div>
+                    <div>
+                      <p className="text-xs text-gray-500">Previous Avg Pass Rate</p>
+                      <p className="text-lg font-bold text-gray-900">{carrierPerformance.trends.previousAvgPassRate}%</p>
+                    </div>
+                    <div>
+                      <p className="text-xs text-gray-500">Change</p>
+                      <p className={`text-lg font-bold ${
+                        carrierPerformance.trends.passRateTrend > 0 ? 'text-green-600' :
+                        carrierPerformance.trends.passRateTrend < 0 ? 'text-red-600' :
+                        'text-gray-600'
+                      }`}>
+                        {carrierPerformance.trends.passRateTrend > 0 ? '+' : ''}{carrierPerformance.trends.passRateTrend}%
+                      </p>
+                    </div>
+                    <div>
+                      <p className="text-xs text-gray-500">Overall Avg Pass Rate</p>
+                      <p className="text-lg font-bold text-gray-900">{carrierPerformance.summary?.avgPassRate || 0}%</p>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* Monthly Performance Chart */}
+              {carrierPerformance.monthlyData && carrierPerformance.monthlyData.length > 0 && (
+                <div className="bg-white rounded-lg p-4 border border-gray-200">
+                  <h3 className="text-sm font-bold text-gray-700 mb-4">12-Month Performance History</h3>
+                  <div className="space-y-2">
+                    {carrierPerformance.monthlyData.slice(-6).map((month: any, index: number) => (
+                      <div key={index} className="flex items-center gap-4">
+                        <div className="w-24 text-xs text-gray-600 flex-shrink-0">
+                          {month.monthName} {month.year}
+                        </div>
+                        <div className="flex-1">
+                          <div className="flex items-center gap-2">
+                            <div className="flex-1 bg-gray-200 rounded-full h-6 relative overflow-hidden">
+                              <div 
+                                className={`h-full rounded-full transition-all ${
+                                  month.passRate >= 80 ? 'bg-green-500' :
+                                  month.passRate >= 60 ? 'bg-yellow-500' :
+                                  'bg-red-500'
+                                }`}
+                                style={{ width: `${Math.min(month.passRate, 100)}%` }}
+                              />
+                            </div>
+                            <span className="text-xs font-semibold text-gray-700 w-12 text-right">
+                              {month.passRate}%
+                            </span>
+                          </div>
+                        </div>
+                        <div className="text-xs text-gray-500 w-20 text-right">
+                          {month.totalInspections} inspections
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {performanceLoading && (
+                <div className="text-center py-8 text-gray-500">
+                  <FaInfoCircle className="mx-auto mb-2" size={24} />
+                  <p>Loading carrier performance data...</p>
+                </div>
+              )}
+
+              {!performanceLoading && (!carrierPerformance || !carrierPerformance.summary?.latestRecord) && (
+                <div className="text-center py-8 text-gray-500 bg-white rounded-lg border border-gray-200">
+                  <FaInfoCircle className="mx-auto mb-2" size={24} />
+                  <p className="font-semibold mb-1">No Performance Data Yet</p>
+                  <p className="text-sm">Upload a carrier profile document to automatically track performance metrics.</p>
+                </div>
+              )}
+            </div>
+          )}
 
           {/* Audit Compliance Score Card */}
           {complianceScore && (

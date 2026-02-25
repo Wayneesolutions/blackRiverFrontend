@@ -244,6 +244,21 @@ export const saveCarrierProfileData = async (extractedData: any) => {
   }
 };
 
+export const getCarrierPerformance = async (params?: { year?: number; months?: number }) => {
+  try {
+    const queryParams = new URLSearchParams();
+    if (params?.year) queryParams.append('year', params.year.toString());
+    if (params?.months) queryParams.append('months', params.months.toString());
+    
+    const url = `admin/cvsa-inspections/carrier-performance${queryParams.toString() ? `?${queryParams.toString()}` : ''}`;
+    const res: AxiosResponse = await apiClient.get(url);
+    return res.data;
+  } catch (error) {
+    console.log(error);
+    return (error as Error).response?.data;
+  }
+};
+
 // Ticket API Functions
 export const getTickets = async (params?: { status?: string; search?: string; page?: number; limit?: number }) => {
   try {
