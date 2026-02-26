@@ -307,9 +307,9 @@ export const useQuickActions = () => {
         {
             id: 'fleet-repairs',
             type: 'navigation',
-            title: 'General Repairs',
-            description: 'View general repairs log',
-            path: '/fleetmaintenance/general-repairs-log',
+            title: 'Maintenance Orders',
+            description: 'View maintenance orders log',
+            path: '/fleetmaintenance/maintenance-orders-log',
             icon: <Wrench size={16} />,
             keywords: ['repair', 'maintenance', 'fix', 'log'],
             roles: ['fleet']

@@ -1560,11 +1560,23 @@ const InvoicesPage = () => {
                             className="w-full px-2 py-1 text-sm border border-gray-300 rounded focus:ring-1 focus:ring-blue-500"
                           />
                         </div>
-                        <div>
-                          <label className="block text-xs font-medium text-gray-600 mb-1">Total</label>
-                          <div className="px-2 py-1 text-sm bg-gray-100 rounded border">
-                            ${item.totalPrice.toFixed(2)}
+                        <div className="flex items-end gap-2">
+                          <div className="flex-1">
+                            <label className="block text-xs font-medium text-gray-600 mb-1">Total</label>
+                            <div className="px-2 py-1 text-sm bg-gray-100 rounded border">
+                              ${item.totalPrice.toFixed(2)}
+                            </div>
                           </div>
+                          <button
+                            onClick={() => {
+                              const partId = typeof item.partId === 'string' ? item.partId : (item.partId as any)?._id || '';
+                              removeItemFromInvoice(partId);
+                            }}
+                            className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                            title="Delete Service"
+                          >
+                            <FaTrash size={14} />
+                          </button>
                         </div>
                       </div>
                     </div>

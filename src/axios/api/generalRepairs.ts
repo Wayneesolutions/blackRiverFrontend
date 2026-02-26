@@ -14,11 +14,13 @@ export interface GeneralRepairDto {
   customer?: string;
   customerId?: string;
   taxes?: { name: string; percentage: number }[];
-  invoiceNumber: string;
+  invoiceNumber?: string;
   amount?: number;
   duePayment?: string;
   unitSource?: string;
   unitReference?: string;
+  status?: 'Created' | 'Assigned' | 'Shared';
+  shared?: boolean;
   createdAt: string;
   updatedAt: string;
 }
@@ -36,7 +38,7 @@ export interface GeneralRepairPayload {
   customer?: string;
   customerId?: string;
   taxes?: { name: string; percentage: number }[];
-  invoiceNumber: string;
+  invoiceNumber?: string;
   amount?: number;
   duePayment?: string;
   unitSource?: string;
@@ -78,6 +80,13 @@ export const updateGeneralRepair = async (id: string, payload: GeneralRepairPayl
 export const deleteGeneralRepair = async (id: string) => {
   const res = await apiClient.delete<{ success: boolean; message?: string }>(
     `/admin/fleet-maintenance/general-repairs/${id}`
+  );
+  return res.data;
+};
+
+export const sendMaintenanceOrderEmail = async (id: string) => {
+  const res = await apiClient.post<{ success: boolean; message?: string }>(
+    `/admin/fleet-maintenance/general-repairs/${id}/send-email`
   );
   return res.data;
 };

@@ -494,7 +494,7 @@ const ComplianceDashboard: React.FC = () => {
       bgColor: 'bg-orange-100',
       iconColor: 'text-orange-700',
       cardBg: 'bg-gradient-to-br from-orange-50 to-orange-100',
-      onClick: () => navigate(`${getBasePath()}/general-repairs-log`)
+      onClick: () => navigate(`${getBasePath()}/maintenance-orders-log`)
     },
     // Note: pendingServiceCards are rendered separately, not added to features array
     {

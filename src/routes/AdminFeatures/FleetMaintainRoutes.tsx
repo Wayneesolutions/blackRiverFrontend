@@ -42,7 +42,7 @@ function FleetMaintainRoutes() {
                     <Route path="/trailers" element={<Trailers />} />
                     <Route path="/compliance-dashboard" element={<ComplianceDashboard />} />
                     <Route path="/scheduled-services-log" element={<ScheduledServicesLog />} />
-                    <Route path="/general-repairs-log" element={<GeneralRepairsLog />} />
+                    <Route path="/maintenance-orders-log" element={<GeneralRepairsLog />} />
                     {/* <Route path="/regulatory-safety" element={<RegulatorySafety />} /> */}
                     <Route path="/fuel-reports" element={<FuelReports />} />
                     <Route path="/invoices" element={<FleetInvoices />} />

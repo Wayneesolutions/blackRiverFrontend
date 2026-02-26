@@ -1,20 +1,20 @@
 import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import type { CSSProperties } from 'react';
 import ExcelJS from 'exceljs';
-import { Plus, Edit, Trash2, Search, Download, AlertCircle, Clock, X } from 'lucide-react';
+import { Plus, Edit, Trash2, Search, Download, AlertCircle, Clock, X, Mail } from 'lucide-react';
 import { FaExclamationCircle, FaTimes } from 'react-icons/fa';
 import {
   listGeneralRepairs,
   createGeneralRepair,
   updateGeneralRepair,
   deleteGeneralRepair,
+  sendMaintenanceOrderEmail,
   type GeneralRepairDto,
   type GeneralRepairPayload
 } from '../../../../axios/api/generalRepairs';
 import { getAllVehicles } from '../../../../axios/api/vehicle';
 import { getAllEmployees } from '../../../../axios/api/employee';
 import { getAllDrivers } from '../../../../axios/api/driver';
-import { getAllSpareParts } from '../../../../axios/api/fleet.spareparts';
 import { FLEET_COLORS } from '../colorUtils';
 
 const ACCENT_PRIMARY = FLEET_COLORS.primary;
@@ -72,19 +72,16 @@ interface PartEntry {
 
 interface FormState {
   serviceDate: string;
-  duePayment: string;
   unitNumber: string;
   description: string;
   odometer: string;
-  parts: PartEntry[];
   notes: string;
   serviceProvider: string;
   serviceProviderId?: string;
   customer: string;
   customerId?: string;
-  taxes: TaxEntry[];
-  invoiceNumber: string;
-  amount: string;
+  status?: string;
+  shared?: boolean;
 }
 
 const formatDate = (value?: string) => {
@@ -136,22 +133,17 @@ const GeneralRepairsLog: React.FC = () => {
   const [showRepairDetails, setShowRepairDetails] = useState(false);
   const [formData, setFormData] = useState<FormState>({
     serviceDate: new Date().toISOString().split('T')[0],
-    duePayment: '',
     unitNumber: '',
     description: '',
     odometer: '',
-    parts: [],
     notes: '',
     serviceProvider: '',
     serviceProviderId: undefined,
     customer: '',
     customerId: undefined,
-    taxes: [],
-    invoiceNumber: '',
-    amount: ''
+    status: 'Created',
+    shared: false
   });
-  const [spareParts, setSpareParts] = useState<Array<{ _id: string; partNumber: string; partName: string; stockQty: number }>>([]);
-  const [sparePartsLoading, setSparePartsLoading] = useState(false);
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
   const [deleting, setDeleting] = useState(false);
@@ -167,6 +159,7 @@ const GeneralRepairsLog: React.FC = () => {
   const [driverCustomersError, setDriverCustomersError] = useState<string | null>(null);
   const [useCustomProvider, setUseCustomProvider] = useState(true);
   const [exporting, setExporting] = useState(false);
+  const [sending, setSending] = useState(false);
   
   // Refs for scrollbar synchronization
   const topScrollRef = useRef<HTMLDivElement>(null);
@@ -238,28 +231,17 @@ const GeneralRepairsLog: React.FC = () => {
     }
   }, [showEditModal]);
 
-  const loadSpareParts = useCallback(async () => {
-    setSparePartsLoading(true);
-    try {
-      const response = await getAllSpareParts();
-      if (response?.success && response?.data) {
-        const parts = Array.isArray(response.data) ? response.data : [];
-        setSpareParts(parts.map((part: any) => ({
-          _id: part._id,
-          partNumber: part.partNumber || '',
-          partName: part.partName || '',
-          stockQty: part.stockQty || 0
-        })));
-      } else {
-        setSpareParts([]);
-      }
-    } catch (err: any) {
-      console.error('Failed to load spare parts', err);
-      setSpareParts([]);
-    } finally {
-      setSparePartsLoading(false);
+  // Update status when service provider changes
+  useEffect(() => {
+    if (formData.serviceProviderId) {
+      setFormData(prev => ({ ...prev, status: 'Assigned' }));
+    } else if (formData.serviceProvider) {
+      setFormData(prev => ({ ...prev, status: 'Created' }));
+    } else {
+      setFormData(prev => ({ ...prev, status: 'Created' }));
     }
-  }, []);
+  }, [formData.serviceProviderId, formData.serviceProvider]);
+
 
   const loadDriverCustomers = useCallback(async () => {
     setDriverCustomersLoading(true);
@@ -320,9 +302,6 @@ const GeneralRepairsLog: React.FC = () => {
     loadServiceProviders();
   }, [loadServiceProviders]);
 
-  useEffect(() => {
-    loadSpareParts();
-  }, [loadSpareParts]);
 
   useEffect(() => {
     loadDriverCustomers();
@@ -524,14 +503,14 @@ const GeneralRepairsLog: React.FC = () => {
 
   const handleExportRepairs = async () => {
     if (!filteredRepairs.length) {
-      alert('No repair records available to export.');
+      alert('No maintenance order records available to export.');
       return;
     }
 
     try {
       setExporting(true);
       const workbook = new ExcelJS.Workbook();
-      const worksheet = workbook.addWorksheet('General Repairs');
+      const worksheet = workbook.addWorksheet('Maintenance Orders');
 
       worksheet.columns = [
         { header: 'Service Date', key: 'serviceDate', width: 16 },
@@ -586,14 +565,14 @@ const GeneralRepairsLog: React.FC = () => {
       const url = window.URL.createObjectURL(blob);
       const link = document.createElement('a');
       link.href = url;
-      link.download = `General_Repairs_${new Date().toISOString().split('T')[0]}.xlsx`;
+      link.download = `Maintenance_Orders_${new Date().toISOString().split('T')[0]}.xlsx`;
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
       window.URL.revokeObjectURL(url);
     } catch (error) {
-      console.error('Failed to export general repairs', error);
-      alert('Unable to export repair records. Please try again.');
+      console.error('Failed to export maintenance orders', error);
+      alert('Unable to export maintenance order records. Please try again.');
     } finally {
       setExporting(false);
     }
@@ -610,19 +589,16 @@ const GeneralRepairsLog: React.FC = () => {
   const handleAddRepair = () => {
     setFormData({
       serviceDate: new Date().toISOString().split('T')[0],
-      duePayment: '',
       unitNumber: '',
       description: '',
       odometer: '',
-      parts: [],
       notes: '',
       serviceProvider: '',
       serviceProviderId: undefined,
       customer: '',
       customerId: undefined,
-      taxes: [],
-      invoiceNumber: '',
-      amount: ''
+      status: 'Created',
+      shared: false
     });
     setFormError(null);
     setUseCustomProvider(serviceProviders.length === 0);
@@ -634,27 +610,19 @@ const GeneralRepairsLog: React.FC = () => {
     setFormError(null);
     const providerMatch = serviceProviders.find((p) => p.name === repair.serviceProvider);
     const customerMatch = repair.customer ? driverCustomers.find((d) => d.name === repair.customer) : null;
+    const status = providerMatch ? 'Assigned' : 'Created';
     setFormData({
       serviceDate: toDateInputValue(repair.serviceDate),
-      duePayment: toDateInputValue(repair.duePayment),
       unitNumber: repair.unitNumber,
       description: repair.description,
       odometer: repair.odometer?.toString() || '',
-      parts: Array.isArray(repair.parts)
-        ? repair.parts
-        : (typeof repair.parts === 'string' && repair.parts.trim()
-          ? [{ partId: '', partName: repair.parts, partNumber: '', quantity: 1 }]
-          : []),
       notes: repair.notes || '',
       serviceProvider: repair.serviceProvider,
       serviceProviderId: providerMatch?.id,
       customer: repair.customer || '',
       customerId: customerMatch?.id,
-      taxes: Array.isArray(repair.taxes) && repair.taxes.length > 0
-        ? repair.taxes.map((t) => ({ name: t.name || '', percentage: t.percentage != null ? String(t.percentage) : '' }))
-        : [],
-      invoiceNumber: repair.invoiceNumber,
-      amount: repair.amount?.toString() || ''
+      status: status,
+      shared: (repair as any).shared || false
     });
     setUseCustomProvider(!providerMatch);
     setShowEditModal(true);
@@ -672,56 +640,13 @@ const GeneralRepairsLog: React.FC = () => {
     setFormError(null);
   };
 
-  // Parts management functions
-  const addPart = () => {
-    setFormData(prev => ({
-      ...prev,
-      parts: [...prev.parts, { partId: '', partName: '', partNumber: '', quantity: 1 }]
-    }));
-  };
-
-  const removePart = (index: number) => {
-    setFormData(prev => ({
-      ...prev,
-      parts: prev.parts.filter((_, i) => i !== index)
-    }));
-  };
-
-  const updatePart = (index: number, field: keyof PartEntry, value: string | number) => {
-    setFormData(prev => ({
-      ...prev,
-      parts: prev.parts.map((part, i) => 
-        i === index ? { ...part, [field]: value } : part
-      )
-    }));
-  };
-
-  const handlePartSelect = (index: number, partId: string) => {
-    const selectedPart = spareParts.find(p => p._id === partId);
-    if (selectedPart) {
-      setFormData(prev => ({
-        ...prev,
-        parts: prev.parts.map((part, i) => 
-          i === index 
-            ? { 
-                partId: selectedPart._id, 
-                partName: selectedPart.partName, 
-                partNumber: selectedPart.partNumber,
-                quantity: part.quantity || 1
-              } 
-            : part
-        )
-      }));
-    }
-  };
 
   const buildPayload = (): GeneralRepairPayload | null => {
     if (
       !formData.serviceDate ||
       !formData.unitNumber ||
       !formData.description ||
-      !formData.serviceProvider ||
-      !formData.invoiceNumber
+      !formData.serviceProvider
     ) {
       setFormError('Please fill in all required fields.');
       return null;
@@ -734,26 +659,11 @@ const GeneralRepairsLog: React.FC = () => {
       vinLicensePlate: selectedUnit?.vin,
       description: formData.description,
       odometer: formData.odometer ? Number(formData.odometer) : undefined,
-      parts: formData.parts.length > 0 
-        ? formData.parts.map(p => ({
-            partId: p.partId,
-            partName: p.partName,
-            partNumber: p.partNumber,
-            quantity: p.quantity
-          }))
-        : undefined,
       notes: formData.notes || undefined,
       serviceProvider: formData.serviceProvider,
       customer: formData.customer || undefined,
       customerId: formData.customerId || undefined,
-      taxes: formData.taxes?.length
-        ? formData.taxes
-            .filter((t) => (t.name || '').trim() !== '')
-            .map((t) => ({ name: (t.name || '').trim(), percentage: Math.min(100, Math.max(0, parseFloat(t.percentage) || 0)) }))
-        : undefined,
-      invoiceNumber: formData.invoiceNumber,
-      amount: formData.amount ? Number(formData.amount) : undefined,
-      duePayment: formData.duePayment || undefined,
+      invoiceNumber: undefined,
       unitSource: selectedUnit?.referenceType,
       unitReference: selectedUnit?._id || selectedUnit?.referenceId
     };
@@ -772,14 +682,14 @@ const GeneralRepairsLog: React.FC = () => {
           : null;
 
       if (response?.success) {
-        setNotification({ type: 'success', message: response.message || 'Repair saved successfully.' });
+        setNotification({ type: 'success', message: response.message || 'Maintenance order saved successfully.' });
         closeModals();
         await loadRepairs();
       } else {
-        setFormError(response?.message || 'Failed to save repair.');
+        setFormError(response?.message || 'Failed to save maintenance order.');
       }
     } catch (err: any) {
-      setFormError(err?.response?.data?.message || err?.message || 'Failed to save repair.');
+      setFormError(err?.response?.data?.message || err?.message || 'Failed to save maintenance order.');
     } finally {
       setSaving(false);
     }
@@ -791,20 +701,67 @@ const GeneralRepairsLog: React.FC = () => {
     try {
       const response = await deleteGeneralRepair(selectedRepair._id);
       if (response?.success) {
-        setNotification({ type: 'success', message: response.message || 'Repair deleted successfully.' });
+        setNotification({ type: 'success', message: response.message || 'Maintenance order deleted successfully.' });
         setShowDeleteModal(false);
         setSelectedRepair(null);
         await loadRepairs();
       } else {
-        setNotification({ type: 'error', message: response?.message || 'Failed to delete repair.' });
+        setNotification({ type: 'error', message: response?.message || 'Failed to delete maintenance order.' });
       }
     } catch (err: any) {
       setNotification({
         type: 'error',
-        message: err?.response?.data?.message || err?.message || 'Failed to delete repair.'
+        message: err?.response?.data?.message || err?.message || 'Failed to delete maintenance order.'
       });
     } finally {
       setDeleting(false);
+    }
+  };
+
+  const handleSendEmail = async () => {
+    if (!selectedRepair) return;
+    
+    // Check if mechanic is assigned
+    const currentServiceProviderId = formData.serviceProviderId || (selectedRepair as any).serviceProviderId;
+    const currentServiceProvider = formData.serviceProvider || selectedRepair.serviceProvider;
+    
+    if (!currentServiceProviderId && !currentServiceProvider) {
+      setNotification({ type: 'error', message: 'Please assign a mechanic before sending email.' });
+      return;
+    }
+
+    // Get mechanic email
+    const mechanic = serviceProviders.find(p => p.id === currentServiceProviderId || p.name === currentServiceProvider);
+    if (!mechanic?.email) {
+      setNotification({ type: 'error', message: 'Mechanic email not found. Please ensure the mechanic has an email address.' });
+      return;
+    }
+
+    setSending(true);
+    try {
+      const response = await sendMaintenanceOrderEmail(selectedRepair._id);
+      if (response?.success) {
+        setNotification({ type: 'success', message: response.message || 'Email sent successfully to mechanic.' });
+        setFormData(prev => ({ ...prev, shared: true }));
+        await loadRepairs();
+        // Refresh selected repair
+        const updatedRepairs = await listGeneralRepairs();
+        if (updatedRepairs?.success && updatedRepairs.data) {
+          const updated = updatedRepairs.data.find(r => r._id === selectedRepair._id);
+          if (updated) {
+            setSelectedRepair(updated as any);
+          }
+        }
+      } else {
+        setNotification({ type: 'error', message: response?.message || 'Failed to send email.' });
+      }
+    } catch (err: any) {
+      setNotification({
+        type: 'error',
+        message: err?.response?.data?.message || err?.message || 'Failed to send email.'
+      });
+    } finally {
+      setSending(false);
     }
   };
 
@@ -819,9 +776,9 @@ const GeneralRepairsLog: React.FC = () => {
           <div className="mb-4 relative z-10">
             <div className="flex items-center justify-between">
               <div>
-                <h1 className="text-2xl font-bold text-black">General Repairs Log</h1>
+                <h1 className="text-2xl font-bold text-black">Maintenance Orders Log</h1>
                 <div className="flex items-center gap-2 text-black/90">
-                  <span className="text-xs">Log non-routine repairs (Tires, Brakes, Accident Repairs)</span>
+                  <span className="text-xs">Log non-routine maintenance orders (Tires, Brakes, Accident Repairs)</span>
                 </div>
               </div>
               <div className="flex gap-3">
@@ -839,7 +796,7 @@ const GeneralRepairsLog: React.FC = () => {
                   style={{ background: 'linear-gradient(to right, #016ab2, #063f6f)' }}
                 >
                   <Plus className="w-5 h-5" />
-                  Add Repair
+                  Add Maintenance Order
                 </button>
               </div>
             </div>
@@ -850,7 +807,7 @@ const GeneralRepairsLog: React.FC = () => {
         <div className="w-full mx-auto px-4 -mt-4">
           {requiresCompanySetup && (
             <div className="mb-4 rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-amber-800">
-              Please complete your company settings to view repairs.
+              Please complete your company settings to view maintenance orders.
             </div>
           )}
 
@@ -868,7 +825,7 @@ const GeneralRepairsLog: React.FC = () => {
                 <div className="flex-1">
                   <p className="text-sm font-medium text-gray-600 mb-1">Incoming Maintenance</p>
                   <p className="text-2xl font-bold text-orange-600 mb-1">{summaryStats.incomingMaintenance}</p>
-                  <p className="text-xs text-gray-500">Recent repairs requiring attention</p>
+                  <p className="text-xs text-gray-500">Recent maintenance orders requiring attention</p>
                 </div>
                 <div className="bg-orange-50 p-3 rounded-lg">
                   <AlertCircle className="h-6 w-6 text-orange-600" />
@@ -902,9 +859,9 @@ const GeneralRepairsLog: React.FC = () => {
             <div className="bg-white rounded-lg shadow-sm border border-gray-100 p-4">
               <div className="flex items-start justify-between mb-3">
                 <div className="flex-1">
-                  <p className="text-sm font-medium text-gray-600 mb-1">Recent Repairs / Activity</p>
+                  <p className="text-sm font-medium text-gray-600 mb-1">Recent Maintenance Orders / Activity</p>
                   <p className="text-2xl font-bold text-blue-600 mb-1">{summaryStats.recentActivity}</p>
-                  <p className="text-xs text-gray-500">Repairs logged in last 30 days</p>
+                  <p className="text-xs text-gray-500">Maintenance orders logged in last 30 days</p>
                 </div>
                 <div className="bg-blue-50 p-3 rounded-lg">
                   <Clock className="h-6 w-6 text-blue-600" />
@@ -921,14 +878,14 @@ const GeneralRepairsLog: React.FC = () => {
                 )}
                 {summaryStats.topRepairType && (
                   <div className="flex items-center justify-between text-sm">
-                    <span className="text-gray-600">Top Repair Type</span>
+                    <span className="text-gray-600">Top Maintenance Order Type</span>
                     <span className="font-semibold text-blue-600 text-right max-w-[60%] truncate" title={summaryStats.topRepairType}>
                       {summaryStats.topRepairType}
                     </span>
                   </div>
                 )}
                 <div className="flex items-center justify-between text-sm pt-1.5 border-t border-gray-100">
-                  <span className="text-gray-600">Total Repairs</span>
+                    <span className="text-gray-600">Total Maintenance Orders</span>
                   <span className="font-semibold text-gray-900">{summaryStats.recentActivity}</span>
                 </div>
               </div>
@@ -1013,24 +970,31 @@ const GeneralRepairsLog: React.FC = () => {
                     <th className="px-6 py-4 text-left text-sm font-semibold">Taxes</th>
                     <th className="px-6 py-4 text-left text-sm font-semibold">Invoice Number</th>
                     <th className="px-6 py-4 text-left text-sm font-semibold">Amount</th>
+                    <th className="px-6 py-4 text-left text-sm font-semibold">Status</th>
                     <th className="px-6 py-4 text-left text-sm font-semibold">Actions</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-200">
                   {loading ? (
                     <tr>
-                      <td colSpan={13} className="px-6 py-12 text-center text-gray-500">
-                        Loading repairs...
+                      <td colSpan={14} className="px-6 py-12 text-center text-gray-500">
+                        Loading maintenance orders...
                       </td>
                     </tr>
                   ) : filteredRepairs.length === 0 ? (
                     <tr>
-                      <td colSpan={13} className="px-6 py-12 text-center text-gray-500">
-                        No repairs found
+                      <td colSpan={14} className="px-6 py-12 text-center text-gray-500">
+                        No maintenance orders found
                       </td>
                     </tr>
                   ) : (
-                    filteredRepairs.map((repair) => (
+                    filteredRepairs.map((repair) => {
+                      // Calculate status based on service provider and shared status
+                      const hasServiceProvider = repair.serviceProvider && repair.serviceProvider.trim() !== '';
+                      const isShared = (repair as any).shared === true;
+                      const status = isShared ? 'Shared' : (hasServiceProvider ? 'Assigned' : 'Created');
+                      
+                      return (
                       <tr 
                         key={repair._id} 
                         className="hover:bg-gray-50 transition-colors cursor-pointer"
@@ -1080,6 +1044,17 @@ const GeneralRepairsLog: React.FC = () => {
                             maximumFractionDigits: 2,
                           }).format(repair.amount) : '—'}
                         </td>
+                        <td className="px-6 py-4">
+                          <span className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold ${
+                            status === 'Shared' 
+                              ? 'bg-purple-100 text-purple-700' 
+                              : status === 'Assigned'
+                              ? 'bg-green-100 text-green-700'
+                              : 'bg-gray-100 text-gray-700'
+                          }`}>
+                            {status}
+                          </span>
+                        </td>
                         <td className="px-6 py-4" onClick={(e) => e.stopPropagation()}>
                           <div className="flex items-center gap-2">
                             <button
@@ -1099,7 +1074,8 @@ const GeneralRepairsLog: React.FC = () => {
                           </div>
                         </td>
                       </tr>
-                    ))
+                    );
+                    })
                   )}
                 </tbody>
               </table>
@@ -1125,7 +1101,7 @@ const GeneralRepairsLog: React.FC = () => {
                 <div className="p-6">
                   {/* Header */}
                   <div className="flex justify-between items-center mb-6 pb-4 border-b-2 border-gray-200">
-                    <h2 className="text-2xl font-bold text-gray-900">Repair Details</h2>
+                    <h2 className="text-2xl font-bold text-gray-900">Maintenance Order Details</h2>
                     <button
                       onClick={() => {
                         setShowRepairDetails(false);
@@ -1152,7 +1128,7 @@ const GeneralRepairsLog: React.FC = () => {
 
                     {/* Repair Information */}
                     <div className="bg-gray-50 p-6 rounded-lg border border-gray-200">
-                      <h4 className="font-semibold text-gray-900 mb-4 text-lg">Repair Information</h4>
+                      <h4 className="font-semibold text-gray-900 mb-4 text-lg">Maintenance Order Information</h4>
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div>
                           <p className="text-sm text-gray-500 mb-1">Unit Number</p>
@@ -1250,7 +1226,7 @@ const GeneralRepairsLog: React.FC = () => {
                         }}
                         className="px-6 py-2.5 bg-blue-600 !text-white font-medium rounded-lg hover:bg-blue-700 transition-all"
                       >
-                        Edit Repair
+                        Edit Maintenance Order
                       </button>
                     </div>
                   </div>
@@ -1265,7 +1241,7 @@ const GeneralRepairsLog: React.FC = () => {
               <div className="fixed top-0 right-0 h-full w-full sm:w-[90vw] lg:w-[80vw] xl:w-[70vw] bg-white shadow-2xl z-[101] border-l border-gray-200">
                 <div className="h-full flex flex-col">
                   <div className="flex-shrink-0 px-6 py-4 flex items-center justify-between text-white" style={{ background: 'linear-gradient(to right, #016ab2, #063f6f)' }}>
-                    <h2 className="text-2xl font-bold">{showAddModal ? 'Add General Repair' : 'Edit Repair'}</h2>
+                    <h2 className="text-2xl font-bold">{showAddModal ? 'Add Maintenance Order' : 'Edit Maintenance Order'}</h2>
                     <button onClick={closeModals} className="p-2 hover:bg-white/20 rounded-lg transition-colors">
                       <FaTimes className="w-5 h-5" />
                     </button>
@@ -1294,22 +1270,14 @@ const GeneralRepairsLog: React.FC = () => {
                         />
                       </div>
                       <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">Due Payment</label>
-                        <input
-                          type="date"
-                          value={formData.duePayment}
-                          onChange={(e) => setFormData({ ...formData, duePayment: e.target.value })}
-                          className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:border-transparent"
-                          style={{ '--tw-ring-color': '#016ab2' } as React.CSSProperties & { '--tw-ring-color': string }}
-                          onFocus={(e) => {
-                            e.target.style.borderColor = '#016ab2';
-                            e.target.style.boxShadow = '0 0 0 2px rgba(1, 106, 178, 0.2)';
-                          }}
-                          onBlur={(e) => {
-                            e.target.style.borderColor = '';
-                            e.target.style.boxShadow = '';
-                          }}
-                        />
+                        <label className="block text-sm font-medium text-gray-700 mb-2">Status</label>
+                        <div className="w-full px-4 py-2 border border-gray-300 rounded-lg bg-gray-50">
+                          <span className={`font-medium ${
+                            formData.status === 'Assigned' ? 'text-green-600' : 'text-gray-600'
+                          }`}>
+                            {formData.status || 'Created'}
+                          </span>
+                        </div>
                       </div>
                       <div>
                         <label className="block text-sm font-medium text-gray-700 mb-2">Unit Number *</label>
@@ -1493,66 +1461,6 @@ const GeneralRepairsLog: React.FC = () => {
                         )}
                       </div>
                       <div className="md:col-span-2">
-                        <div className="flex items-center justify-between gap-2 mb-2">
-                          <label className="block text-sm font-medium text-gray-700">Sales tax</label>
-                          <button
-                            type="button"
-                            onClick={() => setFormData((prev) => ({ ...prev, taxes: [...(prev.taxes || []), { name: '', percentage: '' }] }))}
-                            className="inline-flex items-center gap-1 px-2 py-1 text-sm font-medium text-blue-600 hover:text-blue-700 hover:bg-blue-50 rounded border border-blue-200 transition-colors"
-                          >
-                            <Plus className="w-4 h-4" />
-                            Add tax
-                          </button>
-                        </div>
-                        <p className="text-xs text-gray-500 mb-2">Add tax name and percentage (0–100). Optional.</p>
-                        <div className="border border-gray-300 rounded-lg p-3 bg-gray-50/50 space-y-3 max-h-48 overflow-y-auto">
-                          {(formData.taxes || []).length === 0 ? (
-                            <p className="text-sm text-gray-500 py-1">No taxes added. Click &quot;Add tax&quot; to add one.</p>
-                          ) : (
-                            (formData.taxes || []).map((tax, index) => (
-                              <div key={index} className="flex items-center gap-2 flex-wrap">
-                                <input
-                                  type="text"
-                                  value={tax.name}
-                                  onChange={(e) => {
-                                    const next = [...(formData.taxes || [])];
-                                    next[index] = { ...next[index], name: e.target.value };
-                                    setFormData((prev) => ({ ...prev, taxes: next }));
-                                  }}
-                                  placeholder="Tax name (e.g. GST)"
-                                  className="flex-1 min-w-[100px] px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:border-transparent focus:ring-blue-500"
-                                />
-                                <div className="flex items-center gap-1">
-                                  <input
-                                    type="number"
-                                    min={0}
-                                    max={100}
-                                    step={0.01}
-                                    value={tax.percentage}
-                                    onChange={(e) => {
-                                      const next = [...(formData.taxes || [])];
-                                      next[index] = { ...next[index], percentage: e.target.value };
-                                      setFormData((prev) => ({ ...prev, taxes: next }));
-                                    }}
-                                    placeholder="0"
-                                    className="w-20 px-3 py-2 border border-gray-300 rounded-lg text-sm text-right focus:ring-2 focus:border-transparent focus:ring-blue-500"
-                                  />
-                                  <span className="text-sm text-gray-500 w-6">%</span>
-                                </div>
-                                <button
-                                  type="button"
-                                  onClick={() => setFormData((prev) => ({ ...prev, taxes: (prev.taxes || []).filter((_, i) => i !== index) }))}
-                                  className="p-2 text-red-600 hover:bg-red-50 rounded transition-colors"
-                                  title="Remove tax"
-                                >
-                                  <Trash2 className="w-4 h-4" />
-                                </button>
-                              </div>
-                            ))
-                          )}
-                        </div>
-                      </div>
-                      <div className="md:col-span-2">
                         <label className="block text-sm font-medium text-gray-700 mb-2">Description *</label>
                         <textarea
                           value={formData.description}
@@ -1569,106 +1477,6 @@ const GeneralRepairsLog: React.FC = () => {
                             e.target.style.boxShadow = '';
                           }}
                           placeholder="Be specific, e.g., 'Front right tire blow out - replaced'"
-                        />
-                      </div>
-                      <div className="md:col-span-2">
-                        <label className="block text-sm font-medium text-gray-700 mb-2">Parts</label>
-                        <div className="space-y-3">
-                          {formData.parts.length === 0 ? (
-                            <p className="text-sm text-gray-500 py-2">No parts added. Click &quot;Add Part&quot; to add one.</p>
-                          ) : (
-                            formData.parts.map((part, index) => (
-                              <div key={index} className="flex gap-2 items-start p-3 border border-gray-200 rounded-lg bg-gray-50/50">
-                                <div className="flex-1 grid grid-cols-2 gap-2">
-                                  <select
-                                    value={part.partId}
-                                    onChange={(e) => handlePartSelect(index, e.target.value)}
-                                    className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:border-transparent text-sm bg-white"
-                                    style={{ '--tw-ring-color': '#016ab2' } as React.CSSProperties & { '--tw-ring-color': string }}
-                                  >
-                                    <option value="">Select Part</option>
-                                    {sparePartsLoading ? (
-                                      <option disabled>Loading parts...</option>
-                                    ) : (
-                                      spareParts.map((sp) => (
-                                        <option key={sp._id} value={sp._id}>
-                                          {sp.partNumber} - {sp.partName} {sp.stockQty > 0 ? `(Stock: ${sp.stockQty})` : '(Out of Stock)'}
-                                        </option>
-                                      ))
-                                    )}
-                                  </select>
-                                  <div className="flex gap-2">
-                                    <input
-                                      type="number"
-                                      min="1"
-                                      step="1"
-                                      value={part.quantity}
-                                      onChange={(e) => updatePart(index, 'quantity', parseInt(e.target.value) || 1)}
-                                      placeholder="Quantity"
-                                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:border-transparent text-sm bg-white"
-                                      style={{ '--tw-ring-color': '#016ab2' } as React.CSSProperties & { '--tw-ring-color': string }}
-                                    />
-                                    <button
-                                      type="button"
-                                      onClick={() => removePart(index)}
-                                      className="px-3 py-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors flex items-center justify-center"
-                                      title="Remove part"
-                                    >
-                                      <Trash2 className="w-4 h-4" />
-                                    </button>
-                                  </div>
-                                </div>
-                              </div>
-                            ))
-                          )}
-                          <button
-                            type="button"
-                            onClick={addPart}
-                            className="flex items-center gap-2 px-4 py-2 text-sm bg-blue-50 text-blue-600 rounded-lg hover:bg-blue-100 transition-colors border border-blue-200"
-                          >
-                            <Plus className="w-4 h-4" />
-                            Add Part
-                          </button>
-                        </div>
-                      </div>
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">Invoice Number *</label>
-                        <input
-                          type="text"
-                          value={formData.invoiceNumber}
-                          onChange={(e) => setFormData({ ...formData, invoiceNumber: e.target.value })}
-                          className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus-border-transparent"
-                          style={{ '--tw-ring-color': '#016ab2' } as React.CSSProperties & { '--tw-ring-color': string }}
-                          onFocus={(e) => {
-                            e.target.style.borderColor = '#016ab2';
-                            e.target.style.boxShadow = '0 0 0 2px rgba(1, 106, 178, 0.2)';
-                          }}
-                          onBlur={(e) => {
-                            e.target.style.borderColor = '';
-                            e.target.style.boxShadow = '';
-                          }}
-                          placeholder="INV-REP-2024-001"
-                        />
-                      </div>
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">Amount</label>
-                        <input
-                          type="number"
-                          step="0.01"
-                          min="0"
-                          value={formData.amount}
-                          onChange={(e) => setFormData({ ...formData, amount: e.target.value })}
-                          className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:border-transparent"
-                          style={{ '--tw-ring-color': '#016ab2' } as React.CSSProperties & { '--tw-ring-color': string }}
-                          onFocus={(e) => {
-                            e.target.style.borderColor = '#016ab2';
-                            e.target.style.boxShadow = '0 0 0 2px rgba(1, 106, 178, 0.2)';
-                          }}
-                          onBlur={(e) => {
-                            e.target.style.borderColor = '';
-                            e.target.style.boxShadow = '';
-                          }}
-                          placeholder="0.00"
                         />
                       </div>
                       <div className="md:col-span-2">
@@ -1694,22 +1502,38 @@ const GeneralRepairsLog: React.FC = () => {
                   </div>
 
                   {/* Footer - Fixed to bottom */}
-                  <div className="flex-shrink-0 bg-gray-50 px-6 py-4 flex justify-end gap-3 border-t border-gray-200">
-                    <button
-                      onClick={closeModals}
-                      className="px-6 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors"
-                    >
-                      Cancel
-                    </button>
-                    <button
-                      onClick={handleSaveRepair}
-                      disabled={saving}
-                      className={`px-6 py-2 !text-white rounded-lg transition-colors ${saving ? 'opacity-60 cursor-not-allowed' : 'hover:opacity-90'
+                  <div className="flex-shrink-0 bg-gray-50 px-6 py-4 flex justify-between items-center border-t border-gray-200">
+                    {showEditModal && selectedRepair && (formData.serviceProviderId || formData.serviceProvider) && (
+                      <button
+                        onClick={handleSendEmail}
+                        disabled={sending || formData.shared || (selectedRepair as any).shared}
+                        className={`px-6 py-2 rounded-lg transition-colors flex items-center gap-2 ${
+                          sending || formData.shared || (selectedRepair as any).shared
+                            ? 'opacity-60 cursor-not-allowed bg-gray-300 text-gray-600'
+                            : 'bg-green-600 hover:bg-green-700 !text-white'
                         }`}
-                      style={{ background: 'linear-gradient(to right, #016ab2, #063f6f)' }}
-                    >
-                      {saving ? 'Saving...' : showAddModal ? 'Add Repair' : 'Save Changes'}
-                    </button>
+                      >
+                        <Mail className="w-4 h-4" />
+                        {sending ? 'Sending...' : formData.shared || (selectedRepair as any).shared ? 'Email Sent' : 'Send to Mechanic'}
+                      </button>
+                    )}
+                    <div className="flex gap-3 ml-auto">
+                      <button
+                        onClick={closeModals}
+                        className="px-6 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors"
+                      >
+                        Cancel
+                      </button>
+                      <button
+                        onClick={handleSaveRepair}
+                        disabled={saving}
+                        className={`px-6 py-2 !text-white rounded-lg transition-colors ${saving ? 'opacity-60 cursor-not-allowed' : 'hover:opacity-90'
+                          }`}
+                        style={{ background: 'linear-gradient(to right, #016ab2, #063f6f)' }}
+                      >
+                        {saving ? 'Saving...' : showAddModal ? 'Add Maintenance Order' : 'Save Changes'}
+                      </button>
+                    </div>
                   </div>
                 </div>
               </div>
@@ -1732,12 +1556,12 @@ const GeneralRepairsLog: React.FC = () => {
                       <FaExclamationCircle className="text-red-600" size={24} />
                     </div>
                     <div>
-                      <h3 className="text-lg font-bold text-gray-900">Delete Repair</h3>
+                      <h3 className="text-lg font-bold text-gray-900">Delete Maintenance Order</h3>
                       <p className="text-sm text-gray-500">This action cannot be undone</p>
                     </div>
                   </div>
                   <p className="text-gray-700 mb-6">
-                    Are you sure you want to delete this repair record for unit <strong>{selectedRepair.unitNumber}</strong>?
+                    Are you sure you want to delete this maintenance order record for unit <strong>{selectedRepair.unitNumber}</strong>?
                   </p>
                   <div className="flex justify-end gap-3">
                     <button

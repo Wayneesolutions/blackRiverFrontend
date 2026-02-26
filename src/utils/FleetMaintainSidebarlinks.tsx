@@ -36,9 +36,9 @@ export const FleetMaintainSidebarlinks: FleetMaintainSidebarlinks[] = [
         label: "Scheduled Services Log",
     },
     {
-        key: "/admin/fleetmaintenance/general-repairs-log",
+        key: "/admin/fleetmaintenance/maintenance-orders-log",
         icon: <FaTools />,
-        label: "General Repairs Log",
+        label: "Maintenance Orders Log",
     },
     // {
     //     key: "/admin/fleetmaintenance/regulatory-safety",

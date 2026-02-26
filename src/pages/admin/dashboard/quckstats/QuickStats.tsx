@@ -278,7 +278,7 @@ export default function QuickStatsUI() {
           value={stats.pendingWorkOrders} 
           icon={<Wrench className="h-5 w-5 text-amber-600" />}
           color="orange"
-          onClick={() => navigate("/admin/fleetmaintenance/general-repairs-log")}
+          onClick={() => navigate("/admin/fleetmaintenance/maintenance-orders-log")}
         />
         <StatCard 
           title="Pending Invoices" 

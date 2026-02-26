@@ -5,9 +5,10 @@ import {
   Filter,
   Search,
   X,
+  Trash2,
 } from "lucide-react";
-import { FaFileInvoiceDollar, FaClipboardList, FaTools } from "react-icons/fa";
-import { getComplianceInvoices } from "../../../../axios/api/admin";
+import { FaFileInvoiceDollar, FaClipboardList, FaTools, FaExclamationCircle } from "react-icons/fa";
+import { getComplianceInvoices, deleteComplianceInvoice } from "../../../../axios/api/admin";
 
 const StatCard = ({ title, value, subtitle, icon: Icon, bgColor, iconColor }: any) => (
   <div className="bg-white rounded-xl p-4 border border-gray-100 shadow-sm flex items-start justify-between">
@@ -24,6 +25,7 @@ const StatCard = ({ title, value, subtitle, icon: Icon, bgColor, iconColor }: an
 
 type MechanicInvoice = {
   id: string;
+  type?: 'general' | 'scheduled' | 'safety';
   serviceDate: string;
   unitNumber: string;
   makeModel: string;
@@ -60,6 +62,9 @@ const ComplianceInvoices = () => {
   const pageSize = 50;
   const [showInvoiceDetails, setShowInvoiceDetails] = useState(false);
   const [selectedInvoice, setSelectedInvoice] = useState<MechanicInvoice | null>(null);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [invoiceToDelete, setInvoiceToDelete] = useState<MechanicInvoice | null>(null);
+  const [deleting, setDeleting] = useState(false);
 
   // Refs for scrollbar synchronization
   const topScrollRef = useRef<HTMLDivElement>(null);
@@ -88,6 +93,7 @@ const ComplianceInvoices = () => {
           // Map API response to MechanicInvoice format
           const mappedInvoices: MechanicInvoice[] = response.data.map((invoice: any) => ({
             id: invoice.id || invoice._id || '',
+            type: invoice.type || 'general',
             serviceDate: invoice.serviceDate || new Date().toISOString(),
             unitNumber: invoice.unitNumber || 'N/A',
             makeModel: invoice.makeModel || 'N/A',
@@ -328,6 +334,75 @@ const ComplianceInvoices = () => {
     setSearchTerm("");
   };
 
+  const handleDeleteInvoice = (invoice: MechanicInvoice) => {
+    setInvoiceToDelete(invoice);
+    setShowDeleteModal(true);
+  };
+
+  const confirmDeleteInvoice = async () => {
+    if (!invoiceToDelete) return;
+
+    setDeleting(true);
+    try {
+      const invoiceType = invoiceToDelete.type || 'general';
+      const response = await deleteComplianceInvoice(invoiceToDelete.id, invoiceType);
+      
+      if (response?.success) {
+        setShowDeleteModal(false);
+        setInvoiceToDelete(null);
+        // Refresh the invoices list
+        const params: any = {
+          page: currentPage,
+          limit: pageSize
+        };
+        if (truckFilter !== "all") params.unitNumber = truckFilter;
+        if (driverFilter !== "all") params.driver = driverFilter;
+        if (mechanicFilter !== "all") params.serviceProvider = mechanicFilter;
+        if (searchTerm.trim()) params.search = searchTerm.trim();
+
+        const res = await getComplianceInvoices(params);
+        if (res?.success && res?.data) {
+          const mappedInvoices: MechanicInvoice[] = res.data.map((invoice: any) => ({
+            id: invoice.id || invoice._id || '',
+            type: invoice.type || 'general',
+            serviceDate: invoice.serviceDate || new Date().toISOString(),
+            unitNumber: invoice.unitNumber || 'N/A',
+            makeModel: invoice.makeModel || 'N/A',
+            vinOrPlate: invoice.vinOrPlate || 'N/A',
+            description: invoice.description || '',
+            odometer: invoice.odometer || 0,
+            parts: invoice.parts || [],
+            notes: invoice.notes || '',
+            serviceProvider: invoice.serviceProvider || 'N/A',
+            invoiceNumber: invoice.invoiceNumber || 'N/A',
+            passedInspection: invoice.passedInspection !== false,
+            driver: invoice.driver || 'N/A',
+            serviceCategory: invoice.serviceCategory || 'N/A',
+            location: invoice.location || 'N/A',
+            customer: invoice.customer || 'N/A',
+            amount: invoice.amount || 0,
+            taxes: invoice.taxes || [],
+            taxAmount: invoice.taxAmount || 0,
+            totalAmount: invoice.totalAmount || invoice.amount || 0
+          }));
+          setInvoices(mappedInvoices);
+          if (res.pagination) {
+            setTotalPages(res.pagination.totalPages || 1);
+            setTotal(res.pagination.total || 0);
+          }
+        }
+        alert('Service deleted successfully');
+      } else {
+        alert(response?.message || 'Failed to delete service');
+      }
+    } catch (error: any) {
+      console.error('Error deleting service:', error);
+      alert(error?.message || 'Error deleting service');
+    } finally {
+      setDeleting(false);
+    }
+  };
+
   return (
     <div className="min-h-screen pb-10" style={{ backgroundColor: '#EDF8FF' }}>
       <div className="relative w-full mx-auto p-2">
@@ -497,6 +572,7 @@ const ComplianceInvoices = () => {
                       "Location / Notes",
                       "Total Amount",
                       "Passed",
+                      "Actions",
                     ].map((header) => (
                       <th
                         key={header}
@@ -618,18 +694,27 @@ const ComplianceInvoices = () => {
                           {invoice.passedInspection ? "Passed" : "Follow-up"}
                         </span>
                       </td>
+                      <td className="px-6 py-2 text-xs" onClick={(e) => e.stopPropagation()}>
+                        <button
+                          onClick={() => handleDeleteInvoice(invoice)}
+                          className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                          title="Delete Service"
+                        >
+                          <Trash2 size={14} />
+                        </button>
+                      </td>
                     </tr>
                   ))}
                   {loading && (
                     <tr>
-                      <td className="px-6 py-8 text-center text-xs text-gray-500" colSpan={12}>
+                      <td className="px-6 py-8 text-center text-xs text-gray-500" colSpan={13}>
                         Loading invoices...
                       </td>
                     </tr>
                   )}
                   {!loading && filteredInvoices.length === 0 && (
                     <tr>
-                      <td className="px-6 py-8 text-center text-xs text-gray-500" colSpan={12}>
+                      <td className="px-6 py-8 text-center text-xs text-gray-500" colSpan={13}>
                         No invoices found. {total > 0 ? 'Try adjusting your filters.' : 'No invoices have been created yet.'}
                       </td>
                     </tr>
@@ -828,6 +913,57 @@ const ComplianceInvoices = () => {
                 </div>
               </div>
             </>
+          )}
+
+          {/* Delete Confirmation Modal */}
+          {showDeleteModal && invoiceToDelete && (
+            <div className="fixed inset-0 bg-gray-900/50 backdrop-blur-sm z-[1002] flex items-center justify-center p-4">
+              <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md">
+                <div className="p-6">
+                  <div className="flex items-center gap-3 mb-4">
+                    <div className="p-2 bg-red-100 rounded-full">
+                      <FaExclamationCircle className="text-red-600" size={24} />
+                    </div>
+                    <h3 className="text-lg font-bold text-gray-800">Delete Service</h3>
+                  </div>
+                  
+                  <p className="text-gray-600 mb-6">
+                    Are you sure you want to delete this service record? This action cannot be undone.
+                  </p>
+
+                  <div className="bg-gray-50 p-3 rounded-lg mb-6">
+                    <p className="text-sm text-gray-700">
+                      <span className="font-semibold">Unit:</span> {invoiceToDelete.unitNumber}
+                    </p>
+                    <p className="text-sm text-gray-700">
+                      <span className="font-semibold">Service:</span> {invoiceToDelete.serviceCategory}
+                    </p>
+                    <p className="text-sm text-gray-700">
+                      <span className="font-semibold">Date:</span> {invoiceToDelete.serviceDate ? new Date(invoiceToDelete.serviceDate).toLocaleDateString() : 'N/A'}
+                    </p>
+                  </div>
+
+                  <div className="flex justify-end gap-3">
+                    <button
+                      onClick={() => {
+                        setShowDeleteModal(false);
+                        setInvoiceToDelete(null);
+                      }}
+                      className="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 font-medium transition-colors"
+                    >
+                      Cancel
+                    </button>
+                    <button
+                      onClick={confirmDeleteInvoice}
+                      disabled={deleting}
+                      className="px-4 py-2 bg-red-600 !text-white rounded-lg hover:bg-red-700 disabled:bg-red-400 disabled:cursor-not-allowed font-medium transition-colors"
+                    >
+                      {deleting ? 'Deleting...' : 'Delete Service'}
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
           )}
 
           {/* Pagination */}
