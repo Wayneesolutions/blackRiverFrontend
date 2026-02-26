@@ -19,8 +19,11 @@ export interface GeneralRepairDto {
   duePayment?: string;
   unitSource?: string;
   unitReference?: string;
-  status?: 'Created' | 'Assigned' | 'Shared';
+  status?: 'Created' | 'Assigned' | 'Shared' | 'in-progress' | 'completed';
   shared?: boolean;
+  verificationStatus?: 'not-verified' | 'verified';
+  verifiedBy?: string;
+  verifiedAt?: string;
   createdAt: string;
   updatedAt: string;
 }
@@ -87,6 +90,13 @@ export const deleteGeneralRepair = async (id: string) => {
 export const sendMaintenanceOrderEmail = async (id: string) => {
   const res = await apiClient.post<{ success: boolean; message?: string }>(
     `/admin/fleet-maintenance/general-repairs/${id}/send-email`
+  );
+  return res.data;
+};
+
+export const verifyMaintenanceOrder = async (id: string) => {
+  const res = await apiClient.post<{ success: boolean; data: GeneralRepairDto; message?: string }>(
+    `/admin/fleet-maintenance/general-repairs/${id}/verify`
   );
   return res.data;
 };

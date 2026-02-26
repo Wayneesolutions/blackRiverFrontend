@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import type { CSSProperties } from 'react';
 import ExcelJS from 'exceljs';
-import { Plus, Edit, Trash2, Search, Download, AlertCircle, Clock, X, Mail } from 'lucide-react';
+import { Plus, Edit, Trash2, Search, Download, AlertCircle, Clock, X, Mail, FileText, ExternalLink } from 'lucide-react';
 import { FaExclamationCircle, FaTimes } from 'react-icons/fa';
 import {
   listGeneralRepairs,
@@ -9,12 +9,12 @@ import {
   updateGeneralRepair,
   deleteGeneralRepair,
   sendMaintenanceOrderEmail,
+  verifyMaintenanceOrder,
   type GeneralRepairDto,
   type GeneralRepairPayload
 } from '../../../../axios/api/generalRepairs';
 import { getAllVehicles } from '../../../../axios/api/vehicle';
 import { getAllEmployees } from '../../../../axios/api/employee';
-import { getAllDrivers } from '../../../../axios/api/driver';
 import { FLEET_COLORS } from '../colorUtils';
 
 const ACCENT_PRIMARY = FLEET_COLORS.primary;
@@ -58,18 +58,6 @@ interface NotificationState {
   message: string;
 }
 
-interface TaxEntry {
-  name: string;
-  percentage: string;
-}
-
-interface PartEntry {
-  partId: string;
-  partName: string;
-  partNumber: string;
-  quantity: number;
-}
-
 interface FormState {
   serviceDate: string;
   unitNumber: string;
@@ -78,8 +66,6 @@ interface FormState {
   notes: string;
   serviceProvider: string;
   serviceProviderId?: string;
-  customer: string;
-  customerId?: string;
   status?: string;
   shared?: boolean;
 }
@@ -139,8 +125,6 @@ const GeneralRepairsLog: React.FC = () => {
     notes: '',
     serviceProvider: '',
     serviceProviderId: undefined,
-    customer: '',
-    customerId: undefined,
     status: 'Created',
     shared: false
   });
@@ -154,9 +138,6 @@ const GeneralRepairsLog: React.FC = () => {
   const [serviceProviders, setServiceProviders] = useState<ServiceProviderOption[]>([]);
   const [serviceProvidersLoading, setServiceProvidersLoading] = useState(false);
   const [serviceProvidersError, setServiceProvidersError] = useState<string | null>(null);
-  const [driverCustomers, setDriverCustomers] = useState<ServiceProviderOption[]>([]);
-  const [driverCustomersLoading, setDriverCustomersLoading] = useState(false);
-  const [driverCustomersError, setDriverCustomersError] = useState<string | null>(null);
   const [useCustomProvider, setUseCustomProvider] = useState(true);
   const [exporting, setExporting] = useState(false);
   const [sending, setSending] = useState(false);
@@ -243,35 +224,6 @@ const GeneralRepairsLog: React.FC = () => {
   }, [formData.serviceProviderId, formData.serviceProvider]);
 
 
-  const loadDriverCustomers = useCallback(async () => {
-    setDriverCustomersLoading(true);
-    setDriverCustomersError(null);
-    try {
-      const response = await getAllDrivers(1, 500, undefined, undefined, true);
-      if (response?.success && response?.data) {
-        // Only owner operators: companyFlag true = Owner-Operator, false = Company Driver
-        const ownerOperators = (response.data as { _id: string; name?: string; internalId?: string; details?: { companyFlag?: boolean } }[]).filter(
-          (driver) => driver.details?.companyFlag === true
-        );
-        const list = ownerOperators.map((driver) => ({
-          id: driver._id,
-          name: driver.name || driver.internalId || 'Driver',
-          role: 'Driver (Customer)',
-          internalId: driver.internalId
-        }));
-        setDriverCustomers(list);
-      } else {
-        setDriverCustomers([]);
-        setDriverCustomersError(response?.message || 'Unable to load driver customers.');
-      }
-    } catch (err: any) {
-      console.error('Failed to load owner-operator drivers (customers)', err);
-      setDriverCustomers([]);
-      setDriverCustomersError(err?.response?.data?.message || err?.message || 'Unable to load driver customers.');
-    } finally {
-      setDriverCustomersLoading(false);
-    }
-  }, []);
 
   const loadRepairs = useCallback(async () => {
     setLoading(true);
@@ -301,11 +253,6 @@ const GeneralRepairsLog: React.FC = () => {
   useEffect(() => {
     loadServiceProviders();
   }, [loadServiceProviders]);
-
-
-  useEffect(() => {
-    loadDriverCustomers();
-  }, [loadDriverCustomers]);
 
   useEffect(() => {
     loadRepairs();
@@ -406,16 +353,6 @@ const GeneralRepairsLog: React.FC = () => {
     return taxes.map((t) => `${t.name || 'Tax'}${t.percentage != null ? ` ${t.percentage}%` : ''}`).filter(Boolean).join(', ') || '—';
   }, []);
 
-  useEffect(() => {
-    if (!showEditModal || !selectedRepair) return;
-    setFormData((prev) => {
-      const customerName = selectedRepair.customer || '';
-      const match = customerName ? driverCustomers.find((d) => d.name === customerName) : null;
-      const nextCustomerId = match?.id;
-      if (prev.customer === customerName && prev.customerId === nextCustomerId) return prev;
-      return { ...prev, customer: customerName, customerId: nextCustomerId };
-    });
-  }, [selectedRepair, showEditModal, driverCustomers]);
 
   const filteredRepairs = useMemo(() => {
     if (!searchTerm) return repairs;
@@ -521,7 +458,6 @@ const GeneralRepairsLog: React.FC = () => {
         { header: 'Parts', key: 'parts', width: 28 },
         { header: 'Notes', key: 'notes', width: 32 },
         { header: 'Service Provider', key: 'serviceProvider', width: 24 },
-        { header: 'Customer', key: 'customer', width: 20 },
         { header: 'Taxes', key: 'taxes', width: 24 },
         { header: 'Invoice #', key: 'invoiceNumber', width: 18 },
         { header: 'Amount', key: 'amount', width: 16 }
@@ -546,7 +482,6 @@ const GeneralRepairsLog: React.FC = () => {
             : (repair.parts || 'N/A'),
           notes: repair.notes || '',
           serviceProvider: repair.serviceProvider,
-          customer: repair.customer || '',
           taxes: formatTaxesDisplay(repair.taxes),
           invoiceNumber: repair.invoiceNumber || 'N/A',
           amount: repair.amount ? new Intl.NumberFormat('en-CA', {
@@ -595,8 +530,6 @@ const GeneralRepairsLog: React.FC = () => {
       notes: '',
       serviceProvider: '',
       serviceProviderId: undefined,
-      customer: '',
-      customerId: undefined,
       status: 'Created',
       shared: false
     });
@@ -609,7 +542,6 @@ const GeneralRepairsLog: React.FC = () => {
     setSelectedRepair(repair);
     setFormError(null);
     const providerMatch = serviceProviders.find((p) => p.name === repair.serviceProvider);
-    const customerMatch = repair.customer ? driverCustomers.find((d) => d.name === repair.customer) : null;
     const status = providerMatch ? 'Assigned' : 'Created';
     setFormData({
       serviceDate: toDateInputValue(repair.serviceDate),
@@ -619,8 +551,6 @@ const GeneralRepairsLog: React.FC = () => {
       notes: repair.notes || '',
       serviceProvider: repair.serviceProvider,
       serviceProviderId: providerMatch?.id,
-      customer: repair.customer || '',
-      customerId: customerMatch?.id,
       status: status,
       shared: (repair as any).shared || false
     });
@@ -661,8 +591,6 @@ const GeneralRepairsLog: React.FC = () => {
       odometer: formData.odometer ? Number(formData.odometer) : undefined,
       notes: formData.notes || undefined,
       serviceProvider: formData.serviceProvider,
-      customer: formData.customer || undefined,
-      customerId: formData.customerId || undefined,
       invoiceNumber: undefined,
       unitSource: selectedUnit?.referenceType,
       unitReference: selectedUnit?._id || selectedUnit?.referenceId
@@ -964,35 +892,39 @@ const GeneralRepairsLog: React.FC = () => {
                     <th className="px-6 py-4 text-left text-sm font-semibold">VIN/License Plate</th>
                     <th className="px-6 py-4 text-left text-sm font-semibold">Description</th>
                     <th className="px-6 py-4 text-left text-sm font-semibold">Odometer</th>
-                    <th className="px-6 py-4 text-left text-sm font-semibold">Parts</th>
                     <th className="px-6 py-4 text-left text-sm font-semibold">Service Provider</th>
-                    <th className="px-6 py-4 text-left text-sm font-semibold">Customer</th>
-                    <th className="px-6 py-4 text-left text-sm font-semibold">Taxes</th>
                     <th className="px-6 py-4 text-left text-sm font-semibold">Invoice Number</th>
-                    <th className="px-6 py-4 text-left text-sm font-semibold">Amount</th>
                     <th className="px-6 py-4 text-left text-sm font-semibold">Status</th>
+                    <th className="px-6 py-4 text-left text-sm font-semibold">Verification</th>
                     <th className="px-6 py-4 text-left text-sm font-semibold">Actions</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-200">
                   {loading ? (
                     <tr>
-                      <td colSpan={14} className="px-6 py-12 text-center text-gray-500">
+                      <td colSpan={12} className="px-6 py-12 text-center text-gray-500">
                         Loading maintenance orders...
                       </td>
                     </tr>
                   ) : filteredRepairs.length === 0 ? (
                     <tr>
-                      <td colSpan={14} className="px-6 py-12 text-center text-gray-500">
+                      <td colSpan={12} className="px-6 py-12 text-center text-gray-500">
                         No maintenance orders found
                       </td>
                     </tr>
                   ) : (
                     filteredRepairs.map((repair) => {
-                      // Calculate status based on service provider and shared status
+                      // Use status from database if available, otherwise calculate based on service provider and shared status
+                      const dbStatus = (repair as any).status;
                       const hasServiceProvider = repair.serviceProvider && repair.serviceProvider.trim() !== '';
                       const isShared = (repair as any).shared === true;
-                      const status = isShared ? 'Shared' : (hasServiceProvider ? 'Assigned' : 'Created');
+                      
+                      // Valid statuses from database: 'Created', 'Assigned', 'Shared', 'in-progress', 'completed'
+                      let status = dbStatus;
+                      if (!status || !['Created', 'Assigned', 'Shared', 'in-progress', 'completed'].includes(status)) {
+                        // Fallback calculation if status not set or invalid
+                        status = isShared ? 'Shared' : (hasServiceProvider ? 'Assigned' : 'Created');
+                      }
                       
                       return (
                       <tr 
@@ -1015,45 +947,56 @@ const GeneralRepairsLog: React.FC = () => {
                         <td className="px-6 py-4 text-gray-900">
                           {typeof repair.odometer === 'number' ? `${repair.odometer.toLocaleString()} km` : '—'}
                         </td>
-                        <td className="px-6 py-4 text-gray-600 max-w-xs">
-                          <div className="space-y-1">
-                            {Array.isArray(repair.parts) && repair.parts.length > 0 ? (
-                              repair.parts.map((p: any, idx: number) => (
-                                <div key={idx} className="text-xs">
-                                  {p.partName || p.partNumber || 'Part'} (Qty: {p.quantity || 1})
-                                </div>
-                              ))
-                            ) : (
-                              <div className="text-sm">
-                                {typeof repair.parts === 'string' ? repair.parts : 'N/A'}
-                              </div>
-                            )}
-                          </div>
-                        </td>
                         <td className="px-6 py-4 text-gray-900">{repair.serviceProvider}</td>
-                        <td className="px-6 py-4 text-gray-900">{repair.customer || '—'}</td>
-                        <td className="px-6 py-4 text-gray-600 text-sm max-w-[140px]">
-                          <span className="truncate block" title={formatTaxesDisplay(repair.taxes)}>{formatTaxesDisplay(repair.taxes)}</span>
-                        </td>
-                        <td className="px-6 py-4 text-gray-600 font-mono text-sm">{repair.invoiceNumber}</td>
-                        <td className="px-6 py-4 text-gray-900">
-                          {repair.amount ? new Intl.NumberFormat('en-CA', {
-                            style: 'currency',
-                            currency: 'CAD',
-                            minimumFractionDigits: 2,
-                            maximumFractionDigits: 2,
-                          }).format(repair.amount) : '—'}
-                        </td>
+                        <td className="px-6 py-4 text-gray-600 font-mono text-sm">{repair.invoiceNumber || '—'}</td>
                         <td className="px-6 py-4">
                           <span className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold ${
-                            status === 'Shared' 
+                            status === 'completed'
+                              ? 'bg-blue-100 text-blue-700'
+                              : status === 'in-progress'
+                              ? 'bg-yellow-100 text-yellow-700'
+                              : status === 'Shared' 
                               ? 'bg-purple-100 text-purple-700' 
                               : status === 'Assigned'
                               ? 'bg-green-100 text-green-700'
                               : 'bg-gray-100 text-gray-700'
                           }`}>
-                            {status}
+                            {status === 'in-progress' ? 'In Progress' : status}
                           </span>
+                        </td>
+                        <td className="px-6 py-4" onClick={(e) => e.stopPropagation()}>
+                          {status === 'completed' ? (
+                            <select
+                              value={(repair as any).verificationStatus || 'not-verified'}
+                              onChange={async (e) => {
+                                const newStatus = e.target.value;
+                                if (newStatus === 'verified' && (repair as any).verificationStatus !== 'verified') {
+                                  try {
+                                    const response = await verifyMaintenanceOrder(repair._id);
+                                    if (response?.success) {
+                                      setNotification({ type: 'success', message: 'Maintenance order verified successfully' });
+                                      await loadRepairs();
+                                    } else {
+                                      setNotification({ type: 'error', message: response?.message || 'Failed to verify order' });
+                                    }
+                                  } catch (err: any) {
+                                    setNotification({ type: 'error', message: err?.response?.data?.message || err?.message || 'Failed to verify order' });
+                                  }
+                                }
+                              }}
+                              disabled={(repair as any).verificationStatus === 'verified'}
+                              className={`px-3 py-1.5 rounded-lg text-xs font-semibold border transition-colors ${
+                                (repair as any).verificationStatus === 'verified'
+                                  ? 'bg-green-100 text-green-700 border-green-300 cursor-not-allowed'
+                                  : 'bg-yellow-100 text-yellow-700 border-yellow-300 cursor-pointer hover:bg-yellow-200'
+                              }`}
+                            >
+                              <option value="not-verified">Not Verified</option>
+                              <option value="verified">Verified</option>
+                            </select>
+                          ) : (
+                            <span className="text-gray-400 text-sm">—</span>
+                          )}
                         </td>
                         <td className="px-6 py-4" onClick={(e) => e.stopPropagation()}>
                           <div className="flex items-center gap-2">
@@ -1157,27 +1100,8 @@ const GeneralRepairsLog: React.FC = () => {
                           <p className="font-medium text-gray-900">{selectedRepair.serviceProvider || "—"}</p>
                         </div>
                         <div>
-                          <p className="text-sm text-gray-500 mb-1">Customer</p>
-                          <p className="font-medium text-gray-900">{selectedRepair.customer || "—"}</p>
-                        </div>
-                        <div>
-                          <p className="text-sm text-gray-500 mb-1">Taxes</p>
-                          <p className="font-medium text-gray-900">{formatTaxesDisplay(selectedRepair.taxes)}</p>
-                        </div>
-                        <div>
                           <p className="text-sm text-gray-500 mb-1">Invoice Number</p>
                           <p className="font-medium text-gray-900">{selectedRepair.invoiceNumber || "—"}</p>
-                        </div>
-                        <div>
-                          <p className="text-sm text-gray-500 mb-1">Amount</p>
-                          <p className="font-medium text-gray-900">
-                            {selectedRepair.amount ? new Intl.NumberFormat('en-CA', {
-                              style: 'currency',
-                              currency: 'CAD',
-                              minimumFractionDigits: 2,
-                              maximumFractionDigits: 2,
-                            }).format(selectedRepair.amount) : "—"}
-                          </p>
                         </div>
                       </div>
                       <div className="mt-4">
@@ -1207,6 +1131,83 @@ const GeneralRepairsLog: React.FC = () => {
                         </div>
                       )}
                     </div>
+
+                    {/* Completion Details - Show if order is completed */}
+                    {((selectedRepair as any).status === 'completed') && (
+                      <div className="bg-green-50 p-6 rounded-lg border border-green-200">
+                        <h4 className="font-semibold text-gray-900 mb-4 text-lg flex items-center gap-2">
+                          <span className="w-2 h-2 bg-green-500 rounded-full"></span>
+                          Completion Details
+                        </h4>
+                        {(selectedRepair as any).repairDetails && (
+                          <div className="mb-4">
+                            <p className="text-sm text-gray-500 mb-1">Repair Details</p>
+                            <p className="font-medium text-gray-900">{(selectedRepair as any).repairDetails}</p>
+                          </div>
+                        )}
+                        {(selectedRepair as any).completedParts && Array.isArray((selectedRepair as any).completedParts) && (selectedRepair as any).completedParts.length > 0 && (
+                          <div className="mb-4">
+                            <p className="text-sm text-gray-500 mb-2">Parts Used</p>
+                            <div className="space-y-2">
+                              {(selectedRepair as any).completedParts.map((part: any, idx: number) => (
+                                <div key={idx} className="bg-white p-3 rounded border border-gray-200">
+                                  <p className="font-medium text-gray-900">
+                                    {part.partName || part.partNumber || 'Part'}
+                                    {part.quantity > 1 && ` (Qty: ${part.quantity})`}
+                                    {part.cost > 0 && ` - $${part.cost.toFixed(2)}`}
+                                  </p>
+                                  {part.partNumber && (
+                                    <p className="text-xs text-gray-500 mt-1">Part #: {part.partNumber}</p>
+                                  )}
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                        )}
+                        {(selectedRepair as any).completionTotalAmount && (
+                          <div className="mb-4">
+                            <p className="text-sm text-gray-500 mb-1">Total Amount</p>
+                            <p className="font-semibold text-lg text-gray-900">
+                              {new Intl.NumberFormat('en-CA', {
+                                style: 'currency',
+                                currency: 'CAD',
+                                minimumFractionDigits: 2,
+                                maximumFractionDigits: 2,
+                              }).format((selectedRepair as any).completionTotalAmount)}
+                            </p>
+                          </div>
+                        )}
+                        {(selectedRepair as any).completionDate && (
+                          <div className="mb-4">
+                            <p className="text-sm text-gray-500 mb-1">Completion Date</p>
+                            <p className="font-medium text-gray-900">
+                              {formatDate((selectedRepair as any).completionDate)}
+                            </p>
+                          </div>
+                        )}
+                        {/* Invoice File */}
+                        {((selectedRepair as any).invoiceUploadUrl || (selectedRepair as any).invoiceSignedUrl) && (
+                          <div className="mt-4 pt-4 border-t border-green-200">
+                            <p className="text-sm text-gray-500 mb-2">Mechanic's Invoice</p>
+                            <div className="space-y-2">
+                              <a
+                                href={(selectedRepair as any).invoiceSignedUrl || (selectedRepair as any).invoiceUploadUrl}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium"
+                              >
+                                <FileText size={18} />
+                                <span>View Invoice</span>
+                                <ExternalLink size={14} />
+                              </a>
+                              <p className="text-xs text-gray-500">
+                                {(selectedRepair as any).invoiceUploadUrl?.split('/').pop() || 'Invoice file'}
+                              </p>
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    )}
 
                     {/* Action Buttons */}
                     <div className="flex justify-end gap-3 pt-4 border-t-2 border-gray-200">
@@ -1412,52 +1413,6 @@ const GeneralRepairsLog: React.FC = () => {
                         )}
                         {serviceProvidersError && (
                           <p className="text-sm text-red-600 mt-2">{serviceProvidersError}</p>
-                        )}
-                      </div>
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">Customer</label>
-                        {driverCustomersLoading ? (
-                          <div className="flex items-center gap-2 text-sm text-gray-500">
-                            <span className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-500 inline-block" />
-                            Loading...
-                          </div>
-                        ) : (
-                          <select
-                            value={formData.customerId || ''}
-                            onChange={(e) => {
-                              const value = e.target.value;
-                              if (!value) {
-                                setFormData((prev) => ({ ...prev, customerId: undefined, customer: '' }));
-                                return;
-                              }
-                              const customer = driverCustomers.find((d) => d.id === value);
-                              setFormData((prev) => ({
-                                ...prev,
-                                customerId: customer?.id,
-                                customer: customer?.name || ''
-                              }));
-                            }}
-                            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:border-transparent"
-                            style={{ '--tw-ring-color': '#016ab2' } as React.CSSProperties & { '--tw-ring-color': string }}
-                            onFocus={(e) => {
-                              e.target.style.borderColor = '#016ab2';
-                              e.target.style.boxShadow = '0 0 0 2px rgba(1, 106, 178, 0.2)';
-                            }}
-                            onBlur={(e) => {
-                              e.target.style.borderColor = '';
-                              e.target.style.boxShadow = '';
-                            }}
-                          >
-                            <option value="">Select customer</option>
-                            {driverCustomers.map((customer) => (
-                              <option key={customer.id} value={customer.id}>
-                                {customer.name}
-                              </option>
-                            ))}
-                          </select>
-                        )}
-                        {driverCustomersError && (
-                          <p className="text-sm text-red-600 mt-2">{driverCustomersError}</p>
                         )}
                       </div>
                       <div className="md:col-span-2">
