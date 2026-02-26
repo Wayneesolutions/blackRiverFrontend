@@ -1,5 +1,15 @@
-import { useState, useCallback } from 'react';
-import { FaMapMarkerAlt, FaStickyNote,FaPlus, FaCreditCard, FaInfoCircle, FaTimes, FaEdit, FaEye } from 'react-icons/fa';
+import { useState, useCallback, useEffect } from 'react';
+import { FaMapMarkerAlt, FaStickyNote, FaPlus, FaCreditCard, FaInfoCircle, FaTimes, FaEdit, FaEye, FaTrash, FaCheckCircle, FaExclamationCircle } from 'react-icons/fa';
+import {
+  getFleetCustomers,
+  createFleetCustomer,
+  updateFleetCustomer,
+  getFleetCustomerById,
+  deleteFleetCustomer,
+  type FleetCustomer as ApiFleetCustomer,
+} from '../../../../axios/api/fleet.customers';
+import AddressSearch from '../../../../components/common/AddressSearch';
+import ConfirmationModal from '../../../../components/common/ConfirmationModal';
 
 const MAX_FILE_SIZE_MB = 20;
 const MAX_FILE_BYTES = MAX_FILE_SIZE_MB * 1024 * 1024;
@@ -13,7 +23,7 @@ interface AddressFields {
   country: string;
 }
 
-/** Static customer list for table (no API) */
+/** Table row shape (from API or for display) */
 interface CustomerRow {
   id: string;
   name: string;
@@ -27,17 +37,67 @@ interface CustomerRow {
   paymentMethod: string;
 }
 
-const STATIC_CUSTOMERS: CustomerRow[] = [
-  { id: '1', name: 'ABC Transport Ltd', email: 'billing@abctransport.com', phone: '+1 416-555-0100', billingCity: 'Toronto', billingProvinceState: 'ON', country: 'Canada', customerType: 'Wholesale', terms: 'Net 30', paymentMethod: 'Credit Card' },
-  { id: '2', name: 'Metro Freight Inc', email: 'accounts@metrofreight.com', phone: '+1 905-555-0200', billingCity: 'Mississauga', billingProvinceState: 'ON', country: 'Canada', customerType: 'Retail', terms: 'Due on Receipt', paymentMethod: 'Check' },
-  { id: '3', name: 'Northern Logistics Co', email: 'ap@northernlogistics.ca', phone: '+1 403-555-0300', billingCity: 'Calgary', billingProvinceState: 'AB', country: 'Canada', customerType: 'Wholesale', terms: 'Net 45', paymentMethod: 'Bank Transfer' },
-  { id: '4', name: 'Pacific Haulers', email: 'billing@pacifichaulers.com', phone: '+1 604-555-0400', billingCity: 'Vancouver', billingProvinceState: 'BC', country: 'Canada', customerType: 'Reseller', terms: 'Net 15', paymentMethod: 'Credit Card' },
-  { id: '5', name: 'Eastern Distribution', email: 'finance@easterndist.com', phone: '+1 514-555-0500', billingCity: 'Montreal', billingProvinceState: 'QC', country: 'Canada', customerType: 'Wholesale', terms: 'Net 30', paymentMethod: 'Cash' },
-];
+const mapApiToRow = (c: ApiFleetCustomer): CustomerRow => ({
+  id: c._id,
+  name: c.name ?? '',
+  email: c.email ?? '',
+  phone: c.phone ?? '',
+  billingCity: c.billing?.city ?? '',
+  billingProvinceState: c.billing?.provinceState ?? '',
+  country: c.billing?.country ?? '',
+  customerType: c.customerType ?? '',
+  terms: c.terms ?? '',
+  paymentMethod: c.primaryPaymentMethod ?? '',
+});
+
+type NotificationType = 'success' | 'error' | 'info';
+interface NotificationItem {
+  id: number;
+  type: NotificationType;
+  message: string;
+}
+
+const NotificationToast = ({ notification, onClose }: { notification: NotificationItem; onClose: (id: number) => void }) => {
+  const icons = {
+    success: <FaCheckCircle className="text-green-500" size={20} />,
+    error: <FaExclamationCircle className="text-red-500" size={20} />,
+    info: <FaInfoCircle className="text-blue-500" size={20} />,
+  };
+  const bgColors = {
+    success: 'bg-green-50 border-green-200',
+    error: 'bg-red-50 border-red-200',
+    info: 'bg-blue-50 border-blue-200',
+  };
+  useEffect(() => {
+    const t = setTimeout(() => onClose(notification.id), 5000);
+    return () => clearTimeout(t);
+  }, [notification.id, onClose]);
+  return (
+    <div className={`flex items-start gap-3 p-4 rounded-lg border-2 shadow-lg ${bgColors[notification.type]}`}>
+      <div className="flex-shrink-0 mt-0.5">{icons[notification.type]}</div>
+      <p className="flex-1 text-sm font-medium text-gray-800">{notification.message}</p>
+      <button type="button" onClick={() => onClose(notification.id)} className="flex-shrink-0 text-gray-400 hover:text-gray-600">
+        <FaTimes size={16} />
+      </button>
+    </div>
+  );
+};
 
 const FleetMaintenanceCustomers = () => {
-  const [customers, setCustomers] = useState<CustomerRow[]>(STATIC_CUSTOMERS);
+  const [customers, setCustomers] = useState<CustomerRow[]>([]);
+  const [customersLoading, setCustomersLoading] = useState(true);
+  const [customersError, setCustomersError] = useState<string | null>(null);
   const [addCustomerSidebarOpen, setAddCustomerSidebarOpen] = useState(false);
+  const [saving, setSaving] = useState(false);
+  const [detailCustomerId, setDetailCustomerId] = useState<string | null>(null);
+  const [detailCustomer, setDetailCustomer] = useState<ApiFleetCustomer | null>(null);
+  const [detailLoading, setDetailLoading] = useState(false);
+  const [deletingId, setDeletingId] = useState<string | null>(null);
+  const [notifications, setNotifications] = useState<NotificationItem[]>([]);
+  const [showDeleteConfirmation, setShowDeleteConfirmation] = useState(false);
+  const [deleteTargetId, setDeleteTargetId] = useState<string | null>(null);
+  const [deleteTargetName, setDeleteTargetName] = useState<string>('');
+  const [editingId, setEditingId] = useState<string | null>(null);
   const [customerName, setCustomerName] = useState('');
   const [email, setEmail] = useState('');
   const [phone, setPhone] = useState('');
@@ -112,6 +172,130 @@ const FleetMaintenanceCustomers = () => {
     setAttachments((prev) => prev.filter((_, i) => i !== index));
   };
 
+  const addNotification = (type: NotificationType, message: string) => {
+    const id = Date.now();
+    setNotifications((prev) => [...prev, { id, type, message }]);
+  };
+
+  const removeNotification = (id: number) => {
+    setNotifications((prev) => prev.filter((n) => n.id !== id));
+  };
+
+  const fetchCustomers = useCallback(async () => {
+    setCustomersLoading(true);
+    setCustomersError(null);
+    try {
+      const res = await getFleetCustomers();
+      if (res?.success && Array.isArray(res.data)) {
+        setCustomers(res.data.map(mapApiToRow));
+      } else {
+        setCustomers([]);
+        setCustomersError(res?.message ?? 'Failed to load customers');
+      }
+    } catch {
+      setCustomers([]);
+      setCustomersError('Failed to load customers');
+    } finally {
+      setCustomersLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    fetchCustomers();
+  }, [fetchCustomers]);
+
+  const openDetail = async (id: string) => {
+    setDetailCustomerId(id);
+    setDetailCustomer(null);
+    setDetailLoading(true);
+    try {
+      const res = await getFleetCustomerById(id);
+      if (res?.success && res.data) setDetailCustomer(res.data);
+    } finally {
+      setDetailLoading(false);
+    }
+  };
+
+  const handleDeleteClick = (id: string, name: string) => {
+    setDeleteTargetId(id);
+    setDeleteTargetName(name);
+    setShowDeleteConfirmation(true);
+  };
+
+  const handleDeleteConfirm = async () => {
+    if (!deleteTargetId) return;
+    const idToDelete = deleteTargetId;
+    setShowDeleteConfirmation(false);
+    setDeleteTargetId(null);
+    setDeleteTargetName('');
+    setDeletingId(idToDelete);
+    try {
+      const res = await deleteFleetCustomer(idToDelete);
+      if (res?.success) {
+        addNotification('success', res?.message ?? 'Customer deleted successfully.');
+        await fetchCustomers();
+      } else {
+        addNotification('error', res?.message ?? 'Failed to delete customer.');
+      }
+    } catch {
+      addNotification('error', 'Failed to delete customer.');
+    } finally {
+      setDeletingId(null);
+    }
+  };
+
+  const openEdit = async (id: string) => {
+    setEditingId(id);
+    setAddCustomerSidebarOpen(true);
+    setDetailCustomerId(null);
+    setDetailCustomer(null);
+    try {
+      const res = await getFleetCustomerById(id);
+      if (res?.success && res.data) {
+        const c = res.data;
+        setCustomerName(c.name ?? '');
+        setEmail(c.email ?? '');
+        setPhone(c.phone ?? '');
+        setContactPerson(c.contactPerson ?? '');
+        setBilling({
+          streetAddress1: c.billing?.streetAddress1 ?? '',
+          streetAddress2: c.billing?.streetAddress2 ?? '',
+          city: c.billing?.city ?? '',
+          provinceState: c.billing?.provinceState ?? '',
+          postalZip: c.billing?.postalZip ?? '',
+          country: c.billing?.country ?? '',
+        });
+        setSameAsBilling(!!c.sameAsBilling);
+        setShipping({
+          streetAddress1: c.shipping?.streetAddress1 ?? '',
+          streetAddress2: c.shipping?.streetAddress2 ?? '',
+          city: c.shipping?.city ?? '',
+          provinceState: c.shipping?.provinceState ?? '',
+          postalZip: c.shipping?.postalZip ?? '',
+          country: c.shipping?.country ?? '',
+        });
+        setNotes(c.notes ?? '');
+        setPrimaryPaymentMethod(c.primaryPaymentMethod ?? '');
+        setTerms(c.terms ?? '');
+        setCustomerType(c.customerType ?? '');
+        setBusinessNumber(c.businessNumber ?? '');
+        setAssignDefaultTaxCode(!!c.assignDefaultTaxCode);
+        setOpeningBalanceAmount(c.openingBalanceAmount != null ? String(c.openingBalanceAmount) : '');
+        setOpeningBalanceAsOf(c.openingBalanceAsOf ? c.openingBalanceAsOf.split('T')[0] : '');
+        setAttachments([]);
+        setErrors({});
+      } else {
+        addNotification('error', 'Failed to load customer for editing.');
+        setAddCustomerSidebarOpen(false);
+        setEditingId(null);
+      }
+    } catch {
+      addNotification('error', 'Failed to load customer for editing.');
+      setAddCustomerSidebarOpen(false);
+      setEditingId(null);
+    }
+  };
+
   const resetForm = () => {
     setCustomerName('');
     setEmail('');
@@ -155,31 +339,82 @@ const FleetMaintenanceCustomers = () => {
     return Object.keys(next).length === 0;
   };
 
-  const handleSave = () => {
+  const handleSave = async () => {
     if (!validate()) return;
-    const id = String(customers.length + 1);
-    setCustomers((prev) => [
-      ...prev,
-      {
-        id,
+    setSaving(true);
+    try {
+      const payload = {
         name: customerName.trim(),
         email: email.trim(),
-        phone: phone.trim(),
-        billingCity: billing.city.trim(),
-        billingProvinceState: billing.provinceState.trim(),
-        country: billing.country.trim(),
-        customerType,
-        terms,
-        paymentMethod: primaryPaymentMethod,
-      },
-    ]);
-    resetForm();
-    setAddCustomerSidebarOpen(false);
-    alert('Customer saved successfully.');
+        phone: phone.trim() || undefined,
+        contactPerson: contactPerson.trim() || undefined,
+        billing: {
+          streetAddress1: billing.streetAddress1.trim(),
+          streetAddress2: billing.streetAddress2.trim(),
+          city: billing.city.trim(),
+          provinceState: billing.provinceState.trim(),
+          postalZip: billing.postalZip.trim(),
+          country: billing.country.trim(),
+        },
+        sameAsBilling: sameAsBilling,
+        shipping: sameAsBilling
+          ? undefined
+          : {
+              streetAddress1: shipping.streetAddress1.trim(),
+              streetAddress2: shipping.streetAddress2.trim(),
+              city: shipping.city.trim(),
+              provinceState: shipping.provinceState.trim(),
+              postalZip: shipping.postalZip.trim(),
+              country: shipping.country.trim(),
+            },
+        notes: notes.trim() || undefined,
+        primaryPaymentMethod: primaryPaymentMethod || undefined,
+        terms: terms || undefined,
+        customerType: customerType || undefined,
+        businessNumber: businessNumber.trim() || undefined,
+        assignDefaultTaxCode: assignDefaultTaxCode,
+        openingBalanceAmount:
+          openingBalanceAmount.trim() && !Number.isNaN(parseFloat(openingBalanceAmount.trim()))
+            ? parseFloat(openingBalanceAmount.trim())
+            : undefined,
+        openingBalanceAsOf: openingBalanceAsOf || undefined,
+        documents:
+          attachments.length > 0
+            ? attachments.map((f) => ({ name: f.name, size: f.size }))
+            : undefined,
+      };
+      if (editingId) {
+        const res = await updateFleetCustomer(editingId, payload);
+        if (res?.success) {
+          addNotification('success', res?.message ?? 'Customer updated successfully.');
+          resetForm();
+          setAddCustomerSidebarOpen(false);
+          setEditingId(null);
+          await fetchCustomers();
+        } else {
+          addNotification('error', res?.message ?? 'Failed to update customer.');
+        }
+      } else {
+        const res = await createFleetCustomer(payload);
+        if (res?.success) {
+          addNotification('success', res?.message ?? 'Customer saved successfully.');
+          resetForm();
+          setAddCustomerSidebarOpen(false);
+          await fetchCustomers();
+        } else {
+          addNotification('error', res?.message ?? 'Failed to save customer.');
+        }
+      }
+    } catch {
+      addNotification('error', editingId ? 'Failed to update customer.' : 'Failed to save customer.');
+    } finally {
+      setSaving(false);
+    }
   };
 
   const handleCloseSidebar = () => {
     setAddCustomerSidebarOpen(false);
+    setEditingId(null);
     setErrors({});
   };
 
@@ -263,6 +498,13 @@ const FleetMaintenanceCustomers = () => {
   return (
     <div className="min-h-screen pb-10" style={{ backgroundColor: '#EDF8FF' }}>
       <div className="relative w-full mx-auto p-6">
+      {/* Notifications */}
+      <div className="fixed top-4 right-4 z-[200] space-y-3 max-w-md">
+        {notifications.map((n) => (
+          <NotificationToast key={n.id} notification={n} onClose={removeNotification} />
+        ))}
+      </div>
+
       <h1 className="text-2xl font-bold text-gray-900 mb-6">Customers</h1>
       <p className="text-gray-600 mb-8">Manage customer addresses, notes, payments, and additional info.</p>
 
@@ -275,7 +517,7 @@ const FleetMaintenanceCustomers = () => {
           </div>
           <button
             type="button"
-            onClick={() => setAddCustomerSidebarOpen(true)}
+            onClick={() => { setEditingId(null); resetForm(); setAddCustomerSidebarOpen(true); }}
             className="flex items-center gap-2 px-4 py-2 bg-blue-600 !text-white text-sm font-medium rounded-lg hover:bg-blue-700"
           >
             <FaPlus size={14} /> Add Customer
@@ -298,29 +540,71 @@ const FleetMaintenanceCustomers = () => {
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-100">
-              {customers.map((row) => (
-                <tr key={row.id} className="hover:bg-gray-50">
+              {customersLoading ? (
+                <tr>
+                  <td colSpan={10} className="px-6 py-8 text-center text-gray-500">
+                    Loading customers...
+                  </td>
+                </tr>
+              ) : customersError ? (
+                <tr>
+                  <td colSpan={10} className="px-6 py-8 text-center text-red-600">
+                    {customersError}
+                  </td>
+                </tr>
+              ) : customers.length === 0 ? (
+                <tr>
+                  <td colSpan={10} className="px-6 py-8 text-center text-gray-500">
+                    No customers yet. Add one using the button above.
+                  </td>
+                </tr>
+              ) : (
+                customers.map((row) => (
+                <tr
+                  key={row.id}
+                  className="hover:bg-gray-50 cursor-pointer"
+                  onClick={() => openEdit(row.id)}
+                >
                   <td className="px-6 py-4 font-medium text-gray-900">{row.name}</td>
                   <td className="px-6 py-4 text-gray-600">{row.email || '—'}</td>
                   <td className="px-6 py-4 text-gray-600">{row.phone || '—'}</td>
-                  <td className="px-6 py-4 text-gray-600">{row.billingCity}</td>
-                  <td className="px-6 py-4 text-gray-600">{row.billingProvinceState}</td>
-                  <td className="px-6 py-4 text-gray-600">{row.country}</td>
-                  <td className="px-6 py-4 text-gray-600">{row.customerType}</td>
-                  <td className="px-6 py-4 text-gray-600">{row.terms}</td>
-                  <td className="px-6 py-4 text-gray-600">{row.paymentMethod}</td>
-                  <td className="px-6 py-4">
+                  <td className="px-6 py-4 text-gray-600">{row.billingCity || '—'}</td>
+                  <td className="px-6 py-4 text-gray-600">{row.billingProvinceState || '—'}</td>
+                  <td className="px-6 py-4 text-gray-600">{row.country || '—'}</td>
+                  <td className="px-6 py-4 text-gray-600">{row.customerType || '—'}</td>
+                  <td className="px-6 py-4 text-gray-600">{row.terms || '—'}</td>
+                  <td className="px-6 py-4 text-gray-600">{row.paymentMethod || '—'}</td>
+                  <td className="px-6 py-4" onClick={(e) => e.stopPropagation()}>
                     <div className="flex items-center gap-2">
-                      <button type="button" className="text-blue-600 hover:text-blue-800 p-1" title="View">
+                      <button
+                        type="button"
+                        onClick={() => openDetail(row.id)}
+                        className="text-blue-600 hover:text-blue-800 p-1"
+                        title="View"
+                      >
                         <FaEye size={14} />
                       </button>
-                      <button type="button" className="text-gray-600 hover:text-gray-800 p-1" title="Edit">
+                      <button
+                        type="button"
+                        onClick={() => openEdit(row.id)}
+                        className="text-gray-600 hover:text-gray-800 p-1"
+                        title="Edit"
+                      >
                         <FaEdit size={14} />
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => handleDeleteClick(row.id, row.name)}
+                        disabled={deletingId === row.id}
+                        className="text-red-600 hover:text-red-800 p-1 disabled:opacity-50"
+                        title="Delete"
+                      >
+                        <FaTrash size={14} />
                       </button>
                     </div>
                   </td>
                 </tr>
-              ))}
+              )))}
             </tbody>
           </table>
         </div>
@@ -336,7 +620,7 @@ const FleetMaintenanceCustomers = () => {
             />
           <div className="fixed top-0 right-0 h-full w-full max-w-xl bg-white shadow-xl z-50 flex flex-col">
             <div className="flex-shrink-0 px-6 py-4 border-b border-gray-200 flex items-center justify-between">
-              <h2 className="text-lg font-semibold text-gray-900">Add new customer</h2>
+              <h2 className="text-lg font-semibold text-gray-900">{editingId ? 'Edit customer' : 'Add new customer'}</h2>
               <button
                 type="button"
                 onClick={handleCloseSidebar}
@@ -410,6 +694,34 @@ const FleetMaintenanceCustomers = () => {
         <div className="space-y-6">
           <div>
             <h3 className="text-sm font-medium text-gray-800 mb-3">Billing Address</h3>
+            <div className="mb-4">
+              <AddressSearch
+                label="Search billing address"
+                placeholder="Search for a billing address..."
+                onAddressSelect={(addr) => {
+                  setBilling((prev) => ({
+                    ...prev,
+                    streetAddress1: addr.address || prev.streetAddress1,
+                    streetAddress2: prev.streetAddress2,
+                    city: addr.city || prev.city,
+                    provinceState: addr.state || prev.provinceState,
+                    postalZip: addr.postalCode || prev.postalZip,
+                    country: addr.country || prev.country,
+                  }));
+                  if (sameAsBilling) {
+                    setShipping((prev) => ({
+                      ...prev,
+                      streetAddress1: addr.address || prev.streetAddress1,
+                      streetAddress2: prev.streetAddress2,
+                      city: addr.city || prev.city,
+                      provinceState: addr.state || prev.provinceState,
+                      postalZip: addr.postalCode || prev.postalZip,
+                      country: addr.country || prev.country,
+                    }));
+                  }
+                }}
+              />
+            </div>
             {renderAddressFields(billing, handleBillingChange, { errors })}
           </div>
           <div>
@@ -426,6 +738,23 @@ const FleetMaintenanceCustomers = () => {
           {!sameAsBilling && (
             <div>
               <h3 className="text-sm font-medium text-gray-800 mb-3">Shipping Address</h3>
+              <div className="mb-4">
+                <AddressSearch
+                  label="Search shipping address"
+                  placeholder="Search for a shipping address..."
+                  onAddressSelect={(addr) => {
+                    setShipping((prev) => ({
+                      ...prev,
+                      streetAddress1: addr.address || prev.streetAddress1,
+                      streetAddress2: prev.streetAddress2,
+                      city: addr.city || prev.city,
+                      provinceState: addr.state || prev.provinceState,
+                      postalZip: addr.postalCode || prev.postalZip,
+                      country: addr.country || prev.country,
+                    }));
+                  }}
+                />
+              </div>
               {renderAddressFields(shipping, handleShippingChange)}
             </div>
           )}
@@ -616,14 +945,97 @@ const FleetMaintenanceCustomers = () => {
               <button
                 type="button"
                 onClick={handleSave}
-                className="px-4 py-2 text-sm font-medium !text-white bg-blue-600 rounded-lg hover:bg-blue-700"
+                disabled={saving}
+                className="px-4 py-2 text-sm font-medium !text-white bg-blue-600 rounded-lg hover:bg-blue-700 disabled:opacity-60 disabled:cursor-not-allowed"
               >
-                Save Customer
+                {saving ? 'Saving...' : editingId ? 'Update Customer' : 'Save Customer'}
               </button>
             </div>
           </div>
         </>
       )}
+
+      {/* Detail sidebar: View customer */}
+      {detailCustomerId && (
+        <>
+          <div
+            className="fixed inset-0 bg-black/40 z-40"
+            onClick={() => { setDetailCustomerId(null); setDetailCustomer(null); }}
+            aria-hidden="true"
+          />
+          <div className="fixed top-0 right-0 h-full w-full max-w-xl bg-white shadow-xl z-50 flex flex-col">
+            <div className="flex-shrink-0 px-6 py-4 border-b border-gray-200 flex items-center justify-between">
+              <h2 className="text-lg font-semibold text-gray-900">Customer details</h2>
+              <button
+                type="button"
+                onClick={() => { setDetailCustomerId(null); setDetailCustomer(null); }}
+                className="p-2 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded"
+                aria-label="Close"
+              >
+                <FaTimes size={20} />
+              </button>
+            </div>
+            <div className="flex-1 overflow-y-auto px-6 py-4">
+              {detailLoading ? (
+                <p className="text-gray-500">Loading...</p>
+              ) : detailCustomer ? (
+                <div className="space-y-4">
+                  <div className="bg-gray-50 rounded-lg border border-gray-200 p-4">
+                    <h3 className="text-sm font-semibold text-gray-800 mb-2">Contact</h3>
+                    <p><span className="text-gray-600">Name:</span> {detailCustomer.name ?? '—'}</p>
+                    <p><span className="text-gray-600">Email:</span> {detailCustomer.email ?? '—'}</p>
+                    <p><span className="text-gray-600">Phone:</span> {detailCustomer.phone ?? '—'}</p>
+                    <p><span className="text-gray-600">Contact person:</span> {detailCustomer.contactPerson ?? '—'}</p>
+                  </div>
+                  {detailCustomer.billing && (
+                    <div className="bg-gray-50 rounded-lg border border-gray-200 p-4">
+                      <h3 className="text-sm font-semibold text-gray-800 mb-2">Billing address</h3>
+                      <p>{[detailCustomer.billing.streetAddress1, detailCustomer.billing.streetAddress2, detailCustomer.billing.city, detailCustomer.billing.provinceState, detailCustomer.billing.postalZip, detailCustomer.billing.country].filter(Boolean).join(', ') || '—'}</p>
+                    </div>
+                  )}
+                  {detailCustomer.shipping && !detailCustomer.sameAsBilling && (
+                    <div className="bg-gray-50 rounded-lg border border-gray-200 p-4">
+                      <h3 className="text-sm font-semibold text-gray-800 mb-2">Shipping address</h3>
+                      <p>{[detailCustomer.shipping.streetAddress1, detailCustomer.shipping.streetAddress2, detailCustomer.shipping.city, detailCustomer.shipping.provinceState, detailCustomer.shipping.postalZip, detailCustomer.shipping.country].filter(Boolean).join(', ') || '—'}</p>
+                    </div>
+                  )}
+                  <div className="bg-gray-50 rounded-lg border border-gray-200 p-4">
+                    <h3 className="text-sm font-semibold text-gray-800 mb-2">Payment & terms</h3>
+                    <p><span className="text-gray-600">Payment method:</span> {detailCustomer.primaryPaymentMethod ?? '—'}</p>
+                    <p><span className="text-gray-600">Terms:</span> {detailCustomer.terms ?? '—'}</p>
+                    <p><span className="text-gray-600">Customer type:</span> {detailCustomer.customerType ?? '—'}</p>
+                    {detailCustomer.businessNumber && <p><span className="text-gray-600">Business number:</span> {detailCustomer.businessNumber}</p>}
+                  </div>
+                  {detailCustomer.notes && (
+                    <div className="bg-gray-50 rounded-lg border border-gray-200 p-4">
+                      <h3 className="text-sm font-semibold text-gray-800 mb-2">Notes</h3>
+                      <p className="text-gray-700 whitespace-pre-wrap">{detailCustomer.notes}</p>
+                    </div>
+                  )}
+                </div>
+              ) : (
+                <p className="text-gray-500">Could not load customer.</p>
+              )}
+            </div>
+          </div>
+        </>
+      )}
+
+      {/* Delete confirmation modal */}
+      <ConfirmationModal
+        isOpen={showDeleteConfirmation}
+        onClose={() => {
+          setShowDeleteConfirmation(false);
+          setDeleteTargetId(null);
+          setDeleteTargetName('');
+        }}
+        onConfirm={handleDeleteConfirm}
+        title="Delete customer"
+        message={`Are you sure you want to delete "${deleteTargetName}"? This action cannot be undone.`}
+        confirmText="Delete"
+        type="danger"
+        isLoading={!!deletingId}
+      />
     </div>
     </div>
   );

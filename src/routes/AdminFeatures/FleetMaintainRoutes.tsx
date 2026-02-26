@@ -17,7 +17,7 @@ const GeneralRepairsLog = lazy(() => import("../../pages/admin/fleetMaintenance/
 // const RegulatorySafety = lazy(() => import("../../pages/admin/fleetMaintenance/regulatorySafety/index"))
 const VehicleDocuments = lazy(() => import("../../pages/admin/fleetMaintenance/vehicleDocument/VehicleDocuments"))
 const FuelReports = lazy(() => import('../../pages/admin/dispatch/resources/fuel-reports/index'))
-const FleetInvoices = lazy(() => import("../../pages/admin/compilance/invoices"))
+const FleetInvoices = lazy(() => import("../../pages/admin/fleetMaintenance/invoices"))
 const Customers = lazy(() => import("../../pages/admin/fleetMaintenance/customers/index"))
 const Yards = lazy(() => import("../../pages/admin/fleetMaintenance/yards/index"))
 const TruckProfile = lazy(() => import("../../pages/admin/fleetMaintenance/truckProfile/index"))
