@@ -1,5 +1,5 @@
 import { MdDashboard, MdErrorOutline} from "react-icons/md"; // Dashboard, Invoices
-import { FaTruck,  FaTrailer, FaGraduationCap } from "react-icons/fa"; // Work Orders, Fleet
+import { FaTruck,  FaTrailer, FaGraduationCap, FaUsers } from "react-icons/fa"; // Work Orders, Fleet, Customers
 import { GiGearHammer } from "react-icons/gi"; // Spare Parts Inventory
 import { FaWrench, FaTools, FaFileInvoiceDollar } from "react-icons/fa"; // New icons
 import { RiOilLine } from "react-icons/ri";
@@ -60,6 +60,11 @@ export const FleetMaintainSidebarlinks: FleetMaintainSidebarlinks[] = [
         key: "/admin/fleetmaintenance/invoices",
         icon: <FaFileInvoiceDollar />,
         label: "Fleet Invoices",
+    },
+    {
+        key: "/admin/fleetmaintenance/customers",
+        icon: <FaUsers />,
+        label: "Customers",
     },
     {
         key: "/admin/fleetmaintenance/yards",
