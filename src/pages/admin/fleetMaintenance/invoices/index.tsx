@@ -6,6 +6,7 @@ import {
   FaCheckCircle,
   FaEdit,
   FaPrint,
+  FaTrash,
 } from 'react-icons/fa';
 
 /** Static customer options for dropdown */
@@ -30,7 +31,19 @@ const PRODUCT_SERVICE_OPTIONS = [
   'PART: Oil Filter',
 ];
 
-const TAX_OPTIONS = ['GST', 'PST', 'HST', 'No Tax'];
+/** Tax: name + percentage. id used for selection (predefined or custom-xxx). */
+interface TaxOption {
+  id: string;
+  name: string;
+  percent: number;
+}
+
+const DEFAULT_TAXES: TaxOption[] = [
+  { id: 'gst', name: 'GST', percent: 5 },
+  { id: 'pst', name: 'PST', percent: 7 },
+  { id: 'hst', name: 'HST', percent: 13 },
+  { id: 'none', name: 'No Tax', percent: 0 },
+];
 
 /** One line item in the invoice form */
 interface LineItem {
@@ -62,9 +75,22 @@ const STATIC_INVOICES: InvoiceRow[] = [
 ];
 
 function addDays(dateStr: string, days: number): string {
-  const d = new Date(dateStr);
+  const d = new Date(dateStr + 'T12:00:00');
   d.setDate(d.getDate() + days);
   return d.toISOString().split('T')[0];
+}
+
+/** Format YYYY-MM-DD to DD/MM/YY for display */
+function formatDisplayDate(isoDate: string): string {
+  if (!isoDate) return '—';
+  try {
+    const [y, m, d] = isoDate.split('-');
+    if (!y || !m || !d) return isoDate;
+    const yy = y.length === 4 ? y.slice(-2) : y;
+    return `${d}/${m}/${yy}`;
+  } catch {
+    return isoDate;
+  }
 }
 
 const FleetInvoicesPage = () => {
@@ -82,10 +108,34 @@ const FleetInvoicesPage = () => {
 
   // Step 2: Line items
   const [lineItems, setLineItems] = useState<LineItem[]>([
-    { id: '1', serviceDate: '', productService: '', description: '', qty: 1, rate: 0, amount: 0, salesTax: 'GST' },
+    { id: '1', serviceDate: '', productService: '', description: '', qty: 1, rate: 0, amount: 0, salesTax: 'gst' },
   ]);
 
-  // Step 3
+  const [customTaxes, setCustomTaxes] = useState<TaxOption[]>([]);
+  const [addingTaxForLineId, setAddingTaxForLineId] = useState<string | null>(null);
+  const [newTaxName, setNewTaxName] = useState('');
+  const [newTaxPercent, setNewTaxPercent] = useState<number>(5);
+
+  const allTaxes = useMemo(() => [...DEFAULT_TAXES, ...customTaxes], [customTaxes]);
+
+  const addCustomTax = (lineId: string) => {
+    const name = newTaxName.trim();
+    if (!name || newTaxPercent < 0 || newTaxPercent > 100) return;
+    const id = `custom-${Date.now()}`;
+    setCustomTaxes((prev) => [...prev, { id, name, percent: newTaxPercent }]);
+    updateLineItem(lineId, { salesTax: id });
+    setAddingTaxForLineId(null);
+    setNewTaxName('');
+    setNewTaxPercent(5);
+  };
+
+  const removeCustomTax = (taxId: string) => {
+    setCustomTaxes((prev) => prev.filter((t) => t.id !== taxId));
+    setLineItems((prev) =>
+      prev.map((item) => (item.salesTax === taxId ? { ...item, salesTax: 'gst' as const } : item))
+    );
+  };
+
   const [messageOnInvoice, setMessageOnInvoice] = useState('');
 
   const selectedCustomer = STATIC_CUSTOMERS.find((c) => c.id === customerId);
@@ -131,7 +181,7 @@ const FleetInvoicesPage = () => {
   const addLineItem = () => {
     setLineItems((prev) => [
       ...prev,
-      { id: String(Date.now()), serviceDate: '', productService: '', description: '', qty: 1, rate: 0, amount: 0, salesTax: 'GST' },
+      { id: String(Date.now()), serviceDate: '', productService: '', description: '', qty: 1, rate: 0, amount: 0, salesTax: 'gst' },
     ]);
   };
 
@@ -141,14 +191,19 @@ const FleetInvoicesPage = () => {
   };
 
   const subtotal = useMemo(() => lineItems.reduce((sum, i) => sum + i.amount, 0), [lineItems]);
-  const gstRate = 0.05;
-  const gst = subtotal * gstRate;
-  const totalBalance = subtotal + gst;
+  const totalTax = useMemo(() => {
+    return lineItems.reduce((sum, item) => {
+      const tax = allTaxes.find((t) => t.id === item.salesTax);
+      const rate = tax ? tax.percent / 100 : 0;
+      return sum + item.amount * rate;
+    }, 0);
+  }, [lineItems, allTaxes]);
+  const totalBalance = subtotal + totalTax;
 
   const handleSaveAndClose = () => {
     const newInvoice: InvoiceRow = {
       id: String(Date.now()),
-      date: invoiceDate ? new Date(invoiceDate).toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit', year: '2-digit' }).replace(/\//g, '/') : '—',
+      date: formatDisplayDate(invoiceDate),
       no: invoiceNo || `BRL${String(invoices.length + 1).padStart(4, '0')}`,
       customer: selectedCustomer?.name || 'Unknown',
       amount: totalBalance,
@@ -167,17 +222,19 @@ const FleetInvoicesPage = () => {
     setInvoiceDate(new Date().toISOString().split('T')[0]);
     setDueDate('');
     setInvoiceNo('');
-    setLineItems([{ id: '1', serviceDate: '', productService: '', description: '', qty: 1, rate: 0, amount: 0, salesTax: 'GST' }]);
+    setLineItems([{ id: '1', serviceDate: '', productService: '', description: '', qty: 1, rate: 0, amount: 0, salesTax: 'gst' }]);
     setMessageOnInvoice('');
+    setCustomTaxes([]);
+    setAddingTaxForLineId(null);
   };
 
   return (
-    <div className="p-6 min-h-screen bg-gray-50">
-      <div className="max-w-6xl mx-auto">
+    <div className="p-6 min-h-screen" style={{ backgroundColor: '#EDF8FF' }}>
+      <div className="mx-auto">
         <div className="flex items-center justify-between mb-6">
           <div>
             <h1 className="text-2xl font-bold text-gray-900 flex items-center gap-2">
-              <FaFileInvoice className="text-blue-600" />
+              <FaFileInvoice className="text-blue-600" size={28} />
               Fleet Invoices
             </h1>
             <p className="text-gray-600 mt-1">Create and view invoices (static)</p>
@@ -185,17 +242,16 @@ const FleetInvoicesPage = () => {
           <button
             type="button"
             onClick={() => setSidebarOpen(true)}
-            className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-medium"
+            className="flex items-center gap-2 px-5 py-2.5 bg-blue-600 !text-white rounded-lg hover:bg-blue-700 font-medium shadow-sm transition-colors"
           >
             <FaPlus size={14} /> New Invoice
           </button>
         </div>
 
-        {/* Table: Date, No., Customer, Amount, Status, Action */}
         <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
           <div className="overflow-x-auto">
             <table className="w-full text-sm text-left">
-              <thead className="bg-gray-100 text-gray-600 uppercase text-xs font-semibold">
+              <thead className="bg-gray-50 text-gray-600 uppercase text-xs font-semibold tracking-wide">
                 <tr>
                   <th className="px-6 py-4">Date</th>
                   <th className="px-6 py-4">No.</th>
@@ -208,7 +264,7 @@ const FleetInvoicesPage = () => {
               <tbody className="divide-y divide-gray-100">
                 {invoices.length === 0 ? (
                   <tr>
-                    <td colSpan={6} className="px-6 py-8 text-center text-gray-500">
+                    <td colSpan={6} className="px-6 py-12 text-center text-gray-500">
                       No invoices yet. Create one using &quot;New Invoice&quot;.
                     </td>
                   </tr>
@@ -216,27 +272,27 @@ const FleetInvoicesPage = () => {
                   invoices.map((row) => (
                     <tr
                       key={row.id}
-                      className={`hover:bg-gray-50 ${row.status === 'overdue' ? 'border-t-4 border-t-orange-500' : ''}`}
+                      className={`hover:bg-blue-50/30 ${row.status === 'overdue' ? 'border-t-4 border-t-orange-500 bg-orange-50/20' : ''}`}
                     >
                       <td className="px-6 py-4 text-gray-900">{row.date}</td>
                       <td className="px-6 py-4 font-medium text-gray-900">{row.no}</td>
                       <td className="px-6 py-4 text-gray-700">{row.customer}</td>
-                      <td className="px-6 py-4 text-gray-700">${row.amount.toFixed(2)}</td>
+                      <td className="px-6 py-4 text-gray-700 font-medium">${row.amount.toFixed(2)}</td>
                       <td className="px-6 py-4">
                         {row.status === 'paid' ? (
-                          <span className="inline-flex items-center gap-1 text-green-700">
-                            <FaCheckCircle size={16} /> Paid
+                          <span className="inline-flex items-center gap-1.5 text-green-700 font-medium">
+                            <FaCheckCircle size={16} className="text-green-600" /> Paid
                           </span>
                         ) : (
-                          <span className="inline-flex items-center gap-1 text-orange-600 font-medium">Overdue</span>
+                          <span className="inline-flex items-center gap-1 text-orange-600 font-semibold">Overdue</span>
                         )}
                       </td>
                       <td className="px-6 py-4">
                         <div className="flex items-center gap-2">
-                          <button type="button" className="text-blue-600 hover:text-blue-800 p-1" title="View/Edit">
+                          <button type="button" className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors" title="View/Edit">
                             <FaEdit size={14} />
                           </button>
-                          <button type="button" className="text-gray-600 hover:text-gray-800 p-1" title="Print">
+                          <button type="button" className="p-2 text-gray-600 hover:bg-gray-100 rounded-lg transition-colors" title="Print">
                             <FaPrint size={14} />
                           </button>
                         </div>
@@ -327,11 +383,12 @@ const FleetInvoicesPage = () => {
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-1">Due Date</label>
                       <input
-                        type="date"
-                        value={dueDate}
+                        type="text"
                         readOnly
-                        className="w-full px-3 py-2.5 border border-gray-200 rounded-lg bg-gray-50 text-gray-600"
+                        value={dueDate ? formatDisplayDate(dueDate) : '—'}
+                        className="w-full px-3 py-2.5 border border-gray-200 rounded-lg bg-gray-50 text-gray-700"
                       />
+                      <p className="text-xs text-gray-500 mt-0.5">Calculated from Terms</p>
                     </div>
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-1">Invoice No.</label>
@@ -418,12 +475,17 @@ const FleetInvoicesPage = () => {
                           <label className="block text-sm font-medium text-gray-700 mb-1">Tax</label>
                           <select
                             value={item.salesTax}
-                            onChange={(e) => updateLineItem(item.id, { salesTax: e.target.value })}
+                            onChange={(e) => {
+                              const v = e.target.value;
+                              if (v === '__add__') setAddingTaxForLineId(item.id);
+                              else updateLineItem(item.id, { salesTax: v });
+                            }}
                             className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 text-sm"
                           >
-                            {TAX_OPTIONS.map((t) => (
-                              <option key={t} value={t}>{t}</option>
+                            {allTaxes.map((t) => (
+                              <option key={t.id} value={t.id}>{t.name} ({t.percent}%)</option>
                             ))}
+                            <option value="__add__">+ Add custom tax...</option>
                           </select>
                         </div>
                       </div>
@@ -438,6 +500,74 @@ const FleetInvoicesPage = () => {
                     + Add line item
                   </button>
                 </div>
+              </section>
+
+              {/* Custom taxes: add form + list with delete */}
+              <section>
+                <h3 className="text-sm font-semibold text-gray-500 uppercase tracking-wide mb-3">Custom taxes</h3>
+                {addingTaxForLineId && (
+                  <div className="mb-4 p-4 rounded-lg border border-blue-200 bg-blue-50/50">
+                    <p className="text-xs font-medium text-gray-700 mb-3">Add custom tax (percentage) — will apply to current line</p>
+                    <div className="flex flex-wrap gap-3 items-end">
+                      <div className="w-40">
+                        <label className="block text-xs text-gray-600 mb-1">Tax name</label>
+                        <input
+                          type="text"
+                          value={newTaxName}
+                          onChange={(e) => setNewTaxName(e.target.value)}
+                          placeholder="e.g. VAT"
+                          className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500"
+                        />
+                      </div>
+                      <div className="w-24">
+                        <label className="block text-xs text-gray-600 mb-1">%</label>
+                        <input
+                          type="number"
+                          min={0}
+                          max={100}
+                          step={0.01}
+                          value={newTaxPercent}
+                          onChange={(e) => setNewTaxPercent(Number(e.target.value) || 0)}
+                          className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500"
+                        />
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => addCustomTax(addingTaxForLineId)}
+                        className="px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700"
+                      >
+                        Add
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => { setAddingTaxForLineId(null); setNewTaxName(''); setNewTaxPercent(5); }}
+                        className="px-4 py-2 border border-gray-300 text-sm font-medium rounded-lg hover:bg-gray-50"
+                      >
+                        Cancel
+                      </button>
+                    </div>
+                  </div>
+                )}
+                {customTaxes.length > 0 && (
+                  <ul className="space-y-2">
+                    {customTaxes.map((t) => (
+                      <li key={t.id} className="flex items-center justify-between py-2 px-3 rounded-lg border border-gray-200 bg-white">
+                        <span className="text-sm font-medium text-gray-800">{t.name} ({t.percent}%)</span>
+                        <button
+                          type="button"
+                          onClick={() => removeCustomTax(t.id)}
+                          className="p-1.5 text-red-600 hover:bg-red-50 rounded"
+                          title="Delete this tax"
+                        >
+                          <FaTrash size={14} />
+                        </button>
+                      </li>
+                    ))}
+                  </ul>
+                )}
+                {customTaxes.length === 0 && !addingTaxForLineId && (
+                  <p className="text-sm text-gray-500">No custom taxes. Use “+ Add custom tax...” in a line item above.</p>
+                )}
               </section>
 
               {/* Message & Totals */}
@@ -460,8 +590,8 @@ const FleetInvoicesPage = () => {
                       <span className="font-medium text-gray-900">${subtotal.toFixed(2)}</span>
                     </div>
                     <div className="flex justify-between text-sm text-gray-600">
-                      <span>GST (5%)</span>
-                      <span className="font-medium text-gray-900">${gst.toFixed(2)}</span>
+                      <span>Tax</span>
+                      <span className="font-medium text-gray-900">${totalTax.toFixed(2)}</span>
                     </div>
                     <div className="flex justify-between text-base font-semibold text-gray-900 border-t border-gray-200 pt-2 mt-2">
                       <span>Total Balance Due</span>
@@ -475,7 +605,7 @@ const FleetInvoicesPage = () => {
               <button type="button" onClick={() => setSidebarOpen(false)} className="px-5 py-2.5 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors">
                 Cancel
               </button>
-              <button type="button" onClick={handleSaveAndClose} className="px-5 py-2.5 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700 transition-colors">
+              <button type="button" onClick={handleSaveAndClose} className="px-5 py-2.5 text-sm font-medium !text-white bg-blue-600 rounded-lg hover:bg-blue-700 transition-colors">
                 Save and close
               </button>
             </div>
