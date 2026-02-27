@@ -82,6 +82,8 @@ const VehicleEldMonitor = () => {
   const [loading, setLoading] = useState(false);
   const [syncing, setSyncing] = useState(false);
   const [auditLogs, setAuditLogs] = useState<any[]>([]);
+  const [viewLogModalOpen, setViewLogModalOpen] = useState(false);
+  const [selectedHosLog, setSelectedHosLog] = useState<any | null>(null);
   const [summary, setSummary] = useState({
     totalVehicles: 0,
     activeVehicles: 0,
@@ -803,8 +805,11 @@ const VehicleEldMonitor = () => {
                                       </tr>
                                   ) : auditLogs.length === 0 ? (
                                       <tr>
-                                          <td colSpan={7} className="px-6 py-8 text-center text-gray-500">
-                                              No HOS logs found. Click "Sync from Samsara" to fetch data.
+                                          <td colSpan={7} className="px-6 py-8 text-center">
+                                              <p className="text-gray-500 mb-2">No HOS logs found.</p>
+                                              <p className="text-sm text-gray-400">
+                                                  Submit an <button type="button" onClick={() => setActiveTab('audit-form')} className="text-blue-600 hover:underline font-medium">HOS Audit Form</button> to add manual logs, or click &quot;Sync from Samsara&quot; if you have ELD integration.
+                                              </p>
                                           </td>
                                       </tr>
                                   ) : (
@@ -828,7 +833,16 @@ const VehicleEldMonitor = () => {
                                                   </span>
                                               </td>
                                               <td className="px-6 py-4">
-                                                  <button className="text-blue-600 font-bold hover:underline">View Log</button>
+                                                  <button
+                                                      type="button"
+                                                      onClick={() => {
+                                                          setSelectedHosLog(log);
+                                                          setViewLogModalOpen(true);
+                                                      }}
+                                                      className="text-blue-600 font-bold hover:underline"
+                                                  >
+                                                      View Log
+                                                  </button>
                                               </td>
                                           </tr>
                                       ))
@@ -836,6 +850,125 @@ const VehicleEldMonitor = () => {
                               </tbody>
                           </table>
                       </div>
+
+                      {/* View Log Modal */}
+                      {viewLogModalOpen && selectedHosLog && (
+                          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50" onClick={() => setViewLogModalOpen(false)}>
+                              <div
+                                  className="bg-white rounded-xl shadow-xl max-w-2xl w-full mx-4 max-h-[90vh] overflow-hidden flex flex-col"
+                                  onClick={(e) => e.stopPropagation()}
+                              >
+                                  <div className="px-6 py-4 border-b border-gray-200 flex justify-between items-center bg-gray-50">
+                                      <h3 className="text-lg font-bold text-gray-900">HOS Log Details</h3>
+                                      <button
+                                          type="button"
+                                          onClick={() => setViewLogModalOpen(false)}
+                                          className="p-2 rounded-lg hover:bg-gray-200 text-gray-600"
+                                      >
+                                          <X size={20} />
+                                      </button>
+                                  </div>
+                                  <div className="p-6 overflow-y-auto flex-1">
+                                      <div className="grid grid-cols-2 gap-4 mb-6">
+                                          <div>
+                                              <p className="text-xs text-gray-500 font-medium uppercase">Driver</p>
+                                              <p className="font-semibold text-gray-900">{selectedHosLog.driver}</p>
+                                          </div>
+                                          <div>
+                                              <p className="text-xs text-gray-500 font-medium uppercase">Log Date</p>
+                                              <p className="font-semibold text-gray-900">{selectedHosLog.date}</p>
+                                          </div>
+                                          <div>
+                                              <p className="text-xs text-gray-500 font-medium uppercase">Vehicle</p>
+                                              <p className="font-semibold text-gray-900">{selectedHosLog.vehicle}</p>
+                                          </div>
+                                          <div>
+                                              <p className="text-xs text-gray-500 font-medium uppercase">Status</p>
+                                              <span className={`inline-block px-3 py-1 rounded-full text-xs font-bold uppercase ${
+                                                  selectedHosLog.status === 'compliant' ? 'bg-green-100 text-green-700' :
+                                                  selectedHosLog.status === 'violation' ? 'bg-red-100 text-red-700' : 'bg-amber-100 text-amber-700'
+                                              }`}>
+                                                  {selectedHosLog.status}
+                                              </span>
+                                          </div>
+                                          <div>
+                                              <p className="text-xs text-gray-500 font-medium uppercase">Driving Time</p>
+                                              <p className="font-mono font-semibold text-gray-900">{selectedHosLog.driveUsed}</p>
+                                          </div>
+                                          <div>
+                                              <p className="text-xs text-gray-500 font-medium uppercase">On-Duty Time</p>
+                                              <p className="font-mono font-semibold text-gray-900">{selectedHosLog.dutyUsed}</p>
+                                          </div>
+                                          <div>
+                                              <p className="text-xs text-gray-500 font-medium uppercase">Violation</p>
+                                              <p className={`font-medium ${selectedHosLog.violation !== 'None' ? 'text-red-600' : 'text-gray-600'}`}>
+                                                  {selectedHosLog.violation}
+                                              </p>
+                                          </div>
+                                      </div>
+
+                                      <h4 className="text-sm font-bold text-gray-700 mb-3">Duty Status Breakdown</h4>
+                                      {Array.isArray(selectedHosLog.logs) && selectedHosLog.logs.length > 0 ? (
+                                          <div className="border border-gray-200 rounded-lg overflow-hidden">
+                                              <table className="w-full text-sm">
+                                                  <thead className="bg-gray-100">
+                                                      <tr>
+                                                          <th className="px-4 py-2 text-left font-semibold text-gray-600">Status</th>
+                                                          <th className="px-4 py-2 text-left font-semibold text-gray-600">Start</th>
+                                                          <th className="px-4 py-2 text-left font-semibold text-gray-600">End</th>
+                                                          <th className="px-4 py-2 text-right font-semibold text-gray-600">Duration</th>
+                                                      </tr>
+                                                  </thead>
+                                                  <tbody className="divide-y divide-gray-100">
+                                                      {selectedHosLog.logs.map((entry: any, idx: number) => {
+                                                          const start = entry.startTime ? new Date(entry.startTime) : null;
+                                                          const end = entry.endTime ? new Date(entry.endTime) : null;
+                                                          const durationMs = start && end ? end.getTime() - start.getTime() : 0;
+                                                          const hours = Math.floor(durationMs / (1000 * 60 * 60));
+                                                          const mins = Math.round((durationMs % (1000 * 60 * 60)) / (1000 * 60));
+                                                          const durationStr = `${hours}h ${mins}m`;
+                                                          return (
+                                                              <tr key={idx} className="hover:bg-gray-50">
+                                                                  <td className="px-4 py-2">
+                                                                      <span className={`px-2 py-0.5 rounded text-xs font-medium ${
+                                                                          entry.status === 'Driving' ? 'bg-blue-100 text-blue-700' :
+                                                                          entry.status === 'OnDuty' ? 'bg-amber-100 text-amber-700' :
+                                                                          'bg-gray-100 text-gray-700'
+                                                                      }`}>
+                                                                          {entry.status || '—'}
+                                                                      </span>
+                                                                  </td>
+                                                                  <td className="px-4 py-2 text-gray-700">
+                                                                      {start ? start.toLocaleString() : '—'}
+                                                                  </td>
+                                                                  <td className="px-4 py-2 text-gray-700">
+                                                                      {end ? end.toLocaleString() : '—'}
+                                                                  </td>
+                                                                  <td className="px-4 py-2 text-right font-mono text-gray-700">
+                                                                      {durationStr}
+                                                                  </td>
+                                                              </tr>
+                                                          );
+                                                      })}
+                                                  </tbody>
+                                              </table>
+                                          </div>
+                                      ) : (
+                                          <p className="text-sm text-gray-500 py-4">No duty status entries available for this log.</p>
+                                      )}
+                                  </div>
+                                  <div className="px-6 py-4 border-t border-gray-200 bg-gray-50 flex justify-end">
+                                      <button
+                                          type="button"
+                                          onClick={() => setViewLogModalOpen(false)}
+                                          className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50"
+                                      >
+                                          Close
+                                      </button>
+                                  </div>
+                              </div>
+                          </div>
+                      )}
                   </div>
               )}
 
