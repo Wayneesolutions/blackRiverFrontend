@@ -9,6 +9,28 @@ interface Error {
     };
 }
 
+// Fleet Invoice Summary
+export interface FleetInvoiceSummary {
+  paidAmount: number;
+  paidCount: number;
+  unpaidAmount: number;
+  unpaidCount: number;
+  overdueAmount: number;
+  overdueCount: number;
+  totalAmount: number;
+  totalCount: number;
+}
+
+export const getFleetInvoiceSummary = async (): Promise<{ success: boolean; data?: FleetInvoiceSummary; message?: string }> => {
+  try {
+    const res: AxiosResponse = await apiClient.get('admin/fleet-invoices/summary');
+    return res.data;
+  } catch (error: unknown) {
+    const err = error as Error;
+    return err.response?.data || { success: false, message: 'Failed to load invoice summary' };
+  }
+};
+
 // Fleet Invoices API
 export const getFleetInvoices = async (params?: { status?: string; search?: string }): Promise<any> => {
     try {
@@ -68,6 +90,16 @@ export const updateFleetInvoiceStatus = async (id: string, status: string): Prom
 export const deleteFleetInvoice = async (id: string): Promise<any> => {
     try {
         const res: AxiosResponse = await apiClient.delete(`admin/fleet-invoices/${id}`);
+        return res.data;
+    } catch (error: unknown) {
+        const err = error as Error;
+        return err.response?.data;
+    }
+};
+
+export const emailFleetInvoice = async (id: string): Promise<any> => {
+    try {
+        const res: AxiosResponse = await apiClient.post(`admin/fleet-invoices/${id}/email`, {});
         return res.data;
     } catch (error: unknown) {
         const err = error as Error;

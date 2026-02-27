@@ -1,4 +1,5 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
+import jsPDF from 'jspdf';
 import {
   FaFileInvoice,
   FaPlus,
@@ -7,14 +8,25 @@ import {
   FaEdit,
   FaPrint,
   FaTrash,
+  FaEnvelope,
+  FaClock,
+  FaMoneyBillWave,
 } from 'react-icons/fa';
 
-/** Static customer options for dropdown */
-const STATIC_CUSTOMERS = [
-  { id: '1', name: 'Black River Logistics Ltd', email: 'Accounting@blackriverlogistics.com', billingAddress: '123 Main St, Winnipeg, MB R3C 1A1, Canada' },
-  { id: '2', name: 'Acme Transport Inc', email: 'billing@acmetransport.com', billingAddress: '456 Industrial Blvd, Winnipeg, MB R2X 2B2, Canada' },
-  { id: '3', name: 'Northern Freight Co', email: 'accounts@northernfreight.ca', billingAddress: '789 Highway 1, Brandon, MB R7A 0A1, Canada' },
-];
+import { getFleetCustomers, type FleetCustomer } from '../../../../axios/api/fleet.customers';
+import { listVehicleServices, type VehicleServiceResponse } from '../../../../axios/api/vehicleService';
+import { listGeneralRepairs, type GeneralRepairDto } from '../../../../axios/api/generalRepairs';
+import { getCompany } from '../../../../axios/api/admin';
+import {
+  getFleetInvoices,
+  getFleetInvoiceSummary,
+  createFleetInvoice,
+  updateFleetInvoice,
+  deleteFleetInvoice,
+  getFleetInvoiceById,
+  emailFleetInvoice,
+  updateFleetInvoiceStatus,
+} from '../../../../axios/api/fleet.invoices';
 
 const TERMS_OPTIONS = [
   { value: 'Net 15', days: 15 },
@@ -23,13 +35,28 @@ const TERMS_OPTIONS = [
   { value: 'Net 60', days: 60 },
 ];
 
-const PRODUCT_SERVICE_OPTIONS = [
-  'SERVICE: Service A Truck Inspection',
-  'SERVICE: Oil Change',
-  'SERVICE: Brake Inspection',
-  'PART: Air Filter',
-  'PART: Oil Filter',
-];
+// Helper: convert service name to kebab-case key (same logic as Scheduled Services Log)
+const nameToServiceType = (name: string): string => {
+  return name
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-+|-+$/g, '');
+};
+
+interface CustomServiceDef {
+  name: string;
+}
+
+// Map serviceType key (e.g. "oil-change") to human label using company custom services if available
+const getServiceTypeLabel = (value: string, customServices?: CustomServiceDef[]) => {
+  if (customServices && customServices.length) {
+    const customMatch = customServices.find((service) => nameToServiceType(service.name) === value);
+    if (customMatch) return customMatch.name;
+  }
+
+  const formatted = value.replace(/-/g, ' ').replace(/\b\w/g, (char) => char.toUpperCase());
+  return formatted;
+};
 
 /** Tax: name + percentage. id used for selection (predefined or custom-xxx). */
 interface TaxOption {
@@ -49,7 +76,7 @@ const DEFAULT_TAXES: TaxOption[] = [
 interface LineItem {
   id: string;
   serviceDate: string;
-  productService: string;
+  productService: string; // stores option id (e.g. "service:<id>" or "repair:<id>")
   description: string;
   qty: number;
   rate: number;
@@ -57,22 +84,26 @@ interface LineItem {
   salesTax: string;
 }
 
-/** Invoice row for the table (static list) */
-interface InvoiceRow {
-  id: string;
-  date: string;
-  no: string;
-  customer: string;
-  amount: number;
-  status: 'paid' | 'overdue';
+interface ProductOption {
+  id: string; // unique key used in <select> value
+  label: string; // display label
+  defaultDescription?: string;
+  defaultRate?: number;
+  defaultQty?: number;
+  defaultServiceDate?: string; // YYYY-MM-DD
 }
 
-/** Static invoice list for table */
-const STATIC_INVOICES: InvoiceRow[] = [
-  { id: '1', date: '21/5/25', no: 'BRL0005', customer: 'Black River Logistics Ltd', amount: 94.5, status: 'paid' },
-  { id: '2', date: '20/5/25', no: 'BRL0004', customer: 'Acme Transport Inc', amount: 250.0, status: 'overdue' },
-  { id: '3', date: '19/5/25', no: 'BRL0003', customer: 'Northern Freight Co', amount: 175.25, status: 'paid' },
-];
+/** Invoice row for the table */
+interface InvoiceRow {
+  _id: string;
+  invoiceDate: string;
+  invoiceNumber: string;
+  customerName: string;
+  total: number;
+  status: 'draft' | 'sent' | 'paid' | 'cancelled' | 'overdue';
+  dueDate?: string;
+  customerEmail?: string;
+}
 
 function addDays(dateStr: string, days: number): string {
   const d = new Date(dateStr + 'T12:00:00');
@@ -95,7 +126,43 @@ function formatDisplayDate(isoDate: string): string {
 
 const FleetInvoicesPage = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
-  const [invoices, setInvoices] = useState<InvoiceRow[]>(STATIC_INVOICES);
+  const [editingInvoiceId, setEditingInvoiceId] = useState<string | null>(null);
+  const [invoices, setInvoices] = useState<InvoiceRow[]>([]);
+  const [invoicesLoading, setInvoicesLoading] = useState(false);
+  const [invoicesError, setInvoicesError] = useState<string | null>(null);
+  const [summary, setSummary] = useState<{
+    paidAmount: number;
+    paidCount: number;
+    unpaidAmount: number;
+    unpaidCount: number;
+    overdueAmount: number;
+    overdueCount: number;
+    totalAmount: number;
+    totalCount: number;
+  } | null>(null);
+  const [summaryLoading, setSummaryLoading] = useState(false);
+  const [saving, setSaving] = useState(false);
+  const [deleting, setDeleting] = useState<string | null>(null);
+  const [emailingId, setEmailingId] = useState<string | null>(null);
+  const [updatingStatusId, setUpdatingStatusId] = useState<string | null>(null);
+  const [printingPdfId, setPrintingPdfId] = useState<string | null>(null);
+  const [notification, setNotification] = useState<{ type: 'success' | 'error'; message: string } | null>(null);
+
+  const INVOICE_STATUS_OPTIONS = [
+    { value: 'draft', label: 'Draft' },
+    { value: 'sent', label: 'Sent' },
+    { value: 'paid', label: 'Paid' },
+    { value: 'cancelled', label: 'Cancelled' },
+  ];
+
+  const [customers, setCustomers] = useState<FleetCustomer[]>([]);
+  const [customersLoading, setCustomersLoading] = useState(false);
+  const [customersError, setCustomersError] = useState<string | null>(null);
+
+  const [productOptions, setProductOptions] = useState<ProductOption[]>([]);
+  const [productOptionsLoading, setProductOptionsLoading] = useState(false);
+
+  const [customServices, setCustomServices] = useState<CustomServiceDef[]>([]);
 
   // Step 1: Header
   const [customerId, setCustomerId] = useState('');
@@ -138,15 +205,190 @@ const FleetInvoicesPage = () => {
 
   const [messageOnInvoice, setMessageOnInvoice] = useState('');
 
-  const selectedCustomer = STATIC_CUSTOMERS.find((c) => c.id === customerId);
+  const selectedCustomer = customers.find((c) => c._id === customerId);
+
+  const formatBillingAddress = (cust?: FleetCustomer | null) => {
+    if (!cust || !cust.billing) return '';
+    const parts = [
+      cust.billing.streetAddress1,
+      cust.billing.streetAddress2,
+      cust.billing.city,
+      cust.billing.provinceState,
+      cust.billing.postalZip,
+      cust.billing.country,
+    ]
+      .map((x) => x?.trim())
+      .filter(Boolean);
+    return parts.join(', ');
+  };
+
+  useEffect(() => {
+    const loadCustomers = async () => {
+      setCustomersLoading(true);
+      setCustomersError(null);
+      try {
+        const res = await getFleetCustomers();
+        if (res?.success && Array.isArray(res.data)) {
+          setCustomers(res.data);
+        } else {
+          setCustomers([]);
+          setCustomersError(res?.message || 'Unable to load customers.');
+        }
+      } catch (err: any) {
+        console.error('Failed to load fleet customers', err);
+        setCustomers([]);
+        setCustomersError(err?.response?.data?.message || err?.message || 'Unable to load customers.');
+      } finally {
+        setCustomersLoading(false);
+      }
+    };
+
+    const loadProductOptions = async () => {
+      setProductOptionsLoading(true);
+      try {
+        const [companyRes, servicesRes, repairsRes] = await Promise.all([
+          getCompany(),
+          listVehicleServices({ status: 'completed' }),
+          listGeneralRepairs(),
+        ]);
+
+        const companyCustomServices: CustomServiceDef[] =
+          companyRes?.success && companyRes?.data?.maintenancePolicies?.customServices
+            ? companyRes.data.maintenancePolicies.customServices
+            : [];
+        setCustomServices(companyCustomServices);
+
+        const completedServices: VehicleServiceResponse[] =
+          servicesRes?.success && Array.isArray(servicesRes.data)
+            ? (servicesRes.data as VehicleServiceResponse[]).filter((s) => s.status === 'completed')
+            : [];
+
+        const allRepairs: GeneralRepairDto[] =
+          repairsRes?.success && Array.isArray(repairsRes.data)
+            ? repairsRes.data
+            : [];
+
+        const verifiedRepairs = allRepairs.filter(
+          (r: any) => r.status === 'completed' && r.verificationStatus === 'verified',
+        );
+
+        const serviceOptions: ProductOption[] = completedServices.map((s) => {
+          const labelBase = getServiceTypeLabel(String(s.serviceType), companyCustomServices);
+          const unit = s.unitNumber || s.vehicleId?.internalId || s.vehicleId?.plateNumber || '';
+          const dateStr = (s.serviceDate || s.dueDate || '').split('T')[0] || '';
+          const labelParts = ['Service:', labelBase];
+          if (unit) {
+            labelParts.push(`(Unit ${unit}${dateStr ? `, ${dateStr}` : ''})`);
+          }
+          const label = labelParts.join(' ');
+
+          const defaultDescriptionParts: string[] = [];
+          if (unit) defaultDescriptionParts.push(`Unit ${unit}`);
+          defaultDescriptionParts.push(labelBase);
+          if (s.notes) defaultDescriptionParts.push(String(s.notes));
+
+          return {
+            id: `service:${s._id}`,
+            label,
+            defaultDescription: defaultDescriptionParts.join(' - '),
+            defaultRate: s.amount ?? undefined,
+            defaultQty: 1,
+            defaultServiceDate: dateStr,
+          };
+        });
+
+        const repairOptions: ProductOption[] = verifiedRepairs.map((r: any) => {
+          const details: string =
+            r.repairDetails || r.description || 'Verified maintenance order';
+          const shortDetails =
+            details.length > 80 ? `${details.slice(0, 77)}...` : details;
+          const unit = r.unitNumber || '';
+          const dateStr = (r.completionDate || r.serviceDate || '').split('T')[0] || '';
+          const label = `Maintenance: ${shortDetails}`;
+
+          const defaultDescriptionParts: string[] = [];
+          if (unit) defaultDescriptionParts.push(`Unit ${unit}`);
+          defaultDescriptionParts.push(details);
+
+          return {
+            id: `repair:${r._id}`,
+            label,
+            defaultDescription: defaultDescriptionParts.join(' - '),
+            defaultRate: (r as any).completionTotalAmount ?? undefined,
+            defaultQty: 1,
+            defaultServiceDate: dateStr,
+          };
+        });
+
+        setProductOptions([...serviceOptions, ...repairOptions]);
+      } catch (err) {
+        console.error('Failed to load invoice product/service options', err);
+      } finally {
+        setProductOptionsLoading(false);
+      }
+    };
+
+    loadCustomers();
+    loadProductOptions();
+    loadInvoices();
+    loadSummary();
+  }, []);
+
+  // Load invoices from API
+  const loadInvoices = async () => {
+    setInvoicesLoading(true);
+    setInvoicesError(null);
+    try {
+      const response = await getFleetInvoices();
+      if (response?.success && Array.isArray(response.data)) {
+        setInvoices(response.data);
+      } else {
+        setInvoices([]);
+        setInvoicesError(response?.message || 'Failed to load invoices');
+      }
+    } catch (err: any) {
+      setInvoices([]);
+      setInvoicesError(err?.response?.data?.message || err?.message || 'Failed to load invoices');
+    } finally {
+      setInvoicesLoading(false);
+    }
+  };
+
+  // Load invoice summary
+  const loadSummary = async () => {
+    setSummaryLoading(true);
+    try {
+      const response = await getFleetInvoiceSummary();
+      if (response?.success && response.data) {
+        setSummary(response.data);
+      } else {
+        setSummary(null);
+      }
+    } catch {
+      setSummary(null);
+    } finally {
+      setSummaryLoading(false);
+    }
+  };
+
+  // Auto-hide notification after 4 seconds
+  useEffect(() => {
+    if (notification) {
+      const timer = setTimeout(() => setNotification(null), 4000);
+      return () => clearTimeout(timer);
+    }
+  }, [notification]);
 
   // When customer changes, auto-fill email and billing address
   const handleCustomerChange = (id: string) => {
     setCustomerId(id);
-    const c = STATIC_CUSTOMERS.find((x) => x.id === id);
+    const c = customers.find((x) => x._id === id);
     if (c) {
-      setCustomerEmail(c.email);
-      setBillingAddress(c.billingAddress);
+      setCustomerEmail(c.email || '');
+      setBillingAddress(formatBillingAddress(c));
+      if (!terms && c.terms) {
+        setTerms(c.terms);
+      }
     } else {
       setCustomerEmail('');
       setBillingAddress('');
@@ -171,8 +413,39 @@ const FleetInvoicesPage = () => {
       prev.map((item) => {
         if (item.id !== id) return item;
         const next = { ...item, ...updates };
-        if ('qty' in updates || 'rate' in updates)
-          next.amount = (next.qty ?? item.qty) * (next.rate ?? item.rate);
+
+        // If product/service changed, always update description, rate, qty, and service date
+        if (updates.productService !== undefined) {
+          if (updates.productService === '') {
+            // If cleared, reset to defaults
+            next.description = '';
+            next.rate = 0;
+            next.qty = 1;
+            next.serviceDate = '';
+          } else {
+            const selectedOption = productOptions.find((opt) => opt.id === updates.productService);
+            if (selectedOption) {
+              // Always update all fields when a product/service is selected
+              if (selectedOption.defaultDescription) {
+                next.description = selectedOption.defaultDescription;
+              }
+              if (selectedOption.defaultRate !== undefined) {
+                next.rate = selectedOption.defaultRate;
+              }
+              if (selectedOption.defaultQty !== undefined) {
+                next.qty = selectedOption.defaultQty;
+              }
+              if (selectedOption.defaultServiceDate) {
+                next.serviceDate = selectedOption.defaultServiceDate;
+              }
+            }
+          }
+        }
+
+        // Always recalculate amount when qty or rate changes (including auto-filled values)
+        if ('qty' in updates || 'rate' in updates || updates.productService !== undefined) {
+          next.amount = (next.qty ?? 1) * (next.rate ?? 0);
+        }
         return next;
       })
     );
@@ -200,21 +473,509 @@ const FleetInvoicesPage = () => {
   }, [lineItems, allTaxes]);
   const totalBalance = subtotal + totalTax;
 
-  const handleSaveAndClose = () => {
-    const newInvoice: InvoiceRow = {
-      id: String(Date.now()),
-      date: formatDisplayDate(invoiceDate),
-      no: invoiceNo || `BRL${String(invoices.length + 1).padStart(4, '0')}`,
-      customer: selectedCustomer?.name || 'Unknown',
-      amount: totalBalance,
-      status: 'paid',
-    };
-    setInvoices((prev) => [newInvoice, ...prev]);
-    setSidebarOpen(false);
-    resetForm();
+  const handleSaveAndClose = async () => {
+    // Validation
+    if (!customerId || !selectedCustomer) {
+      setNotification({ type: 'error', message: 'Please select a customer' });
+      return;
+    }
+    if (lineItems.length === 0 || lineItems.some(item => !item.description || item.rate === 0)) {
+      setNotification({ type: 'error', message: 'Please add at least one valid line item with description and rate' });
+      return;
+    }
+
+    setSaving(true);
+    try {
+      // Build invoice items from line items
+      const invoiceItems = lineItems.map((item) => {
+        const tax = allTaxes.find((t) => t.id === item.salesTax);
+        return {
+          serviceDate: item.serviceDate || null,
+          productService: item.productService || null,
+          description: item.description,
+          quantity: item.qty,
+          unitPrice: item.rate,
+          totalPrice: item.amount,
+          taxId: tax?.id || null,
+          taxName: tax?.name || null,
+          taxPercent: tax?.percent || 0,
+        };
+      });
+
+      // Build billing address from customer
+      const billingAddrParts: string[] = [];
+      if (selectedCustomer.billing) {
+        const b = selectedCustomer.billing;
+        if (b.streetAddress1) billingAddrParts.push(b.streetAddress1);
+        if (b.streetAddress2) billingAddrParts.push(b.streetAddress2);
+        const cityParts: string[] = [];
+        if (b.city) cityParts.push(b.city);
+        if (b.provinceState) cityParts.push(b.provinceState);
+        if (b.postalZip) cityParts.push(b.postalZip);
+        if (cityParts.length > 0) billingAddrParts.push(cityParts.join(', '));
+        if (b.country) billingAddrParts.push(b.country);
+      }
+      const billingAddressStr = billingAddrParts.length > 0 ? billingAddrParts.join('\n') : billingAddress;
+
+      const invoiceData = {
+        invoiceNumber: invoiceNo || undefined, // Let backend generate if empty
+        invoiceDate: invoiceDate,
+        customerName: selectedCustomer.name,
+        customerEmail: customerEmail || selectedCustomer.email || null,
+        customerPhone: selectedCustomer.phone || null,
+        customerAddress: billingAddressStr || null,
+        customerId: customerId,
+        terms: terms || null,
+        items: invoiceItems,
+        dueDate: dueDate || invoiceDate, // Use dueDate if set, otherwise invoiceDate
+        messageOnInvoice: messageOnInvoice || null,
+        notes: null,
+        status: 'draft',
+      };
+
+      let response;
+      if (editingInvoiceId) {
+        response = await updateFleetInvoice(editingInvoiceId, invoiceData);
+      } else {
+        response = await createFleetInvoice(invoiceData);
+      }
+
+      if (response?.success) {
+        setNotification({ 
+          type: 'success', 
+          message: editingInvoiceId ? 'Invoice updated successfully' : 'Invoice created successfully' 
+        });
+        setSidebarOpen(false);
+        resetForm();
+        await Promise.all([loadInvoices(), loadSummary()]);
+      } else {
+        setNotification({ type: 'error', message: response?.message || 'Failed to save invoice' });
+      }
+    } catch (err: any) {
+      setNotification({ 
+        type: 'error', 
+        message: err?.response?.data?.message || err?.message || 'Failed to save invoice' 
+      });
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const handleDeleteInvoice = async (invoiceId: string) => {
+    if (!confirm('Are you sure you want to delete this invoice? This action cannot be undone.')) {
+      return;
+    }
+
+    setDeleting(invoiceId);
+    try {
+      const response = await deleteFleetInvoice(invoiceId);
+      if (response?.success) {
+        setNotification({ type: 'success', message: 'Invoice deleted successfully' });
+        await Promise.all([loadInvoices(), loadSummary()]);
+      } else {
+        setNotification({ type: 'error', message: response?.message || 'Failed to delete invoice' });
+      }
+    } catch (err: any) {
+      setNotification({ 
+        type: 'error', 
+        message: err?.response?.data?.message || err?.message || 'Failed to delete invoice' 
+      });
+    } finally {
+      setDeleting(null);
+    }
+  };
+
+  const handleEditInvoice = async (invoiceId: string) => {
+    try {
+      const response = await getFleetInvoiceById(invoiceId);
+      if (response?.success && response.data) {
+        const invoice = response.data;
+        setEditingInvoiceId(invoice._id);
+        
+        // Set customer
+        const customerIdValue = invoice.customerId 
+          ? (typeof invoice.customerId === 'object' && invoice.customerId._id 
+              ? invoice.customerId._id 
+              : invoice.customerId)
+          : null;
+        
+        if (customerIdValue) {
+          setCustomerId(customerIdValue);
+          const customer = customers.find(c => c._id === customerIdValue);
+          if (customer) {
+            setCustomerEmail(customer.email || '');
+            // Build billing address
+            if (customer.billing) {
+              const b = customer.billing;
+              const parts: string[] = [];
+              if (b.streetAddress1) parts.push(b.streetAddress1);
+              if (b.streetAddress2) parts.push(b.streetAddress2);
+              const cityParts: string[] = [];
+              if (b.city) cityParts.push(b.city);
+              if (b.provinceState) cityParts.push(b.provinceState);
+              if (b.postalZip) cityParts.push(b.postalZip);
+              if (cityParts.length > 0) parts.push(cityParts.join(', '));
+              if (b.country) parts.push(b.country);
+              setBillingAddress(parts.join('\n'));
+            } else {
+              setBillingAddress(invoice.customerAddress || '');
+            }
+          } else {
+            // Customer not found in list, use invoice data
+            setCustomerEmail(invoice.customerEmail || '');
+            setBillingAddress(invoice.customerAddress || '');
+          }
+        } else {
+          setCustomerId('');
+          setCustomerEmail(invoice.customerEmail || '');
+          setBillingAddress(invoice.customerAddress || '');
+        }
+        
+        // Set dates and terms
+        const invoiceDateStr = invoice.invoiceDate 
+          ? (typeof invoice.invoiceDate === 'string' 
+              ? invoice.invoiceDate.split('T')[0] 
+              : new Date(invoice.invoiceDate).toISOString().split('T')[0])
+          : new Date().toISOString().split('T')[0];
+        const dueDateStr = invoice.dueDate 
+          ? (typeof invoice.dueDate === 'string' 
+              ? invoice.dueDate.split('T')[0] 
+              : new Date(invoice.dueDate).toISOString().split('T')[0])
+          : '';
+        setInvoiceDate(invoiceDateStr);
+        setDueDate(dueDateStr);
+        setTerms(invoice.terms || '');
+        setInvoiceNo(invoice.invoiceNumber || '');
+        setMessageOnInvoice(invoice.messageOnInvoice || '');
+        
+        // Set line items
+        if (Array.isArray(invoice.items) && invoice.items.length > 0) {
+          const items: LineItem[] = invoice.items.map((item: any, idx: number) => {
+            const taxId = item.taxId || 'gst';
+            return {
+              id: String(idx + 1),
+              serviceDate: item.serviceDate || '',
+              productService: item.productService || '',
+              description: item.description || '',
+              qty: item.quantity || 1,
+              rate: item.unitPrice || 0,
+              amount: item.totalPrice || 0,
+              salesTax: taxId,
+            };
+          });
+          setLineItems(items);
+        } else {
+          setLineItems([{ id: '1', serviceDate: '', productService: '', description: '', qty: 1, rate: 0, amount: 0, salesTax: 'gst' }]);
+        }
+        
+        setSidebarOpen(true);
+      } else {
+        setNotification({ type: 'error', message: 'Failed to load invoice details' });
+      }
+    } catch (err: any) {
+      setNotification({ 
+        type: 'error', 
+        message: err?.response?.data?.message || err?.message || 'Failed to load invoice details' 
+      });
+    }
+  };
+
+  const handleSendInvoiceEmail = async (invoiceId: string) => {
+    try {
+      setEmailingId(invoiceId);
+      const response = await emailFleetInvoice(invoiceId);
+      if (response?.success) {
+        setNotification({ type: 'success', message: 'Invoice email sent successfully' });
+      } else {
+        setNotification({
+          type: 'error',
+          message: response?.message || 'Failed to send invoice email',
+        });
+      }
+    } catch (err: any) {
+      setNotification({
+        type: 'error',
+        message: err?.response?.data?.message || err?.message || 'Failed to send invoice email',
+      });
+    } finally {
+      setEmailingId(null);
+    }
+  };
+
+  const handleStatusChange = async (invoiceId: string, newStatus: string) => {
+    setUpdatingStatusId(invoiceId);
+    try {
+      const response = await updateFleetInvoiceStatus(invoiceId, newStatus);
+      if (response?.success) {
+        setNotification({ type: 'success', message: 'Invoice status updated successfully' });
+        await Promise.all([loadInvoices(), loadSummary()]);
+      } else {
+        setNotification({
+          type: 'error',
+          message: response?.message || 'Failed to update invoice status',
+        });
+      }
+    } catch (err: any) {
+      setNotification({
+        type: 'error',
+        message: err?.response?.data?.message || err?.message || 'Failed to update invoice status',
+      });
+    } finally {
+      setUpdatingStatusId(null);
+    }
+  };
+
+  const handleDownloadInvoicePDF = async (invoiceId: string) => {
+    setPrintingPdfId(invoiceId);
+    try {
+      const response = await getFleetInvoiceById(invoiceId);
+      if (!response?.success || !response.data) {
+        setNotification({ type: 'error', message: 'Failed to load invoice for PDF' });
+        return;
+      }
+      const invoice = response.data;
+
+      let companyData: { companyName?: string; address?: string; contactPhone?: string; contactEmail?: string; taxNumber?: string; logoUrl?: string } | null = null;
+      try {
+        const companyRes = await getCompany();
+        if (companyRes?.success && companyRes?.data) {
+          companyData = companyRes.data;
+        }
+      } catch {
+        // Use defaults if company fetch fails
+      }
+
+      const doc = new jsPDF('p', 'mm', 'a4');
+      const pageWidth = doc.internal.pageSize.getWidth();
+      const pageHeight = doc.internal.pageSize.getHeight();
+      const margin = 20;
+      const contentWidth = pageWidth - margin * 2;
+      const textColor: [number, number, number] = [31, 41, 55];
+      const grayColor: [number, number, number] = [107, 114, 128];
+
+      let yPos = margin;
+
+      const checkPageBreak = (requiredHeight: number) => {
+        if (yPos + requiredHeight > pageHeight - 25) {
+          doc.addPage();
+          yPos = margin;
+        }
+      };
+
+      // Company logo
+      if (companyData?.logoUrl) {
+        try {
+          const res = await fetch(companyData.logoUrl);
+          const blob = await res.blob();
+          const base64 = await new Promise<string>((resolve) => {
+            const reader = new FileReader();
+            reader.onloadend = () => resolve(reader.result as string);
+            reader.readAsDataURL(blob);
+          });
+          doc.addImage(base64, 'PNG', margin, yPos, 45, 25);
+        } catch {
+          // Skip logo on error
+        }
+      }
+
+      doc.setFontSize(24);
+      doc.setFont('helvetica', 'bold');
+      doc.setTextColor(...textColor);
+      doc.text('FLEET INVOICE', pageWidth - margin, yPos + 12, { align: 'right' });
+      yPos += 35;
+
+      const leftCol = margin;
+      const rightCol = pageWidth / 2 + 10;
+      const colWidth = (pageWidth - margin * 2) / 2 - 10;
+
+      // From (Company)
+      if (companyData) {
+        doc.setFontSize(11);
+        doc.setFont('helvetica', 'bold');
+        doc.text(companyData.companyName || 'Company', leftCol, yPos);
+        yPos += 6;
+        doc.setFontSize(9);
+        doc.setFont('helvetica', 'normal');
+        doc.setTextColor(...grayColor);
+        if (companyData.address) {
+          const lines = doc.splitTextToSize(companyData.address, colWidth);
+          doc.text(lines, leftCol, yPos);
+          yPos += lines.length * 5;
+        }
+        if (companyData.contactPhone) {
+          doc.text(`Phone: ${companyData.contactPhone}`, leftCol, yPos);
+          yPos += 5;
+        }
+        if (companyData.contactEmail) {
+          doc.text(`Email: ${companyData.contactEmail}`, leftCol, yPos);
+          yPos += 5;
+        }
+        if (companyData.taxNumber) {
+          doc.text(`GST No: ${companyData.taxNumber}`, leftCol, yPos);
+          yPos += 5;
+        }
+        doc.setTextColor(...textColor);
+      }
+
+      // Bill To
+      let rightY = 55;
+      doc.setFontSize(11);
+      doc.setFont('helvetica', 'bold');
+      doc.text('Bill To:', rightCol, rightY);
+      rightY += 7;
+      doc.setFontSize(10);
+      doc.setFont('helvetica', 'normal');
+      doc.text(invoice.customerName || '—', rightCol, rightY);
+      rightY += 6;
+      if (invoice.customerEmail) {
+        doc.text(invoice.customerEmail, rightCol, rightY);
+        rightY += 5;
+      }
+      if (invoice.customerAddress) {
+        const addrLines = doc.splitTextToSize(invoice.customerAddress, colWidth);
+        doc.text(addrLines, rightCol, rightY);
+        rightY += addrLines.length * 5;
+      }
+      if (invoice.customerPhone) {
+        doc.text(`Phone: ${invoice.customerPhone}`, rightCol, rightY);
+        rightY += 5;
+      }
+
+      yPos = Math.max(yPos, rightY) + 12;
+
+      // Invoice details
+      doc.setFontSize(9);
+      doc.setTextColor(...grayColor);
+      const invDate = invoice.invoiceDate ? new Date(invoice.invoiceDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : '—';
+      const dueDateStr = invoice.dueDate ? new Date(invoice.dueDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : '—';
+      doc.text(`Invoice #: ${invoice.invoiceNumber || '—'}`, leftCol, yPos);
+      doc.text(`Invoice Date: ${invDate}`, leftCol, yPos + 5);
+      doc.text(`Due Date: ${dueDateStr}`, leftCol, yPos + 10);
+      if (invoice.terms) {
+        doc.text(`Terms: ${invoice.terms}`, leftCol, yPos + 15);
+        yPos += 20;
+      } else {
+        yPos += 15;
+      }
+      doc.setTextColor(...textColor);
+
+      // Message on invoice
+      if (invoice.messageOnInvoice) {
+        checkPageBreak(15);
+        doc.setFontSize(9);
+        doc.setFont('helvetica', 'italic');
+        doc.setTextColor(...grayColor);
+        const msgLines = doc.splitTextToSize(invoice.messageOnInvoice, contentWidth);
+        doc.text(msgLines, leftCol, yPos);
+        yPos += msgLines.length * 5 + 5;
+        doc.setFont('helvetica', 'normal');
+        doc.setTextColor(...textColor);
+      }
+
+      // Line items table - fixed column layout
+      checkPageBreak(25);
+      yPos += 5;
+      const tableLeft = leftCol;
+      const colDateLeft = tableLeft;
+      const colDateWidth = 26;
+      const colDescLeft = tableLeft + colDateWidth + 4;
+      const colDescWidth = 82;
+      const colQtyLeft = colDescLeft + colDescWidth + 4;
+      const colQtyWidth = 12;
+      const colRateLeft = colQtyLeft + colQtyWidth + 4;
+      const colRateWidth = 22;
+      const colAmountLeft = colRateLeft + colRateWidth + 4;
+      const tableRight = pageWidth - margin;
+
+      doc.setFontSize(9);
+      doc.setFont('helvetica', 'bold');
+      doc.text('Date', colDateLeft, yPos);
+      doc.text('Description', colDescLeft, yPos);
+      doc.text('QTY', colQtyLeft + colQtyWidth / 2, yPos, { align: 'center' });
+      doc.text('Rate', colRateLeft + colRateWidth, yPos, { align: 'right' });
+      doc.text('Amount', tableRight, yPos, { align: 'right' });
+      doc.setDrawColor(200, 200, 200);
+      doc.line(tableLeft, yPos + 3, tableRight, yPos + 3);
+      yPos += 8;
+
+      doc.setFont('helvetica', 'normal');
+      const items = Array.isArray(invoice.items) ? invoice.items : [];
+      const lineHeight = 6;
+      for (const item of items) {
+        const desc = (item.description || '—').toString().trim();
+        const descLines = doc.splitTextToSize(desc, colDescWidth);
+        const rowHeight = Math.max(descLines.length * lineHeight, 10);
+        checkPageBreak(rowHeight);
+
+        const svcDate = item.serviceDate ? new Date(item.serviceDate + 'T12:00:00').toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : '—';
+        const qty = Number(item.quantity) || 1;
+        const rate = Number(item.unitPrice) || 0;
+        const amt = Number(item.totalPrice) || rate * qty;
+
+        const rowYStart = yPos;
+        doc.setFontSize(9);
+
+        // Date - single line, left-aligned
+        doc.text(svcDate, colDateLeft, rowYStart);
+
+        // Description - can wrap to multiple lines
+        doc.text(descLines, colDescLeft, rowYStart);
+
+        // QTY, Rate, Amount - aligned with first line of description
+        doc.text(String(qty), colQtyLeft + colQtyWidth / 2, rowYStart, { align: 'center' });
+        doc.text(`$${rate.toFixed(2)}`, colRateLeft + colRateWidth, rowYStart, { align: 'right' });
+        doc.text(`$${amt.toFixed(2)}`, tableRight, rowYStart, { align: 'right' });
+
+        yPos += rowHeight;
+      }
+
+      yPos += 10;
+      checkPageBreak(35);
+
+      // Totals
+      const subtotal = Number(invoice.subtotal) || 0;
+      const taxAmount = Number(invoice.taxAmount) || 0;
+      const total = Number(invoice.total) || subtotal + taxAmount;
+
+      doc.setFont('helvetica', 'bold');
+      doc.text('Subtotal:', colRateLeft + colRateWidth, yPos, { align: 'right' });
+      doc.setFont('helvetica', 'normal');
+      doc.text(`$${subtotal.toFixed(2)}`, tableRight, yPos, { align: 'right' });
+      yPos += 7;
+
+      doc.setFont('helvetica', 'bold');
+      doc.text('Tax:', colRateLeft + colRateWidth, yPos, { align: 'right' });
+      doc.setFont('helvetica', 'normal');
+      doc.text(`$${taxAmount.toFixed(2)}`, tableRight, yPos, { align: 'right' });
+      yPos += 12;
+
+      doc.rect(margin, yPos, contentWidth, 18);
+      doc.setFontSize(12);
+      doc.setFont('helvetica', 'bold');
+      doc.text('Total Balance Due', margin + 5, yPos + 12);
+      doc.setFontSize(14);
+      doc.text(`$${total.toFixed(2)}`, pageWidth - margin - 5, yPos + 12, { align: 'right' });
+      yPos += 25;
+
+      // Footer
+      doc.setFontSize(8);
+      doc.setFont('helvetica', 'italic');
+      doc.setTextColor(...grayColor);
+      doc.text('Thank you for your business!', pageWidth / 2, pageHeight - 15, { align: 'center' });
+
+      const fileName = `Fleet_Invoice_${(invoice.invoiceNumber || invoiceId.slice(-8)).replace(/\s+/g, '_')}.pdf`;
+      doc.save(fileName);
+      setNotification({ type: 'success', message: 'Invoice PDF downloaded successfully' });
+    } catch (err: any) {
+      console.error('Error generating invoice PDF:', err);
+      setNotification({ type: 'error', message: err?.message || 'Failed to download invoice PDF' });
+    } finally {
+      setPrintingPdfId(null);
+    }
   };
 
   const resetForm = () => {
+    setEditingInvoiceId(null);
     setCustomerId('');
     setCustomerEmail('');
     setBillingAddress('');
@@ -237,15 +998,105 @@ const FleetInvoicesPage = () => {
               <FaFileInvoice className="text-blue-600" size={28} />
               Fleet Invoices
             </h1>
-            <p className="text-gray-600 mt-1">Create and view invoices (static)</p>
+            <p className="text-gray-600 mt-1">Create and manage fleet invoices</p>
           </div>
           <button
             type="button"
-            onClick={() => setSidebarOpen(true)}
+            onClick={() => {
+              resetForm();
+              setSidebarOpen(true);
+            }}
             className="flex items-center gap-2 px-5 py-2.5 bg-blue-600 !text-white rounded-lg hover:bg-blue-700 font-medium shadow-sm transition-colors"
           >
             <FaPlus size={14} /> New Invoice
           </button>
+        </div>
+
+        {/* Summary Cards */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+          <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-5">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-medium text-gray-500 uppercase tracking-wide">Paid</p>
+                {summaryLoading ? (
+                  <p className="mt-1 text-xl font-bold text-gray-400">—</p>
+                ) : (
+                  <p className="mt-1 text-2xl font-bold text-green-600">
+                    ${(summary?.paidAmount ?? 0).toLocaleString('en-US', { minimumFractionDigits: 2 })}
+                  </p>
+                )}
+                {!summaryLoading && summary && (
+                  <p className="mt-0.5 text-xs text-gray-500">{summary.paidCount} invoice{summary.paidCount !== 1 ? 's' : ''}</p>
+                )}
+              </div>
+              <div className="w-12 h-12 rounded-lg bg-green-100 flex items-center justify-center">
+                <FaCheckCircle className="text-green-600" size={24} />
+              </div>
+            </div>
+          </div>
+
+          <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-5">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-medium text-gray-500 uppercase tracking-wide">Unpaid</p>
+                {summaryLoading ? (
+                  <p className="mt-1 text-xl font-bold text-gray-400">—</p>
+                ) : (
+                  <p className="mt-1 text-2xl font-bold text-amber-600">
+                    ${(summary?.unpaidAmount ?? 0).toLocaleString('en-US', { minimumFractionDigits: 2 })}
+                  </p>
+                )}
+                {!summaryLoading && summary && (
+                  <p className="mt-0.5 text-xs text-gray-500">{summary.unpaidCount} invoice{summary.unpaidCount !== 1 ? 's' : ''}</p>
+                )}
+              </div>
+              <div className="w-12 h-12 rounded-lg bg-amber-100 flex items-center justify-center">
+                <FaMoneyBillWave className="text-amber-600" size={24} />
+              </div>
+            </div>
+          </div>
+
+          <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-5">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-medium text-gray-500 uppercase tracking-wide">Overdue</p>
+                {summaryLoading ? (
+                  <p className="mt-1 text-xl font-bold text-gray-400">—</p>
+                ) : (
+                  <p className="mt-1 text-2xl font-bold text-orange-600">
+                    ${(summary?.overdueAmount ?? 0).toLocaleString('en-US', { minimumFractionDigits: 2 })}
+                  </p>
+                )}
+                {!summaryLoading && summary && (
+                  <p className="mt-0.5 text-xs text-gray-500">{summary.overdueCount} invoice{summary.overdueCount !== 1 ? 's' : ''}</p>
+                )}
+              </div>
+              <div className="w-12 h-12 rounded-lg bg-orange-100 flex items-center justify-center">
+                <FaClock className="text-orange-600" size={24} />
+              </div>
+            </div>
+          </div>
+
+          <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-5">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-medium text-gray-500 uppercase tracking-wide">Total</p>
+                {summaryLoading ? (
+                  <p className="mt-1 text-xl font-bold text-gray-400">—</p>
+                ) : (
+                  <p className="mt-1 text-2xl font-bold text-blue-600">
+                    ${(summary?.totalAmount ?? 0).toLocaleString('en-US', { minimumFractionDigits: 2 })}
+                  </p>
+                )}
+                {!summaryLoading && summary && (
+                  <p className="mt-0.5 text-xs text-gray-500">{summary.totalCount} invoice{summary.totalCount !== 1 ? 's' : ''}</p>
+                )}
+              </div>
+              <div className="w-12 h-12 rounded-lg bg-blue-100 flex items-center justify-center">
+                <FaFileInvoice className="text-blue-600" size={24} />
+              </div>
+            </div>
+          </div>
         </div>
 
         <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
@@ -262,43 +1113,112 @@ const FleetInvoicesPage = () => {
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-100">
-                {invoices.length === 0 ? (
+                {invoicesLoading ? (
+                  <tr>
+                    <td colSpan={6} className="px-6 py-12 text-center text-gray-500">
+                      Loading invoices...
+                    </td>
+                  </tr>
+                ) : invoicesError ? (
+                  <tr>
+                    <td colSpan={6} className="px-6 py-12 text-center text-red-600">
+                      {invoicesError}
+                    </td>
+                  </tr>
+                ) : invoices.length === 0 ? (
                   <tr>
                     <td colSpan={6} className="px-6 py-12 text-center text-gray-500">
                       No invoices yet. Create one using &quot;New Invoice&quot;.
                     </td>
                   </tr>
                 ) : (
-                  invoices.map((row) => (
-                    <tr
-                      key={row.id}
-                      className={`hover:bg-blue-50/30 ${row.status === 'overdue' ? 'border-t-4 border-t-orange-500 bg-orange-50/20' : ''}`}
-                    >
-                      <td className="px-6 py-4 text-gray-900">{row.date}</td>
-                      <td className="px-6 py-4 font-medium text-gray-900">{row.no}</td>
-                      <td className="px-6 py-4 text-gray-700">{row.customer}</td>
-                      <td className="px-6 py-4 text-gray-700 font-medium">${row.amount.toFixed(2)}</td>
-                      <td className="px-6 py-4">
-                        {row.status === 'paid' ? (
-                          <span className="inline-flex items-center gap-1.5 text-green-700 font-medium">
-                            <FaCheckCircle size={16} className="text-green-600" /> Paid
-                          </span>
-                        ) : (
-                          <span className="inline-flex items-center gap-1 text-orange-600 font-semibold">Overdue</span>
-                        )}
-                      </td>
-                      <td className="px-6 py-4">
-                        <div className="flex items-center gap-2">
-                          <button type="button" className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors" title="View/Edit">
-                            <FaEdit size={14} />
-                          </button>
-                          <button type="button" className="p-2 text-gray-600 hover:bg-gray-100 rounded-lg transition-colors" title="Print">
-                            <FaPrint size={14} />
-                          </button>
-                        </div>
-                      </td>
-                    </tr>
-                  ))
+                  invoices.map((row) => {
+                    const isOverdue = row.status === 'overdue' || 
+                      (row.status !== 'paid' && row.dueDate && new Date(row.dueDate) < new Date());
+                    const displayStatus = isOverdue ? 'overdue' : row.status;
+                    
+                    return (
+                      <tr
+                        key={row._id}
+                        className={`hover:bg-blue-50/30 ${displayStatus === 'overdue' ? 'border-t-4 border-t-orange-500 bg-orange-50/20' : ''}`}
+                      >
+                        <td className="px-6 py-4 text-gray-900">
+                          {row.invoiceDate 
+                            ? formatDisplayDate(typeof row.invoiceDate === 'string' ? row.invoiceDate.split('T')[0] : new Date(row.invoiceDate).toISOString().split('T')[0])
+                            : '—'}
+                        </td>
+                        <td className="px-6 py-4 font-medium text-gray-900">{row.invoiceNumber || '—'}</td>
+                        <td className="px-6 py-4 text-gray-700">{row.customerName || '—'}</td>
+                        <td className="px-6 py-4 text-gray-700 font-medium">${(row.total || 0).toFixed(2)}</td>
+                        <td className="px-6 py-4">
+                          <select
+                            value={INVOICE_STATUS_OPTIONS.some((o) => o.value === row.status) ? row.status : 'draft'}
+                            onChange={(e) => handleStatusChange(row._id, e.target.value)}
+                            disabled={updatingStatusId === row._id}
+                            className={`min-w-[100px] px-2.5 py-1.5 text-sm font-medium rounded-lg border focus:ring-2 focus:ring-blue-500 focus:border-blue-500 disabled:opacity-60 disabled:cursor-not-allowed ${
+                              row.status === 'paid'
+                                ? 'border-green-200 bg-green-50 text-green-700'
+                                : row.status === 'sent'
+                                ? 'border-blue-200 bg-blue-50 text-blue-700'
+                                : row.status === 'cancelled'
+                                ? 'border-gray-200 bg-gray-50 text-gray-600'
+                                : displayStatus === 'overdue'
+                                ? 'border-orange-200 bg-orange-50 text-orange-600'
+                                : 'border-gray-200 bg-gray-50 text-gray-600'
+                            }`}
+                          >
+                            {INVOICE_STATUS_OPTIONS.map((opt) => (
+                              <option key={opt.value} value={opt.value}>
+                                {opt.label}
+                              </option>
+                            ))}
+                          </select>
+                          {updatingStatusId === row._id && (
+                            <span className="ml-2 text-xs text-gray-500">Updating…</span>
+                          )}
+                        </td>
+                        <td className="px-6 py-4">
+                          <div className="flex items-center gap-2">
+                            <button 
+                              type="button" 
+                              onClick={() => handleEditInvoice(row._id)}
+                              className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors" 
+                              title="View/Edit"
+                            >
+                              <FaEdit size={14} />
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => handleSendInvoiceEmail(row._id)}
+                              disabled={emailingId === row._id}
+                              className="p-2 text-emerald-600 hover:bg-emerald-50 rounded-lg transition-colors disabled:opacity-50"
+                              title={emailingId === row._id ? 'Sending…' : 'Send Email'}
+                            >
+                              <FaEnvelope size={14} />
+                            </button>
+                            <button 
+                              type="button" 
+                              onClick={() => handleDeleteInvoice(row._id)}
+                              disabled={deleting === row._id}
+                              className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors disabled:opacity-50" 
+                              title="Delete"
+                            >
+                              <FaTrash size={14} />
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => handleDownloadInvoicePDF(row._id)}
+                              disabled={printingPdfId === row._id}
+                              className="p-2 text-gray-600 hover:bg-gray-100 rounded-lg transition-colors disabled:opacity-50"
+                              title={printingPdfId === row._id ? 'Generating PDF…' : 'Download PDF'}
+                            >
+                              <FaPrint size={14} />
+                            </button>
+                          </div>
+                        </td>
+                      </tr>
+                    );
+                  })
                 )}
               </tbody>
             </table>
@@ -312,12 +1232,21 @@ const FleetInvoicesPage = () => {
           <div className="fixed inset-0 bg-black/40 z-40" onClick={() => setSidebarOpen(false)} aria-hidden="true" />
           <div className="fixed top-0 right-0 h-full w-full max-w-4xl bg-white shadow-xl z-50 flex flex-col">
             <div className="flex-shrink-0 px-8 py-5 border-b border-gray-200 flex items-center justify-between bg-white">
-              <h2 className="text-xl font-semibold text-gray-900">New Invoice</h2>
+              <h2 className="text-xl font-semibold text-gray-900">{editingInvoiceId ? 'Edit Invoice' : 'New Invoice'}</h2>
               <button type="button" onClick={() => setSidebarOpen(false)} className="p-2 text-gray-500 hover:bg-gray-100 rounded-lg transition-colors" aria-label="Close">
                 <FaTimes size={20} />
               </button>
             </div>
             <div className="flex-1 overflow-y-auto px-8 py-6 space-y-8">
+              {notification && (
+                <div className={`rounded-lg border px-4 py-3 ${
+                  notification.type === 'success'
+                    ? 'border-green-200 bg-green-50 text-green-800'
+                    : 'border-red-200 bg-red-50 text-red-800'
+                }`}>
+                  {notification.message}
+                </div>
+              )}
               {/* Header Information */}
               <section>
                 <h3 className="text-sm font-semibold text-gray-500 uppercase tracking-wide mb-4">Bill To &amp; Dates</h3>
@@ -331,10 +1260,16 @@ const FleetInvoicesPage = () => {
                         className="w-full px-3 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-gray-900"
                       >
                         <option value="">Select client...</option>
-                        {STATIC_CUSTOMERS.map((c) => (
-                          <option key={c.id} value={c.id}>{c.name}</option>
+                        {customers.map((c) => (
+                          <option key={c._id} value={c._id}>{c.name}</option>
                         ))}
                       </select>
+                      {customersLoading && (
+                        <p className="mt-1 text-xs text-gray-500">Loading customers...</p>
+                      )}
+                      {customersError && !customersLoading && (
+                        <p className="mt-1 text-xs text-red-600">{customersError}</p>
+                      )}
                     </div>
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-1">Customer Email</label>
@@ -428,10 +1363,13 @@ const FleetInvoicesPage = () => {
                             className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 text-sm"
                           >
                             <option value="">Select...</option>
-                            {PRODUCT_SERVICE_OPTIONS.map((opt) => (
-                              <option key={opt} value={opt}>{opt}</option>
+                            {productOptions.map((opt) => (
+                              <option key={opt.id} value={opt.id}>{opt.label}</option>
                             ))}
                           </select>
+                          {productOptionsLoading && (
+                            <p className="mt-1 text-xs text-gray-500">Loading services and maintenance orders...</p>
+                          )}
                         </div>
                       </div>
                       <div>
@@ -602,11 +1540,23 @@ const FleetInvoicesPage = () => {
               </section>
             </div>
             <div className="flex-shrink-0 px-8 py-4 border-t border-gray-200 bg-gray-50 flex items-center justify-end gap-3">
-              <button type="button" onClick={() => setSidebarOpen(false)} className="px-5 py-2.5 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors">
+              <button 
+                type="button" 
+                onClick={() => {
+                  setSidebarOpen(false);
+                  resetForm();
+                }} 
+                className="px-5 py-2.5 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
+              >
                 Cancel
               </button>
-              <button type="button" onClick={handleSaveAndClose} className="px-5 py-2.5 text-sm font-medium !text-white bg-blue-600 rounded-lg hover:bg-blue-700 transition-colors">
-                Save and close
+              <button 
+                type="button" 
+                onClick={handleSaveAndClose}
+                disabled={saving}
+                className={`px-5 py-2.5 text-sm font-medium !text-white bg-blue-600 rounded-lg hover:bg-blue-700 transition-colors ${saving ? 'opacity-60 cursor-not-allowed' : ''}`}
+              >
+                {saving ? 'Saving...' : editingInvoiceId ? 'Update Invoice' : 'Save and close'}
               </button>
             </div>
           </div>

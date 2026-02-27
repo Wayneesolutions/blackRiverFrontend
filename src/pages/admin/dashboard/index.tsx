@@ -9,7 +9,8 @@ import {
     Wrench,
     ShieldCheck,
     DollarSign,
-    Heart
+    Heart,
+    Settings
 } from 'lucide-react';
 import { MapContainer, TileLayer, Marker, Popup, useMap } from 'react-leaflet';
 import L from 'leaflet';
@@ -150,7 +151,8 @@ const Index = () => {
                         pendingTasks: Number(stats.pendingTasks) || 0,
                         complianceRate: Number(stats.complianceRate) || 0,
                         monthlyRevenue: Number(stats.monthlyRevenue) || 0,
-                        openIncidents: Number(stats.openIncidents) || 0
+                        openIncidents: Number(stats.openIncidents) || 0,
+                        maintenanceOrdersCount: Number(stats.maintenanceOrdersCount) || 0
                     },
                     trips: response.data.trips || [],
                     trucks: response.data.trucks || []
@@ -321,6 +323,20 @@ const Index = () => {
                 accentColor: "bg-orange-500",
                 percentage: stats.pendingTasks > 0 ? Math.min(100, (stats.pendingTasks / 30) * 100) : 0,
                 route: "/admin/fleetmaintenance",
+            },
+            {
+                id: "mechanics",
+                title: "Mechanics",
+                value: (stats.maintenanceOrdersCount ?? 0).toString(),
+                change: "+0%",
+                trend: "up",
+                subtitle: "Maintenance Orders",
+                icon: Settings,
+                bgColor: "bg-slate-50",
+                iconColor: "text-slate-600",
+                accentColor: "bg-slate-600",
+                percentage: (stats.maintenanceOrdersCount ?? 0) > 0 ? Math.min(100, ((stats.maintenanceOrdersCount ?? 0) / 50) * 100) : 0,
+                route: "/admin/mechanics/orders",
             },
             {
                 id: "compliance",

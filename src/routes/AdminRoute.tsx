@@ -26,6 +26,7 @@ const GpsVehicleRoutes = lazy(() => import("./AdminFeatures/GpsVehicleRoutes"))
 const DriverManagement = lazy(() => import("./AdminFeatures/HRManagementRoutes"))
 const ComplianceRoute = lazy(() => import('./AdminFeatures/CompilanceRoute'))
 const FleetMaintainRoute = lazy(() => import("./AdminFeatures/FleetMaintainRoutes"))
+const MechanicsRoutes = lazy(() => import("./AdminFeatures/MechanicsRoutes"))
 const AccountsRoute = lazy(() => import("./AdminFeatures/AccountsRoutes"))
 const HealthSafetyRoutes = lazy(() => import("./AdminFeatures/HealthSafetyRoutes"))
 const Subscription = lazy(() => import("../pages/admin/subscription/index"))
@@ -135,6 +136,10 @@ function AdminRoute() {
         <Route 
           path="fleetmaintenance/*" 
           element={<FleetMaintainRoute />} 
+        />
+        <Route 
+          path="mechanics/*" 
+          element={<MechanicsRoutes />} 
         />
         <Route 
           path="healthandsafety/*" 

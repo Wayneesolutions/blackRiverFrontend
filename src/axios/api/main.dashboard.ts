@@ -26,6 +26,7 @@ export interface DashboardStats {
     complianceRate: number;
     monthlyRevenue: number;
     openIncidents: number;
+    maintenanceOrdersCount?: number;
 }
 
 export interface Trip {
