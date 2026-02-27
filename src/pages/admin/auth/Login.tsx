@@ -45,7 +45,7 @@ export default function LoginPage() {
           } else if (userRole === 'safety officer') {
             navigate('/healthandsafety', { replace: true });
           } else if (userRole === 'Maintenance Crew (Mechanics)') {
-            navigate('/mechanics/orders', { replace: true });
+            navigate('/mechanics/dashboard', { replace: true });
           } else {
             navigate('/admin/dashboard', { replace: true });
           }

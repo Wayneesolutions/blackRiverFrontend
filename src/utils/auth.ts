@@ -204,7 +204,7 @@ export const getDashboardRoute = (): string => {
     case 'safety officer':
       return '/healthandsafety';
     case 'Maintenance Crew (Mechanics)':
-      return '/mechanics/orders';
+      return '/mechanics/dashboard';
     case 'admin':
     case 'superadmin':
     default:

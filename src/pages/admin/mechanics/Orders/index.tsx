@@ -48,7 +48,11 @@ interface SparePartOption {
   stockQty?: number;
 }
 
-const Orders: React.FC = () => {
+interface OrdersProps {
+  defaultStatus?: string; // e.g. "completed" for Completed Orders page
+}
+
+const Orders: React.FC<OrdersProps> = ({ defaultStatus }) => {
   const [orders, setOrders] = useState<MechanicOrder[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -67,7 +71,7 @@ const Orders: React.FC = () => {
   const [detailsOrder, setDetailsOrder] = useState<MechanicOrder | null>(null);
   const [search, setSearch] = useState("");
   const [searchInput, setSearchInput] = useState("");
-  const [statusFilter, setStatusFilter] = useState<string>("all");
+  const [statusFilter, setStatusFilter] = useState<string>(defaultStatus || "all");
   const [page, setPage] = useState(1);
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const [limit] = useState(10);
@@ -287,11 +291,15 @@ const Orders: React.FC = () => {
     );
   }
 
+  const isCompletedOnly = defaultStatus === "completed";
+
   return (
     <div className="p-6">
       <div className="mb-6">
-        <h1 className="text-xl font-bold text-gray-900">Mechanics Portal</h1>
-        <p className="text-sm text-gray-500 mt-1">Maintenance orders assigned to mechanics</p>
+        <h1 className="text-xl font-bold text-gray-900">{isCompletedOnly ? "Completed Orders" : "Mechanics Portal"}</h1>
+        <p className="text-sm text-gray-500 mt-1">
+          {isCompletedOnly ? "All completed maintenance orders" : "Maintenance orders assigned to mechanics"}
+        </p>
       </div>
 
       {notification && (
@@ -312,56 +320,69 @@ const Orders: React.FC = () => {
         </div>
       )}
 
-      {/* Count cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
-        <div
-          onClick={() => { setStatusFilter("all"); setPage(1); }}
-          className={`p-4 rounded-lg border-2 cursor-pointer transition ${
-            statusFilter === "all"
-              ? "border-[#42aeec] bg-[#42aeec]/5"
-              : "border-gray-200 bg-white hover:border-gray-300"
-          }`}
-        >
-          <div className="flex items-center gap-2">
-            <LayoutGrid className="text-[#42aeec]" size={20} />
-            <span className="text-sm font-medium text-gray-600">All Orders</span>
+      {/* Count cards - hidden on Completed Orders page */}
+      {!isCompletedOnly && (
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
+          <div
+            onClick={() => { setStatusFilter("all"); setPage(1); }}
+            className={`p-4 rounded-lg border-2 cursor-pointer transition ${
+              statusFilter === "all"
+                ? "border-[#42aeec] bg-[#42aeec]/5"
+                : "border-gray-200 bg-white hover:border-gray-300"
+            }`}
+          >
+            <div className="flex items-center gap-2">
+              <LayoutGrid className="text-[#42aeec]" size={20} />
+              <span className="text-sm font-medium text-gray-600">All Orders</span>
+            </div>
+            <p className="text-2xl font-bold text-gray-900 mt-1">{pagination.allCount}</p>
           </div>
-          <p className="text-2xl font-bold text-gray-900 mt-1">{pagination.allCount}</p>
-        </div>
-        <div
-          onClick={() => { setStatusFilter("pending"); setPage(1); }}
-          className={`p-4 rounded-lg border-2 cursor-pointer transition ${
-            statusFilter === "pending"
-              ? "border-amber-500 bg-amber-50"
-              : "border-gray-200 bg-white hover:border-gray-300"
-          }`}
-        >
-          <div className="flex items-center gap-2">
-            <Play className="text-amber-600" size={20} />
-            <span className="text-sm font-medium text-gray-600">Pending</span>
+          <div
+            onClick={() => { setStatusFilter("pending"); setPage(1); }}
+            className={`p-4 rounded-lg border-2 cursor-pointer transition ${
+              statusFilter === "pending"
+                ? "border-amber-500 bg-amber-50"
+                : "border-gray-200 bg-white hover:border-gray-300"
+            }`}
+          >
+            <div className="flex items-center gap-2">
+              <Play className="text-amber-600" size={20} />
+              <span className="text-sm font-medium text-gray-600">Pending</span>
+            </div>
+            <p className="text-2xl font-bold text-gray-900 mt-1">{pagination.pendingCount}</p>
           </div>
-          <p className="text-2xl font-bold text-gray-900 mt-1">{pagination.pendingCount}</p>
+          <div
+            onClick={() => { setStatusFilter("completed"); setPage(1); }}
+            className={`p-4 rounded-lg border-2 cursor-pointer transition ${
+              statusFilter === "completed"
+                ? "border-green-500 bg-green-50"
+                : "border-gray-200 bg-white hover:border-gray-300"
+            }`}
+          >
+            <div className="flex items-center gap-2">
+              <CheckCircle className="text-green-600" size={20} />
+              <span className="text-sm font-medium text-gray-600">Completed</span>
+            </div>
+            <p className="text-2xl font-bold text-gray-900 mt-1">{pagination.completedCount}</p>
+          </div>
         </div>
-        <div
-          onClick={() => { setStatusFilter("completed"); setPage(1); }}
-          className={`p-4 rounded-lg border-2 cursor-pointer transition ${
-            statusFilter === "completed"
-              ? "border-green-500 bg-green-50"
-              : "border-gray-200 bg-white hover:border-gray-300"
-          }`}
-        >
+      )}
+
+      {/* Completed count badge - shown only on Completed Orders page */}
+      {isCompletedOnly && (
+        <div className="mb-6 p-4 rounded-lg border-2 border-green-500 bg-green-50">
           <div className="flex items-center gap-2">
             <CheckCircle className="text-green-600" size={20} />
-            <span className="text-sm font-medium text-gray-600">Completed</span>
+            <span className="text-sm font-medium text-gray-700">Completed Orders</span>
           </div>
           <p className="text-2xl font-bold text-gray-900 mt-1">{pagination.completedCount}</p>
         </div>
-      </div>
+      )}
 
       <div className="bg-white rounded-lg shadow-sm border border-gray-100 overflow-hidden">
         <div className="px-4 py-3 border-b border-gray-100 bg-gradient-to-r from-[#42aeec]/5 to-transparent flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <div>
-            <h2 className="text-sm font-bold text-gray-900">Orders</h2>
+            <h2 className="text-sm font-bold text-gray-900">{isCompletedOnly ? "Completed Orders" : "Orders"}</h2>
             <p className="text-xs text-gray-500 mt-0.5">
               {pagination.totalCount} order{pagination.totalCount !== 1 ? "s" : ""} found
               {pagination.totalPages > 1 && ` • Page ${pagination.page} of ${pagination.totalPages}`}
@@ -378,19 +399,21 @@ const Orders: React.FC = () => {
                 className="pl-9 pr-3 py-2 text-sm border border-gray-300 rounded-lg w-48 focus:border-[#42aeec] focus:ring-2 focus:ring-[#42aeec]/20"
               />
             </div>
-            <select
-              value={statusFilter}
-              onChange={(e) => { setStatusFilter(e.target.value); setPage(1); }}
-              className="px-3 py-2 text-sm border border-gray-300 rounded-lg focus:border-[#42aeec] focus:ring-2 focus:ring-[#42aeec]/20"
-            >
-              <option value="all">All Status</option>
-              <option value="pending">Pending</option>
-              <option value="completed">Completed</option>
-              <option value="Created">Created</option>
-              <option value="Assigned">Assigned</option>
-              <option value="Shared">Shared</option>
-              <option value="in-progress">In Progress</option>
-            </select>
+            {!isCompletedOnly && (
+              <select
+                value={statusFilter}
+                onChange={(e) => { setStatusFilter(e.target.value); setPage(1); }}
+                className="px-3 py-2 text-sm border border-gray-300 rounded-lg focus:border-[#42aeec] focus:ring-2 focus:ring-[#42aeec]/20"
+              >
+                <option value="all">All Status</option>
+                <option value="pending">Pending</option>
+                <option value="completed">Completed</option>
+                <option value="Created">Created</option>
+                <option value="Assigned">Assigned</option>
+                <option value="Shared">Shared</option>
+                <option value="in-progress">In Progress</option>
+              </select>
+            )}
           </div>
         </div>
 

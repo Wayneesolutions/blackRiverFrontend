@@ -205,6 +205,11 @@ const FleetInvoicesPage = () => {
 
   const [messageOnInvoice, setMessageOnInvoice] = useState('');
 
+  // Labour charges (outside line items)
+  const [labourHours, setLabourHours] = useState<number>(0);
+  const [labourRate, setLabourRate] = useState<number>(0);
+  const [labourTax, setLabourTax] = useState<string>('gst');
+
   const selectedCustomer = customers.find((c) => c._id === customerId);
 
   const formatBillingAddress = (cust?: FleetCustomer | null) => {
@@ -463,14 +468,27 @@ const FleetInvoicesPage = () => {
     setLineItems((prev) => prev.filter((i) => i.id !== id));
   };
 
-  const subtotal = useMemo(() => lineItems.reduce((sum, i) => sum + i.amount, 0), [lineItems]);
-  const totalTax = useMemo(() => {
+  // Calculate items subtotal and tax
+  const itemsSubtotal = useMemo(() => lineItems.reduce((sum, i) => sum + i.amount, 0), [lineItems]);
+  const itemsTax = useMemo(() => {
     return lineItems.reduce((sum, item) => {
       const tax = allTaxes.find((t) => t.id === item.salesTax);
       const rate = tax ? tax.percent / 100 : 0;
       return sum + item.amount * rate;
     }, 0);
   }, [lineItems, allTaxes]);
+
+  // Calculate labour amount and tax
+  const labourAmount = useMemo(() => labourHours * labourRate, [labourHours, labourRate]);
+  const labourTaxAmount = useMemo(() => {
+    const tax = allTaxes.find((t) => t.id === labourTax);
+    const rate = tax ? tax.percent / 100 : 0;
+    return labourAmount * rate;
+  }, [labourAmount, labourTax, allTaxes]);
+
+  // Final totals
+  const subtotal = itemsSubtotal + labourAmount; // Items + Labour
+  const totalTax = itemsTax + labourTaxAmount; // Items tax + Labour tax
   const totalBalance = subtotal + totalTax;
 
   const handleSaveAndClose = async () => {
@@ -517,6 +535,9 @@ const FleetInvoicesPage = () => {
       }
       const billingAddressStr = billingAddrParts.length > 0 ? billingAddrParts.join('\n') : billingAddress;
 
+      // Get labour tax details
+      const labourTaxOption = allTaxes.find((t) => t.id === labourTax);
+
       const invoiceData = {
         invoiceNumber: invoiceNo || undefined, // Let backend generate if empty
         invoiceDate: invoiceDate,
@@ -527,6 +548,11 @@ const FleetInvoicesPage = () => {
         customerId: customerId,
         terms: terms || null,
         items: invoiceItems,
+        labourHours: labourHours || 0,
+        labourRate: labourRate || 0,
+        labourTaxId: labourTaxOption?.id || null,
+        labourTaxName: labourTaxOption?.name || null,
+        labourTaxPercent: labourTaxOption?.percent || 0,
         dueDate: dueDate || invoiceDate, // Use dueDate if set, otherwise invoiceDate
         messageOnInvoice: messageOnInvoice || null,
         notes: null,
@@ -666,6 +692,15 @@ const FleetInvoicesPage = () => {
           setLineItems(items);
         } else {
           setLineItems([{ id: '1', serviceDate: '', productService: '', description: '', qty: 1, rate: 0, amount: 0, salesTax: 'gst' }]);
+        }
+
+        // Load labour charges
+        setLabourHours(Number(invoice.labourHours) || 0);
+        setLabourRate(Number(invoice.labourRate) || 0);
+        if (invoice.labourTaxId) {
+          setLabourTax(invoice.labourTaxId);
+        } else {
+          setLabourTax('gst');
         }
         
         setSidebarOpen(true);
@@ -929,13 +964,71 @@ const FleetInvoicesPage = () => {
         yPos += rowHeight;
       }
 
+      // Labour Charges section (if applicable)
+      const labourHours = Number(invoice.labourHours) || 0;
+      const labourRate = Number(invoice.labourRate) || 0;
+      const labourAmount = Number(invoice.labourAmount) || labourHours * labourRate;
+      const labourTaxPercent = Number(invoice.labourTaxPercent) || 0;
+      const labourTaxAmount = labourAmount * (labourTaxPercent / 100);
+
+      if (labourAmount > 0) {
+        yPos += 10;
+        checkPageBreak(20);
+        
+        doc.setFont('helvetica', 'bold');
+        doc.setFontSize(10);
+        doc.text('Labour Charges', tableLeft, yPos);
+        yPos += 8;
+
+        doc.setFont('helvetica', 'normal');
+        doc.setFontSize(9);
+        doc.text(`Hours: ${labourHours.toFixed(1)}`, tableLeft, yPos);
+        doc.text(`Hourly Rate: $${labourRate.toFixed(2)}`, colDescLeft, yPos);
+        doc.text(`Labour Amount: $${labourAmount.toFixed(2)}`, tableRight, yPos, { align: 'right' });
+        yPos += 6;
+
+        if (labourTaxAmount > 0) {
+          doc.text(`Labour Tax (${labourTaxPercent}%): $${labourTaxAmount.toFixed(2)}`, tableRight, yPos, { align: 'right' });
+          yPos += 6;
+        }
+      }
+
       yPos += 10;
       checkPageBreak(35);
 
+      // Calculate breakdown
+      const itemsSubtotal = items.reduce((sum, item) => {
+        const qty = Number(item.quantity) || 1;
+        const rate = Number(item.unitPrice) || 0;
+        return sum + (qty * rate);
+      }, 0);
+      const itemsTax = items.reduce((sum, item) => {
+        const qty = Number(item.quantity) || 1;
+        const rate = Number(item.unitPrice) || 0;
+        const itemTotal = qty * rate;
+        const taxPercent = Number(item.taxPercent) || 0;
+        return sum + (itemTotal * taxPercent / 100);
+      }, 0);
+
       // Totals
-      const subtotal = Number(invoice.subtotal) || 0;
-      const taxAmount = Number(invoice.taxAmount) || 0;
+      const subtotal = Number(invoice.subtotal) || (itemsSubtotal + labourAmount);
+      const taxAmount = Number(invoice.taxAmount) || (itemsTax + labourTaxAmount);
       const total = Number(invoice.total) || subtotal + taxAmount;
+
+      // Show breakdown if both items and labour exist
+      if (itemsSubtotal > 0 && labourAmount > 0) {
+        doc.setFont('helvetica', 'bold');
+        doc.text('Items Subtotal:', colRateLeft + colRateWidth, yPos, { align: 'right' });
+        doc.setFont('helvetica', 'normal');
+        doc.text(`$${itemsSubtotal.toFixed(2)}`, tableRight, yPos, { align: 'right' });
+        yPos += 7;
+
+        doc.setFont('helvetica', 'bold');
+        doc.text('Labour Charges:', colRateLeft + colRateWidth, yPos, { align: 'right' });
+        doc.setFont('helvetica', 'normal');
+        doc.text(`$${labourAmount.toFixed(2)}`, tableRight, yPos, { align: 'right' });
+        yPos += 7;
+      }
 
       doc.setFont('helvetica', 'bold');
       doc.text('Subtotal:', colRateLeft + colRateWidth, yPos, { align: 'right' });
@@ -943,7 +1036,18 @@ const FleetInvoicesPage = () => {
       doc.text(`$${subtotal.toFixed(2)}`, tableRight, yPos, { align: 'right' });
       yPos += 7;
 
+      // Show tax breakdown if both items tax and labour tax exist
+      if (itemsTax > 0 && labourTaxAmount > 0) {
+        doc.setFont('helvetica', 'normal');
+        doc.setFontSize(8);
+        doc.text(`Items Tax: $${itemsTax.toFixed(2)}`, tableRight, yPos, { align: 'right' });
+        yPos += 5;
+        doc.text(`Labour Tax: $${labourTaxAmount.toFixed(2)}`, tableRight, yPos, { align: 'right' });
+        yPos += 5;
+      }
+
       doc.setFont('helvetica', 'bold');
+      doc.setFontSize(9);
       doc.text('Tax:', colRateLeft + colRateWidth, yPos, { align: 'right' });
       doc.setFont('helvetica', 'normal');
       doc.text(`$${taxAmount.toFixed(2)}`, tableRight, yPos, { align: 'right' });
@@ -987,6 +1091,9 @@ const FleetInvoicesPage = () => {
     setMessageOnInvoice('');
     setCustomTaxes([]);
     setAddingTaxForLineId(null);
+    setLabourHours(0);
+    setLabourRate(0);
+    setLabourTax('gst');
   };
 
   return (
@@ -1508,6 +1615,73 @@ const FleetInvoicesPage = () => {
                 )}
               </section>
 
+              {/* Labour Charges */}
+              <section>
+                <h3 className="text-sm font-semibold text-gray-500 uppercase tracking-wide mb-4">Labour Charges</h3>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Hours <span className="text-red-500">*</span>
+                    </label>
+                    <input
+                      type="number"
+                      min="0"
+                      step="0.5"
+                      value={labourHours || ''}
+                      onChange={(e) => setLabourHours(Number(e.target.value) || 0)}
+                      className="w-full px-3 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                      placeholder="0.0"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Hourly Rate ($) <span className="text-red-500">*</span>
+                    </label>
+                    <input
+                      type="number"
+                      min="0"
+                      step="0.01"
+                      value={labourRate || ''}
+                      onChange={(e) => setLabourRate(Number(e.target.value) || 0)}
+                      className="w-full px-3 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                      placeholder="0.00"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Tax</label>
+                    <select
+                      value={labourTax}
+                      onChange={(e) => setLabourTax(e.target.value)}
+                      className="w-full px-3 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    >
+                      {allTaxes.map((tax) => (
+                        <option key={tax.id} value={tax.id}>
+                          {tax.name} {tax.percent > 0 ? `(${tax.percent}%)` : ''}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                </div>
+                {labourAmount > 0 && (
+                  <div className="mt-3 p-3 bg-blue-50 rounded-lg border border-blue-200">
+                    <div className="flex justify-between items-center">
+                      <span className="text-sm font-medium text-gray-700">Labour Amount:</span>
+                      <span className="text-lg font-semibold text-blue-600">
+                        ${labourAmount.toFixed(2)}
+                      </span>
+                    </div>
+                    {labourTaxAmount > 0 && (
+                      <div className="flex justify-between items-center mt-1">
+                        <span className="text-sm text-gray-600">Labour Tax:</span>
+                        <span className="text-sm font-medium text-gray-700">
+                          ${labourTaxAmount.toFixed(2)}
+                        </span>
+                      </div>
+                    )}
+                  </div>
+                )}
+              </section>
+
               {/* Message & Totals */}
               <section>
                 <h3 className="text-sm font-semibold text-gray-500 uppercase tracking-wide mb-4">Message &amp; Totals</h3>
@@ -1523,10 +1697,34 @@ const FleetInvoicesPage = () => {
                     />
                   </div>
                   <div className="max-w-xs ml-auto rounded-lg border border-gray-200 bg-gray-50 p-4 space-y-2">
+                    {itemsSubtotal > 0 && (
+                      <div className="flex justify-between text-sm text-gray-600">
+                        <span>Items Subtotal</span>
+                        <span className="font-medium text-gray-900">${itemsSubtotal.toFixed(2)}</span>
+                      </div>
+                    )}
+                    {labourAmount > 0 && (
+                      <div className="flex justify-between text-sm text-gray-600">
+                        <span>Labour Charges</span>
+                        <span className="font-medium text-gray-900">${labourAmount.toFixed(2)}</span>
+                      </div>
+                    )}
                     <div className="flex justify-between text-sm text-gray-600">
                       <span>Subtotal</span>
                       <span className="font-medium text-gray-900">${subtotal.toFixed(2)}</span>
                     </div>
+                    {itemsTax > 0 && labourTaxAmount > 0 && (
+                      <>
+                        <div className="flex justify-between text-xs text-gray-500 pl-2">
+                          <span>Items Tax</span>
+                          <span>${itemsTax.toFixed(2)}</span>
+                        </div>
+                        <div className="flex justify-between text-xs text-gray-500 pl-2">
+                          <span>Labour Tax</span>
+                          <span>${labourTaxAmount.toFixed(2)}</span>
+                        </div>
+                      </>
+                    )}
                     <div className="flex justify-between text-sm text-gray-600">
                       <span>Tax</span>
                       <span className="font-medium text-gray-900">${totalTax.toFixed(2)}</span>

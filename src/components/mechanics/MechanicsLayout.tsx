@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Outlet } from "react-router-dom";
 import MechanicsSidebar from "./MechanicsSidebar";
-import Header from "../admin/Header";
+import MechanicsHeader from "./MechanicsHeader";
 
 interface MechanicsLayoutProps {
   basePath?: string;
@@ -22,7 +22,7 @@ function MechanicsLayout({ basePath = "/admin/mechanics" }: MechanicsLayoutProps
 
       <div className="flex flex-col flex-1 h-full overflow-hidden">
         <div className="flex-shrink-0 fleet-header-container">
-          <Header isSidebarCollapsed={isSidebarCollapsed} onToggleSidebar={toggleSidebar} />
+          <MechanicsHeader isSidebarCollapsed={isSidebarCollapsed} onToggleSidebar={toggleSidebar} basePath={basePath} />
         </div>
 
         <main className="flex-1 overflow-y-auto">

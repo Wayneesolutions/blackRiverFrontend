@@ -60,6 +60,41 @@ export const listMechanicOrders = async (params?: {
   return res.data;
 };
 
+export interface MechanicDashboardData {
+  total: number;
+  completed: number;
+  pending: number;
+  completionRate: number;
+  myAssigned: number;
+  myCompleted: number;
+  myPending: number;
+  totalRepairAmount: number;
+  avgRepairCost: number;
+  recentOrders: Array<{
+    id: string;
+    unit?: string;
+    description?: string;
+    status?: string;
+    date?: string;
+  }>;
+}
+
+export interface MechanicDashboardResponse {
+  success: boolean;
+  data?: MechanicDashboardData;
+  message?: string;
+}
+
+export const getMechanicDashboard = async (params?: {
+  month?: number;
+  year?: number;
+}): Promise<MechanicDashboardResponse> => {
+  const res = await apiClient.get("admin/fleet-maintenance/mechanic/dashboard", {
+    params,
+  });
+  return res.data;
+};
+
 export interface UpdateOrderStatusResponse {
   success: boolean;
   message?: string;

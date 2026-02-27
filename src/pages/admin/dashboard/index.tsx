@@ -336,7 +336,7 @@ const Index = () => {
                 iconColor: "text-slate-600",
                 accentColor: "bg-slate-600",
                 percentage: (stats.maintenanceOrdersCount ?? 0) > 0 ? Math.min(100, ((stats.maintenanceOrdersCount ?? 0) / 50) * 100) : 0,
-                route: "/admin/mechanics/orders",
+                route: "/admin/mechanics/dashboard",
             },
             {
                 id: "compliance",

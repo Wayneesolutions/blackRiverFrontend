@@ -1,6 +1,6 @@
 import React from "react";
 import { NavLink, useNavigate } from "react-router-dom";
-import { FaClipboardList } from "react-icons/fa";
+import { FaClipboardList, FaTachometerAlt, FaUser, FaCheckCircle } from "react-icons/fa";
 import Logo from "../../assets/images/LI.png";
 import FullLogo from "../../assets/FleetGo.png";
 import { getDashboardRoute } from "../../utils/auth";
@@ -12,9 +12,24 @@ interface MechanicsSidebarProps {
 
 const getSidebarLinks = (basePath: string) => [
   {
+    key: `${basePath}/dashboard`,
+    label: "Dashboard",
+    icon: <FaTachometerAlt className="text-lg" />,
+  },
+  {
     key: `${basePath}/orders`,
     label: "Orders",
     icon: <FaClipboardList className="text-lg" />,
+  },
+  {
+    key: `${basePath}/completed-orders`,
+    label: "Completed Orders",
+    icon: <FaCheckCircle className="text-lg" />,
+  },
+  {
+    key: `${basePath}/profile`,
+    label: "Profile",
+    icon: <FaUser className="text-lg" />,
   },
 ];
 
@@ -58,13 +73,13 @@ const MechanicsSidebar: React.FC<MechanicsSidebarProps> = ({ isCollapsed = false
                 <NavLink
                   to={link.key}
                   className={({ isActive }) =>
-                    `flex items-center gap-3 px-4 py-2.5 transition ${
+                    `flex items-center gap-3 px-4 py-2.5 transition cursor-pointer select-none ${
                       isActive ? "bg-[#42aeec]/10 text-[#42aeec]" : "text-gray-600 hover:bg-gray-50 hover:text-[#42aeec]"
                     }`
                   }
                 >
-                  <span className="text-xl">{link.icon}</span>
-                  {!isCollapsed && <span className="text-sm font-medium">{link.label}</span>}
+                  <span className="flex-shrink-0 text-xl">{link.icon}</span>
+                  {!isCollapsed && <span className="text-sm font-medium truncate">{link.label}</span>}
                 </NavLink>
               </li>
             ))}
