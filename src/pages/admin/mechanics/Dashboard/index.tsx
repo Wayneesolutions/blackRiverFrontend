@@ -27,7 +27,7 @@ const Dashboard: React.FC = () => {
 
   const now = new Date();
   const [selectedMonth, setSelectedMonth] = useState(now.getMonth());
-  const [selectedYear, setSelectedYear] = useState(now.getFullYear());
+  const [selectedYear, ] = useState(now.getFullYear());
   const [monthDropdownOpen, setMonthDropdownOpen] = useState(false);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -278,7 +278,7 @@ const Dashboard: React.FC = () => {
                 >
                   <td className="px-4 py-3 text-sm font-medium text-gray-900">{order.unit}</td>
                   <td className="px-4 py-3 text-sm text-gray-600">{order.description}</td>
-                  <td className="px-4 py-3">{statusBadge(order.status)}</td>
+                  <td className="px-4 py-3">{statusBadge(order.status ?? '')}</td>
                   <td className="px-4 py-3 text-sm text-gray-600">
                     {order.date
                       ? new Date(order.date).toLocaleDateString("en-US", {

@@ -2,7 +2,6 @@ import React, { useState, useEffect } from "react";
 import {
   User,
   MapPin,
-  Save,
   Key,
   Eye,
   EyeOff,
@@ -122,13 +121,6 @@ const MechanicsProfile: React.FC = () => {
     setEditForm((prev) => ({ ...prev, [name]: value }));
   };
 
-  const handleLocationChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value } = e.target;
-    setEditForm((prev) => ({
-      ...prev,
-      location: { ...prev.location, [name]: value },
-    }));
-  };
 
   const handleSaveProfile = async () => {
     if (!editForm.name?.trim()) {

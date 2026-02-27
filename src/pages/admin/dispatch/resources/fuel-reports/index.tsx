@@ -6,7 +6,6 @@ import NewFuelReportSidebar from "./NewFuelReportSidebar";
 import {
   listFuelReport,
   deleteFuelReport,
-  updateStatusFuelReport,
   updateFuelReport,
   getFuelTypes,
   createFuelType,
@@ -15,7 +14,6 @@ import {
   getFuelVendors,
   createFuelVendor,
 } from "../../../../../axios/api/dispatcher.fuelreport";
-import { useDrivers } from "../../../../../customHooks/useDrivers";
 import { listFleetUnits } from "../../../../../axios/api/fleet.units";
 import { FLEET_COLORS } from "../../../fleetMaintenance/colorUtils";
 import AddressSearch from "../../../../../components/common/AddressSearch";
@@ -50,6 +48,7 @@ interface FuelReportType {
   cost?: number;
   status: string;
   createdAt: string;
+  location?: { address?: string; latitude?: string; longitude?: string };
 }
 
 interface FuelReportEditForm {
@@ -140,7 +139,7 @@ const FuelReports = () => {
   const [unitsLoading, setUnitsLoading] = useState(false);
   const hasFetchedRef = useRef(false);
 
-  const { drivers } = useDrivers();
+
   const unitsMap = useMemo(() => new Map(units.map((unit) => [unit.id, unit])), [units]);
   const focusRingStyle = useMemo(
     () =>
@@ -446,24 +445,7 @@ const FuelReports = () => {
     }
   };
 
-  const handleStatusUpdate = async (id: string, status: string) => {
-    try {
-      const res = await updateStatusFuelReport(id, { status });
-      if (res.success) {
-        setFuelReports((prev) =>
-          prev.map((report) =>
-            report._id === id ? { ...report, status } : report
-          )
-        );
-        message.success(res.message || "Status updated successfully");
-      } else {
-        message.error(res.message || "Failed to update status");
-      }
-    } catch (error) {
-      console.error(error);
-      message.error("Failed to update status");
-    }
-  };
+ 
 
   // Fetch fuel types, units, and vendors for edit modal
   const fetchEditFuelTypes = useCallback(async () => {
@@ -725,18 +707,7 @@ const FuelReports = () => {
     setSearchTerm(e.target.value);
   };
 
-  const getStatusColor = (status: string) => {
-    switch (status.toLowerCase()) {
-      case "approved":
-        return "bg-green-100 text-green-800";
-      case "pending":
-        return "bg-yellow-100 text-yellow-800";
-      case "rejected":
-        return "bg-red-100 text-red-800";
-      default:
-        return "bg-gray-100 text-gray-800";
-    }
-  };
+
 
   // No need for client-side filtering since backend handles it
   const filteredReports = fuelReports;

@@ -5,7 +5,7 @@ import {
   type MechanicOrder,
 } from "../../../../axios/api/mechanicOrders";
 import { getAllSpareParts } from "../../../../axios/api/fleet.spareparts";
-import { Play, CheckCircle, X, Plus, Trash2, FileText, Wrench, Package, Eye, Calendar, Search, ChevronLeft, ChevronRight, LayoutGrid, ChevronDown, ChevronUp, Car, PackageOpen } from "lucide-react";
+import { Play, CheckCircle, X, Trash2, FileText, Wrench, Package, Eye, Calendar, Search, ChevronLeft, ChevronRight, LayoutGrid, ChevronDown, ChevronUp, Car, PackageOpen } from "lucide-react";
 
 const formatDate = (value?: string) => {
   if (!value) return "—";

@@ -162,7 +162,7 @@ const FleetInvoicesPage = () => {
   const [productOptions, setProductOptions] = useState<ProductOption[]>([]);
   const [productOptionsLoading, setProductOptionsLoading] = useState(false);
 
-  const [customServices, setCustomServices] = useState<CustomServiceDef[]>([]);
+  const [, setCustomServices] = useState<CustomServiceDef[]>([]);
 
   // Step 1: Header
   const [customerId, setCustomerId] = useState('');
@@ -237,7 +237,7 @@ const FleetInvoicesPage = () => {
           setCustomers(res.data);
         } else {
           setCustomers([]);
-          setCustomersError(res?.message || 'Unable to load customers.');
+          setCustomersError((res as { message?: string })?.message || 'Unable to load customers.');
         }
       } catch (err: any) {
         console.error('Failed to load fleet customers', err);
@@ -919,7 +919,7 @@ const FleetInvoicesPage = () => {
       const colQtyWidth = 12;
       const colRateLeft = colQtyLeft + colQtyWidth + 4;
       const colRateWidth = 22;
-      const colAmountLeft = colRateLeft + colRateWidth + 4;
+      
       const tableRight = pageWidth - margin;
 
       doc.setFontSize(9);
@@ -997,12 +997,12 @@ const FleetInvoicesPage = () => {
       checkPageBreak(35);
 
       // Calculate breakdown
-      const itemsSubtotal = items.reduce((sum, item) => {
+      const itemsSubtotal = items.reduce((sum: number, item: any) => {
         const qty = Number(item.quantity) || 1;
         const rate = Number(item.unitPrice) || 0;
         return sum + (qty * rate);
       }, 0);
-      const itemsTax = items.reduce((sum, item) => {
+      const itemsTax = items.reduce((sum: number, item: any) => {
         const qty = Number(item.quantity) || 1;
         const rate = Number(item.unitPrice) || 0;
         const itemTotal = qty * rate;

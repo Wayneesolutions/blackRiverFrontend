@@ -41,6 +41,7 @@ type MechanicInvoice = {
   serviceCategory: string;
   location: string;
   amount?: number;
+  customer?: string;
   taxes?: Array<{ name: string; percentage: number }>;
   taxAmount?: number;
   totalAmount?: number;
@@ -673,7 +674,7 @@ const ComplianceInvoices = () => {
                                   {invoice.taxes.map((tax: any, idx: number) => (
                                     <span key={idx}>
                                       {tax.name || 'Tax'}: {tax.percentage}% (${((invoice.amount || 0) * (tax.percentage || 0) / 100).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })})
-                                      {idx < invoice.taxes.length - 1 ? <br /> : ''}
+                                      {idx < (invoice.taxes?.length ?? 0) - 1 ? <br /> : ''}
                                     </span>
                                   ))}
                                 </div>

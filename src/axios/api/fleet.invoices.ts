@@ -27,7 +27,8 @@ export const getFleetInvoiceSummary = async (): Promise<{ success: boolean; data
     return res.data;
   } catch (error: unknown) {
     const err = error as Error;
-    return err.response?.data || { success: false, message: 'Failed to load invoice summary' };
+    const data = err.response?.data as { success?: boolean; message?: string } | undefined;
+    return { success: false, ...data, message: data?.message || 'Failed to load invoice summary' };
   }
 };
 

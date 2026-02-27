@@ -422,6 +422,37 @@ const MonthlyReport: React.FC = () => {
     }
   };
 
+  // Fetch monthly report data (defined at component level so handlers can call it)
+  const fetchMonthlyReport = async () => {
+    setLoading(true);
+    try {
+      const countryFilter = selectedCountry === 'all' ? undefined : selectedCountry;
+      const res = await getCvsaMonthlyReport(selectedYear, countryFilter);
+
+      if (res?.success && Array.isArray(res?.data?.monthlyData)) {
+        const sanitized = res.data.monthlyData.map(normalizeMonthlyStat);
+        setMonthlyData(sanitized);
+        const currentSelectedMonth = selectedMonth;
+        if (!currentSelectedMonth || !sanitized.find((d: MonthlyStats) => d.month === currentSelectedMonth)) {
+          const currentMonthName = new Date().toLocaleString('default', { month: 'long' });
+          const monthExists = sanitized.find((d: MonthlyStats) => d.month === currentMonthName);
+          setSelectedMonth(monthExists ? currentMonthName : (sanitized[sanitized.length - 1]?.month || ''));
+        }
+      } else {
+        setMonthlyData([]);
+        setSelectedMonth('');
+        setCurrentMonthData(null);
+      }
+    } catch (error) {
+      console.error('Error fetching monthly report:', error);
+      setMonthlyData([]);
+      setSelectedMonth('');
+      setCurrentMonthData(null);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   // Handle save extracted data
   const handleSaveExtractedData = async () => {
     if (!extractedData) return;
@@ -531,37 +562,6 @@ const MonthlyReport: React.FC = () => {
 
   // Fetch monthly report data
   useEffect(() => {
-    const fetchMonthlyReport = async () => {
-      setLoading(true);
-      try {
-        const countryFilter = selectedCountry === 'all' ? undefined : selectedCountry;
-        const res = await getCvsaMonthlyReport(selectedYear, countryFilter);
-
-        if (res?.success && Array.isArray(res?.data?.monthlyData)) {
-          const sanitized = res.data.monthlyData.map(normalizeMonthlyStat);
-          setMonthlyData(sanitized);
-          // Set selected month to current month if not set or if selected month doesn't exist in new data
-          const currentSelectedMonth = selectedMonth;
-          if (!currentSelectedMonth || !sanitized.find((d: MonthlyStats) => d.month === currentSelectedMonth)) {
-            const currentMonthName = new Date().toLocaleString('default', { month: 'long' });
-            const monthExists = sanitized.find((d: MonthlyStats) => d.month === currentMonthName);
-            setSelectedMonth(monthExists ? currentMonthName : (sanitized[sanitized.length - 1]?.month || ''));
-          }
-        } else {
-          setMonthlyData([]);
-          setSelectedMonth('');
-          setCurrentMonthData(null);
-        }
-      } catch (error) {
-        console.error('Error fetching monthly report:', error);
-        setMonthlyData([]);
-        setSelectedMonth('');
-        setCurrentMonthData(null);
-      } finally {
-        setLoading(false);
-      }
-    };
-
     fetchMonthlyReport();
     fetchRealViolations();
     fetchCarrierPerformance();

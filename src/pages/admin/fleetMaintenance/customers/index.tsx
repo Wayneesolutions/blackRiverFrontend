@@ -190,7 +190,7 @@ const FleetMaintenanceCustomers = () => {
         setCustomers(res.data.map(mapApiToRow));
       } else {
         setCustomers([]);
-        setCustomersError(res?.message ?? 'Failed to load customers');
+        setCustomersError((res as { message?: string })?.message ?? 'Failed to load customers');
       }
     } catch {
       setCustomers([]);

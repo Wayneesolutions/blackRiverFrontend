@@ -107,7 +107,7 @@ function Header({ onToggleSidebar }: { onToggleSidebar: () => void }) {
                 thirtyDaysFromNow.setDate(thirtyDaysFromNow.getDate() + 30);
                 thirtyDaysFromNow.setHours(23, 59, 59, 999);
                 
-                const incomingServices = allServices.filter((service) => {
+                const incomingServices = allServices.filter((service: VehicleServiceResponse) => {
                     // Check if service is due within 30 days
                     if (service.dueDate) {
                         const dueDate = new Date(service.dueDate);
