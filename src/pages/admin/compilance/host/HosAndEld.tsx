@@ -1,8 +1,9 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import {
     RefreshCw, ShieldCheck, 
     Download, Upload, FileText, X, FileCheck, Plus, Eye, Pencil, Check
 } from 'lucide-react';
+import jsPDF from 'jspdf';
 import { 
     getHOSEldData, 
     syncHOSFromSamsara, 
@@ -52,6 +53,8 @@ interface AuditTableRow {
   reportingTo: string;
   auditDate: string;
   incidentDate: string;
+  incidentTime?: string;
+  incidentLocation?: string;
   drivingHours: number;
   onDutyHours: number;
   offDutyHours: number;
@@ -65,6 +68,14 @@ interface AuditTableRow {
 }
 
 const ELOG_DISPLAY_NAMES_KEY = 'compliance-elog-display-names';
+
+// Default static content for HOS Progressive Disciplinary Action form (user can edit before download)
+const DEFAULT_NOTICE_TO_EMPLOYEE = `Notice to employee: You have been given this notice to impress upon you the seriousness of the incident noted above. We are confident that you will correct this situation. However, if this type of incident re-occurs, you will be subject to further disciplinary action, up to and including termination of employment.`;
+const DEFAULT_EMPLOYEE_COMMENTS = `By signing below, I acknowledge that I have received a copy of the above notice of discipline and that the job performance requirements have been explained to me.`;
+
+// Incident type options matching HOS Progressive Disciplinary Action form
+const DISCIPLINARY_INCIDENT_TYPES = ['Job Performance', 'Competence', 'Professionalism', 'Attendance/Reliability', 'Hours of Service Violation', 'Other'];
+const DISCIPLINARY_CORRECTIVE_ACTIONS = ['Verbal warning (documented)', 'Written warning (documented)', 'Suspension', 'Termination', 'Other (including documentation)'];
 
 const VehicleEldMonitor = () => {
   const [activeTab, setActiveTab] = useState<'tracker' | 'audit-form' | 'e-logs'>('tracker');
@@ -88,6 +99,8 @@ const VehicleEldMonitor = () => {
     reportingTo: '',           // Reporting To (text)
     auditDate: new Date().toISOString().split('T')[0],
     incidentDate: '',          // Incident Date (distinct from Audit Date)
+    incidentTime: '',          // Incident Time
+    incidentLocation: '',      // Incident Location
     drivingHours: 0,
     onDutyHours: 0,
     offDutyHours: 0,
@@ -114,6 +127,19 @@ const VehicleEldMonitor = () => {
   const [newIncidentTypeOption, setNewIncidentTypeOption] = useState('');
   const [newCorrectiveActionOption, setNewCorrectiveActionOption] = useState('');
   const [auditFormDocuments, setAuditFormDocuments] = useState<File[]>([]);
+
+  // Download form modal: HOS Progressive Disciplinary Action form (editable static sections)
+  const [downloadFormOpen, setDownloadFormOpen] = useState(false);
+  const [downloadFormRow, setDownloadFormRow] = useState<AuditTableRow | null>(null);
+  const [editableFormState, setEditableFormState] = useState({
+    noticeToEmployee: DEFAULT_NOTICE_TO_EMPLOYEE,
+    employeeComments: DEFAULT_EMPLOYEE_COMMENTS,
+    managerSignature: '',
+    managerDate: '',
+    employeeSignature: '',
+    employeeDate: ''
+  });
+  const hosFormPrintRef = useRef<HTMLDivElement>(null);
 
   // E-Logs State
   const [eLogs, setELogs] = useState<ELogFile[]>([]);
@@ -194,6 +220,8 @@ const VehicleEldMonitor = () => {
           reportingTo: row.reportingTo ?? '',
           auditDate: typeof row.auditDate === 'string' ? row.auditDate : row.auditDate?.toISOString?.()?.split('T')[0] ?? '',
           incidentDate: row.incidentDate ? (typeof row.incidentDate === 'string' ? row.incidentDate : row.incidentDate?.toISOString?.()?.split('T')[0]) : '—',
+          incidentTime: row.incidentTime ?? '',
+          incidentLocation: row.incidentLocation ?? '',
           drivingHours: row.drivingHours ?? 0,
           onDutyHours: row.onDutyHours ?? 0,
           offDutyHours: row.offDutyHours ?? 0,
@@ -261,6 +289,8 @@ const VehicleEldMonitor = () => {
       if (auditFormData.reportingTo) formData.append('reportingTo', auditFormData.reportingTo);
       formData.append('auditDate', auditFormData.auditDate);
       if (auditFormData.incidentDate) formData.append('incidentDate', auditFormData.incidentDate);
+      if (auditFormData.incidentTime) formData.append('incidentTime', auditFormData.incidentTime);
+      if (auditFormData.incidentLocation) formData.append('incidentLocation', auditFormData.incidentLocation);
       formData.append('drivingHours', auditFormData.drivingHours.toString());
       formData.append('onDutyHours', auditFormData.onDutyHours.toString());
       formData.append('offDutyHours', auditFormData.offDutyHours.toString());
@@ -290,6 +320,8 @@ const VehicleEldMonitor = () => {
           reportingTo: '',
           auditDate: new Date().toISOString().split('T')[0],
           incidentDate: '',
+          incidentTime: '',
+          incidentLocation: '',
           drivingHours: 0,
           onDutyHours: 0,
           offDutyHours: 0,
@@ -460,6 +492,207 @@ const VehicleEldMonitor = () => {
   const cancelRenameELog = () => {
     setEditingELogId(null);
     setEditingELogValue('');
+  };
+
+  const openDownloadForm = (row: AuditTableRow) => {
+    setDownloadFormRow(row);
+    setEditableFormState({
+      noticeToEmployee: DEFAULT_NOTICE_TO_EMPLOYEE,
+      employeeComments: DEFAULT_EMPLOYEE_COMMENTS,
+      managerSignature: '',
+      managerDate: row.auditDate ? new Date(row.auditDate).toISOString().split('T')[0] : new Date().toISOString().split('T')[0],
+      employeeSignature: '',
+      employeeDate: row.auditDate ? new Date(row.auditDate).toISOString().split('T')[0] : new Date().toISOString().split('T')[0]
+    });
+    setDownloadFormOpen(true);
+  };
+
+  const closeDownloadForm = () => {
+    setDownloadFormOpen(false);
+    setDownloadFormRow(null);
+  };
+
+  const saveEditableFormState = () => {
+    setEditableFormState(prev => ({ ...prev })); // trigger re-render if needed; state is already editable
+    // Optional: could call API here to persist editable fields if backend supports it
+  };
+
+  const downloadHosFormPdf = () => {
+    if (!downloadFormRow || !hosFormPrintRef.current) return;
+    const row = downloadFormRow;
+    const doc = new jsPDF({ unit: 'mm', format: 'a4' });
+    const pageW = doc.internal.pageSize.getWidth();
+    const margin = 14;
+    let y = margin;
+    const lineH = 6;
+    const lineWd = 0.3;
+
+    const addText = (text: string, x: number, fontSize: number = 10, font: 'normal' | 'bold' = 'normal') => {
+      doc.setFontSize(fontSize);
+      doc.setFont('helvetica', font);
+      const lines = doc.splitTextToSize(text, pageW - 2 * margin);
+      lines.forEach((line: string) => {
+        if (y > 270) { doc.addPage(); y = margin; }
+        doc.text(line, x, y);
+        y += lineH * (fontSize / 10);
+      });
+    };
+    const drawCheckbox = (x: number, yPos: number, checked: boolean, size: number = 3) => {
+      doc.rect(x, yPos - size, size, size);
+      if (checked) {
+        doc.setLineWidth(0.35);
+        doc.setDrawColor(0, 0, 0);
+        const pad = 0.25;
+        const x1 = x + pad;
+        const y1 = yPos - size * 0.55;
+        const x2 = x + size * 0.45;
+        const y2 = yPos - size * 0.15;
+        const x3 = x + size - pad;
+        const y3 = yPos - size * 0.9;
+        doc.line(x1, y1, x2, y2);
+        doc.line(x2, y2, x3, y3);
+        doc.setLineWidth(0.1);
+      }
+    };
+    const sectionSpacing = 6; // adjust this value to increase/decrease top padding
+    const drawHorizontalLine = () => {
+      doc.setLineWidth(lineWd);
+      doc.setDrawColor(0, 0, 0);
+      doc.line(margin, y, pageW - margin, y);
+      y += 3;
+    };
+
+    const drawTableRow = (label: string, value: string, labelColW: number, tableW: number) => {
+      const rowY = y + lineH - 2;
+      doc.setFontSize(9);
+      doc.setFont('helvetica', 'normal');
+      doc.text(label, margin + 2, rowY);
+      doc.text(value || '—', margin + labelColW + 2, rowY);
+      doc.setLineWidth(0.1);
+      doc.setDrawColor(0, 0, 0);
+      doc.line(margin, y, margin, y + lineH);
+      doc.line(margin + labelColW, y, margin + labelColW, y + lineH);
+      doc.line(margin + tableW, y, margin + tableW, y + lineH);
+      doc.line(margin, y + lineH, margin + tableW, y + lineH);
+      y += lineH;
+    };
+
+    doc.setFontSize(14);
+    doc.setFont('helvetica', 'bold');
+    doc.text('HOS PROGRESSIVE DISCIPLINARY ACTION FORM', pageW / 2, y, { align: 'center' });
+    y += lineH + 4;
+
+    const labelColW = 42;
+    const tableW = pageW - 2 * margin;
+    doc.setLineWidth(0.1);
+    doc.setDrawColor(0, 0, 0);
+    doc.line(margin, y, margin + tableW, y);
+    drawTableRow('Employee Name:', row.driverName || '', labelColW, tableW);
+    drawTableRow('Driver ID:', row.driverId || '', labelColW, tableW);
+    drawTableRow('Reporting to:', row.reportingTo || '', labelColW, tableW);
+    drawTableRow('Date:', row.auditDate ? new Date(row.auditDate).toLocaleDateString() : '', labelColW, tableW);
+    drawHorizontalLine();
+
+    y += sectionSpacing;
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(10);
+    doc.text('Incident Information', margin, y); y += lineH;
+    doc.setLineWidth(0.1);
+    doc.line(margin, y, margin + tableW, y);
+    drawTableRow('Date:', row.incidentDate && row.incidentDate !== '—' ? new Date(row.incidentDate).toLocaleDateString() : '', labelColW, tableW);
+    drawTableRow('Time:', row.incidentTime || '', labelColW, tableW);
+    drawTableRow('Location:', row.incidentLocation || '', labelColW, tableW);
+    y += 2;
+    y += sectionSpacing;
+    doc.setFont('helvetica', 'normal');
+    doc.text('Incident type:', margin + 2, y); y += lineH;
+    let cx = margin;
+    DISCIPLINARY_INCIDENT_TYPES.forEach((opt) => {
+      const checked = (row.incidentTypes || []).some((t: string) =>
+        opt.toLowerCase().includes(t.toLowerCase()) || t.toLowerCase().includes(opt.toLowerCase().split(' ')[0])
+      );
+      if (cx + 45 > pageW - margin) { cx = margin; y += 5; }
+      drawCheckbox(cx, y, checked);
+      doc.setFontSize(8);
+      doc.text(opt, cx + 4, y);
+      doc.setFontSize(9);
+      cx += 45;
+    });
+    y += 5;
+    drawHorizontalLine();
+    y += sectionSpacing;
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(10);
+    doc.text('Incident details (has the employee been counselled before on this or a similar HOS occurrence?)', margin, y); y += lineH;
+    doc.setFont('helvetica', 'normal');
+    const priorYes = (row.priorCounseling || '').toString().toLowerCase() === 'yes';
+    const priorNo = (row.priorCounseling || '').toString().toLowerCase() === 'no' || !row.priorCounseling || row.priorCounseling === '—';
+    doc.text('Yes', margin + 4, y);
+    drawCheckbox(margin, y, priorYes);
+    doc.text('No', margin + 18, y);
+    drawCheckbox(margin + 14, y, priorNo);
+    y += lineH;
+    addText(row.notes || '—', margin + 2); y += 2;
+    drawHorizontalLine();
+    y += sectionSpacing;
+    doc.setFont('helvetica', 'bold');
+    doc.text('Corrective action taken', margin, y); y += lineH;
+    doc.setFont('helvetica', 'normal');
+    let ax = margin;
+    DISCIPLINARY_CORRECTIVE_ACTIONS.forEach((opt) => {
+      const key = opt.split(' ')[0].toLowerCase();
+      const checked = row.correctiveActionType && row.correctiveActionType.toLowerCase().includes(key);
+      if (ax + 52 > pageW - margin) { ax = margin; y += 5; }
+      drawCheckbox(ax, y, !!checked);
+      doc.setFontSize(7);
+      doc.text(opt, ax + 4, y);
+      doc.setFontSize(9);
+      ax += 52;
+    });
+    y += 5;
+    doc.setFontSize(9);
+    doc.text(`Comments: ${row.correctiveActionType || '—'}`, margin, y); y += lineH + 2;
+    drawHorizontalLine();
+    y += sectionSpacing;
+    const sigLineW = 70;
+    const dateX = pageW - margin - 35;
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(10);
+    doc.text("Manager's Signature:", margin, y); y += lineH;
+    doc.setFont('helvetica', 'normal');
+    doc.setLineWidth(0.2);
+    y += sectionSpacing;
+    doc.line(margin, y, margin + sigLineW, y);
+    doc.setLineWidth(0.1);
+    doc.text(editableFormState.managerSignature || '', margin, y - 1);
+    doc.text(`Date: ${editableFormState.managerDate || ''}`, dateX, y); y += lineH + 3;
+    drawHorizontalLine();
+    y += sectionSpacing;
+    doc.setFont('helvetica', 'bold');
+    doc.text('Notice to employee:', margin, y); y += lineH;
+    doc.setFont('helvetica', 'normal');
+    addText(editableFormState.noticeToEmployee, margin, 9); y += 4;
+    drawHorizontalLine();
+    y += sectionSpacing;
+    doc.setFont('helvetica', 'bold');
+    doc.text("Employee's comments:", margin, y); y += lineH;
+    doc.setFont('helvetica', 'normal');
+    addText(editableFormState.employeeComments, margin, 9); y += 4;
+    drawHorizontalLine();
+    y += sectionSpacing;
+    doc.setFont('helvetica', 'bold');
+    doc.text("Employee's Signature:", margin, y); y += lineH;
+    doc.setFont('helvetica', 'normal');
+    y += sectionSpacing;
+    doc.setLineWidth(0.2);
+    doc.line(margin, y, margin + sigLineW, y);
+    
+    doc.setLineWidth(0.1);
+    doc.text(editableFormState.employeeSignature || '', margin, y - 1);
+    doc.text(`Date: ${editableFormState.employeeDate || ''}`, dateX, y);
+
+    const fileName = `HOS-Disciplinary-Form-${(row.driverName || 'Driver').replace(/\s+/g, '-')}-${row.auditDate ? new Date(row.auditDate).toISOString().split('T')[0] : 'export'}.pdf`;
+    doc.save(fileName);
   };
 
   return (
@@ -693,6 +926,29 @@ const VehicleEldMonitor = () => {
                                       placeholder="Date when incident occurred"
                                   />
                                   <p className="text-xs text-gray-500 mt-1">Date the incident occurred (may differ from audit date)</p>
+                              </div>
+
+                              {/* Incident Time */}
+                              <div>
+                                  <label className="block text-sm font-medium text-gray-700 mb-2">Incident Time</label>
+                                  <input
+                                      type="time"
+                                      value={auditFormData.incidentTime}
+                                      onChange={(e) => setAuditFormData({ ...auditFormData, incidentTime: e.target.value })}
+                                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                  />
+                              </div>
+
+                              {/* Incident Location */}
+                              <div>
+                                  <label className="block text-sm font-medium text-gray-700 mb-2">Incident Location</label>
+                                  <input
+                                      type="text"
+                                      value={auditFormData.incidentLocation}
+                                      onChange={(e) => setAuditFormData({ ...auditFormData, incidentLocation: e.target.value })}
+                                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                      placeholder="Location where incident occurred"
+                                  />
                               </div>
 
                               {/* Hours Section */}
@@ -1023,6 +1279,8 @@ const VehicleEldMonitor = () => {
                                               reportingTo: '',
                                               auditDate: new Date().toISOString().split('T')[0],
                                               incidentDate: '',
+                                              incidentTime: '',
+                                              incidentLocation: '',
                                               drivingHours: 0,
                                               onDutyHours: 0,
                                               offDutyHours: 0,
@@ -1117,7 +1375,7 @@ const VehicleEldMonitor = () => {
                                                               onClick={async (e) => {
                                                                   e.stopPropagation();
                                                                   try {
-                                                                      const auditId = row.id || row._id;
+                                                                      const auditId = row.id;
                                                                       // Always fetch signed URL for the first document
                                                                       const response = await getHosAuditDocumentUrl(auditId, 0);
                                                                       if (response?.success && response?.data?.url) {
@@ -1142,17 +1400,30 @@ const VehicleEldMonitor = () => {
                                                       ) : '—'}
                                                   </td>
                                                   <td className="px-6 py-4">
-                                                      <button
-                                                          type="button"
-                                                          onClick={(e) => {
-                                                              e.stopPropagation();
-                                                              setSelectedAuditDetail(row);
-                                                              setDetailSidebarOpen(true);
-                                                          }}
-                                                          className="flex items-center gap-1 text-blue-600 hover:text-blue-800 font-medium"
-                                                      >
-                                                          <Eye size={16} /> View details
-                                                      </button>
+                                                      <div className="flex items-center gap-3">
+                                                          <button
+                                                              type="button"
+                                                              onClick={(e) => {
+                                                                  e.stopPropagation();
+                                                                  openDownloadForm(row);
+                                                              }}
+                                                              className="flex items-center gap-1 text-blue-600 hover:text-blue-800 font-medium"
+                                                              title="Download HOS Progressive Disciplinary Action form"
+                                                          >
+                                                              <Download size={16} /> Download form
+                                                          </button>
+                                                          <button
+                                                              type="button"
+                                                              onClick={(e) => {
+                                                                  e.stopPropagation();
+                                                                  setSelectedAuditDetail(row);
+                                                                  setDetailSidebarOpen(true);
+                                                              }}
+                                                              className="flex items-center gap-1 text-blue-600 hover:text-blue-800 font-medium"
+                                                          >
+                                                              <Eye size={16} /> View details
+                                                          </button>
+                                                      </div>
                                                   </td>
                                               </tr>
                                           ))
@@ -1330,6 +1601,193 @@ const VehicleEldMonitor = () => {
                                                   </div>
                                               </div>
                                           </section>
+                                      </div>
+                                  </div>
+                              </div>
+                          </>
+                      )}
+
+                      {/* HOS Progressive Disciplinary Action – Download Form Modal */}
+                      {downloadFormOpen && downloadFormRow && (
+                          <>
+                              <div
+                                  className="fixed inset-0 bg-black/40 z-40 !mb-0 !pb-0"
+                                  onClick={closeDownloadForm}
+                                  aria-hidden="true"
+                              />
+                              <div className="fixed inset-0 z-50 flex items-start justify-center overflow-auto p-4 pt-8 pb-16">
+                                  <div className="bg-white rounded-xl shadow-xl border border-gray-200 w-full max-w-3xl my-4">
+                                      <div className="top-0 z-10 flex items-center justify-between border-b border-gray-200 px-6 py-4 bg-white rounded-t-xl">
+                                          <h3 className="text-lg font-bold text-gray-900">HOS Progressive Disciplinary Action Form</h3>
+                                          <div className="flex items-center gap-2">
+                                              <button
+                                                  type="button"
+                                                  onClick={saveEditableFormState}
+                                                  className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-lg"
+                                              >
+                                                  Save
+                                              </button>
+                                              <button
+                                                  type="button"
+                                                  onClick={downloadHosFormPdf}
+                                                  style={{ background: 'linear-gradient(90deg, #42aeec 0%, #1db5f5 40%, #0ea3d8 100%)' }}
+                                                  className="px-4 py-2 text-sm font-semibold !text-white rounded-lg hover:opacity-90"
+                                              >
+                                                  <Download size={16} className="inline-block mr-1 align-middle" /> Download PDF
+                                              </button>
+                                              <button
+                                                  type="button"
+                                                  onClick={closeDownloadForm}
+                                                  className="p-2 text-gray-500 hover:text-gray-700 hover:bg-gray-200 rounded-lg"
+                                                  aria-label="Close"
+                                              >
+                                                  <X size={20} />
+                                              </button>
+                                          </div>
+                                      </div>
+                                      <div ref={hosFormPrintRef} className="p-6 space-y-6 text-sm print:block">
+                                          {/* Form title */}
+                                          <h2 className="text-center text-lg font-bold text-gray-900 border-b border-gray-300 pb-2">
+                                              HOS PROGRESSIVE DISCIPLINARY ACTION FORM
+                                          </h2>
+
+                                          {/* Employee Information (from API) */}
+                                          <div className="grid grid-cols-2 gap-x-8 gap-y-2">
+                                              <div><span className="font-semibold text-gray-600">Employee Name:</span> {downloadFormRow.driverName}</div>
+                                              <div><span className="font-semibold text-gray-600">Driver ID:</span> {downloadFormRow.driverId || '—'}</div>
+                                              <div><span className="font-semibold text-gray-600">Reporting to:</span> {downloadFormRow.reportingTo || '—'}</div>
+                                              <div><span className="font-semibold text-gray-600">Date:</span> {downloadFormRow.auditDate ? new Date(downloadFormRow.auditDate).toLocaleDateString() : '—'}</div>
+                                          </div>
+
+                                          {/* Incident Information (from API) */}
+                                          <div>
+                                              <h4 className="font-bold text-gray-800 mb-2">Incident Information</h4>
+                                              <div className="grid grid-cols-2 gap-2 mb-2">
+                                                  <div><span className="font-semibold text-gray-600">Date:</span> {downloadFormRow.incidentDate && downloadFormRow.incidentDate !== '—' ? new Date(downloadFormRow.incidentDate).toLocaleDateString() : '—'}</div>
+                                                  <div><span className="font-semibold text-gray-600">Time:</span> {downloadFormRow.incidentTime || '—'}</div>
+                                                  <div><span className="font-semibold text-gray-600">Location:</span> {downloadFormRow.incidentLocation || '—'}</div>
+                                              </div>
+                                              <div>
+                                                  <span className="font-semibold text-gray-600">Incident type:</span>
+                                                  <div className="flex flex-wrap gap-x-4 gap-y-1 mt-1">
+                                                      {DISCIPLINARY_INCIDENT_TYPES.map((opt) => {
+                                                          const checked = (downloadFormRow.incidentTypes || []).some(t =>
+                                                              opt.toLowerCase().includes(t.toLowerCase()) || t.toLowerCase().includes(opt.toLowerCase().split(' ')[0])
+                                                          );
+                                                          return (
+                                                              <label key={opt} className="flex items-center gap-1">
+                                                                  <input type="checkbox" readOnly checked={checked} className="rounded border-gray-400" />
+                                                                  <span>{opt}</span>
+                                                              </label>
+                                                          );
+                                                      })}
+                                                  </div>
+                                              </div>
+                                          </div>
+
+                                          {/* Incident details (from API) */}
+                                          <div>
+                                              <h4 className="font-bold text-gray-800 mb-1">Incident details (has the employee been counselled before on this or a similar HOS occurrence?)</h4>
+                                              <div className="flex items-center gap-4 mb-2">
+                                                  <label className="flex items-center gap-2">
+                                                      <input type="checkbox" readOnly checked={(downloadFormRow.priorCounseling || '').toString().toLowerCase() === 'yes'} className="rounded border-gray-400" />
+                                                      <span>Yes</span>
+                                                  </label>
+                                                  <label className="flex items-center gap-2">
+                                                      <input type="checkbox" readOnly checked={(downloadFormRow.priorCounseling || '').toString().toLowerCase() === 'no' || !downloadFormRow.priorCounseling || downloadFormRow.priorCounseling === '—'} className="rounded border-gray-400" />
+                                                      <span>No</span>
+                                                  </label>
+                                              </div>
+                                              <div className="border border-gray-200 rounded p-3 bg-gray-50 text-gray-800 min-h-[80px]">
+                                                  {downloadFormRow.notes || '—'}
+                                              </div>
+                                          </div>
+
+                                          {/* Corrective action (from API) */}
+                                          <div>
+                                              <h4 className="font-bold text-gray-800 mb-2">Corrective action taken</h4>
+                                              <div className="flex flex-wrap gap-x-4 gap-y-1 mb-2">
+                                                  {DISCIPLINARY_CORRECTIVE_ACTIONS.map((opt) => {
+                                                      const key = opt.split(' ')[0].toLowerCase();
+                                                      const checked = downloadFormRow.correctiveActionType && downloadFormRow.correctiveActionType.toLowerCase().includes(key);
+                                                      return (
+                                                          <label key={opt} className="flex items-center gap-1">
+                                                              <input type="checkbox" readOnly checked={!!checked} className="rounded border-gray-400" />
+                                                              <span>{opt}</span>
+                                                          </label>
+                                                      );
+                                                  })}
+                                              </div>
+                                              <p className="text-gray-600"><span className="font-semibold">Comments:</span> {downloadFormRow.correctiveActionType || '—'}</p>
+                                          </div>
+
+                                          {/* Manager's Signature (editable) */}
+                                          <div className="border-t border-gray-200 pt-4">
+                                              <label className="block font-bold text-gray-800 mb-1">Manager's Signature</label>
+                                              <div className="flex flex-wrap items-center gap-4">
+                                                  <input
+                                                      type="text"
+                                                      value={editableFormState.managerSignature}
+                                                      onChange={(e) => setEditableFormState(prev => ({ ...prev, managerSignature: e.target.value }))}
+                                                      placeholder="Manager name or signature"
+                                                      className="flex-1 min-w-[200px] px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                                  />
+                                                  <label className="flex items-center gap-2">
+                                                      <span className="font-semibold text-gray-600">Date:</span>
+                                                      <input
+                                                          type="date"
+                                                          value={editableFormState.managerDate}
+                                                          onChange={(e) => setEditableFormState(prev => ({ ...prev, managerDate: e.target.value }))}
+                                                          className="px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                                      />
+                                                  </label>
+                                              </div>
+                                          </div>
+
+                                          {/* Notice to employee (editable) */}
+                                          <div className="border-t border-gray-200 pt-4">
+                                              <label className="block font-bold text-gray-800 mb-1">Notice to employee</label>
+                                              <textarea
+                                                  value={editableFormState.noticeToEmployee}
+                                                  onChange={(e) => setEditableFormState(prev => ({ ...prev, noticeToEmployee: e.target.value }))}
+                                                  rows={4}
+                                                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-800"
+                                              />
+                                          </div>
+
+                                          {/* Employee's comments (editable) */}
+                                          <div className="border-t border-gray-200 pt-4">
+                                              <label className="block font-bold text-gray-800 mb-1">Employee's comments</label>
+                                              <textarea
+                                                  value={editableFormState.employeeComments}
+                                                  onChange={(e) => setEditableFormState(prev => ({ ...prev, employeeComments: e.target.value }))}
+                                                  rows={4}
+                                                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-800"
+                                              />
+                                          </div>
+
+                                          {/* Employee's Signature (editable) */}
+                                          <div className="border-t border-gray-200 pt-4">
+                                              <label className="block font-bold text-gray-800 mb-1">Employee's Signature</label>
+                                              <div className="flex flex-wrap items-center gap-4">
+                                                  <input
+                                                      type="text"
+                                                      value={editableFormState.employeeSignature}
+                                                      onChange={(e) => setEditableFormState(prev => ({ ...prev, employeeSignature: e.target.value }))}
+                                                      placeholder="Employee name or signature"
+                                                      className="flex-1 min-w-[200px] px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                                  />
+                                                  <label className="flex items-center gap-2">
+                                                      <span className="font-semibold text-gray-600">Date:</span>
+                                                      <input
+                                                          type="date"
+                                                          value={editableFormState.employeeDate}
+                                                          onChange={(e) => setEditableFormState(prev => ({ ...prev, employeeDate: e.target.value }))}
+                                                          className="px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                                      />
+                                                  </label>
+                                              </div>
+                                          </div>
                                       </div>
                                   </div>
                               </div>
