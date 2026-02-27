@@ -198,14 +198,14 @@ const MechanicsProfile: React.FC = () => {
 
   if (fetchLoading) {
     return (
-      <div className="p-6 flex items-center justify-center py-16">
+      <div className="p-6 flex items-center justify-center py-16 bg-[#EDF8FF] min-h-screen">
         <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-[#42aeec]" />
       </div>
     );
   }
 
   return (
-    <div className="p-6">
+    <div className="p-6 bg-[#EDF8FF] min-h-screen">
       <div className="mb-6">
         <h1 className="text-xl font-bold text-gray-900">My Profile</h1>
         <p className="text-sm text-gray-500 mt-1">Manage your account information</p>

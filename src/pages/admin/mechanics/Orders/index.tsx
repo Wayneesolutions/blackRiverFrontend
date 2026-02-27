@@ -283,7 +283,7 @@ const Orders: React.FC<OrdersProps> = ({ defaultStatus }) => {
 
   if (loading) {
     return (
-      <div className="p-6">
+      <div className="p-6 min-h-screen bg-[#EDF8FF]">
         <div className="flex items-center justify-center py-16">
           <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-[#42aeec]" />
         </div>
@@ -294,7 +294,7 @@ const Orders: React.FC<OrdersProps> = ({ defaultStatus }) => {
   const isCompletedOnly = defaultStatus === "completed";
 
   return (
-    <div className="p-6">
+    <div className="p-6 bg-[#EDF8FF] min-h-screen">
       <div className="mb-6">
         <h1 className="text-xl font-bold text-gray-900">{isCompletedOnly ? "Completed Orders" : "Mechanics Portal"}</h1>
         <p className="text-sm text-gray-500 mt-1">
@@ -500,7 +500,7 @@ const Orders: React.FC<OrdersProps> = ({ defaultStatus }) => {
                           <button
                             type="button"
                             onClick={() => openCompleteModal(order)}
-                            className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-md bg-[#42aeec] text-white hover:bg-[#359dd9]"
+                            className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-md bg-[#42aeec] !text-white hover:bg-[#359dd9]"
                           >
                             Update
                           </button>
@@ -710,7 +710,7 @@ const Orders: React.FC<OrdersProps> = ({ defaultStatus }) => {
                     type="button"
                     onClick={addPartFromDropdown}
                     disabled={!selectedPartId || sparePartsLoading}
-                    className="px-4 py-2 text-sm font-medium text-white bg-[#42aeec] hover:bg-[#359dd9] rounded-lg disabled:opacity-50 transition"
+                    className="px-4 py-2 text-sm font-medium !text-white bg-[#42aeec] hover:bg-[#359dd9] rounded-lg disabled:opacity-50 transition"
                   >
                     Add
                   </button>
@@ -865,7 +865,7 @@ const Orders: React.FC<OrdersProps> = ({ defaultStatus }) => {
                 type="button"
                 onClick={handleCompleteOrder}
                 disabled={submittingComplete}
-                className="inline-flex items-center gap-2 px-5 py-2.5 text-sm font-semibold text-white bg-[#42aeec] hover:bg-[#359dd9] rounded-lg disabled:opacity-50 transition"
+                className="inline-flex items-center gap-2 px-5 py-2.5 text-sm font-semibold !text-white bg-[#42aeec] hover:bg-[#359dd9] rounded-lg disabled:opacity-50 transition"
               >
                 <CheckCircle size={18} />
                 {submittingComplete ? "Submitting…" : "Complete Repair"}

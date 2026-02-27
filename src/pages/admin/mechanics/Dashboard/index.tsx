@@ -94,7 +94,7 @@ const Dashboard: React.FC = () => {
 
   if (loading) {
     return (
-      <div className="p-6">
+      <div className="p-6 min-h-screen bg-[#EDF8FF]">
         <div className="flex items-center justify-center py-16">
           <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-[#42aeec]" />
         </div>
@@ -103,7 +103,7 @@ const Dashboard: React.FC = () => {
   }
 
   return (
-    <div className="p-6">
+    <div className="p-6 min-h-screen bg-[#EDF8FF]">
       {error && (
         <div className="mb-4 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-red-800">
           {error}
