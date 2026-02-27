@@ -7,18 +7,20 @@ import { getDashboardRoute } from "../../utils/auth";
 
 interface MechanicsSidebarProps {
   isCollapsed?: boolean;
+  basePath?: string; // "/mechanics" for mechanics user, "/admin/mechanics" for admin
 }
 
-const sidebarLinks = [
+const getSidebarLinks = (basePath: string) => [
   {
-    key: "/admin/mechanics/orders",
+    key: `${basePath}/orders`,
     label: "Orders",
     icon: <FaClipboardList className="text-lg" />,
   },
 ];
 
-const MechanicsSidebar: React.FC<MechanicsSidebarProps> = ({ isCollapsed = false }) => {
+const MechanicsSidebar: React.FC<MechanicsSidebarProps> = ({ isCollapsed = false, basePath = "/admin/mechanics" }) => {
   const navigate = useNavigate();
+  const sidebarLinks = getSidebarLinks(basePath);
 
   return (
     <>

@@ -8,6 +8,7 @@ import AccountantRoute from "./AccountantRoute";
 import FleetMaintenanceRoute from "./FleetMaintenanceRoute";
 import ComplianceRoute from "./ComplianceRoute";
 import SafetyOfficerRoute from "./SafetyOfficerRoute";
+import MechanicsRoute from "./MechanicsRoute";
 import InvoicePayment from "../pages/customer/InvoicePayment";
 import PublicRoute from "../components/auth/PublicRoute";
 import Loading from "../components/common/Loading";
@@ -69,6 +70,9 @@ const AppRoutes = () => {
       
       {/* Safety Officer routes (without /admin prefix) */}
       <Route path='/healthandsafety/*' element={<SafetyOfficerRoute />}></Route>
+      
+      {/* Mechanics routes (without /admin prefix) - for Maintenance Crew (Mechanics) role */}
+      <Route path='/mechanics/*' element={<MechanicsRoute />}></Route>
       
       {/* Public customer routes */}
       <Route path='/invoice/:invoiceId' element={<InvoicePayment />}></Route>

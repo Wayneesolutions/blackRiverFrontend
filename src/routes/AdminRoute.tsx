@@ -41,9 +41,13 @@ const RouteDebugger = ({ children }: { children: React.ReactNode }) => {
 };
 
 function AdminRoute() {
-  // Check if user is dispatcher or HR - redirect to appropriate routes
   const userRole = getUserRole();
-  
+
+  // If Maintenance Crew (Mechanics) tries to access admin routes, redirect to /mechanics (no admin prefix)
+  if (userRole === 'Maintenance Crew (Mechanics)') {
+    return <Navigate to="/mechanics/orders" replace />;
+  }
+
   // If dispatcher tries to access admin routes, redirect to dispatcher routes
   if (userRole === 'dispatcher') {
     return <Navigate to="/dispatch" replace />;

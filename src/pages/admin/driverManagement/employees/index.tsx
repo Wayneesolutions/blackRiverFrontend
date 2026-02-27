@@ -17,6 +17,8 @@ interface Employee {
   profileImageUrl?: string;
   phone?: string;
   profileImage?: string; // Alternative field name
+  createdAt?: string;
+  updatedAt?: string;
 }
 
 interface ToastNotification {
@@ -473,8 +475,8 @@ const EmployeesPage = () => {
       }
     }
 
-    // Check if password is required for this role
-    const nonSigninRoles = ['reporter', 'Maintenance Crew (Mechanics)', 'operator', 'salesperson'];
+    // Check if password is required for this role (mechanics need password to sign in)
+    const nonSigninRoles = ['reporter', 'operator', 'salesperson'];
     const isNonSigninRole = nonSigninRoles.includes(basicData.role);
     
     if (!isNonSigninRole && !editingId && !basicData.password) {
@@ -1242,6 +1244,12 @@ const EmployeesPage = () => {
                     </div>
                   </th>
                   <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase">
+                    Created
+                  </th>
+                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase">
+                    Updated
+                  </th>
+                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase">
                     Actions
                   </th>
                 </tr>
@@ -1249,13 +1257,13 @@ const EmployeesPage = () => {
               <tbody className="bg-white divide-y divide-gray-200">
                 {loading ? (
                   <tr>
-                    <td colSpan={7} className="px-4 py-8 text-center text-gray-500">
+                    <td colSpan={9} className="px-4 py-8 text-center text-gray-500">
                       Loading...
                     </td>
                   </tr>
                 ) : filteredEmployees.length === 0 ? (
                   <tr>
-                    <td colSpan={7} className="px-4 py-8 text-center text-gray-500">
+                    <td colSpan={9} className="px-4 py-8 text-center text-gray-500">
                       No employees found
                     </td>
                   </tr>
@@ -1306,6 +1314,12 @@ const EmployeesPage = () => {
                           }`}>
                           {employee.status}
                         </span>
+                      </td>
+                      <td className="px-4 py-3 text-sm text-gray-600">
+                        {employee.createdAt ? new Date(employee.createdAt).toLocaleString(undefined, { dateStyle: 'short', timeStyle: 'short' }) : '—'}
+                      </td>
+                      <td className="px-4 py-3 text-sm text-gray-600">
+                        {employee.updatedAt ? new Date(employee.updatedAt).toLocaleString(undefined, { dateStyle: 'short', timeStyle: 'short' }) : '—'}
                       </td>
                       <td className="px-4 py-3">
                         <div className="flex items-center gap-2">
@@ -1552,8 +1566,8 @@ const EmployeesPage = () => {
                           className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#42aeec] focus:border-transparent"
                         />
                       </div>
-                      {/* Only show password field for roles that require sign-in */}
-                      {!['reporter', 'Maintenance Crew (Mechanics)', 'operator', 'salesperson'].includes(basicData.role) && (
+                      {/* Only show password field for roles that require sign-in (mechanics need password) */}
+                      {!['reporter', 'operator', 'salesperson'].includes(basicData.role) && (
                         <div>
                           <label className="block text-sm font-medium text-gray-700 mb-1">
                             Password{!editingId && <span className="text-red-500">*</span>}

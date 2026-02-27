@@ -1185,7 +1185,7 @@ const GeneralRepairsLog: React.FC = () => {
                             </p>
                           </div>
                         )}
-                        {/* Invoice File */}
+                        {/* Invoice File - signed URL */}
                         {((selectedRepair as any).invoiceUploadUrl || (selectedRepair as any).invoiceSignedUrl) && (
                           <div className="mt-4 pt-4 border-t border-green-200">
                             <p className="text-sm text-gray-500 mb-2">Mechanic's Invoice</p>

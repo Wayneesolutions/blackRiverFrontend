@@ -5,12 +5,17 @@ import Loading from "../../components/common/Loading";
 
 const Orders = lazy(() => import("../../pages/admin/mechanics/Orders"));
 
-function MechanicsRoutes() {
+interface MechanicsRoutesProps {
+  basePath?: string; // "/mechanics" for mechanics user, "/admin/mechanics" for admin
+}
+
+function MechanicsRoutes({ basePath = "/admin/mechanics" }: MechanicsRoutesProps) {
+  const ordersPath = `${basePath}/orders`;
   return (
     <Suspense fallback={<Loading />}>
       <Routes>
-        <Route element={<MechanicsLayout />}>
-          <Route index element={<Navigate to="/admin/mechanics/orders" replace />} />
+        <Route element={<MechanicsLayout basePath={basePath} />}>
+          <Route index element={<Navigate to={ordersPath} replace />} />
           <Route path="orders" element={<Orders />} />
         </Route>
       </Routes>

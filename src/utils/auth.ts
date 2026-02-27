@@ -203,6 +203,8 @@ export const getDashboardRoute = (): string => {
       return '/compliance';
     case 'safety officer':
       return '/healthandsafety';
+    case 'Maintenance Crew (Mechanics)':
+      return '/mechanics/orders';
     case 'admin':
     case 'superadmin':
     default:

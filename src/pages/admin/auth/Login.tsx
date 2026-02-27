@@ -44,6 +44,8 @@ export default function LoginPage() {
             navigate('/compliance', { replace: true });
           } else if (userRole === 'safety officer') {
             navigate('/healthandsafety', { replace: true });
+          } else if (userRole === 'Maintenance Crew (Mechanics)') {
+            navigate('/mechanics/orders', { replace: true });
           } else {
             navigate('/admin/dashboard', { replace: true });
           }
@@ -211,6 +213,8 @@ export default function LoginPage() {
           navigate('/compliance', { replace: true });
         } else if (userRole === 'safety officer') {
           navigate('/healthandsafety', { replace: true });
+        } else if (userRole === 'Maintenance Crew (Mechanics)') {
+          navigate('/admin/mechanics/orders', { replace: true });
         } else {
           navigate('/admin/dashboard', { replace: true });
         }
