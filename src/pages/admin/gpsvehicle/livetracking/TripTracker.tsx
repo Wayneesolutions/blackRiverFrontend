@@ -489,8 +489,8 @@ const ProfessionalTripTracker: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState<string>('');
   const [sidebarCollapsed, setSidebarCollapsed] = useState<boolean>(false);
   const [loading, setLoading] = useState<boolean>(true);
-  const [mapCenter, setMapCenter] = useState<[number, number]>([20.5937, 78.9629]); // Default to India
-  const [mapZoom, setMapZoom] = useState<number>(5);
+  const [mapCenter, setMapCenter] = useState<[number, number]>([56.0, -96.0]); // Default to Canada
+  const [mapZoom, setMapZoom] = useState<number>(4); // Zoom level to show Canada
   const refreshIntervalRef = useRef<NodeJS.Timeout | null>(null);
   const isInitialLoadRef = useRef<boolean>(true);
   const socket = useMemo(() => getSocket(), []);
@@ -539,10 +539,22 @@ const ProfessionalTripTracker: React.FC = () => {
           } else {
             // Order group no longer in the list, clear selection
             setSelectedOrderGroup(null);
+            // Reset map to Canada when no trips are selected
+            setMapCenter([56.0, -96.0]);
+            setMapZoom(4);
           }
+        } else if (isInitialLoad && orderGroupsData.length === 0) {
+          // No trips available, ensure map shows Canada
+          setMapCenter([56.0, -96.0]);
+          setMapZoom(4);
         }
       } else {
         setOrderGroups([]);
+        // No trips available, reset map to Canada
+        if (isInitialLoad) {
+          setMapCenter([56.0, -96.0]);
+          setMapZoom(4);
+        }
       }
     } catch (err) {
       console.error('Error fetching active orders:', err);
@@ -970,6 +982,9 @@ const ProfessionalTripTracker: React.FC = () => {
                 <button
                   onClick={() => {
                     setSelectedOrderGroup(null);
+                    // Reset map to Canada when clearing selection
+                    setMapCenter([56.0, -96.0]);
+                    setMapZoom(4);
                   }}
                   className="p-1.5 hover:bg-white/20 rounded-lg transition-colors flex-shrink-0"
                 >
