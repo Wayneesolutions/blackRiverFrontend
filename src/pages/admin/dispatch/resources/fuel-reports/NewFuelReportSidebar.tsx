@@ -2,7 +2,7 @@ import { useState, useEffect, useMemo, useCallback, useRef } from 'react';
 import { X, Plus, FileText, Upload, Sparkles } from 'lucide-react';
 import type { CSSProperties, FC } from "react";
 import { createFuelReport } from '../../../../../axios/api/dispatcher.places';
-import { getFuelTypes, createFuelType, getUnits, createUnit, getFuelVendors, createFuelVendor } from '../../../../../axios/api/dispatcher.fuelreport';
+import { getFuelTypes, createFuelType, getUnits, createUnit, getFuelVendors, createFuelVendor, extractFuelReceipt } from '../../../../../axios/api/dispatcher.fuelreport';
 import { FLEET_COLORS } from '../../../fleetMaintenance/colorUtils';
 import AddressSearch from '../../../../../components/common/AddressSearch';
 
@@ -20,11 +20,12 @@ interface NewFuelReportSidebarProps {
     units: FleetUnitOption[];
     unitsLoading: boolean;
     currentUser: any;
+    initialData?: any; // For pre-filling form with OCR extracted data
 }
 
 
 
-const NewFuelReportSidebar: FC<NewFuelReportSidebarProps> = ({ isOpen, onClose, units, unitsLoading, currentUser }) => {
+const NewFuelReportSidebar: FC<NewFuelReportSidebarProps> = ({ isOpen, onClose, units, unitsLoading, currentUser, initialData }) => {
     const [formData, setFormData] = useState({
         state: '',
         address: '',
@@ -48,6 +49,30 @@ const NewFuelReportSidebar: FC<NewFuelReportSidebarProps> = ({ isOpen, onClose, 
         fuelAmount: '',
         status: 'pending',
     });
+
+    // Update form data when initialData is provided (from OCR extraction)
+    useEffect(() => {
+        if (initialData && isOpen) {
+            setFormData(prev => ({
+                ...prev,
+                transactionAmount: initialData.transactionAmount ? initialData.transactionAmount.toString() : prev.transactionAmount,
+                fuelAmount: initialData.fuelAmount ? initialData.fuelAmount.toString() : prev.fuelAmount,
+                date: initialData.date || prev.date || new Date().toISOString().split('T')[0],
+                fuelVendor: initialData.fuelVendor || prev.fuelVendor,
+                transactionNumber: initialData.transactionNumber || prev.transactionNumber,
+                product: initialData.product || prev.product || prev.type,
+                type: initialData.product || prev.type,
+                currentOdometer: initialData.odometer || prev.currentOdometer,
+                currency: initialData.currency === 'CAD' ? 'CAD' : (initialData.currency === 'USD' ? 'USA' : prev.currency || 'USA'),
+                city: initialData.location?.city || prev.city,
+                state: initialData.location?.state || prev.state,
+                address: initialData.location?.address || prev.address,
+                fullAddress: initialData.location?.address || prev.fullAddress,
+                postalCode: initialData.location?.postalCode || prev.postalCode,
+                paymentNotes: initialData.notes || prev.paymentNotes || `Extracted from receipt${initialData.transactionNumber ? ` - Transaction #${initialData.transactionNumber}` : ''}`,
+            }));
+        }
+    }, [initialData, isOpen]);
 
     const [openDetails, setOpenDetails] = useState(true);
     const [loadingSubmit, setLoadingSubmit] = useState(false);
@@ -284,28 +309,62 @@ const NewFuelReportSidebar: FC<NewFuelReportSidebarProps> = ({ isOpen, onClose, 
         }));
     };
 
-    // Static: simulate AI extraction - fill form with mock data after delay
-    const handleExtractFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    // Extract fuel receipt data using AI
+    const handleExtractFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
         if (!file) return;
+        
+        // Validate file type
+        const validTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp', 'application/pdf'];
+        if (!validTypes.includes(file.type)) {
+            alert('Please upload a valid image file (JPEG, PNG, WebP) or PDF');
+            e.target.value = '';
+            return;
+        }
+        
         setExtractFile(file);
         setExtracting(true);
         setExtractDone(false);
-        // Simulate processing delay then fill form with static extracted values
-        setTimeout(() => {
-            setFormData(prev => ({
-                ...prev,
-                transactionAmount: '156.78',
-                fuelAmount: '125.50',
-                date: new Date().toISOString().split('T')[0],
-                fuelVendor: 'Flying J',
-                city: prev.city || 'Mississauga',
-                paymentNotes: prev.paymentNotes || 'Extracted from receipt (static demo)',
-            }));
+        
+        try {
+            const response = await extractFuelReceipt(file);
+            
+            if (response?.success && response?.data) {
+                const data = response.data;
+                
+                // Map extracted data to form fields
+                setFormData(prev => ({
+                    ...prev,
+                    transactionAmount: data.transactionAmount ? data.transactionAmount.toString() : prev.transactionAmount,
+                    fuelAmount: data.fuelAmount ? data.fuelAmount.toString() : prev.fuelAmount,
+                    date: data.date || prev.date || new Date().toISOString().split('T')[0],
+                    fuelVendor: data.fuelVendor || prev.fuelVendor,
+                    transactionNumber: data.transactionNumber || prev.transactionNumber,
+                    product: data.product || prev.product || prev.type,
+                    type: data.product || prev.type,
+                    currentOdometer: data.odometer || prev.currentOdometer,
+                    currency: data.currency === 'CAD' ? 'CAD' : (data.currency === 'USD' ? 'USA' : prev.currency || 'USA'),
+                    city: data.location?.city || prev.city,
+                    state: data.location?.state || prev.state,
+                    address: data.location?.address || prev.address,
+                    fullAddress: data.location?.address || prev.fullAddress,
+                    postalCode: data.location?.postalCode || prev.postalCode,
+                    paymentNotes: data.notes || prev.paymentNotes || `Extracted from receipt${data.transactionNumber ? ` - Transaction #${data.transactionNumber}` : ''}`,
+                }));
+                
+                setExtractDone(true);
+            } else {
+                alert(response?.message || 'Failed to extract data from receipt. Please try again or enter data manually.');
+                setExtractFile(null);
+            }
+        } catch (error: any) {
+            console.error('Error extracting fuel receipt:', error);
+            alert(error?.message || 'Failed to extract data from receipt. Please try again or enter data manually.');
+            setExtractFile(null);
+        } finally {
             setExtracting(false);
-            setExtractDone(true);
-        }, 1500);
-        e.target.value = '';
+            e.target.value = '';
+        }
     };
 
     const handleAttachDocument = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -428,7 +487,7 @@ const NewFuelReportSidebar: FC<NewFuelReportSidebarProps> = ({ isOpen, onClose, 
                                         <Sparkles className="w-4 h-4 text-blue-600" />
                                         Upload receipt / document – AI will extract data
                                     </div>
-                                    <p className="text-xs text-gray-500">Upload a photo or PDF of your fuel receipt. We'll extract amount, gallons, and date (static demo).</p>
+                                    <p className="text-xs text-gray-500">Upload a photo or PDF of your fuel receipt. AI will extract transaction amount, fuel amount, date, vendor, and other details.</p>
                                     <input
                                         ref={extractInputRef}
                                         type="file"
@@ -488,6 +547,19 @@ const NewFuelReportSidebar: FC<NewFuelReportSidebarProps> = ({ isOpen, onClose, 
                                             Selected: {formData.state} {formData.city && `- ${formData.city}`}
                                         </p>
                                     )}
+                                </div>
+
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 mb-1">State</label>
+                                    <input
+                                        type="text"
+                                        name="state"
+                                        value={formData.state}
+                                        onChange={handleInputChange}
+                                        placeholder="e.g., Ontario, BC, Manitoba"
+                                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:border-transparent"
+                                        style={focusRingStyle}
+                                    />
                                 </div>
 
                                 <div>

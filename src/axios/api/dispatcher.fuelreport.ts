@@ -111,3 +111,58 @@ export const createFuelVendor = async (name: string) => {
     return (error as Error).response?.data;
   }
 }
+
+export const extractFuelReceipt = async (file: File) => {
+  try {
+    const formData = new FormData();
+    formData.append('receipt', file);
+    
+    const res: AxiosResponse = await apiClient.post(`dispatcher/fuel-report/extract-receipt`, formData, {
+      headers: {
+        "Content-Type": "multipart/form-data",
+      },
+    });
+    return res.data;
+  } catch (error: any) {
+    const err = error as Error;
+    return err.response?.data;
+  }
+}
+
+export const parseCsvHeaders = async (file: File) => {
+  try {
+    const formData = new FormData();
+    formData.append('csv', file);
+    
+    const res: AxiosResponse = await apiClient.post(`dispatcher/fuel-report/parse-csv`, formData, {
+      headers: {
+        "Content-Type": "multipart/form-data",
+      },
+    });
+    return res.data;
+  } catch (error: any) {
+    const err = error as Error;
+    return err.response?.data;
+  }
+}
+
+export const importFuelReportsFromCsv = async (file: File, columnMapping: Record<string, string>, defaultUnit?: string, defaultCurrency?: string, defaultProduct?: string) => {
+  try {
+    const formData = new FormData();
+    formData.append('csv', file);
+    formData.append('columnMapping', JSON.stringify(columnMapping));
+    if (defaultUnit) formData.append('defaultUnit', defaultUnit);
+    if (defaultCurrency) formData.append('defaultCurrency', defaultCurrency);
+    if (defaultProduct) formData.append('defaultProduct', defaultProduct);
+    
+    const res: AxiosResponse = await apiClient.post(`dispatcher/fuel-report/import-csv`, formData, {
+      headers: {
+        "Content-Type": "multipart/form-data",
+      },
+    });
+    return res.data;
+  } catch (error: any) {
+    const err = error as Error;
+    return err.response?.data;
+  }
+}

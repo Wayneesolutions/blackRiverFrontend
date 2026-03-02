@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useCallback, useMemo, useRef } from "react";
-import { Plus, Search, Edit, Trash2, ChevronLeft, ChevronRight, X, Upload, FileText } from "lucide-react";
+import { Plus, Search, Edit, Trash2, ChevronLeft, ChevronRight, X, Upload, FileText, Sparkles } from "lucide-react";
 import { FaFileInvoiceDollar, FaGasPump, FaClipboardList } from "react-icons/fa";
 import { message } from "antd";
 import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from "recharts";
@@ -14,6 +14,8 @@ import {
   createUnit,
   getFuelVendors,
   createFuelVendor,
+  parseCsvHeaders,
+  importFuelReportsFromCsv,
 } from "../../../../../axios/api/dispatcher.fuelreport";
 import { listFleetUnits } from "../../../../../axios/api/fleet.units";
 import { FLEET_COLORS } from "../../../fleetMaintenance/colorUtils";
@@ -153,6 +155,21 @@ const FuelReports = () => {
   const [endDateFilter, setEndDateFilter] = useState<string>("");
   const [importModalOpen, setImportModalOpen] = useState(false);
   const [ocrModalOpen, setOcrModalOpen] = useState(false);
+  const [ocrFile, setOcrFile] = useState<File | null>(null);
+  const [ocrExtracting, setOcrExtracting] = useState(false);
+  const [ocrExtractedData, setOcrExtractedData] = useState<any>(null);
+  const ocrFileInputRef = useRef<HTMLInputElement>(null);
+  const [csvFile, setCsvFile] = useState<File | null>(null);
+  const [csvHeaders, setCsvHeaders] = useState<string[]>([]);
+  const [csvSampleRows, setCsvSampleRows] = useState<any[]>([]);
+  const [csvMapping, setCsvMapping] = useState<Record<string, string>>({});
+  const [csvParsing, setCsvParsing] = useState(false);
+  const [csvImporting, setCsvImporting] = useState(false);
+  const [csvImportResult, setCsvImportResult] = useState<{ success: number; failed: number; errors: string[] } | null>(null);
+  const [defaultUnitForImport, setDefaultUnitForImport] = useState<string>("");
+  const [defaultCurrencyForImport, setDefaultCurrencyForImport] = useState<string>("USA");
+  const [defaultProductForImport, setDefaultProductForImport] = useState<string>("");
+  const csvFileInputRef = useRef<HTMLInputElement>(null);
 
 
   const unitsMap = useMemo(() => new Map(units.map((unit) => [unit.id, unit])), [units]);
@@ -733,6 +750,192 @@ const FuelReports = () => {
     setSearchTerm(e.target.value);
   };
 
+  // CSV Import Handlers
+  const handleCsvFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (!file.name.toLowerCase().endsWith('.csv')) {
+      message.error('Please upload a CSV file');
+      e.target.value = '';
+      return;
+    }
+
+    setCsvFile(file);
+    setCsvParsing(true);
+    setCsvHeaders([]);
+    setCsvSampleRows([]);
+    setCsvMapping({});
+    setCsvImportResult(null);
+
+    try {
+      const response = await parseCsvHeaders(file);
+      if (response?.success && response?.data) {
+        setCsvHeaders(response.data.headers);
+        setCsvSampleRows(response.data.sampleRows);
+        // Auto-map common column names
+        const autoMapping: Record<string, string> = {};
+        response.data.headers.forEach((header: string) => {
+          const lowerHeader = header.toLowerCase();
+          if (lowerHeader.includes('date')) autoMapping.date = header;
+          else if (lowerHeader.includes('amount') || lowerHeader.includes('price') || lowerHeader.includes('total') || lowerHeader.includes('cost')) autoMapping.transactionAmount = header;
+          else if (lowerHeader.includes('gallon') || lowerHeader.includes('liter') || lowerHeader.includes('volume') || lowerHeader.includes('quantity')) autoMapping.fuelAmount = header;
+          else if (lowerHeader.includes('transaction') || lowerHeader.includes('receipt') || lowerHeader.includes('invoice') || lowerHeader.includes('number')) autoMapping.transactionNumber = header;
+          else if (lowerHeader.includes('vendor') || lowerHeader.includes('station') || lowerHeader.includes('merchant')) autoMapping.fuelVendor = header;
+          else if (lowerHeader.includes('unit') || lowerHeader.includes('vehicle') || lowerHeader.includes('truck')) autoMapping.unit = header;
+          else if (lowerHeader.includes('city')) autoMapping.city = header;
+          else if (lowerHeader.includes('state') || lowerHeader.includes('province')) autoMapping.state = header;
+          else if (lowerHeader.includes('address') || lowerHeader.includes('location')) autoMapping.address = header;
+          else if (lowerHeader.includes('odometer') || lowerHeader.includes('mileage')) autoMapping.odometer = header;
+          else if (lowerHeader.includes('product') || lowerHeader.includes('type') || lowerHeader.includes('fuel')) autoMapping.product = header;
+        });
+        setCsvMapping(autoMapping);
+      } else {
+        message.error(response?.message || 'Failed to parse CSV file');
+        setCsvFile(null);
+      }
+    } catch (error: any) {
+      console.error('Error parsing CSV:', error);
+      message.error(error?.message || 'Failed to parse CSV file');
+      setCsvFile(null);
+    } finally {
+      setCsvParsing(false);
+      e.target.value = '';
+    }
+  };
+
+  const handleCsvImport = async () => {
+    if (!csvFile) {
+      message.warning('Please select a CSV file first');
+      return;
+    }
+
+    // Validate required mappings
+    if (!csvMapping.date || !csvMapping.transactionAmount || !csvMapping.fuelAmount) {
+      message.warning('Please map Date, Transaction Amount, and Fuel Amount columns');
+      return;
+    }
+
+    if (!defaultUnitForImport) {
+      message.warning('Please select a default unit for import');
+      return;
+    }
+
+    setCsvImporting(true);
+    setCsvImportResult(null);
+
+    try {
+      const response = await importFuelReportsFromCsv(
+        csvFile,
+        csvMapping,
+        defaultUnitForImport,
+        defaultCurrencyForImport,
+        defaultProductForImport
+      );
+
+      if (response?.success) {
+        setCsvImportResult(response.data);
+        message.success(response.message || `Import completed: ${response.data?.success || 0} successful, ${response.data?.failed || 0} failed`);
+        
+        if (response.data?.success > 0) {
+          // Refresh fuel reports list
+          await fetchFuelReports();
+          // Reset form after a delay
+          setTimeout(() => {
+            setImportModalOpen(false);
+            setCsvFile(null);
+            setCsvHeaders([]);
+            setCsvSampleRows([]);
+            setCsvMapping({});
+            setCsvImportResult(null);
+            setDefaultUnitForImport("");
+            setDefaultCurrencyForImport("USA");
+            setDefaultProductForImport("");
+          }, 3000);
+        }
+      } else {
+        message.error(response?.message || 'Failed to import fuel reports');
+      }
+    } catch (error: any) {
+      console.error('Error importing CSV:', error);
+      message.error(error?.message || 'Failed to import fuel reports');
+    } finally {
+      setCsvImporting(false);
+    }
+  };
+
+  const closeImportModal = () => {
+    if (csvImporting) return;
+    setImportModalOpen(false);
+    setCsvFile(null);
+    setCsvHeaders([]);
+    setCsvSampleRows([]);
+    setCsvMapping({});
+    setCsvImportResult(null);
+    setDefaultUnitForImport("");
+    setDefaultCurrencyForImport("USA");
+    setDefaultProductForImport("");
+    if (csvFileInputRef.current) {
+      csvFileInputRef.current.value = '';
+    }
+  };
+
+  // OCR Receipt Upload Handlers
+  const handleOcrFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    const validTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp', 'application/pdf'];
+    if (!validTypes.includes(file.type)) {
+      message.error('Please upload a valid image file (JPEG, PNG, WebP) or PDF');
+      e.target.value = '';
+      return;
+    }
+
+    setOcrFile(file);
+    setOcrExtracting(true);
+    setOcrExtractedData(null);
+
+    try {
+      const response = await extractFuelReceipt(file);
+      if (response?.success && response?.data) {
+        setOcrExtractedData(response.data);
+        message.success('Data extracted successfully! Please review and select a unit to create the fuel report.');
+      } else {
+        message.error(response?.message || 'Failed to extract data from receipt. Please try again.');
+        setOcrFile(null);
+      }
+    } catch (error: any) {
+      console.error('Error extracting receipt:', error);
+      message.error(error?.message || 'Failed to extract data from receipt');
+      setOcrFile(null);
+    } finally {
+      setOcrExtracting(false);
+      e.target.value = '';
+    }
+  };
+
+  const handleCreateFromOcr = () => {
+    if (!ocrExtractedData) {
+      message.warning('Please extract data from receipt first');
+      return;
+    }
+
+    // Open sidebar with extracted data pre-filled
+    setOcrModalOpen(false);
+    setIsSidebarOpen(true);
+  };
+
+  const closeOcrModal = () => {
+    if (ocrExtracting) return;
+    setOcrModalOpen(false);
+    setOcrFile(null);
+    setOcrExtractedData(null);
+    if (ocrFileInputRef.current) {
+      ocrFileInputRef.current.value = '';
+    }
+  };
+
 
 
   // Static mock data for analytics (used when API returns little/no data)
@@ -782,17 +985,40 @@ const FuelReports = () => {
     if (fuelReports.length < 3) return STATIC_TOP_TRUCKS;
     const byUnit: Record<string, number> = {};
     fuelReports.forEach((r) => {
-      const unitData = r.unit || r.vehicle;
-      const unitNo = unitData?.unitNo || (unitData as any)?.plateNumber || "Unknown";
+      // Use the same logic as getVehicleDetails to extract unit number
+      const vehicleId = r.vehicle?._id || "";
+      const matched = vehicleId ? unitsMap.get(vehicleId) : undefined;
+      
+      let unitNo = "Unknown";
+      if (matched) {
+        unitNo = matched.unitNo || matched.licensePlate || "Unknown";
+      } else {
+        // Fallback to report data
+        const unitData = r.unit || r.vehicle;
+        unitNo = 
+          (unitData?.unitNo && unitData.unitNo !== 'N/A' ? unitData.unitNo : null) ||
+          unitData?.plateNumber ||
+          unitData?.vinNumber ||
+          (r.vehicle?.unitNo && r.vehicle.unitNo !== 'N/A' ? r.vehicle.unitNo : null) ||
+          r.vehicle?.plateNumber ||
+          r.vehicle?.vinNumber ||
+          "Unknown";
+      }
+      
       const amt = r.fuelAmount ?? (r.fuelAmounts?.[0] ?? parseFloat(r.volume || "0"));
-      byUnit[unitNo] = (byUnit[unitNo] || 0) + amt;
+      if (unitNo !== "Unknown" && amt > 0) {
+        byUnit[unitNo] = (byUnit[unitNo] || 0) + amt;
+      }
     });
-    return Object.entries(byUnit)
+    
+    const result = Object.entries(byUnit)
+      .filter(([unitNo]) => unitNo !== "Unknown" && unitNo !== "N/A")
       .map(([unitNo, consumption]) => ({ unitNo, consumption }))
       .sort((a, b) => b.consumption - a.consumption)
-      .slice(0, 5)
-      .map((t) => ({ unitNo: t.unitNo, consumption: t.consumption }));
-  }, [fuelReports]);
+      .slice(0, 5);
+    
+    return result.length > 0 ? result : STATIC_TOP_TRUCKS;
+  }, [fuelReports, unitsMap]);
 
   // Filter by date range (client-side)
   const filteredReports = useMemo(() => {
@@ -1273,6 +1499,7 @@ const FuelReports = () => {
         isOpen={isSidebarOpen}
         onClose={async (shouldRefresh = true) => {
           setIsSidebarOpen(false);
+          setOcrExtractedData(null); // Clear OCR data when sidebar closes
           if (shouldRefresh) {
             // Reset to page 1 to show the newly created report (since sorted by createdAt desc)
             setCurrentPage(1);
@@ -1283,6 +1510,7 @@ const FuelReports = () => {
         units={units}
         unitsLoading={unitsLoading}
         currentUser={userInfo}
+        initialData={ocrExtractedData}
       />
 
       {/* Edit Modal */}
@@ -1310,7 +1538,7 @@ const FuelReports = () => {
                       onAddressSelect={(addressData) => {
                         setEditForm(prev => ({
                           ...prev,
-                          state: addressData.state || prev.state,
+                          state: addressData.state || '',
                           address: addressData.address || '',
                           city: addressData.city || '',
                           postalCode: addressData.postalCode || '',
@@ -1333,6 +1561,18 @@ const FuelReports = () => {
                           Selected: {editForm.state} {editForm.city && `- ${editForm.city}`}
                         </p>
                     )}
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">State</label>
+                    <input
+                      type="text"
+                      value={editForm.state}
+                      onChange={(e) => handleEditFieldChange("state", e.target.value)}
+                      placeholder="e.g., Ontario, BC, Manitoba"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:border-transparent"
+                      style={focusRingStyle}
+                    />
                   </div>
 
                   <div>
@@ -1789,56 +2029,477 @@ const FuelReports = () => {
         </div>
       )}
 
-      {/* Import Fuel (CSV) Modal - Static UI */}
+      {/* Import Fuel (CSV) Modal */}
       {importModalOpen && (
         <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50 px-4">
-          <div className="bg-white rounded-2xl shadow-2xl p-6 w-full max-w-lg space-y-4">
-            <h3 className="text-lg font-semibold text-gray-800">Import Fuel Records (CSV)</h3>
+          <div className="bg-white rounded-2xl shadow-2xl p-6 w-full max-w-4xl max-h-[90vh] overflow-y-auto space-y-4">
+            <div className="flex items-center justify-between">
+              <h3 className="text-lg font-semibold text-gray-800">Import Fuel Records (CSV)</h3>
+              <button onClick={closeImportModal} disabled={csvImporting} className="text-gray-400 hover:text-gray-600">
+                <X className="w-5 h-5" />
+              </button>
+            </div>
             <p className="text-sm text-gray-600">Upload a CSV from your fuel provider (e.g., Flying J, Shell). Map columns to fields.</p>
-            <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center">
-              <Upload className="w-10 h-10 mx-auto text-gray-400 mb-2" />
-              <p className="text-sm text-gray-600">Drag & drop CSV or click to browse</p>
-            </div>
-            <div className="space-y-2 text-sm">
-              <p className="font-medium text-gray-700">Column mapping (static preview):</p>
-              <div className="grid grid-cols-2 gap-2 text-gray-600">
-                <span>Date → Column A</span>
-                <span>Price → Column B</span>
-                <span>Gallons → Column C</span>
-                <span>Transaction # → Column D</span>
+            
+            {/* File Upload */}
+            {!csvFile && (
+              <div 
+                className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center cursor-pointer hover:border-blue-400 transition-colors"
+                onClick={() => csvFileInputRef.current?.click()}
+              >
+                <input
+                  ref={csvFileInputRef}
+                  type="file"
+                  accept=".csv"
+                  onChange={handleCsvFileSelect}
+                  className="hidden"
+                />
+                <Upload className="w-10 h-10 mx-auto text-gray-400 mb-2" />
+                <p className="text-sm text-gray-600">Click to browse or drag & drop CSV file</p>
+                <p className="text-xs text-gray-400 mt-1">Supported: CSV files only</p>
               </div>
-            </div>
-            <div className="flex justify-end gap-3 pt-2">
-              <button onClick={() => setImportModalOpen(false)} className="px-4 py-2 rounded-lg border border-gray-300 text-gray-700 hover:bg-gray-50">
-                Cancel
-              </button>
-              <button className="px-4 py-2 rounded-lg !text-white" style={{ background: FLEET_COLORS.gradient }}>
-                Import (Static)
-              </button>
-            </div>
+            )}
+
+            {/* Parsing State */}
+            {csvParsing && (
+              <div className="text-center py-8">
+                <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500"></div>
+                <p className="mt-2 text-sm text-gray-600">Parsing CSV file...</p>
+              </div>
+            )}
+
+            {/* Column Mapping */}
+            {csvHeaders.length > 0 && !csvParsing && (
+              <div className="space-y-4">
+                <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                  <p className="text-sm font-medium text-blue-900 mb-2">CSV File: {csvFile?.name}</p>
+                  <p className="text-xs text-blue-700">Found {csvHeaders.length} columns, {csvSampleRows.length} sample rows</p>
+                </div>
+
+                {/* Default Values */}
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Default Unit <span className="text-red-500">*</span></label>
+                    <select
+                      value={defaultUnitForImport}
+                      onChange={(e) => setDefaultUnitForImport(e.target.value)}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:border-transparent text-sm"
+                      style={focusRingStyle}
+                    >
+                      <option value="">Select Unit</option>
+                      {units.map(unit => (
+                        <option key={unit.id} value={unit.id}>
+                          {formatUnitLabel(unit)}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Default Currency</label>
+                    <select
+                      value={defaultCurrencyForImport}
+                      onChange={(e) => setDefaultCurrencyForImport(e.target.value)}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:border-transparent text-sm"
+                      style={focusRingStyle}
+                    >
+                      <option value="USA">USA (USD)</option>
+                      <option value="CAD">CAD</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Default Product</label>
+                    <input
+                      type="text"
+                      value={defaultProductForImport}
+                      onChange={(e) => setDefaultProductForImport(e.target.value)}
+                      placeholder="e.g., Truck Diesel"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:border-transparent text-sm"
+                      style={focusRingStyle}
+                    />
+                  </div>
+                </div>
+
+                {/* Column Mapping */}
+                <div className="border border-gray-200 rounded-lg p-4">
+                  <h4 className="text-sm font-semibold text-gray-700 mb-3">Map CSV Columns to Fields</h4>
+                  <div className="space-y-3">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                      <div>
+                        <label className="block text-xs font-medium text-gray-700 mb-1">Date <span className="text-red-500">*</span></label>
+                        <select
+                          value={csvMapping.date || ""}
+                          onChange={(e) => setCsvMapping(prev => ({ ...prev, date: e.target.value }))}
+                          className="w-full px-2 py-1.5 border border-gray-300 rounded-md text-xs"
+                        >
+                          <option value="">Select column...</option>
+                          {csvHeaders.map(header => (
+                            <option key={header} value={header}>{header}</option>
+                          ))}
+                        </select>
+                      </div>
+                      <div>
+                        <label className="block text-xs font-medium text-gray-700 mb-1">Transaction Amount <span className="text-red-500">*</span></label>
+                        <select
+                          value={csvMapping.transactionAmount || ""}
+                          onChange={(e) => setCsvMapping(prev => ({ ...prev, transactionAmount: e.target.value }))}
+                          className="w-full px-2 py-1.5 border border-gray-300 rounded-md text-xs"
+                        >
+                          <option value="">Select column...</option>
+                          {csvHeaders.map(header => (
+                            <option key={header} value={header}>{header}</option>
+                          ))}
+                        </select>
+                      </div>
+                      <div>
+                        <label className="block text-xs font-medium text-gray-700 mb-1">Fuel Amount <span className="text-red-500">*</span></label>
+                        <select
+                          value={csvMapping.fuelAmount || ""}
+                          onChange={(e) => setCsvMapping(prev => ({ ...prev, fuelAmount: e.target.value }))}
+                          className="w-full px-2 py-1.5 border border-gray-300 rounded-md text-xs"
+                        >
+                          <option value="">Select column...</option>
+                          {csvHeaders.map(header => (
+                            <option key={header} value={header}>{header}</option>
+                          ))}
+                        </select>
+                      </div>
+                      <div>
+                        <label className="block text-xs font-medium text-gray-700 mb-1">Transaction Number</label>
+                        <select
+                          value={csvMapping.transactionNumber || ""}
+                          onChange={(e) => setCsvMapping(prev => ({ ...prev, transactionNumber: e.target.value }))}
+                          className="w-full px-2 py-1.5 border border-gray-300 rounded-md text-xs"
+                        >
+                          <option value="">Select column...</option>
+                          {csvHeaders.map(header => (
+                            <option key={header} value={header}>{header}</option>
+                          ))}
+                        </select>
+                      </div>
+                      <div>
+                        <label className="block text-xs font-medium text-gray-700 mb-1">Fuel Vendor</label>
+                        <select
+                          value={csvMapping.fuelVendor || ""}
+                          onChange={(e) => setCsvMapping(prev => ({ ...prev, fuelVendor: e.target.value }))}
+                          className="w-full px-2 py-1.5 border border-gray-300 rounded-md text-xs"
+                        >
+                          <option value="">Select column...</option>
+                          {csvHeaders.map(header => (
+                            <option key={header} value={header}>{header}</option>
+                          ))}
+                        </select>
+                      </div>
+                      <div>
+                        <label className="block text-xs font-medium text-gray-700 mb-1">Unit</label>
+                        <select
+                          value={csvMapping.unit || ""}
+                          onChange={(e) => setCsvMapping(prev => ({ ...prev, unit: e.target.value }))}
+                          className="w-full px-2 py-1.5 border border-gray-300 rounded-md text-xs"
+                        >
+                          <option value="">Select column...</option>
+                          {csvHeaders.map(header => (
+                            <option key={header} value={header}>{header}</option>
+                          ))}
+                        </select>
+                      </div>
+                      <div>
+                        <label className="block text-xs font-medium text-gray-700 mb-1">City</label>
+                        <select
+                          value={csvMapping.city || ""}
+                          onChange={(e) => setCsvMapping(prev => ({ ...prev, city: e.target.value }))}
+                          className="w-full px-2 py-1.5 border border-gray-300 rounded-md text-xs"
+                        >
+                          <option value="">Select column...</option>
+                          {csvHeaders.map(header => (
+                            <option key={header} value={header}>{header}</option>
+                          ))}
+                        </select>
+                      </div>
+                      <div>
+                        <label className="block text-xs font-medium text-gray-700 mb-1">State</label>
+                        <select
+                          value={csvMapping.state || ""}
+                          onChange={(e) => setCsvMapping(prev => ({ ...prev, state: e.target.value }))}
+                          className="w-full px-2 py-1.5 border border-gray-300 rounded-md text-xs"
+                        >
+                          <option value="">Select column...</option>
+                          {csvHeaders.map(header => (
+                            <option key={header} value={header}>{header}</option>
+                          ))}
+                        </select>
+                      </div>
+                      <div>
+                        <label className="block text-xs font-medium text-gray-700 mb-1">Address</label>
+                        <select
+                          value={csvMapping.address || ""}
+                          onChange={(e) => setCsvMapping(prev => ({ ...prev, address: e.target.value }))}
+                          className="w-full px-2 py-1.5 border border-gray-300 rounded-md text-xs"
+                        >
+                          <option value="">Select column...</option>
+                          {csvHeaders.map(header => (
+                            <option key={header} value={header}>{header}</option>
+                          ))}
+                        </select>
+                      </div>
+                      <div>
+                        <label className="block text-xs font-medium text-gray-700 mb-1">Odometer</label>
+                        <select
+                          value={csvMapping.odometer || ""}
+                          onChange={(e) => setCsvMapping(prev => ({ ...prev, odometer: e.target.value }))}
+                          className="w-full px-2 py-1.5 border border-gray-300 rounded-md text-xs"
+                        >
+                          <option value="">Select column...</option>
+                          {csvHeaders.map(header => (
+                            <option key={header} value={header}>{header}</option>
+                          ))}
+                        </select>
+                      </div>
+                      <div>
+                        <label className="block text-xs font-medium text-gray-700 mb-1">Product</label>
+                        <select
+                          value={csvMapping.product || ""}
+                          onChange={(e) => setCsvMapping(prev => ({ ...prev, product: e.target.value }))}
+                          className="w-full px-2 py-1.5 border border-gray-300 rounded-md text-xs"
+                        >
+                          <option value="">Select column...</option>
+                          {csvHeaders.map(header => (
+                            <option key={header} value={header}>{header}</option>
+                          ))}
+                        </select>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Sample Data Preview */}
+                {csvSampleRows.length > 0 && (
+                  <div className="border border-gray-200 rounded-lg p-4">
+                    <h4 className="text-sm font-semibold text-gray-700 mb-2">Sample Data Preview</h4>
+                    <div className="overflow-x-auto">
+                      <table className="w-full text-xs">
+                        <thead className="bg-gray-50">
+                          <tr>
+                            {csvHeaders.map(header => (
+                              <th key={header} className="px-2 py-1 text-left border border-gray-200">{header}</th>
+                            ))}
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {csvSampleRows.slice(0, 3).map((row, idx) => (
+                            <tr key={idx}>
+                              {csvHeaders.map(header => (
+                                <td key={header} className="px-2 py-1 border border-gray-200">{row[header] || '—'}</td>
+                              ))}
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  </div>
+                )}
+
+                {/* Import Result */}
+                {csvImportResult && (
+                  <div className={`border rounded-lg p-4 ${csvImportResult.failed > 0 ? 'bg-yellow-50 border-yellow-200' : 'bg-green-50 border-green-200'}`}>
+                    <p className="text-sm font-medium mb-2">
+                      Import Result: <span className="text-green-600">{csvImportResult.success} successful</span>
+                      {csvImportResult.failed > 0 && <span className="text-red-600">, {csvImportResult.failed} failed</span>}
+                    </p>
+                    {csvImportResult.errors.length > 0 && (
+                      <div className="max-h-32 overflow-y-auto">
+                        <p className="text-xs font-medium text-gray-700 mb-1">Errors:</p>
+                        <ul className="text-xs text-gray-600 list-disc list-inside">
+                          {csvImportResult.errors.map((error, idx) => (
+                            <li key={idx}>{error}</li>
+                          ))}
+                        </ul>
+                      </div>
+                    )}
+                  </div>
+                )}
+
+                {/* Actions */}
+                <div className="flex justify-end gap-3 pt-2 border-t">
+                  <button 
+                    onClick={closeImportModal} 
+                    disabled={csvImporting}
+                    className="px-4 py-2 rounded-lg border border-gray-300 text-gray-700 hover:bg-gray-50 disabled:opacity-60"
+                  >
+                    {csvImportResult ? 'Close' : 'Cancel'}
+                  </button>
+                  {!csvImportResult && (
+                    <button 
+                      onClick={handleCsvImport}
+                      disabled={csvImporting || !csvMapping.date || !csvMapping.transactionAmount || !csvMapping.fuelAmount || !defaultUnitForImport}
+                      className="px-4 py-2 rounded-lg !text-white disabled:opacity-60 disabled:cursor-not-allowed"
+                      style={{ background: FLEET_COLORS.gradient }}
+                    >
+                      {csvImporting ? 'Importing...' : 'Import'}
+                    </button>
+                  )}
+                </div>
+              </div>
+            )}
           </div>
         </div>
       )}
 
-      {/* Upload Receipt (OCR) Modal - Static UI */}
+      {/* Upload Receipt (OCR) Modal */}
       {ocrModalOpen && (
         <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50 px-4">
-          <div className="bg-white rounded-2xl shadow-2xl p-6 w-full max-w-lg space-y-4">
-            <h3 className="text-lg font-semibold text-gray-800">Upload Receipt (OCR)</h3>
-            <p className="text-sm text-gray-600">Upload a photo or PDF of your fuel receipt. AI will extract Total Amount, Gallons, and Date.</p>
-            <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center">
-              <FileText className="w-10 h-10 mx-auto text-gray-400 mb-2" />
-              <p className="text-sm text-gray-600">Drag & drop receipt or click to browse</p>
-            </div>
-            <p className="text-xs text-gray-500">Supported: JPG, PNG, PDF (static UI - OCR not connected)</p>
-            <div className="flex justify-end gap-3 pt-2">
-              <button onClick={() => setOcrModalOpen(false)} className="px-4 py-2 rounded-lg border border-gray-300 text-gray-700 hover:bg-gray-50">
-                Cancel
-              </button>
-              <button className="px-4 py-2 rounded-lg !text-white" style={{ background: FLEET_COLORS.gradient }}>
-                Extract & Add (Static)
+          <div className="bg-white rounded-2xl shadow-2xl p-6 w-full max-w-2xl max-h-[90vh] overflow-y-auto space-y-4">
+            <div className="flex items-center justify-between">
+              <h3 className="text-lg font-semibold text-gray-800">Upload Receipt (OCR)</h3>
+              <button onClick={closeOcrModal} disabled={ocrExtracting} className="text-gray-400 hover:text-gray-600">
+                <X className="w-5 h-5" />
               </button>
             </div>
+            <p className="text-sm text-gray-600">Upload a photo or PDF of your fuel receipt. AI will extract Total Amount, Gallons, Date, and other details.</p>
+            
+            {/* File Upload */}
+            {!ocrFile && (
+              <div 
+                className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center cursor-pointer hover:border-blue-400 transition-colors"
+                onClick={() => ocrFileInputRef.current?.click()}
+              >
+                <input
+                  ref={ocrFileInputRef}
+                  type="file"
+                  accept="image/jpeg,image/jpg,image/png,image/webp,application/pdf"
+                  onChange={handleOcrFileSelect}
+                  className="hidden"
+                />
+                <FileText className="w-10 h-10 mx-auto text-gray-400 mb-2" />
+                <p className="text-sm text-gray-600">Click to browse or drag & drop receipt</p>
+                <p className="text-xs text-gray-400 mt-1">Supported: JPG, PNG, WebP, PDF</p>
+              </div>
+            )}
+
+            {/* Extracting State */}
+            {ocrExtracting && (
+              <div className="text-center py-8">
+                <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500"></div>
+                <p className="mt-2 text-sm text-gray-600">Extracting data from receipt...</p>
+                <p className="text-xs text-gray-400 mt-1">This may take a few seconds</p>
+              </div>
+            )}
+
+            {/* Extracted Data Preview */}
+            {ocrExtractedData && !ocrExtracting && (
+              <div className="space-y-4">
+                <div className="bg-green-50 border border-green-200 rounded-lg p-4">
+                  <div className="flex items-center gap-2 mb-2">
+                    <Sparkles className="w-5 h-5 text-green-600" />
+                    <p className="text-sm font-medium text-green-900">Data extracted successfully!</p>
+                  </div>
+                  <p className="text-xs text-green-700">Review the extracted data below and click "Create Fuel Report" to proceed.</p>
+                </div>
+
+                {/* Extracted Data Display */}
+                <div className="border border-gray-200 rounded-lg p-4 space-y-3">
+                  <h4 className="text-sm font-semibold text-gray-700">Extracted Information</h4>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-sm">
+                    {ocrExtractedData.transactionAmount && (
+                      <div>
+                        <span className="text-gray-500">Transaction Amount:</span>
+                        <span className="ml-2 font-medium text-gray-900">
+                          ${parseFloat(ocrExtractedData.transactionAmount).toFixed(2)}
+                        </span>
+                      </div>
+                    )}
+                    {ocrExtractedData.fuelAmount && (
+                      <div>
+                        <span className="text-gray-500">Fuel Amount:</span>
+                        <span className="ml-2 font-medium text-gray-900">
+                          {parseFloat(ocrExtractedData.fuelAmount).toFixed(2)} {ocrExtractedData.fuelAmountUnit || 'gallons'}
+                        </span>
+                      </div>
+                    )}
+                    {ocrExtractedData.date && (
+                      <div>
+                        <span className="text-gray-500">Date:</span>
+                        <span className="ml-2 font-medium text-gray-900">{ocrExtractedData.date}</span>
+                      </div>
+                    )}
+                    {ocrExtractedData.fuelVendor && (
+                      <div>
+                        <span className="text-gray-500">Vendor:</span>
+                        <span className="ml-2 font-medium text-gray-900">{ocrExtractedData.fuelVendor}</span>
+                      </div>
+                    )}
+                    {ocrExtractedData.transactionNumber && (
+                      <div>
+                        <span className="text-gray-500">Transaction #:</span>
+                        <span className="ml-2 font-medium text-gray-900">{ocrExtractedData.transactionNumber}</span>
+                      </div>
+                    )}
+                    {ocrExtractedData.product && (
+                      <div>
+                        <span className="text-gray-500">Product:</span>
+                        <span className="ml-2 font-medium text-gray-900">{ocrExtractedData.product}</span>
+                      </div>
+                    )}
+                    {ocrExtractedData.location?.city && (
+                      <div>
+                        <span className="text-gray-500">City:</span>
+                        <span className="ml-2 font-medium text-gray-900">{ocrExtractedData.location.city}</span>
+                      </div>
+                    )}
+                    {ocrExtractedData.location?.state && (
+                      <div>
+                        <span className="text-gray-500">State:</span>
+                        <span className="ml-2 font-medium text-gray-900">{ocrExtractedData.location.state}</span>
+                      </div>
+                    )}
+                    {ocrExtractedData.odometer && (
+                      <div>
+                        <span className="text-gray-500">Odometer:</span>
+                        <span className="ml-2 font-medium text-gray-900">{ocrExtractedData.odometer}</span>
+                      </div>
+                    )}
+                    {ocrExtractedData.currency && (
+                      <div>
+                        <span className="text-gray-500">Currency:</span>
+                        <span className="ml-2 font-medium text-gray-900">{ocrExtractedData.currency}</span>
+                      </div>
+                    )}
+                  </div>
+                  {ocrExtractedData.location?.address && (
+                    <div className="pt-2 border-t">
+                      <span className="text-gray-500 text-sm">Address:</span>
+                      <p className="mt-1 text-sm font-medium text-gray-900">{ocrExtractedData.location.address}</p>
+                    </div>
+                  )}
+                </div>
+
+                {/* Actions */}
+                <div className="flex justify-end gap-3 pt-2 border-t">
+                  <button 
+                    onClick={closeOcrModal}
+                    disabled={ocrExtracting}
+                    className="px-4 py-2 rounded-lg border border-gray-300 text-gray-700 hover:bg-gray-50 disabled:opacity-60"
+                  >
+                    Cancel
+                  </button>
+                  <button 
+                    onClick={handleCreateFromOcr}
+                    disabled={ocrExtracting}
+                    className="px-4 py-2 rounded-lg !text-white disabled:opacity-60 disabled:cursor-not-allowed"
+                    style={{ background: FLEET_COLORS.gradient }}
+                  >
+                    Create Fuel Report
+                  </button>
+                </div>
+              </div>
+            )}
+
+            {/* File Selected but Not Extracted Yet */}
+            {ocrFile && !ocrExtractedData && !ocrExtracting && (
+              <div className="text-center py-4">
+                <p className="text-sm text-gray-600">File selected: {ocrFile.name}</p>
+                <p className="text-xs text-gray-400 mt-1">Click the file input again to re-select or extract</p>
+              </div>
+            )}
           </div>
         </div>
       )}
