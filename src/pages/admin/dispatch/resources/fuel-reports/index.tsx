@@ -16,6 +16,7 @@ import {
   createFuelVendor,
   parseCsvHeaders,
   importFuelReportsFromCsv,
+  extractFuelReceipt,
 } from "../../../../../axios/api/dispatcher.fuelreport";
 import { listFleetUnits } from "../../../../../axios/api/fleet.units";
 import { FLEET_COLORS } from "../../../fleetMaintenance/colorUtils";
@@ -128,7 +129,7 @@ const FuelReports = () => {
   const [editModalOpen, setEditModalOpen] = useState(false);
   const [editSubmitting, setEditSubmitting] = useState(false);
   const [editFuelTypes, setEditFuelTypes] = useState<Array<{ _id: string; name: string }>>([]);
-  const [loadingEditFuelTypes, setLoadingEditFuelTypes] = useState(false);
+  const [, setLoadingEditFuelTypes] = useState(false);
   const [showEditAddTypeModal, setShowEditAddTypeModal] = useState(false);
   const [newEditTypeName, setNewEditTypeName] = useState('');
   const [addingEditType, setAddingEditType] = useState(false);
@@ -321,37 +322,6 @@ const FuelReports = () => {
     }
   }, [currentPage, pageSize, debouncedSearch, statusFilter]);
 
-  const getCurrentUserId = useMemo(
-    () => userInfo?._id || userInfo?.userData?._id || "",
-    [userInfo]
-  );
-  const getCurrentUserName = useMemo(
-    () =>
-      userInfo?.name ||
-      userInfo?.userData?.name ||
-      [userInfo?.userData?.firstName, userInfo?.userData?.lastName].filter(Boolean).join(" ").trim(),
-    [userInfo]
-  );
-  const getCurrentUserEmail = useMemo(
-    () => userInfo?.email || userInfo?.userData?.email || "",
-    [userInfo]
-  );
-
-  const getReporterDetails = useCallback(
-    (report: FuelReportType) => {
-      const name =
-        report.reporter?.name ||
-        report.reporterName ||
-        (report.reporter?._id === getCurrentUserId ? getCurrentUserName : "") ||
-        "N/A";
-      const email =
-        report.reporter?.email ||
-        report.reporterEmail ||
-        (report.reporter?._id === getCurrentUserId ? getCurrentUserEmail : undefined);
-      return { name, email };
-    },
-    [getCurrentUserEmail, getCurrentUserId, getCurrentUserName]
-  );
 
   const loadUnits = useCallback(async () => {
     setUnitsLoading(true);
@@ -997,8 +967,6 @@ const FuelReports = () => {
         const unitData = r.unit || r.vehicle;
         unitNo = 
           (unitData?.unitNo && unitData.unitNo !== 'N/A' ? unitData.unitNo : null) ||
-          unitData?.plateNumber ||
-          unitData?.vinNumber ||
           (r.vehicle?.unitNo && r.vehicle.unitNo !== 'N/A' ? r.vehicle.unitNo : null) ||
           r.vehicle?.plateNumber ||
           r.vehicle?.vinNumber ||
@@ -1310,8 +1278,6 @@ const FuelReports = () => {
                     const fuelAmounts = report.fuelAmounts || [];
                     const fuelAmount = report.fuelAmount || null;
                     const units = report.units || [];
-                    const fuelVendors = report.fuelVendors || [];
-                    const fuelVendor = report.fuelVendor || '';
                     const measurementUnit = report.measurementUnit || '';
                     const transactionNumber = report.transactionNumber || report._id.slice(-8);
                     const city = report.city || report.cityLocation || 'N/A';

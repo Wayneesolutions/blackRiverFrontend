@@ -200,7 +200,7 @@ const CvsaInspection: React.FC = () => {
   const [pageSize, setPageSize] = useState<number>(10);
   const [totalPages, setTotalPages] = useState<number>(0);
   const [total, setTotal] = useState<number>(0);
-  const [inspectionForm, setInspectionForm] = useState<Partial<Inspection>>({
+  const [inspectionForm, setInspectionForm] = useState<Omit<Partial<Inspection>, 'documents'> & { documents?: File[] }>({
     country: 'canada',
     date: '',
     location: '',
@@ -219,7 +219,7 @@ const CvsaInspection: React.FC = () => {
     carrierMotorCarrierNumber: '',
     timeOfInspection: '',
     documentLink: '',
-    documents: [] as File[],
+    documents: [],
     outOfServiceIssued: false,
     outOfServiceReleaseDate: '',
     defectRepairNeeded: false
@@ -565,7 +565,7 @@ const CvsaInspection: React.FC = () => {
       carrierMotorCarrierNumber: inspection.carrierMotorCarrierNumber || '',
       timeOfInspection: inspection.timeOfInspection || '',
       documentLink: inspection.documentLink || '',
-      documents: inspection.documents || [],
+      documents: [], // Start with empty array for new file uploads; existing documents are preserved on backend
       outOfServiceIssued: inspection.outOfServiceIssued || false,
       outOfServiceReleaseDate: inspection.outOfServiceReleaseDate ? new Date(inspection.outOfServiceReleaseDate).toISOString().split('T')[0] : '',
       defectRepairNeeded: inspection.defectRepairNeeded || false
@@ -649,8 +649,8 @@ const CvsaInspection: React.FC = () => {
       if (inspectionForm.date) formData.append('date', inspectionForm.date);
       formData.append('location', inspectionForm.location || '');
       formData.append('status', inspectionForm.status || 'pass');
-      formData.append('vehicle', typeof inspectionForm.vehicle === 'string' ? inspectionForm.vehicle : inspectionForm.vehicle?._id || inspectionForm.vehicle || '');
-      formData.append('driver', typeof inspectionForm.driver === 'string' ? inspectionForm.driver : inspectionForm.driver?._id || inspectionForm.driver || '');
+      formData.append('vehicle', typeof inspectionForm.vehicle === 'string' ? inspectionForm.vehicle : (typeof inspectionForm.vehicle === 'object' && inspectionForm.vehicle?._id ? inspectionForm.vehicle._id : ''));
+      formData.append('driver', typeof inspectionForm.driver === 'string' ? inspectionForm.driver : (typeof inspectionForm.driver === 'object' && inspectionForm.driver?._id ? inspectionForm.driver._id : ''));
       if (inspectionForm.inspectorName) formData.append('inspectorName', inspectionForm.inspectorName);
       if (inspectionForm.violations && inspectionForm.violations.length > 0) {
         inspectionForm.violations.forEach((v, i) => {
@@ -720,8 +720,8 @@ const CvsaInspection: React.FC = () => {
       if (inspectionForm.date) formData.append('date', inspectionForm.date);
       formData.append('location', inspectionForm.location || '');
       formData.append('status', inspectionForm.status || 'pass');
-      formData.append('vehicle', typeof inspectionForm.vehicle === 'string' ? inspectionForm.vehicle : inspectionForm.vehicle?._id || inspectionForm.vehicle || '');
-      formData.append('driver', typeof inspectionForm.driver === 'string' ? inspectionForm.driver : inspectionForm.driver?._id || inspectionForm.driver || '');
+      formData.append('vehicle', typeof inspectionForm.vehicle === 'string' ? inspectionForm.vehicle : (typeof inspectionForm.vehicle === 'object' && inspectionForm.vehicle?._id ? inspectionForm.vehicle._id : ''));
+      formData.append('driver', typeof inspectionForm.driver === 'string' ? inspectionForm.driver : (typeof inspectionForm.driver === 'object' && inspectionForm.driver?._id ? inspectionForm.driver._id : ''));
       if (inspectionForm.inspectorName) formData.append('inspectorName', inspectionForm.inspectorName);
       if (inspectionForm.violations && inspectionForm.violations.length > 0) {
         inspectionForm.violations.forEach((v, i) => {

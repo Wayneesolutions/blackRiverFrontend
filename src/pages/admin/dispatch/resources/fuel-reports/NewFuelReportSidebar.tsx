@@ -77,7 +77,7 @@ const NewFuelReportSidebar: FC<NewFuelReportSidebarProps> = ({ isOpen, onClose, 
     const [openDetails, setOpenDetails] = useState(true);
     const [loadingSubmit, setLoadingSubmit] = useState(false);
     const [fuelTypes, setFuelTypes] = useState<Array<{ _id: string; name: string }>>([]);
-    const [loadingFuelTypes, setLoadingFuelTypes] = useState(false);
+    const [, setLoadingFuelTypes] = useState(false);
     const [showAddTypeModal, setShowAddTypeModal] = useState(false);
     const [newTypeName, setNewTypeName] = useState('');
     const [addingType, setAddingType] = useState(false);
@@ -110,12 +110,10 @@ const NewFuelReportSidebar: FC<NewFuelReportSidebarProps> = ({ isOpen, onClose, 
     );
 
     const reporterId = currentUser?._id || currentUser?.userData?._id || '';
-    const reporterName =
         currentUser?.name ||
         currentUser?.userData?.name ||
         [currentUser?.userData?.firstName, currentUser?.userData?.lastName].filter(Boolean).join(' ').trim() ||
         'N/A';
-    const reporterEmail = currentUser?.email || currentUser?.userData?.email || '—';
 
     const formatUnitLabel = (unit: FleetUnitOption) => {
         const base = [unit.unitNo, unit.makeModel].filter(Boolean).join(' - ');

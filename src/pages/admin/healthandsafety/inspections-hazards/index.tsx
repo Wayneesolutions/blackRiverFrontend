@@ -547,7 +547,7 @@ const HazardControl = () => {
                 const headerRow = sheet.getRow(1);
                 headerRow.font = { bold: true };
                 headerRow.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFE5E7EB' } };
-                sheet.columns.forEach((col, i) => {
+                sheet.columns.forEach((col) => {
                     let maxLen = 12;
                     col.eachCell?.({ includeEmpty: true }, cell => {
                         const val = cell.value?.toString() ?? '';

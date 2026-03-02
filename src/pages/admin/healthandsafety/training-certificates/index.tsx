@@ -227,7 +227,7 @@ const TrainingCertificates = () => {
       sheet.addRow(row);
     });
 
-    sheet.columns.forEach((col, i) => {
+    sheet.columns.forEach((col) => {
       let maxLen = 12;
       col.eachCell?.({ includeEmpty: true }, cell => {
         const val = cell.value?.toString() ?? '';

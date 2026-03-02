@@ -1029,7 +1029,7 @@ const FleetInvoicesPage = () => {
         doc.setFont('helvetica', 'normal');
         doc.setTextColor(...grayColor);
         
-        vehicleInfoForPDF.forEach((vehicle, idx) => {
+        vehicleInfoForPDF.forEach((vehicle) => {
           const vehicleLines: string[] = [];
           vehicleLines.push(`Unit ${vehicle.unitNumber || '—'}`);
           if (vehicle.unitType) vehicleLines.push(`Type: ${vehicle.unitType}`);

@@ -12,19 +12,14 @@ import {
   Search,
   ChevronLeft,
   ChevronRight,
-  Calendar,
   Wrench,
-  Car,
   FileText,
   CheckCircle,
   Clock,
-  AlertCircle,
   Play,
   Package,
-  X,
   Trash2,
 } from "lucide-react";
-import { getUserRole } from "../../../../utils/auth";
 
 const formatDate = (value?: string) => {
   if (!value) return "—";
@@ -83,8 +78,6 @@ interface SparePartOption {
 }
 
 const Services: React.FC = () => {
-  const userRole = getUserRole();
-  const basePath = userRole === "Maintenance Crew (Mechanics)" ? "/mechanics" : "/admin/mechanics";
   const currentUserId = getUserId();
 
   const [allServicesData, setAllServicesData] = useState<VehicleServiceResponse[]>([]);
@@ -166,7 +159,7 @@ const Services: React.FC = () => {
         // Client-side filtering for search
         if (search.trim()) {
           const searchLower = search.toLowerCase();
-          filteredServices = filteredServices.filter((service) => {
+          filteredServices = filteredServices.filter((service: { unitNumber: any; description: any; serviceType: any; makeModel: any; invoiceNumber: any; }) => {
             const unitNumber = (service.unitNumber || "").toLowerCase();
             const description = (service.description || "").toLowerCase();
             const serviceType = (service.serviceType || "").toLowerCase();

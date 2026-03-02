@@ -275,8 +275,11 @@ const ScheduledServicesLog: React.FC = () => {
       amount: service.amount ?? undefined,
       notes: service.notes || undefined,
       description: service.description || undefined,
-      serviceProvider: service.serviceProvider || undefined,
-      assignedMechanic: service.assignedMechanic || undefined,
+      assignedMechanic: service.assignedMechanic 
+        ? (typeof service.assignedMechanic === 'string' 
+          ? service.assignedMechanic 
+          : { _id: service.assignedMechanic._id, name: `${service.assignedMechanic.first_name} ${service.assignedMechanic.last_name}`.trim() })
+        : undefined,
       status: service.status,
       priority: service.priority,
       source: (service as any).source || 'manual',
@@ -1322,7 +1325,7 @@ const ScheduledServicesLog: React.FC = () => {
                               }
                               
                               // Format parts display
-                              const partsList = service.parts.map((part: any, idx: number) => {
+                              const partsList = service.parts.map((part: any) => {
                                 const partName = part.partName || part.partNumber || 'Part';
                                 const qty = part.quantity || 1;
                                 return `${partName}${qty > 1 ? ` (${qty})` : ''}`;

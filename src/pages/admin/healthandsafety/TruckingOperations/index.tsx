@@ -111,8 +111,8 @@ const formatDateTime = (date: string | Date, time?: string) => {
 const TruckingOperations: React.FC = () => {
   const [activeTab, setActiveTab] = useState(TABS.LOAD_SECUREMENT);
   const [loading, setLoading] = useState(true);
-  const [searchTerm, setSearchTerm] = useState('');
-  const [filterStatus, setFilterStatus] = useState('all');
+  const [searchTerm] = useState('');
+  const [filterStatus] = useState('all');
   const [notifications, setNotifications] = useState<ToastNotification[]>([]);
   const [showModal, setShowModal] = useState(false);
   const [submitting, setSubmitting] = useState(false);
@@ -597,7 +597,7 @@ const TruckingOperations: React.FC = () => {
         const headerRow = sheet.getRow(1);
         headerRow.font = { bold: true };
         headerRow.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFE5E7EB' } };
-        sheet.columns.forEach((col, i) => {
+        sheet.columns.forEach((col) => {
           let maxLen = 12;
           col.eachCell?.({ includeEmpty: true }, cell => {
             const val = cell.value?.toString() ?? '';

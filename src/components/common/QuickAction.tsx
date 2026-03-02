@@ -342,7 +342,7 @@ export const useQuickActions = () => {
             path: '/accounts/fuel-reports',
             icon: <DollarSign size={16} />,
             keywords: ['fuel', 'gas', 'diesel', 'report'],
-            roles: ['fleet', 'accounts']
+            roles: ['fleet', 'accountant']
         },
         {
             id: 'fleet-invoices',

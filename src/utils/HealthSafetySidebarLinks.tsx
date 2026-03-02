@@ -12,7 +12,6 @@ import {
     FaTruck, // For Trucking Operations
 
     FaAmbulance, // For Emergency Procedures
-    FaFolder,
     FaGraduationCap // For Training Content
 } from "react-icons/fa";
 
