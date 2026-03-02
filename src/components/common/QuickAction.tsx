@@ -339,10 +339,10 @@ export const useQuickActions = () => {
             type: 'navigation',
             title: 'Fuel Reports',
             description: 'View fuel reports',
-            path: '/fleetmaintenance/fuel-reports',
+            path: '/accounts/fuel-reports',
             icon: <DollarSign size={16} />,
             keywords: ['fuel', 'gas', 'diesel', 'report'],
-            roles: ['fleet']
+            roles: ['fleet', 'accounts']
         },
         {
             id: 'fleet-invoices',

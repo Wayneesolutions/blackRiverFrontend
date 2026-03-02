@@ -1,7 +1,8 @@
 import React, { useEffect, useState, useCallback, useMemo, useRef } from "react";
-import { Plus, Search, Edit, Trash2, ChevronLeft, ChevronRight, X } from "lucide-react";
+import { Plus, Search, Edit, Trash2, ChevronLeft, ChevronRight, X, Upload, FileText } from "lucide-react";
 import { FaFileInvoiceDollar, FaGasPump, FaClipboardList } from "react-icons/fa";
 import { message } from "antd";
+import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from "recharts";
 import NewFuelReportSidebar from "./NewFuelReportSidebar";
 import {
   listFuelReport,
@@ -20,7 +21,7 @@ import AddressSearch from "../../../../../components/common/AddressSearch";
 
 interface FuelReportType {
   _id: string;
-  reporter: { _id: string; name?: string; email?: string };
+  reporter?: { _id: string; name?: string; email?: string };
   reporterName?: string;
   reporterEmail?: string;
   driver?: { _id: string; name: string }; // Keep for backward compatibility
@@ -28,6 +29,10 @@ interface FuelReportType {
   trip?: any; // Keep for backward compatibility
   // New fields
   state?: string;
+  city?: string;
+  cityLocation?: string; // Alias for city
+  paymentNotes?: string;
+  product?: string; // Truck Diesel, Reefer Diesel, DEF
   unit?: { _id: string; unitNo?: string; unitType?: string; makeModel?: string };
   types?: string[];
   fuelAmounts?: number[];
@@ -62,6 +67,9 @@ interface FuelReportEditForm {
   longitude: string;
   fullAddress: string;
   type: string;
+  product: string;
+  transactionNumber: string;
+  paymentNotes: string;
   transactionAmount: string;
   currentOdometer: string;
   measurementUnit: string;
@@ -103,6 +111,9 @@ const FuelReports = () => {
     longitude: "",
     fullAddress: "",
     type: "",
+    product: "",
+    transactionNumber: "",
+    paymentNotes: "",
     transactionAmount: "",
     currentOdometer: "",
     measurementUnit: "",
@@ -138,6 +149,10 @@ const FuelReports = () => {
   const [units, setUnits] = useState<FleetUnitOption[]>([]);
   const [unitsLoading, setUnitsLoading] = useState(false);
   const hasFetchedRef = useRef(false);
+  const [startDateFilter, setStartDateFilter] = useState<string>("");
+  const [endDateFilter, setEndDateFilter] = useState<string>("");
+  const [importModalOpen, setImportModalOpen] = useState(false);
+  const [ocrModalOpen, setOcrModalOpen] = useState(false);
 
 
   const unitsMap = useMemo(() => new Map(units.map((unit) => [unit.id, unit])), [units]);
@@ -597,13 +612,16 @@ const FuelReports = () => {
       unit: report.unit?._id || report.vehicle?._id || "",
       state: report.state || "",
       address: location.address || "",
-      city: "",
+      city: report.city || report.cityLocation || "",
       postalCode: "",
       country: "",
       latitude: location.latitude || "",
       longitude: location.longitude || "",
       fullAddress: fullAddress,
       type: report.type || (report.types && report.types.length > 0 ? report.types[0] : ""),
+      product: report.product || report.type || (report.types && report.types.length > 0 ? report.types[0] : ""),
+      transactionNumber: report.transactionNumber || "",
+      paymentNotes: report.paymentNotes || "",
       transactionAmount: report.transactionAmount?.toString() || "",
       currentOdometer: report.currentOdometer || report.odometer || "",
       measurementUnit: report.measurementUnit || (report.units && report.units.length > 0 ? report.units[0] : ""),
@@ -631,6 +649,9 @@ const FuelReports = () => {
       longitude: "",
       fullAddress: "",
       type: "",
+      product: "",
+      transactionNumber: "",
+      paymentNotes: "",
       transactionAmount: "",
       currentOdometer: "",
       measurementUnit: "",
@@ -662,8 +683,9 @@ const FuelReports = () => {
       message.warning("Please select a location");
       return;
     }
-    if (!editForm.type || !editForm.type.trim()) {
-      message.warning("Please select a fuel type");
+    const fuelType = editForm.product || editForm.type;
+    if (!fuelType || !fuelType.trim()) {
+      message.warning("Please select a product (fuel type)");
       return;
     }
     try {
@@ -671,13 +693,17 @@ const FuelReports = () => {
       const payload = {
         unit: editForm.unit,
         state: editForm.state,
+        city: editForm.city,
         address: editForm.address || editForm.fullAddress,
         location: {
           address: editForm.fullAddress || editForm.address || '',
           latitude: editForm.latitude || '',
           longitude: editForm.longitude || ''
         },
-        type: editForm.type,
+        type: editForm.product || editForm.type,
+        product: editForm.product || editForm.type,
+        transactionNumber: editForm.transactionNumber || undefined,
+        paymentNotes: editForm.paymentNotes || undefined,
         transactionAmount: editForm.transactionAmount ? parseFloat(editForm.transactionAmount) : null,
         currentOdometer: editForm.currentOdometer || null,
         measurementUnit: editForm.measurementUnit,
@@ -709,8 +735,82 @@ const FuelReports = () => {
 
 
 
-  // No need for client-side filtering since backend handles it
-  const filteredReports = fuelReports;
+  // Static mock data for analytics (used when API returns little/no data)
+  const STATIC_SPEND_TREND = [
+    { month: "Jan", spend: 12400 },
+    { month: "Feb", spend: 13100 },
+    { month: "Mar", spend: 11800 },
+    { month: "Apr", spend: 14200 },
+    { month: "May", spend: 13900 },
+    { month: "Jun", spend: 15200 },
+    { month: "Jul", spend: 14800 },
+    { month: "Aug", spend: 16100 },
+    { month: "Sep", spend: 15500 },
+    { month: "Oct", spend: 16800 },
+    { month: "Nov", spend: 14200 },
+    { month: "Dec", spend: 0 },
+  ];
+  const STATIC_TOP_TRUCKS = [
+    { unitNo: "T-101", consumption: 12450 },
+    { unitNo: "T-205", consumption: 10230 },
+    { unitNo: "T-089", consumption: 9870 },
+    { unitNo: "T-312", consumption: 8450 },
+    { unitNo: "T-156", consumption: 7820 },
+  ];
+  const currentYear = new Date().getFullYear();
+  const ytdConsumption = useMemo(() => {
+    const fromData = fuelReports.reduce((acc, r) => {
+      const amt = r.fuelAmount ?? (r.fuelAmounts?.[0] ?? parseFloat(r.volume || "0"));
+      return acc + amt;
+    }, 0);
+    return fromData > 0 ? fromData : 125000; // Static fallback
+  }, [fuelReports]);
+  const spendTrendData = useMemo(() => {
+    if (fuelReports.length < 3) return STATIC_SPEND_TREND;
+    const byMonth: Record<string, number> = {};
+    fuelReports.forEach((r) => {
+      const d = r.date ? new Date(r.date) : new Date(r.createdAt);
+      const key = d.toLocaleString("default", { month: "short" });
+      byMonth[key] = (byMonth[key] || 0) + (r.transactionAmount ?? Number(r.cost) ?? 0);
+    });
+    return STATIC_SPEND_TREND.map((t) => ({
+      month: t.month,
+      spend: byMonth[t.month] ?? t.spend,
+    }));
+  }, [fuelReports]);
+  const topConsumingTrucks = useMemo(() => {
+    if (fuelReports.length < 3) return STATIC_TOP_TRUCKS;
+    const byUnit: Record<string, number> = {};
+    fuelReports.forEach((r) => {
+      const unitData = r.unit || r.vehicle;
+      const unitNo = unitData?.unitNo || (unitData as any)?.plateNumber || "Unknown";
+      const amt = r.fuelAmount ?? (r.fuelAmounts?.[0] ?? parseFloat(r.volume || "0"));
+      byUnit[unitNo] = (byUnit[unitNo] || 0) + amt;
+    });
+    return Object.entries(byUnit)
+      .map(([unitNo, consumption]) => ({ unitNo, consumption }))
+      .sort((a, b) => b.consumption - a.consumption)
+      .slice(0, 5)
+      .map((t) => ({ unitNo: t.unitNo, consumption: t.consumption }));
+  }, [fuelReports]);
+
+  // Filter by date range (client-side)
+  const filteredReports = useMemo(() => {
+    let list = fuelReports;
+    if (startDateFilter) {
+      list = list.filter((r) => {
+        const d = r.date ? new Date(r.date) : new Date(r.createdAt);
+        return d >= new Date(startDateFilter);
+      });
+    }
+    if (endDateFilter) {
+      list = list.filter((r) => {
+        const d = r.date ? new Date(r.date) : new Date(r.createdAt);
+        return d <= new Date(endDateFilter + "T23:59:59");
+      });
+    }
+    return list;
+  }, [fuelReports, startDateFilter, endDateFilter]);
 
   const StatCard = ({
     title,
@@ -742,33 +842,6 @@ const FuelReports = () => {
       </div>
     </div>
   );
-
-  const totalReports = fuelReports.length;
-  
-  // Calculate total volume - use fuelAmount (new) or volume (legacy), convert to liters if needed
-  const totalVolume = fuelReports.reduce((acc, r) => {
-    // Try new field first (fuelAmount)
-    if (r.fuelAmount !== null && r.fuelAmount !== undefined) {
-      return acc + r.fuelAmount;
-    }
-    // Try fuelAmounts array
-    if (r.fuelAmounts && r.fuelAmounts.length > 0) {
-      return acc + r.fuelAmounts.reduce((sum, amt) => sum + amt, 0);
-    }
-    // Fall back to legacy volume field
-    const volume = parseFloat(r.volume || '0');
-    return acc + volume;
-  }, 0);
-  
-  // Calculate total cost - use transactionAmount (new) or cost (legacy)
-  const totalCost = fuelReports.reduce((acc, r) => {
-    // Try new field first (transactionAmount)
-    if (r.transactionAmount !== null && r.transactionAmount !== undefined) {
-      return acc + Number(r.transactionAmount);
-    }
-    // Fall back to legacy cost field
-    return acc + (Number(r.cost) || 0);
-  }, 0);
 
   if (loading) {
     return (
@@ -819,47 +892,128 @@ const FuelReports = () => {
             </div>
           </div>
 
+          {/* Analytics Dashboard */}
+          <div className="space-y-4 mb-6">
+            <h2 className="text-lg font-semibold text-gray-800">Fuel Analytics</h2>
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+              <div className="bg-white rounded-xl p-4 shadow-sm border border-gray-200">
+                <h3 className="text-sm font-semibold text-gray-600 mb-2">YTD Consumption</h3>
+                <p className="text-2xl font-bold text-gray-900">
+                  {ytdConsumption.toLocaleString(undefined, { maximumFractionDigits: 0 })}
+                  <span className="text-sm font-normal text-gray-500 ml-1">
+                    {fuelReports[0]?.measurementUnit || "L"}
+                  </span>
+                </p>
+                <p className="text-xs text-gray-500 mt-1">Total {currentYear}</p>
+              </div>
+              <div className="bg-white rounded-xl p-4 shadow-sm border border-gray-200 lg:col-span-2">
+                <h3 className="text-sm font-semibold text-gray-600 mb-3">Spend Trend</h3>
+                <div className="h-32">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <LineChart data={spendTrendData}>
+                      <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
+                      <XAxis dataKey="month" tick={{ fontSize: 10 }} />
+                      <YAxis tick={{ fontSize: 10 }} tickFormatter={(v) => `$${(v / 1000).toFixed(0)}k`} />
+                      <Tooltip formatter={(v: number) => [`$${v.toLocaleString()}`, "Spend"]} />
+                      <Line type="monotone" dataKey="spend" stroke={FLEET_COLORS.primary} strokeWidth={2} dot={{ r: 3 }} />
+                    </LineChart>
+                  </ResponsiveContainer>
+                </div>
+              </div>
+            </div>
+            <div className="bg-white rounded-xl p-4 shadow-sm border border-gray-200">
+              <h3 className="text-sm font-semibold text-gray-600 mb-3">Top Consuming Trucks</h3>
+              <div className="flex flex-wrap gap-3">
+                {topConsumingTrucks.map((t, i) => (
+                  <div key={t.unitNo} className="flex items-center gap-2 px-3 py-2 bg-gray-50 rounded-lg">
+                    <span className="text-xs font-bold text-gray-500">#{i + 1}</span>
+                    <span className="font-semibold text-gray-900">{t.unitNo}</span>
+                    <span className="text-xs text-gray-600">
+                      {t.consumption.toLocaleString(undefined, { maximumFractionDigits: 0 })} L
+                    </span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+
           <div className="grid grid-cols-1 md:grid-cols-3 gap-3 -mt-2 mb-4">
-            <StatCard title="Total Reports" value={totalReports} subtitle="All time" icon={FaClipboardList} bgColor="bg-blue-50" iconColor="text-blue-600" />
-            <StatCard title="Total Fuel Cost" value={`$${totalCost.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`} subtitle="Estimated spend" icon={FaFileInvoiceDollar} bgColor="bg-green-50" iconColor="text-green-600" />
+            <StatCard title="Total Reports" value={filteredReports.length} subtitle="Filtered" icon={FaClipboardList} bgColor="bg-blue-50" iconColor="text-blue-600" />
+            <StatCard title="Total Fuel Cost" value={`$${filteredReports.reduce((a, r) => a + (r.transactionAmount ?? Number(r.cost) ?? 0), 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`} subtitle="Filtered" icon={FaFileInvoiceDollar} bgColor="bg-green-50" iconColor="text-green-600" />
             <StatCard 
               title="Total Volume" 
-              value={`${totalVolume.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })} ${fuelReports.length > 0 && fuelReports[0]?.measurementUnit ? fuelReports[0].measurementUnit : 'L'}`} 
-              subtitle="Fuel consumed" 
+              value={`${filteredReports.reduce((a, r) => a + (r.fuelAmount ?? r.fuelAmounts?.[0] ?? parseFloat(r.volume || "0")), 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })} ${fuelReports[0]?.measurementUnit || "L"}`} 
+              subtitle="Filtered" 
               icon={FaGasPump} 
               bgColor="bg-orange-50" 
               iconColor="text-orange-600" 
             />
           </div>
 
-          <div className="bg-white rounded-xl shadow-lg border border-gray-200 p-4 flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4 mb-4">
-            <div className="relative flex-1 max-w-xl">
-              <Search className="w-4 h-4 absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
-              <input
-                type="text"
-                placeholder="Search by reporter, driver, vehicle, trip or status..."
-                value={searchTerm}
-                onChange={handleSearchChange}
-                className="pl-10 pr-4 py-2 w-full border border-gray-300 rounded-lg focus:ring-2 focus:border-transparent text-sm"
-                style={{ '--tw-ring-color': FLEET_COLORS.primary } as React.CSSProperties & { '--tw-ring-color': string }}
-              />
+          <div className="bg-white rounded-xl shadow-lg border border-gray-200 p-4 flex flex-col gap-4 mb-4">
+            <div className="flex flex-col lg:flex-row lg:items-center gap-4">
+              <div className="flex items-center gap-2">
+                <label className="text-xs font-medium text-gray-700 whitespace-nowrap">Start Date:</label>
+                <input
+                  type="date"
+                  value={startDateFilter}
+                  onChange={(e) => setStartDateFilter(e.target.value)}
+                  className="px-3 py-2 border border-gray-300 rounded-lg text-xs"
+                />
+              </div>
+              <div className="flex items-center gap-2">
+                <label className="text-xs font-medium text-gray-700 whitespace-nowrap">End Date:</label>
+                <input
+                  type="date"
+                  value={endDateFilter}
+                  onChange={(e) => setEndDateFilter(e.target.value)}
+                  className="px-3 py-2 border border-gray-300 rounded-lg text-xs"
+                />
+              </div>
+              <div className="relative flex-1 max-w-xl">
+                <Search className="w-4 h-4 absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
+                <input
+                  type="text"
+                  placeholder="Search by driver, vehicle, transaction #..."
+                  value={searchTerm}
+                  onChange={handleSearchChange}
+                  className="pl-10 pr-4 py-2 w-full border border-gray-300 rounded-lg focus:ring-2 focus:border-transparent text-sm"
+                  style={{ '--tw-ring-color': FLEET_COLORS.primary } as React.CSSProperties & { '--tw-ring-color': string }}
+                />
+              </div>
+              <div className="flex items-center gap-2">
+                <label className="text-xs font-medium text-gray-700">Status:</label>
+                <select
+                  value={statusFilter}
+                  onChange={(e) => {
+                    setStatusFilter(e.target.value);
+                    setCurrentPage(1);
+                  }}
+                  className="px-4 py-2 border border-gray-300 rounded-lg text-xs focus:ring-2 focus:border-transparent"
+                  style={{ '--tw-ring-color': FLEET_COLORS.primary } as React.CSSProperties & { '--tw-ring-color': string }}
+                >
+                  <option value="all">All Status</option>
+                  <option value="pending">Pending</option>
+                  <option value="approved">Approved</option>
+                  <option value="rejected">Rejected</option>
+                </select>
+              </div>
             </div>
             <div className="flex items-center gap-2">
-              <label className="text-xs font-medium text-gray-700">Status:</label>
-              <select
-                value={statusFilter}
-                onChange={(e) => {
-                  setStatusFilter(e.target.value);
-                  setCurrentPage(1);
-                }}
-                className="px-4 py-2 border border-gray-300 rounded-lg text-xs focus:ring-2 focus:border-transparent"
-                style={{ '--tw-ring-color': FLEET_COLORS.primary } as React.CSSProperties & { '--tw-ring-color': string }}
+              <button
+                onClick={() => setImportModalOpen(true)}
+                className="flex items-center gap-2 px-3 py-2 border border-gray-300 rounded-lg text-sm hover:bg-gray-50 transition-colors"
               >
-                <option value="all">All Status</option>
-                <option value="pending">Pending</option>
-                <option value="approved">Approved</option>
-                <option value="rejected">Rejected</option>
-              </select>
+                <Upload className="w-4 h-4" />
+                Import Fuel (CSV)
+              </button>
+              <button
+                onClick={() => setOcrModalOpen(true)}
+                className="flex items-center gap-2 px-3 py-2 border border-gray-300 rounded-lg text-sm hover:bg-gray-50 transition-colors"
+              >
+                <FileText className="w-4 h-4" />
+                Upload Receipt (OCR)
+              </button>
             </div>
           </div>
         </div>
@@ -871,25 +1025,28 @@ const FuelReports = () => {
               <thead className="bg-gray-50">
                 <tr>
                   <th className="px-6 py-2 text-xs font-semibold text-gray-600 uppercase tracking-wider text-left">
-                    Transaction #
+                    Date
                   </th>
                   <th className="px-6 py-2 text-xs font-semibold text-gray-600 uppercase tracking-wider text-left">
-                    State
+                    Transaction #
                   </th>
                   <th className="px-6 py-2 text-xs font-semibold text-gray-600 uppercase tracking-wider text-left">
                     Unit
                   </th>
                   <th className="px-6 py-2 text-xs font-semibold text-gray-600 uppercase tracking-wider text-left">
-                    Type
+                    Product
+                  </th>
+                  <th className="px-6 py-2 text-xs font-semibold text-gray-600 uppercase tracking-wider text-left">
+                    City
+                  </th>
+                  <th className="px-6 py-2 text-xs font-semibold text-gray-600 uppercase tracking-wider text-left">
+                    State
                   </th>
                   <th className="px-6 py-2 text-xs font-semibold text-gray-600 uppercase tracking-wider text-left">
                     Fuel Amount
                   </th>
                   <th className="px-6 py-2 text-xs font-semibold text-gray-600 uppercase tracking-wider text-left">
-                    Transaction Amount
-                  </th>
-                  <th className="px-6 py-2 text-xs font-semibold text-gray-600 uppercase tracking-wider text-left">
-                    Current Odometer
+                    Amount
                   </th>
                   <th className="px-6 py-2 text-xs font-semibold text-gray-600 uppercase tracking-wider text-left">
                     Units
@@ -898,10 +1055,10 @@ const FuelReports = () => {
                     Currency
                   </th>
                   <th className="px-6 py-2 text-xs font-semibold text-gray-600 uppercase tracking-wider text-left">
-                    Date
+                    Payment Notes
                   </th>
-                  <th className="px-6 py-2 text-xs font-semibold text-gray-600 uppercase tracking-wider text-left">
-                    Fuel Vendor
+                  <th className="px-6 py-2 text-xs font-semibold text-gray-500 uppercase tracking-wider text-left">
+                    Status
                   </th>
                   <th className="px-6 py-2 text-xs font-semibold text-gray-600 uppercase tracking-wider text-left">
                     Actions
@@ -912,7 +1069,7 @@ const FuelReports = () => {
                 {filteredReports.length === 0 ? (
                   <tr>
                     <td
-                      colSpan={12}
+                      colSpan={13}
                       className="px-6 py-8 text-center text-gray-500"
                     >
                       No fuel reports found
@@ -920,10 +1077,10 @@ const FuelReports = () => {
                   </tr>
                 ) : (
                   filteredReports.map((report) => {
-                    // Use unit if available, otherwise use vehicle
                     const unitData = report.unit || report.vehicle;
                     const unitDetails = unitData ? getVehicleDetails({ vehicle: unitData } as any) : getVehicleDetails(report);
                     const types = report.types || (report.type ? [report.type] : []);
+                    const product = report.product || types[0] || report.type || 'N/A';
                     const fuelAmounts = report.fuelAmounts || [];
                     const fuelAmount = report.fuelAmount || null;
                     const units = report.units || [];
@@ -931,14 +1088,16 @@ const FuelReports = () => {
                     const fuelVendor = report.fuelVendor || '';
                     const measurementUnit = report.measurementUnit || '';
                     const transactionNumber = report.transactionNumber || report._id.slice(-8);
+                    const city = report.city || report.cityLocation || 'N/A';
+                    const paymentNotes = report.paymentNotes || '—';
                     
                     return (
                       <tr key={report._id} className="hover:bg-gray-50">
+                        <td className="px-6 py-2 text-xs text-gray-900 font-medium">
+                          {report.date ? new Date(report.date).toLocaleDateString() : new Date(report.createdAt).toLocaleDateString()}
+                        </td>
                         <td className="px-6 py-2 text-xs font-semibold text-gray-900">
                           {transactionNumber}
-                        </td>
-                        <td className="px-6 py-2 text-xs text-gray-500">
-                          {report.state || 'N/A'}
                         </td>
                         <td className="px-6 py-2 text-xs text-gray-500">
                           <div className="space-y-0.5">
@@ -968,13 +1127,13 @@ const FuelReports = () => {
                           </div>
                         </td>
                         <td className="px-6 py-2 text-xs text-gray-500">
-                          {types.length > 0 ? (
-                            <div className="space-y-1">
-                              {types.map((type, idx) => (
-                                <div key={idx} className="font-medium">{type}</div>
-                              ))}
-                            </div>
-                          ) : (report.type ? report.type : 'N/A')}
+                          {product}
+                        </td>
+                        <td className="px-6 py-2 text-xs text-gray-500">
+                          {city}
+                        </td>
+                        <td className="px-6 py-2 text-xs text-gray-500">
+                          {report.state || 'N/A'}
                         </td>
                         <td className="px-6 py-2 text-xs text-gray-500">
                           {fuelAmounts.length > 0 ? (
@@ -991,9 +1150,6 @@ const FuelReports = () => {
                             : (report.cost ? `$${Number(report.cost).toFixed(2)}` : '-')}
                         </td>
                         <td className="px-6 py-2 text-xs text-gray-500">
-                          {report.currentOdometer || report.odometer || 'N/A'}
-                        </td>
-                        <td className="px-6 py-2 text-xs text-gray-500">
                           {units.length > 0 ? (
                             <div className="space-y-1">
                               {units.map((unit, idx) => (
@@ -1005,19 +1161,11 @@ const FuelReports = () => {
                         <td className="px-6 py-2 text-xs text-gray-500">
                           {report.currency || 'USA'}
                         </td>
-                        <td className="px-6 py-2 text-xs text-gray-500">
-                          {report.date 
-                            ? new Date(report.date).toLocaleDateString()
-                            : new Date(report.createdAt).toLocaleDateString()}
+                        <td className="px-6 py-2 text-xs text-gray-500 max-w-[120px] truncate" title={paymentNotes}>
+                          {paymentNotes}
                         </td>
-                        <td className="px-6 py-2 text-xs text-gray-500">
-                          {fuelVendors.length > 0 ? (
-                            <div className="space-y-1">
-                              {fuelVendors.map((vendor, idx) => (
-                                <div key={idx}>{vendor}</div>
-                              ))}
-                            </div>
-                          ) : (fuelVendor ? fuelVendor : 'N/A')}
+                        <td className="px-6 py-2 text-xs text-gray-400">
+                          {report.status || '—'}
                         </td>
                         <td className="px-6 py-2">
                           <div className="flex items-center gap-2">
@@ -1154,14 +1302,6 @@ const FuelReports = () => {
             <div className="flex-1 overflow-y-auto p-4 space-y-6 pb-20">
               <div className="bg-gray-50 p-4 rounded-md shadow-sm">
                 <div className="space-y-4">
-                  <div className="bg-white border border-gray-200 rounded-lg px-4 py-3">
-                    <p className="text-xs font-semibold tracking-wide text-gray-500 uppercase">Reporter</p>
-                    <p className="text-gray-900 font-semibold">{getReporterDetails(editingReport).name}</p>
-                    {getReporterDetails(editingReport).email && (
-                      <p className="text-xs text-gray-500">{getReporterDetails(editingReport).email}</p>
-                    )}
-                  </div>
-
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">Location <span className="text-red-500">*</span></label>
                     <AddressSearch
@@ -1189,10 +1329,34 @@ const FuelReports = () => {
                       className="w-full"
                     />
                     {editForm.state && (
-                      <p className="text-xs text-gray-500 mt-1">
-                        Selected: {editForm.state} {editForm.city && `- ${editForm.city}`}
-                      </p>
+                        <p className="text-xs text-gray-500 mt-1">
+                          Selected: {editForm.state} {editForm.city && `- ${editForm.city}`}
+                        </p>
                     )}
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">City</label>
+                    <input
+                      type="text"
+                      value={editForm.city}
+                      onChange={(e) => handleEditFieldChange("city", e.target.value)}
+                      placeholder="e.g., Mississauga, Hope"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:border-transparent"
+                      style={focusRingStyle}
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Transaction #</label>
+                    <input
+                      type="text"
+                      value={editForm.transactionNumber}
+                      onChange={(e) => handleEditFieldChange("transactionNumber", e.target.value)}
+                      placeholder="Unique transaction ID"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:border-transparent"
+                      style={focusRingStyle}
+                    />
                   </div>
 
                   <div>
@@ -1217,24 +1381,25 @@ const FuelReports = () => {
                   </div>
 
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Type <span className="text-red-500">*</span></label>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Product <span className="text-red-500">*</span></label>
                     <div className="flex gap-2">
                       <select
-                        value={editForm.type}
-                        onChange={(e) => handleEditFieldChange("type", e.target.value)}
+                        value={editForm.product || editForm.type}
+                        onChange={(e) => {
+                          const v = e.target.value;
+                          handleEditFieldChange("product", v);
+                          handleEditFieldChange("type", v);
+                        }}
                         className="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:border-transparent"
                         style={focusRingStyle}
                       >
-                        <option value="">Select Fuel Type</option>
-                        {loadingEditFuelTypes ? (
-                          <option disabled>Loading...</option>
-                        ) : (
-                          editFuelTypes.map((ft) => (
-                            <option key={ft._id} value={ft.name}>
-                              {ft.name}
-                            </option>
-                          ))
-                        )}
+                        <option value="">Select Product</option>
+                        <option value="Truck Diesel">Truck Diesel</option>
+                        <option value="Reefer Diesel">Reefer Diesel</option>
+                        <option value="DEF">DEF</option>
+                        {editFuelTypes.filter(ft => !['Truck Diesel', 'Reefer Diesel', 'DEF'].includes(ft.name)).map((ft) => (
+                          <option key={ft._id} value={ft.name}>{ft.name}</option>
+                        ))}
                       </select>
                       <button
                         type="button"
@@ -1381,7 +1546,19 @@ const FuelReports = () => {
                   </div>
 
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Status</label>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Payment Notes</label>
+                    <textarea
+                      value={editForm.paymentNotes}
+                      onChange={(e) => handleEditFieldChange("paymentNotes", e.target.value)}
+                      placeholder="Internal remarks or accounting references"
+                      rows={2}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:border-transparent"
+                      style={focusRingStyle}
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-500 mb-1">Status</label>
                     <select
                       value={editForm.status}
                       onChange={(e) => handleEditFieldChange("status", e.target.value)}
@@ -1606,6 +1783,60 @@ const FuelReports = () => {
                 className="px-4 py-2 rounded-lg bg-red-600 !text-white hover:bg-red-700 transition-colors disabled:opacity-60"
               >
                 {deleteLoading ? "Deleting..." : "Delete"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Import Fuel (CSV) Modal - Static UI */}
+      {importModalOpen && (
+        <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50 px-4">
+          <div className="bg-white rounded-2xl shadow-2xl p-6 w-full max-w-lg space-y-4">
+            <h3 className="text-lg font-semibold text-gray-800">Import Fuel Records (CSV)</h3>
+            <p className="text-sm text-gray-600">Upload a CSV from your fuel provider (e.g., Flying J, Shell). Map columns to fields.</p>
+            <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center">
+              <Upload className="w-10 h-10 mx-auto text-gray-400 mb-2" />
+              <p className="text-sm text-gray-600">Drag & drop CSV or click to browse</p>
+            </div>
+            <div className="space-y-2 text-sm">
+              <p className="font-medium text-gray-700">Column mapping (static preview):</p>
+              <div className="grid grid-cols-2 gap-2 text-gray-600">
+                <span>Date → Column A</span>
+                <span>Price → Column B</span>
+                <span>Gallons → Column C</span>
+                <span>Transaction # → Column D</span>
+              </div>
+            </div>
+            <div className="flex justify-end gap-3 pt-2">
+              <button onClick={() => setImportModalOpen(false)} className="px-4 py-2 rounded-lg border border-gray-300 text-gray-700 hover:bg-gray-50">
+                Cancel
+              </button>
+              <button className="px-4 py-2 rounded-lg !text-white" style={{ background: FLEET_COLORS.gradient }}>
+                Import (Static)
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Upload Receipt (OCR) Modal - Static UI */}
+      {ocrModalOpen && (
+        <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50 px-4">
+          <div className="bg-white rounded-2xl shadow-2xl p-6 w-full max-w-lg space-y-4">
+            <h3 className="text-lg font-semibold text-gray-800">Upload Receipt (OCR)</h3>
+            <p className="text-sm text-gray-600">Upload a photo or PDF of your fuel receipt. AI will extract Total Amount, Gallons, and Date.</p>
+            <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center">
+              <FileText className="w-10 h-10 mx-auto text-gray-400 mb-2" />
+              <p className="text-sm text-gray-600">Drag & drop receipt or click to browse</p>
+            </div>
+            <p className="text-xs text-gray-500">Supported: JPG, PNG, PDF (static UI - OCR not connected)</p>
+            <div className="flex justify-end gap-3 pt-2">
+              <button onClick={() => setOcrModalOpen(false)} className="px-4 py-2 rounded-lg border border-gray-300 text-gray-700 hover:bg-gray-50">
+                Cancel
+              </button>
+              <button className="px-4 py-2 rounded-lg !text-white" style={{ background: FLEET_COLORS.gradient }}>
+                Extract & Add (Static)
               </button>
             </div>
           </div>

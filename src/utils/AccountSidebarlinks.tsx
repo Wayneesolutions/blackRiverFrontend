@@ -10,6 +10,7 @@ import {
     FaPercentage,
     FaGraduationCap
 } from "react-icons/fa";
+import { RiOilLine } from "react-icons/ri";
 import { BarChart3 } from "lucide-react";
 import { Sparkles } from "lucide-react";
 
@@ -73,6 +74,12 @@ export const AccountSidebarlinks: AccountSidebarlinks[] = [
         key: "/admin/accounts/fleet-maintenance",
         icon: <FaTools />,
         label: "Fleet & Maint. Finance",
+    },
+
+    {
+        key: "/admin/accounts/fuel-reports",
+        icon: <RiOilLine />,
+        label: "Fuel Reports",
     },
 
     {
