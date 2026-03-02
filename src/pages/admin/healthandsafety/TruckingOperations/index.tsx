@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import ExcelJS from 'exceljs';
 
 import {
   FaSnowflake,
@@ -12,6 +13,7 @@ import {
   FaExclamationTriangle,
   FaTimes,
   FaInfoCircle,
+  FaDownload,
 } from '../../../../theme/icons';
 
 const CUSTOM_COLORS = {
@@ -35,6 +37,8 @@ import {
   createFuelingSpill,
   createDangerousGoods,
 } from '../../../../axios/api/healthSafety';
+import { getAllDrivers } from '../../../../axios/api/driver';
+import { listFleetUnits } from '../../../../axios/api/fleet.units';
 
 interface ToastNotification {
   id: number;
@@ -88,6 +92,22 @@ const TABS = {
   TDG_LOGS: 'tdg',
 };
 
+const formatDateTime = (date: string | Date, time?: string) => {
+  if (!date) return '—';
+  const d = typeof date === 'string' ? new Date(date) : date;
+  const dateStr = d.toLocaleDateString('en-US', { month: 'numeric', day: 'numeric', year: 'numeric' });
+  if (time) {
+    if (/am|pm/i.test(time)) return `${dateStr} ${time}`;
+    const parts = time.split(':');
+    const h = parseInt(parts[0] || '0', 10);
+    const m = parseInt(parts[1] || '0', 10);
+    const period = h >= 12 ? 'PM' : 'AM';
+    const hour12 = h % 12 || 12;
+    return `${dateStr} ${hour12}:${String(m).padStart(2, '0')} ${period}`;
+  }
+  return dateStr;
+};
+
 const TruckingOperations: React.FC = () => {
   const [activeTab, setActiveTab] = useState(TABS.LOAD_SECUREMENT);
   const [loading, setLoading] = useState(true);
@@ -97,13 +117,10 @@ const TruckingOperations: React.FC = () => {
   const [showModal, setShowModal] = useState(false);
   const [submitting, setSubmitting] = useState(false);
 
-  // Temporary usage to silence build errors
-  useEffect(() => {
-    if (searchTerm) console.log(searchTerm);
-    if (filterStatus) console.log(filterStatus);
-    setSearchTerm('');
-    setFilterStatus('all');
-  }, []);
+  // Drivers, vehicles (trucks), trailers from APIs
+  const [drivers, setDrivers] = useState<{ _id: string; name: string }[]>([]);
+  const [vehicles, setVehicles] = useState<{ _id: string; unitNo: string }[]>([]);
+  const [trailers, setTrailers] = useState<{ _id: string; unitNo: string }[]>([]);
 
   // Data
   const [loadSecurementLogs, setLoadSecurementLogs] = useState<LoadSecurementLog[]>([]);
@@ -214,6 +231,7 @@ const TruckingOperations: React.FC = () => {
     areaClean: false,
   });
 
+  const [shippingDocumentFile, setShippingDocumentFile] = useState<File | null>(null);
   const [tdgForm, setTdgForm] = useState({
     date: new Date().toISOString().split('T')[0],
     time: new Date().toTimeString().slice(0, 5),
@@ -303,6 +321,34 @@ const TruckingOperations: React.FC = () => {
   useEffect(() => {
     fetchData();
   }, [searchTerm, filterStatus]);
+
+  useEffect(() => {
+    const fetchOptions = async () => {
+      try {
+        const [driversRes, trucksRes, trailersRes] = await Promise.all([
+          getAllDrivers(1, 1000),
+          listFleetUnits({ category: 'trucks', status: 'active' }),
+          listFleetUnits({ category: 'trailers', status: 'active' }),
+        ]);
+        if (driversRes?.success && Array.isArray(driversRes.data)) {
+          const filtered = driversRes.data.filter((d: any) => {
+            const r = (d.role || '').toLowerCase();
+            return r !== 'admin' && r !== 'superadmin';
+          });
+          setDrivers(filtered.map((d: any) => ({ _id: d._id, name: d.name || `${d.firstName || ''} ${d.lastName || ''}`.trim() || 'Unknown' })));
+        }
+        if (trucksRes?.success && Array.isArray(trucksRes.data)) {
+          setVehicles(trucksRes.data.map((u: any) => ({ _id: u._id, unitNo: u.unitNo || u.internalId || u._id })));
+        }
+        if (trailersRes?.success && Array.isArray(trailersRes.data)) {
+          setTrailers(trailersRes.data.map((u: any) => ({ _id: u._id, unitNo: u.unitNo || u.internalId || u._id })));
+        }
+      } catch (e) {
+        console.error('Error fetching drivers/vehicles/trailers:', e);
+      }
+    };
+    fetchOptions();
+  }, []);
 
   const handleCreateEntry = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -402,17 +448,22 @@ const TruckingOperations: React.FC = () => {
 
         case TABS.TDG_LOGS:
           const tdgData: any = { ...tdgForm };
-          // Required fields that should always be included
-          const requiredTdgFields = ['date', 'time', 'driverName', 'vehicleNumber', 'shippingDocument', 'unNumber', 'properShippingName', 'class', 'quantity'];
+          const requiredTdgFields = ['date', 'time', 'driverName', 'vehicleNumber', 'unNumber', 'properShippingName', 'class', 'quantity'];
           Object.keys(tdgData).forEach(key => {
             const value = tdgData[key];
-            // Include required fields even if empty, or include non-empty optional fields
-            if (requiredTdgFields.includes(key) || (value !== null && value !== undefined && value !== '')) {
+            const isRequired = requiredTdgFields.includes(key);
+            const hasValue = value !== null && value !== undefined && (value !== '' || typeof value === 'boolean');
+            if ((isRequired || hasValue) && key !== 'shippingDocument') {
               if (value !== null && value !== undefined) {
                 formData.append(key, String(value));
+              } else if (isRequired) {
+                formData.append(key, '');
               }
             }
           });
+          if (shippingDocumentFile) {
+            formData.append('shippingDocument', shippingDocumentFile);
+          }
           result = await createDangerousGoods(formData);
           break;
 
@@ -424,6 +475,7 @@ const TruckingOperations: React.FC = () => {
         addNotification('success', result.message || 'Log entry created successfully');
         setShowModal(false);
         fetchData(); // Refresh data
+        if (activeTab === TABS.TDG_LOGS) setShippingDocumentFile(null);
         // Reset forms
         setLoadSecurementForm({
           date: new Date().toISOString().split('T')[0],
@@ -453,6 +505,129 @@ const TruckingOperations: React.FC = () => {
       addNotification('error', error?.response?.data?.message || 'Failed to create log entry');
     } finally {
       setSubmitting(false);
+    }
+  };
+
+  const handleExportReport = async () => {
+    try {
+      const workbook = new ExcelJS.Workbook();
+      workbook.creator = 'Trucking Operations';
+      const today = new Date().toISOString().split('T')[0];
+
+      if (activeTab === TABS.LOAD_SECUREMENT) {
+        const sheet = workbook.addWorksheet('Load Securement Logs', { views: [{ state: 'frozen', ySplit: 1 }] });
+        sheet.addRow(['Log #', 'Date/Time', 'Driver', 'Vehicle', 'Trailer', 'Load Type', 'Secured By', 'Compliance']);
+        loadSecurementLogs.forEach((log: any) => {
+          sheet.addRow([
+            log.logNumber,
+            formatDateTime(log.date, log.time),
+            log.driverName,
+            log.vehicleNumber,
+            log.trailerNumber || '',
+            log.loadType,
+            log.securedBy || '',
+            log.meetsStandards ? 'Compliant' : 'Deficiency'
+          ]);
+        });
+      } else if (activeTab === TABS.REEFER_SAFETY) {
+        const sheet = workbook.addWorksheet('Reefer Food Safety Logs', { views: [{ state: 'frozen', ySplit: 1 }] });
+        sheet.addRow(['Log #', 'Date/Time', 'Driver', 'Vehicle', 'Trailer', 'Temp (°C)', 'Target (°C)', 'Cleanliness', 'Status']);
+        reeferLogs.forEach((log: any) => {
+          sheet.addRow([
+            log.logNumber,
+            formatDateTime(log.date, log.time),
+            log.driverName,
+            log.vehicleNumber,
+            log.trailerNumber || '',
+            log.temperatureRecorded ?? '',
+            log.targetTemperature ?? '',
+            log.interiorCleanliness || '',
+            log.deficienciesFound ? 'Action Required' : 'Pass'
+          ]);
+        });
+      } else if (activeTab === TABS.WINTER_SAFETY) {
+        const sheet = workbook.addWorksheet('Winter Safety Checklists', { views: [{ state: 'frozen', ySplit: 1 }] });
+        sheet.addRow(['Checklist #', 'Date/Time', 'Location', 'Performed By', 'Vehicle', 'Status']);
+        winterChecklists.forEach((c: any) => {
+          sheet.addRow([
+            c.checklistNumber || '',
+            formatDateTime(c.date, c.time),
+            c.location || '',
+            c.performedBy || '',
+            c.vehicleNumber || 'N/A',
+            c.hazardsIdentified ? 'Hazards Found' : 'All Clear'
+          ]);
+        });
+      } else if (activeTab === TABS.FUELING_SPILL) {
+        const sheet = workbook.addWorksheet('Fueling & Spill Logs', { views: [{ state: 'frozen', ySplit: 1 }] });
+        sheet.addRow(['Log #', 'Date/Time', 'Location', 'Performed By', 'Vehicle', 'Fuel Type', 'Spill Status']);
+        fuelingLogs.forEach((log: any) => {
+          sheet.addRow([
+            log.logNumber,
+            formatDateTime(log.date, log.time),
+            log.location || '',
+            log.performedBy || '',
+            log.vehicleNumber || 'N/A',
+            log.fuelType || '',
+            log.spillOccurred ? 'Spill Occurred' : 'No Spill'
+          ]);
+        });
+      } else if (activeTab === TABS.TDG_LOGS) {
+        const sheet = workbook.addWorksheet('Dangerous Goods (TDG) Logs', { views: [{ state: 'frozen', ySplit: 1 }] });
+        sheet.addRow(['Log #', 'Date/Time', 'Driver', 'Vehicle', 'Trailer', 'UN Number', 'Proper Shipping Name', 'Class', 'Placarding', 'Status']);
+        tdgLogs.forEach((log: any) => {
+          const status = log.incidentOccurred ? 'Incident' : (log.tdgCertificateCurrent && log.placardingComplete) ? 'Compliant' : 'Review';
+          sheet.addRow([
+            log.logNumber,
+            formatDateTime(log.date, log.time),
+            log.driverName,
+            log.vehicleNumber,
+            log.trailerNumber || '',
+            log.unNumber || '',
+            log.properShippingName || '',
+            log.class || '',
+            log.placardingComplete ? 'Complete' : 'Incomplete',
+            status
+          ]);
+        });
+      }
+
+      const sheet = workbook.worksheets[0];
+      if (sheet) {
+        const headerRow = sheet.getRow(1);
+        headerRow.font = { bold: true };
+        headerRow.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFE5E7EB' } };
+        sheet.columns.forEach((col, i) => {
+          let maxLen = 12;
+          col.eachCell?.({ includeEmpty: true }, cell => {
+            const val = cell.value?.toString() ?? '';
+            maxLen = Math.min(Math.max(maxLen, val.length), 50);
+          });
+          col.width = maxLen;
+        });
+      }
+
+      const buffer = await workbook.xlsx.writeBuffer();
+      const blob = new Blob([buffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      const sheetNames: Record<string, string> = {
+        [TABS.LOAD_SECUREMENT]: 'Load-Securement',
+        [TABS.REEFER_SAFETY]: 'Reefer-Food-Safety',
+        [TABS.WINTER_SAFETY]: 'Winter-Safety',
+        [TABS.FUELING_SPILL]: 'Fueling-Spills',
+        [TABS.TDG_LOGS]: 'Dangerous-Goods-TDG'
+      };
+      a.download = `Trucking-Operations-${sheetNames[activeTab] || 'Report'}-${today}.xlsx`;
+      document.body.appendChild(a);
+      a.click();
+      URL.revokeObjectURL(url);
+      document.body.removeChild(a);
+      addNotification('success', 'Report exported successfully');
+    } catch (err: any) {
+      console.error('Export error:', err);
+      addNotification('error', err?.message || 'Failed to export report');
     }
   };
 
@@ -505,8 +680,7 @@ const TruckingOperations: React.FC = () => {
                 <tr key={log._id} className="hover:bg-gray-50">
                   <td className="px-6 py-4 text-sm font-medium text-gray-900">{log.logNumber}</td>
                   <td className="px-6 py-4 text-sm text-gray-600">
-                    <div>{log.date}</div>
-                    <div className="text-xs text-gray-400">{log.time}</div>
+                    {formatDateTime(log.date, log.time)}
                   </td>
                   <td className="px-6 py-4 text-sm text-gray-900">{log.driverName}</td>
                   <td className="px-6 py-4 text-sm text-gray-600">
@@ -590,8 +764,7 @@ const TruckingOperations: React.FC = () => {
                 <tr key={log._id} className="hover:bg-gray-50">
                   <td className="px-6 py-4 text-sm font-medium text-gray-900">{log.logNumber}</td>
                   <td className="px-6 py-4 text-sm text-gray-600">
-                    <div>{log.date}</div>
-                    <div className="text-xs text-gray-400">{log.time}</div>
+                    {formatDateTime(log.date, log.time)}
                   </td>
                   <td className="px-6 py-4 text-sm text-gray-900">{log.driverName}</td>
                   <td className="px-6 py-4 text-sm text-gray-600">{log.trailerNumber}</td>
@@ -683,8 +856,7 @@ const TruckingOperations: React.FC = () => {
                 <tr key={checklist._id} className="hover:bg-gray-50">
                   <td className="px-6 py-4 text-sm font-medium text-gray-900">{checklist.checklistNumber}</td>
                   <td className="px-6 py-4 text-sm text-gray-600">
-                    <div>{new Date(checklist.date).toLocaleDateString()}</div>
-                    {checklist.time && <div className="text-xs text-gray-400">{checklist.time}</div>}
+                    {formatDateTime(checklist.date, checklist.time)}
                   </td>
                   <td className="px-6 py-4 text-sm text-gray-700">{checklist.location}</td>
                   <td className="px-6 py-4 text-sm text-gray-700">{checklist.performedBy}</td>
@@ -764,8 +936,7 @@ const TruckingOperations: React.FC = () => {
                 <tr key={log._id} className="hover:bg-gray-50">
                   <td className="px-6 py-4 text-sm font-medium text-gray-900">{log.logNumber}</td>
                   <td className="px-6 py-4 text-sm text-gray-600">
-                    <div>{new Date(log.date).toLocaleDateString()}</div>
-                    <div className="text-xs text-gray-400">{log.time}</div>
+                    {formatDateTime(log.date, log.time)}
                   </td>
                   <td className="px-6 py-4 text-sm text-gray-700">{log.location}</td>
                   <td className="px-6 py-4 text-sm text-gray-700">{log.performedBy}</td>
@@ -851,8 +1022,7 @@ const TruckingOperations: React.FC = () => {
                 <tr key={log._id} className="hover:bg-gray-50">
                   <td className="px-6 py-4 text-sm font-medium text-gray-900">{log.logNumber}</td>
                   <td className="px-6 py-4 text-sm text-gray-600">
-                    <div>{new Date(log.date).toLocaleDateString()}</div>
-                    <div className="text-xs text-gray-400">{log.time}</div>
+                    {formatDateTime(log.date, log.time)}
                   </td>
                   <td className="px-6 py-4 text-sm text-gray-700">{log.driverName}</td>
                   <td className="px-6 py-4 text-sm text-gray-600">
@@ -949,14 +1119,23 @@ const TruckingOperations: React.FC = () => {
               Industry-specific safety logs for load securement, reefer safety, winter operations, and more.
             </p>
           </div>
-          <button
-            onClick={() => setShowModal(true)}
-            className="px-6 py-3 rounded-xl !text-white font-semibold shadow-lg hover:shadow-xl transition-all flex items-center space-x-2"
-            style={{ background: CUSTOM_COLORS.gradient }}
-          >
-            <FaPlus />
-            <span>New Log Entry</span>
-          </button>
+          <div className="flex items-center gap-3">
+            <button
+              onClick={handleExportReport}
+              className="px-6 py-3 rounded-xl bg-green-600 !text-white font-semibold shadow-lg hover:bg-green-700 transition-all flex items-center space-x-2"
+            >
+              <FaDownload />
+              <span>Export Report</span>
+            </button>
+            <button
+              onClick={() => setShowModal(true)}
+              className="px-6 py-3 rounded-xl !text-white font-semibold shadow-lg hover:shadow-xl transition-all flex items-center space-x-2"
+              style={{ background: CUSTOM_COLORS.gradient }}
+            >
+              <FaPlus />
+              <span>New Log Entry</span>
+            </button>
+          </div>
         </div>
 
         {/* Tab Navigation */}
@@ -1037,6 +1216,7 @@ const TruckingOperations: React.FC = () => {
           onClick={(e) => {
             if (e.target === e.currentTarget) {
               setShowModal(false);
+              setShippingDocumentFile(null);
             }
           }}
         >
@@ -1053,7 +1233,7 @@ const TruckingOperations: React.FC = () => {
                         'Dangerous Goods'} Log Entry
               </h2>
               <button
-                onClick={() => setShowModal(false)}
+                onClick={() => { setShowModal(false); setShippingDocumentFile(null); }}
                 className="text-gray-500 hover:text-gray-800 transition-colors"
               >
                 <FaTimes size={24} />
@@ -1085,23 +1265,31 @@ const TruckingOperations: React.FC = () => {
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">Driver Name *</label>
-                    <input
-                      type="text"
+                    <select
                       required
                       value={loadSecurementForm.driverName}
                       onChange={(e) => setLoadSecurementForm({ ...loadSecurementForm, driverName: e.target.value })}
                       className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
-                    />
+                    >
+                      <option value="">Select driver</option>
+                      {drivers.map((d) => (
+                        <option key={d._id} value={d.name}>{d.name}</option>
+                      ))}
+                    </select>
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">Vehicle Number *</label>
-                    <input
-                      type="text"
+                    <select
                       required
                       value={loadSecurementForm.vehicleNumber}
                       onChange={(e) => setLoadSecurementForm({ ...loadSecurementForm, vehicleNumber: e.target.value })}
                       className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
-                    />
+                    >
+                      <option value="">Select vehicle</option>
+                      {vehicles.map((v) => (
+                        <option key={v._id} value={v.unitNo}>{v.unitNo}</option>
+                      ))}
+                    </select>
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">Load Type *</label>
@@ -1165,33 +1353,45 @@ const TruckingOperations: React.FC = () => {
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">Driver Name *</label>
-                    <input
-                      type="text"
+                    <select
                       required
                       value={reeferForm.driverName}
                       onChange={(e) => setReeferForm({ ...reeferForm, driverName: e.target.value })}
                       className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
-                    />
+                    >
+                      <option value="">Select driver</option>
+                      {drivers.map((d) => (
+                        <option key={d._id} value={d.name}>{d.name}</option>
+                      ))}
+                    </select>
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">Vehicle Number *</label>
-                    <input
-                      type="text"
+                    <select
                       required
                       value={reeferForm.vehicleNumber}
                       onChange={(e) => setReeferForm({ ...reeferForm, vehicleNumber: e.target.value })}
                       className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
-                    />
+                    >
+                      <option value="">Select vehicle</option>
+                      {vehicles.map((v) => (
+                        <option key={v._id} value={v.unitNo}>{v.unitNo}</option>
+                      ))}
+                    </select>
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">Trailer Number *</label>
-                    <input
-                      type="text"
+                    <select
                       required
                       value={reeferForm.trailerNumber}
                       onChange={(e) => setReeferForm({ ...reeferForm, trailerNumber: e.target.value })}
                       className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
-                    />
+                    >
+                      <option value="">Select trailer</option>
+                      {trailers.map((t) => (
+                        <option key={t._id} value={t.unitNo}>{t.unitNo}</option>
+                      ))}
+                    </select>
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">Temperature Recorded *</label>
@@ -1254,13 +1454,30 @@ const TruckingOperations: React.FC = () => {
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">Performed By *</label>
-                    <input
-                      type="text"
+                    <select
                       required
                       value={winterForm.performedBy}
                       onChange={(e) => setWinterForm({ ...winterForm, performedBy: e.target.value })}
                       className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
-                    />
+                    >
+                      <option value="">Select driver</option>
+                      {drivers.map((d) => (
+                        <option key={d._id} value={d.name}>{d.name}</option>
+                      ))}
+                    </select>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Vehicle Number</label>
+                    <select
+                      value={winterForm.vehicleNumber}
+                      onChange={(e) => setWinterForm({ ...winterForm, vehicleNumber: e.target.value })}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                    >
+                      <option value="">Select vehicle</option>
+                      {vehicles.map((v) => (
+                        <option key={v._id} value={v.unitNo}>{v.unitNo}</option>
+                      ))}
+                    </select>
                   </div>
                   <div className="col-span-2">
                     <div className="space-y-2">
@@ -1320,13 +1537,30 @@ const TruckingOperations: React.FC = () => {
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">Performed By *</label>
-                    <input
-                      type="text"
+                    <select
                       required
                       value={fuelingForm.performedBy}
                       onChange={(e) => setFuelingForm({ ...fuelingForm, performedBy: e.target.value })}
                       className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
-                    />
+                    >
+                      <option value="">Select driver</option>
+                      {drivers.map((d) => (
+                        <option key={d._id} value={d.name}>{d.name}</option>
+                      ))}
+                    </select>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Vehicle Number</label>
+                    <select
+                      value={fuelingForm.vehicleNumber}
+                      onChange={(e) => setFuelingForm({ ...fuelingForm, vehicleNumber: e.target.value })}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                    >
+                      <option value="">Select vehicle</option>
+                      {vehicles.map((v) => (
+                        <option key={v._id} value={v.unitNo}>{v.unitNo}</option>
+                      ))}
+                    </select>
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">Fuel Type *</label>
@@ -1390,14 +1624,72 @@ const TruckingOperations: React.FC = () => {
                     />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Driver Name *</label>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Time *</label>
                     <input
-                      type="text"
+                      type="time"
+                      required
+                      value={tdgForm.time}
+                      onChange={(e) => setTdgForm({ ...tdgForm, time: e.target.value })}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Driver Name *</label>
+                    <select
                       required
                       value={tdgForm.driverName}
                       onChange={(e) => setTdgForm({ ...tdgForm, driverName: e.target.value })}
                       className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
-                    />
+                    >
+                      <option value="">Select driver</option>
+                      {drivers.map((d) => (
+                        <option key={d._id} value={d.name}>{d.name}</option>
+                      ))}
+                    </select>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Vehicle Number</label>
+                    <select
+                      value={tdgForm.vehicleNumber}
+                      onChange={(e) => setTdgForm({ ...tdgForm, vehicleNumber: e.target.value })}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                    >
+                      <option value="">Select vehicle</option>
+                      {vehicles.map((v) => (
+                        <option key={v._id} value={v.unitNo}>{v.unitNo}</option>
+                      ))}
+                    </select>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Trailer Number</label>
+                    <select
+                      value={tdgForm.trailerNumber}
+                      onChange={(e) => setTdgForm({ ...tdgForm, trailerNumber: e.target.value })}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                    >
+                      <option value="">Select trailer</option>
+                      {trailers.map((t) => (
+                        <option key={t._id} value={t.unitNo}>{t.unitNo}</option>
+                      ))}
+                    </select>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Shipping Document</label>
+                    <div className="space-y-2">
+                      <input
+                        type="file"
+                        accept=".pdf,.doc,.docx,.xls,.xlsx,.txt,.zip,image/*"
+                        onChange={(e) => {
+                          const file = e.target.files?.[0];
+                          setShippingDocumentFile(file || null);
+                          if (file) setTdgForm({ ...tdgForm, shippingDocument: file.name });
+                        }}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-medium file:cursor-pointer"
+                      />
+                      {shippingDocumentFile && (
+                        <span className="text-sm text-gray-600">{shippingDocumentFile.name}</span>
+                      )}
+                    </div>
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">UN Number *</label>
@@ -1439,13 +1731,120 @@ const TruckingOperations: React.FC = () => {
                       className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
                     />
                   </div>
+                  <div className="col-span-2">
+                    <div className="text-sm font-medium text-gray-700 mb-2">Placarding & Compliance</div>
+                    <div className="grid grid-cols-2 gap-2">
+                      <label className="flex items-center">
+                        <input
+                          type="checkbox"
+                          checked={tdgForm.placardingRequired}
+                          onChange={(e) => setTdgForm({ ...tdgForm, placardingRequired: e.target.checked })}
+                          className="mr-2"
+                        />
+                        Placarding Required
+                      </label>
+                      <label className="flex items-center">
+                        <input
+                          type="checkbox"
+                          checked={tdgForm.placardingComplete}
+                          onChange={(e) => setTdgForm({ ...tdgForm, placardingComplete: e.target.checked })}
+                          className="mr-2"
+                        />
+                        Placarding Complete
+                      </label>
+                      <label className="flex items-center">
+                        <input
+                          type="checkbox"
+                          checked={tdgForm.placardsInspected}
+                          onChange={(e) => setTdgForm({ ...tdgForm, placardsInspected: e.target.checked })}
+                          className="mr-2"
+                        />
+                        Placards Inspected
+                      </label>
+                      <label className="flex items-center">
+                        <input
+                          type="checkbox"
+                          checked={tdgForm.emergencyResponseInfo}
+                          onChange={(e) => setTdgForm({ ...tdgForm, emergencyResponseInfo: e.target.checked })}
+                          className="mr-2"
+                        />
+                        Emergency Response Info
+                      </label>
+                      <label className="flex items-center">
+                        <input
+                          type="checkbox"
+                          checked={tdgForm.tdgCertificateCurrent}
+                          onChange={(e) => setTdgForm({ ...tdgForm, tdgCertificateCurrent: e.target.checked })}
+                          className="mr-2"
+                        />
+                        TDG Certificate Current
+                      </label>
+                      <label className="flex items-center">
+                        <input
+                          type="checkbox"
+                          checked={tdgForm.securityPlan}
+                          onChange={(e) => setTdgForm({ ...tdgForm, securityPlan: e.target.checked })}
+                          className="mr-2"
+                        />
+                        Security Plan
+                      </label>
+                      <label className="flex items-center">
+                        <input
+                          type="checkbox"
+                          checked={tdgForm.incidentOccurred}
+                          onChange={(e) => setTdgForm({ ...tdgForm, incidentOccurred: e.target.checked })}
+                          className="mr-2"
+                        />
+                        Incident Occurred
+                      </label>
+                      <label className="flex items-center">
+                        <input
+                          type="checkbox"
+                          checked={tdgForm.segregationCorrect}
+                          onChange={(e) => setTdgForm({ ...tdgForm, segregationCorrect: e.target.checked })}
+                          className="mr-2"
+                        />
+                        Segregation Correct
+                      </label>
+                      <label className="flex items-center">
+                        <input
+                          type="checkbox"
+                          checked={tdgForm.packagingIntact}
+                          onChange={(e) => setTdgForm({ ...tdgForm, packagingIntact: e.target.checked })}
+                          className="mr-2"
+                        />
+                        Packaging Intact
+                      </label>
+                      <label className="flex items-center">
+                        <input
+                          type="checkbox"
+                          checked={tdgForm.labelsLegible}
+                          onChange={(e) => setTdgForm({ ...tdgForm, labelsLegible: e.target.checked })}
+                          className="mr-2"
+                        />
+                        Labels Legible
+                      </label>
+                    </div>
+                    {tdgForm.incidentOccurred && (
+                      <div className="mt-3">
+                        <label className="block text-sm font-medium text-gray-700 mb-1">Incident Details</label>
+                        <textarea
+                          value={tdgForm.incidentDetails}
+                          onChange={(e) => setTdgForm({ ...tdgForm, incidentDetails: e.target.value })}
+                          rows={3}
+                          placeholder="Describe the incident..."
+                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                        />
+                      </div>
+                    )}
+                  </div>
                 </div>
               )}
 
               <div className="flex justify-end space-x-4 pt-4 border-t">
                 <button
                   type="button"
-                  onClick={() => setShowModal(false)}
+                  onClick={() => { setShowModal(false); setShippingDocumentFile(null); }}
                   className="px-6 py-2 !mr-3 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors"
                   disabled={submitting}
                 >

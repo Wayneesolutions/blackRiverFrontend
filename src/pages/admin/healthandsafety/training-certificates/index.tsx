@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import ExcelJS from 'exceljs';
 import {
   FaPlus,
   FaCheckCircle,
@@ -191,6 +192,63 @@ const TrainingCertificates = () => {
     }
   };
 
+  const getEmployeeTrainingStatus = (employeeName: string, trainingName: string): TrainingRecord | null => {
+    const records = trainingData.filter(t => t.employeeName === employeeName && t.trainingName === trainingName);
+    return records.length > 0 ? records[0] : null;
+  };
+
+  const handleExportReport = async () => {
+    const employees = Array.from(new Set(trainingData.map(t => t.employeeName)));
+    const workbook = new ExcelJS.Workbook();
+    workbook.creator = 'Safety Training & Compliance';
+    const sheet = workbook.addWorksheet('Compliance Training Matrix', { views: [{ state: 'frozen', ySplit: 1 }] });
+
+    const headerRow = ['Employee', 'Role', ...REQUIRED_TRAININGS.map(t => `${t.name} (${t.renewalMonths}mo)`)];
+    sheet.addRow(headerRow);
+    const headerRowObj = sheet.getRow(1);
+    headerRowObj.font = { bold: true };
+    headerRowObj.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFE5E7EB' } };
+
+    employees.forEach(emp => {
+      const employeeData = trainingData.find(t => t.employeeName === emp);
+      const row: (string | number)[] = [
+        emp,
+        employeeData?.employeeRole ?? ''
+      ];
+      REQUIRED_TRAININGS.forEach(train => {
+        const record = getEmployeeTrainingStatus(emp, train.name);
+        if (record) {
+          const label = `${record.status.toUpperCase()}${record.expiryDate ? ` - ${new Date(record.expiryDate).toLocaleDateString()}` : ''}`;
+          row.push(label);
+        } else {
+          row.push('Missing');
+        }
+      });
+      sheet.addRow(row);
+    });
+
+    sheet.columns.forEach((col, i) => {
+      let maxLen = 12;
+      col.eachCell?.({ includeEmpty: true }, cell => {
+        const val = cell.value?.toString() ?? '';
+        maxLen = Math.min(Math.max(maxLen, val.length), 50);
+      });
+      col.width = maxLen;
+    });
+
+    const buffer = await workbook.xlsx.writeBuffer();
+    const blob = new Blob([buffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `Compliance-Training-Matrix-${new Date().toISOString().split('T')[0]}.xlsx`;
+    document.body.appendChild(a);
+    a.click();
+    URL.revokeObjectURL(url);
+    document.body.removeChild(a);
+    addNotification('success', 'Report exported successfully');
+  };
+
   // Fetch certificates from API
   // Temporary usage to silence build errors
   useEffect(() => {
@@ -252,11 +310,6 @@ const TrainingCertificates = () => {
   const renderTrainingMatrix = () => {
     const employees = Array.from(new Set(trainingData.map(t => t.employeeName)));
 
-    const getEmployeeTrainingStatus = (employeeName: string, trainingName: string): TrainingRecord | null => {
-      const records = trainingData.filter(t => t.employeeName === employeeName && t.trainingName === trainingName);
-      return records.length > 0 ? records[0] : null;
-    };
-
     return (
       <div className="bg-white rounded-xl shadow-lg p-6">
         <div className="flex justify-between items-center mb-6">
@@ -274,7 +327,10 @@ const TrainingCertificates = () => {
           >
             <FaPlus /> Upload Certificate
           </button>
-          <button className="px-4 py-2 bg-green-600 !text-white rounded-lg hover:bg-green-700 transition flex items-center gap-2">
+          <button
+            onClick={handleExportReport}
+            className="px-4 py-2 bg-green-600 !text-white rounded-lg hover:bg-green-700 transition flex items-center gap-2"
+          >
             <FaDownload /> Export Report
           </button>
         </div>
