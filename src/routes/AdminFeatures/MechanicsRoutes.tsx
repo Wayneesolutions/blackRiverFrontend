@@ -5,6 +5,7 @@ import Loading from "../../components/common/Loading";
 
 const Dashboard = lazy(() => import("../../pages/admin/mechanics/Dashboard"));
 const Orders = lazy(() => import("../../pages/admin/mechanics/Orders"));
+const Services = lazy(() => import("../../pages/admin/mechanics/Services"));
 const Profile = lazy(() => import("../../pages/admin/mechanics/Profile"));
 
 interface MechanicsRoutesProps {
@@ -21,6 +22,7 @@ function MechanicsRoutes({ basePath = "/admin/mechanics" }: MechanicsRoutesProps
           <Route path="dashboard" element={<Dashboard />} />
           <Route path="orders" element={<Orders />} />
           <Route path="completed-orders" element={<Orders defaultStatus="completed" />} />
+          <Route path="services" element={<Services />} />
           <Route path="profile" element={<Profile />} />
         </Route>
       </Routes>

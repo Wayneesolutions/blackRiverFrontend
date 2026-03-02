@@ -86,6 +86,7 @@ interface ScheduledService {
   status: 'pending' | 'in-progress' | 'completed';
   priority?: string;
   source?: 'samsara' | 'manual';
+  parts?: Array<{ partName?: string; partNumber?: string; quantity?: number; cost?: number }> | string | null;
 }
 
 interface UnitOption {
@@ -278,7 +279,8 @@ const ScheduledServicesLog: React.FC = () => {
       assignedMechanic: service.assignedMechanic || undefined,
       status: service.status,
       priority: service.priority,
-      source: (service as any).source || 'manual'
+      source: (service as any).source || 'manual',
+      parts: (service as any).parts || undefined
     };
   }, []);
 
@@ -1192,7 +1194,7 @@ const ScheduledServicesLog: React.FC = () => {
               ref={bottomScrollRef}
               className="overflow-x-auto overflow-y-visible table-container-hidden-scrollbar"
             >
-              <table className="w-full" style={{ minWidth: '1400px' }}>
+              <table className="w-full" style={{ minWidth: '1500px' }}>
                 <thead className="text-white" style={{ background: 'linear-gradient(to right, #016ab2, #063f6f)' }}>
                   <tr>
                     <th className="px-6 py-4 text-left text-sm font-semibold">Service Date</th>
@@ -1204,6 +1206,7 @@ const ScheduledServicesLog: React.FC = () => {
                     <th className="px-6 py-4 text-left text-sm font-semibold">Invoice No.</th>
                     <th className="px-6 py-4 text-left text-sm font-semibold">Amount</th>
                     <th className="px-6 py-4 text-left text-sm font-semibold">Status</th>
+                    <th className="px-6 py-4 text-left text-sm font-semibold">Parts</th>
                     <th className="px-6 py-4 text-left text-sm font-semibold">Description</th>
                     <th className="px-6 py-4 text-left text-sm font-semibold">Service Provider</th>
                     <th className="px-6 py-4 text-left text-sm font-semibold">Notes</th>
@@ -1213,13 +1216,13 @@ const ScheduledServicesLog: React.FC = () => {
                 <tbody className="divide-y divide-gray-200">
                   {loading ? (
                     <tr>
-                      <td colSpan={13} className="px-6 py-12 text-center text-gray-500">
+                      <td colSpan={14} className="px-6 py-12 text-center text-gray-500">
                         Loading services...
                       </td>
                     </tr>
                   ) : filteredServices.length === 0 ? (
                     <tr>
-                      <td colSpan={13} className="px-6 py-12 text-center">
+                      <td colSpan={14} className="px-6 py-12 text-center">
                         {filterIncoming ? (
                           <div className="flex flex-col items-center gap-3">
                             <AlertCircle className="w-10 h-10 text-orange-500" />
@@ -1304,6 +1307,46 @@ const ScheduledServicesLog: React.FC = () => {
                           >
                             {service.status.replace('-', ' ')}
                           </span>
+                        </td>
+                        <td className="px-6 py-4 text-gray-600 max-w-xs">
+                          {(() => {
+                            // Always show column, even if empty
+                            if (!service.parts || service.parts === null || service.parts === '') {
+                              return <span className="text-gray-400">—</span>;
+                            }
+                            
+                            // Handle array of parts
+                            if (Array.isArray(service.parts)) {
+                              if (service.parts.length === 0) {
+                                return <span className="text-gray-400">—</span>;
+                              }
+                              
+                              // Format parts display
+                              const partsList = service.parts.map((part: any, idx: number) => {
+                                const partName = part.partName || part.partNumber || 'Part';
+                                const qty = part.quantity || 1;
+                                return `${partName}${qty > 1 ? ` (${qty})` : ''}`;
+                              }).join(', ');
+                              
+                              return (
+                                <div className="truncate text-gray-900" title={partsList}>
+                                  {partsList}
+                                </div>
+                              );
+                            }
+                            
+                            // Handle string format (legacy)
+                            if (typeof service.parts === 'string' && service.parts.trim() !== '') {
+                              return (
+                                <div className="truncate text-gray-900" title={service.parts}>
+                                  {service.parts}
+                                </div>
+                              );
+                            }
+                            
+                            // Default empty state
+                            return <span className="text-gray-400">—</span>;
+                          })()}
                         </td>
                         <td className="px-6 py-4 text-gray-600 max-w-xs truncate" title={service.description || undefined}>
                           {service.description || '—'}

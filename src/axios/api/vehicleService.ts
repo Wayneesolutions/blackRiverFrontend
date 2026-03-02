@@ -100,6 +100,7 @@ export interface VehicleServiceResponse {
   notes?: string;
   amount?: number;
   status: VehicleServiceStatus;
+  parts?: Array<{ partName?: string; partNumber?: string; quantity?: number; cost?: number }> | string | null;
   createdAt: string;
   updatedAt: string;
 }
