@@ -22,6 +22,7 @@ const CashFlowInsights = lazy(() => import("../../pages/admin/accounts/cash-flow
 const Profile = lazy(() => import("../../pages/admin/dashboard/Profile/index"));
 const FinanceReport = lazy(() => import("../../pages/admin/accounts/finance-report/index"));
 const TrainingContent = lazy(() => import("../../pages/admin/training/TrainingContentView"));
+const FuelReports = lazy(() => import("../../pages/admin/dispatch/resources/fuel-reports/index"));
 
 function AccountsRoutes() {
     return (
@@ -49,6 +50,7 @@ function AccountsRoutes() {
                     <Route path="/cash-flow-insights" element={<CashFlowInsights />} />
                     <Route path="/profile" element={<Profile />} />
                     <Route path="/finance-report" element={<FinanceReport />} />
+                    <Route path="/fuel-reports" element={<FuelReports />} />
                     <Route path="/training" element={<TrainingContent />} />
                 </Route>
             </Routes>

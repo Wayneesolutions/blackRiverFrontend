@@ -1,5 +1,5 @@
-import { useState, useEffect, useMemo, useCallback } from 'react';
-import { X, Plus } from 'lucide-react';
+import { useState, useEffect, useMemo, useCallback, useRef } from 'react';
+import { X, Plus, FileText, Upload, Sparkles } from 'lucide-react';
 import type { CSSProperties, FC } from "react";
 import { createFuelReport } from '../../../../../axios/api/dispatcher.places';
 import { getFuelTypes, createFuelType, getUnits, createUnit, getFuelVendors, createFuelVendor } from '../../../../../axios/api/dispatcher.fuelreport';
@@ -26,7 +26,6 @@ interface NewFuelReportSidebarProps {
 
 const NewFuelReportSidebar: FC<NewFuelReportSidebarProps> = ({ isOpen, onClose, units, unitsLoading, currentUser }) => {
     const [formData, setFormData] = useState({
-        reporter: '',
         state: '',
         address: '',
         city: '',
@@ -37,6 +36,9 @@ const NewFuelReportSidebar: FC<NewFuelReportSidebarProps> = ({ isOpen, onClose, 
         fullAddress: '',
         unit: '',
         type: '',
+        product: '',
+        transactionNumber: '',
+        paymentNotes: '',
         transactionAmount: '',
         currentOdometer: '',
         measurementUnit: '',
@@ -64,6 +66,15 @@ const NewFuelReportSidebar: FC<NewFuelReportSidebarProps> = ({ isOpen, onClose, 
     const [showAddVendorModal, setShowAddVendorModal] = useState(false);
     const [newVendorName, setNewVendorName] = useState('');
     const [addingVendor, setAddingVendor] = useState(false);
+
+    // Documents: attach files to the report (static - store names only)
+    const [attachedDocuments, setAttachedDocuments] = useState<{ id: string; name: string }[]>([]);
+    const fileInputRef = useRef<HTMLInputElement>(null);
+    // Extract from document: upload receipt → AI extracts data (static mock)
+    const [extractFile, setExtractFile] = useState<File | null>(null);
+    const [extracting, setExtracting] = useState(false);
+    const [extractDone, setExtractDone] = useState(false);
+    const extractInputRef = useRef<HTMLInputElement>(null);
 
     const focusRingStyle = useMemo(
         () =>
@@ -137,7 +148,6 @@ const NewFuelReportSidebar: FC<NewFuelReportSidebarProps> = ({ isOpen, onClose, 
             fetchMeasurementUnits();
             fetchFuelVendors();
             setFormData({
-                reporter: reporterId,
                 state: '',
                 address: '',
                 city: '',
@@ -148,6 +158,9 @@ const NewFuelReportSidebar: FC<NewFuelReportSidebarProps> = ({ isOpen, onClose, 
                 fullAddress: '',
                 unit: '',
                 type: '',
+                product: '',
+                transactionNumber: `FR-${Date.now().toString(36).toUpperCase()}`,
+                paymentNotes: '',
                 transactionAmount: '',
                 currentOdometer: '',
                 measurementUnit: '',
@@ -157,6 +170,10 @@ const NewFuelReportSidebar: FC<NewFuelReportSidebarProps> = ({ isOpen, onClose, 
                 fuelAmount: '',
                 status: 'pending',
             });
+            setAttachedDocuments([]);
+            setExtractFile(null);
+            setExtracting(false);
+            setExtractDone(false);
         }
     }, [isOpen, reporterId, fetchFuelTypes, fetchMeasurementUnits, fetchFuelVendors]);
 
@@ -267,6 +284,45 @@ const NewFuelReportSidebar: FC<NewFuelReportSidebarProps> = ({ isOpen, onClose, 
         }));
     };
 
+    // Static: simulate AI extraction - fill form with mock data after delay
+    const handleExtractFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (!file) return;
+        setExtractFile(file);
+        setExtracting(true);
+        setExtractDone(false);
+        // Simulate processing delay then fill form with static extracted values
+        setTimeout(() => {
+            setFormData(prev => ({
+                ...prev,
+                transactionAmount: '156.78',
+                fuelAmount: '125.50',
+                date: new Date().toISOString().split('T')[0],
+                fuelVendor: 'Flying J',
+                city: prev.city || 'Mississauga',
+                paymentNotes: prev.paymentNotes || 'Extracted from receipt (static demo)',
+            }));
+            setExtracting(false);
+            setExtractDone(true);
+        }, 1500);
+        e.target.value = '';
+    };
+
+    const handleAttachDocument = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const files = e.target.files;
+        if (!files?.length) return;
+        const newDocs = Array.from(files).map((f, i) => ({
+            id: `doc-${Date.now()}-${i}`,
+            name: f.name,
+        }));
+        setAttachedDocuments(prev => [...prev, ...newDocs]);
+        e.target.value = '';
+    };
+
+    const removeAttachedDocument = (id: string) => {
+        setAttachedDocuments(prev => prev.filter(d => d.id !== id));
+    };
+
     const handleSubmit = async () => {
         // Validation
         if (!formData.unit) {
@@ -279,16 +335,18 @@ const NewFuelReportSidebar: FC<NewFuelReportSidebarProps> = ({ isOpen, onClose, 
             return;
         }
 
-        if (!formData.type || !formData.type.trim()) {
-            alert('Please select a fuel type');
+        const fuelType = formData.product || formData.type;
+        if (!fuelType || !fuelType.trim()) {
+            alert('Please select a product (fuel type)');
             return;
         }
 
         try {
             setLoadingSubmit(true);
             const payload = {
-                reporter: reporterId || formData.reporter,
+                reporter: reporterId,
                 state: formData.state,
+                city: formData.city,
                 address: formData.address || formData.fullAddress,
                 location: {
                     address: formData.fullAddress || formData.address || '',
@@ -296,7 +354,10 @@ const NewFuelReportSidebar: FC<NewFuelReportSidebarProps> = ({ isOpen, onClose, 
                     longitude: formData.longitude || ''
                 },
                 unit: formData.unit,
-                type: formData.type,
+                type: fuelType,
+                product: fuelType,
+                transactionNumber: formData.transactionNumber || undefined,
+                paymentNotes: formData.paymentNotes || undefined,
                 transactionAmount: formData.transactionAmount ? parseFloat(formData.transactionAmount) : null,
                 currentOdometer: formData.currentOdometer || null,
                 measurementUnit: formData.measurementUnit,
@@ -361,10 +422,39 @@ const NewFuelReportSidebar: FC<NewFuelReportSidebarProps> = ({ isOpen, onClose, 
 
                         {openDetails && (
                             <div className="space-y-4">
-                                <div className="bg-white border border-gray-200 rounded-lg px-4 py-3">
-                                    <p className="text-xs font-semibold tracking-wide text-gray-500 uppercase">Reporter</p>
-                                    <p className="text-gray-900 font-semibold">{reporterName}</p>
-                                    <p className="text-xs text-gray-500">{reporterEmail}</p>
+                                {/* Upload document – AI extracts data (static) */}
+                                <div className="bg-white border border-dashed border-blue-200 rounded-lg p-4 space-y-2">
+                                    <div className="flex items-center gap-2 text-sm font-medium text-gray-700">
+                                        <Sparkles className="w-4 h-4 text-blue-600" />
+                                        Upload receipt / document – AI will extract data
+                                    </div>
+                                    <p className="text-xs text-gray-500">Upload a photo or PDF of your fuel receipt. We'll extract amount, gallons, and date (static demo).</p>
+                                    <input
+                                        ref={extractInputRef}
+                                        type="file"
+                                        accept=".pdf,image/*"
+                                        onChange={handleExtractFileChange}
+                                        className="hidden"
+                                    />
+                                    <div className="flex items-center gap-2">
+                                        <button
+                                            type="button"
+                                            onClick={() => extractInputRef.current?.click()}
+                                            disabled={extracting}
+                                            className="flex items-center gap-2 px-3 py-2 rounded-lg border border-gray-300 text-sm hover:bg-gray-50 disabled:opacity-60"
+                                        >
+                                            <Upload className="w-4 h-4" />
+                                            {extracting ? 'Extracting...' : 'Choose file'}
+                                        </button>
+                                        {extractFile && (
+                                            <span className="text-xs text-gray-600 truncate max-w-[140px]" title={extractFile.name}>
+                                                {extractFile.name}
+                                            </span>
+                                        )}
+                                        {extractDone && (
+                                            <span className="text-xs text-green-600 font-medium">Data filled below</span>
+                                        )}
+                                    </div>
                                 </div>
 
                                 <div>
@@ -401,6 +491,32 @@ const NewFuelReportSidebar: FC<NewFuelReportSidebarProps> = ({ isOpen, onClose, 
                                 </div>
 
                                 <div>
+                                    <label className="block text-sm font-medium text-gray-700 mb-1">City</label>
+                                    <input
+                                        type="text"
+                                        name="city"
+                                        value={formData.city}
+                                        onChange={handleInputChange}
+                                        placeholder="e.g., Mississauga, Hope"
+                                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:border-transparent"
+                                        style={focusRingStyle}
+                                    />
+                                </div>
+
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 mb-1">Transaction #</label>
+                                    <input
+                                        type="text"
+                                        name="transactionNumber"
+                                        value={formData.transactionNumber}
+                                        onChange={handleInputChange}
+                                        placeholder="Unique ID (auto-generated if empty)"
+                                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:border-transparent"
+                                        style={focusRingStyle}
+                                    />
+                                </div>
+
+                                <div>
                                     <label className="block text-sm font-medium text-gray-700 mb-1">Unit <span className="text-red-500">*</span></label>
                                     <select
                                         name="unit"
@@ -423,25 +539,25 @@ const NewFuelReportSidebar: FC<NewFuelReportSidebarProps> = ({ isOpen, onClose, 
                                 </div>
 
                                 <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-1">Type <span className="text-red-500">*</span></label>
+                                    <label className="block text-sm font-medium text-gray-700 mb-1">Product <span className="text-red-500">*</span></label>
                                     <div className="flex gap-2">
                                         <select
-                                            name="type"
-                                            value={formData.type}
-                                            onChange={handleInputChange}
+                                            name="product"
+                                            value={formData.product || formData.type}
+                                            onChange={(e) => {
+                                                const v = e.target.value;
+                                                setFormData(prev => ({ ...prev, product: v, type: v }));
+                                            }}
                                             className="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:border-transparent"
                                             style={focusRingStyle}
                                         >
-                                            <option value="">Select Fuel Type</option>
-                                            {loadingFuelTypes ? (
-                                                <option disabled>Loading...</option>
-                                            ) : (
-                                                fuelTypes.map((ft) => (
-                                                    <option key={ft._id} value={ft.name}>
-                                                        {ft.name}
-                                                    </option>
-                                                ))
-                                            )}
+                                            <option value="">Select Product</option>
+                                            <option value="Truck Diesel">Truck Diesel</option>
+                                            <option value="Reefer Diesel">Reefer Diesel</option>
+                                            <option value="DEF">DEF</option>
+                                            {fuelTypes.filter(ft => !['Truck Diesel', 'Reefer Diesel', 'DEF'].includes(ft.name)).map((ft) => (
+                                                <option key={ft._id} value={ft.name}>{ft.name}</option>
+                                            ))}
                                         </select>
                                         <button
                                             type="button"
@@ -595,7 +711,61 @@ const NewFuelReportSidebar: FC<NewFuelReportSidebarProps> = ({ isOpen, onClose, 
                                 </div>
 
                                 <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-1">Status</label>
+                                    <label className="block text-sm font-medium text-gray-700 mb-1">Payment Notes</label>
+                                    <textarea
+                                        name="paymentNotes"
+                                        value={formData.paymentNotes}
+                                        onChange={handleInputChange}
+                                        placeholder="Internal remarks or accounting references"
+                                        rows={2}
+                                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:border-transparent"
+                                        style={focusRingStyle}
+                                    />
+                                </div>
+
+                                {/* Attach documents to this report (static) */}
+                                <div className="bg-gray-50 border border-gray-200 rounded-lg p-4 space-y-2">
+                                    <div className="flex items-center gap-2 text-sm font-medium text-gray-700">
+                                        <FileText className="w-4 h-4 text-gray-500" />
+                                        Attach documents
+                                    </div>
+                                    <p className="text-xs text-gray-500">Add receipts, invoices, or other files to this fuel report.</p>
+                                    <input
+                                        ref={fileInputRef}
+                                        type="file"
+                                        accept=".pdf,image/*,.csv"
+                                        multiple
+                                        onChange={handleAttachDocument}
+                                        className="hidden"
+                                    />
+                                    <button
+                                        type="button"
+                                        onClick={() => fileInputRef.current?.click()}
+                                        className="flex items-center gap-2 px-3 py-2 rounded-lg border border-gray-300 text-sm hover:bg-gray-50"
+                                    >
+                                        <Plus className="w-4 h-4" />
+                                        Add document(s)
+                                    </button>
+                                    {attachedDocuments.length > 0 && (
+                                        <ul className="mt-2 space-y-1">
+                                            {attachedDocuments.map((doc) => (
+                                                <li key={doc.id} className="flex items-center justify-between text-xs bg-white px-2 py-1.5 rounded border border-gray-200">
+                                                    <span className="truncate max-w-[200px]" title={doc.name}>{doc.name}</span>
+                                                    <button
+                                                        type="button"
+                                                        onClick={() => removeAttachedDocument(doc.id)}
+                                                        className="text-red-500 hover:text-red-700 ml-2"
+                                                    >
+                                                        <X className="w-3.5 h-3.5" />
+                                                    </button>
+                                                </li>
+                                            ))}
+                                        </ul>
+                                    )}
+                                </div>
+
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-500 mb-1">Status</label>
                                     <select
                                         name="status"
                                         value={formData.status}
