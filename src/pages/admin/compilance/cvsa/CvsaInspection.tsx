@@ -81,7 +81,7 @@ interface Inspection {
   createdAt: string;
   // OFFICIAL DOCUMENT NUMBERS
   reportNumber?: string; // The unique identifier of the physical inspection document
-  inspectionLevel?: 'I' | 'II' | 'III' | 'IV' | 'V' | 'VI' | 'VII' | 'VIII'; // The official CVSA inspection level
+  inspectionLevel?: 'I' | 'II' | 'III' | 'IV' | 'V'; // The official CVSA inspection level
   jurisdiction?: string; // The state or province (e.g., 'ON', 'TX') that conducted the inspection
   // DRIVER & CARRIER SPECIFIC IDs
   driverLicenseNumber?: string; // The driver's license number
@@ -89,7 +89,12 @@ interface Inspection {
   carrierMotorCarrierNumber?: string; // The Carrier's MC Number (if applicable)
   // TIME & DOCUMENTATION
   timeOfInspection?: string; // To capture the exact time on the report
-  documentLink?: string; // URL link to the scanned PDF/image of the physical report
+  documentLink?: string; // URL link to the scanned PDF/image of the physical report (deprecated, use documents)
+  documents?: Array<{
+    documentUrl: string;
+    documentType?: string;
+    signedUrl?: string; // Signed URL for accessing the document
+  }>; // Array of documents/photos related to inspection
   // OUT-OF-SERVICE SPECIFICS (Critical for tracking repairs)
   outOfServiceIssued?: boolean; // Whether an OOS order was explicitly issued (Yes/No)
   outOfServiceReleaseDate?: string; // Date and time the OOS order was lifted (if applicable)
@@ -214,6 +219,7 @@ const CvsaInspection: React.FC = () => {
     carrierMotorCarrierNumber: '',
     timeOfInspection: '',
     documentLink: '',
+    documents: [] as File[],
     outOfServiceIssued: false,
     outOfServiceReleaseDate: '',
     defectRepairNeeded: false
@@ -524,12 +530,13 @@ const CvsaInspection: React.FC = () => {
       driverLicenseNumber: '',
       carrierUSDOTNumber: '',
       carrierMotorCarrierNumber: '',
-      timeOfInspection: '',
-      documentLink: '',
-      outOfServiceIssued: false,
-      outOfServiceReleaseDate: '',
-      defectRepairNeeded: false
-    });
+    timeOfInspection: '',
+    documentLink: '',
+    documents: [] as File[],
+    outOfServiceIssued: false,
+    outOfServiceReleaseDate: '',
+    defectRepairNeeded: false
+  });
   };
 
   const handleAddInspection = () => {
@@ -558,6 +565,7 @@ const CvsaInspection: React.FC = () => {
       carrierMotorCarrierNumber: inspection.carrierMotorCarrierNumber || '',
       timeOfInspection: inspection.timeOfInspection || '',
       documentLink: inspection.documentLink || '',
+      documents: inspection.documents || [],
       outOfServiceIssued: inspection.outOfServiceIssued || false,
       outOfServiceReleaseDate: inspection.outOfServiceReleaseDate ? new Date(inspection.outOfServiceReleaseDate).toISOString().split('T')[0] : '',
       defectRepairNeeded: inspection.defectRepairNeeded || false
@@ -614,12 +622,10 @@ const CvsaInspection: React.FC = () => {
   const validateForm = () => {
     return (
       !!inspectionForm.country &&
-      !!inspectionForm.date &&
       !!inspectionForm.location &&
       !!inspectionForm.status &&
       !!inspectionForm.vehicle &&
-      !!inspectionForm.driver &&
-      !!inspectionForm.inspectorName
+      !!inspectionForm.driver
     );
   };
 
@@ -635,32 +641,48 @@ const CvsaInspection: React.FC = () => {
 
     setLoading(true);
     try {
-      const payload = {
-        country: inspectionForm.country,
-        date: inspectionForm.date,
-        location: inspectionForm.location,
-        status: inspectionForm.status,
-        vehicle: typeof inspectionForm.vehicle === 'string' ? inspectionForm.vehicle : inspectionForm.vehicle?._id || inspectionForm.vehicle,
-        driver: typeof inspectionForm.driver === 'string' ? inspectionForm.driver : inspectionForm.driver?._id || inspectionForm.driver,
-        inspectorName: inspectionForm.inspectorName,
-        violations: inspectionForm.violations || [],
-        notes: inspectionForm.notes || '',
-        // New required fields
-        reportNumber: inspectionForm.reportNumber || '',
-        inspectionLevel: inspectionForm.inspectionLevel || 'I',
-        jurisdiction: inspectionForm.jurisdiction || '',
-        driverLicenseNumber: inspectionForm.driverLicenseNumber || '',
-        carrierUSDOTNumber: inspectionForm.carrierUSDOTNumber || '',
-        carrierMotorCarrierNumber: inspectionForm.carrierMotorCarrierNumber || '',
-        timeOfInspection: inspectionForm.timeOfInspection || '',
-        documentLink: inspectionForm.documentLink || '',
-        outOfServiceIssued: inspectionForm.outOfServiceIssued || false,
-        outOfServiceReleaseDate: inspectionForm.outOfServiceReleaseDate || '',
-        defectRepairNeeded: inspectionForm.defectRepairNeeded || false
-      };
+      // Create FormData for file uploads
+      const formData = new FormData();
+      
+      // Add text fields
+      formData.append('country', inspectionForm.country || '');
+      if (inspectionForm.date) formData.append('date', inspectionForm.date);
+      formData.append('location', inspectionForm.location || '');
+      formData.append('status', inspectionForm.status || 'pass');
+      formData.append('vehicle', typeof inspectionForm.vehicle === 'string' ? inspectionForm.vehicle : inspectionForm.vehicle?._id || inspectionForm.vehicle || '');
+      formData.append('driver', typeof inspectionForm.driver === 'string' ? inspectionForm.driver : inspectionForm.driver?._id || inspectionForm.driver || '');
+      if (inspectionForm.inspectorName) formData.append('inspectorName', inspectionForm.inspectorName);
+      if (inspectionForm.violations && inspectionForm.violations.length > 0) {
+        inspectionForm.violations.forEach((v, i) => {
+          formData.append(`violations[${i}][code]`, v.code);
+          formData.append(`violations[${i}][description]`, v.description);
+          formData.append(`violations[${i}][severity]`, v.severity);
+        });
+      }
+      if (inspectionForm.notes) formData.append('notes', inspectionForm.notes);
+      if (inspectionForm.reportNumber) formData.append('reportNumber', inspectionForm.reportNumber);
+      formData.append('inspectionLevel', inspectionForm.inspectionLevel || 'I');
+      if (inspectionForm.jurisdiction) formData.append('jurisdiction', inspectionForm.jurisdiction);
+      if (inspectionForm.driverLicenseNumber) formData.append('driverLicenseNumber', inspectionForm.driverLicenseNumber);
+      if (inspectionForm.carrierUSDOTNumber) formData.append('carrierUSDOTNumber', inspectionForm.carrierUSDOTNumber);
+      if (inspectionForm.carrierMotorCarrierNumber) formData.append('carrierMotorCarrierNumber', inspectionForm.carrierMotorCarrierNumber);
+      if (inspectionForm.timeOfInspection) formData.append('timeOfInspection', inspectionForm.timeOfInspection);
+      if (inspectionForm.documentLink) formData.append('documentLink', inspectionForm.documentLink);
+      formData.append('outOfServiceIssued', String(inspectionForm.outOfServiceIssued || false));
+      if (inspectionForm.outOfServiceReleaseDate) formData.append('outOfServiceReleaseDate', inspectionForm.outOfServiceReleaseDate);
+      formData.append('defectRepairNeeded', String(inspectionForm.defectRepairNeeded || false));
+      
+      // Add multiple files
+      if (inspectionForm.documents && Array.isArray(inspectionForm.documents) && inspectionForm.documents.length > 0) {
+        inspectionForm.documents.forEach((file) => {
+          if (file instanceof File) {
+            formData.append('documents', file);
+          }
+        });
+      }
 
-      console.log('Sending payload:', payload);
-      const res = await createCvsaInspection(payload);
+      console.log('Sending FormData with', inspectionForm.documents?.length || 0, 'files');
+      const res = await createCvsaInspection(formData);
       console.log('API Response:', res);
 
       if (res?.success) {
@@ -690,31 +712,47 @@ const CvsaInspection: React.FC = () => {
 
     setLoading(true);
     try {
-      const payload = {
-        country: inspectionForm.country,
-        date: inspectionForm.date,
-        location: inspectionForm.location,
-        status: inspectionForm.status,
-        vehicle: inspectionForm.vehicle,
-        driver: inspectionForm.driver,
-        inspectorName: inspectionForm.inspectorName,
-        violations: inspectionForm.violations || [],
-        notes: inspectionForm.notes || '',
-        // New required fields
-        reportNumber: inspectionForm.reportNumber || '',
-        inspectionLevel: inspectionForm.inspectionLevel || 'I',
-        jurisdiction: inspectionForm.jurisdiction || '',
-        driverLicenseNumber: inspectionForm.driverLicenseNumber || '',
-        carrierUSDOTNumber: inspectionForm.carrierUSDOTNumber || '',
-        carrierMotorCarrierNumber: inspectionForm.carrierMotorCarrierNumber || '',
-        timeOfInspection: inspectionForm.timeOfInspection || '',
-        documentLink: inspectionForm.documentLink || '',
-        outOfServiceIssued: inspectionForm.outOfServiceIssued || false,
-        outOfServiceReleaseDate: inspectionForm.outOfServiceReleaseDate || '',
-        defectRepairNeeded: inspectionForm.defectRepairNeeded || false
-      };
+      // Create FormData for file uploads
+      const formData = new FormData();
+      
+      // Add text fields
+      formData.append('country', inspectionForm.country || '');
+      if (inspectionForm.date) formData.append('date', inspectionForm.date);
+      formData.append('location', inspectionForm.location || '');
+      formData.append('status', inspectionForm.status || 'pass');
+      formData.append('vehicle', typeof inspectionForm.vehicle === 'string' ? inspectionForm.vehicle : inspectionForm.vehicle?._id || inspectionForm.vehicle || '');
+      formData.append('driver', typeof inspectionForm.driver === 'string' ? inspectionForm.driver : inspectionForm.driver?._id || inspectionForm.driver || '');
+      if (inspectionForm.inspectorName) formData.append('inspectorName', inspectionForm.inspectorName);
+      if (inspectionForm.violations && inspectionForm.violations.length > 0) {
+        inspectionForm.violations.forEach((v, i) => {
+          formData.append(`violations[${i}][code]`, v.code);
+          formData.append(`violations[${i}][description]`, v.description);
+          formData.append(`violations[${i}][severity]`, v.severity);
+        });
+      }
+      if (inspectionForm.notes) formData.append('notes', inspectionForm.notes);
+      if (inspectionForm.reportNumber) formData.append('reportNumber', inspectionForm.reportNumber);
+      formData.append('inspectionLevel', inspectionForm.inspectionLevel || 'I');
+      if (inspectionForm.jurisdiction) formData.append('jurisdiction', inspectionForm.jurisdiction);
+      if (inspectionForm.driverLicenseNumber) formData.append('driverLicenseNumber', inspectionForm.driverLicenseNumber);
+      if (inspectionForm.carrierUSDOTNumber) formData.append('carrierUSDOTNumber', inspectionForm.carrierUSDOTNumber);
+      if (inspectionForm.carrierMotorCarrierNumber) formData.append('carrierMotorCarrierNumber', inspectionForm.carrierMotorCarrierNumber);
+      if (inspectionForm.timeOfInspection) formData.append('timeOfInspection', inspectionForm.timeOfInspection);
+      if (inspectionForm.documentLink) formData.append('documentLink', inspectionForm.documentLink);
+      formData.append('outOfServiceIssued', String(inspectionForm.outOfServiceIssued || false));
+      if (inspectionForm.outOfServiceReleaseDate) formData.append('outOfServiceReleaseDate', inspectionForm.outOfServiceReleaseDate);
+      formData.append('defectRepairNeeded', String(inspectionForm.defectRepairNeeded || false));
+      
+      // Add multiple files
+      if (inspectionForm.documents && Array.isArray(inspectionForm.documents) && inspectionForm.documents.length > 0) {
+        inspectionForm.documents.forEach((file) => {
+          if (file instanceof File) {
+            formData.append('documents', file);
+          }
+        });
+      }
 
-      const res = await updateCvsaInspection(selectedInspection._id, payload);
+      const res = await updateCvsaInspection(selectedInspection._id, formData);
       if (res?.success) {
         addNotification('success', res.message || 'Inspection updated successfully');
         // Refresh both inspections and stats
@@ -1525,20 +1563,42 @@ const CvsaInspection: React.FC = () => {
                 )}
 
                 {/* Documentation */}
-                {selectedInspection.documentLink && (
+                {(selectedInspection.documentLink || (selectedInspection.documents && selectedInspection.documents.length > 0)) && (
                   <div className="bg-[var(--accent-soft)] rounded-lg p-3">
                     <h4 className="text-xs font-bold text-gray-800 mb-2">Documentation</h4>
-                    <div>
-                      <label className="block text-xs font-medium text-gray-600 mb-0.5">Link</label>
-                      <a
-                        href={selectedInspection.documentLink}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="text-sm font-semibold text-[var(--accent-color)] hover:text-[var(--accent-dark)] underline break-all"
-                      >
-                        {selectedInspection.documentLink}
-                      </a>
-                    </div>
+                    {selectedInspection.documents && selectedInspection.documents.length > 0 ? (
+                      <div className="space-y-2">
+                        {selectedInspection.documents.map((doc: any, index: number) => {
+                          const documentUrl = doc.signedUrl || doc.documentUrl;
+                          const fileName = doc.documentUrl?.split('/').pop() || `Document ${index + 1}`;
+                          return (
+                            <div key={index}>
+                              <label className="block text-xs font-medium text-gray-600 mb-0.5">Document {index + 1}</label>
+                              <a
+                                href={documentUrl}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="text-sm font-semibold text-[var(--accent-color)] hover:text-[var(--accent-dark)] underline break-all cursor-pointer"
+                              >
+                                {fileName}
+                              </a>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    ) : selectedInspection.documentLink ? (
+                      <div>
+                        <label className="block text-xs font-medium text-gray-600 mb-0.5">Link</label>
+                        <a
+                          href={selectedInspection.documentLink}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="text-sm font-semibold text-[var(--accent-color)] hover:text-[var(--accent-dark)] underline break-all cursor-pointer"
+                        >
+                          {selectedInspection.documentLink}
+                        </a>
+                      </div>
+                    ) : null}
                   </div>
                 )}
 
@@ -1630,7 +1690,7 @@ const CvsaInspection: React.FC = () => {
                         </select>
                       </div>
                       <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">Date <span className="text-red-500">*</span></label>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">Date</label>
                         <input
                           type="date"
                           value={inspectionForm.date || ''}
@@ -1672,7 +1732,7 @@ const CvsaInspection: React.FC = () => {
                         </select>
                       </div>
                       <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">Inspector <span className="text-red-500">*</span></label>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">Inspector</label>
                         <input
                           type="text"
                           placeholder="Inspector name"
@@ -1740,10 +1800,10 @@ const CvsaInspection: React.FC = () => {
                           />
                         </div>
                         <div>
-                          <label className="block text-sm font-medium text-gray-700 mb-1">Inspection Level <span className="text-red-500">*</span></label>
+                          <label className="block text-sm font-medium text-gray-700 mb-1">Inspection Level</label>
                           <select
                             value={inspectionForm.inspectionLevel || 'I'}
-                            onChange={(e) => setInspectionForm(prev => ({ ...prev, inspectionLevel: e.target.value as 'I' | 'II' | 'III' | 'IV' | 'V' | 'VI' | 'VII' | 'VIII' }))}
+                            onChange={(e) => setInspectionForm(prev => ({ ...prev, inspectionLevel: e.target.value as 'I' | 'II' | 'III' | 'IV' | 'V' }))}
                             className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[var(--accent-color)] focus:border-transparent"
                           >
                             <option value="I">Level I</option>
@@ -1751,9 +1811,6 @@ const CvsaInspection: React.FC = () => {
                             <option value="III">Level III</option>
                             <option value="IV">Level IV</option>
                             <option value="V">Level V</option>
-                            <option value="VI">Level VI</option>
-                            <option value="VII">Level VII</option>
-                            <option value="VIII">Level VIII</option>
                           </select>
                         </div>
                         <div>
@@ -1859,23 +1916,49 @@ const CvsaInspection: React.FC = () => {
                     <div className="border-t pt-6 mt-6">
                       <h4 className="text-lg font-bold text-gray-800 mb-4">Documentation</h4>
                       <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">Document Link (PDF/Image)</label>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">Upload Documents (PDF/Image) - Multiple files allowed</label>
                         <input
                           type="file"
                           accept=".pdf,.jpg,.jpeg,.png,.gif"
+                          multiple
                           onChange={(e) => {
-                            const file = e.target.files?.[0];
-                            if (file) {
-                              // Create a local URL for preview/storage
-                              const fileUrl = URL.createObjectURL(file);
-                              setInspectionForm(prev => ({ ...prev, documentLink: fileUrl }));
+                            const files = Array.from(e.target.files || []);
+                            if (files.length > 0) {
+                              setInspectionForm(prev => ({ 
+                                ...prev, 
+                                documents: [...(prev.documents || []), ...files] as File[]
+                              }));
                             }
                           }}
                           className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[var(--accent-color)] focus:border-transparent file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-[var(--accent-soft)] file:text-[var(--accent-color)] hover:file:bg-purple-100 cursor-pointer"
                         />
-                        {inspectionForm.documentLink && inspectionForm.documentLink.startsWith('blob:') && (
+                        {inspectionForm.documents && inspectionForm.documents.length > 0 && (
+                          <div className="mt-3 space-y-2">
+                            <p className="text-sm font-medium text-gray-700">Selected files ({inspectionForm.documents.length}):</p>
+                            <div className="space-y-1">
+                              {inspectionForm.documents.map((file, index) => (
+                                <div key={index} className="flex items-center justify-between p-2 bg-gray-50 rounded-lg">
+                                  <span className="text-sm text-gray-700">{file instanceof File ? file.name : 'Unknown file'}</span>
+                                  <button
+                                    type="button"
+                                    onClick={() => {
+                                      setInspectionForm(prev => ({
+                                        ...prev,
+                                        documents: (prev.documents || []).filter((_, i) => i !== index) as File[]
+                                      }));
+                                    }}
+                                    className="text-red-600 hover:text-red-800 text-sm font-medium"
+                                  >
+                                    Remove
+                                  </button>
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                        )}
+                        {inspectionForm.documentLink && !inspectionForm.documentLink.startsWith('blob:') && (
                           <p className="mt-2 text-sm text-gray-600">
-                            Selected file: <span className="font-medium">{inspectionForm.documentLink.split('/').pop()}</span>
+                            Current document: <a href={inspectionForm.documentLink} target="_blank" rel="noopener noreferrer" className="text-purple-600 hover:underline">{inspectionForm.documentLink}</a>
                           </p>
                         )}
                       </div>
@@ -1923,7 +2006,7 @@ const CvsaInspection: React.FC = () => {
                         </select>
                       </div>
                       <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">Date <span className="text-red-500">*</span></label>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">Date</label>
                         <input type="date" value={inspectionForm.date || ''} onChange={(e) => setInspectionForm(prev => ({ ...prev, date: e.target.value }))} className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[var(--accent-color)] focus:border-transparent" />
                       </div>
                       <div className="col-span-2">
@@ -1940,7 +2023,7 @@ const CvsaInspection: React.FC = () => {
                         </select>
                       </div>
                       <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">Inspector <span className="text-red-500">*</span></label>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">Inspector</label>
                         <input type="text" value={inspectionForm.inspectorName || ''} onChange={(e) => setInspectionForm(prev => ({ ...prev, inspectorName: e.target.value }))} className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[var(--accent-color)] focus:border-transparent" />
                       </div>
                       <div>
@@ -1996,10 +2079,10 @@ const CvsaInspection: React.FC = () => {
                           />
                         </div>
                         <div>
-                          <label className="block text-sm font-medium text-gray-700 mb-1">Inspection Level <span className="text-red-500">*</span></label>
+                          <label className="block text-sm font-medium text-gray-700 mb-1">Inspection Level</label>
                           <select
                             value={inspectionForm.inspectionLevel || 'I'}
-                            onChange={(e) => setInspectionForm(prev => ({ ...prev, inspectionLevel: e.target.value as 'I' | 'II' | 'III' | 'IV' | 'V' | 'VI' | 'VII' | 'VIII' }))}
+                            onChange={(e) => setInspectionForm(prev => ({ ...prev, inspectionLevel: e.target.value as 'I' | 'II' | 'III' | 'IV' | 'V' }))}
                             className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[var(--accent-color)] focus:border-transparent"
                           >
                             <option value="I">Level I</option>
@@ -2007,9 +2090,6 @@ const CvsaInspection: React.FC = () => {
                             <option value="III">Level III</option>
                             <option value="IV">Level IV</option>
                             <option value="V">Level V</option>
-                            <option value="VI">Level VI</option>
-                            <option value="VII">Level VII</option>
-                            <option value="VIII">Level VIII</option>
                           </select>
                         </div>
                         <div>
@@ -2115,24 +2195,45 @@ const CvsaInspection: React.FC = () => {
                     <div className="border-t pt-6 mt-6">
                       <h4 className="text-lg font-bold text-gray-800 mb-4">Documentation</h4>
                       <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">Document Link (PDF/Image)</label>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">Upload Documents (PDF/Image) - Multiple files allowed</label>
                         <input
                           type="file"
                           accept=".pdf,.jpg,.jpeg,.png,.gif"
+                          multiple
                           onChange={(e) => {
-                            const file = e.target.files?.[0];
-                            if (file) {
-                              // Create a local URL for preview/storage
-                              const fileUrl = URL.createObjectURL(file);
-                              setInspectionForm(prev => ({ ...prev, documentLink: fileUrl }));
+                            const files = Array.from(e.target.files || []);
+                            if (files.length > 0) {
+                              setInspectionForm(prev => ({ 
+                                ...prev, 
+                                documents: [...(prev.documents || []), ...files] as File[]
+                              }));
                             }
                           }}
                           className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[var(--accent-color)] focus:border-transparent file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-[var(--accent-soft)] file:text-[var(--accent-color)] hover:file:bg-purple-100 cursor-pointer"
                         />
-                        {inspectionForm.documentLink && inspectionForm.documentLink.startsWith('blob:') && (
-                          <p className="mt-2 text-sm text-gray-600">
-                            Selected file: <span className="font-medium">{inspectionForm.documentLink.split('/').pop()}</span>
-                          </p>
+                        {inspectionForm.documents && inspectionForm.documents.length > 0 && (
+                          <div className="mt-3 space-y-2">
+                            <p className="text-sm font-medium text-gray-700">Selected files ({inspectionForm.documents.length}):</p>
+                            <div className="space-y-1">
+                              {inspectionForm.documents.map((file, index) => (
+                                <div key={index} className="flex items-center justify-between p-2 bg-gray-50 rounded-lg">
+                                  <span className="text-sm text-gray-700">{file instanceof File ? file.name : 'Unknown file'}</span>
+                                  <button
+                                    type="button"
+                                    onClick={() => {
+                                      setInspectionForm(prev => ({
+                                        ...prev,
+                                        documents: (prev.documents || []).filter((_, i) => i !== index) as File[]
+                                      }));
+                                    }}
+                                    className="text-red-600 hover:text-red-800 text-sm font-medium"
+                                  >
+                                    Remove
+                                  </button>
+                                </div>
+                              ))}
+                            </div>
+                          </div>
                         )}
                         {inspectionForm.documentLink && !inspectionForm.documentLink.startsWith('blob:') && (
                           <p className="mt-2 text-sm text-gray-600">

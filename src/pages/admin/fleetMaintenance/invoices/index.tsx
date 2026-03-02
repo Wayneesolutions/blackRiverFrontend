@@ -103,6 +103,18 @@ interface InvoiceRow {
   status: 'draft' | 'sent' | 'paid' | 'cancelled' | 'overdue';
   dueDate?: string;
   customerEmail?: string;
+  items?: Array<{
+    productService?: string;
+    description?: string;
+    [key: string]: any;
+  }>;
+  vehicleInfo?: Array<{
+    unitNumber: string;
+    unitType?: string;
+    makeModel?: string;
+    vinNumber?: string;
+    plateNumber?: string;
+  }>;
 }
 
 function addDays(dateStr: string, days: number): string {
@@ -163,6 +175,15 @@ const FleetInvoicesPage = () => {
   const [productOptionsLoading, setProductOptionsLoading] = useState(false);
 
   const [, setCustomServices] = useState<CustomServiceDef[]>([]);
+
+  // Vehicle information from invoice items
+  const [vehicleInfo, setVehicleInfo] = useState<Array<{
+    unitNumber: string;
+    unitType?: string;
+    makeModel?: string;
+    vinNumber?: string;
+    plateNumber?: string;
+  }>>([]);
 
   // Step 1: Header
   const [customerId, setCustomerId] = useState('');
@@ -339,6 +360,21 @@ const FleetInvoicesPage = () => {
     loadSummary();
   }, []);
 
+  // Extract vehicle information from invoice items (fetches full vehicle details)
+  const extractVehicleInfo = async (invoice: any): Promise<Array<{
+    unitNumber: string;
+    unitType?: string;
+    makeModel?: string;
+    vinNumber?: string;
+    plateNumber?: string;
+  }>> => {
+    if (!invoice.items || !Array.isArray(invoice.items) || invoice.items.length === 0) {
+      return [];
+    }
+
+    return await fetchVehicleInfoFromItems(invoice.items);
+  };
+
   // Load invoices from API
   const loadInvoices = async () => {
     setInvoicesLoading(true);
@@ -346,7 +382,14 @@ const FleetInvoicesPage = () => {
     try {
       const response = await getFleetInvoices();
       if (response?.success && Array.isArray(response.data)) {
-        setInvoices(response.data);
+        // Extract vehicle information for each invoice (async - fetches from services/repairs)
+        const invoicesWithVehicles = await Promise.all(
+          response.data.map(async (invoice: any) => {
+            const vehicleInfo = await extractVehicleInfo(invoice);
+            return { ...invoice, vehicleInfo };
+          })
+        );
+        setInvoices(invoicesWithVehicles);
       } else {
         setInvoices([]);
         setInvoicesError(response?.message || 'Failed to load invoices');
@@ -611,12 +654,89 @@ const FleetInvoicesPage = () => {
     }
   };
 
+  // Fetch vehicle information from invoice items
+  const fetchVehicleInfoFromItems = async (items: any[]) => {
+    const vehicleMap = new Map<string, {
+      unitNumber: string;
+      unitType?: string;
+      makeModel?: string;
+      vinNumber?: string;
+      plateNumber?: string;
+    }>();
+
+    for (const item of items) {
+      if (item.productService) {
+        const [type, id] = item.productService.split(':');
+        
+        if (type === 'service' && id) {
+          try {
+            const serviceRes = await listVehicleServices({});
+            if (serviceRes?.success && Array.isArray(serviceRes.data)) {
+              const service = (serviceRes.data as any[]).find((s: any) => s._id === id);
+              if (service) {
+                const unitNo = service.unitNumber || 
+                              service.vehicleId?.internalId || 
+                              service.vehicleId?.plateNumber || 
+                              '';
+                if (unitNo && !vehicleMap.has(unitNo)) {
+                  vehicleMap.set(unitNo, {
+                    unitNumber: unitNo,
+                    unitType: service.unitType || service.vehicleId?.type || 'Truck',
+                    makeModel: service.makeModel || 
+                               (service.vehicleId ? `${service.vehicleId.make || ''} ${service.vehicleId.model || ''}`.trim() : '') ||
+                               '',
+                    vinNumber: service.vehicleId?.vinNumber || '',
+                    plateNumber: service.vehicleId?.plateNumber || ''
+                  });
+                }
+              }
+            }
+          } catch (err) {
+            console.error('Error fetching service for vehicle info:', err);
+          }
+        } else if (type === 'repair' && id) {
+          try {
+            const repairRes = await listGeneralRepairs();
+            if (repairRes?.success && Array.isArray(repairRes.data)) {
+              const repair = (repairRes.data as any[]).find((r: any) => r._id === id);
+              if (repair && repair.unitNumber) {
+                if (!vehicleMap.has(repair.unitNumber)) {
+                  vehicleMap.set(repair.unitNumber, {
+                    unitNumber: repair.unitNumber,
+                    unitType: repair.unitType || 'Truck',
+                    makeModel: repair.makeModel || 
+                               (repair.vehicleId ? `${repair.vehicleId.make || ''} ${repair.vehicleId.model || ''}`.trim() : '') ||
+                               '',
+                    vinNumber: repair.vehicleId?.vinNumber || repair.vinNumber || '',
+                    plateNumber: repair.vehicleId?.plateNumber || repair.plateNumber || ''
+                  });
+                }
+              }
+            }
+          } catch (err) {
+            console.error('Error fetching repair for vehicle info:', err);
+          }
+        }
+      }
+    }
+
+    return Array.from(vehicleMap.values());
+  };
+
   const handleEditInvoice = async (invoiceId: string) => {
     try {
       const response = await getFleetInvoiceById(invoiceId);
       if (response?.success && response.data) {
         const invoice = response.data;
         setEditingInvoiceId(invoice._id);
+        
+        // Fetch vehicle information from invoice items
+        if (Array.isArray(invoice.items) && invoice.items.length > 0) {
+          const vehicles = await fetchVehicleInfoFromItems(invoice.items);
+          setVehicleInfo(vehicles);
+        } else {
+          setVehicleInfo([]);
+        }
         
         // Set customer
         const customerIdValue = invoice.customerId 
@@ -690,8 +810,14 @@ const FleetInvoicesPage = () => {
             };
           });
           setLineItems(items);
+          
+          // Fetch vehicle info when items are loaded
+          fetchVehicleInfoFromItems(invoice.items).then(vehicles => {
+            setVehicleInfo(vehicles);
+          });
         } else {
           setLineItems([{ id: '1', serviceDate: '', productService: '', description: '', qty: 1, rate: 0, amount: 0, salesTax: 'gst' }]);
+          setVehicleInfo([]);
         }
 
         // Load labour charges
@@ -769,6 +895,18 @@ const FleetInvoicesPage = () => {
         return;
       }
       const invoice = response.data;
+
+      // Fetch vehicle information for PDF
+      let vehicleInfoForPDF: Array<{
+        unitNumber: string;
+        unitType?: string;
+        makeModel?: string;
+        vinNumber?: string;
+        plateNumber?: string;
+      }> = [];
+      if (Array.isArray(invoice.items) && invoice.items.length > 0) {
+        vehicleInfoForPDF = await fetchVehicleInfoFromItems(invoice.items);
+      }
 
       let companyData: { companyName?: string; address?: string; contactPhone?: string; contactEmail?: string; taxNumber?: string; logoUrl?: string } | null = null;
       try {
@@ -877,6 +1015,37 @@ const FleetInvoicesPage = () => {
       }
 
       yPos = Math.max(yPos, rightY) + 12;
+
+      // Vehicle Information (if available)
+      if (vehicleInfoForPDF.length > 0) {
+        checkPageBreak(vehicleInfoForPDF.length * 20 + 10);
+        doc.setFontSize(10);
+        doc.setFont('helvetica', 'bold');
+        doc.setTextColor(...textColor);
+        doc.text('Vehicle Information:', leftCol, yPos);
+        yPos += 7;
+        
+        doc.setFontSize(9);
+        doc.setFont('helvetica', 'normal');
+        doc.setTextColor(...grayColor);
+        
+        vehicleInfoForPDF.forEach((vehicle, idx) => {
+          const vehicleLines: string[] = [];
+          vehicleLines.push(`Unit ${vehicle.unitNumber || '—'}`);
+          if (vehicle.unitType) vehicleLines.push(`Type: ${vehicle.unitType}`);
+          if (vehicle.makeModel) vehicleLines.push(`Make/Model: ${vehicle.makeModel}`);
+          if (vehicle.plateNumber) vehicleLines.push(`Plate: ${vehicle.plateNumber}`);
+          if (vehicle.vinNumber) vehicleLines.push(`VIN: ${vehicle.vinNumber}`);
+          
+          const vehicleText = vehicleLines.join(' | ');
+          const wrappedLines = doc.splitTextToSize(vehicleText, contentWidth);
+          doc.text(wrappedLines, leftCol, yPos);
+          yPos += wrappedLines.length * 5 + 3;
+        });
+        
+        yPos += 5;
+        doc.setTextColor(...textColor);
+      }
 
       // Invoice details
       doc.setFontSize(9);
@@ -1094,6 +1263,7 @@ const FleetInvoicesPage = () => {
     setLabourHours(0);
     setLabourRate(0);
     setLabourTax('gst');
+    setVehicleInfo([]);
   };
 
   return (
@@ -1214,6 +1384,7 @@ const FleetInvoicesPage = () => {
                   <th className="px-6 py-4">Date</th>
                   <th className="px-6 py-4">No.</th>
                   <th className="px-6 py-4">Customer</th>
+                  <th className="px-6 py-4">Unit Information</th>
                   <th className="px-6 py-4">Amount</th>
                   <th className="px-6 py-4">Status</th>
                   <th className="px-6 py-4">Action</th>
@@ -1222,19 +1393,19 @@ const FleetInvoicesPage = () => {
               <tbody className="divide-y divide-gray-100">
                 {invoicesLoading ? (
                   <tr>
-                    <td colSpan={6} className="px-6 py-12 text-center text-gray-500">
+                    <td colSpan={7} className="px-6 py-12 text-center text-gray-500">
                       Loading invoices...
                     </td>
                   </tr>
                 ) : invoicesError ? (
                   <tr>
-                    <td colSpan={6} className="px-6 py-12 text-center text-red-600">
+                    <td colSpan={7} className="px-6 py-12 text-center text-red-600">
                       {invoicesError}
                     </td>
                   </tr>
                 ) : invoices.length === 0 ? (
                   <tr>
-                    <td colSpan={6} className="px-6 py-12 text-center text-gray-500">
+                    <td colSpan={7} className="px-6 py-12 text-center text-gray-500">
                       No invoices yet. Create one using &quot;New Invoice&quot;.
                     </td>
                   </tr>
@@ -1256,6 +1427,32 @@ const FleetInvoicesPage = () => {
                         </td>
                         <td className="px-6 py-4 font-medium text-gray-900">{row.invoiceNumber || '—'}</td>
                         <td className="px-6 py-4 text-gray-700">{row.customerName || '—'}</td>
+                        <td className="px-6 py-4 text-gray-700">
+                          {row.vehicleInfo && row.vehicleInfo.length > 0 ? (
+                            <div className="space-y-1">
+                              {row.vehicleInfo.map((vehicle, idx) => (
+                                <div key={idx} className="text-xs">
+                                  <div className="font-semibold text-gray-900">
+                                    {vehicle.unitNumber || '—'}
+                                    {vehicle.unitType && <span className="text-gray-500 ml-1">({vehicle.unitType})</span>}
+                                  </div>
+                                  {vehicle.makeModel && (
+                                    <div className="text-gray-600">{vehicle.makeModel}</div>
+                                  )}
+                                  {(vehicle.plateNumber || vehicle.vinNumber) && (
+                                    <div className="text-gray-500">
+                                      {vehicle.plateNumber && <span>Plate: {vehicle.plateNumber}</span>}
+                                      {vehicle.plateNumber && vehicle.vinNumber && <span> • </span>}
+                                      {vehicle.vinNumber && <span>VIN: {vehicle.vinNumber}</span>}
+                                    </div>
+                                  )}
+                                </div>
+                              ))}
+                            </div>
+                          ) : (
+                            <span className="text-gray-400">—</span>
+                          )}
+                        </td>
                         <td className="px-6 py-4 text-gray-700 font-medium">${(row.total || 0).toFixed(2)}</td>
                         <td className="px-6 py-4">
                           <select
@@ -1354,6 +1551,43 @@ const FleetInvoicesPage = () => {
                   {notification.message}
                 </div>
               )}
+              {/* Vehicle Information */}
+              {vehicleInfo.length > 0 && (
+                <section>
+                  <h3 className="text-sm font-semibold text-gray-500 uppercase tracking-wide mb-4">Vehicle Information</h3>
+                  <div className="space-y-3">
+                    {vehicleInfo.map((vehicle, idx) => (
+                      <div key={idx} className="rounded-lg border border-blue-200 bg-blue-50/50 p-4">
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                          <div>
+                            <p className="text-xs text-gray-500 mb-1">Unit Number</p>
+                            <p className="text-sm font-semibold text-gray-900">{vehicle.unitNumber || '—'}</p>
+                          </div>
+                          <div>
+                            <p className="text-xs text-gray-500 mb-1">Unit Type</p>
+                            <p className="text-sm font-semibold text-gray-900">{vehicle.unitType || '—'}</p>
+                          </div>
+                          <div>
+                            <p className="text-xs text-gray-500 mb-1">Make / Model</p>
+                            <p className="text-sm font-semibold text-gray-900">{vehicle.makeModel || '—'}</p>
+                          </div>
+                          <div>
+                            <p className="text-xs text-gray-500 mb-1">Plate Number</p>
+                            <p className="text-sm font-semibold text-gray-900">{vehicle.plateNumber || '—'}</p>
+                          </div>
+                          {vehicle.vinNumber && (
+                            <div>
+                              <p className="text-xs text-gray-500 mb-1">VIN Number</p>
+                              <p className="text-sm font-semibold text-gray-900">{vehicle.vinNumber}</p>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </section>
+              )}
+
               {/* Header Information */}
               <section>
                 <h3 className="text-sm font-semibold text-gray-500 uppercase tracking-wide mb-4">Bill To &amp; Dates</h3>
@@ -1462,22 +1696,81 @@ const FleetInvoicesPage = () => {
                             className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 text-sm"
                           />
                         </div>
-                        <div>
-                          <label className="block text-sm font-medium text-gray-700 mb-1">Product / Service</label>
-                          <select
-                            value={item.productService}
-                            onChange={(e) => updateLineItem(item.id, { productService: e.target.value })}
-                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 text-sm"
-                          >
-                            <option value="">Select...</option>
-                            {productOptions.map((opt) => (
-                              <option key={opt.id} value={opt.id}>{opt.label}</option>
-                            ))}
-                          </select>
-                          {productOptionsLoading && (
-                            <p className="mt-1 text-xs text-gray-500">Loading services and maintenance orders...</p>
-                          )}
-                        </div>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">Product / Service</label>
+                        <select
+                          value={item.productService}
+                          onChange={async (e) => {
+                            updateLineItem(item.id, { productService: e.target.value });
+                            // Update vehicle info when a service/repair is selected
+                            if (e.target.value) {
+                              const [type, id] = e.target.value.split(':');
+                              if (type === 'service' && id) {
+                                try {
+                                  const serviceRes = await listVehicleServices({});
+                                  if (serviceRes?.success && Array.isArray(serviceRes.data)) {
+                                    const service = (serviceRes.data as any[]).find((s: any) => s._id === id);
+                                    if (service) {
+                                      const unitNo = service.unitNumber || 
+                                                    service.vehicleId?.internalId || 
+                                                    service.vehicleId?.plateNumber || 
+                                                    '';
+                                      if (unitNo) {
+                                        const existingVehicle = vehicleInfo.find(v => v.unitNumber === unitNo);
+                                        if (!existingVehicle) {
+                                          setVehicleInfo(prev => [...prev, {
+                                            unitNumber: unitNo,
+                                            unitType: service.unitType || service.vehicleId?.type || 'Truck',
+                                            makeModel: service.makeModel || 
+                                                       (service.vehicleId ? `${service.vehicleId.make || ''} ${service.vehicleId.model || ''}`.trim() : '') ||
+                                                       '',
+                                            vinNumber: service.vehicleId?.vinNumber || '',
+                                            plateNumber: service.vehicleId?.plateNumber || ''
+                                          }]);
+                                        }
+                                      }
+                                    }
+                                  }
+                                } catch (err) {
+                                  console.error('Error fetching service for vehicle info:', err);
+                                }
+                              } else if (type === 'repair' && id) {
+                                try {
+                                  const repairRes = await listGeneralRepairs();
+                                  if (repairRes?.success && Array.isArray(repairRes.data)) {
+                                    const repair = (repairRes.data as any[]).find((r: any) => r._id === id);
+                                    if (repair && repair.unitNumber) {
+                                      const existingVehicle = vehicleInfo.find(v => v.unitNumber === repair.unitNumber);
+                                      if (!existingVehicle) {
+                                        setVehicleInfo(prev => [...prev, {
+                                          unitNumber: repair.unitNumber,
+                                          unitType: repair.unitType || 'Truck',
+                                          makeModel: repair.makeModel || 
+                                                     (repair.vehicleId ? `${repair.vehicleId.make || ''} ${repair.vehicleId.model || ''}`.trim() : '') ||
+                                                     '',
+                                          vinNumber: repair.vehicleId?.vinNumber || repair.vinNumber || '',
+                                          plateNumber: repair.vehicleId?.plateNumber || repair.plateNumber || ''
+                                        }]);
+                                      }
+                                    }
+                                  }
+                                } catch (err) {
+                                  console.error('Error fetching repair for vehicle info:', err);
+                                }
+                              }
+                            }
+                          }}
+                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 text-sm"
+                        >
+                          <option value="">Select...</option>
+                          {productOptions.map((opt) => (
+                            <option key={opt.id} value={opt.id}>{opt.label}</option>
+                          ))}
+                        </select>
+                        {productOptionsLoading && (
+                          <p className="mt-1 text-xs text-gray-500">Loading services and maintenance orders...</p>
+                        )}
+                      </div>
                       </div>
                       <div>
                         <label className="block text-sm font-medium text-gray-700 mb-1">Description</label>

@@ -18,6 +18,7 @@ import {
 import { getAllVehicles } from '../../../../axios/api/vehicle';
 import { getAllTrailers } from '../../../../axios/api/trailer';
 import { getCompany } from '../../../../axios/api/admin';
+import { getAllEmployees } from '../../../../axios/api/employee';
 import { FLEET_COLORS } from '../colorUtils';
 
 const ACCENT_PRIMARY = FLEET_COLORS.primary;
@@ -79,6 +80,9 @@ interface ScheduledService {
   invoiceNo?: string;
   amount?: number;
   notes?: string;
+  description?: string;
+  serviceProvider?: string;
+  assignedMechanic?: string | { _id: string; name: string };
   status: 'pending' | 'in-progress' | 'completed';
   priority?: string;
   source?: 'samsara' | 'manual';
@@ -129,6 +133,8 @@ interface ServiceFormState {
   notes: string;
   status: string;
   amount: string;
+  description: string;
+  serviceProvider: string;
 }
 
 const ScheduledServicesLog: React.FC = () => {
@@ -148,6 +154,7 @@ const ScheduledServicesLog: React.FC = () => {
   const [showServiceDetails, setShowServiceDetails] = useState(false);
   const [customServices, setCustomServices] = useState<Array<{ name: string }>>([]);
   const [serviceTypeOptions, setServiceTypeOptions] = useState<Array<{ label: string; value: string }>>([]);
+  const [mechanics, setMechanics] = useState<Array<{ _id: string; name: string }>>([]);
   
   // Refs for scrollbar synchronization
   const topScrollRef = useRef<HTMLDivElement>(null);
@@ -166,7 +173,9 @@ const ScheduledServicesLog: React.FC = () => {
     invoiceNo: '',
     notes: '',
     status: 'pending',
-    amount: ''
+    amount: '',
+    description: '',
+    serviceProvider: ''
   });
 
   // Fetch company custom services on mount
@@ -208,6 +217,27 @@ const ScheduledServicesLog: React.FC = () => {
     fetchCustomServices();
   }, []);
 
+  // Fetch mechanics (employees with mechanic role) on mount
+  useEffect(() => {
+    const fetchMechanics = async () => {
+      try {
+        const response = await getAllEmployees(1, 1000, undefined, 'Maintenance Crew (Mechanics)', 'active');
+        if (response?.success && response?.data) {
+          const mechanicsList = (response.data as any[]).map((emp: any) => ({
+            _id: emp._id,
+            name: emp.name || `${emp.first_name || ''} ${emp.last_name || ''}`.trim() || 'Unknown'
+          }));
+          setMechanics(mechanicsList);
+        }
+      } catch (error) {
+        console.error('Error fetching mechanics:', error);
+        setMechanics([]);
+      }
+    };
+    
+    fetchMechanics();
+  }, []);
+
   // Check URL query parameter for incoming maintenance filter
   useEffect(() => {
     const searchParams = new URLSearchParams(location.search);
@@ -243,6 +273,9 @@ const ScheduledServicesLog: React.FC = () => {
       invoiceNo: service.invoiceNumber || undefined,
       amount: service.amount ?? undefined,
       notes: service.notes || undefined,
+      description: service.description || undefined,
+      serviceProvider: service.serviceProvider || undefined,
+      assignedMechanic: service.assignedMechanic || undefined,
       status: service.status,
       priority: service.priority,
       source: (service as any).source || 'manual'
@@ -720,6 +753,8 @@ const ScheduledServicesLog: React.FC = () => {
         { header: 'Invoice #', key: 'invoiceNo', width: 16 },
         { header: 'Amount', key: 'amount', width: 16 },
         { header: 'Status', key: 'status', width: 14 },
+        { header: 'Description', key: 'description', width: 32 },
+        { header: 'Service Provider', key: 'serviceProvider', width: 24 },
         { header: 'Priority', key: 'priority', width: 14 },
         { header: 'Notes', key: 'notes', width: 32 }
       ];
@@ -732,6 +767,20 @@ const ScheduledServicesLog: React.FC = () => {
       };
 
       filteredServices.forEach((service) => {
+        // Get service provider name
+        let serviceProviderName = 'N/A';
+        if (service.assignedMechanic) {
+          if (typeof service.assignedMechanic === 'object') {
+            serviceProviderName = service.assignedMechanic.name || 'N/A';
+          } else {
+            const mechanic = mechanics.find(m => m._id === service.assignedMechanic);
+            serviceProviderName = mechanic?.name || service.assignedMechanic || 'N/A';
+          }
+        } else if (service.serviceProvider) {
+          const mechanic = mechanics.find(m => m._id === service.serviceProvider || m.name === service.serviceProvider);
+          serviceProviderName = mechanic?.name || service.serviceProvider || 'N/A';
+        }
+
         worksheet.addRow({
           unitNo: service.unitNo,
           unitType: service.unitType || 'N/A',
@@ -748,6 +797,8 @@ const ScheduledServicesLog: React.FC = () => {
             maximumFractionDigits: 2,
           }).format(service.amount || 0) : 'N/A',
           status: service.status.replace(/-/g, ' ').toUpperCase(),
+          description: service.description || 'N/A',
+          serviceProvider: serviceProviderName,
           priority: service.priority || 'Standard',
           notes: service.notes || ''
         });
@@ -785,7 +836,9 @@ const ScheduledServicesLog: React.FC = () => {
       invoiceNo: '',
       notes: '',
       status: 'pending',
-      amount: ''
+      amount: '',
+      description: '',
+      serviceProvider: ''
     });
     setShowAddModal(true);
   };
@@ -795,6 +848,23 @@ const ScheduledServicesLog: React.FC = () => {
     setError(null);
     setFormError(null);
     setSelectedService(service);
+    
+    // Get mechanic ID from assignedMechanic or serviceProvider
+    let mechanicId = '';
+    if (service.assignedMechanic) {
+      if (typeof service.assignedMechanic === 'object') {
+        mechanicId = service.assignedMechanic._id;
+      } else {
+        mechanicId = service.assignedMechanic;
+      }
+    } else if (service.serviceProvider) {
+      // Check if serviceProvider is a mechanic ID
+      const mechanic = mechanics.find(m => m._id === service.serviceProvider || m.name === service.serviceProvider);
+      if (mechanic) {
+        mechanicId = mechanic._id;
+      }
+    }
+    
     setFormData({
       serviceDate: service.serviceDate ? service.serviceDate.split('T')[0] : new Date().toISOString().split('T')[0],
       unitNo: service.unitNo,
@@ -803,7 +873,9 @@ const ScheduledServicesLog: React.FC = () => {
       invoiceNo: service.invoiceNo || '',
       notes: service.notes || '',
       status: service.status || 'pending',
-      amount: service.amount !== undefined && service.amount !== null ? service.amount.toString() : ''
+      amount: service.amount !== undefined && service.amount !== null ? service.amount.toString() : '',
+      description: (service as any).description || '',
+      serviceProvider: mechanicId
     });
     setShowEditModal(true);
   };
@@ -818,6 +890,11 @@ const ScheduledServicesLog: React.FC = () => {
   const handleSaveService = async () => {
     if (!formData.serviceDate || !formData.unitNo || !formData.serviceType) {
       setFormError('Please fill in all required fields (Service Date, Unit No., and Service Type).');
+      return;
+    }
+
+    if (!formData.serviceProvider || formData.serviceProvider.trim() === '') {
+      setFormError('Please select a Service Provider (mechanic).');
       return;
     }
 
@@ -836,8 +913,8 @@ const ScheduledServicesLog: React.FC = () => {
       priority: 'medium',
       dueDate: formData.serviceDate,
       dueMileage: formData.odometer ? Number(formData.odometer) : 0,
-      assignedMechanic: 'Fleet Team',
-      description: formData.notes,
+      assignedMechanic: formData.serviceProvider,
+      description: formData.description || undefined,
       status: (formData.status as 'pending' | 'in-progress' | 'completed') || 'pending',
       serviceDate: formData.serviceDate,
       odometer: formData.odometer ? Number(formData.odometer) : undefined,
@@ -1115,7 +1192,7 @@ const ScheduledServicesLog: React.FC = () => {
               ref={bottomScrollRef}
               className="overflow-x-auto overflow-y-visible table-container-hidden-scrollbar"
             >
-              <table className="w-full" style={{ minWidth: '1200px' }}>
+              <table className="w-full" style={{ minWidth: '1400px' }}>
                 <thead className="text-white" style={{ background: 'linear-gradient(to right, #016ab2, #063f6f)' }}>
                   <tr>
                     <th className="px-6 py-4 text-left text-sm font-semibold">Service Date</th>
@@ -1127,6 +1204,8 @@ const ScheduledServicesLog: React.FC = () => {
                     <th className="px-6 py-4 text-left text-sm font-semibold">Invoice No.</th>
                     <th className="px-6 py-4 text-left text-sm font-semibold">Amount</th>
                     <th className="px-6 py-4 text-left text-sm font-semibold">Status</th>
+                    <th className="px-6 py-4 text-left text-sm font-semibold">Description</th>
+                    <th className="px-6 py-4 text-left text-sm font-semibold">Service Provider</th>
                     <th className="px-6 py-4 text-left text-sm font-semibold">Notes</th>
                     <th className="px-6 py-4 text-left text-sm font-semibold">Actions</th>
                   </tr>
@@ -1134,13 +1213,13 @@ const ScheduledServicesLog: React.FC = () => {
                 <tbody className="divide-y divide-gray-200">
                   {loading ? (
                     <tr>
-                      <td colSpan={11} className="px-6 py-12 text-center text-gray-500">
+                      <td colSpan={13} className="px-6 py-12 text-center text-gray-500">
                         Loading services...
                       </td>
                     </tr>
                   ) : filteredServices.length === 0 ? (
                     <tr>
-                      <td colSpan={11} className="px-6 py-12 text-center">
+                      <td colSpan={13} className="px-6 py-12 text-center">
                         {filterIncoming ? (
                           <div className="flex flex-col items-center gap-3">
                             <AlertCircle className="w-10 h-10 text-orange-500" />
@@ -1225,6 +1304,25 @@ const ScheduledServicesLog: React.FC = () => {
                           >
                             {service.status.replace('-', ' ')}
                           </span>
+                        </td>
+                        <td className="px-6 py-4 text-gray-600 max-w-xs truncate" title={service.description || undefined}>
+                          {service.description || '—'}
+                        </td>
+                        <td className="px-6 py-4 text-gray-600">
+                          {(() => {
+                            if (service.assignedMechanic) {
+                              if (typeof service.assignedMechanic === 'object') {
+                                return service.assignedMechanic.name || '—';
+                              } else {
+                                const mechanic = mechanics.find(m => m._id === service.assignedMechanic);
+                                return mechanic?.name || service.assignedMechanic || '—';
+                              }
+                            } else if (service.serviceProvider) {
+                              const mechanic = mechanics.find(m => m._id === service.serviceProvider || m.name === service.serviceProvider);
+                              return mechanic?.name || service.serviceProvider || '—';
+                            }
+                            return '—';
+                          })()}
                         </td>
                         <td className="px-6 py-4 text-gray-600 max-w-xs truncate" title={service.notes || undefined}>
                           {service.notes || 'N/A'}
@@ -1375,6 +1473,24 @@ const ScheduledServicesLog: React.FC = () => {
                           <div>
                             <p className="text-sm text-gray-500 mb-1">Priority</p>
                             <p className="font-medium text-gray-900">{selectedService.priority}</p>
+                          </div>
+                        )}
+                        {selectedService.description && (
+                          <div>
+                            <p className="text-sm text-gray-500 mb-1">Description</p>
+                            <p className="font-medium text-gray-900">{selectedService.description}</p>
+                          </div>
+                        )}
+                        {(selectedService.serviceProvider || selectedService.assignedMechanic) && (
+                          <div>
+                            <p className="text-sm text-gray-500 mb-1">Service Provider</p>
+                            <p className="font-medium text-gray-900">
+                              {selectedService.assignedMechanic 
+                                ? (typeof selectedService.assignedMechanic === 'object' 
+                                    ? selectedService.assignedMechanic.name 
+                                    : mechanics.find(m => m._id === selectedService.assignedMechanic)?.name || selectedService.assignedMechanic)
+                                : selectedService.serviceProvider || '—'}
+                            </p>
                           </div>
                         )}
                       </div>
@@ -1564,6 +1680,46 @@ const ScheduledServicesLog: React.FC = () => {
                           <option value="completed">Completed</option>
                         </select>
                       </div>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">Service Provider *</label>
+                        <select
+                          value={formData.serviceProvider}
+                          onChange={(e) => setFormData({ ...formData, serviceProvider: e.target.value })}
+                          className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:border-transparent"
+                          style={{ '--tw-ring-color': '#016ab2' } as React.CSSProperties & { '--tw-ring-color': string }}
+                          onFocus={(e) => { e.target.style.borderColor = '#016ab2'; e.target.style.boxShadow = '0 0 0 2px rgba(1, 106, 178, 0.2)'; }}
+                          onBlur={(e) => { e.target.style.borderColor = ''; e.target.style.boxShadow = ''; }}
+                        >
+                          <option value="">Select a mechanic</option>
+                          {mechanics.length === 0 ? (
+                            <option value="" disabled>No mechanics found. Add an employee with a mechanic role to list service providers.</option>
+                          ) : (
+                            mechanics.map((mechanic) => (
+                              <option key={mechanic._id} value={mechanic._id}>
+                                {mechanic.name}
+                              </option>
+                            ))
+                          )}
+                        </select>
+                        {mechanics.length === 0 && (
+                          <p className="text-xs text-gray-500 mt-1">
+                            Add an employee with a mechanic role to list service providers.
+                          </p>
+                        )}
+                      </div>
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">Description</label>
+                      <textarea
+                        value={formData.description}
+                        onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                        rows={3}
+                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:border-transparent"
+                        style={{ '--tw-ring-color': '#016ab2' } as React.CSSProperties & { '--tw-ring-color': string }}
+                        onFocus={(e) => { e.target.style.borderColor = '#016ab2'; e.target.style.boxShadow = '0 0 0 2px rgba(1, 106, 178, 0.2)'; }}
+                        onBlur={(e) => { e.target.style.borderColor = ''; e.target.style.boxShadow = ''; }}
+                        placeholder="Enter service description..."
+                      />
                     </div>
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-2">Notes</label>

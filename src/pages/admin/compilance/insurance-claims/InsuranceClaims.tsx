@@ -45,6 +45,7 @@ const ACCENT_VARS = {
 interface InsuranceClaim {
   _id: string;
   claimNumber: string;
+  accidentNumber?: string;
   incidentDate: string;
   claimDate: string;
   claimType: 'accident' | 'theft' | 'damage' | 'liability' | 'other';
@@ -95,6 +96,7 @@ interface Driver {
 
 interface ClaimForm {
   claimNumber?: string;
+  accidentNumber?: string;
   incidentDate: string;
   claimDate: string;
   claimType: 'accident' | 'theft' | 'damage' | 'liability' | 'other';
@@ -183,6 +185,7 @@ const InsuranceClaims: React.FC = () => {
 
   const [claimForm, setClaimForm] = useState<ClaimForm>({
     claimNumber: '',
+    accidentNumber: '',
     incidentDate: '',
     claimDate: new Date().toISOString().split('T')[0],
     claimType: 'accident',
@@ -284,6 +287,7 @@ const InsuranceClaims: React.FC = () => {
       const query = searchQuery.toLowerCase();
       filtered = filtered.filter(claim =>
         claim.claimNumber?.toLowerCase().includes(query) ||
+        claim.accidentNumber?.toLowerCase().includes(query) ||
         (typeof claim.driver === 'object' ? claim.driver?.name?.toLowerCase().includes(query) : '') ||
         (typeof claim.vehicle === 'object' ? claim.vehicle?.internalId?.toLowerCase().includes(query) : '') ||
         claim.insuranceCompany?.toLowerCase().includes(query) ||
@@ -346,6 +350,7 @@ const InsuranceClaims: React.FC = () => {
   const handleAdd = () => {
     setClaimForm({
       claimNumber: '',
+      accidentNumber: '',
       incidentDate: '',
       claimDate: new Date().toISOString().split('T')[0],
       claimType: 'accident',
@@ -369,6 +374,7 @@ const InsuranceClaims: React.FC = () => {
     setSelectedClaim(claim);
     setClaimForm({
       claimNumber: claim.claimNumber || '',
+      accidentNumber: claim.accidentNumber || '',
       incidentDate: claim.incidentDate ? new Date(claim.incidentDate).toISOString().split('T')[0] : '',
       claimDate: claim.claimDate ? new Date(claim.claimDate).toISOString().split('T')[0] : new Date().toISOString().split('T')[0],
       claimType: claim.claimType,
@@ -670,6 +676,9 @@ const InsuranceClaims: React.FC = () => {
                           {getSortIcon('claimNumber')}
                         </div>
                       </th>
+                      <th className="px-6 py-3 pl-8 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Accident Number
+                      </th>
                       <th
                         className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100"
                         onClick={() => handleSort('incidentDate')}
@@ -717,77 +726,110 @@ const InsuranceClaims: React.FC = () => {
                   <tbody className="bg-white divide-y divide-gray-200">
                     {filteredClaims.map((claim) => (
                       <tr key={claim._id} className="hover:bg-gray-50 transition-colors">
-                        <td className="px-6 py-4 whitespace-nowrap">
-                          <div className="text-sm font-medium text-gray-900">{claim.claimNumber || 'N/A'}</div>
-                          <div className="text-xs text-gray-500">{claim.policyNumber || 'No Policy #'}</div>
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap">
-                          <div className="text-sm text-gray-900">
-                            {claim.incidentDate ? new Date(claim.incidentDate).toLocaleDateString() : 'N/A'}
-                          </div>
-                          <div className="text-xs text-gray-500">
-                            Claim: {claim.claimDate ? new Date(claim.claimDate).toLocaleDateString() : 'N/A'}
+                        <td className="px-6 py-4">
+                          <div className="flex flex-col h-[3.5rem] justify-center">
+                            <div className="text-sm font-medium text-gray-900 leading-5">{claim.claimNumber || 'N/A'}</div>
+                            <div className="text-xs text-gray-500 leading-4">{claim.policyNumber || 'No Policy #'}</div>
                           </div>
                         </td>
-                        <td className="px-6 py-4 whitespace-nowrap">
-                          <span className={`px-2 py-1 text-xs font-medium rounded-full ${getTypeColor(claim.claimType)}`}>
-                            {claim.claimType.charAt(0).toUpperCase() + claim.claimType.slice(1)}
-                          </span>
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap">
-                          <div className="text-sm text-gray-900">
-                            {typeof claim.driver === 'object' ? claim.driver?.name : 'N/A'}
+                        <td className="px-6 py-4 pl-8">
+                          <div className="flex flex-col h-[3.5rem] justify-center">
+                            <div className="text-sm text-gray-900 leading-5">{claim.accidentNumber || '—'}</div>
+                            <div className="text-xs text-gray-500 leading-4">&nbsp;</div>
                           </div>
                         </td>
-                        <td className="px-6 py-4 whitespace-nowrap">
-                          <div className="text-sm text-gray-900">
-                            {typeof claim.vehicle === 'object' 
-                              ? claim.vehicle?.internalId || claim.vehicle?.plateNumber || 'N/A'
-                              : 'N/A'}
+                        <td className="px-6 py-4">
+                          <div className="flex flex-col h-[3.5rem] justify-center">
+                            <div className="text-sm text-gray-900 leading-5">
+                              {claim.incidentDate ? new Date(claim.incidentDate).toLocaleDateString() : 'N/A'}
+                            </div>
+                            <div className="text-xs text-gray-500 leading-4">
+                              Claim: {claim.claimDate ? new Date(claim.claimDate).toLocaleDateString() : 'N/A'}
+                            </div>
                           </div>
                         </td>
-                        <td className="px-6 py-4 whitespace-nowrap">
-                          <div className="text-sm text-gray-900">{claim.insuranceCompany || 'N/A'}</div>
-                          {claim.adjusterName && (
-                            <div className="text-xs text-gray-500">Adjuster: {claim.adjusterName}</div>
-                          )}
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap">
-                          <div className="text-sm font-semibold text-gray-900">
-                            ${(claim.amount || 0).toLocaleString()}
+                        <td className="px-6 py-4">
+                          <div className="flex flex-col h-[3.5rem] justify-center">
+                            <div className="flex items-center leading-5">
+                              <span className={`px-2 py-1 text-xs font-medium rounded-full ${getTypeColor(claim.claimType)}`}>
+                                {claim.claimType.charAt(0).toUpperCase() + claim.claimType.slice(1)}
+                              </span>
+                            </div>
+                            <div className="text-xs text-gray-500 leading-4">&nbsp;</div>
                           </div>
-                          {claim.deductible && (
-                            <div className="text-xs text-gray-500">Deductible: ${claim.deductible.toLocaleString()}</div>
-                          )}
                         </td>
-                        <td className="px-6 py-4 whitespace-nowrap">
-                          <span className={`px-2 py-1 text-xs font-medium rounded-full ${getStatusColor(claim.status)}`}>
-                            {claim.status.charAt(0).toUpperCase() + claim.status.slice(1).replace('-', ' ')}
-                          </span>
+                        <td className="px-6 py-4">
+                          <div className="flex flex-col h-[3.5rem] justify-center">
+                            <div className="text-sm text-gray-900 leading-5">
+                              {typeof claim.driver === 'object' ? claim.driver?.name || 'N/A' : 'N/A'}
+                            </div>
+                            <div className="text-xs text-gray-500 leading-4">&nbsp;</div>
+                          </div>
                         </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                          <div className="flex items-center justify-end gap-2">
-                            <button
-                              onClick={() => handleView(claim)}
-                              className="text-blue-600 hover:text-blue-900 p-2 hover:bg-blue-50 rounded transition-colors"
-                              title="View Details"
-                            >
-                              <FaEye size={16} />
-                            </button>
-                            <button
-                              onClick={() => handleEdit(claim)}
-                              className="text-green-600 hover:text-green-900 p-2 hover:bg-green-50 rounded transition-colors"
-                              title="Edit"
-                            >
-                              <FaEdit size={16} />
-                            </button>
-                            <button
-                              onClick={() => handleDelete(claim)}
-                              className="text-red-600 hover:text-red-900 p-2 hover:bg-red-50 rounded transition-colors"
-                              title="Delete"
-                            >
-                              <FaTrash size={16} />
-                            </button>
+                        <td className="px-6 py-4">
+                          <div className="flex flex-col h-[3.5rem] justify-center">
+                            <div className="text-sm text-gray-900 leading-5">
+                              {typeof claim.vehicle === 'object' 
+                                ? claim.vehicle?.internalId || claim.vehicle?.plateNumber || 'N/A'
+                                : 'N/A'}
+                            </div>
+                            <div className="text-xs text-gray-500 leading-4">&nbsp;</div>
+                          </div>
+                        </td>
+                        <td className="px-6 py-4">
+                          <div className="flex flex-col h-[3.5rem] justify-center">
+                            <div className="text-sm text-gray-900 leading-5">{claim.insuranceCompany || 'N/A'}</div>
+                            <div className="text-xs text-gray-500 leading-4">
+                              {claim.adjusterName ? `Adjuster: ${claim.adjusterName}` : '\u00A0'}
+                            </div>
+                          </div>
+                        </td>
+                        <td className="px-6 py-4">
+                          <div className="flex flex-col h-[3.5rem] justify-center">
+                            <div className="text-sm font-semibold text-gray-900 leading-5">
+                              ${(claim.amount || 0).toLocaleString()}
+                            </div>
+                            <div className="text-xs text-gray-500 leading-4">
+                              {claim.deductible ? `Deductible: $${claim.deductible.toLocaleString()}` : '\u00A0'}
+                            </div>
+                          </div>
+                        </td>
+                        <td className="px-6 py-4">
+                          <div className="flex flex-col h-[3.5rem] justify-center">
+                            <div className="flex items-center leading-5">
+                              <span className={`px-2 py-1 text-xs font-medium rounded-full ${getStatusColor(claim.status)}`}>
+                                {claim.status.charAt(0).toUpperCase() + claim.status.slice(1).replace('-', ' ')}
+                              </span>
+                            </div>
+                            <div className="text-xs text-gray-500 leading-4">&nbsp;</div>
+                          </div>
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-right">
+                          <div className="flex flex-col h-[3.5rem] justify-center items-end">
+                            <div className="flex items-center justify-end gap-2">
+                              <button
+                                onClick={() => handleView(claim)}
+                                className="text-blue-600 hover:text-blue-900 p-2 hover:bg-blue-50 rounded transition-colors"
+                                title="View Details"
+                              >
+                                <FaEye size={16} />
+                              </button>
+                              <button
+                                onClick={() => handleEdit(claim)}
+                                className="text-green-600 hover:text-green-900 p-2 hover:bg-green-50 rounded transition-colors"
+                                title="Edit"
+                              >
+                                <FaEdit size={16} />
+                              </button>
+                              <button
+                                onClick={() => handleDelete(claim)}
+                                className="text-red-600 hover:text-red-900 p-2 hover:bg-red-50 rounded transition-colors"
+                                title="Delete"
+                              >
+                                <FaTrash size={16} />
+                              </button>
+                            </div>
+                            <div className="text-xs text-gray-500 leading-4">&nbsp;</div>
                           </div>
                         </td>
                       </tr>
@@ -859,6 +901,18 @@ const InsuranceClaims: React.FC = () => {
                     onChange={(e) => setClaimForm({ ...claimForm, claimNumber: e.target.value })}
                     className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#42aeec]"
                     placeholder="Auto-generated or enter manually"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Accident Number
+                  </label>
+                  <input
+                    type="text"
+                    value={claimForm.accidentNumber || ''}
+                    onChange={(e) => setClaimForm({ ...claimForm, accidentNumber: e.target.value })}
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#42aeec]"
+                    placeholder="Enter accident number"
                   />
                 </div>
                 <div>
@@ -1117,6 +1171,10 @@ const InsuranceClaims: React.FC = () => {
                 <div>
                   <label className="block text-sm font-medium text-gray-500 mb-1">Claim Number</label>
                   <p className="text-lg font-semibold text-gray-900">{selectedClaim.claimNumber || 'N/A'}</p>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-500 mb-1">Accident Number</label>
+                  <p className="text-gray-900">{selectedClaim.accidentNumber || '—'}</p>
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-500 mb-1">Status</label>

@@ -157,7 +157,12 @@ export const getCvsaInspectionStats = async (country?: string) => {
 
 export const createCvsaInspection = async (data: any) => {
   try {
-    const res: AxiosResponse = await apiClient.post('admin/cvsa-inspections', data);
+    const config = data instanceof FormData ? {
+      headers: {
+        'Content-Type': 'multipart/form-data',
+      },
+    } : {};
+    const res: AxiosResponse = await apiClient.post('admin/cvsa-inspections', data, config);
     return res.data;
   } catch (error) {
     console.log(error);
@@ -167,7 +172,12 @@ export const createCvsaInspection = async (data: any) => {
 
 export const updateCvsaInspection = async (id: string, data: any) => {
   try {
-    const res: AxiosResponse = await apiClient.put(`admin/cvsa-inspections/${id}`, data);
+    const config = data instanceof FormData ? {
+      headers: {
+        'Content-Type': 'multipart/form-data',
+      },
+    } : {};
+    const res: AxiosResponse = await apiClient.put(`admin/cvsa-inspections/${id}`, data, config);
     return res.data;
   } catch (error) {
     console.log(error);

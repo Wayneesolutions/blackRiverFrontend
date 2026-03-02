@@ -293,9 +293,6 @@ const VehicleEldMonitor = () => {
       if (auditFormData.incidentDate) formData.append('incidentDate', auditFormData.incidentDate);
       if (auditFormData.incidentTime) formData.append('incidentTime', auditFormData.incidentTime);
       if (auditFormData.incidentLocation) formData.append('incidentLocation', auditFormData.incidentLocation);
-      formData.append('drivingHours', auditFormData.drivingHours.toString());
-      formData.append('onDutyHours', auditFormData.onDutyHours.toString());
-      formData.append('offDutyHours', auditFormData.offDutyHours.toString());
       
       // Append arrays
       auditFormData.violations.forEach(v => formData.append('violations[]', v));
@@ -1084,52 +1081,6 @@ const VehicleEldMonitor = () => {
                                   />
                               </div>
 
-                              {/* Hours Section */}
-                              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                                  <div>
-                                      <label className="block text-sm font-medium text-gray-700 mb-2">
-                                          Driving Hours <span className="text-red-500">*</span>
-                                      </label>
-                                      <input
-                                          type="number"
-                                          step="0.1"
-                                          min="0"
-                                          value={auditFormData.drivingHours}
-                                          onChange={(e) => setAuditFormData({ ...auditFormData, drivingHours: parseFloat(e.target.value) || 0 })}
-                                          className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                                          required
-                                      />
-                                  </div>
-                                  <div>
-                                      <label className="block text-sm font-medium text-gray-700 mb-2">
-                                          On-Duty Hours <span className="text-red-500">*</span>
-                                      </label>
-                                      <input
-                                          type="number"
-                                          step="0.1"
-                                          min="0"
-                                          value={auditFormData.onDutyHours}
-                                          onChange={(e) => setAuditFormData({ ...auditFormData, onDutyHours: parseFloat(e.target.value) || 0 })}
-                                          className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                                          required
-                                      />
-                                  </div>
-                                  <div>
-                                      <label className="block text-sm font-medium text-gray-700 mb-2">
-                                          Off-Duty Hours <span className="text-red-500">*</span>
-                                      </label>
-                                      <input
-                                          type="number"
-                                          step="0.1"
-                                          min="0"
-                                          value={auditFormData.offDutyHours}
-                                          onChange={(e) => setAuditFormData({ ...auditFormData, offDutyHours: parseFloat(e.target.value) || 0 })}
-                                          className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                                          required
-                                      />
-                                  </div>
-                              </div>
-
                               {/* Incident Type (multi-select checkboxes + add option) */}
                               <div>
                                   <label className="block text-sm font-medium text-gray-700 mb-2">Incident Type</label>
@@ -1627,14 +1578,6 @@ const VehicleEldMonitor = () => {
                                           <div className="border-t border-gray-100" />
 
                                           {/* Hours */}
-                                          <section>
-                                              <h4 className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-3">Hours</h4>
-                                              <div className="flex flex-col gap-1">
-                                                  <span className="text-xs font-medium text-gray-500">Driving / On-Duty / Off-Duty</span>
-                                                  <p className="text-gray-900 font-mono text-sm">{selectedAuditDetail.drivingHours} / {selectedAuditDetail.onDutyHours} / {selectedAuditDetail.offDutyHours}</p>
-                                              </div>
-                                          </section>
-
                                           <div className="border-t border-gray-100" />
 
                                           {/* Incident & action */}

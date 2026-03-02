@@ -103,8 +103,8 @@ const ProfessionalTruckTracker: React.FC = () => {
     const [searchTerm, setSearchTerm] = useState<string>('');
     const [sidebarCollapsed, setSidebarCollapsed] = useState<boolean>(false);
     const [loading, setLoading] = useState<boolean>(true);
-    const [mapCenter, setMapCenter] = useState<[number, number]>([20.5937, 78.9629]); // Default to India
-    const [mapZoom, setMapZoom] = useState<number>(5);
+    const [mapCenter, setMapCenter] = useState<[number, number]>([56.1304, -106.3468]); // Default to Canada
+    const [mapZoom, setMapZoom] = useState<number>(6);
     const mapRef = useRef<L.Map | null>(null);
 
     const socket = useMemo(() => getSocket(), []);
@@ -172,7 +172,7 @@ const ProfessionalTruckTracker: React.FC = () => {
                 
                 setVehicles(formatted);
                 
-                // Set map center to first vehicle if available
+                // Set map center to first vehicle if available with valid location
                 if (formatted.length > 0 && formatted[0].currentLocation) {
                     const firstVehicle = formatted[0];
                     const lat = Number(firstVehicle.currentLocation.latitude);
@@ -180,7 +180,15 @@ const ProfessionalTruckTracker: React.FC = () => {
                     if (!isNaN(lat) && !isNaN(lng) && lat !== 0 && lng !== 0) {
                         setMapCenter([lat, lng]);
                         setMapZoom(12);
+                    } else {
+                        // If no valid location, default to Canada
+                        setMapCenter([56.1304, -106.3468]);
+                        setMapZoom(6);
                     }
+                } else {
+                    // If no vehicles or no location data, default to Canada
+                    setMapCenter([56.1304, -106.3468]);
+                    setMapZoom(6);
                 }
                 
                 if (formatted.length > 0 && !selectedVehicle) {
