@@ -33,6 +33,7 @@ import { useNavigate } from 'react-router-dom';
 import { getAllVehicles } from '../../../../axios/api/vehicle';
 import { getAllTrailers } from '../../../../axios/api/trailer';
 import { FLEET_COLORS } from '../colorUtils';
+import AddressSearch from '../../../../components/common/AddressSearch';
 
 const ACCENT_PRIMARY = FLEET_COLORS.primary;
 const ACCENT_GRADIENT = FLEET_COLORS.gradient;
@@ -278,6 +279,13 @@ const SparePartsInventory = () => {
     });
 
     const usageDataRef = useRef({ unitNumber: '', qtyUsed: '' });
+
+    const [locationSearchValue, setLocationSearchValue] = useState('');
+
+    useEffect(() => {
+        if (showAddModal) setLocationSearchValue('');
+        if (showEditModal && selectedPart) setLocationSearchValue(selectedPart.location || '');
+    }, [showAddModal, showEditModal, selectedPart]);
 
     useEffect(() => {
         try {
@@ -1489,12 +1497,18 @@ const SparePartsInventory = () => {
                                     <label className="block text-sm font-medium text-gray-700 mb-1">
                                         Location
                                     </label>
-                                    <input
-                                        type="text"
-                                        defaultValue={newPartRef.current.location}
-                                        onChange={(e) => newPartRef.current.location = e.target.value}
-                                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                                        placeholder="e.g., Warehouse A - Shelf 3"
+                                    <AddressSearch
+                                        label=""
+                                        placeholder="Search for address..."
+                                        value={locationSearchValue}
+                                        onAddressSelect={(addr) => {
+                                            newPartRef.current.location = addr.fullAddress;
+                                            setLocationSearchValue(addr.fullAddress);
+                                        }}
+                                        onChange={(val) => {
+                                            newPartRef.current.location = val;
+                                            setLocationSearchValue(val);
+                                        }}
                                     />
                                 </div>
                                 <div>
@@ -1739,12 +1753,18 @@ const SparePartsInventory = () => {
                                     <label className="block text-sm font-medium text-gray-700 mb-1">
                                         Location
                                     </label>
-                                    <input
-                                        type="text"
-                                        defaultValue={newPartRef.current.location}
-                                        onChange={(e) => newPartRef.current.location = e.target.value}
-                                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                                        placeholder="e.g., Warehouse A - Shelf 3"
+                                    <AddressSearch
+                                        label=""
+                                        placeholder="Search for address..."
+                                        value={locationSearchValue}
+                                        onAddressSelect={(addr) => {
+                                            newPartRef.current.location = addr.fullAddress;
+                                            setLocationSearchValue(addr.fullAddress);
+                                        }}
+                                        onChange={(val) => {
+                                            newPartRef.current.location = val;
+                                            setLocationSearchValue(val);
+                                        }}
                                     />
                                 </div>
                                 <div>

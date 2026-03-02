@@ -2172,6 +2172,39 @@ const PayrollManagement = () => {
                                     </select>
                                 </div>
 
+                                <div className="bg-gray-50 p-4 rounded-lg border border-gray-200">
+                                    <h5 className="text-sm font-medium text-gray-700 mb-3 flex items-center gap-2">
+                                        <Calendar size={16} />
+                                        Pay Period
+                                    </h5>
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                        <div>
+                                            <label className="block text-sm font-medium text-gray-700 mb-2">
+                                                Start Date <span className="text-red-500">*</span>
+                                            </label>
+                                            <input
+                                                type="date"
+                                                name="startDate"
+                                                value={formData.startDate}
+                                                onChange={(e) => handleDateRangeChange(e.target.value, formData.endDate)}
+                                                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+                                            />
+                                        </div>
+                                        <div>
+                                            <label className="block text-sm font-medium text-gray-700 mb-2">
+                                                End Date <span className="text-red-500">*</span>
+                                            </label>
+                                            <input
+                                                type="date"
+                                                name="endDate"
+                                                value={formData.endDate}
+                                                onChange={(e) => handleDateRangeChange(formData.startDate, e.target.value)}
+                                                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+                                            />
+                                        </div>
+                                    </div>
+                                </div>
+
                                 {/* Attendance Summary - Show when employee and date range are selected */}
                                 {formData.userId && formData.startDate && formData.endDate && (
                                     <div className="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-xl p-6 border border-blue-200">
@@ -2791,38 +2824,7 @@ const PayrollManagement = () => {
                                     )}
                                 </div>
 
-                                <div className="bg-gray-50 p-4 rounded-lg border border-gray-200">
-                                    <h5 className="text-sm font-medium text-gray-700 mb-3 flex items-center gap-2">
-                                        <Calendar size={16} />
-                                        Pay Period
-                                    </h5>
-                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                        <div>
-                                            <label className="block text-sm font-medium text-gray-700 mb-2">
-                                                Start Date <span className="text-red-500">*</span>
-                                            </label>
-                                            <input
-                                                type="date"
-                                                name="startDate"
-                                                value={formData.startDate}
-                                                onChange={(e) => handleDateRangeChange(e.target.value, formData.endDate)}
-                                                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
-                                            />
-                                        </div>
-                                        <div>
-                                            <label className="block text-sm font-medium text-gray-700 mb-2">
-                                                End Date <span className="text-red-500">*</span>
-                                            </label>
-                                            <input
-                                                type="date"
-                                                name="endDate"
-                                                value={formData.endDate}
-                                                onChange={(e) => handleDateRangeChange(formData.startDate, e.target.value)}
-                                                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
-                                            />
-                                        </div>
-                                    </div>
-                                </div>
+                               
 
                                 <div>
                                     <label className="block text-sm font-medium text-gray-700 mb-2">

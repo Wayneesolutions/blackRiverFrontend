@@ -1850,7 +1850,7 @@ const OrderList = () => {
                       disabled={!hasDocuments}
                       className={`px-4 py-2 rounded-lg font-medium transition-all text-sm ${
                         hasDocuments
-                          ? 'bg-green-600 text-white hover:bg-green-700 hover:shadow-md cursor-pointer'
+                          ? 'bg-green-600 !text-white hover:bg-green-700 hover:shadow-md cursor-pointer'
                           : 'bg-gray-300 text-gray-500 cursor-not-allowed'
                       }`}
                       title={!hasDocuments ? 'No documents to approve' : 'Approve Documents'}
