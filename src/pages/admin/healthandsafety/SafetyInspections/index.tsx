@@ -1,10 +1,11 @@
 import React, { useState, useEffect } from 'react';
+import ExcelJS from 'exceljs';
 import {
   FaClipboardCheck, FaCheckCircle, FaPlus, FaEye,
   FaSearch, FaMapMarkerAlt, FaUser,
   FaTools, FaCamera, FaTimes, FaClock,
   FaExclamationTriangle, FaInfoCircle,
-  FaHistory, FaEdit, FaTrash
+  FaHistory, FaEdit, FaTrash, FaDownload
 } from 'react-icons/fa';
 import {
   createInspection,
@@ -385,6 +386,53 @@ const SafetyInspections: React.FC = () => {
     const matchesTab = currentTab === 'all' || i.status === currentTab;
     return matchesSearch && matchesType && matchesStatus && matchesTab;
   });
+
+  const handleExportReport = async () => {
+    try {
+      const workbook = new ExcelJS.Workbook();
+      workbook.creator = 'Safety Inspections & Audits';
+      const sheet = workbook.addWorksheet('Inspections', { views: [{ state: 'frozen', ySplit: 1 }] });
+      sheet.addRow(['Inspection #', 'Type', 'Category', 'Location', 'Inspector', 'Date', 'Status', 'Findings', 'Compliance']);
+      filteredInspections.forEach((i: Inspection) => {
+        const findingsStr = i.findings.total === 0 ? 'No Issues' : `${i.findings.critical} Critical, ${i.findings.major} Major`;
+        sheet.addRow([
+          i.inspectionNumber,
+          i.type,
+          i.category,
+          i.location,
+          i.inspector,
+          i.scheduledDate ? new Date(i.scheduledDate).toLocaleDateString() : 'N/A',
+          i.status,
+          findingsStr,
+          i.complianceStatus || ''
+        ]);
+      });
+      const headerRow = sheet.getRow(1);
+      headerRow.font = { bold: true };
+      headerRow.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFE5E7EB' } };
+      sheet.columns.forEach((col, i) => {
+        let maxLen = 12;
+        col.eachCell?.({ includeEmpty: true }, cell => {
+          const val = cell.value?.toString() ?? '';
+          maxLen = Math.min(Math.max(maxLen, val.length), 50);
+        });
+        col.width = maxLen;
+      });
+      const buffer = await workbook.xlsx.writeBuffer();
+      const blob = new Blob([buffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `Safety-Inspections-${new Date().toISOString().split('T')[0]}.xlsx`;
+      document.body.appendChild(a);
+      a.click();
+      URL.revokeObjectURL(url);
+      document.body.removeChild(a);
+      addNotification('success', 'Report exported successfully');
+    } catch (err: any) {
+      addNotification('error', err?.message || 'Failed to export report');
+    }
+  };
 
   const handleCreateInspection = async (formData: any) => {
     try {
@@ -984,6 +1032,12 @@ const SafetyInspections: React.FC = () => {
             <option value="action-required">Action Required</option>
           </select>
 
+          <button
+            onClick={handleExportReport}
+            className="px-6 py-3 bg-green-600 !text-white rounded-lg font-semibold hover:bg-green-700 transition flex items-center gap-2 whitespace-nowrap"
+          >
+            <FaDownload /> Export Report
+          </button>
           <button
             onClick={() => {
               setEditingInspection(null);

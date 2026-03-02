@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import ExcelJS from 'exceljs';
 import {
     FaPlus,
     FaEdit,
@@ -23,7 +24,11 @@ import {
     updateHazard,
     deleteHazard
 } from '../../../../axios/api/healthSafety';
+import { getAllDrivers } from '../../../../axios/api/driver';
+import type { Driver } from '../../../../axios/api/driver';
+import { getAllEmployees } from '../../../../axios/api/employee';
 import { getUserInfo } from '../../../../utils/auth';
+import AddressSearch from '../../../../components/common/AddressSearch';
 
 interface Hazard {
     _id: string;
@@ -148,6 +153,11 @@ const CUSTOM_COLORS = {
     gradientVertical: 'linear-gradient(to bottom right, #016ab2, #063f6f)',
 };
 
+const DEFAULT_HAZARD_TYPES = ['Unsafe Equipment', 'Weather Hazards', 'Fatigue Indicators', 'Load Securement Issues', 'Yard Hazards', 'Ergonomic Risks'];
+const DEFAULT_TRUCKING_HAZARD_TYPES = ['Load Securement', 'Reefer Food Safety', 'Snow/Ice Removal', 'Tire Chain Safety', 'Fueling/DEF Spill', 'DG Spill', 'Winter Hazard', 'Ergonomics (Tarping/Dolly)'];
+const HAZARD_TYPES_STORAGE_KEY = 'inspections-hazards-hazard-types';
+const TRUCKING_HAZARD_TYPES_STORAGE_KEY = 'inspections-hazards-trucking-hazard-types';
+
 // InspectionsHazards component removed - replaced by HazardControl component below
 
 const HazardControl = () => {
@@ -217,6 +227,61 @@ const HazardControl = () => {
         severity: 'Medium' as 'Low' | 'Medium' | 'High' | 'Critical',
     });
 
+    // Hazard type management (add/delete) - persisted in localStorage
+    const [hazardTypes, setHazardTypes] = useState<string[]>(() => {
+        try {
+            const stored = localStorage.getItem(HAZARD_TYPES_STORAGE_KEY);
+            return stored ? JSON.parse(stored) : DEFAULT_HAZARD_TYPES;
+        } catch { return DEFAULT_HAZARD_TYPES; }
+    });
+    const [truckingHazardTypes, setTruckingHazardTypes] = useState<string[]>(() => {
+        try {
+            const stored = localStorage.getItem(TRUCKING_HAZARD_TYPES_STORAGE_KEY);
+            return stored ? JSON.parse(stored) : DEFAULT_TRUCKING_HAZARD_TYPES;
+        } catch { return DEFAULT_TRUCKING_HAZARD_TYPES; }
+    });
+    const [newHazardTypeInput, setNewHazardTypeInput] = useState('');
+    const [newTruckingHazardTypeInput, setNewTruckingHazardTypeInput] = useState('');
+    const [drivers, setDrivers] = useState<Driver[]>([]);
+    const [employees, setEmployees] = useState<{ _id: string; name?: string; firstName?: string; lastName?: string }[]>([]);
+
+    const addHazardType = (name: string) => {
+        const trimmed = (name || '').trim();
+        if (!trimmed) return;
+        if (hazardTypes.some(t => t.toLowerCase() === trimmed.toLowerCase())) {
+            setNewHazardTypeInput('');
+            return;
+        }
+        const updated = [...hazardTypes, trimmed];
+        setHazardTypes(updated);
+        localStorage.setItem(HAZARD_TYPES_STORAGE_KEY, JSON.stringify(updated));
+        setNewHazardTypeInput('');
+        setNewHazard(prev => ({ ...prev, type: trimmed }));
+    };
+    const deleteHazardType = (name: string) => {
+        const updated = hazardTypes.filter(t => t !== name);
+        setHazardTypes(updated);
+        localStorage.setItem(HAZARD_TYPES_STORAGE_KEY, JSON.stringify(updated));
+    };
+    const addTruckingHazardType = (name: string) => {
+        const trimmed = (name || '').trim();
+        if (!trimmed) return;
+        if (truckingHazardTypes.some(t => t.toLowerCase() === trimmed.toLowerCase())) {
+            setNewTruckingHazardTypeInput('');
+            return;
+        }
+        const updated = [...truckingHazardTypes, trimmed];
+        setTruckingHazardTypes(updated);
+        localStorage.setItem(TRUCKING_HAZARD_TYPES_STORAGE_KEY, JSON.stringify(updated));
+        setNewTruckingHazardTypeInput('');
+        setNewTruckingHazard(prev => ({ ...prev, truckingType: trimmed }));
+    };
+    const deleteTruckingHazardType = (name: string) => {
+        const updated = truckingHazardTypes.filter(t => t !== name);
+        setTruckingHazardTypes(updated);
+        localStorage.setItem(TRUCKING_HAZARD_TYPES_STORAGE_KEY, JSON.stringify(updated));
+    };
+
     // Toast notification helpers
     const addNotification = (type: 'success' | 'error' | 'info' | 'warning', message: string) => {
         const id = Date.now();
@@ -247,6 +312,29 @@ const HazardControl = () => {
                 console.error('Error loading trucking hazards:', e);
             }
         }
+    }, []);
+
+    // Fetch drivers for Reporter/Driver dropdowns
+    useEffect(() => {
+        const load = async () => {
+            const res = await getAllDrivers(1, 500, undefined, 'active');
+            if (res?.success && res?.data && Array.isArray(res.data)) {
+                setDrivers(res.data);
+            } else if (res?.data && Array.isArray(res.data)) {
+                setDrivers(res.data);
+            }
+        };
+        load();
+    }, []);
+
+    // Fetch employees for Observer dropdown (supervisors, safety officers)
+    useEffect(() => {
+        const load = async () => {
+            const res = await getAllEmployees(1, 500, undefined, undefined, 'active');
+            const list = (res?.success && res?.data && Array.isArray(res.data)) ? res.data : (res?.data && Array.isArray(res.data) ? res.data : []);
+            setEmployees(list);
+        };
+        load();
     }, []);
 
     // Save observations to localStorage whenever they change
@@ -393,6 +481,99 @@ const HazardControl = () => {
         return matchesSearch && matchesStatus && matchesRisk;
     });
 
+    const filteredTruckingHazards = truckingHazards.filter(hazard => {
+        const matchesSearch =
+            (hazard.hazardId || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+            (hazard.truckingType || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+            (hazard.description || '').toLowerCase().includes(searchTerm.toLowerCase());
+        const matchesStatus = filterStatus === 'all' || hazard.status === filterStatus;
+        return matchesSearch && matchesStatus;
+    });
+
+    const handleExportReport = async () => {
+        try {
+            const workbook = new ExcelJS.Workbook();
+            workbook.creator = 'Inspections & Hazards';
+            const today = new Date().toISOString().split('T')[0];
+
+            if (hazardSubTab === 'reporting') {
+                const sheet = workbook.addWorksheet('Hazard Registry', { views: [{ state: 'frozen', ySplit: 1 }] });
+                sheet.addRow(['Hazard ID', 'Type', 'Description', 'Location', 'Reporter', 'Risk Level', 'Status', 'Corrective Action']);
+                filteredHazards.forEach((h: Hazard) => {
+                    sheet.addRow([
+                        h.hazardId || h.hazardNumber || '',
+                        h.category || h.type || 'General',
+                        h.description,
+                        h.location,
+                        h.reporter || '',
+                        h.riskLevel || '',
+                        h.status,
+                        h.correctiveAction?.description || ''
+                    ]);
+                });
+            } else if (hazardSubTab === 'observations') {
+                const sheet = workbook.addWorksheet('Driver Observations', { views: [{ state: 'frozen', ySplit: 1 }] });
+                sheet.addRow(['Observation ID', 'Date', 'Driver', 'Observer', 'Type', 'Score', 'Status']);
+                observations.forEach((o: DriverObservation) => {
+                    sheet.addRow([
+                        o.observationId,
+                        o.date ? new Date(o.date).toLocaleDateString() : '',
+                        o.driver,
+                        o.observer,
+                        o.observationType,
+                        `${o.score}%`,
+                        o.status
+                    ]);
+                });
+            } else {
+                const sheet = workbook.addWorksheet('Trucking Hazards', { views: [{ state: 'frozen', ySplit: 1 }] });
+                sheet.addRow(['Hazard ID', 'Type', 'Description', 'Location', 'Reporter', 'Severity', 'Status', 'Assigned To']);
+                filteredTruckingHazards.forEach((h: TruckingHazard) => {
+                    sheet.addRow([
+                        h.hazardId,
+                        h.truckingType,
+                        h.description,
+                        h.location,
+                        h.reporter,
+                        h.severity,
+                        h.status,
+                        h.assignedTo || ''
+                    ]);
+                });
+            }
+
+            const sheet = workbook.worksheets[0];
+            if (sheet) {
+                const headerRow = sheet.getRow(1);
+                headerRow.font = { bold: true };
+                headerRow.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFE5E7EB' } };
+                sheet.columns.forEach((col, i) => {
+                    let maxLen = 12;
+                    col.eachCell?.({ includeEmpty: true }, cell => {
+                        const val = cell.value?.toString() ?? '';
+                        maxLen = Math.min(Math.max(maxLen, val.length), 50);
+                    });
+                    col.width = maxLen;
+                });
+            }
+
+            const buffer = await workbook.xlsx.writeBuffer();
+            const blob = new Blob([buffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            const names: Record<string, string> = { reporting: 'Hazard-Registry', observations: 'Driver-Observations', 'trucking-specific': 'Trucking-Hazards' };
+            a.download = `Inspections-Hazards-${names[hazardSubTab] || 'Report'}-${today}.xlsx`;
+            document.body.appendChild(a);
+            a.click();
+            URL.revokeObjectURL(url);
+            document.body.removeChild(a);
+            addNotification('success', 'Report exported successfully');
+        } catch (err: any) {
+            addNotification('error', err?.message || 'Failed to export report');
+        }
+    };
+
     const renderHazardReporting = () => (
         <div className="space-y-4">
             {/* Stats Grid - Compact */}
@@ -532,8 +713,11 @@ const HazardControl = () => {
                     >
                         <FaPlus size={10} /> Report Hazard
                     </button>
-                    <button className="px-3 py-1.5 bg-white text-gray-600 border border-gray-200 rounded-lg hover:bg-gray-50 shadow-sm transition flex items-center gap-2 text-xs font-bold">
-                        <FaDownload size={10} /> Export
+                    <button
+                        onClick={handleExportReport}
+                        className="px-3 py-1.5 bg-green-600 !text-white rounded-lg hover:bg-green-700 shadow-sm transition flex items-center gap-2 text-xs font-bold"
+                    >
+                        <FaDownload size={10} /> Export Report
                     </button>
                 </div>
             </div>
@@ -759,19 +943,7 @@ const HazardControl = () => {
         </div>
     );
 
-    const renderTruckingHazards = () => {
-        const filteredTruckingHazards = truckingHazards.filter(hazard => {
-            const matchesSearch =
-                hazard.hazardId.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                hazard.truckingType.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                hazard.description.toLowerCase().includes(searchTerm.toLowerCase());
-
-            const matchesStatus = filterStatus === 'all' || hazard.status === filterStatus;
-
-            return matchesSearch && matchesStatus;
-        });
-
-        return (
+    const renderTruckingHazards = () => (
             <div className="space-y-4">
                 <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
                     <div className="px-4 py-3 border-b border-gray-200 flex justify-between items-center bg-gray-50">
@@ -876,7 +1048,6 @@ const HazardControl = () => {
                 </div>
             </div>
         );
-    };
 
     // Inspections are now managed in the dedicated SafetyInspections module
 
@@ -1121,13 +1292,48 @@ const HazardControl = () => {
                                         className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500"
                                     >
                                         <option value="">Select Type</option>
-                                        <option value="Unsafe Equipment">Unsafe Equipment</option>
-                                        <option value="Weather Hazards">Weather Hazards</option>
-                                        <option value="Fatigue Indicators">Fatigue Indicators</option>
-                                        <option value="Load Securement Issues">Load Securement Issues</option>
-                                        <option value="Yard Hazards">Yard Hazards</option>
-                                        <option value="Ergonomic Risks">Ergonomic Risks</option>
+                                        {hazardTypes.map(t => (
+                                            <option key={t} value={t}>{t}</option>
+                                        ))}
                                     </select>
+                                    <div className="mt-2 flex gap-2 items-center">
+                                        <input
+                                            type="text"
+                                            value={newHazardTypeInput}
+                                            onChange={(e) => setNewHazardTypeInput(e.target.value)}
+                                            onKeyDown={(e) => {
+                                                if (e.key === 'Enter') {
+                                                    e.preventDefault();
+                                                    addHazardType((e.target as HTMLInputElement).value);
+                                                }
+                                            }}
+                                            placeholder="Add new type"
+                                            className="flex-1 px-3 py-1.5 text-sm border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-orange-500"
+                                        />
+                                        <button
+                                            type="button"
+                                            onClick={(e) => {
+                                                e.preventDefault();
+                                                e.stopPropagation();
+                                                addHazardType(newHazardTypeInput);
+                                            }}
+                                            className="px-3 py-1.5 text-sm bg-orange-500 !text-white rounded hover:bg-orange-600"
+                                        >
+                                            Add
+                                        </button>
+                                    </div>
+                                    {hazardTypes.length > 0 && (
+                                        <div className="mt-2 flex flex-wrap gap-1">
+                                            {hazardTypes.map(t => (
+                                                <span key={t} className="inline-flex items-center gap-1 px-2 py-0.5 bg-gray-100 rounded text-xs">
+                                                    {t}
+                                                    <button type="button" onClick={() => deleteHazardType(t)} className="text-red-500 hover:text-red-700" title="Delete type">
+                                                        <FaTimes size={10} />
+                                                    </button>
+                                                </span>
+                                            ))}
+                                        </div>
+                                    )}
                                 </div>
                                 <div>
                                     <label className="block text-sm font-medium text-gray-700 mb-2">Description *</label>
@@ -1147,30 +1353,39 @@ const HazardControl = () => {
                                 </div>
                                 <div>
                                     <label className="block text-sm font-medium text-gray-700 mb-2">Location *</label>
-                                    <input
-                                        type="text"
+                                    <AddressSearch
+                                        label=""
+                                        placeholder="Search for address..."
                                         value={editingHazard ? (editingHazard as Hazard).location : newHazard.location}
-                                        onChange={(e) => {
+                                        onAddressSelect={(addr) => {
                                             if (editingHazard) {
-                                                setEditingHazard({ ...(editingHazard as Hazard), location: e.target.value });
+                                                setEditingHazard({ ...(editingHazard as Hazard), location: addr.fullAddress });
                                             } else {
-                                                setNewHazard({ ...newHazard, location: e.target.value });
+                                                setNewHazard({ ...newHazard, location: addr.fullAddress });
                                             }
                                         }}
-                                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500"
-                                        placeholder="Enter location"
+                                        onChange={(val) => {
+                                            if (editingHazard) {
+                                                setEditingHazard({ ...(editingHazard as Hazard), location: val });
+                                            } else {
+                                                setNewHazard({ ...newHazard, location: val });
+                                            }
+                                        }}
                                     />
                                 </div>
                                 {!editingHazard && (
                                     <div>
                                         <label className="block text-sm font-medium text-gray-700 mb-2">Reporter *</label>
-                                        <input
-                                            type="text"
+                                        <select
                                             value={newHazard.reporter}
                                             onChange={(e) => setNewHazard({ ...newHazard, reporter: e.target.value })}
                                             className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500"
-                                            placeholder="Your name"
-                                        />
+                                        >
+                                            <option value="">Select driver</option>
+                                            {drivers.map(d => (
+                                                <option key={d._id} value={d.name || d.internalId || d._id}>{d.name || d.internalId || d._id}</option>
+                                            ))}
+                                        </select>
                                     </div>
                                 )}
                                 {!editingHazard && (
@@ -1282,23 +1497,30 @@ const HazardControl = () => {
                                 <div className="grid grid-cols-2 gap-4">
                                     <div>
                                         <label className="block text-sm font-medium text-gray-700 mb-2">Driver *</label>
-                                        <input
-                                            type="text"
+                                        <select
                                             value={newObservation.driver}
                                             onChange={(e) => setNewObservation({ ...newObservation, driver: e.target.value })}
                                             className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                                            placeholder="Driver name"
-                                        />
+                                        >
+                                            <option value="">Select driver</option>
+                                            {drivers.map(d => (
+                                                <option key={d._id} value={d.name || d.internalId || d._id}>{d.name || d.internalId || d._id}</option>
+                                            ))}
+                                        </select>
                                     </div>
                                     <div>
                                         <label className="block text-sm font-medium text-gray-700 mb-2">Observer *</label>
-                                        <input
-                                            type="text"
+                                        <select
                                             value={newObservation.observer}
                                             onChange={(e) => setNewObservation({ ...newObservation, observer: e.target.value })}
                                             className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                                            placeholder="Observer name"
-                                        />
+                                        >
+                                            <option value="">Select observer (employee)</option>
+                                            {employees.map(emp => {
+                                                const name = emp.name || [emp.firstName, emp.lastName].filter(Boolean).join(' ') || emp._id;
+                                                return <option key={emp._id} value={name}>{name}</option>;
+                                            })}
+                                        </select>
                                     </div>
                                 </div>
                                 <div className="grid grid-cols-2 gap-4">
@@ -1386,15 +1608,48 @@ const HazardControl = () => {
                                         className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500"
                                     >
                                         <option value="">Select Type</option>
-                                        <option value="Load Securement">Load Securement</option>
-                                        <option value="Reefer Food Safety">Reefer Food Safety</option>
-                                        <option value="Snow/Ice Removal">Snow/Ice Removal</option>
-                                        <option value="Tire Chain Safety">Tire Chain Safety</option>
-                                        <option value="Fueling/DEF Spill">Fueling/DEF Spill</option>
-                                        <option value="DG Spill">DG Spill</option>
-                                        <option value="Winter Hazard">Winter Hazard</option>
-                                        <option value="Ergonomics (Tarping/Dolly)">Ergonomics (Tarping/Dolly)</option>
+                                        {truckingHazardTypes.map(t => (
+                                            <option key={t} value={t}>{t}</option>
+                                        ))}
                                     </select>
+                                    <div className="mt-2 flex gap-2 items-center">
+                                        <input
+                                            type="text"
+                                            value={newTruckingHazardTypeInput}
+                                            onChange={(e) => setNewTruckingHazardTypeInput(e.target.value)}
+                                            onKeyDown={(e) => {
+                                                if (e.key === 'Enter') {
+                                                    e.preventDefault();
+                                                    addTruckingHazardType((e.target as HTMLInputElement).value);
+                                                }
+                                            }}
+                                            placeholder="Add new type"
+                                            className="flex-1 px-3 py-1.5 text-sm border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-orange-500"
+                                        />
+                                        <button
+                                            type="button"
+                                            onClick={(e) => {
+                                                e.preventDefault();
+                                                e.stopPropagation();
+                                                addTruckingHazardType(newTruckingHazardTypeInput);
+                                            }}
+                                            className="px-3 py-1.5 text-sm bg-orange-500 !text-white rounded hover:bg-orange-600"
+                                        >
+                                            Add
+                                        </button>
+                                    </div>
+                                    {truckingHazardTypes.length > 0 && (
+                                        <div className="mt-2 flex flex-wrap gap-1">
+                                            {truckingHazardTypes.map(t => (
+                                                <span key={t} className="inline-flex items-center gap-1 px-2 py-0.5 bg-gray-100 rounded text-xs">
+                                                    {t}
+                                                    <button type="button" onClick={() => deleteTruckingHazardType(t)} className="text-red-500 hover:text-red-700" title="Delete type">
+                                                        <FaTimes size={10} />
+                                                    </button>
+                                                </span>
+                                            ))}
+                                        </div>
+                                    )}
                                 </div>
                                 <div>
                                     <label className="block text-sm font-medium text-gray-700 mb-2">Description *</label>
@@ -1414,30 +1669,39 @@ const HazardControl = () => {
                                 </div>
                                 <div>
                                     <label className="block text-sm font-medium text-gray-700 mb-2">Location *</label>
-                                    <input
-                                        type="text"
+                                    <AddressSearch
+                                        label=""
+                                        placeholder="Search for address..."
                                         value={editingHazard ? ((editingHazard as TruckingHazard).location || newTruckingHazard.location) : newTruckingHazard.location}
-                                        onChange={(e) => {
+                                        onAddressSelect={(addr) => {
                                             if (editingHazard) {
-                                                setEditingHazard({ ...(editingHazard as TruckingHazard), location: e.target.value });
+                                                setEditingHazard({ ...(editingHazard as TruckingHazard), location: addr.fullAddress });
                                             } else {
-                                                setNewTruckingHazard({ ...newTruckingHazard, location: e.target.value });
+                                                setNewTruckingHazard({ ...newTruckingHazard, location: addr.fullAddress });
                                             }
                                         }}
-                                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500"
-                                        placeholder="Enter location"
+                                        onChange={(val) => {
+                                            if (editingHazard) {
+                                                setEditingHazard({ ...(editingHazard as TruckingHazard), location: val });
+                                            } else {
+                                                setNewTruckingHazard({ ...newTruckingHazard, location: val });
+                                            }
+                                        }}
                                     />
                                 </div>
                                 {!editingHazard && (
                                     <div>
                                         <label className="block text-sm font-medium text-gray-700 mb-2">Reporter *</label>
-                                        <input
-                                            type="text"
+                                        <select
                                             value={newTruckingHazard.reporter}
                                             onChange={(e) => setNewTruckingHazard({ ...newTruckingHazard, reporter: e.target.value })}
                                             className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500"
-                                            placeholder="Your name"
-                                        />
+                                        >
+                                            <option value="">Select driver</option>
+                                            {drivers.map(d => (
+                                                <option key={d._id} value={d.name || d.internalId || d._id}>{d.name || d.internalId || d._id}</option>
+                                            ))}
+                                        </select>
                                     </div>
                                 )}
                                 <div>
@@ -1608,6 +1872,12 @@ const HazardControl = () => {
                         </h1>
                         <p className="text-black text-xs font-medium opacity-90">Manage safety inspections, hazard reporting, and driver observations</p>
                     </div>
+                    <button
+                        onClick={handleExportReport}
+                        className="px-4 py-2 bg-green-600 !text-white rounded-lg hover:bg-green-700 font-semibold flex items-center gap-2 text-sm"
+                    >
+                        <FaDownload /> Export Report
+                    </button>
                 </div>
 
                 <div className="bg-white rounded-xl shadow-lg border border-gray-100 min-h-[600px] p-2">

@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
+import ExcelJS from 'exceljs';
 import {
   FaFileAlt,
   FaPlus,
@@ -260,6 +261,55 @@ const PolicyManagementModule = () => {
     return matchesSearch && matchesStatus && matchesCategory;
   });
 
+  const handleExportReport = async () => {
+    try {
+      const workbook = new ExcelJS.Workbook();
+      workbook.creator = 'Company Policy Management';
+      const sheet = workbook.addWorksheet('Policies', { views: [{ state: 'frozen', ySplit: 1 }] });
+      sheet.addRow(['Policy #', 'Title', 'Category', 'Version', 'Effective Date', 'Review Date', 'Status', 'Assigned Roles', 'Acknowledgment', 'Compliance %']);
+      filteredPolicies.forEach((p: Policy) => {
+        const compliancePct = p.totalEmployees && p.totalEmployees > 0
+          ? ((p.acknowledged / p.totalEmployees) * 100).toFixed(1) + '%'
+          : 'N/A';
+        sheet.addRow([
+          p.policyNumber,
+          p.title,
+          p.category,
+          p.version,
+          p.effectiveDate ? new Date(p.effectiveDate).toLocaleDateString() : '',
+          p.reviewDate ? new Date(p.reviewDate).toLocaleDateString() : '',
+          p.status,
+          p.assignedRoles || '',
+          `${p.acknowledged}/${p.totalEmployees || 0}`,
+          compliancePct
+        ]);
+      });
+      const headerRow = sheet.getRow(1);
+      headerRow.font = { bold: true };
+      headerRow.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFE5E7EB' } };
+      sheet.columns.forEach((col, i) => {
+        let maxLen = 12;
+        col.eachCell?.({ includeEmpty: true }, cell => {
+          const val = cell.value?.toString() ?? '';
+          maxLen = Math.min(Math.max(maxLen, val.length), 50);
+        });
+        col.width = maxLen;
+      });
+      const buffer = await workbook.xlsx.writeBuffer();
+      const blob = new Blob([buffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `Company-Policies-${new Date().toISOString().split('T')[0]}.xlsx`;
+      document.body.appendChild(a);
+      a.click();
+      URL.revokeObjectURL(url);
+      document.body.removeChild(a);
+      showNotification('success', 'Report exported successfully');
+    } catch (err: any) {
+      showNotification('error', err?.message || 'Failed to export report');
+    }
+  };
 
   const renderPolicyDashboard = () => {
     const activePolicies = policies.filter(p => p.status === 'active');
@@ -1021,7 +1071,12 @@ const PolicyManagementModule = () => {
             <p className="text-gray-600">Centralized policy library, version control, and **mandatory acknowledgment tracking** for CLC compliance.</p>
           </div>
           <div className="flex items-center gap-2">
-
+            <button
+              onClick={handleExportReport}
+              className="px-4 py-2 bg-green-600 !text-white rounded-lg hover:bg-green-700 transition flex items-center gap-2 font-semibold"
+            >
+              <FaDownload /> Export Report
+            </button>
             <button
               onClick={() => setShowUploadModal(true)}
               className="px-4 py-2 rounded-lg !text-white shadow-md hover:opacity-90 transition flex items-center gap-2 font-semibold"
@@ -1032,7 +1087,6 @@ const PolicyManagementModule = () => {
             >
               <FaPlus /> Upload New Policy
             </button>
-
           </div>
         </div>
 

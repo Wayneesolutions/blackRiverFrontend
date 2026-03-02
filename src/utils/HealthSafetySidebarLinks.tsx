@@ -76,11 +76,11 @@ export const HealthSafetySidebarLinks: HealthSafetySidebarLink[] = [
         icon: <FaAmbulance />,
         label: "Emergency Procedures",
     },
-    {
-        key: "document-library",
-        icon: <FaFolder />,
-        label: "Document Library",
-    },
+    // {
+    //     key: "document-library",
+    //     icon: <FaFolder />,
+    //     label: "Document Library",
+    // },
 
     {
         key: "reports-analytics",

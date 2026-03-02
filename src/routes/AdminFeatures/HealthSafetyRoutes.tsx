@@ -16,7 +16,7 @@ const SafetyInspections = lazy(() => import("../../pages/admin/healthandsafety/S
 const TruckingOperations = lazy(() => import("../../pages/admin/healthandsafety/TruckingOperations/index"));
 const ToolboxTalks = lazy(() => import("../../pages/admin/healthandsafety/toolbox-talks/index"));
 const EmergencyProcedures = lazy(() => import("../../pages/admin/healthandsafety/emergency-procedures/index"));
-const DocumentLibrary = lazy(() => import("../../pages/admin/healthandsafety/document-library/index"));
+// const DocumentLibrary = lazy(() => import("../../pages/admin/healthandsafety/document-library/index"));
 const SafetyBulletins = lazy(() => import("../../pages/admin/healthandsafety/safety-bulletins/index"));
 const Profile = lazy(() => import("../../pages/admin/dashboard/Profile/index"));
 const TrainingContent = lazy(() => import("../../pages/admin/training/TrainingContentView"));
@@ -40,7 +40,7 @@ function HealthSafetyRoutes() {
           <Route path="trucking-operations" element={<ErrorBoundary><TruckingOperations /></ErrorBoundary>} />
           <Route path="toolbox-talks" element={<ErrorBoundary><ToolboxTalks /></ErrorBoundary>} />
           <Route path="emergency-procedures" element={<ErrorBoundary><EmergencyProcedures /></ErrorBoundary>} />
-          <Route path="document-library" element={<ErrorBoundary><DocumentLibrary /></ErrorBoundary>} />
+          {/* <Route path="document-library" element={<ErrorBoundary><DocumentLibrary /></ErrorBoundary>} /> */}
           <Route path="safety-bulletins" element={<ErrorBoundary><SafetyBulletins /></ErrorBoundary>} />
           <Route path="/profile" element={<Profile />} />
           <Route path="/training" element={<ErrorBoundary><TrainingContent /></ErrorBoundary>} />
