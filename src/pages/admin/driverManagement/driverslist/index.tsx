@@ -1,8 +1,8 @@
 import { useState, useEffect, useRef } from 'react';
-import { Edit, Trash2, Plus, X, RefreshCw, User, Search, FileText,  MapPin, DollarSign, Upload, Save, ChevronUp, ChevronDown, Calendar, Award, AlertTriangle, FileText as FileTextIcon, PlusCircle, Check, ClipboardCheck, Ticket } from 'lucide-react';
+import { Edit, Trash2, Plus, X, RefreshCw, User, Search, FileText,  MapPin, DollarSign, Upload, Save, ChevronUp, ChevronDown, Calendar, Award, AlertTriangle, FileText as FileTextIcon, PlusCircle, Check, ClipboardCheck, Ticket, FlaskConical, Lock } from 'lucide-react';
 import { FaCheckCircle, FaExclamationCircle, FaTimes } from 'react-icons/fa';
 import * as driverApi from '../../../../axios/api/driver';
-import { getTestResults, approveTestResult, rejectTestResult, getDriverTicketSignedUrl } from '../../../../axios/api/driver';
+import { getTestResults, approveTestResult, rejectTestResult, getDriverTicketSignedUrl, verifyDrugTestPassword } from '../../../../axios/api/driver';
 import { listDriver } from '../../../../axios/api/distapcher';
 import { getSignedEmployeeDocumentUrl, deleteEmployeeDocument } from '../../../../axios/api/employeeDocument';
 import type { EmployeeDocument } from '../../../../axios/api/employeeDocument';
@@ -173,7 +173,7 @@ const DriverManagement = () => {
   });
   const [showNewDriverModal, setShowNewDriverModal] = useState(false);
   const [editingDriver, setEditingDriver] = useState<Driver | null>(null);
-  const [activeFormTab, setActiveFormTab] = useState<'basic' | 'personal' | 'travel' | 'documents' | 'certifications' | 'tickets' | 'violations' | 'notes' | 'deductions' | 'additions' | 'onboarding'>('basic');
+  const [activeFormTab, setActiveFormTab] = useState<'basic' | 'personal' | 'travel' | 'documents' | 'certifications' | 'tickets' | 'violations' | 'notes' | 'deductions' | 'additions' | 'onboarding' | 'drugtest'>('basic');
   const tableScrollRef = useRef<HTMLDivElement>(null);
   const topScrollRef = useRef<HTMLDivElement>(null);
   const topScrollContentRef = useRef<HTMLDivElement>(null);
@@ -192,6 +192,7 @@ const DriverManagement = () => {
     violations?: typeof violations;
     deductions?: typeof deductions;
     additions?: typeof additions;
+    drugTests?: typeof drugTests;
   } | null>(null);
 
   // Country data for phone inputs
@@ -531,6 +532,32 @@ const DriverManagement = () => {
   } | null>(null);
   const [confirmDeleteTicket, setConfirmDeleteTicket] = useState<{ open: boolean; ticket: any | null }>({ open: false, ticket: null });
 
+  // Form state for Drug Test
+  const [drugTests, setDrugTests] = useState<Array<{
+    id: string;
+    date: string;
+    result: string;
+    labName: string;
+    file?: File | null;
+    fileUrl?: string | null;
+    fileName?: string | null;
+    isExisting?: boolean;
+    drugTestId?: string;
+  }>>([]);
+  const [newDrugTest, setNewDrugTest] = useState({
+    date: '',
+    result: '',
+    labName: '',
+    file: null as File | null
+  });
+  const [drugTestFile, setDrugTestFile] = useState<{ name: string; size: number } | null>(null);
+  const [editingDrugTestId, setEditingDrugTestId] = useState<string | null>(null);
+  const [drugTestPasswordVerified, setDrugTestPasswordVerified] = useState(false);
+  const [showDrugTestPasswordModal, setShowDrugTestPasswordModal] = useState(false);
+  const [drugTestPassword, setDrugTestPassword] = useState('');
+  const [drugTestPasswordError, setDrugTestPasswordError] = useState('');
+  const [verifyingPassword, setVerifyingPassword] = useState(false);
+
   // Form state for Notes
   const [notes, setNotes] = useState<Array<{
     id: string;
@@ -710,6 +737,52 @@ const DriverManagement = () => {
     setShowApprovalModal(false);
     setSelectedTest(null);
     setRejectionReason('');
+  };
+
+  // Handle drug test password verification
+  const handleDrugTestPasswordVerify = async () => {
+    if (!drugTestPassword.trim()) {
+      setDrugTestPasswordError('Please enter a password');
+      return;
+    }
+
+    if (verifyingPassword) return;
+
+    try {
+      setVerifyingPassword(true);
+      setDrugTestPasswordError('');
+      
+      console.log('🔐 Calling verifyDrugTestPassword API with password:', drugTestPassword ? '***' : 'empty');
+      const response = await verifyDrugTestPassword(drugTestPassword);
+      console.log('📥 API Response received:', response);
+      
+      if (response && response.success === true) {
+        console.log('✅ Password verified successfully');
+        setDrugTestPasswordVerified(true);
+        setShowDrugTestPasswordModal(false);
+        setActiveFormTab('drugtest');
+        setDrugTestPassword('');
+        setDrugTestPasswordError('');
+        addNotification('success', 'Password verified. Access granted.');
+      } else {
+        const errorMessage = response?.message || 'Incorrect password. Please enter your account password.';
+        console.log('❌ Password verification failed:', errorMessage);
+        setDrugTestPasswordError(errorMessage);
+        setDrugTestPassword('');
+      }
+    } catch (error: any) {
+      console.error('❌ Exception in handleDrugTestPasswordVerify:', error);
+      console.error('❌ Error details:', {
+        message: error?.message,
+        response: error?.response?.data,
+        status: error?.response?.status
+      });
+      const errorMessage = error?.response?.data?.message || error?.message || 'Failed to verify password. Please enter your account password and try again.';
+      setDrugTestPasswordError(errorMessage);
+      setDrugTestPassword('');
+    } finally {
+      setVerifyingPassword(false);
+    }
   };
 
   // Handle test approval
@@ -1166,6 +1239,52 @@ const DriverManagement = () => {
               setViolations([]);
             }
 
+            // Load drug tests from getDriverById response
+            try {
+              if (driver.drugTests && Array.isArray(driver.drugTests) && driver.drugTests.length > 0) {
+                const existingDrugTests = driver.drugTests.map((dt: any, index: number) => {
+                  // Handle date formatting - ensure we get a valid date string
+                  let dateValue = '';
+                  if (dt.date) {
+                    try {
+                      if (typeof dt.date === 'string') {
+                        dateValue = dt.date.split('T')[0];
+                      } else if (dt.date instanceof Date) {
+                        dateValue = dt.date.toISOString().split('T')[0];
+                      } else {
+                        dateValue = new Date(dt.date).toISOString().split('T')[0];
+                      }
+                    } catch (e) {
+                      console.error('Error parsing date:', e, dt.date);
+                      dateValue = '';
+                    }
+                  }
+                  
+                  return {
+                    id: dt._id ? `existing-${dt._id}` : `drug-test-${index}`,
+                    drugTestId: dt._id || null, // Store MongoDB ID if available
+                    date: dateValue,
+                    result: dt.result || '',
+                    labName: dt.labName || dt.lab || '',
+                    file: null, // Don't set file for existing drug tests
+                    fileUrl: dt.fileUrl || null, // This should already be a signed URL from backend
+                    fileName: dt.fileName || null,
+                    fileSize: dt.fileSize || null,
+                    mimeType: dt.mimeType || null,
+                    isExisting: true
+                  };
+                });
+                setDrugTests(existingDrugTests);
+                console.log(`✅ Drug tests loaded (${existingDrugTests.length} drug tests)`, existingDrugTests.map((dt: any) => ({ id: dt.id, drugTestId: dt.drugTestId, hasFile: !!dt.fileUrl, fileName: dt.fileName })));
+              } else {
+                console.log('⚠️ No drug tests found for this driver');
+                setDrugTests([]);
+              }
+            } catch (dtError) {
+              console.error('Error loading drug tests:', dtError);
+              setDrugTests([]);
+            }
+
             // Load deductions (Payroll Deductions) from getDriverById response
             try {
               if (driver.deductions && Array.isArray(driver.deductions) && driver.deductions.length > 0) {
@@ -1418,7 +1537,8 @@ const DriverManagement = () => {
                 certifications: currentCertifications || [],
                 violations: currentViolations || [],
                 deductions: currentDeductions || [],
-                additions: currentAdditions || []
+                additions: currentAdditions || [],
+                drugTests: drugTests || []
               });
               console.log('✅ Form data populated, opening modal');
               setShowNewDriverModal(true);
@@ -2185,6 +2305,30 @@ const DriverManagement = () => {
         });
       }
       
+      // Drug Tests - send as JSON array (always send, even if empty, so backend can clear deleted ones)
+      const drugTestsData = (drugTests || []).map(dt => ({
+        id: dt.id,
+        date: dt.date || '',
+        result: dt.result || '',
+        labName: dt.labName || '',
+        fileUrl: dt.fileUrl || null,
+        fileName: dt.fileName || null,
+        hasFile: !!(dt.file instanceof File), // Only true if it's a new File object
+        drugTestId: dt.drugTestId || ''
+      }));
+      driverFormData.append('drugTests', JSON.stringify(drugTestsData));
+      console.log('💊 Sending drug tests:', drugTestsData.length, 'drug tests');
+      
+      // Append drug test files directly (multer expects array, not indexed)
+      // Only append actual File objects (new files), not metadata from existing drug tests
+      if (drugTests && drugTests.length > 0) {
+        drugTests.forEach((dt) => {
+          if (dt.file instanceof File) {
+            driverFormData.append('drugTestFiles', dt.file);
+            console.log('📎 Appending drug test file:', dt.file.name, dt.file.size, 'bytes');
+          }
+        });
+      }
       
       // Deductions - send as JSON array
       if (deductions && deductions.length > 0) {
@@ -2455,6 +2599,18 @@ const DriverManagement = () => {
     });
     setViolationFile(null);
     setEditingViolationId(null);
+    
+    // Reset drug tests
+    setDrugTests([]);
+    setNewDrugTest({
+      date: '',
+      result: '',
+      labName: '',
+      file: null
+    });
+    setDrugTestFile(null);
+    setEditingDrugTestId(null);
+    setDrugTestPasswordVerified(false);
     
     // Reset notes
     setNotes([]);
@@ -2982,6 +3138,31 @@ const DriverManagement = () => {
         });
       }
       
+      // Drug Tests - send as JSON array (always send, even if empty, so backend can clear deleted ones)
+      // Always send drugTests array to backend, even if empty, so backend knows to clear all drug tests
+      const drugTestsData = (drugTests || []).map(dt => ({
+        id: dt.id,
+        date: dt.date || '',
+        result: dt.result || '',
+        labName: dt.labName || '',
+        fileUrl: dt.fileUrl || null,
+        fileName: dt.fileName || null,
+        hasFile: !!(dt.file instanceof File), // Only true if it's a new File object
+        drugTestId: dt.drugTestId || ''
+      }));
+      driverFormData.append('drugTests', JSON.stringify(drugTestsData));
+      console.log('💊 Sending drug tests:', drugTestsData.length, 'drug tests');
+      
+      // Append drug test files directly (multer expects array, not indexed)
+      // Only append actual File objects (new files), not metadata from existing drug tests
+      if (drugTests && drugTests.length > 0) {
+        drugTests.forEach((dt) => {
+          if (dt.file instanceof File) {
+            driverFormData.append('drugTestFiles', dt.file);
+            console.log('📎 Appending drug test file:', dt.file.name, dt.file.size, 'bytes');
+          }
+        });
+      }
       
       // Deductions - send as JSON array (always send if exists, backend handles updates)
       if (deductions && deductions.length > 0) {
@@ -3941,7 +4122,8 @@ const DriverManagement = () => {
                     { id: 'notes', label: 'Notes', icon: FileTextIcon },
                     { id: 'deductions', label: 'Deductions', icon: DollarSign },
                     { id: 'additions', label: 'Additions', icon: PlusCircle },
-                    { id: 'onboarding', label: 'Onboarding & Tests', icon: ClipboardCheck }
+                    { id: 'onboarding', label: 'Onboarding & Tests', icon: ClipboardCheck },
+                    { id: 'drugtest', label: 'Drug Test', icon: FlaskConical }
                   ].map((tab) => {
                     const Icon = tab.icon;
                     const isActive = activeFormTab === tab.id;
@@ -3949,7 +4131,13 @@ const DriverManagement = () => {
                     return (
                       <button
                         key={tab.id}
-                        onClick={() => setActiveFormTab(tab.id as any)}
+                        onClick={() => {
+                          if (tab.id === 'drugtest' && !drugTestPasswordVerified) {
+                            setShowDrugTestPasswordModal(true);
+                          } else {
+                            setActiveFormTab(tab.id as any);
+                          }
+                        }}
                         className={`w-full flex items-center gap-1.5 px-2 py-1.5 transition-colors text-left ${isActive
                             ? 'bg-[#0ea3d8] !text-white shadow-md'
                             : 'bg-gray-700 !text-white hover:bg-gray-600'
@@ -8093,6 +8281,324 @@ const DriverManagement = () => {
                   </div>
                 )}
 
+                {activeFormTab === 'drugtest' && drugTestPasswordVerified && (
+                  <div className="space-y-6">
+                    <div className="flex items-center justify-between mb-4">
+                      <h3 className="text-lg font-bold text-gray-900">Drug Test</h3>
+                      <div className="flex items-center gap-2 text-sm text-gray-600">
+                        <Lock className="w-4 h-4 text-green-500" />
+                        <span>Protected Section</span>
+                      </div>
+                    </div>
+
+                    {/* Drug Test Table with Headers */}
+                    <div className="border border-gray-200 rounded-lg overflow-hidden">
+                      <table className="w-full">
+                        <thead className="bg-gray-50">
+                          <tr>
+                            <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase">DATE</th>
+                            <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase">RESULT</th>
+                            <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase">LAB NAME</th>
+                            <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase">FILE</th>
+                          </tr>
+                        </thead>
+                        <tbody className="bg-white">
+                          {/* Input Row */}
+                          <tr className="bg-gray-50">
+                            <td className="px-4 py-3">
+                              <input
+                                type="date"
+                                value={newDrugTest.date}
+                                onChange={(e) => setNewDrugTest({ ...newDrugTest, date: e.target.value })}
+                                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#42aeec] focus:border-transparent"
+                              />
+                            </td>
+                            <td className="px-4 py-3">
+                              <select
+                                value={newDrugTest.result}
+                                onChange={(e) => setNewDrugTest({ ...newDrugTest, result: e.target.value })}
+                                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#42aeec] focus:border-transparent"
+                              >
+                                <option value="">Select Result</option>
+                                <option value="Negative">Negative</option>
+                                <option value="Positive">Positive</option>
+                                <option value="Pending">Pending</option>
+                              </select>
+                            </td>
+                            <td className="px-4 py-3">
+                              <input
+                                type="text"
+                                placeholder="Lab Name"
+                                value={newDrugTest.labName}
+                                onChange={(e) => setNewDrugTest({ ...newDrugTest, labName: e.target.value })}
+                                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#42aeec] focus:border-transparent"
+                              />
+                            </td>
+                            <td className="px-4 py-3">
+                              <div className="flex items-center gap-2">
+                                {drugTestFile ? (
+                                  <div className="flex items-center gap-2 px-3 py-2 border border-gray-300 rounded-lg bg-white">
+                                    <FileText className="w-4 h-4 text-gray-600" />
+                                    <span className="text-sm text-gray-700 truncate max-w-[100px]">{drugTestFile.name}</span>
+                                    <button
+                                      onClick={() => {
+                                        setDrugTestFile(null);
+                                        setNewDrugTest({ ...newDrugTest, file: null });
+                                      }}
+                                      className="text-gray-400 hover:text-gray-600"
+                                    >
+                                      <X className="w-4 h-4" />
+                                    </button>
+                                  </div>
+                                ) : (
+                                  <label className="flex items-center gap-2 px-3 py-2 border border-gray-300 rounded-lg bg-white hover:bg-gray-50 cursor-pointer">
+                                    <Upload className="w-4 h-4 text-gray-600" />
+                                    <span className="text-sm text-gray-700">Select File</span>
+                                    <input
+                                      type="file"
+                                      className="hidden"
+                                      onChange={(e) => {
+                                        const file = e.target.files?.[0];
+                                        if (file) {
+                                          setDrugTestFile({ name: file.name, size: file.size });
+                                          setNewDrugTest({ ...newDrugTest, file });
+                                        }
+                                      }}
+                                    />
+                                  </label>
+                                )}
+                                <button
+                                  onClick={() => {
+                                    if (newDrugTest.date || newDrugTest.result || newDrugTest.labName) {
+                                      if (editingDrugTestId) {
+                                        // Update existing drug test
+                                        setDrugTests(drugTests.map(dt => 
+                                          dt.id === editingDrugTestId 
+                                            ? {
+                                                ...dt,
+                                                date: newDrugTest.date,
+                                                result: newDrugTest.result,
+                                                labName: newDrugTest.labName,
+                                                file: newDrugTest.file || null,
+                                                fileUrl: newDrugTest.file ? undefined : (dt.fileUrl || undefined),
+                                                fileName: newDrugTest.file ? undefined : (dt.fileName || undefined)
+                                              }
+                                            : dt
+                                        ));
+                                        if (newDrugTest.file && drugTestFile) {
+                                          setUploadedFiles({ ...uploadedFiles, [editingDrugTestId]: drugTestFile });
+                                        }
+                                        setEditingDrugTestId(null);
+                                      } else {
+                                        // Add new drug test
+                                        const drugTestId = Date.now().toString();
+                                        setDrugTests([...drugTests, {
+                                          id: drugTestId,
+                                          date: newDrugTest.date,
+                                          result: newDrugTest.result,
+                                          labName: newDrugTest.labName,
+                                          file: newDrugTest.file || null,
+                                          isExisting: false
+                                        }]);
+                                        if (newDrugTest.file && drugTestFile) {
+                                          setUploadedFiles({ ...uploadedFiles, [drugTestId]: drugTestFile });
+                                        }
+                                      }
+                                      setNewDrugTest({
+                                        date: '',
+                                        result: '',
+                                        labName: '',
+                                        file: null
+                                      });
+                                      setDrugTestFile(null);
+                                    }
+                                  }}
+                                  className="w-10 h-10 bg-black !text-white rounded-lg flex items-center justify-center hover:bg-gray-800 transition-colors"
+                                >
+                                  {editingDrugTestId ? <Save className="w-5 h-5" /> : <Plus className="w-5 h-5" />}
+                                </button>
+                              </div>
+                            </td>
+                          </tr>
+                        </tbody>
+                      </table>
+                    </div>
+
+                    {/* Drug Test Data Table */}
+                    <div className="border border-gray-200 rounded-lg overflow-hidden mt-4">
+                      <table className="w-full">
+                        <thead className="bg-gray-50">
+                          <tr>
+                            <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase">DATE</th>
+                            <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase">RESULT</th>
+                            <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase">LAB NAME</th>
+                            <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase">FILE</th>
+                            <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase">ACTIONS</th>
+                          </tr>
+                        </thead>
+                        <tbody className="bg-white divide-y divide-gray-200">
+                          {drugTests.length === 0 ? (
+                            <tr>
+                              <td colSpan={5} className="px-4 py-8 text-center text-gray-500">
+                                No Data
+                              </td>
+                            </tr>
+                          ) : (
+                            drugTests.map((dt) => (
+                              <tr key={dt.id} className="hover:bg-gray-50">
+                                <td className="px-4 py-3 text-sm text-gray-900">
+                                  {dt.date ? (() => {
+                                    try {
+                                      const date = new Date(dt.date);
+                                      if (!isNaN(date.getTime())) {
+                                        return date.toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' });
+                                      }
+                                      return dt.date;
+                                    } catch (e) {
+                                      return dt.date;
+                                    }
+                                  })() : '-'}
+                                </td>
+                                <td className="px-4 py-3 text-sm text-gray-900">
+                                  <span className={`px-2 py-1 rounded text-xs font-medium ${
+                                    dt.result === 'Negative' ? 'bg-green-100 text-green-800' :
+                                    dt.result === 'Positive' ? 'bg-red-100 text-red-800' :
+                                    'bg-yellow-100 text-yellow-800'
+                                  }`}>
+                                    {dt.result || '-'}
+                                  </span>
+                                </td>
+                                <td className="px-4 py-3 text-sm text-gray-900">
+                                  {dt.labName || '-'}
+                                </td>
+                                <td className="px-4 py-3 text-sm text-gray-900">
+                                  <div className="flex items-center gap-2">
+                                    {dt.isExisting && (dt.fileUrl || dt.fileName) ? (
+                                      <button
+                                        onClick={async (e) => {
+                                          e.stopPropagation();
+                                          if (!drugTestPasswordVerified) {
+                                            setShowDrugTestPasswordModal(true);
+                                            return;
+                                          }
+                                          try {
+                                            // Use signed URL from API response (already signed)
+                                            if (dt.fileUrl) {
+                                              window.open(dt.fileUrl, '_blank');
+                                            } else {
+                                              addNotification('error', 'File URL not available');
+                                            }
+                                          } catch (error) {
+                                            console.error('Error opening file:', error);
+                                            addNotification('error', 'Failed to open file');
+                                          }
+                                        }}
+                                        className="flex items-center gap-1 text-blue-600 hover:text-blue-800 hover:underline"
+                                        title={dt.fileName || 'View file'}
+                                      >
+                                        <FileText className="w-4 h-4" />
+                                        <span className="text-xs">{dt.fileName || 'View'}</span>
+                                      </button>
+                                    ) : uploadedFiles[dt.id] ? (
+                                      <button
+                                        onClick={() => {
+                                          if (!drugTestPasswordVerified) {
+                                            setShowDrugTestPasswordModal(true);
+                                            return;
+                                          }
+                                          // For new uploads, create object URL
+                                          if (dt.file) {
+                                            const url = URL.createObjectURL(dt.file);
+                                            window.open(url, '_blank');
+                                          }
+                                        }}
+                                        className="flex items-center gap-1 text-blue-600 hover:text-blue-800 hover:underline"
+                                        title={uploadedFiles[dt.id].name}
+                                      >
+                                        <FileText className="w-4 h-4" />
+                                        <span className="text-xs">{uploadedFiles[dt.id].name}</span>
+                                      </button>
+                                    ) : (
+                                      <span className="text-gray-400">-</span>
+                                    )}
+                                  </div>
+                                </td>
+                                <td className="px-4 py-3 text-sm text-gray-900">
+                                  <div className="flex items-center gap-2">
+                                    <button
+                                      onClick={(e) => {
+                                        e.stopPropagation();
+                                        setNewDrugTest({
+                                          date: dt.date || '',
+                                          result: dt.result || '',
+                                          labName: dt.labName || '',
+                                          file: null
+                                        });
+                                        if (dt.fileName) {
+                                          setDrugTestFile({ name: dt.fileName, size: 0 });
+                                        } else {
+                                          setDrugTestFile(null);
+                                        }
+                                        setEditingDrugTestId(dt.id);
+                                      }}
+                                      className="p-1.5 text-blue-600 hover:bg-blue-50 rounded transition-colors"
+                                      title="Edit drug test"
+                                    >
+                                      <Edit className="w-4 h-4" />
+                                    </button>
+                                    <button
+                                      onClick={async (e) => {
+                                        e.stopPropagation();
+                                        if (window.confirm('Are you sure you want to delete this drug test record?')) {
+                                          try {
+                                            // Remove from local state immediately
+                                            const updatedDrugTests = drugTests.filter(d => d.id !== dt.id);
+                                            setDrugTests(updatedDrugTests);
+                                            console.log(`🗑️ Deleted drug test ${dt.id}. Remaining: ${updatedDrugTests.length}`);
+                                            
+                                            // Clear editing state if this was the record being edited
+                                            if (editingDrugTestId === dt.id) {
+                                              setEditingDrugTestId(null);
+                                              setNewDrugTest({
+                                                date: '',
+                                                result: '',
+                                                labName: '',
+                                                file: null
+                                              });
+                                              setDrugTestFile(null);
+                                            }
+                                            
+                                            // Remove from uploadedFiles if it exists
+                                            if (uploadedFiles[dt.id]) {
+                                              const newUploadedFiles = { ...uploadedFiles };
+                                              delete newUploadedFiles[dt.id];
+                                              setUploadedFiles(newUploadedFiles);
+                                            }
+                                            
+                                            addNotification('success', 'Drug test record deleted successfully!');
+                                          } catch (error: any) {
+                                            console.error('Error deleting drug test:', error);
+                                            addNotification('error', error.response?.data?.message || error.message || 'Failed to delete drug test record');
+                                          }
+                                        }
+                                      }}
+                                      className="p-1.5 text-red-600 hover:bg-red-50 rounded transition-colors"
+                                      title="Delete drug test"
+                                    >
+                                      <Trash2 className="w-4 h-4" />
+                                    </button>
+                                  </div>
+                                </td>
+                              </tr>
+                            ))
+                          )}
+                        </tbody>
+                      </table>
+                    </div>
+
+                  </div>
+                )}
+
               </div>
 
               {/* Tab Navigation Footer - fixed at bottom of modal */}
@@ -8109,6 +8615,7 @@ const DriverManagement = () => {
                   { id: 'deductions', label: 'Deductions' },
                   { id: 'additions', label: 'Additions' },
                   { id: 'onboarding', label: 'Onboarding & Tests' },
+                  { id: 'drugtest', label: 'Drug Test' },
                 ];
                 const tabIndex = FORM_TABS.findIndex(t => t.id === activeFormTab);
                 const prevTab = tabIndex > 0 ? FORM_TABS[tabIndex - 1] : null;
@@ -8196,6 +8703,92 @@ const DriverManagement = () => {
                   className="flex-1 px-4 py-2 bg-[#0ea3d8] !text-white rounded-lg hover:bg-[#0d8fc7] transition-colors font-medium"
                 >
                   {selectedFlag.newValue ? 'Enable' : 'Disable'}
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Drug Test Password Verification Modal */}
+      {showDrugTestPasswordModal && (
+        <div className="fixed inset-0 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg shadow-xl max-w-md w-full mx-4">
+            <div className="p-6">
+              <div className="flex items-center justify-between mb-4">
+                <div className="flex items-center gap-2">
+                  <Lock className="w-5 h-5 text-gray-600" />
+                  <h3 className="text-lg font-bold text-gray-900">Password Required</h3>
+                </div>
+                <button
+                  onClick={() => {
+                    setShowDrugTestPasswordModal(false);
+                    setDrugTestPassword('');
+                    setDrugTestPasswordError('');
+                  }}
+                  className="text-gray-400 hover:text-gray-600 transition-colors"
+                >
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
+
+              <div className="mb-4">
+                <p className="text-sm text-gray-700 mb-4">
+                  This section contains sensitive drug test information. Please enter your account password to access it.
+                </p>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Your Account Password
+                </label>
+                <input
+                  type="password"
+                  value={drugTestPassword}
+                  onChange={(e) => {
+                    setDrugTestPassword(e.target.value);
+                    setDrugTestPasswordError('');
+                  }}
+                  onKeyPress={async (e) => {
+                    if (e.key === 'Enter' && !verifyingPassword) {
+                      await handleDrugTestPasswordVerify();
+                    }
+                  }}
+                  placeholder="Enter your account password"
+                  className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#0ea3d8] focus:border-transparent ${
+                    drugTestPasswordError ? 'border-red-500' : 'border-gray-300'
+                  }`}
+                  autoFocus
+                />
+                {drugTestPasswordError && (
+                  <p className="mt-2 text-sm text-red-600">{drugTestPasswordError}</p>
+                )}
+              </div>
+
+              <div className="flex gap-3">
+                <button
+                  onClick={() => {
+                    if (!verifyingPassword) {
+                      setShowDrugTestPasswordModal(false);
+                      setDrugTestPassword('');
+                      setDrugTestPasswordError('');
+                    }
+                  }}
+                  disabled={verifyingPassword}
+                  className="flex-1 px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition-colors font-medium disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={handleDrugTestPasswordVerify}
+                  disabled={verifyingPassword || !drugTestPassword.trim()}
+                  className="flex-1 px-4 py-2 bg-[#0ea3d8] !text-white rounded-lg hover:bg-[#0d8fc7] transition-colors font-medium disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                >
+                  {verifyingPassword ? (
+                    <>
+                      <RefreshCw className="w-4 h-4 animate-spin" />
+                      Verifying...
+                    </>
+                  ) : (
+                    'Verify'
+                  )}
                 </button>
               </div>
             </div>

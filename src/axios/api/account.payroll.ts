@@ -180,6 +180,7 @@ export const bulkAnalyzeAIDriverPayrolls = async (data: {
     startDate: string;
     endDate: string;
     payDate?: string;
+    companyFlag?: boolean;
 }) => {
     try {
         const res: AxiosResponse = await apiClient.post(`hr/driver-payroll/bulk-analyze-ai`, data);

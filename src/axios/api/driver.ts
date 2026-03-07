@@ -716,3 +716,38 @@ export const deleteDrugTest = async (id: string) => {
     return (error as any).response?.data;
   }
 };
+
+// Verify password for drug test section access
+export const verifyDrugTestPassword = async (password: string) => {
+  try {
+    console.log('🔐 Verifying drug test password...');
+    console.log('🔐 API Endpoint: hr/driver/drug-test/verify-password');
+    const res: AxiosResponse = await apiClient.post('hr/driver/drug-test/verify-password', { password });
+    console.log('✅ Password verification response:', res.data);
+    console.log('✅ Response status:', res.status);
+    return res.data;
+  } catch (error: any) {
+    console.error('❌ Error verifying drug test password:', error);
+    console.error('❌ Error response data:', error?.response?.data);
+    console.error('❌ Error status:', error?.response?.status);
+    console.error('❌ Error message:', error?.message);
+    console.error('❌ Full error:', error);
+    
+    // For 400 errors (incorrect password), return the error response data
+    if (error?.response?.status === 400 && error?.response?.data) {
+      console.log('📥 Returning 400 error response:', error.response.data);
+      return error.response.data;
+    }
+    
+    // For other errors, return error response data if available
+    if (error?.response?.data) {
+      return error.response.data;
+    }
+    
+    // If no response data, return a generic error
+    return {
+      success: false,
+      message: error?.message || 'Failed to verify password. Please check your connection and try again.'
+    };
+  }
+};

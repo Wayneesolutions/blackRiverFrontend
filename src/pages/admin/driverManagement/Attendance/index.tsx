@@ -43,6 +43,9 @@ const AttendanceTracking = () => {
   const navigate = useNavigate();
   const [showAddModal, setShowAddModal] = useState(false);
   const [editingRecord, setEditingRecord] = useState<AttendanceRecord | null>(null);
+  const [showDuplicateModal, setShowDuplicateModal] = useState(false);
+  const [duplicateRecord, setDuplicateRecord] = useState<AttendanceRecord | null>(null);
+  const [deleteConfirm, setDeleteConfirm] = useState<{ show: boolean; recordId: string | null }>({ show: false, recordId: null });
   const [searchQuery, setSearchQuery] = useState('');
   const [filterStatus, setFilterStatus] = useState('all');
   const [filterType, setFilterType] = useState<'date' | 'month'>('month');
@@ -86,7 +89,7 @@ const AttendanceTracking = () => {
     } catch { }
   };
   useEffect(() => {
-    if (showAddModal || deleteConfirm.show) {
+    if (showAddModal || deleteConfirm.show || showDuplicateModal) {
       document.body.style.overflow = 'hidden';
     } else {
       document.body.style.overflow = '';
@@ -95,7 +98,7 @@ const AttendanceTracking = () => {
     return () => {
       document.body.style.overflow = '';
     };
-  }, [showAddModal]);
+  }, [showAddModal, deleteConfirm.show, showDuplicateModal]);
 
   const fetchAttendance = async () => {
     try {
@@ -138,12 +141,124 @@ const AttendanceTracking = () => {
   const absentToday = todayRecords.filter(r => r.status === 'absent').length;
   const totalEmployees = employees.length;
 
-  const calculateHours = (checkIn: string, checkOut: string): string => {
-    if (!checkIn || !checkOut || checkIn === '--' || checkOut === '--') return '0';
+  const calculateHours = (checkIn: string, checkOut: string): number => {
+    if (!checkIn || !checkOut || checkIn === '--' || checkOut === '--') return 0;
     const [inHour, inMin] = checkIn.split(':').map(Number);
     const [outHour, outMin] = checkOut.split(':').map(Number);
+    
+    // Handle invalid times
+    if (isNaN(inHour) || isNaN(inMin) || isNaN(outHour) || isNaN(outMin)) return 0;
+    
     const totalMinutes = (outHour * 60 + outMin) - (inHour * 60 + inMin);
-    return (totalMinutes / 60).toFixed(1);
+    
+    // Handle negative hours (checkOut before checkIn, likely wrong data)
+    if (totalMinutes < 0) {
+      // If checkOut is earlier than checkIn, it might be next day, but for now return 0
+      return 0;
+    }
+    
+    return totalMinutes / 60;
+  };
+
+  // Deduplicate records by employee + date (keep the most complete record)
+  const deduplicateRecords = (records: AttendanceRecord[]): AttendanceRecord[] => {
+    const recordMap = new Map<string, AttendanceRecord>();
+    
+    records.forEach(record => {
+      // Extract employee ID - handle both string and object formats
+      let employeeId = '';
+      if (typeof record.employee === 'string') {
+        employeeId = record.employee;
+      } else if (record.employee && typeof record.employee === 'object' && '_id' in record.employee) {
+        employeeId = (record.employee as any)._id || '';
+      }
+      
+      if (!employeeId) {
+        // Skip records without employee ID
+        return;
+      }
+      
+      // Normalize date to YYYY-MM-DD format for consistent comparison
+      // Handle dates with different times (e.g., 2026-03-04T18:30:00.000Z vs 2026-03-04T00:00:00.000Z)
+      let dateStr = '';
+      if (record.date) {
+        try {
+          const date = new Date(record.date);
+          if (!isNaN(date.getTime())) {
+            // Use UTC methods to avoid timezone issues
+            const year = date.getUTCFullYear();
+            const month = String(date.getUTCMonth() + 1).padStart(2, '0');
+            const day = String(date.getUTCDate()).padStart(2, '0');
+            dateStr = `${year}-${month}-${day}`;
+          }
+        } catch (e) {
+          // If date parsing fails, try to extract from string
+          if (typeof record.date === 'string') {
+            dateStr = record.date.split('T')[0];
+          }
+        }
+      }
+      
+      if (!dateStr) {
+        // Skip records without valid date
+        return;
+      }
+      
+      const key = `${employeeId}_${dateStr}`;
+      
+      if (!recordMap.has(key)) {
+        recordMap.set(key, record);
+      } else {
+        const existing = recordMap.get(key)!;
+        
+        // Debug: Log when we find a duplicate
+        const currentEmployeeName = typeof record.employee === 'string'
+          ? (employees.find(e => e._id === record.employee)?.name || record.employee)
+          : (record.employee as any)?.name || '';
+        
+        console.log(`🔍 Found duplicate for ${currentEmployeeName} on ${dateStr}:`, {
+          existing: { _id: existing._id, checkIn: existing.checkIn, checkOut: existing.checkOut, totalHours: existing.totalHours },
+          current: { _id: record._id, checkIn: record.checkIn, checkOut: record.checkOut, totalHours: record.totalHours }
+        });
+        // Keep the record with more complete data (has checkIn and checkOut)
+        const existingComplete = existing.checkIn && existing.checkOut && existing.checkIn !== '--' && existing.checkOut !== '--';
+        const currentComplete = record.checkIn && record.checkOut && record.checkIn !== '--' && record.checkOut !== '--';
+        
+        // Calculate hours for both records
+        const existingHours = existingComplete ? calculateHours(existing.checkIn!, existing.checkOut!) : (existing.totalHours || 0);
+        const currentHours = currentComplete ? calculateHours(record.checkIn!, record.checkOut!) : (record.totalHours || 0);
+        
+        // Skip records with invalid hours (like 0 hours or negative hours from wrong time calculation)
+        const existingValid = existingHours > 0 && existingHours <= 24;
+        const currentValid = currentHours > 0 && currentHours <= 24;
+        
+        if (currentComplete && !existingComplete) {
+          // Current has complete data, existing doesn't - keep current
+          recordMap.set(key, record);
+        } else if (!currentComplete && existingComplete) {
+          // Existing has complete data, current doesn't - keep existing
+          // Do nothing, keep existing
+        } else if (currentValid && !existingValid) {
+          // Current has valid hours, existing doesn't - keep current
+          recordMap.set(key, record);
+        } else if (!currentValid && existingValid) {
+          // Existing has valid hours, current doesn't - keep existing
+          // Do nothing, keep existing
+        } else {
+          // Both are equally complete or incomplete - keep the one with more hours
+          if (currentHours > existingHours) {
+            recordMap.set(key, record);
+          } else if (currentHours === existingHours && record._id && existing._id) {
+            // If hours are equal, keep the one with lexicographically larger _id (more recent)
+            if (record._id > existing._id) {
+              recordMap.set(key, record);
+            }
+          }
+        }
+      }
+    });
+    
+    return Array.from(recordMap.values());
   };
 
   const addNotification = (type: NotificationType, message: string) => {
@@ -171,6 +286,27 @@ const AttendanceTracking = () => {
     }
 
     try {
+      // Check if a record already exists for this employee and date
+      const selectedDate = new Date(attendanceForm.date);
+      selectedDate.setHours(0, 0, 0, 0);
+      
+      const existingRecord = attendanceRecords.find(record => {
+        const recordEmployeeId = typeof record.employee === 'string' ? record.employee : record.employee?._id || '';
+        const recordDate = new Date(record.date);
+        recordDate.setHours(0, 0, 0, 0);
+        
+        return recordEmployeeId === attendanceForm.employeeId && 
+               recordDate.getTime() === selectedDate.getTime() &&
+               (!editingRecord || record._id !== editingRecord._id); // Exclude current record if editing
+      });
+
+      if (existingRecord && !editingRecord) {
+        // Show modal instead of alert
+        setDuplicateRecord(existingRecord);
+        setShowDuplicateModal(true);
+        return; // Don't proceed until user confirms
+      }
+
       const payload = {
         employee: attendanceForm.employeeId,
         date: attendanceForm.date,
@@ -214,8 +350,6 @@ const AttendanceTracking = () => {
     setShowAddModal(true);
   };
 
-  const [deleteConfirm, setDeleteConfirm] = useState<{ show: boolean; recordId: string | null }>({ show: false, recordId: null });
-
   const handleDelete = async (id?: string) => {
     if (!id) return;
     setDeleteConfirm({ show: true, recordId: id });
@@ -247,7 +381,30 @@ const AttendanceTracking = () => {
     return styles[status] || styles.present;
   };
 
-  const filteredRecords = attendanceRecords.filter(record => {
+  // Sort records by date descending (most recent first) before deduplication
+  const sortedRecords = [...attendanceRecords].sort((a, b) => {
+    const dateA = new Date(a.date).getTime();
+    const dateB = new Date(b.date).getTime();
+    if (dateA !== dateB) return dateB - dateA; // Most recent first
+    // If same date, sort by _id descending (most recent first)
+    if (a._id && b._id) return b._id.localeCompare(a._id);
+    return 0;
+  });
+  
+  // First deduplicate records, then filter
+  const deduplicatedRecords = deduplicateRecords(sortedRecords);
+  
+  // Debug logging
+  if (attendanceRecords.length !== deduplicatedRecords.length) {
+    console.log(`🔍 Deduplication: ${attendanceRecords.length} records → ${deduplicatedRecords.length} unique records`);
+    // Log duplicates found
+    const duplicates = attendanceRecords.length - deduplicatedRecords.length;
+    if (duplicates > 0) {
+      console.log(`🔍 Removed ${duplicates} duplicate record(s)`);
+    }
+  }
+  
+  const filteredRecords = deduplicatedRecords.filter(record => {
     const name = (typeof record.employee === 'string' ? (employees.find(e => e._id === record.employee)?.name || '') : (record.employee as any)?.name || '');
     const matchesSearch = name.toLowerCase().includes(searchQuery.toLowerCase());
     // Treat "late" records as "present" for filtering
@@ -652,8 +809,15 @@ const AttendanceTracking = () => {
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
                         {(() => {
-                          const hours = record.totalHours || 0;
-                          if (hours < 1) {
+                          // Calculate hours from checkIn/checkOut times if available, otherwise use totalHours
+                          let hours = 0;
+                          if (record.checkIn && record.checkOut && record.checkIn !== '--' && record.checkOut !== '--') {
+                            hours = calculateHours(record.checkIn, record.checkOut);
+                          } else {
+                            hours = record.totalHours || 0;
+                          }
+                          
+                          if (hours < 1 && hours > 0) {
                             // Show minutes for durations less than 1 hour
                             const minutes = Math.round(hours * 60);
                             return `${minutes}min`;
@@ -807,7 +971,7 @@ const AttendanceTracking = () => {
                   {attendanceForm.checkIn && attendanceForm.checkOut && (
                     <div className="p-3 bg-blue-50 border border-blue-200 rounded-lg">
                       <p className="text-sm text-blue-800">
-                        Total hours: <span className="font-bold">{calculateHours(attendanceForm.checkIn, attendanceForm.checkOut)}h</span>
+                        Total hours: <span className="font-bold">{calculateHours(attendanceForm.checkIn, attendanceForm.checkOut).toFixed(1)}h</span>
                       </p>
                     </div>
                   )}
@@ -886,6 +1050,154 @@ const AttendanceTracking = () => {
         cancelText="Cancel"
         type="danger"
       />
+
+      {/* Duplicate Attendance Warning Modal */}
+      {showDuplicateModal && duplicateRecord && (
+        <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4">
+          <div className="w-full max-w-lg max-h-[90vh] rounded-2xl bg-white shadow-2xl flex flex-col">
+            {/* Header - Fixed */}
+            <div className="border-b border-gray-200 px-6 py-4 flex-shrink-0">
+              <div className="flex items-center gap-3">
+                <div className="flex h-10 w-10 items-center justify-center rounded-full bg-yellow-100">
+                  <XCircle className="h-6 w-6 text-yellow-600" />
+                </div>
+                <div className="flex-1">
+                  <h3 className="text-lg font-semibold text-gray-900">Attendance Record Already Exists</h3>
+                  <p className="text-sm text-gray-500">An attendance record already exists for this employee and date</p>
+                </div>
+                <button
+                  onClick={() => {
+                    setShowDuplicateModal(false);
+                    setDuplicateRecord(null);
+                  }}
+                  className="p-1 rounded-lg text-gray-400 hover:text-gray-600 hover:bg-gray-100 transition-colors"
+                >
+                  <X className="h-5 w-5" />
+                </button>
+              </div>
+            </div>
+            {/* Content - Scrollable */}
+            <div className="px-6 py-5 overflow-y-auto custom-scrollbar flex-1">
+              <div className="mb-4 rounded-lg bg-gray-50 p-4">
+                <div className="mb-3">
+                  <p className="text-sm font-medium text-gray-700 mb-2">Employee:</p>
+                  <p className="text-base text-gray-900">
+                    {employees.find(e => e._id === attendanceForm.employeeId)?.name || 'Unknown'}
+                  </p>
+                </div>
+                <div className="mb-3">
+                  <p className="text-sm font-medium text-gray-700 mb-2">Date:</p>
+                  <p className="text-base text-gray-900">
+                    {new Date(attendanceForm.date).toLocaleDateString('en-US', { 
+                      weekday: 'long', 
+                      year: 'numeric', 
+                      month: 'long', 
+                      day: 'numeric' 
+                    })}
+                  </p>
+                </div>
+                <div className="border-t border-gray-200 pt-3 mt-3">
+                  <p className="text-sm font-medium text-gray-700 mb-3">Existing Record Details:</p>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <p className="text-xs text-gray-500">Check In</p>
+                      <p className="text-sm font-medium text-gray-900">{duplicateRecord.checkIn || '--'}</p>
+                    </div>
+                    <div>
+                      <p className="text-xs text-gray-500">Check Out</p>
+                      <p className="text-sm font-medium text-gray-900">{duplicateRecord.checkOut || '--'}</p>
+                    </div>
+                    <div>
+                      <p className="text-xs text-gray-500">Hours</p>
+                      <p className="text-sm font-medium text-gray-900">
+                        {(() => {
+                          const hours = duplicateRecord.totalHours || 0;
+                          if (hours < 1 && hours > 0) {
+                            const minutes = Math.round(hours * 60);
+                            return `${minutes}min`;
+                          }
+                          return `${hours.toFixed(1)}h`;
+                        })()}
+                      </p>
+                    </div>
+                    <div>
+                      <p className="text-xs text-gray-500">Status</p>
+                      <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-semibold border ${getStatusBadge(duplicateRecord.status === 'late' ? 'present' : duplicateRecord.status)}`}>
+                        {duplicateRecord.status === 'late' ? 'Present' : (duplicateRecord.status.charAt(0).toUpperCase() + duplicateRecord.status.slice(1))}
+                      </span>
+                    </div>
+                  </div>
+                  {duplicateRecord.notes && (
+                    <div className="mt-3 pt-3 border-t border-gray-200">
+                      <p className="text-xs text-gray-500 mb-1">Notes</p>
+                      <p className="text-sm text-gray-900">{duplicateRecord.notes}</p>
+                    </div>
+                  )}
+                </div>
+              </div>
+              <div className="rounded-lg bg-blue-50 border border-blue-200 p-3">
+                <p className="text-sm text-blue-800">
+                  <strong>Would you like to update the existing record</strong> with the new information you've entered?
+                </p>
+              </div>
+            </div>
+            {/* Footer - Fixed */}
+            <div className="flex gap-3 border-t border-gray-200 px-6 py-4 flex-shrink-0">
+              <button
+                onClick={() => {
+                  setShowDuplicateModal(false);
+                  setDuplicateRecord(null);
+                }}
+                className="flex-1 rounded-lg border border-gray-300 px-4 py-2 font-medium text-gray-700 transition-colors hover:bg-gray-50"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={async () => {
+                  // Set the existing record as the editing record
+                  setEditingRecord(duplicateRecord);
+                  setShowDuplicateModal(false);
+                  
+                  // Proceed with save - it will update the existing record
+                  try {
+                    const payload = {
+                      employee: attendanceForm.employeeId,
+                      date: attendanceForm.date,
+                      checkIn: attendanceForm.status === 'absent' || attendanceForm.status === 'leave' ? undefined : attendanceForm.checkIn,
+                      checkOut: attendanceForm.status === 'absent' || attendanceForm.status === 'leave' ? undefined : attendanceForm.checkOut,
+                      status: attendanceForm.status,
+                      notes: attendanceForm.notes || undefined,
+                    } as any;
+                    const res = await apiUpsertAttendance(payload);
+                    if (res?.success) {
+                      addNotification('success', 'Attendance record updated successfully');
+                      await fetchAttendance();
+                      setEditingRecord(null);
+                      setAttendanceForm({
+                        employeeId: '',
+                        date: new Date().toISOString().split('T')[0],
+                        checkIn: '',
+                        checkOut: '',
+                        status: 'present',
+                        notes: ''
+                      });
+                      setShowAddModal(false);
+                    } else {
+                      addNotification('error', res?.message || 'Failed to save attendance record');
+                    }
+                  } catch (e: any) {
+                    addNotification('error', e?.response?.data?.message || e?.message || 'Error saving attendance record');
+                  }
+                  setDuplicateRecord(null);
+                }}
+                className="flex-1 rounded-lg bg-blue-600 px-4 py-2 font-medium text-white transition-colors hover:bg-blue-700"
+              >
+                Update Existing Record
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Attendance Details Sidebar */}
       {showDetailsSidebar && selectedRecord && (

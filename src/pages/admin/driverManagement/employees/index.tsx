@@ -131,7 +131,8 @@ const EmployeesPage = () => {
     stateProvince: '',
     dateOfBirth: '',
     hireDate: '',
-    terminationDate: ''
+    terminationDate: '',
+    sinNo: ''
   });
 
   // Form state for Deductions
@@ -475,6 +476,12 @@ const EmployeesPage = () => {
       }
     }
 
+    // Validate SIN number (required)
+    if (!personalData.sinNo || !personalData.sinNo.trim()) {
+      showNotification('error', 'SIN number is required');
+      return;
+    }
+
     // Check if password is required for this role (mechanics need password to sign in)
     const nonSigninRoles = ['reporter', 'operator', 'salesperson'];
     const isNonSigninRole = nonSigninRoles.includes(basicData.role);
@@ -631,6 +638,12 @@ const EmployeesPage = () => {
           formData.append('employmentType', currentEmploymentType);
         }
 
+        const currentSinNo = personalData.sinNo || '';
+        const originalSinNo = originalEmployeeData.details?.sinNo || originalEmployeeData.sinNo || '';
+        if (hasChanged(currentSinNo, originalSinNo)) {
+          formData.append('sinNo', currentSinNo);
+        }
+
         // Deductions - send as JSON array
         if (deductions && deductions.length > 0) {
           const deductionsData = deductions.map(ded => ({
@@ -722,6 +735,9 @@ const EmployeesPage = () => {
         }
         if (personalData.employmentType) {
           formData.append('employmentType', personalData.employmentType);
+        }
+        if (personalData.sinNo) {
+          formData.append('sinNo', personalData.sinNo);
         }
 
         // Deductions - send as JSON array
@@ -863,7 +879,8 @@ const EmployeesPage = () => {
       stateProvince: '',
       dateOfBirth: '',
       hireDate: '',
-      terminationDate: ''
+      terminationDate: '',
+      sinNo: ''
     });
     setDeductions([]);
     setNewDeduction({
@@ -959,7 +976,8 @@ const EmployeesPage = () => {
           stateProvince: emp.state || emp.location?.state || '',
           dateOfBirth: formatDateForInput(emp.details?.dateOfBirth || emp.details?.dob || emp.dateOfBirth || emp.dob || ''),
           hireDate: formatDateForInput(emp.joinDate || emp.details?.hireDate || ''),
-          terminationDate: formatDateForInput(emp.details?.termDate || '')
+          terminationDate: formatDateForInput(emp.details?.termDate || ''),
+          sinNo: emp.details?.sinNo || emp.sinNo || ''
         };
 
         // Load deductions and additions if available
@@ -1919,6 +1937,23 @@ const EmployeesPage = () => {
                           value={personalData.terminationDate}
                           onChange={(e) => setPersonalData({ ...personalData, terminationDate: e.target.value })}
                           className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#42aeec] focus:border-transparent"
+                        />
+                      </div>
+                    </div>
+
+                    {/* Fifth Row - SIN Number */}
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                          SIN Number<span className="text-red-500">*</span>
+                        </label>
+                        <input
+                          type="text"
+                          placeholder="SIN Number"
+                          value={personalData.sinNo}
+                          onChange={(e) => setPersonalData({ ...personalData, sinNo: e.target.value })}
+                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#42aeec] focus:border-transparent"
+                          required
                         />
                       </div>
                     </div>

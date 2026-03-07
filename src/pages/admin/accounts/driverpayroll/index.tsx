@@ -1088,14 +1088,31 @@ const DriverPayrollManagement = () => {
     setBulkPayrollSuggestions([]);
 
     try {
+      // Determine companyFlag based on active tab
+      // companyDriver tab = companyFlag true, ownerOperator tab = companyFlag false
+      const companyFlag = driverTypeTab === 'companyDriver';
+
       const response = await bulkAnalyzeAIDriverPayrolls({
         startDate: bulkDateRange.startDate,
         endDate: bulkDateRange.endDate,
-        payDate: bulkDateRange.payDate || new Date().toISOString().split('T')[0]
+        payDate: bulkDateRange.payDate || new Date().toISOString().split('T')[0],
+        companyFlag: companyFlag
       });
 
       if (response?.success && response?.data?.suggestions) {
-        setBulkPayrollSuggestions(response.data.suggestions);
+        // Filter suggestions to match the active driver type tab
+        const filteredSuggestions = response.data.suggestions.filter((suggestion: any) => {
+          // Find the driver in our drivers list to check companyFlag
+          const driver = drivers.find(d => d._id === suggestion.driverId || d._id === suggestion.userId?._id || d._id === suggestion.userId);
+          if (driver) {
+            const isCompanyDriver = driver.companyFlag ?? driver.details?.companyFlag ?? false;
+            // companyDriver tab expects companyFlag === true, ownerOperator tab expects companyFlag === false
+            return driverTypeTab === 'companyDriver' ? isCompanyDriver : !isCompanyDriver;
+          }
+          return true; // Keep if driver not found (backend should have filtered, but keep for safety)
+        });
+        
+        setBulkPayrollSuggestions(filteredSuggestions);
         setBulkGenerateResult(response.data);
         setShowBulkGenerateModal(false);
         setShowBulkSuggestionsModal(true);
