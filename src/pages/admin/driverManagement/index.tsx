@@ -203,28 +203,6 @@ const Index = () => {
       path: `${basePath}/documents`
     },
     {
-      id: 'joiners',
-      title: 'New Joiners',
-      value: dashboardStats?.newJoinersThisMonth ?? 0,
-      subtitle: 'Added this month',
-      icon: UserPlus,
-      bgColor: 'bg-pink-100',
-      iconColor: 'text-pink-700',
-      cardBg: 'bg-gradient-to-br from-pink-50 to-pink-100',
-      path: `${basePath}/employeelist`
-    },
-    {
-      id: 'new-employee',
-      title: 'New Employee',
-      value: dashboardStats?.newEmployeesThisMonth ?? 0,
-      subtitle: 'Recently added',
-      icon: UserPlus,
-      bgColor: 'bg-rose-100',
-      iconColor: 'text-rose-700',
-      cardBg: 'bg-gradient-to-br from-rose-50 to-rose-100',
-      path: `${basePath}/employeelist`
-    },
-    {
       id: 'attendance',
       title: 'Present Today',
       value: dashboardStats?.attendance?.presentToday ?? 0,
@@ -235,17 +213,6 @@ const Index = () => {
       cardBg: 'bg-gradient-to-br from-emerald-50 to-emerald-100',
       path: `${basePath}/attendence`
     },
-    {
-      id: 'loads',
-      title: 'Total Loads',
-      value: dashboardStats?.totalLoads ?? 0,
-      subtitle: 'All time loads',
-      icon: Briefcase,
-      bgColor: 'bg-indigo-100',
-      iconColor: 'text-indigo-700',
-      cardBg: 'bg-gradient-to-br from-indigo-50 to-indigo-100',
-      path: null // No specific route for loads
-    }
   ];
 
   const quickActions = [
