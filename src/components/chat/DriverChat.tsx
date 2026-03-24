@@ -50,8 +50,12 @@ const DriverChat: React.FC<DriverChatProps> = ({ onClose }) => {
     }, 100);
   };
 
+
+
   // Load drivers list
   const loadDrivers = async () => {
+
+    console.log("loadDrivers..............",loadDrivers)
     try {
       setDriversLoading(true);
       const response = await listDriver({ page: 1, limit: 100, status: 'all' });
@@ -76,9 +80,11 @@ const DriverChat: React.FC<DriverChatProps> = ({ onClose }) => {
 
   // Load messages for selected driver
   const loadMessages = async (driverId: string) => {
+
     try {
       setLoading(true);
       const response = await getDriverChatMessages(driverId, 1, 100);
+      console.log("................response.......................",response)
       if (response.success && response.data) {
         setMessages(response.data.messages || []);
         scrollToBottom();
@@ -153,7 +159,7 @@ const DriverChat: React.FC<DriverChatProps> = ({ onClose }) => {
       // Get current values from refs
       const currentSelectedDriver = selectedDriverRef.current;
       const currentMessages = messagesRef.current;
-      
+
       console.log("📨 New message received in driver chat:", {
         messageId: message._id,
         driverId: message.driverId,
@@ -172,27 +178,27 @@ const DriverChat: React.FC<DriverChatProps> = ({ onClose }) => {
         isTempMessage: message._id?.startsWith('temp-'),
         currentMessagesCount: currentMessages.length
       });
-      
+
       // Extract driverId from message (handle both object and string formats)
       let driverIdStr: string = '';
       if (message.driverId) {
         if (typeof message.driverId === 'object') {
           // Handle ObjectId or populated object
-          driverIdStr = message.driverId._id?.toString() || 
-                       message.driverId.toString() || 
-                       String(message.driverId);
+          driverIdStr = message.driverId._id?.toString() ||
+            message.driverId.toString() ||
+            String(message.driverId);
         } else {
           driverIdStr = String(message.driverId);
         }
       }
-      
+
       // Normalize selected driver ID for comparison
       const selectedDriverIdStr = currentSelectedDriver?._id?.toString() || currentSelectedDriver?._id;
       const currentUserIdStr = currentUserId?.toString();
-      
+
       // System messages with trip status should always be shown if driverId matches
       const isSystemMessage = message.isSystemMessage || message.senderType === 'system';
-      
+
       console.log("🔍 Comparing driver IDs:", {
         messageDriverId: driverIdStr,
         selectedDriverId: selectedDriverIdStr,
@@ -202,7 +208,7 @@ const DriverChat: React.FC<DriverChatProps> = ({ onClose }) => {
         senderType: message.senderType,
         messageId: message._id?.substring(0, 20)
       });
-      
+
       // Only add message if it's for the currently selected driver
       // For system messages, we still need driverId to match
       // If no driver is selected, we'll just update unread counts
@@ -213,7 +219,7 @@ const DriverChat: React.FC<DriverChatProps> = ({ onClose }) => {
           messageId: message._id,
           driverIdMatch: driverIdStr === selectedDriverIdStr
         });
-        
+
         // System messages should always be added (they're not from current user)
         if (isSystemMessage && message.tripStatus) {
           // Check if system message already exists
@@ -222,35 +228,35 @@ const DriverChat: React.FC<DriverChatProps> = ({ onClose }) => {
             console.log("⚠️ System message already exists, skipping duplicate");
             return;
           }
-        console.log("✅ Adding system message with trip status", {
-          tripStatusSummary: message.tripStatus?.summary,
-          activeOrders: message.tripStatus?.activeOrders?.length,
-          activeTrips: message.tripStatus?.activeTrips?.length,
-          totalActive: message.tripStatus?.summary?.totalActive,
-          totalPending: message.tripStatus?.summary?.totalPending,
-          isCurrentlyDriving: message.tripStatus?.summary?.isCurrentlyDriving,
-          messageId: message._id
-        });
-        setMessages((prev) => {
-          const updated = [...prev, message];
-          messagesRef.current = updated;
-          console.log("📝 Updated messages array:", {
-            newLength: updated.length,
-            lastMessageId: updated[updated.length - 1]?._id,
-            lastMessageType: updated[updated.length - 1]?.senderType,
-            lastMessageHasTripStatus: !!updated[updated.length - 1]?.tripStatus
+          console.log("✅ Adding system message with trip status", {
+            tripStatusSummary: message.tripStatus?.summary,
+            activeOrders: message.tripStatus?.activeOrders?.length,
+            activeTrips: message.tripStatus?.activeTrips?.length,
+            totalActive: message.tripStatus?.summary?.totalActive,
+            totalPending: message.tripStatus?.summary?.totalPending,
+            isCurrentlyDriving: message.tripStatus?.summary?.isCurrentlyDriving,
+            messageId: message._id
           });
-          return updated;
-        });
-        scrollToBottom();
-        return;
+          setMessages((prev) => {
+            const updated = [...prev, message];
+            messagesRef.current = updated;
+            console.log("📝 Updated messages array:", {
+              newLength: updated.length,
+              lastMessageId: updated[updated.length - 1]?._id,
+              lastMessageType: updated[updated.length - 1]?.senderType,
+              lastMessageHasTripStatus: !!updated[updated.length - 1]?.tripStatus
+            });
+            return updated;
+          });
+          scrollToBottom();
+          return;
         }
-        
+
         // Check if this is a real message that should replace an optimistic message
-        const senderId = typeof message.senderId === 'object' 
+        const senderId = typeof message.senderId === 'object'
           ? message.senderId._id?.toString() || message.senderId.toString()
           : message.senderId?.toString();
-        
+
         // If this message is from current user, check if we have an optimistic message to replace
         if (senderId === currentUserIdStr) {
           console.log("📨 Received real message from dispatcher (current user), replacing optimistic message", {
@@ -260,7 +266,7 @@ const DriverChat: React.FC<DriverChatProps> = ({ onClose }) => {
             currentUserId: currentUserIdStr,
             hasOptimistic: currentMessages.some(msg => msg._id.startsWith('temp-'))
           });
-          
+
           setMessages((prev) => {
             // Check if real message already exists
             const realExists = prev.some(msg => msg._id === message._id);
@@ -268,13 +274,13 @@ const DriverChat: React.FC<DriverChatProps> = ({ onClose }) => {
               console.log("⚠️ Real message already exists, skipping duplicate");
               return prev; // Don't add duplicate
             }
-            
+
             // Remove any optimistic messages from current user (remove all temp messages from this user)
             // This ensures we replace optimistic messages even if content doesn't match exactly
             let removedCount = 0;
             const filtered = prev.filter(msg => {
               if (msg._id.startsWith('temp-')) {
-                const optimisticSenderId = typeof msg.senderId === 'object' 
+                const optimisticSenderId = typeof msg.senderId === 'object'
                   ? msg.senderId._id?.toString() || msg.senderId.toString()
                   : msg.senderId?.toString();
                 if (optimisticSenderId === currentUserIdStr) {
@@ -285,7 +291,7 @@ const DriverChat: React.FC<DriverChatProps> = ({ onClose }) => {
               }
               return true;
             });
-            
+
             // Add the real message
             console.log(`✅ Adding real message from dispatcher (removed ${removedCount} optimistic), total messages:`, filtered.length + 1);
             const updated = [...filtered, message];
@@ -302,7 +308,7 @@ const DriverChat: React.FC<DriverChatProps> = ({ onClose }) => {
             const msgId = typeof msg._id === 'object' ? msg._id.toString() : String(msg._id);
             return msgId === messageId;
           });
-          
+
           if (exists) {
             console.log("⚠️ Message already exists, skipping duplicate", {
               messageId: messageId,
@@ -310,7 +316,7 @@ const DriverChat: React.FC<DriverChatProps> = ({ onClose }) => {
             });
             return; // Don't add duplicate
           }
-          
+
           // Message from other user or system, just add it
           console.log("✅ Adding new message from other user", {
             messageId: messageId,
@@ -327,12 +333,12 @@ const DriverChat: React.FC<DriverChatProps> = ({ onClose }) => {
               const existingMsgId = typeof msg._id === 'object' ? msg._id.toString() : String(msg._id);
               return existingMsgId === msgId;
             });
-            
+
             if (stillExists) {
               console.log("⚠️ Duplicate detected in setMessages, skipping");
               return prev;
             }
-            
+
             const updated = [...prev, message];
             // Update ref immediately
             messagesRef.current = updated;
@@ -341,12 +347,32 @@ const DriverChat: React.FC<DriverChatProps> = ({ onClose }) => {
           });
           scrollToBottom();
         }
-        
+
         // Mark as read if it's not from current user
         if (senderId && senderId !== currentUserIdStr && currentSelectedDriver) {
           markDriverMessagesAsRead(currentSelectedDriver._id);
         }
       } else if (driverIdStr) {
+
+        const isSameChat =
+          currentSelectedDriver?._id?.toString() === driverIdStr;
+
+        // 👇 Get senderId safely (you already do this above, reuse if available)
+        const senderId =
+          typeof message.senderId === "object"
+            ? message.senderId._id?.toString()
+            : message.senderId?.toString();
+
+        const isMyMessage = senderId === currentUserId?.toString();
+
+        // 🔔 SHOW NOTIFICATION ONLY IF:
+        // - not same chat
+        // - not my own message
+        // - not system message (optional but recommended)
+        if (!isSameChat && !isMyMessage && !isSystemMessage) {
+          showNotification(message);
+        }
+
         // Message is for a different driver or no driver selected
         if (isSystemMessage && message.tripStatus) {
           console.log("⚠️ System message received but driverId doesn't match selected driver or no driver selected", {
@@ -434,7 +460,7 @@ const DriverChat: React.FC<DriverChatProps> = ({ onClose }) => {
       // Reset messages and set loading when driver changes
       setMessages([]);
       setLoading(true);
-      
+
       // Join driver chat room
       const driverIdStr = selectedDriver._id?.toString() || selectedDriver._id;
       socketService
@@ -461,7 +487,7 @@ const DriverChat: React.FC<DriverChatProps> = ({ onClose }) => {
         socketService.leaveDriverChat(selectedDriver._id);
         console.log(`💬 Left driver chat room for driver: ${selectedDriver._id}`);
       }, 2000); // Wait 2 seconds before leaving
-      
+
       return () => {
         if (timeoutId) {
           clearTimeout(timeoutId);
@@ -486,6 +512,37 @@ const DriverChat: React.FC<DriverChatProps> = ({ onClose }) => {
       textareaRef.current.style.height = `${Math.min(textareaRef.current.scrollHeight, 120)}px`;
     }
   }, [newMessage]);
+
+  useEffect(() => {
+    if ("Notification" in window && Notification.permission !== "granted") {
+      Notification.requestPermission();
+    }
+  }, []);
+
+  const showNotification = (message: ChatMessage) => {
+    const text = message.message || "New message";
+    const title = message.senderName || "New Message";
+
+    // ❌ Avoid system spam notifications
+    if (message.isSystemMessage) return;
+
+    // ❌ Avoid empty messages
+    if (!text.trim()) return;
+
+    if ("Notification" in window) {
+      if (Notification.permission === "granted") {
+        new Notification(title, { body: text });
+      } else if (Notification.permission !== "denied") {
+        Notification.requestPermission().then((permission) => {
+          if (permission === "granted") {
+            new Notification(title, { body: text });
+          }
+        });
+      } else {
+        console.log("🔕 Notification blocked");
+      }
+    }
+  };
 
   // Handle send message
   const handleSendMessage = async () => {
@@ -627,7 +684,7 @@ const DriverChat: React.FC<DriverChatProps> = ({ onClose }) => {
   const messageGroups = groupMessagesByDate(messages);
 
   return (
-    <div className="flex h-full bg-gray-50">
+    <div className="flex h-full bg-gray-50 ">
       {/* Drivers List Sidebar */}
       <div className="w-80 bg-white border-r border-gray-200 flex flex-col">
         {/* Header */}
@@ -674,9 +731,8 @@ const DriverChat: React.FC<DriverChatProps> = ({ onClose }) => {
                   <button
                     key={driver._id}
                     onClick={() => setSelectedDriver(driver)}
-                    className={`w-full p-4 hover:bg-gray-50 transition-colors text-left ${
-                      isSelected ? "bg-blue-50 border-l-4" : ""
-                    }`}
+                    className={`w-full p-4 hover:bg-gray-50 transition-colors text-left ${isSelected ? "bg-blue-50 border-l-4" : ""
+                      }`}
                   >
                     <div className="flex items-center gap-3">
                       {/* Avatar */}
@@ -819,7 +875,7 @@ const DriverChat: React.FC<DriverChatProps> = ({ onClose }) => {
                                         </span>
                                       )}
                                     </div>
-                                    
+
                                     {/* AI Summary */}
                                     {message.tripStatus.aiSummary && (
                                       <p className="text-sm text-gray-700 mb-3 leading-relaxed">
@@ -897,13 +953,12 @@ const DriverChat: React.FC<DriverChatProps> = ({ onClose }) => {
                                             <div key={idx} className="text-xs text-gray-600 bg-white/60 rounded p-2 mb-2 border border-gray-200">
                                               <div className="font-medium mb-2 flex items-center gap-2">
                                                 <span>Order {order.orderNumber}</span>
-                                                <span className={`px-2 py-0.5 rounded text-xs ${
-                                                  order.status === 'in-delivery' ? 'bg-yellow-100 text-yellow-700' :
+                                                <span className={`px-2 py-0.5 rounded text-xs ${order.status === 'in-delivery' ? 'bg-yellow-100 text-yellow-700' :
                                                   order.status === 'delivered' ? 'bg-purple-100 text-purple-700' :
-                                                  order.status === 'planned' ? 'bg-blue-100 text-blue-700' :
-                                                  order.status === 'quoted' ? 'bg-orange-100 text-orange-700' :
-                                                  'bg-gray-100 text-gray-700'
-                                                }`}>
+                                                    order.status === 'planned' ? 'bg-blue-100 text-blue-700' :
+                                                      order.status === 'quoted' ? 'bg-orange-100 text-orange-700' :
+                                                        'bg-gray-100 text-gray-700'
+                                                  }`}>
                                                   {order.status}
                                                 </span>
                                               </div>
@@ -1007,11 +1062,10 @@ const DriverChat: React.FC<DriverChatProps> = ({ onClose }) => {
                                             <div key={idx} className="text-xs text-gray-600 bg-white/60 rounded p-2 mb-2 border border-gray-200">
                                               <div className="font-medium mb-2 flex items-center gap-2">
                                                 <span>Order {order.orderNumber}</span>
-                                                <span className={`px-2 py-0.5 rounded text-xs ${
-                                                  order.status === 'planned' ? 'bg-blue-100 text-blue-700' :
+                                                <span className={`px-2 py-0.5 rounded text-xs ${order.status === 'planned' ? 'bg-blue-100 text-blue-700' :
                                                   order.status === 'quoted' ? 'bg-orange-100 text-orange-700' :
-                                                  'bg-gray-100 text-gray-700'
-                                                }`}>
+                                                    'bg-gray-100 text-gray-700'
+                                                  }`}>
                                                   {order.status}
                                                 </span>
                                               </div>
@@ -1080,13 +1134,12 @@ const DriverChat: React.FC<DriverChatProps> = ({ onClose }) => {
                                 {message.senderName}
                               </span>
                             )}
-                            
+
                             <div
-                              className={`relative rounded-2xl px-4 py-2.5 shadow-md ${
-                                isRightSide
-                                  ? "bg-gradient-to-br from-blue-500 to-blue-600 text-white rounded-tr-sm"
-                                  : "bg-white text-gray-800 border border-gray-200 rounded-tl-sm"
-                              }`}
+                              className={`relative rounded-2xl px-4 py-2.5 shadow-md ${isRightSide
+                                ? "bg-gradient-to-br from-blue-500 to-blue-600 text-white rounded-tr-sm"
+                                : "bg-white text-gray-800 border border-gray-200 rounded-tl-sm"
+                                }`}
                             >
                               {/* Message Text */}
                               {message.message && (
@@ -1097,9 +1150,8 @@ const DriverChat: React.FC<DriverChatProps> = ({ onClose }) => {
 
                               {/* File Attachment */}
                               {message.fileUrl && (
-                                <div className={`mt-2 ${message.message ? "pt-2 border-t" : ""} ${
-                                  isRightSide ? "border-blue-400/30" : "border-gray-200"
-                                }`}>
+                                <div className={`mt-2 ${message.message ? "pt-2 border-t" : ""} ${isRightSide ? "border-blue-400/30" : "border-gray-200"
+                                  }`}>
                                   <button
                                     onClick={async (e) => {
                                       e.preventDefault();
@@ -1115,11 +1167,10 @@ const DriverChat: React.FC<DriverChatProps> = ({ onClose }) => {
                                         window.open(message.fileUrl, '_blank');
                                       }
                                     }}
-                                    className={`flex items-center gap-2 p-2 rounded-lg transition-all hover:opacity-80 ${
-                                      isRightSide
-                                        ? "bg-white/20 hover:bg-white/30 text-white"
-                                        : "bg-gray-100 hover:bg-gray-200 text-blue-600"
-                                    }`}
+                                    className={`flex items-center gap-2 p-2 rounded-lg transition-all hover:opacity-80 ${isRightSide
+                                      ? "bg-white/20 hover:bg-white/30 text-white"
+                                      : "bg-gray-100 hover:bg-gray-200 text-blue-600"
+                                      }`}
                                   >
                                     {message.fileType === "image" ? (
                                       <ImageIcon className="w-4 h-4" />
@@ -1225,7 +1276,7 @@ const DriverChat: React.FC<DriverChatProps> = ({ onClose }) => {
                 >
                   <Paperclip className="w-5 h-5" />
                 </button>
-                
+
                 <div className="flex-1 relative">
                   <textarea
                     ref={textareaRef}
