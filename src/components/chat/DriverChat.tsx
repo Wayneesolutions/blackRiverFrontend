@@ -160,6 +160,8 @@ const DriverChat: React.FC<DriverChatProps> = ({ onClose }) => {
       const currentSelectedDriver = selectedDriverRef.current;
       const currentMessages = messagesRef.current;
 
+      console.log("current message",currentMessages)
+
       console.log("📨 New message received in driver chat:", {
         messageId: message._id,
         driverId: message.driverId,
@@ -179,6 +181,8 @@ const DriverChat: React.FC<DriverChatProps> = ({ onClose }) => {
         currentMessagesCount: currentMessages.length
       });
 
+   
+
       // Extract driverId from message (handle both object and string formats)
       let driverIdStr: string = '';
       if (message.driverId) {
@@ -187,17 +191,27 @@ const DriverChat: React.FC<DriverChatProps> = ({ onClose }) => {
           driverIdStr = message.driverId._id?.toString() ||
             message.driverId.toString() ||
             String(message.driverId);
+
         } else {
           driverIdStr = String(message.driverId);
         }
       }
 
+   
+
       // Normalize selected driver ID for comparison
       const selectedDriverIdStr = currentSelectedDriver?._id?.toString() || currentSelectedDriver?._id;
+       
+     
       const currentUserIdStr = currentUserId?.toString();
+
+      console.log("currentUserIdStr",currentUserIdStr)
 
       // System messages with trip status should always be shown if driverId matches
       const isSystemMessage = message.isSystemMessage || message.senderType === 'system';
+
+      console.log("...................issystemMessage...............");
+      console.log(isSystemMessage)
 
       console.log("🔍 Comparing driver IDs:", {
         messageDriverId: driverIdStr,
@@ -212,7 +226,11 @@ const DriverChat: React.FC<DriverChatProps> = ({ onClose }) => {
       // Only add message if it's for the currently selected driver
       // For system messages, we still need driverId to match
       // If no driver is selected, we'll just update unread counts
+
+      console.log("selectedDriverIdStr",selectedDriverIdStr)
+
       if (currentSelectedDriver && driverIdStr && driverIdStr === selectedDriverIdStr) {
+        console.log("12345678910")
         console.log("✅ Adding message to chat for selected driver", {
           isSystemMessage: isSystemMessage,
           hasTripStatus: !!message.tripStatus,
@@ -257,6 +275,8 @@ const DriverChat: React.FC<DriverChatProps> = ({ onClose }) => {
           ? message.senderId._id?.toString() || message.senderId.toString()
           : message.senderId?.toString();
 
+          console.log("..................senderId............",senderId)
+
         // If this message is from current user, check if we have an optimistic message to replace
         if (senderId === currentUserIdStr) {
           console.log("📨 Received real message from dispatcher (current user), replacing optimistic message", {
@@ -266,7 +286,9 @@ const DriverChat: React.FC<DriverChatProps> = ({ onClose }) => {
             currentUserId: currentUserIdStr,
             hasOptimistic: currentMessages.some(msg => msg._id.startsWith('temp-'))
           });
+          
 
+       
           setMessages((prev) => {
             // Check if real message already exists
             const realExists = prev.some(msg => msg._id === message._id);
@@ -334,6 +356,8 @@ const DriverChat: React.FC<DriverChatProps> = ({ onClose }) => {
               return existingMsgId === msgId;
             });
 
+
+
             if (stillExists) {
               console.log("⚠️ Duplicate detected in setMessages, skipping");
               return prev;
@@ -348,31 +372,18 @@ const DriverChat: React.FC<DriverChatProps> = ({ onClose }) => {
           scrollToBottom();
         }
 
+    
+
         // Mark as read if it's not from current user
         if (senderId && senderId !== currentUserIdStr && currentSelectedDriver) {
+
           markDriverMessagesAsRead(currentSelectedDriver._id);
         }
+
       } else if (driverIdStr) {
-
-        const isSameChat =
-          currentSelectedDriver?._id?.toString() === driverIdStr;
-
-        // 👇 Get senderId safely (you already do this above, reuse if available)
-        const senderId =
-          typeof message.senderId === "object"
-            ? message.senderId._id?.toString()
-            : message.senderId?.toString();
-
-        const isMyMessage = senderId === currentUserId?.toString();
-
-        // 🔔 SHOW NOTIFICATION ONLY IF:
-        // - not same chat
-        // - not my own message
-        // - not system message (optional but recommended)
-        if (!isSameChat && !isMyMessage && !isSystemMessage) {
-          showNotification(message);
-        }
-
+          console.log("12345678910")
+          showNotification(message.message)
+      
         // Message is for a different driver or no driver selected
         if (isSystemMessage && message.tripStatus) {
           console.log("⚠️ System message received but driverId doesn't match selected driver or no driver selected", {
@@ -519,30 +530,35 @@ const DriverChat: React.FC<DriverChatProps> = ({ onClose }) => {
     }
   }, []);
 
-  const showNotification = (message: ChatMessage) => {
-    const text = message.message || "New message";
-    const title = message.senderName || "New Message";
+const showNotification = (message: string) => {
+  console.log("🔔 Notification:", message);
 
-    // ❌ Avoid system spam notifications
-    if (message.isSystemMessage) return;
+  // Create notification element
+  const notification = document.createElement("div");
 
-    // ❌ Avoid empty messages
-    if (!text.trim()) return;
+  notification.innerText = message;
 
-    if ("Notification" in window) {
-      if (Notification.permission === "granted") {
-        new Notification(title, { body: text });
-      } else if (Notification.permission !== "denied") {
-        Notification.requestPermission().then((permission) => {
-          if (permission === "granted") {
-            new Notification(title, { body: text });
-          }
-        });
-      } else {
-        console.log("🔕 Notification blocked");
-      }
-    }
-  };
+  notification.style.position = "fixed";
+  notification.style.top = "20px";
+  notification.style.right = "20px";
+  notification.style.background = "#00C2A6";
+  notification.style.color = "white";
+  notification.style.padding = "12px 16px";
+  notification.style.borderRadius = "10px";
+  notification.style.boxShadow = "0 4px 12px rgba(0,0,0,0.2)";
+  notification.style.zIndex = "9999";
+  notification.style.fontSize = "14px";
+  notification.style.maxWidth = "300px";
+  notification.style.fontWeight = "500";
+
+  document.body.appendChild(notification);
+
+  // Auto remove after 3 sec
+  setTimeout(() => {
+    notification.remove();
+  }, 3000);
+};
+  
 
   // Handle send message
   const handleSendMessage = async () => {
