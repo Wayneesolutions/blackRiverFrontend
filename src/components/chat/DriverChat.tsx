@@ -534,29 +534,7 @@ const showNotification = (message: string) => {
   console.log("🔔 Notification:", message);
 
   // Create notification element
-  const notification = document.createElement("div");
-
-  notification.innerText = message;
-
-  notification.style.position = "fixed";
-  notification.style.top = "20px";
-  notification.style.right = "20px";
-  notification.style.background = "#00C2A6";
-  notification.style.color = "white";
-  notification.style.padding = "12px 16px";
-  notification.style.borderRadius = "10px";
-  notification.style.boxShadow = "0 4px 12px rgba(0,0,0,0.2)";
-  notification.style.zIndex = "9999";
-  notification.style.fontSize = "14px";
-  notification.style.maxWidth = "300px";
-  notification.style.fontWeight = "500";
-
-  document.body.appendChild(notification);
-
-  // Auto remove after 3 sec
-  setTimeout(() => {
-    notification.remove();
-  }, 3000);
+  alert(message)
 };
   
 
