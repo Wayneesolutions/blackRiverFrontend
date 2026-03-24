@@ -885,10 +885,29 @@ const DriverManagement = () => {
           const nameParts = driver.name ? driver.name.split(' ') : [];
           const firstName = driver.firstName || nameParts[0] || '';
           const lastName = driver.lastName || nameParts.slice(1).join(' ') || '';
+
+const maskDriverId = (id: any) => {
+  const str = id?.toString();
+
+  // Case 1: ID with prefix (e.g., DRV-1234)
+  if (str.includes("-")) {
+    const [prefix, number] = str.split("-");
+    if (!number) return str;
+
+    return `${prefix}-` + "*".repeat(Math.max(0, number.length - 2)) + number.slice(-2);
+  }
+
+  // Case 2: Only numbers (e.g., 1234)
+  return "*".repeat(Math.max(0, str.length - 2)) + str.slice(-2);
+};
+
+const encodedDriverId = maskDriverId(driver.internalId);
+
+
           
           return {
             _id: driver._id,
-            driverId: driver.driverId || driver.internalId || driver._id?.slice(-6).toUpperCase() || 'N/A',
+            driverId: driver.driverId || encodedDriverId || driver._id?.slice(-6).toUpperCase() || 'N/A',
             firstName: firstName,
             lastName: lastName,
             driversLicence: driver.driversLicence || driver.details?.licenceNumber || driver.details?.driversLicence || '',
@@ -923,6 +942,7 @@ const DriverManagement = () => {
   // Fetch drivers on component mount and when activeTab changes
   useEffect(() => {
     fetchDrivers();
+    
   }, [activeTab]);
 
   // Load driver data when editing - extracted as reusable function
