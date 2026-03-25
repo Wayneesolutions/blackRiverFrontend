@@ -34,6 +34,11 @@ class SocketService {
         },
       });
 
+      this.socket.onAny((event, ...args) => {
+        console.log("................................................")
+        console.log("🎯 EVENT CAUGHT:", event, args);
+      });
+
       // Connection events
       this.socket.on("connect", () => {
         console.log("✅ [FRONTEND] Socket connected:", this.socket?.id);
@@ -41,24 +46,24 @@ class SocketService {
         // Authenticate after connection
         this.authenticate(token);
       });
-      
+
       // Store the callback so onAny can call it
-      
+
       // Listen to ALL events for debugging (moved here so it's registered immediately)
       this.socket.onAny((eventName, ...args) => {
         if (eventName === 'documentUploadNotification') {
           console.log('🎯🎯🎯 [FRONTEND] onAny caught documentUploadNotification!', args);
           console.log('🎯 [FRONTEND] Raw event data:', args);
-          
+
           // Handle array format
           let notificationData = args[0];
           if (Array.isArray(args[0]) && args[0].length > 0) {
             notificationData = args[0][0];
             console.log('🎯 [FRONTEND] Unwrapped from nested array:', notificationData);
           }
-          
+
           console.log('🎯 [FRONTEND] Final notification data:', JSON.stringify(notificationData, null, 2));
-          
+
           // Call the registered callback if it exists
           const callback = (this as any).documentUploadCallback;
           if (callback && notificationData) {
@@ -183,11 +188,20 @@ class SocketService {
 
   // Listen to new messages
   onNewMessage(callback: (message: any) => void) {
+    console.log("🔍 onNewMessage CALLED");
+
     if (this.socket) {
-      this.socket.on("newChatMessage", callback);
+      console.log("🔍 socket exists:", this.socket);
+      console.log("🔍 socket connected:", this.socket.connected);
+
+      this.socket.on("newChatMessage", (data) => {
+        console.log("🔥 EVENT RECEIVED RAW:", data); // VERY IMPORTANT
+        callback(data);
+      });
+
       console.log("✅ Socket listener 'newChatMessage' registered");
     } else {
-      console.error("❌ Cannot register 'newChatMessage' listener: socket not initialized");
+      console.error("❌ socket not initialized");
     }
   }
 
@@ -208,6 +222,8 @@ class SocketService {
       this.socket.on("userTyping", callback);
     }
   }
+
+
 
   // Remove typing listener
   offUserTyping(callback?: (data: any) => void) {
@@ -334,28 +350,28 @@ class SocketService {
     console.log('🔔 [FRONTEND] Socket connected?', this.socket?.connected);
     console.log('🔔 [FRONTEND] Socket ID:', this.socket?.id);
     console.log('🔔 [FRONTEND] Socket authenticated?', this.isAuthenticated);
-    
+
     // Store callback for onAny handler
     (this as any).documentUploadCallback = callback;
-    
+
     if (this.socket) {
       // Remove any existing listener first to avoid duplicates
       this.socket.off("documentUploadNotification");
-      
+
       // Add new listener with enhanced logging
       this.socket.on("documentUploadNotification", (notification) => {
         console.log('🎉🎉🎉 [FRONTEND] documentUploadNotification EVENT RECEIVED! 🎉🎉🎉');
         console.log('📨 [FRONTEND] Raw notification data:', notification);
         console.log('📨 [FRONTEND] Notification type:', typeof notification);
         console.log('📨 [FRONTEND] Is array?', Array.isArray(notification));
-        
+
         // Handle array format (Socket.IO sometimes wraps in array)
         let notificationData = notification;
         if (Array.isArray(notification) && notification.length > 0) {
           notificationData = notification[0];
           console.log('📨 [FRONTEND] Unwrapped from array:', notificationData);
         }
-        
+
         console.log('📨 [FRONTEND] Final notification data:', JSON.stringify(notificationData, null, 2));
         console.log('📨 [FRONTEND] Notification keys:', notificationData ? Object.keys(notificationData) : 'null');
         console.log('📨 [FRONTEND] Order ID:', notificationData?.orderId);
@@ -366,7 +382,7 @@ class SocketService {
         console.log('📨 [FRONTEND] Link:', notificationData?.link);
         console.log('📨 [FRONTEND] Callback function exists?', typeof callback === 'function');
         console.log('📨 [FRONTEND] Calling callback function...');
-        
+
         try {
           if (typeof callback === 'function') {
             callback(notificationData);
@@ -379,10 +395,10 @@ class SocketService {
           console.error('❌ [FRONTEND] Error stack:', error);
         }
       });
-      
+
       console.log("✅ [FRONTEND] Socket listener 'documentUploadNotification' registered successfully");
       console.log("✅ [FRONTEND] Callback function:", callback.name || 'anonymous');
-      
+
       // Also listen to all events for debugging
       this.socket.onAny((eventName, ...args) => {
         if (eventName === 'documentUploadNotification') {

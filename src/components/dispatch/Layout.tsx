@@ -7,12 +7,14 @@ import DocumentUploadNotification from "../common/DocumentUploadNotification";
 import { useExpiringDriverDocuments } from "../../hooks/useExpiringDriverDocuments";
 import AIChatAssistant from "../ai/AIChatAssistant";
 import { socketService } from "../../services/socketService";
+import { useChat } from "../../contexts/ChatContext";
 
 const Layout = () => {
     const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
     const [documentNotification, setDocumentNotification] = useState<any>(null);
     const [showDocumentNotification, setShowDocumentNotification] = useState(false);
-    
+    const { activeDriverId } = useChat();
+
     // Debug: Component mount
     useEffect(() => {
         console.log('🚀 DISPATCHER LAYOUT: Component mounted');
@@ -20,14 +22,14 @@ const Layout = () => {
         console.log('🚀 DISPATCHER LAYOUT: Socket service available?', !!socketService);
         console.log('🚀 DISPATCHER LAYOUT: Socket connected?', socketService.isConnected());
         console.log('🚀 DISPATCHER LAYOUT: Socket authenticated?', socketService.getIsAuthenticated());
-        
+
         const socket = socketService.getSocket();
         if (socket) {
             console.log('🚀 DISPATCHER LAYOUT: Socket ID:', socket.id);
             console.log('🚀 DISPATCHER LAYOUT: Socket connected status:', socket.connected);
         }
     }, []); // Run only on mount
-    
+
     // Debug: Monitor documentNotification and showDocumentNotification state changes
     useEffect(() => {
         console.log('🔄🔄🔄 DISPATCHER STATE CHANGE: State updated! 🔄🔄🔄');
@@ -35,7 +37,7 @@ const Layout = () => {
         console.log('🔄 DISPATCHER STATE CHANGE: showDocumentNotification:', showDocumentNotification);
         console.log('🔄 DISPATCHER STATE CHANGE: Should component render?', showDocumentNotification && !!documentNotification);
         console.log('🔄 DISPATCHER STATE CHANGE: Has orderId?', !!documentNotification?.orderId);
-        
+
         if (documentNotification && showDocumentNotification) {
             console.log('✅✅✅ DISPATCHER STATE CHANGE: POPUP SHOULD BE VISIBLE NOW! ✅✅✅');
             console.log('✅ DISPATCHER STATE CHANGE: Notification details:', {
@@ -66,7 +68,7 @@ const Layout = () => {
         console.log('🌐 DISPATCHER GLOBAL: Setting up Socket.IO document upload listener...');
         console.log('🌐 DISPATCHER GLOBAL: Socket.IO connected?', socketService.isConnected());
         console.log('🌐 DISPATCHER GLOBAL: Socket.IO authenticated?', socketService.getIsAuthenticated());
-        
+
         // FORCE Socket.IO connection
         const initSocketConnection = async () => {
             const token = localStorage.getItem('token');
@@ -76,7 +78,7 @@ const Layout = () => {
             }
 
             console.log('🔌 DISPATCHER GLOBAL: Token found, forcing Socket.IO connection...');
-            
+
             try {
                 await socketService.connect(token);
                 console.log('✅ DISPATCHER GLOBAL: Socket.IO connected successfully');
@@ -85,53 +87,53 @@ const Layout = () => {
                 console.error('❌ DISPATCHER GLOBAL: Failed to connect Socket.IO:', error);
             }
         };
-        
+
         initSocketConnection();
-        
+
         const handleDocumentUpload = (notification: any) => {
             console.log('🎉🎉🎉 DISPATCHER GLOBAL NOTIFICATION RECEIVED! 🎉🎉🎉');
             console.log('📢 DISPATCHER GLOBAL: Raw notification:', notification);
             console.log('📢 DISPATCHER GLOBAL: Is array?', Array.isArray(notification));
             console.log('📢 DISPATCHER GLOBAL: Notification type:', typeof notification);
-            
+
             // Handle array format - unwrap if needed
             let notificationData = notification;
             if (Array.isArray(notification) && notification.length > 0) {
                 notificationData = notification[0];
                 console.log('📢 DISPATCHER GLOBAL: Unwrapped from array:', notificationData);
             }
-            
+
             console.log('📢 DISPATCHER GLOBAL: Final notification data:', JSON.stringify(notificationData, null, 2));
             console.log('📢 DISPATCHER GLOBAL: notificationData type:', typeof notificationData);
             console.log('📢 DISPATCHER GLOBAL: notificationData.orderId:', notificationData?.orderId);
-            
+
             // Validate notification before setting
             if (!notificationData || typeof notificationData !== 'object') {
                 console.error('❌ DISPATCHER GLOBAL: Invalid notification data - not an object:', notificationData);
                 return;
             }
-            
+
             if (!notificationData.orderId) {
                 console.error('❌ DISPATCHER GLOBAL: Invalid notification data - missing orderId:', notificationData);
                 return;
             }
-            
+
             console.log('📢 DISPATCHER GLOBAL: Order ID:', notificationData.orderId);
             console.log('📢 DISPATCHER GLOBAL: Order Number:', notificationData.orderNumber);
             console.log('📢 DISPATCHER GLOBAL: Driver Name:', notificationData.driverName);
-            
+
             console.log('🔄 DISPATCHER GLOBAL: About to update state...');
             console.log('🔄 DISPATCHER GLOBAL: Current showDocumentNotification:', showDocumentNotification);
             console.log('🔄 DISPATCHER GLOBAL: Current documentNotification:', documentNotification);
-            
+
             // Set notification data and show popup (like expiring documents pattern)
             setDocumentNotification(notificationData);
             setShowDocumentNotification(true);
-            
+
             console.log('✅✅✅ DISPATCHER GLOBAL: State updated! ✅✅✅');
             console.log('✅ DISPATCHER GLOBAL: setDocumentNotification called with:', JSON.stringify(notificationData, null, 2));
             console.log('✅ DISPATCHER GLOBAL: setShowDocumentNotification called with: true');
-            
+
             // Verify state was set (check after a brief delay)
             setTimeout(() => {
                 console.log('🔍 DISPATCHER GLOBAL: Verifying state after 100ms...');
@@ -147,7 +149,7 @@ const Layout = () => {
             console.log('🔍 DISPATCHER GLOBAL: Socket connected?', socket?.connected);
             console.log('🔍 DISPATCHER GLOBAL: Socket ID:', socket?.id);
             console.log('🔍 DISPATCHER GLOBAL: Socket authenticated?', socketService.getIsAuthenticated());
-            
+
             if (!socket || !socket.connected) {
                 console.warn('⚠️ DISPATCHER GLOBAL: Socket not ready yet, retrying in 500ms...');
                 setTimeout(registerListener, 500);
@@ -163,11 +165,14 @@ const Layout = () => {
             console.log('✅ DISPATCHER GLOBAL: Socket is ready and authenticated! Registering listener...');
             console.log('✅ DISPATCHER GLOBAL: Socket ID:', socket.id);
             console.log('✅ DISPATCHER GLOBAL: Socket connected:', socket.connected);
-            
+
+
             // Register via service
             socketService.onDocumentUploadNotification(handleDocumentUpload);
             console.log('✅ DISPATCHER GLOBAL: Socket.IO listener registered via service');
-            
+            socketService.offNewMessage(handleIncomingMessage);
+            socketService.onNewMessage(handleIncomingMessage);
+
             // Also add direct socket listener as PRIMARY handler
             const directListener = (data: any) => {
                 console.log('🔔🔔🔔 DISPATCHER GLOBAL: Direct socket listener triggered! 🔔🔔🔔');
@@ -178,7 +183,7 @@ const Layout = () => {
             };
             socket.on('documentUploadNotification', directListener);
             console.log('✅ DISPATCHER GLOBAL: Direct socket listener registered as PRIMARY');
-            
+
             // Add catch-all listener as BACKUP handler
             socket.onAny((eventName: string, ...args: any[]) => {
                 if (eventName === 'documentUploadNotification') {
@@ -207,16 +212,20 @@ const Layout = () => {
                 console.log('🔄 DISPATCHER GLOBAL: Socket reconnected! Re-registering listener...');
                 socketService.onDocumentUploadNotification(handleDocumentUpload);
                 console.log('✅ DISPATCHER GLOBAL: Listener re-registered');
+
+
             };
-            
+
             socket.on('connect', handleReconnect);
-            
+
             // Cleanup
             return () => {
                 socket.off('connect', handleReconnect);
                 // Note: onAnyHandler is registered inside registerListener, cleanup happens there
                 socketService.offDocumentUploadNotification(handleDocumentUpload);
                 console.log('🔇 DISPATCHER GLOBAL: Stopped listening');
+                socketService.offNewMessage(handleIncomingMessage);
+                socketService.onNewMessage(handleIncomingMessage);
             };
         } else {
             return () => {
@@ -225,6 +234,40 @@ const Layout = () => {
             };
         }
     }, []); // Empty deps - handler uses functional setState to avoid stale closures
+
+    const handleIncomingMessage = (message: any) => {
+        console.log("💬 GLOBAL CHAT MESSAGE:", message);
+
+        let driverId = message.driverId;
+        if (typeof driverId === "object") {
+            driverId = driverId?._id;
+        }
+
+        console.log("🔍 Compare:", {
+            activeDriverId,
+            messageDriverId: driverId
+        });
+
+        // ✅ correct comparison using context
+        if (activeDriverId !== driverId) {
+            console.log("🔔 Showing chat notification");
+
+            if (Notification.permission === "granted") {
+                const notification = new Notification("New Message", {
+                    body: message.message || "New message received",
+                });
+
+                notification.onclick = () => {
+                    window.focus();
+
+                    // 🔥 open chat
+                    (window as any).openChat?.(driverId);
+                };
+            }
+        } else {
+            console.log("❌ Chat open → no notification");
+        }
+    };
 
     return (
         <div className="flex h-screen bg-[#eeeeee]">
@@ -257,7 +300,7 @@ const Layout = () => {
                 daysThreshold={30}
                 showOnlyOnce={false}
             />
-            
+
             {/* AI Chat Assistant */}
             <AIChatAssistant />
 

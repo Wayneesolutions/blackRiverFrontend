@@ -9,6 +9,7 @@ import {
   getChatMessageFileSignedUrl,
   type ChatMessage,
 } from "../../axios/api/chat";
+import { useChat } from "../../contexts/ChatContext";
 
 interface Driver {
   _id: string;
@@ -50,12 +51,22 @@ const DriverChat: React.FC<DriverChatProps> = ({ onClose }) => {
     }, 100);
   };
 
+  const { setActiveDriverId } = useChat();
 
+  useEffect(() => {
+    if (selectedDriver) {
+      setActiveDriverId(selectedDriver._id);
+    }
+
+    return () => {
+      setActiveDriverId(null);
+    };
+  }, [selectedDriver]);
 
   // Load drivers list
   const loadDrivers = async () => {
 
-    console.log("loadDrivers..............",loadDrivers)
+    console.log("loadDrivers..............", loadDrivers)
     try {
       setDriversLoading(true);
       const response = await listDriver({ page: 1, limit: 100, status: 'all' });
@@ -84,7 +95,8 @@ const DriverChat: React.FC<DriverChatProps> = ({ onClose }) => {
     try {
       setLoading(true);
       const response = await getDriverChatMessages(driverId, 1, 100);
-      console.log("................response.......................",response)
+
+
       if (response.success && response.data) {
         setMessages(response.data.messages || []);
         scrollToBottom();
@@ -157,10 +169,11 @@ const DriverChat: React.FC<DriverChatProps> = ({ onClose }) => {
     // Set up listener first so it's ready when socket connects
     const handleNewMessage = (message: ChatMessage) => {
       // Get current values from refs
+      console.log("...................handleNew message......................")
       const currentSelectedDriver = selectedDriverRef.current;
       const currentMessages = messagesRef.current;
 
-      console.log("current message",currentMessages)
+      console.log("current message", currentMessages)
 
       console.log("📨 New message received in driver chat:", {
         messageId: message._id,
@@ -181,11 +194,14 @@ const DriverChat: React.FC<DriverChatProps> = ({ onClose }) => {
         currentMessagesCount: currentMessages.length
       });
 
-   
+
 
       // Extract driverId from message (handle both object and string formats)
       let driverIdStr: string = '';
+
       if (message.driverId) {
+        console.log("message from driver", message.driverId);
+        console.log("message", message)
         if (typeof message.driverId === 'object') {
           // Handle ObjectId or populated object
           driverIdStr = message.driverId._id?.toString() ||
@@ -197,15 +213,15 @@ const DriverChat: React.FC<DriverChatProps> = ({ onClose }) => {
         }
       }
 
-   
+
 
       // Normalize selected driver ID for comparison
       const selectedDriverIdStr = currentSelectedDriver?._id?.toString() || currentSelectedDriver?._id;
-       
-     
+
+
       const currentUserIdStr = currentUserId?.toString();
 
-      console.log("currentUserIdStr",currentUserIdStr)
+      console.log("currentUserIdStr", currentUserIdStr)
 
       // System messages with trip status should always be shown if driverId matches
       const isSystemMessage = message.isSystemMessage || message.senderType === 'system';
@@ -227,9 +243,13 @@ const DriverChat: React.FC<DriverChatProps> = ({ onClose }) => {
       // For system messages, we still need driverId to match
       // If no driver is selected, we'll just update unread counts
 
-      console.log("selectedDriverIdStr",selectedDriverIdStr)
 
+      // if this is true chat open
       if (currentSelectedDriver && driverIdStr && driverIdStr === selectedDriverIdStr) {
+
+        console.log("currentSelectedDriver", currentSelectedDriver)
+        console.log("driverIdStr", driverIdStr)
+        console.log("selectedDriverIdStr", selectedDriverIdStr)
         console.log("12345678910")
         console.log("✅ Adding message to chat for selected driver", {
           isSystemMessage: isSystemMessage,
@@ -275,10 +295,12 @@ const DriverChat: React.FC<DriverChatProps> = ({ onClose }) => {
           ? message.senderId._id?.toString() || message.senderId.toString()
           : message.senderId?.toString();
 
-          console.log("..................senderId............",senderId)
+        console.log("..................senderId............", senderId)
+
 
         // If this message is from current user, check if we have an optimistic message to replace
         if (senderId === currentUserIdStr) {
+          console.log("sendId is equal to currentUserIdStr");
           console.log("📨 Received real message from dispatcher (current user), replacing optimistic message", {
             messageId: message._id,
             messageText: message.message?.substring(0, 50),
@@ -286,9 +308,9 @@ const DriverChat: React.FC<DriverChatProps> = ({ onClose }) => {
             currentUserId: currentUserIdStr,
             hasOptimistic: currentMessages.some(msg => msg._id.startsWith('temp-'))
           });
-          
 
-       
+
+
           setMessages((prev) => {
             // Check if real message already exists
             const realExists = prev.some(msg => msg._id === message._id);
@@ -372,18 +394,20 @@ const DriverChat: React.FC<DriverChatProps> = ({ onClose }) => {
           scrollToBottom();
         }
 
-    
+
 
         // Mark as read if it's not from current user
         if (senderId && senderId !== currentUserIdStr && currentSelectedDriver) {
-
+          console.log("senderId", senderId);
+          console.log("currentUserIdStr", currentUserIdStr);
+          console.log("currentSelectedDriver", currentSelectedDriver);
           markDriverMessagesAsRead(currentSelectedDriver._id);
         }
 
       } else if (driverIdStr) {
-          console.log("12345678910")
-          showNotification(message.message)
-      
+        console.log("12345678910")
+
+
         // Message is for a different driver or no driver selected
         if (isSystemMessage && message.tripStatus) {
           console.log("⚠️ System message received but driverId doesn't match selected driver or no driver selected", {
@@ -530,13 +554,7 @@ const DriverChat: React.FC<DriverChatProps> = ({ onClose }) => {
     }
   }, []);
 
-const showNotification = (message: string) => {
-  console.log("🔔 Notification:", message);
 
-  // Create notification element
-  alert(message)
-};
-  
 
   // Handle send message
   const handleSendMessage = async () => {

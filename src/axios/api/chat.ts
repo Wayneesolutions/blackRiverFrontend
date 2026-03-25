@@ -334,7 +334,7 @@ export const getDriverChatMessages = async (
       }
     );
 
-    console.log("res for driver chat msgs...................................",res)
+    
     return res.data;
   } catch (error) {
     console.error("Get driver chat messages error:", error);
