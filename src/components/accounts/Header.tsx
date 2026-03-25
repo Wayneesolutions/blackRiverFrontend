@@ -4,6 +4,7 @@ import { Search, X, LogOut, AlertCircle, ArrowRight } from "lucide-react";
 import { useLogout } from "../../hooks/useLogout";
 import { useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
+import { usePageTitle } from "../../hooks/usePageTitle";
 import type { RootState } from "../../redux/store";
 import { getUserRole } from "../../utils/auth";
 import { useQuickActions } from "../common/QuickAction";
@@ -28,6 +29,7 @@ function Header({ onToggleSidebar }: { onToggleSidebar: () => void }) {
   const { filterActions } = useQuickActions();
 
   const filteredActions = filterActions(searchQuery, (isHR || isAccountant) ? (isAccountant ? 'accountant' : 'hr') : 'admin');
+  const pageTitle = usePageTitle();
 
   // Close dropdowns when clicking outside
   useEffect(() => {
@@ -156,13 +158,11 @@ function Header({ onToggleSidebar }: { onToggleSidebar: () => void }) {
           </button>
         </div>
 
-        {/* MIDDLE: Module Title */}
+        {/* MIDDLE: Page Title */}
         <div className="flex items-center flex-1 justify-center gap-10 max-w-3xl">
-          <button
-            className="px-4 py-2 text-sm !text-white hover:opacity-90 transition"
-          >
-            Accounts & Finance
-          </button>
+          <span className="text-white font-semibold text-lg tracking-wide">
+            {pageTitle || 'Accounts & Finance'}
+          </span>
         </div>
 
 

@@ -7,6 +7,7 @@ import { useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
 import type { RootState } from "../../redux/store";
 import { useQuickActions } from "../common/QuickAction";
+import { usePageTitle } from "../../hooks/usePageTitle";
 
 interface HeaderProps {
     isSidebarCollapsed?: boolean;
@@ -24,6 +25,7 @@ const Header: React.FC<HeaderProps> = ({ isSidebarCollapsed = false, onToggleSid
     const { userInfo } = useSelector((state: RootState) => state.userAuth);
     const navigate = useNavigate();
     const { filterActions } = useQuickActions();
+    const pageTitle = usePageTitle();
 
     const filteredActions = filterActions(searchQuery, 'admin');
 
@@ -149,6 +151,12 @@ const Header: React.FC<HeaderProps> = ({ isSidebarCollapsed = false, onToggleSid
                         <FaBars size={20} />
                     </button>
                 </div>
+
+                {pageTitle && (
+                    <div className="absolute left-1/2 -translate-x-1/2 pointer-events-none">
+                        <span className="text-white font-semibold text-lg tracking-wide">{pageTitle}</span>
+                    </div>
+                )}
 
                 <div className="flex items-center gap-4">
                     <button

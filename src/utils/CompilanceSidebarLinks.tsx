@@ -21,7 +21,7 @@ export const CompilanceSidebarLinks: CompilanceSidebarLink[] = [
     {
         key: "hos-eld",
         icon: <RiBillLine />,
-        label: "HOST & ELD",
+        label: "HOS & ELD",
     },
     {
         key: "cvsa-inspection",

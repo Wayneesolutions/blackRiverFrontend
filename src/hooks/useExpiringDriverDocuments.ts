@@ -27,7 +27,7 @@ export const useExpiringDriverDocuments = () => {
             console.log('🔍 userInfo check:', userInfo);
             console.log('🔍 userData check:', userData);
             console.log('🔍 role check:', userData?.role);
-            console.log('🔍 authorized roles check:', ['admin', 'hr', 'superadmin'].includes(userData?.role || ''));
+            console.log('🔍 authorized roles check:', ['admin', 'hr', 'superadmin', 'dispatcher'].includes(userData?.role || ''));
             
             // Check both Redux and localStorage for userInfo (fallback for timing issues)
             let effectiveUserInfo = userInfo;
@@ -49,7 +49,7 @@ export const useExpiringDriverDocuments = () => {
                 }
             }
             
-            if (!effectiveUserInfo || !effectiveUserData || !['admin', 'hr', 'superadmin'].includes(effectiveUserData.role)) {
+            if (!effectiveUserInfo || !effectiveUserData || !['admin', 'hr', 'superadmin', 'dispatcher'].includes(effectiveUserData.role)) {
                 console.log('❌ User not authorized or no userInfo');
                 return;
             }

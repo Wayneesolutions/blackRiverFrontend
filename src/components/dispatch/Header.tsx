@@ -1,12 +1,14 @@
 import { useState, useRef, useEffect } from "react";
 import { FaUser, FaSignOutAlt, FaBars, FaChevronDown } from "react-icons/fa";
-import { Search, X, LogOut, AlertCircle, ArrowRight } from "lucide-react";
+import { Search, X, LogOut, AlertCircle, ArrowRight, MessageCircle } from "lucide-react";
 import { useLogout } from "../../hooks/useLogout";
 import { useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
+import { usePageTitle } from "../../hooks/usePageTitle";
 import type { RootState } from "../../redux/store";
 import { getUserRole } from "../../utils/auth";
 import { useQuickActions } from "../common/QuickAction";
+import { useChat } from "../../contexts/ChatContext";
 
 const Header = ({ onToggleSidebar }: { onToggleSidebar: () => void }) => {
     const [isSearchOpen, setIsSearchOpen] = useState(false);
@@ -17,8 +19,10 @@ const Header = ({ onToggleSidebar }: { onToggleSidebar: () => void }) => {
     const { filterActions } = useQuickActions();
     const userRole = getUserRole();
     const isDispatcher = userRole === "dispatcher";
+    const { totalUnread } = useChat();
 
     const filteredActions = filterActions(searchQuery, isDispatcher ? 'dispatch' : 'admin');
+    const pageTitle = usePageTitle();
 
     const searchRef = useRef<HTMLDivElement>(null);
     const dropdownRef = useRef<HTMLDivElement>(null);
@@ -145,22 +149,29 @@ const Header = ({ onToggleSidebar }: { onToggleSidebar: () => void }) => {
                     </button>
                 </div>
 
-                {/* MIDDLE: Quick Search + Dispatch button */}
+                {/* MIDDLE: Page Title */}
                 <div className="flex items-center flex-1 justify-center gap-10 max-w-3xl">
-
-
-                    <button
-                        className="px-4 py-2 text-sm !text-white hover:opacity-90 transition"
-                        style={{
-
-                        }}
-                    >
-                        Dispatch & Load Management
-                    </button>
+                    <span className="text-white font-semibold text-lg tracking-wide">
+                        {pageTitle || 'Dispatch & Load Management'}
+                    </span>
                 </div>
 
-                {/* RIGHT: Search + Profile Dropdown */}
+                {/* RIGHT: Chat Badge + Search + Profile Dropdown */}
                 <div className="flex items-center gap-4">
+                    {/* Chat Notification Badge */}
+                    {/* <button
+                        onClick={() => navigate("/dispatch/chat")}
+                        className="relative p-2 rounded-lg hover:bg-white/20 transition-colors !text-white"
+                        title="Driver Chat"
+                    >
+                        <MessageCircle size={20} />
+                        {totalUnread > 0 && (
+                            <span className="absolute -top-1 -right-1 min-w-[18px] h-[18px] bg-red-500 text-white text-[10px] font-bold rounded-full flex items-center justify-center px-1 shadow-lg">
+                                {totalUnread > 99 ? "99+" : totalUnread}
+                            </span>
+                        )}
+                    </button> */}
+
                     {/* Search Button */}
                     <button
                         onClick={() => setIsSearchOpen(true)}

@@ -396,6 +396,23 @@ export const markDriverMessagesAsRead = async (
   }
 };
 
+// Get last message + unread count for all drivers (for dispatcher sidebar sort)
+export const getDriversLastMessages = async (): Promise<{
+  success: boolean;
+  data: Array<{
+    driverId: string;
+    lastMessage: { _id: string; message: string; fileUrl?: string; senderType: string; createdAt: string } | null;
+    unreadCount: number;
+  }>;
+}> => {
+  try {
+    const res: AxiosResponse = await apiClient.get('chat/drivers/last-messages');
+    return res.data;
+  } catch (error) {
+    return { success: false, data: [] };
+  }
+};
+
 // Get unread message count for a driver
 export const getDriverUnreadMessageCount = async (
   driverId: string

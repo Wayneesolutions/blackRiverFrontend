@@ -7,6 +7,7 @@ import { useNavigate } from "react-router-dom";
 import type { RootState } from "../../redux/store";
 import { getUserRole } from "../../utils/auth";
 import { useQuickActions } from "../common/QuickAction";
+import { usePageTitle } from "../../hooks/usePageTitle";
 
 function Header({ onToggleSidebar }: { onToggleSidebar: () => void }) {
     const [showLogoutModal, setShowLogoutModal] = useState(false);
@@ -27,6 +28,7 @@ function Header({ onToggleSidebar }: { onToggleSidebar: () => void }) {
     const isDispatcher = userRole === "dispatcher";
 
     const filteredActions = filterActions(searchQuery, isDispatcher ? 'dispatch' : 'admin');
+    const pageTitle = usePageTitle();
 
     // Close dropdowns when clicking outside
     useEffect(() => {
@@ -150,13 +152,11 @@ function Header({ onToggleSidebar }: { onToggleSidebar: () => void }) {
                     </button>
                 </div>
 
-                {/* MIDDLE: Module Title */}
+                {/* MIDDLE: Page Title */}
                 <div className="flex items-center flex-1 justify-center gap-10 max-w-3xl">
-                    <button
-                        className="px-4 py-2 text-sm !text-white hover:opacity-90 transition"
-                    >
-                        GPS Tracking & Vehicle Telematics
-                    </button>
+                    <span className="text-white font-semibold text-lg tracking-wide">
+                        {pageTitle || 'GPS Tracking & Vehicle Telematics'}
+                    </span>
                 </div>
 
 

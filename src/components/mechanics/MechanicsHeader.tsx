@@ -5,6 +5,7 @@ import { useLogout } from "../../hooks/useLogout";
 import { useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
 import type { RootState } from "../../redux/store";
+import { usePageTitle } from "../../hooks/usePageTitle";
 
 interface MechanicsHeaderProps {
   isSidebarCollapsed?: boolean;
@@ -33,6 +34,7 @@ const MechanicsHeader: React.FC<MechanicsHeaderProps> = ({
   const { logout } = useLogout();
   const { userInfo } = useSelector((state: RootState) => state.userAuth);
   const navigate = useNavigate();
+  const pageTitle = usePageTitle();
 
   const filteredActions = MECHANICS_QUICK_ACTIONS.filter(
     (action) =>
@@ -119,6 +121,12 @@ const MechanicsHeader: React.FC<MechanicsHeaderProps> = ({
             <FaBars size={20} />
           </button>
         </div>
+
+        {pageTitle && (
+          <div className="absolute left-1/2 -translate-x-1/2 pointer-events-none">
+            <span className="text-white font-semibold text-lg tracking-wide">{pageTitle}</span>
+          </div>
+        )}
 
         <div className="flex items-center gap-4">
           <button

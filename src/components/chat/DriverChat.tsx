@@ -7,6 +7,7 @@ import {
   sendDriverChatMessage as sendDriverChatMessageAPI,
   markDriverMessagesAsRead,
   getChatMessageFileSignedUrl,
+  getDriversLastMessages,
   type ChatMessage,
 } from "../../axios/api/chat";
 import { useChat } from "../../contexts/ChatContext";
@@ -25,18 +26,52 @@ interface DriverChatProps {
 }
 
 const DriverChat: React.FC<DriverChatProps> = ({ onClose }) => {
-  const [drivers, setDrivers] = useState<Driver[]>([]);
+  // Restore drivers list from cache → renders immediately on every mount
+  const [drivers, setDrivers] = useState<Driver[]>(() => {
+    try {
+      const cached = sessionStorage.getItem('driverChatDrivers');
+      if (cached) return JSON.parse(cached);
+    } catch { /* ignore */ }
+    return [];
+  });
   const [selectedDriver, setSelectedDriver] = useState<Driver | null>(null);
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [newMessage, setNewMessage] = useState("");
   const [loading, setLoading] = useState(false);
-  const [driversLoading, setDriversLoading] = useState(true);
+  // Only show loading spinner when no cached data exists
+  const [driversLoading, setDriversLoading] = useState(() => {
+    try { return !sessionStorage.getItem('driverChatDrivers'); } catch { return true; }
+  });
   const [sending, setSending] = useState(false);
   const [uploadingFile, setUploadingFile] = useState(false);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [typingUsers, setTypingUsers] = useState<Set<string>>(new Set());
   const [searchQuery, setSearchQuery] = useState("");
   const [unreadCounts, setUnreadCounts] = useState<Record<string, number>>({});
+  // Restore lastMessages from cache → list renders sorted immediately on every mount
+  const [lastMessages, setLastMessages] = useState<Record<string, { text: string; time: Date; senderType?: string }>>(() => {
+    try {
+      const cached = sessionStorage.getItem('driverChatLastMessages');
+      if (cached) {
+        const parsed = JSON.parse(cached);
+        const result: Record<string, { text: string; time: Date; senderType?: string }> = {};
+        for (const [id, val] of Object.entries(parsed as any)) {
+          result[id] = { ...(val as any), time: new Date((val as any).time) };
+        }
+        return result;
+      }
+    } catch { /* ignore */ }
+    return {};
+  });
+
+  // Persist both caches whenever they change
+  useEffect(() => {
+    try { sessionStorage.setItem('driverChatLastMessages', JSON.stringify(lastMessages)); } catch { /* ignore */ }
+  }, [lastMessages]);
+  useEffect(() => {
+    try { sessionStorage.setItem('driverChatDrivers', JSON.stringify(drivers)); } catch { /* ignore */ }
+  }, [drivers]);
+
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const typingTimeoutRef = useRef<NodeJS.Timeout | null>(null);
@@ -63,22 +98,44 @@ const DriverChat: React.FC<DriverChatProps> = ({ onClose }) => {
     };
   }, [selectedDriver]);
 
-  // Load drivers list
+  // Load drivers list and last messages concurrently, silently refresh if cache exists
   const loadDrivers = async () => {
-
-    console.log("loadDrivers..............", loadDrivers)
     try {
-      setDriversLoading(true);
-      const response = await listDriver({ page: 1, limit: 100, status: 'all' });
-      if (response?.success) {
-        // Handle different response structures
+      const hasCached = drivers.length > 0;
+      if (!hasCached) setDriversLoading(true);
+      const [driversResponse, lastMsgsResponse] = await Promise.all([
+        listDriver({ page: 1, limit: 100, status: 'all' }),
+        getDriversLastMessages(),
+      ]);
+
+      // Parse last messages first so drivers render already sorted
+      if (lastMsgsResponse.success && lastMsgsResponse.data) {
+        const counts: Record<string, number> = {};
+        const lasts: Record<string, { text: string; time: Date; senderType?: string }> = {};
+        for (const item of lastMsgsResponse.data) {
+          if (!item.driverId) continue;
+          const id = item.driverId.toString();
+          counts[id] = item.unreadCount || 0;
+          if (item.lastMessage) {
+            lasts[id] = {
+              text: item.lastMessage.message || (item.lastMessage.fileUrl ? '📎 File' : ''),
+              time: new Date(item.lastMessage.createdAt),
+              senderType: item.lastMessage.senderType,
+            };
+          }
+        }
+        setUnreadCounts(counts);
+        setLastMessages(lasts);
+      }
+
+      if (driversResponse?.success) {
         let driverList: Driver[] = [];
-        if (Array.isArray(response.data)) {
-          driverList = response.data;
-        } else if (response.data?.data && Array.isArray(response.data.data)) {
-          driverList = response.data.data;
-        } else if (response.data?.drivers && Array.isArray(response.data.drivers)) {
-          driverList = response.data.drivers;
+        if (Array.isArray(driversResponse.data)) {
+          driverList = driversResponse.data;
+        } else if (driversResponse.data?.data && Array.isArray(driversResponse.data.data)) {
+          driverList = driversResponse.data.data;
+        } else if (driversResponse.data?.drivers && Array.isArray(driversResponse.data.drivers)) {
+          driverList = driversResponse.data.drivers;
         }
         setDrivers(driverList);
       }
@@ -89,6 +146,10 @@ const DriverChat: React.FC<DriverChatProps> = ({ onClose }) => {
     }
   };
 
+  // Load fresh data on every mount — independent of socket so it always runs
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  useEffect(() => { loadDrivers(); }, []);
+
   // Load messages for selected driver
   const loadMessages = async (driverId: string) => {
 
@@ -98,7 +159,21 @@ const DriverChat: React.FC<DriverChatProps> = ({ onClose }) => {
 
 
       if (response.success && response.data) {
-        setMessages(response.data.messages || []);
+        const msgs: ChatMessage[] = response.data.messages || [];
+        setMessages(msgs);
+        // Populate last message for sidebar preview
+        const realMsgs = msgs.filter(m => !m.isSystemMessage && m.senderType !== 'system');
+        if (realMsgs.length > 0) {
+          const last = realMsgs[realMsgs.length - 1];
+          setLastMessages(prev => ({
+            ...prev,
+            [driverId]: {
+              text: last.message || (last.fileUrl ? '📎 File' : ''),
+              time: new Date((last as any).createdAt || Date.now()),
+              senderType: last.senderType
+            }
+          }));
+        }
         scrollToBottom();
       } else {
         // If response is not successful or no data, set empty messages
@@ -110,13 +185,6 @@ const DriverChat: React.FC<DriverChatProps> = ({ onClose }) => {
     } finally {
       setLoading(false);
     }
-  };
-
-  // Load unread counts for all drivers
-  const loadUnreadCounts = async () => {
-    // This would need a backend endpoint to get unread counts for all drivers
-    // For now, we'll set it to empty and can be enhanced later
-    setUnreadCounts({});
   };
 
   // Get current user ID
@@ -243,6 +311,18 @@ const DriverChat: React.FC<DriverChatProps> = ({ onClose }) => {
       // For system messages, we still need driverId to match
       // If no driver is selected, we'll just update unread counts
 
+
+      // Always update last message for this driver (for sidebar preview + sorting)
+      if (driverIdStr && !message.isSystemMessage && message.senderType !== 'system') {
+        setLastMessages(prev => ({
+          ...prev,
+          [driverIdStr]: {
+            text: message.message || (message.fileUrl ? '📎 File' : ''),
+            time: new Date(message.createdAt || Date.now()),
+            senderType: message.senderType
+          }
+        }));
+      }
 
       // if this is true chat open
       if (currentSelectedDriver && driverIdStr && driverIdStr === selectedDriverIdStr) {
@@ -455,26 +535,16 @@ const DriverChat: React.FC<DriverChatProps> = ({ onClose }) => {
       }
     };
 
-    // Connect and authenticate socket first
+    // Register listeners first (before connect resolves so no messages are missed)
+    socketService.onNewMessage(handleNewMessage);
+    socketService.onUserTyping(handleTyping);
+
+    // Connect (reuses existing socket if same token — won't destroy listeners)
     socketService
       .connect(token)
-      .then(() => {
-        console.log("✅ Socket connected for driver chat");
-        // Set up listeners after socket is connected
-        socketService.onNewMessage(handleNewMessage);
-        socketService.onUserTyping(handleTyping);
-        console.log("✅ Socket listeners set up after connection");
-        loadDrivers();
-        loadUnreadCounts();
-      })
       .catch((error) => {
         console.error("Socket connection error:", error);
       });
-
-    // Also set up listeners immediately (in case socket is already connected)
-    socketService.onNewMessage(handleNewMessage);
-    socketService.onUserTyping(handleTyping);
-    console.log("✅ Socket listeners registered (will work when socket connects)");
 
     // Cleanup
     return () => {
@@ -516,17 +586,9 @@ const DriverChat: React.FC<DriverChatProps> = ({ onClose }) => {
           loadMessages(driverIdStr);
         });
 
-      // Cleanup on driver change - don't leave immediately, wait a bit
-      let timeoutId: NodeJS.Timeout | null = null;
-      timeoutId = setTimeout(() => {
-        socketService.leaveDriverChat(selectedDriver._id);
-        console.log(`💬 Left driver chat room for driver: ${selectedDriver._id}`);
-      }, 2000); // Wait 2 seconds before leaving
-
+      // Leave room when driver changes or component unmounts
       return () => {
-        if (timeoutId) {
-          clearTimeout(timeoutId);
-        }
+        socketService.leaveDriverChat(driverIdStr);
       };
     } else {
       // No driver selected, clear messages and loading
@@ -668,6 +730,24 @@ const DriverChat: React.FC<DriverChatProps> = ({ onClose }) => {
     return date.toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit", hour12: true });
   };
 
+  // Format timestamp for sidebar (WhatsApp-style)
+  const formatSidebarTime = (date: Date): string => {
+    const now = new Date();
+    const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    const yesterday = new Date(today.getTime() - 86400000);
+    const msgDay = new Date(date.getFullYear(), date.getMonth(), date.getDate());
+
+    if (msgDay.getTime() === today.getTime()) {
+      return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: true });
+    } else if (msgDay.getTime() === yesterday.getTime()) {
+      return 'Yesterday';
+    } else if (now.getTime() - date.getTime() < 7 * 86400000) {
+      return date.toLocaleDateString([], { weekday: 'short' });
+    } else {
+      return date.toLocaleDateString([], { day: '2-digit', month: '2-digit' });
+    }
+  };
+
   // Group messages by date
   const groupMessagesByDate = (messages: ChatMessage[]) => {
     const groups: { [key: string]: ChatMessage[] } = {};
@@ -686,99 +766,122 @@ const DriverChat: React.FC<DriverChatProps> = ({ onClose }) => {
     return groups;
   };
 
-  // Filter drivers based on search
-  const filteredDrivers = drivers.filter((driver) =>
-    driver.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    driver.email?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    driver.phone?.includes(searchQuery)
-  );
+  // Filter and sort drivers — most recent message first (WhatsApp-style)
+  const filteredDrivers = drivers
+    .filter((driver) =>
+      driver.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      driver.email?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      driver.phone?.includes(searchQuery)
+    )
+    .sort((a, b) => {
+      const aUnread = unreadCounts[a._id] || 0;
+      const bUnread = unreadCounts[b._id] || 0;
+      // Drivers with unread messages float to top
+      if (aUnread > 0 && bUnread === 0) return -1;
+      if (bUnread > 0 && aUnread === 0) return 1;
+      // Then sort by most recent message time
+      const aTime = lastMessages[a._id]?.time?.getTime() || 0;
+      const bTime = lastMessages[b._id]?.time?.getTime() || 0;
+      return bTime - aTime;
+    });
 
   const messageGroups = groupMessagesByDate(messages);
 
   return (
-    <div className="flex h-full bg-gray-50 ">
-      {/* Drivers List Sidebar */}
-      <div className="w-80 bg-white border-r border-gray-200 flex flex-col">
+    <div className="flex h-full bg-white">
+      {/* Drivers List Sidebar — WhatsApp style */}
+      <div className="w-72 flex flex-col bg-white border-r border-gray-200">
         {/* Header */}
-        <div className="p-4 border-b border-gray-200">
-          <div className="flex items-center justify-between mb-4">
-            <h2 className="text-lg font-bold text-gray-800 flex items-center gap-2">
-              <MessageCircle className="w-5 h-5" style={{ color: '#00C2A6' }} />
-              Chat
+        <div className="px-3 pt-3 pb-2 border-b border-gray-100" style={{ background: '#1976D2' }}>
+          <div className="flex items-center justify-between mb-2">
+            <h2 className="text-sm font-bold text-white flex items-center gap-1.5">
+              <MessageCircle className="w-4 h-4" />
+              Drivers
+              {Object.values(unreadCounts).reduce((s, n) => s + n, 0) > 0 && (
+                <span className="bg-white text-blue-700 text-[10px] font-bold rounded-full px-1.5 py-0.5 leading-none">
+                  {Object.values(unreadCounts).reduce((s, n) => s + n, 0)}
+                </span>
+              )}
             </h2>
             {onClose && (
-              <button
-                onClick={onClose}
-                className="p-1 hover:bg-gray-100 rounded-lg transition-colors"
-              >
-                <X className="w-5 h-5 text-gray-500" />
+              <button onClick={onClose} className="p-1 hover:bg-white/20 rounded transition-colors">
+                <X className="w-4 h-4 text-white" />
               </button>
             )}
           </div>
           {/* Search */}
           <div className="relative">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
+            <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-white/60" />
             <input
               type="text"
               placeholder="Search drivers..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full pl-8 pr-3 py-1.5 text-xs bg-white/15 text-white placeholder-white/60 border border-white/25 rounded-lg focus:outline-none focus:bg-white/25"
             />
           </div>
         </div>
 
         {/* Drivers List */}
-        <div className="flex-1 overflow-y-auto">
+        <div className="flex-1 overflow-y-auto bg-white">
           {filteredDrivers.length === 0 && !driversLoading ? (
-            <div className="p-4 text-center text-gray-500">
-              <p>No drivers found</p>
-            </div>
+            <div className="p-4 text-center text-gray-400 text-xs">No drivers found</div>
           ) : (
-            <div className="divide-y divide-gray-100">
+            <div>
               {filteredDrivers.map((driver) => {
                 const isSelected = selectedDriver?._id === driver._id;
                 const unreadCount = unreadCounts[driver._id] || 0;
+                const lastMsg = lastMessages[driver._id];
                 return (
                   <button
                     key={driver._id}
                     onClick={() => setSelectedDriver(driver)}
-                    className={`w-full p-4 hover:bg-gray-50 transition-colors text-left ${isSelected ? "bg-blue-50 border-l-4" : ""
-                      }`}
+                    className={`w-full px-3 py-2.5 text-left transition-colors border-b border-gray-50 ${
+                      isSelected ? 'bg-blue-50 border-l-2 border-l-blue-600' : 'hover:bg-gray-50'
+                    }`}
                   >
-                    <div className="flex items-center gap-3">
+                    <div className="flex items-center gap-2.5">
                       {/* Avatar */}
-                      <div className="relative">
+                      <div className="relative flex-shrink-0">
                         {driver.profileImageUrl ? (
-                          <img
-                            src={driver.profileImageUrl}
-                            alt={driver.name}
-                            className="w-12 h-12 rounded-full object-cover"
-                          />
+                          <img src={driver.profileImageUrl} alt={driver.name} className="w-10 h-10 rounded-full object-cover" />
                         ) : (
-                          <div className="w-12 h-12 rounded-full bg-gradient-to-br from-blue-400 to-blue-600 flex items-center justify-center text-white font-bold">
+                          <div className="w-10 h-10 rounded-full flex items-center justify-center text-white font-bold text-sm" style={{ background: '#1976D2' }}>
                             {driver.name.charAt(0).toUpperCase()}
                           </div>
                         )}
                         {driver.status === 'active' && (
-                          <div className="absolute bottom-0 right-0 w-3 h-3 bg-green-500 rounded-full border-2 border-white"></div>
+                          <div className="absolute bottom-0 right-0 w-2.5 h-2.5 bg-green-500 rounded-full border-2 border-white"></div>
                         )}
                       </div>
-                      {/* Driver Info */}
+                      {/* Info */}
                       <div className="flex-1 min-w-0">
-                        <p className={`font-semibold truncate ${isSelected ? "text-blue-600" : "text-gray-800"}`}>
-                          {driver.name}
-                        </p>
-                        {driver.phone && (
-                          <p className="text-sm text-gray-500 truncate">{driver.phone}</p>
-                        )}
-                      </div>
-                      {/* Unread Badge */}
-                      {unreadCount > 0 && (
-                        <div className="bg-red-500 text-white text-xs font-bold rounded-full w-6 h-6 flex items-center justify-center">
-                          {unreadCount > 9 ? '9+' : unreadCount}
+                        <div className="flex items-center justify-between gap-1">
+                          <p className={`text-xs font-semibold truncate ${isSelected ? 'text-blue-700' : 'text-gray-800'}`}>
+                            {driver.name}
+                          </p>
+                          {lastMsg && (
+                            <span className={`text-[10px] flex-shrink-0 whitespace-nowrap ${unreadCount > 0 ? 'text-blue-600 font-semibold' : 'text-gray-400'}`}>
+                              {formatSidebarTime(lastMsg.time)}
+                            </span>
+                          )}
                         </div>
-                      )}
+                        <div className="flex items-center justify-between gap-1 mt-0.5">
+                          {lastMsg ? (
+                            <p className={`text-[11px] truncate leading-tight flex-1 ${unreadCount > 0 ? 'text-gray-800 font-medium' : 'text-gray-400'}`}>
+                              {lastMsg.senderType !== 'driver' && <span className="text-gray-500">You: </span>}
+                              {lastMsg.text || '📎 File'}
+                            </p>
+                          ) : (
+                            <p className="text-[11px] text-gray-400 truncate leading-tight flex-1 italic">No messages yet</p>
+                          )}
+                          {unreadCount > 0 && (
+                            <span className="text-white text-[10px] font-bold rounded-full min-w-[18px] h-[18px] flex items-center justify-center px-1 flex-shrink-0" style={{ background: '#1976D2' }}>
+                              {unreadCount > 99 ? '99+' : unreadCount}
+                            </span>
+                          )}
+                        </div>
+                      </div>
                     </div>
                   </button>
                 );
@@ -793,32 +896,26 @@ const DriverChat: React.FC<DriverChatProps> = ({ onClose }) => {
         {selectedDriver ? (
           <>
             {/* Chat Header */}
-            <div className="flex-shrink-0 text-white shadow-lg" style={{ background: '#00C2A6' }}>
-              <div className="flex items-center justify-between p-4">
-                <div className="flex items-center gap-3">
-                  {selectedDriver.profileImageUrl ? (
-                    <img
-                      src={selectedDriver.profileImageUrl}
-                      alt={selectedDriver.name}
-                      className="w-10 h-10 rounded-full object-cover"
-                    />
-                  ) : (
-                    <div className="w-10 h-10 rounded-full bg-white/20 backdrop-blur-sm flex items-center justify-center text-white font-bold">
-                      {selectedDriver.name.charAt(0).toUpperCase()}
-                    </div>
-                  )}
-                  <div>
-                    <h3 className="font-bold text-lg">{selectedDriver.name}</h3>
-                    {selectedDriver.phone && (
-                      <p className="text-sm text-blue-100">{selectedDriver.phone}</p>
-                    )}
+            <div className="flex-shrink-0 text-white shadow-sm px-4 py-2.5" style={{ background: '#1976D2' }}>
+              <div className="flex items-center gap-2.5">
+                {selectedDriver.profileImageUrl ? (
+                  <img src={selectedDriver.profileImageUrl} alt={selectedDriver.name} className="w-8 h-8 rounded-full object-cover" />
+                ) : (
+                  <div className="w-8 h-8 rounded-full bg-white/20 flex items-center justify-center text-white font-bold text-sm">
+                    {selectedDriver.name.charAt(0).toUpperCase()}
                   </div>
+                )}
+                <div>
+                  <h3 className="font-semibold text-sm leading-tight">{selectedDriver.name}</h3>
+                  {selectedDriver.phone && (
+                    <p className="text-xs text-white/70 leading-tight">{selectedDriver.phone}</p>
+                  )}
                 </div>
               </div>
             </div>
 
             {/* Messages Container */}
-            <div className="flex-1 overflow-y-auto p-4 space-y-6 min-h-0 bg-gray-50">
+            <div className="flex-1 overflow-y-auto p-3 space-y-4 min-h-0 bg-gray-50">
               {loading ? (
                 <div className="flex items-center justify-center h-full min-h-[200px]">
                   <div className="text-center">
@@ -1272,7 +1369,7 @@ const DriverChat: React.FC<DriverChatProps> = ({ onClose }) => {
             )}
 
             {/* Input Area */}
-            <div className="flex-shrink-0 p-4 bg-white border-t border-gray-200 shadow-lg">
+            <div className="flex-shrink-0 px-3 py-2 bg-white border-t border-gray-200 shadow-sm">
               <input
                 ref={fileInputRef}
                 type="file"
@@ -1304,17 +1401,17 @@ const DriverChat: React.FC<DriverChatProps> = ({ onClose }) => {
                       }
                     }}
                     placeholder="Type a message..."
-                    className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none bg-gray-50 text-gray-800 placeholder-gray-400 transition-all"
+                    className="w-full px-3 py-2 text-sm border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:border-transparent resize-none bg-gray-50 text-gray-800 placeholder-gray-400 transition-all"
                     rows={1}
-                    style={{ maxHeight: "120px" }}
+                    style={{ maxHeight: "100px", focusRingColor: '#007A6E' } as any}
                   />
                 </div>
 
                 <button
                   onClick={handleSendMessage}
                   disabled={sending || uploadingFile || (!newMessage.trim() && !selectedFile)}
-                  className="p-2.5 !text-white rounded-xl disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 shadow-md hover:shadow-lg flex-shrink-0 disabled:hover:shadow-md"
-                  style={{ background: '#00C2A6' }}
+                  className="p-2 !text-white rounded-xl disabled:opacity-50 disabled:cursor-not-allowed transition-all flex-shrink-0"
+                  style={{ background: '#1976D2' }}
                   title="Send message"
                 >
                   {sending || uploadingFile ? (
@@ -1329,11 +1426,11 @@ const DriverChat: React.FC<DriverChatProps> = ({ onClose }) => {
         ) : (
           <div className="flex-1 flex items-center justify-center bg-gray-50">
             <div className="text-center">
-              <div className="w-20 h-20 mx-auto mb-4 bg-gray-200 rounded-full flex items-center justify-center">
-                <MessageCircle className="w-10 h-10 text-gray-400" />
+              <div className="w-14 h-14 mx-auto mb-3 rounded-full flex items-center justify-center bg-blue-50">
+                <MessageCircle className="w-7 h-7 text-blue-600" />
               </div>
-              <p className="text-gray-700 font-semibold text-lg mb-1">Select a driver to start chatting</p>
-              <p className="text-sm text-gray-500">Choose a driver from the list to begin your conversation</p>
+              <p className="text-gray-700 font-semibold text-sm mb-1">Select a driver to chat</p>
+              <p className="text-xs text-gray-400">Choose from the list on the left</p>
             </div>
           </div>
         )}

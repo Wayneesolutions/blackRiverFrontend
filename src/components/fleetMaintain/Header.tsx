@@ -7,6 +7,7 @@ import { useNavigate } from "react-router-dom";
 import type { RootState } from "../../redux/store";
 import { getUserRole } from "../../utils/auth";
 import { useQuickActions } from "../common/QuickAction";
+import { usePageTitle } from "../../hooks/usePageTitle";
 import { getIncomingMaintenanceCount, getSamsaraUpcomingServices, listVehicleServices, type VehicleServiceResponse } from "../../axios/api/vehicleService";
 
 function Header({ onToggleSidebar }: { onToggleSidebar: () => void }) {
@@ -33,6 +34,7 @@ function Header({ onToggleSidebar }: { onToggleSidebar: () => void }) {
     const isFleetMaintenanceManager = userRole === "Fleet Maintenance Manager";
 
     const filteredActions = filterActions(searchQuery, isFleetMaintenanceManager ? 'fleet' : 'admin');
+    const pageTitle = usePageTitle();
 
     // Close dropdowns when clicking outside
     useEffect(() => {
@@ -267,13 +269,11 @@ function Header({ onToggleSidebar }: { onToggleSidebar: () => void }) {
                     </button>
                 </div>
 
-                {/* MIDDLE: Module Title */}
+                {/* MIDDLE: Page Title */}
                 <div className="flex items-center flex-1 justify-center gap-10 max-w-3xl">
-                    <button
-                        className="px-4 py-2 text-sm !text-white hover:opacity-90 transition"
-                    >
-                        Fleet Maintenance
-                    </button>
+                    <span className="text-white font-semibold text-lg tracking-wide">
+                        {pageTitle || 'Fleet Maintenance'}
+                    </span>
                 </div>
 
 

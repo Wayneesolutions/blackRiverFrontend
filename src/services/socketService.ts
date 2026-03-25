@@ -13,7 +13,29 @@ class SocketService {
   // Initialize socket connection
   connect(token: string): Promise<void> {
     return new Promise((resolve, reject) => {
-      // Disconnect existing connection if any
+      // Reuse if the same token — even while still connecting, to avoid destroying listeners
+      if (this.socket && this.token === token) {
+        if (this.socket.connected && this.isAuthenticated) {
+          // Already fully ready
+          resolve();
+          return;
+        }
+        // Socket exists but still connecting/authenticating — wait for it
+        const onAuth = () => { cleanup(); resolve(); };
+        const onAuthErr = (err: any) => { cleanup(); reject(new Error(err?.message || "Auth failed")); };
+        const onConnErr = (err: any) => { cleanup(); reject(err); };
+        const cleanup = () => {
+          this.socket?.off("authenticated", onAuth);
+          this.socket?.off("auth_error", onAuthErr);
+          this.socket?.off("connect_error", onConnErr);
+        };
+        this.socket.once("authenticated", onAuth);
+        this.socket.once("auth_error", onAuthErr);
+        this.socket.once("connect_error", onConnErr);
+        return;
+      }
+
+      // Different token or no socket — create a fresh connection
       if (this.socket) {
         this.socket.disconnect();
       }
@@ -106,6 +128,13 @@ class SocketService {
         console.error("❌ Socket authentication error:", error);
         this.isAuthenticated = false;
         reject(new Error(error.message || "Authentication failed"));
+        // Retry auth after delay — handles transient DB-not-ready errors on server startup
+        setTimeout(() => {
+          if (this.socket && this.socket.connected && !this.isAuthenticated && this.token) {
+            console.log("🔄 [FRONTEND] Retrying socket authentication...");
+            this.authenticate(this.token);
+          }
+        }, 3000);
       });
 
       // If already connected, authenticate immediately
@@ -188,18 +217,9 @@ class SocketService {
 
   // Listen to new messages
   onNewMessage(callback: (message: any) => void) {
-    console.log("🔍 onNewMessage CALLED");
-
     if (this.socket) {
-      console.log("🔍 socket exists:", this.socket);
-      console.log("🔍 socket connected:", this.socket.connected);
-
-      this.socket.on("newChatMessage", (data) => {
-        console.log("🔥 EVENT RECEIVED RAW:", data); // VERY IMPORTANT
-        callback(data);
-      });
-
-      console.log("✅ Socket listener 'newChatMessage' registered");
+      // Register callback directly so offNewMessage can remove it by reference
+      this.socket.on("newChatMessage", callback);
     } else {
       console.error("❌ socket not initialized");
     }

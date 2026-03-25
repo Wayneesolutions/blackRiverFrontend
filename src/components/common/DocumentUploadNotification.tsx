@@ -23,22 +23,10 @@ const DocumentUploadNotification = ({ notification, onClose, userRole = 'admin' 
   const navigate = useNavigate();
   const duration = 8000; // 8 seconds
 
-  // Log when component mounts
+  // Auto-dismiss timer and progress bar
   useEffect(() => {
-    console.log('🎨🎨🎨 DocumentUploadNotification COMPONENT MOUNTED! 🎨🎨🎨');
-    console.log('🎨 Notification props:', JSON.stringify(notification, null, 2));
-    console.log('🎨 User role:', userRole);
-  }, [notification, userRole]);
-  
-  // Don't render if no notification
-  if (!notification || !notification.orderId) {
-    return null;
-  }
-
-  useEffect(() => {
-    console.log('⏰ Starting auto-dismiss timer (8 seconds)...');
+    if (!notification || !notification.orderId) return;
     const timer = setTimeout(() => {
-      console.log('⏰ Timer expired, calling onClose()');
       onClose();
     }, duration);
 
@@ -53,7 +41,12 @@ const DocumentUploadNotification = ({ notification, onClose, userRole = 'admin' 
       clearTimeout(timer);
       clearInterval(progressInterval);
     };
-  }, [duration, onClose]);
+  }, [notification, duration, onClose]);
+
+  // Don't render if no notification
+  if (!notification || !notification.orderId) {
+    return null;
+  }
 
   const handleClick = () => {
     // Navigate to the order page based on user role
@@ -66,18 +59,6 @@ const DocumentUploadNotification = ({ notification, onClose, userRole = 'admin' 
     onClose();
   };
 
-  console.log('🎨🎨🎨 DocumentUploadNotification RENDER: About to render component 🎨🎨🎨');
-  console.log('🎨 DocumentUploadNotification RENDER: Notification:', JSON.stringify(notification, null, 2));
-  console.log('🎨 DocumentUploadNotification RENDER: Notification exists?', !!notification);
-  console.log('🎨 DocumentUploadNotification RENDER: Order ID?', notification?.orderId);
-  
-  if (!notification || !notification.orderId) {
-    console.log('❌ DocumentUploadNotification RENDER: NOT rendering - missing notification or orderId');
-    return null;
-  }
-  
-  console.log('✅✅✅ DocumentUploadNotification RENDER: RENDERING COMPONENT! ✅✅✅');
-  
   return (
     <div className="fixed top-4 right-4 z-[9999] max-w-md w-full">
       <div

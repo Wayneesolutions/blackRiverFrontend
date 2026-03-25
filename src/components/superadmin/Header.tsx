@@ -7,6 +7,7 @@ import { useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
 import type { RootState } from "../../redux/store";
 import { useQuickActions } from "../common/QuickAction";
+import { usePageTitle } from "../../hooks/usePageTitle";
 
 const Header = () => {
     const [isUserDropdownOpen, setIsUserDropdownOpen] = useState(false);
@@ -22,6 +23,7 @@ const Header = () => {
     const { superAdminInfo } = useSelector((state: RootState) => state.superAdminAuth);
     const navigate = useNavigate();
     const { filterActions } = useQuickActions();
+    const pageTitle = usePageTitle();
 
     const filteredActions = filterActions(searchQuery, 'superadmin');
 
@@ -125,9 +127,15 @@ const Header = () => {
     };
 
     return (
-        <header className="flex items-center justify-between px-6 py-4 bg-white shadow-sm border-b border-gray-200">
-            {/* Left side - can add breadcrumbs or title here in future */}
+        <header className="flex items-center justify-between px-6 py-4 bg-white shadow-sm border-b border-gray-200 relative">
+            {/* Left side */}
             <div className="flex-1"></div>
+
+            {pageTitle && (
+                <div className="absolute left-1/2 -translate-x-1/2 pointer-events-none">
+                    <span className="text-gray-800 font-semibold text-lg tracking-wide">{pageTitle}</span>
+                </div>
+            )}
 
             {/* Right side - Icons */}
             <div className="flex items-center gap-4 relative">
