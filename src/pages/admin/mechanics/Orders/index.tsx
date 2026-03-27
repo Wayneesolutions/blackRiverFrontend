@@ -265,7 +265,7 @@ const Orders: React.FC<OrdersProps> = ({ defaultStatus }) => {
         invoiceFile
       );
       if (response?.success) {
-        setNotification({ type: "success", message: "Repair completed successfully" });
+        setNotification({ type: "success", message: "Order completed successfully" });
         closeCompleteModal();
         await loadOrders(page);
       } else {
@@ -640,7 +640,7 @@ const Orders: React.FC<OrdersProps> = ({ defaultStatus }) => {
                   <Wrench className="text-[#42aeec]" size={24} />
                 </div>
                 <div>
-                  <h3 className="text-lg font-bold text-gray-900">Complete Repair</h3>
+                  <h3 className="text-lg font-bold text-gray-900">Complete Order</h3>
                   <p className="text-xs text-gray-500 mt-0.5">Unit {completeModal.unitNumber || "—"}</p>
                 </div>
               </div>
@@ -868,7 +868,7 @@ const Orders: React.FC<OrdersProps> = ({ defaultStatus }) => {
                 className="inline-flex items-center gap-2 px-5 py-2.5 text-sm font-semibold !text-white bg-[#42aeec] hover:bg-[#359dd9] rounded-lg disabled:opacity-50 transition"
               >
                 <CheckCircle size={18} />
-                {submittingComplete ? "Submitting…" : "Complete Repair"}
+                {submittingComplete ? "Submitting…" : "Complete Order"}
               </button>
             </div>
           </div>
@@ -1032,10 +1032,10 @@ const Orders: React.FC<OrdersProps> = ({ defaultStatus }) => {
                       setDetailsOrder(null);
                       openCompleteModal(detailsOrder);
                     }}
-                    className="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-white bg-[#42aeec] hover:bg-[#359dd9] rounded-lg"
+                    className="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium !text-white bg-[#42aeec] hover:bg-[#359dd9] rounded-lg"
                   >
                     <CheckCircle size={16} />
-                    Complete Repair
+                    Complete Order
                   </button>
                 )}
                 <button

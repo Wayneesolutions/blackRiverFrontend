@@ -98,9 +98,31 @@ export const deleteFleetInvoice = async (id: string): Promise<any> => {
     }
 };
 
-export const emailFleetInvoice = async (id: string): Promise<any> => {
+export const emailFleetInvoice = async (
+    id: string,
+    pdfBase64?: string | null,
+    pdfFileName?: string | null
+): Promise<any> => {
     try {
-        const res: AxiosResponse = await apiClient.post(`admin/fleet-invoices/${id}/email`, {});
+        const body: Record<string, any> = {};
+        if (pdfBase64) body.pdfBase64 = pdfBase64;
+        if (pdfFileName) body.pdfFileName = pdfFileName;
+        const res: AxiosResponse = await apiClient.post(`admin/fleet-invoices/${id}/email`, body);
+        return res.data;
+    } catch (error: unknown) {
+        const err = error as Error;
+        return err.response?.data;
+    }
+};
+
+export const uploadExtractFleetInvoice = async (file: File): Promise<any> => {
+    try {
+        const formData = new FormData();
+        formData.append('file', file);
+        const res: AxiosResponse = await apiClient.post('admin/fleet-invoices/upload-extract', formData, {
+            headers: { 'Content-Type': 'multipart/form-data' },
+            timeout: 120000,
+        });
         return res.data;
     } catch (error: unknown) {
         const err = error as Error;

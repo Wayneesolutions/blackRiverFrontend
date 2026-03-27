@@ -1,4 +1,4 @@
-import { useState, useMemo, useEffect } from 'react';
+import { useState, useMemo, useEffect, useRef } from 'react';
 import jsPDF from 'jspdf';
 import {
   FaFileInvoice,
@@ -11,6 +11,9 @@ import {
   FaEnvelope,
   FaClock,
   FaMoneyBillWave,
+  FaUpload,
+  FaSpinner,
+  FaFilePdf,
 } from 'react-icons/fa';
 
 import { getFleetCustomers, type FleetCustomer } from '../../../../axios/api/fleet.customers';
@@ -26,6 +29,7 @@ import {
   getFleetInvoiceById,
   emailFleetInvoice,
   updateFleetInvoiceStatus,
+  uploadExtractFleetInvoice,
 } from '../../../../axios/api/fleet.invoices';
 
 const TERMS_OPTIONS = [
@@ -156,9 +160,24 @@ const FleetInvoicesPage = () => {
   const [saving, setSaving] = useState(false);
   const [deleting, setDeleting] = useState<string | null>(null);
   const [emailingId, setEmailingId] = useState<string | null>(null);
+  const [emailToast, setEmailToast] = useState<{
+    invoiceNumber: string;
+    customerName: string;
+    customerEmail: string;
+  } | null>(null);
   const [updatingStatusId, setUpdatingStatusId] = useState<string | null>(null);
   const [printingPdfId, setPrintingPdfId] = useState<string | null>(null);
   const [notification, setNotification] = useState<{ type: 'success' | 'error'; message: string } | null>(null);
+
+  // Upload & Extract state
+  const [uploadModalOpen, setUploadModalOpen] = useState(false);
+  const [uploadFile, setUploadFile] = useState<File | null>(null);
+  const [uploadDragging, setUploadDragging] = useState(false);
+  const [uploading, setUploading] = useState(false);
+  const [uploadError, setUploadError] = useState<string | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  // Extracted vendor name — used when no existing customer matches
+  const [extractedVendorName, setExtractedVendorName] = useState('');
 
   const INVOICE_STATUS_OPTIONS = [
     { value: 'draft', label: 'Draft' },
@@ -430,6 +449,7 @@ const FleetInvoicesPage = () => {
   // When customer changes, auto-fill email and billing address
   const handleCustomerChange = (id: string) => {
     setCustomerId(id);
+    setExtractedVendorName(''); // clear extracted name when user picks from dropdown
     const c = customers.find((x) => x._id === id);
     if (c) {
       setCustomerEmail(c.email || '');
@@ -536,8 +556,8 @@ const FleetInvoicesPage = () => {
 
   const handleSaveAndClose = async () => {
     // Validation
-    if (!customerId || !selectedCustomer) {
-      setNotification({ type: 'error', message: 'Please select a customer' });
+    if (!customerId && !extractedVendorName.trim()) {
+      setNotification({ type: 'error', message: 'Please select a customer or upload an invoice to extract vendor details' });
       return;
     }
     if (lineItems.length === 0 || lineItems.some(item => !item.description || item.rate === 0)) {
@@ -563,9 +583,9 @@ const FleetInvoicesPage = () => {
         };
       });
 
-      // Build billing address from customer
+      // Build billing address from customer (if selected) or use extracted/manual address
       const billingAddrParts: string[] = [];
-      if (selectedCustomer.billing) {
+      if (selectedCustomer?.billing) {
         const b = selectedCustomer.billing;
         if (b.streetAddress1) billingAddrParts.push(b.streetAddress1);
         if (b.streetAddress2) billingAddrParts.push(b.streetAddress2);
@@ -578,17 +598,20 @@ const FleetInvoicesPage = () => {
       }
       const billingAddressStr = billingAddrParts.length > 0 ? billingAddrParts.join('\n') : billingAddress;
 
+      // Resolve customer name — prefer matched customer, fall back to extracted vendor name
+      const resolvedCustomerName = selectedCustomer?.name || extractedVendorName.trim();
+
       // Get labour tax details
       const labourTaxOption = allTaxes.find((t) => t.id === labourTax);
 
       const invoiceData = {
         invoiceNumber: invoiceNo || undefined, // Let backend generate if empty
         invoiceDate: invoiceDate,
-        customerName: selectedCustomer.name,
-        customerEmail: customerEmail || selectedCustomer.email || null,
-        customerPhone: selectedCustomer.phone || null,
+        customerName: resolvedCustomerName,
+        customerEmail: customerEmail || selectedCustomer?.email || null,
+        customerPhone: selectedCustomer?.phone || null,
         customerAddress: billingAddressStr || null,
-        customerId: customerId,
+        customerId: customerId || undefined,
         terms: terms || null,
         items: invoiceItems,
         labourHours: labourHours || 0,
@@ -841,12 +864,28 @@ const FleetInvoicesPage = () => {
     }
   };
 
-  const handleSendInvoiceEmail = async (invoiceId: string) => {
+  const handleSendInvoiceEmail = async (row: InvoiceRow) => {
     try {
-      setEmailingId(invoiceId);
-      const response = await emailFleetInvoice(invoiceId);
+      setEmailingId(row._id);
+      // Generate PDF as base64 to attach to email
+      let pdfBase64: string | null = null;
+      let pdfFileName: string | null = null;
+      try {
+        const { doc, fileName } = await buildInvoicePdfDoc(row._id);
+        // output('datauristring') → "data:application/pdf;base64,<base64>"
+        pdfBase64 = doc.output('datauristring').split(',')[1];
+        pdfFileName = fileName;
+      } catch {
+        // If PDF generation fails, still send email without attachment
+      }
+      const response = await emailFleetInvoice(row._id, pdfBase64, pdfFileName);
       if (response?.success) {
-        setNotification({ type: 'success', message: 'Invoice email sent successfully' });
+        setEmailToast({
+          invoiceNumber: row.invoiceNumber || '—',
+          customerName: row.customerName || '—',
+          customerEmail: row.customerEmail || '—',
+        });
+        setTimeout(() => setEmailToast(null), 6000);
       } else {
         setNotification({
           type: 'error',
@@ -886,15 +925,11 @@ const FleetInvoicesPage = () => {
     }
   };
 
-  const handleDownloadInvoicePDF = async (invoiceId: string) => {
-    setPrintingPdfId(invoiceId);
-    try {
-      const response = await getFleetInvoiceById(invoiceId);
-      if (!response?.success || !response.data) {
-        setNotification({ type: 'error', message: 'Failed to load invoice for PDF' });
-        return;
-      }
-      const invoice = response.data;
+  // Shared: build a jsPDF document for an invoice and return it + metadata
+  const buildInvoicePdfDoc = async (invoiceId: string) => {
+    const response = await getFleetInvoiceById(invoiceId);
+    if (!response?.success || !response.data) throw new Error('Failed to load invoice for PDF');
+    const invoice = response.data;
 
       // Fetch vehicle information for PDF
       let vehicleInfoForPDF: Array<{
@@ -1237,6 +1272,13 @@ const FleetInvoicesPage = () => {
       doc.text('Thank you for your business!', pageWidth / 2, pageHeight - 15, { align: 'center' });
 
       const fileName = `Fleet_Invoice_${(invoice.invoiceNumber || invoiceId.slice(-8)).replace(/\s+/g, '_')}.pdf`;
+      return { doc, fileName };
+  };
+
+  const handleDownloadInvoicePDF = async (invoiceId: string) => {
+    setPrintingPdfId(invoiceId);
+    try {
+      const { doc, fileName } = await buildInvoicePdfDoc(invoiceId);
       doc.save(fileName);
       setNotification({ type: 'success', message: 'Invoice PDF downloaded successfully' });
     } catch (err: any) {
@@ -1244,6 +1286,80 @@ const FleetInvoicesPage = () => {
       setNotification({ type: 'error', message: err?.message || 'Failed to download invoice PDF' });
     } finally {
       setPrintingPdfId(null);
+    }
+  };
+
+  const handleUploadExtract = async () => {
+    if (!uploadFile) return;
+    setUploading(true);
+    setUploadError(null);
+    try {
+      const res = await uploadExtractFleetInvoice(uploadFile);
+      if (!res?.success) {
+        setUploadError(res?.message || 'Failed to extract invoice data');
+        return;
+      }
+      const d = res.data;
+      // Pre-fill form with extracted data
+      resetForm();
+      if (d.invoiceNumber) setInvoiceNo(d.invoiceNumber);
+      if (d.invoiceDate) setInvoiceDate(d.invoiceDate);
+      if (d.dueDate) setDueDate(d.dueDate);
+      if (d.terms) setTerms(d.terms);
+      // Use vendor name as the customer name for the invoice record
+      const vendorName = (d.vendorName || '').trim();
+      if (vendorName) {
+        // Try case-insensitive match against existing customers
+        const match = customers.find(
+          (c) => c.name?.toLowerCase() === vendorName.toLowerCase()
+        );
+        if (match) {
+          setCustomerId(match._id);
+          setCustomerEmail(match.email || '');
+          setBillingAddress(formatBillingAddress(match));
+          setExtractedVendorName('');
+        } else {
+          // No match — store extracted name so it shows as hint & is used on save
+          setCustomerId('');
+          setExtractedVendorName(vendorName);
+          setCustomerEmail(d.vendorEmail || '');
+          setBillingAddress(d.vendorAddress || '');
+        }
+      }
+      // Map line items
+      if (Array.isArray(d.items) && d.items.length > 0) {
+        const mapped: LineItem[] = d.items.map((item: any, i: number) => ({
+          id: String(i + 1),
+          serviceDate: item.serviceDate || '',
+          productService: '',
+          description: item.description || '',
+          qty: Number(item.quantity) || 1,
+          rate: Number(item.unitPrice) || 0,
+          amount: Number(item.totalPrice) || (Number(item.quantity) || 1) * (Number(item.unitPrice) || 0),
+          salesTax: d.taxName?.toLowerCase().includes('gst') ? 'gst'
+            : d.taxName?.toLowerCase().includes('hst') ? 'hst'
+            : d.taxName?.toLowerCase().includes('pst') ? 'pst'
+            : 'none',
+        }));
+        setLineItems(mapped);
+      }
+      // Append unit info to notes
+      const unitParts: string[] = [];
+      if (d.unitInfo?.unitNumber) unitParts.push(`Unit: ${d.unitInfo.unitNumber}`);
+      if (d.unitInfo?.makeModel) unitParts.push(`Make/Model: ${d.unitInfo.makeModel}`);
+      if (d.unitInfo?.vinNumber) unitParts.push(`VIN: ${d.unitInfo.vinNumber}`);
+      if (d.unitInfo?.currentKm) unitParts.push(`KM: ${d.unitInfo.currentKm}`);
+      if (d.notes) unitParts.push(d.notes);
+      if (unitParts.length > 0) setMessageOnInvoice(unitParts.join(' | '));
+
+      setUploadModalOpen(false);
+      setUploadFile(null);
+      setSidebarOpen(true);
+      setNotification({ type: 'success', message: 'Invoice data extracted — please review and save.' });
+    } catch (err: any) {
+      setUploadError(err?.message || 'Extraction failed');
+    } finally {
+      setUploading(false);
     }
   };
 
@@ -1264,10 +1380,65 @@ const FleetInvoicesPage = () => {
     setLabourRate(0);
     setLabourTax('gst');
     setVehicleInfo([]);
+    setExtractedVendorName('');
   };
 
   return (
     <div className="p-6 min-h-screen" style={{ backgroundColor: '#EDF8FF' }}>
+
+      {/* Professional Email Sent Toast */}
+      {emailToast && (
+        <div
+          className="fixed top-6 right-6 z-[9999] w-[360px] bg-white rounded-2xl shadow-2xl border border-gray-100 overflow-hidden"
+          style={{ animation: 'slideInToast .3s cubic-bezier(.21,1.02,.73,1) forwards' }}
+        >
+          <style>{`@keyframes slideInToast{from{opacity:0;transform:translateX(110%)}to{opacity:1;transform:translateX(0)}}`}</style>
+          {/* Green accent bar */}
+          <div className="h-1 w-full bg-gradient-to-r from-emerald-400 to-green-500" />
+          <div className="p-4">
+            <div className="flex items-start gap-3">
+              {/* Icon */}
+              <div className="flex-shrink-0 w-10 h-10 rounded-full bg-emerald-100 flex items-center justify-center">
+                <FaEnvelope className="text-emerald-600" size={16} />
+              </div>
+              <div className="flex-1 min-w-0">
+                <div className="flex items-center justify-between gap-2">
+                  <p className="text-sm font-semibold text-gray-900">Email Sent Successfully</p>
+                  <button
+                    onClick={() => setEmailToast(null)}
+                    className="flex-shrink-0 p-1 rounded-full hover:bg-gray-100 text-gray-400 transition-colors"
+                  >
+                    <FaTimes size={11} />
+                  </button>
+                </div>
+                <p className="text-xs text-gray-500 mt-0.5">Invoice emailed to the customer</p>
+                <div className="mt-2.5 space-y-1.5 bg-gray-50 rounded-lg p-2.5">
+                  <div className="flex items-center gap-2">
+                    <span className="text-[10px] font-semibold text-gray-400 uppercase tracking-wider w-20 flex-shrink-0">Invoice</span>
+                    <span className="text-xs font-semibold text-gray-800 truncate">{emailToast.invoiceNumber}</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <span className="text-[10px] font-semibold text-gray-400 uppercase tracking-wider w-20 flex-shrink-0">Client</span>
+                    <span className="text-xs text-gray-700 truncate">{emailToast.customerName}</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <span className="text-[10px] font-semibold text-gray-400 uppercase tracking-wider w-20 flex-shrink-0">Sent To</span>
+                    <span className="text-xs text-emerald-700 font-medium truncate">{emailToast.customerEmail}</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+          {/* Auto-dismiss progress bar */}
+          <div className="h-0.5 bg-gray-100">
+            <div
+              className="h-full bg-emerald-400"
+              style={{ animation: 'shrink 6s linear forwards' }}
+            />
+            <style>{`@keyframes shrink{from{width:100%}to{width:0%}}`}</style>
+          </div>
+        </div>
+      )}
       <div className="mx-auto">
         <div className="flex items-center justify-between mb-6">
           <div>
@@ -1277,16 +1448,25 @@ const FleetInvoicesPage = () => {
             </h1>
             <p className="text-gray-600 mt-1">Create and manage fleet invoices</p>
           </div>
-          <button
-            type="button"
-            onClick={() => {
-              resetForm();
-              setSidebarOpen(true);
-            }}
-            className="flex items-center gap-2 px-5 py-2.5 bg-blue-600 !text-white rounded-lg hover:bg-blue-700 font-medium shadow-sm transition-colors"
-          >
-            <FaPlus size={14} /> New Invoice
-          </button>
+          <div className="flex items-center gap-2">
+            <button
+              type="button"
+              onClick={() => { setUploadFile(null); setUploadError(null); setUploadModalOpen(true); }}
+              className="flex items-center gap-2 px-4 py-2.5 bg-white border border-gray-300 text-gray-700 rounded-lg hover:border-blue-400 hover:text-blue-600 font-medium shadow-sm transition-colors"
+            >
+              <FaUpload size={13} /> Upload Invoice
+            </button>
+            <button
+              type="button"
+              onClick={() => {
+                resetForm();
+                setSidebarOpen(true);
+              }}
+              className="flex items-center gap-2 px-5 py-2.5 bg-blue-600 !text-white rounded-lg hover:bg-blue-700 font-medium shadow-sm transition-colors"
+            >
+              <FaPlus size={14} /> New Invoice
+            </button>
+          </div>
         </div>
 
         {/* Summary Cards */}
@@ -1493,12 +1673,14 @@ const FleetInvoicesPage = () => {
                             </button>
                             <button
                               type="button"
-                              onClick={() => handleSendInvoiceEmail(row._id)}
+                              onClick={() => handleSendInvoiceEmail(row)}
                               disabled={emailingId === row._id}
                               className="p-2 text-emerald-600 hover:bg-emerald-50 rounded-lg transition-colors disabled:opacity-50"
-                              title={emailingId === row._id ? 'Sending…' : 'Send Email'}
+                              title={emailingId === row._id ? 'Sending…' : 'Send Invoice Email'}
                             >
-                              <FaEnvelope size={14} />
+                              {emailingId === row._id
+                                ? <FaSpinner size={14} className="animate-spin" />
+                                : <FaEnvelope size={14} />}
                             </button>
                             <button 
                               type="button" 
@@ -1598,13 +1780,19 @@ const FleetInvoicesPage = () => {
                       <select
                         value={customerId}
                         onChange={(e) => handleCustomerChange(e.target.value)}
-                        className="w-full px-3 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-gray-900"
+                        className={`w-full px-3 py-2.5 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-gray-900 ${extractedVendorName && !customerId ? 'border-amber-400 bg-amber-50' : 'border-gray-300'}`}
                       >
-                        <option value="">Select client...</option>
+                        <option value="">{extractedVendorName ? `— Using: ${extractedVendorName} —` : 'Select client...'}</option>
                         {customers.map((c) => (
                           <option key={c._id} value={c._id}>{c.name}</option>
                         ))}
                       </select>
+                      {extractedVendorName && !customerId && (
+                        <p className="mt-1 text-xs text-amber-700 flex items-center gap-1">
+                          <span>📄</span>
+                          <span>Extracted from invoice: <strong>{extractedVendorName}</strong> — select a customer above to link, or save as-is.</span>
+                        </p>
+                      )}
                       {customersLoading && (
                         <p className="mt-1 text-xs text-gray-500">Loading customers...</p>
                       )}
@@ -2052,6 +2240,109 @@ const FleetInvoicesPage = () => {
             </div>
           </div>
         </>
+      )}
+
+      {/* Upload & Extract Invoice Modal */}
+      {uploadModalOpen && (
+        <div className="fixed inset-0 z-[200] flex items-center justify-center bg-black/40 backdrop-blur-sm p-4">
+          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md">
+            {/* Header */}
+            <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100">
+              <div className="flex items-center gap-2">
+                <FaUpload className="text-blue-600" size={18} />
+                <h3 className="text-base font-semibold text-gray-900">Upload Invoice</h3>
+              </div>
+              <button
+                onClick={() => { setUploadModalOpen(false); setUploadFile(null); setUploadError(null); }}
+                className="p-1.5 hover:bg-gray-100 rounded-lg text-gray-400"
+              >
+                <FaTimes size={16} />
+              </button>
+            </div>
+
+            <div className="p-6 space-y-4">
+              <p className="text-sm text-gray-500">
+                Upload a PDF or image of an invoice. The system will automatically extract the data and pre-fill the invoice form.
+              </p>
+
+              {/* Drop zone */}
+              <div
+                onDragOver={(e) => { e.preventDefault(); setUploadDragging(true); }}
+                onDragLeave={() => setUploadDragging(false)}
+                onDrop={(e) => {
+                  e.preventDefault();
+                  setUploadDragging(false);
+                  const f = e.dataTransfer.files?.[0];
+                  if (f) { setUploadFile(f); setUploadError(null); }
+                }}
+                onClick={() => fileInputRef.current?.click()}
+                className={`border-2 border-dashed rounded-xl p-8 text-center cursor-pointer transition-colors ${
+                  uploadDragging ? 'border-blue-400 bg-blue-50' : 'border-gray-200 hover:border-blue-300 hover:bg-gray-50'
+                }`}
+              >
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  className="hidden"
+                  accept=".pdf,.jpg,.jpeg,.png,.webp"
+                  onChange={(e) => {
+                    const f = e.target.files?.[0];
+                    if (f) { setUploadFile(f); setUploadError(null); }
+                    e.target.value = '';
+                  }}
+                />
+                {uploadFile ? (
+                  <div className="flex flex-col items-center gap-2">
+                    <FaFilePdf className="text-red-500" size={32} />
+                    <p className="text-sm font-medium text-gray-800">{uploadFile.name}</p>
+                    <p className="text-xs text-gray-400">{(uploadFile.size / 1024).toFixed(1)} KB</p>
+                    <button
+                      type="button"
+                      onClick={(e) => { e.stopPropagation(); setUploadFile(null); }}
+                      className="text-xs text-red-500 hover:underline mt-1"
+                    >
+                      Remove
+                    </button>
+                  </div>
+                ) : (
+                  <div className="flex flex-col items-center gap-2 text-gray-400">
+                    <FaUpload size={28} />
+                    <p className="text-sm font-medium text-gray-600">Drag & drop or click to select</p>
+                    <p className="text-xs">PDF, JPEG, PNG, WebP · Max 10 MB</p>
+                  </div>
+                )}
+              </div>
+
+              {uploadError && (
+                <div className="p-3 bg-red-50 border border-red-200 rounded-lg text-sm text-red-700">
+                  {uploadError}
+                </div>
+              )}
+            </div>
+
+            <div className="flex justify-end gap-2 px-6 py-4 border-t border-gray-100">
+              <button
+                type="button"
+                onClick={() => { setUploadModalOpen(false); setUploadFile(null); setUploadError(null); }}
+                className="px-4 py-2 text-sm text-gray-600 bg-gray-100 rounded-lg hover:bg-gray-200"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={handleUploadExtract}
+                disabled={!uploadFile || uploading}
+                className="flex items-center gap-2 px-5 py-2 text-sm font-medium !text-white bg-blue-600 rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+              >
+                {uploading ? (
+                  <><FaSpinner className="animate-spin" size={13} /> Extracting...</>
+                ) : (
+                  <><FaUpload size={13} /> Extract & Fill</>
+                )}
+              </button>
+            </div>
+          </div>
+        </div>
       )}
     </div>
   );

@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
-import { Plus, Info, ChevronUp, ChevronDown, X, User, FileText, Upload, Edit, Trash2, Save, Calendar } from 'lucide-react';
+import { Plus, Info, ChevronUp, ChevronDown, X, User, FileText, Upload, Edit, Trash2, Save, Calendar, Eye, EyeOff, FileDown } from 'lucide-react';
+import ExcelJS from 'exceljs';
 import { FaTimes, FaCheckCircle, FaExclamationTriangle } from 'react-icons/fa';
 import * as employeeApi from '../../../../axios/api/employee';
 import { getDocumentsByEmployee, updateEmployeeDocument, deleteEmployeeDocument } from '../../../../axios/api/employeeDocument';
@@ -98,6 +99,8 @@ const EmployeesPage = () => {
   const [profileImagePreview, setProfileImagePreview] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [passwordIsExisting, setPasswordIsExisting] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
   const [editingDocumentId, setEditingDocumentId] = useState<string | null>(null);
   const [editingDocument, setEditingDocument] = useState<{
     expiryDate: string;
@@ -856,7 +859,64 @@ const EmployeesPage = () => {
     }
   };
 
+  const handleExportEmployees = async () => {
+    const workbook = new ExcelJS.Workbook();
+    workbook.creator = 'Logistiq Innovation';
+    workbook.created = new Date();
+    const sheet = workbook.addWorksheet('Employees', { views: [{ state: 'frozen', ySplit: 1 }] });
+
+    sheet.columns = [
+      { header: 'First Name',  key: 'firstName',  width: 18 },
+      { header: 'Last Name',   key: 'lastName',   width: 18 },
+      { header: 'Email',       key: 'email',      width: 30 },
+      { header: 'Phone',       key: 'phone',      width: 18 },
+      { header: 'Role',        key: 'role',       width: 22 },
+      { header: 'Department',  key: 'department', width: 20 },
+      { header: 'Status',      key: 'status',     width: 12 },
+      { header: 'Created At',  key: 'createdAt',  width: 18 },
+    ];
+
+    const headerRow = sheet.getRow(1);
+    headerRow.font = { bold: true, color: { argb: 'FFFFFFFF' }, size: 11 };
+    headerRow.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF42AEEC' } };
+    headerRow.alignment = { vertical: 'middle', horizontal: 'center' };
+    headerRow.height = 22;
+
+    filteredEmployees.forEach((emp: any) => {
+      const nameParts = (emp.name || '').split(' ');
+      const row = sheet.addRow({
+        firstName:  emp.firstName || nameParts[0] || '',
+        lastName:   emp.lastName  || nameParts.slice(1).join(' ') || '',
+        email:      emp.email     || '',
+        phone:      emp.phone     || '',
+        role:       emp.role      || '',
+        department: emp.department || '',
+        status:     emp.status    || '',
+        createdAt:  emp.createdAt ? new Date(emp.createdAt).toLocaleDateString() : '',
+      });
+      row.alignment = { vertical: 'middle' };
+    });
+
+    sheet.eachRow((row, i) => {
+      if (i > 1) row.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: i % 2 === 0 ? 'FFF0F9FF' : 'FFFFFFFF' } };
+      row.eachCell(cell => { cell.border = { bottom: { style: 'thin', color: { argb: 'FFE2E8F0' } } }; });
+    });
+
+    const buffer = await workbook.xlsx.writeBuffer();
+    const blob = new Blob([buffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `Employees-${new Date().toISOString().split('T')[0]}.xlsx`;
+    document.body.appendChild(a);
+    a.click();
+    URL.revokeObjectURL(url);
+    document.body.removeChild(a);
+  };
+
   const resetForm = () => {
+    setPasswordIsExisting(false);
+    setShowPassword(false);
     setBasicData({
       firstName: '',
       lastName: '',
@@ -939,10 +999,11 @@ const EmployeesPage = () => {
           firstName: nameParts[0] || '',
           lastName: nameParts.slice(1).join(' ') || '',
           email: emp.email || '',
-          password: '', // Don't pre-fill password
+          password: '',
           status: emp.status || 'active',
           role: emp.role || ''
         });
+        setPasswordIsExisting(true);
         // Parse phone number to extract country code and phone number
         const parsedPhone = parsePhoneNumber(emp.phone || '', countries);
         setPhoneCountry(parsedPhone.countryCode);
@@ -1091,6 +1152,13 @@ const EmployeesPage = () => {
             <h1 className="text-3xl font-bold text-gray-900">Employees</h1>
             <div className="flex items-center gap-2">
               <span className="text-2xl font-bold text-gray-700">({filteredEmployees.length})</span>
+              <button
+                onClick={handleExportEmployees}
+                title="Export to Excel"
+                className="w-10 h-10 bg-green-600 !text-white rounded-lg flex items-center justify-center hover:bg-green-700 transition-colors shadow-md"
+              >
+                <FileDown className="w-5 h-5" />
+              </button>
               <button
                 onClick={() => setShowNewEmployeeModal(true)}
                 className="w-10 h-10 bg-[#42aeec] !text-white rounded-lg flex items-center justify-center hover:bg-[#1db5f5] transition-colors shadow-md"
@@ -1590,13 +1658,50 @@ const EmployeesPage = () => {
                           <label className="block text-sm font-medium text-gray-700 mb-1">
                             Password{!editingId && <span className="text-red-500">*</span>}
                           </label>
-                          <input
-                            type="password"
-                            placeholder="Password"
-                            value={basicData.password}
-                            onChange={(e) => setBasicData({ ...basicData, password: e.target.value })}
-                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#42aeec] focus:border-transparent"
-                          />
+                          {passwordIsExisting ? (
+                            <div className="relative">
+                              <input
+                                type="password"
+                                value="••••••••"
+                                readOnly
+                                onFocus={() => {
+                                  setPasswordIsExisting(false);
+                                  setBasicData({ ...basicData, password: '' });
+                                }}
+                                className="w-full px-3 py-2 pr-20 border border-gray-300 rounded-lg bg-gray-50 cursor-text focus:outline-none focus:ring-2 focus:ring-[#42aeec] focus:border-transparent"
+                              />
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  setPasswordIsExisting(false);
+                                  setBasicData({ ...basicData, password: '' });
+                                }}
+                                className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-[#42aeec] hover:text-blue-700 font-medium"
+                                tabIndex={-1}
+                              >
+                                Change
+                              </button>
+                            </div>
+                          ) : (
+                            <div className="relative">
+                              <input
+                                type={showPassword ? 'text' : 'password'}
+                                placeholder="Enter new password"
+                                value={basicData.password}
+                                onChange={(e) => setBasicData({ ...basicData, password: e.target.value })}
+                                className="w-full px-3 py-2 pr-10 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#42aeec] focus:border-transparent"
+                                autoFocus
+                              />
+                              <button
+                                type="button"
+                                onClick={() => setShowPassword(prev => !prev)}
+                                className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                                tabIndex={-1}
+                              >
+                                {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                              </button>
+                            </div>
+                          )}
                         </div>
                       )}
                     </div>

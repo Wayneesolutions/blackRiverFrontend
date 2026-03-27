@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
-import { Edit, Trash2, Plus, X, RefreshCw, User, Search, FileText,  MapPin, DollarSign, Upload, Save, ChevronUp, ChevronDown, Calendar, Award, AlertTriangle, FileText as FileTextIcon, PlusCircle, Check, ClipboardCheck, Ticket, FlaskConical, Lock } from 'lucide-react';
+import { Edit, Trash2, Plus, X, RefreshCw, User, Search, FileText,  MapPin, DollarSign, Upload, Save, ChevronUp, ChevronDown, Calendar, Award, AlertTriangle, FileText as FileTextIcon, PlusCircle, Check, ClipboardCheck, Ticket, FlaskConical, Lock, Eye, EyeOff, FileDown } from 'lucide-react';
+import ExcelJS from 'exceljs';
 import { FaCheckCircle, FaExclamationCircle, FaTimes } from 'react-icons/fa';
 import * as driverApi from '../../../../axios/api/driver';
 import { getTestResults, approveTestResult, rejectTestResult, getDriverTicketSignedUrl, verifyDrugTestPassword } from '../../../../axios/api/driver';
@@ -161,6 +162,8 @@ const DriverManagement = () => {
   const [profileImagePreview, setProfileImagePreview] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [showPin, setShowPin] = useState(false);
+  const [pinIsExisting, setPinIsExisting] = useState(false);
  
 
   const [filterBy, setFilterBy] = useState('Active');
@@ -886,28 +889,9 @@ const DriverManagement = () => {
           const firstName = driver.firstName || nameParts[0] || '';
           const lastName = driver.lastName || nameParts.slice(1).join(' ') || '';
 
-const maskDriverId = (id: any) => {
-  const str = id?.toString();
-
-  // Case 1: ID with prefix (e.g., DRV-1234)
-  if (str.includes("-")) {
-    const [prefix, number] = str.split("-");
-    if (!number) return str;
-
-    return `${prefix}-` + "*".repeat(Math.max(0, number.length - 2)) + number.slice(-2);
-  }
-
-  // Case 2: Only numbers (e.g., 1234)
-  return "*".repeat(Math.max(0, str.length - 2)) + str.slice(-2);
-};
-
-const encodedDriverId = maskDriverId(driver.internalId);
-
-
-          
           return {
             _id: driver._id,
-            driverId: driver.driverId || encodedDriverId || driver._id?.slice(-6).toUpperCase() || 'N/A',
+            driverId: driver.driverId || driver.internalId?.toString() || driver._id?.slice(-6).toUpperCase() || 'N/A',
             firstName: firstName,
             lastName: lastName,
             driversLicence: driver.driversLicence || driver.details?.licenceNumber || driver.details?.driversLicence || '',
@@ -1035,6 +1019,7 @@ const encodedDriverId = maskDriverId(driver.internalId);
               mobileApp: driver.mobileApp || false,
               pin: '',
               primaryPhone: (() => {
+                setPinIsExisting(true);
                 const parsed = parsePhoneNumber(driver.phone, countries);
                 setPrimaryPhoneCountry(parsed.countryCode);
                 return parsed.phoneNumber;
@@ -2500,10 +2485,72 @@ const encodedDriverId = maskDriverId(driver.internalId);
     }
   };
 
+  const handleExportDrivers = async () => {
+    const workbook = new ExcelJS.Workbook();
+    workbook.creator = 'Logistiq Innovation';
+    workbook.created = new Date();
+    const sheet = workbook.addWorksheet('Drivers', { views: [{ state: 'frozen', ySplit: 1 }] });
+
+    sheet.columns = [
+      { header: 'Driver ID',        key: 'driverId',        width: 18 },
+      { header: 'First Name',       key: 'firstName',       width: 16 },
+      { header: 'Last Name',        key: 'lastName',        width: 16 },
+      { header: 'Email',            key: 'email',           width: 28 },
+      { header: 'Phone',            key: 'phone',           width: 18 },
+      { header: 'Date of Birth',    key: 'dateOfBirth',     width: 16 },
+      { header: "Driver's Licence", key: 'driversLicence',  width: 22 },
+      { header: 'Passport',         key: 'passport',        width: 18 },
+      { header: 'Status',           key: 'status',          width: 12 },
+      { header: 'Compliance',       key: 'compliance',      width: 18 },
+      { header: 'Notes',            key: 'notes',           width: 30 },
+    ];
+
+    const headerRow = sheet.getRow(1);
+    headerRow.font = { bold: true, color: { argb: 'FFFFFFFF' }, size: 11 };
+    headerRow.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF42AEEC' } };
+    headerRow.alignment = { vertical: 'middle', horizontal: 'center' };
+    headerRow.height = 22;
+
+    drivers.forEach((d: any) => {
+      const row = sheet.addRow({
+        driverId:       d.driverId || '',
+        firstName:      d.firstName || '',
+        lastName:       d.lastName || '',
+        email:          d.email || '',
+        phone:          d.phone || '',
+        dateOfBirth:    d.dateOfBirth || '',
+        driversLicence: d.driversLicence || '',
+        passport:       d.passport || '',
+        status:         d.status || '',
+        compliance:     d.compliance || '',
+        notes:          d.notes || '',
+      });
+      row.alignment = { vertical: 'middle' };
+    });
+
+    sheet.eachRow((row, i) => {
+      if (i > 1) row.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: i % 2 === 0 ? 'FFF0F9FF' : 'FFFFFFFF' } };
+      row.eachCell(cell => { cell.border = { bottom: { style: 'thin', color: { argb: 'FFE2E8F0' } } }; });
+    });
+
+    const buffer = await workbook.xlsx.writeBuffer();
+    const blob = new Blob([buffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `Drivers-${new Date().toISOString().split('T')[0]}.xlsx`;
+    document.body.appendChild(a);
+    a.click();
+    URL.revokeObjectURL(url);
+    document.body.removeChild(a);
+  };
+
   // Helper function to reset all form state
   const resetAllFormState = () => {
     // Clear validation errors
     setValidationErrors({});
+    setPinIsExisting(false);
+    setShowPin(false);
     
     // Reset all form data
     setFormData({
@@ -3566,6 +3613,13 @@ const encodedDriverId = maskDriverId(driver.internalId);
             <div className="flex items-center gap-2">
               <span className="text-2xl font-bold text-gray-700">({getTabCount(activeTab)})</span>
               <button
+                onClick={handleExportDrivers}
+                title="Export to Excel"
+                className="w-10 h-10 bg-green-600 !text-white rounded-lg flex items-center justify-center hover:bg-green-700 transition-colors shadow-md"
+              >
+                <FileDown className="w-5 h-5" />
+              </button>
+              <button
                 onClick={() => {
                   setEditingId(null);
                   setEditingDriver(null);
@@ -4341,13 +4395,50 @@ const encodedDriverId = maskDriverId(driver.internalId);
                       </div>
                       <div>
                         <label className="block text-xs font-medium text-gray-700 mb-0.5">PIN</label>
-                        <input
-                          type="text"
-                          placeholder="Pin"
-                          value={formData.pin}
-                          onChange={(e) => setFormData({ ...formData, pin: e.target.value })}
-                          className="w-full px-2 py-1 text-xs border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-[#42aeec] focus:border-transparent"
-                        />
+                        {pinIsExisting ? (
+                          <div className="relative">
+                            <input
+                              type="password"
+                              value="••••••••"
+                              readOnly
+                              onFocus={() => {
+                                setPinIsExisting(false);
+                                setFormData({ ...formData, pin: '' });
+                              }}
+                              className="w-full px-2 py-1 pr-20 text-xs border border-gray-300 rounded bg-gray-50 cursor-text focus:outline-none focus:ring-2 focus:ring-[#42aeec] focus:border-transparent"
+                            />
+                            <button
+                              type="button"
+                              onClick={() => {
+                                setPinIsExisting(false);
+                                setFormData({ ...formData, pin: '' });
+                              }}
+                              className="absolute right-1.5 top-1/2 -translate-y-1/2 text-[10px] text-[#42aeec] hover:text-blue-700 font-medium whitespace-nowrap"
+                              tabIndex={-1}
+                            >
+                              Change
+                            </button>
+                          </div>
+                        ) : (
+                          <div className="relative">
+                            <input
+                              type={showPin ? 'text' : 'password'}
+                              placeholder="Enter new PIN"
+                              value={formData.pin}
+                              onChange={(e) => setFormData({ ...formData, pin: e.target.value })}
+                              className="w-full px-2 py-1 pr-7 text-xs border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-[#42aeec] focus:border-transparent"
+                              autoFocus
+                            />
+                            <button
+                              type="button"
+                              onClick={() => setShowPin(prev => !prev)}
+                              className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                              tabIndex={-1}
+                            >
+                              {showPin ? <EyeOff className="w-3.5 h-3.5" /> : <Eye className="w-3.5 h-3.5" />}
+                            </button>
+                          </div>
+                        )}
                       </div>
                     </div>
 
@@ -7557,6 +7648,7 @@ const encodedDriverId = maskDriverId(driver.internalId);
                           <option value="Bi-Weekly">Bi-Weekly</option>
                           <option value="Monthly">Monthly</option>
                           <option value="Yearly">Yearly</option>
+                          <option value="One Time Payment">One Time Payment</option>
                         </select>
                       </div>
                       <div className="flex-1">
@@ -7762,6 +7854,7 @@ const encodedDriverId = maskDriverId(driver.internalId);
                           <option value="Bi-Weekly">Bi-Weekly</option>
                           <option value="Monthly">Monthly</option>
                           <option value="Yearly">Yearly</option>
+                          <option value="One Time Payment">One Time Payment</option>
                         </select>
                       </div>
                       <div className="flex-1">
@@ -8318,7 +8411,7 @@ const encodedDriverId = maskDriverId(driver.internalId);
                           <tr>
                             <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase">DATE</th>
                             <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase">RESULT</th>
-                            <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase">LAB NAME</th>
+                            <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase">DOCUMENT NAME</th>
                             <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase">FILE</th>
                           </tr>
                         </thead>
@@ -8348,7 +8441,7 @@ const encodedDriverId = maskDriverId(driver.internalId);
                             <td className="px-4 py-3">
                               <input
                                 type="text"
-                                placeholder="Lab Name"
+                                placeholder="Document Name"
                                 value={newDrugTest.labName}
                                 onChange={(e) => setNewDrugTest({ ...newDrugTest, labName: e.target.value })}
                                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#42aeec] focus:border-transparent"
@@ -8451,7 +8544,7 @@ const encodedDriverId = maskDriverId(driver.internalId);
                           <tr>
                             <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase">DATE</th>
                             <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase">RESULT</th>
-                            <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase">LAB NAME</th>
+                            <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase">DOCUMENT NAME</th>
                             <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase">FILE</th>
                             <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase">ACTIONS</th>
                           </tr>

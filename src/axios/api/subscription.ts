@@ -43,7 +43,7 @@ export const getMySubscriptions = async () => {
 };
 
 // ✅ Create Checkout Session
-export const createCheckoutSession = async (data: { planId: string; subscriptionType: string }) => {
+export const createCheckoutSession = async (data: { planId: string; subscriptionType: string; truckCount?: number }) => {
   try {
     const res: AxiosResponse = await apiClient.post('admin/subscription/checkout', data);
     return res.data;

@@ -8,6 +8,7 @@ import { useExpiringDriverDocuments } from "../../hooks/useExpiringDriverDocumen
 import AIChatAssistant from "../ai/AIChatAssistant";
 import { socketService } from "../../services/socketService";
 import { useChat } from "../../contexts/ChatContext";
+import { getDriversLastMessages } from "../../axios/api/chat";
 import { MessageCircle, X } from "lucide-react";
 
 // WhatsApp-style popup toast for incoming driver messages
@@ -88,7 +89,7 @@ const Layout = () => {
     const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
     const [documentNotification, setDocumentNotification] = useState<any>(null);
     const [showDocumentNotification, setShowDocumentNotification] = useState(false);
-    const { activeDriverId, addUnread, setChatNotification } = useChat();
+    const { activeDriverId, addUnread, setChatNotification, setInitialUnreadCounts } = useChat();
     const activeDriverIdRef = useRef<string | null>(null);
     const navigate = useNavigate();
 

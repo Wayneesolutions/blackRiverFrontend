@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
-import { Plus, Upload, ChevronUp, ChevronDown, Clock, X, Image as ImageIcon, Calendar, ChevronLeft, ChevronRight, Edit, Trash2, FileText, Check } from 'lucide-react';
+import { Plus, Upload, ChevronUp, ChevronDown, Clock, X, Image as ImageIcon, Calendar, ChevronLeft, ChevronRight, Edit, Trash2, FileText, Check, FileDown } from 'lucide-react';
+import ExcelJS from 'exceljs';
 import { getAllVehicles, createVehicle, updateVehicle, deleteVehicle, getVehicleById } from '../../../../axios/api/vehicle';
 import { getAllDrivers, type Driver } from '../../../../axios/api/driver';
 import { createVehicleDocument, updateVehicleDocument, getVehicleDocument } from '../../../../axios/api/compilance.vehicledoc';
@@ -909,6 +910,72 @@ const Trucks: React.FC = () => {
 
     const filteredTrucks = getFilteredTrucks();
 
+    const handleExportTrucks = async () => {
+        const workbook = new ExcelJS.Workbook();
+        workbook.creator = 'Logistiq Innovation';
+        workbook.created = new Date();
+        const sheet = workbook.addWorksheet('Trucks', { views: [{ state: 'frozen', ySplit: 1 }] });
+
+        sheet.columns = [
+            { header: 'Unit Number',       key: 'unitNumber',          width: 16 },
+            { header: 'Plate Number',       key: 'plateNumber',         width: 16 },
+            { header: 'VIN Number',         key: 'vinNumber',           width: 22 },
+            { header: 'Make',               key: 'make',                width: 14 },
+            { header: 'Model',              key: 'model',               width: 14 },
+            { header: 'Year',               key: 'year',                width: 10 },
+            { header: 'Ownership',          key: 'ownership',           width: 20 },
+            { header: 'Operating Status',   key: 'operatingStatus',     width: 18 },
+            { header: 'Dispatch Status',    key: 'dispatchStatus',      width: 18 },
+            { header: 'Compliance',         key: 'compliance',          width: 18 },
+            { header: 'Category',           key: 'category',            width: 14 },
+            { header: 'Reg. Country',       key: 'registrationCountry', width: 16 },
+            { header: 'Reg. Province',      key: 'registrationProvince',width: 16 },
+            { header: 'Notes',              key: 'notes',               width: 30 },
+        ];
+
+        const headerRow = sheet.getRow(1);
+        headerRow.font = { bold: true, color: { argb: 'FFFFFFFF' }, size: 11 };
+        headerRow.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF42AEEC' } };
+        headerRow.alignment = { vertical: 'middle', horizontal: 'center' };
+        headerRow.height = 22;
+
+        filteredTrucks.forEach((t: any) => {
+            const row = sheet.addRow({
+                unitNumber:           t.unitNumber           || '',
+                plateNumber:          t.plateNumber          || '',
+                vinNumber:            t.vinNumber            || '',
+                make:                 t.make                 || '',
+                model:                t.model                || '',
+                year:                 t.year                 || '',
+                ownership:            t.ownership            || '',
+                operatingStatus:      t.operatingStatus      || '',
+                dispatchStatus:       t.dispatchStatus       || '',
+                compliance:           t.compliance           || '',
+                category:             t.category             || '',
+                registrationCountry:  t.registrationCountry  || '',
+                registrationProvince: t.registrationProvince || '',
+                notes:                t.notes                || '',
+            });
+            row.alignment = { vertical: 'middle' };
+        });
+
+        sheet.eachRow((row, i) => {
+            if (i > 1) row.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: i % 2 === 0 ? 'FFF0F9FF' : 'FFFFFFFF' } };
+            row.eachCell(cell => { cell.border = { bottom: { style: 'thin', color: { argb: 'FFE2E8F0' } } }; });
+        });
+
+        const buffer = await workbook.xlsx.writeBuffer();
+        const blob = new Blob([buffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `Trucks-${new Date().toISOString().split('T')[0]}.xlsx`;
+        document.body.appendChild(a);
+        a.click();
+        URL.revokeObjectURL(url);
+        document.body.removeChild(a);
+    };
+
     // Count trucks by category - fetch counts from backend
     const [categoryCounts, setCategoryCounts] = useState<Record<string, number>>({});
     
@@ -1709,8 +1776,12 @@ const Trucks: React.FC = () => {
                         <h1 className="text-3xl font-bold text-gray-900">Trucks</h1>
                         <div className="flex items-center gap-3">
                             <span className="text-2xl font-bold text-gray-700">({filteredTrucks.length})</span>
-                            <button className="text-gray-600 hover:text-gray-900 transition-colors">
-                                <Upload className="w-6 h-6" />
+                            <button
+                                onClick={handleExportTrucks}
+                                title="Export to Excel"
+                                className="w-10 h-10 bg-green-600 !text-white rounded-lg flex items-center justify-center hover:bg-green-700 transition-colors shadow-md"
+                            >
+                                <FileDown className="w-5 h-5" />
                             </button>
                             <button
                                 onClick={() => {

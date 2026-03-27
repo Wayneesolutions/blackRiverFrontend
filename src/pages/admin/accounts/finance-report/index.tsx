@@ -49,10 +49,13 @@ interface TripFinancialData {
   id: string;
   tripNumber: string;
   truckNumber: string;
+  truckId?: string;
+  driverName?: string;
   origin: string;
   destination: string;
   revenue: number;
   expenses: number;
+  fuelCost?: number;
   driverPay: number;
   netProfit: number;
   date: string;
@@ -760,56 +763,117 @@ const FinanceReport = () => {
                   </div>
                 </div>
 
-                {/* Percentage Breakdown */}
-                <div className="mt-6 grid grid-cols-1 md:grid-cols-3 gap-4">
-                  <div className="p-4 bg-gray-50 rounded-lg border border-gray-200">
-                    <div className="text-sm font-medium text-gray-700 mb-2">Revenue Breakdown</div>
-                    <div className="space-y-2">
-                      <div className="flex items-center justify-between">
-                        <span className="text-xs text-gray-600">Revenue</span>
-                        <span className="text-sm font-bold text-green-600">
-                          {totalRevenue > 0 ? '100.0' : '0.0'}%
-                        </span>
+                {/* Financial Health Analysis */}
+                <div className="mt-6 bg-gray-50 rounded-xl border border-gray-200 p-5">
+                  <h3 className="text-sm font-semibold text-gray-700 mb-4 flex items-center gap-2">
+                    <PieChart size={15} className="text-[#42aeec]" />
+                    Financial Health Analysis
+                  </h3>
+                  {(() => {
+                    const totalCosts = totalExpenses + totalPayroll;
+                    const costRatio = totalRevenue > 0 ? totalCosts / totalRevenue : 0;
+                    const costPct = totalRevenue > 0 ? (costRatio * 100) : 0;
+                    const profitPct = totalRevenue > 0 ? (totalNetProfit / totalRevenue) * 100 : 0;
+                    const isOverBudget = totalCosts > totalRevenue;
+                    // For the visual bar: revenue is 1 unit, costs may exceed it
+                    // Scale so max(revenue, costs) = 100%
+                    const maxVal = Math.max(totalRevenue, totalCosts);
+                    const revWidth = maxVal > 0 ? (totalRevenue / maxVal) * 100 : 0;
+                    const costWidth = maxVal > 0 ? (totalCosts / maxVal) * 100 : 0;
+                    return (
+                      <div className="space-y-4">
+                        {/* Revenue row */}
+                        <div>
+                          <div className="flex justify-between items-center mb-1.5">
+                            <div className="flex items-center gap-2">
+                              <div className="w-2.5 h-2.5 rounded-full bg-green-500"></div>
+                              <span className="text-xs font-medium text-gray-600">Revenue (Baseline)</span>
+                            </div>
+                            <span className="text-xs font-bold text-green-600">{formatCurrency(totalRevenue)}</span>
+                          </div>
+                          <div className="h-7 bg-gray-200 rounded-lg overflow-hidden">
+                            <div className="h-full bg-gradient-to-r from-green-400 to-green-500 rounded-lg flex items-center px-3 transition-all"
+                              style={{ width: `${revWidth}%`, minWidth: totalRevenue > 0 ? '30px' : '0' }}>
+                              <span className="text-xs font-bold text-white drop-shadow">100%</span>
+                            </div>
+                          </div>
+                        </div>
+                        {/* Total Costs row */}
+                        <div>
+                          <div className="flex justify-between items-center mb-1.5">
+                            <div className="flex items-center gap-2">
+                              <div className={`w-2.5 h-2.5 rounded-full ${isOverBudget ? 'bg-red-600' : 'bg-red-400'}`}></div>
+                              <span className="text-xs font-medium text-gray-600">Total Costs <span className="text-gray-400">(Expenses + Payroll)</span></span>
+                            </div>
+                            <div className="flex items-center gap-2">
+                              <span className={`text-xs font-bold px-2 py-0.5 rounded-full ${isOverBudget ? 'bg-red-100 text-red-700' : 'bg-orange-100 text-orange-700'}`}>
+                                {costPct.toFixed(1)}% of revenue
+                              </span>
+                              <span className="text-xs font-bold text-red-600">{formatCurrency(totalCosts)}</span>
+                            </div>
+                          </div>
+                          <div className="h-7 bg-gray-200 rounded-lg overflow-hidden relative">
+                            {/* Revenue limit marker */}
+                            {isOverBudget && totalRevenue > 0 && (
+                              <div className="absolute inset-y-0 border-r-2 border-dashed border-green-600 z-10"
+                                style={{ left: `${revWidth}%` }}>
+                                <span className="absolute -top-5 -translate-x-1/2 text-[9px] font-bold text-green-700 whitespace-nowrap">Revenue limit</span>
+                              </div>
+                            )}
+                            <div className="h-full rounded-lg flex items-center px-3 transition-all"
+                              style={{
+                                width: `${costWidth}%`,
+                                minWidth: totalCosts > 0 ? '30px' : '0',
+                                background: isOverBudget
+                                  ? 'linear-gradient(to right, #f87171, #dc2626)'
+                                  : 'linear-gradient(to right, #fca5a5, #ef4444)'
+                              }}>
+                              <span className="text-xs font-bold text-white drop-shadow">{costPct.toFixed(1)}%</span>
+                            </div>
+                          </div>
+                        </div>
+                        {/* Net result */}
+                        <div className={`flex items-center justify-between p-3 rounded-lg border ${totalNetProfit >= 0 ? 'bg-green-50 border-green-200' : 'bg-red-50 border-red-200'}`}>
+                          <div className="flex items-center gap-2">
+                            {totalNetProfit >= 0
+                              ? <TrendingUp size={16} className="text-green-600" />
+                              : <TrendingDown size={16} className="text-red-600" />}
+                            <span className="text-xs font-semibold text-gray-700">
+                              Net {totalNetProfit >= 0 ? 'Profit' : 'Loss'}
+                            </span>
+                          </div>
+                          <div className="text-right">
+                            <span className={`text-sm font-bold ${totalNetProfit >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                              {totalNetProfit < 0 ? '-' : ''}{formatCurrency(Math.abs(totalNetProfit))}
+                            </span>
+                            <span className="text-xs text-gray-500 ml-2">
+                              ({totalRevenue > 0 ? `${Math.abs(profitPct).toFixed(1)}%` : '0%'} {totalNetProfit >= 0 ? 'margin' : 'over budget'})
+                            </span>
+                          </div>
+                        </div>
+                        {/* Three KPI pills */}
+                        <div className="grid grid-cols-3 gap-3 pt-1">
+                          <div className="text-center p-2 bg-white rounded-lg border border-gray-200 shadow-sm">
+                            <div className="text-xs text-gray-500 mb-0.5">Expenses</div>
+                            <div className="text-sm font-bold text-red-600">{formatCurrency(totalExpenses)}</div>
+                            <div className="text-xs text-gray-400">{totalRevenue > 0 ? ((totalExpenses/totalRevenue)*100).toFixed(1) : '0'}%</div>
+                          </div>
+                          <div className="text-center p-2 bg-white rounded-lg border border-gray-200 shadow-sm">
+                            <div className="text-xs text-gray-500 mb-0.5">Payroll</div>
+                            <div className="text-sm font-bold text-blue-600">{formatCurrency(totalPayroll)}</div>
+                            <div className="text-xs text-gray-400">{totalRevenue > 0 ? ((totalPayroll/totalRevenue)*100).toFixed(1) : '0'}%</div>
+                          </div>
+                          <div className="text-center p-2 bg-white rounded-lg border border-gray-200 shadow-sm">
+                            <div className="text-xs text-gray-500 mb-0.5">Profit Margin</div>
+                            <div className={`text-sm font-bold ${profitPct >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                              {profitPct >= 0 ? '+' : ''}{profitPct.toFixed(1)}%
+                            </div>
+                            <div className="text-xs text-gray-400">{totalNetProfit >= 0 ? 'Profitable' : 'At Loss'}</div>
+                          </div>
+                        </div>
                       </div>
-                      <div className="w-full bg-gray-200 rounded-full h-2">
-                        <div className="bg-green-500 h-2 rounded-full" style={{ width: totalRevenue > 0 ? '100%' : '0%' }}></div>
-                      </div>
-                    </div>
-                  </div>
-                  <div className="p-4 bg-gray-50 rounded-lg border border-gray-200">
-                    <div className="text-sm font-medium text-gray-700 mb-2">Cost Breakdown</div>
-                    <div className="space-y-2">
-                      <div className="flex items-center justify-between">
-                        <span className="text-xs text-gray-600">Expenses + Payroll</span>
-                        <span className="text-sm font-bold text-red-600">
-                          {totalRevenue > 0 ? (((totalExpenses + totalPayroll) / totalRevenue) * 100).toFixed(1) : '0.0'}%
-                        </span>
-                      </div>
-                      <div className="w-full bg-gray-200 rounded-full h-2">
-                        <div
-                          className="bg-red-500 h-2 rounded-full"
-                          style={{ width: `${totalRevenue > 0 ? ((totalExpenses + totalPayroll) / totalRevenue) * 100 : 0}%` }}
-                        ></div>
-                      </div>
-                    </div>
-                  </div>
-                  <div className="p-4 bg-gray-50 rounded-lg border border-gray-200">
-                    <div className="text-sm font-medium text-gray-700 mb-2">Profit Margin</div>
-                    <div className="space-y-2">
-                      <div className="flex items-center justify-between">
-                        <span className="text-xs text-gray-600">Net Profit</span>
-                        <span className="text-sm font-bold text-purple-600">
-                          {totalRevenue > 0 ? ((totalNetProfit / totalRevenue) * 100).toFixed(1) : '0.0'}%
-                        </span>
-                      </div>
-                      <div className="w-full bg-gray-200 rounded-full h-2">
-                        <div
-                          className="bg-purple-500 h-2 rounded-full"
-                          style={{ width: `${totalRevenue > 0 ? (totalNetProfit / totalRevenue) * 100 : 0}%` }}
-                        ></div>
-                      </div>
-                    </div>
-                  </div>
+                    );
+                  })()}
                 </div>
               </div>
 
@@ -871,26 +935,27 @@ const FinanceReport = () => {
             <div className="space-y-4">
               {/* Period Selector for Truck-wise */}
               <div className="bg-white rounded-lg shadow-sm border border-gray-100 p-4">
-                <div className="flex items-center gap-4">
-                  <label className="text-sm font-medium text-gray-700">Group by Period:</label>
+                <div className="flex items-center gap-4 flex-wrap">
+                  <label className="text-sm font-medium text-gray-700">Timeline:</label>
                   <div className="flex gap-2 flex-wrap">
-                    {(['2weeks', '1month', 'monthly'] as TimePeriod[]).map((period) => {
+                    {(['2weeks', '1month', 'monthly', 'quarterly', 'half-yearly', 'yearly'] as TimePeriod[]).map((period) => {
                       const getPeriodLabel = (p: TimePeriod) => {
                         switch (p) {
                           case '2weeks': return '2 Weeks';
                           case '1month': return '1 Month';
-                          default: return p.charAt(0).toUpperCase() + p.slice(1);
+                          case 'monthly': return 'Monthly';
+                          case 'quarterly': return 'Quarterly';
+                          case 'half-yearly': return 'Half-Yearly';
+                          case 'yearly': return 'Yearly';
+                          default: return p;
                         }
                       };
                       return (
                         <button
                           key={period}
-                          onClick={() => {
-                            console.log('📊 [Truck Period] Changing period to:', period);
-                            setTimePeriod(period);
-                          }}
+                          onClick={() => setTimePeriod(period)}
                           disabled={loading}
-                          className={`px-4 py-2 rounded-lg font-medium text-sm transition-all ${timePeriod === period
+                          className={`px-3 py-1.5 rounded-lg font-medium text-xs transition-all ${timePeriod === period
                               ? 'bg-gradient-to-r from-[#42aeec] to-[#0ea3d8] !text-white shadow-md'
                               : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
                             } ${loading ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}`}
@@ -1050,81 +1115,121 @@ const FinanceReport = () => {
                 </div>
               </div>
 
-              <div className="bg-white rounded-lg shadow-sm border border-gray-100 p-6">
-                <div className="flex items-center justify-between mb-4">
-                  <h2 className="text-lg font-bold text-gray-900 flex items-center gap-2">
-                    <Truck size={20} className="text-[#42aeec]" />
+              <div className="bg-white rounded-xl shadow-sm border border-gray-100">
+                <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100">
+                  <h2 className="text-base font-bold text-gray-900 flex items-center gap-2">
+                    <Truck size={18} className="text-[#42aeec]" />
                     Truck-wise Financial Performance
                   </h2>
                   <button className="px-3 py-1.5 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg text-xs font-medium transition-all flex items-center gap-2">
-                    <Filter size={14} />
+                    <Filter size={13} />
                     Filter
                   </button>
                 </div>
                 <div className="overflow-x-auto">
-                  <table className="w-full">
-                    <thead className="bg-gray-50">
-                      <tr>
-                        <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Truck #</th>
-                        <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase">Revenue</th>
-                        <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase">Expenses</th>
-                        <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase">Payroll</th>
-                        <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase">Net Profit</th>
-                        <th className="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase">Profit Margin</th>
-                        <th className="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase">Trips</th>
-                        <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase">Miles</th>
-                        <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase">Fuel Cost</th>
-                        <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase">Maintenance</th>
+                  <table className="w-full" style={{ minWidth: '1100px' }}>
+                    <thead>
+                      <tr style={{ backgroundColor: '#42AEEC' }}>
+                        <th className="px-4 py-3 text-left text-xs font-semibold text-white uppercase tracking-wider whitespace-nowrap">Truck ID</th>
+                        <th className="px-4 py-3 text-left text-xs font-semibold text-white uppercase tracking-wider whitespace-nowrap">Truck #</th>
+                        <th className="px-4 py-3 text-right text-xs font-semibold text-white uppercase tracking-wider whitespace-nowrap">Revenue</th>
+                        <th className="px-4 py-3 text-right text-xs font-semibold text-white uppercase tracking-wider whitespace-nowrap">Expenses</th>
+                        <th className="px-4 py-3 text-right text-xs font-semibold text-white uppercase tracking-wider whitespace-nowrap">Payroll</th>
+                        <th className="px-4 py-3 text-right text-xs font-semibold text-white uppercase tracking-wider whitespace-nowrap">Net Profit</th>
+                        <th className="px-4 py-3 text-center text-xs font-semibold text-white uppercase tracking-wider whitespace-nowrap" style={{ minWidth: '100px' }}>Margin</th>
+                        <th className="px-4 py-3 text-center text-xs font-semibold text-white uppercase tracking-wider whitespace-nowrap">Trips</th>
+                        <th className="px-4 py-3 text-right text-xs font-semibold text-white uppercase tracking-wider whitespace-nowrap">Miles</th>
+                        <th className="px-4 py-3 text-right text-xs font-semibold text-white uppercase tracking-wider whitespace-nowrap">Rev/Mile</th>
+                        <th className="px-4 py-3 text-right text-xs font-semibold text-white uppercase tracking-wider whitespace-nowrap">Cost/Mile</th>
+                        <th className="px-4 py-3 text-right text-xs font-semibold text-white uppercase tracking-wider whitespace-nowrap">Profit/Mile</th>
+                        <th className="px-4 py-3 text-right text-xs font-semibold text-white uppercase tracking-wider whitespace-nowrap">Fuel Cost</th>
+                        <th className="px-4 py-3 text-right text-xs font-semibold text-white uppercase tracking-wider whitespace-nowrap">Maintenance</th>
                       </tr>
                     </thead>
-                    <tbody className="bg-white divide-y divide-gray-200">
-                      {truckFinancialData.map((truck) => {
-                        const profitMargin = (truck.netProfit / truck.revenue) * 100;
+                    <tbody className="divide-y divide-gray-100">
+                      {truckFinancialData.map((truck, idx) => {
+                        const profitMargin = truck.revenue > 0 ? (truck.netProfit / truck.revenue) * 100 : 0;
+                        const totalCost = truck.expenses + truck.payroll;
+                        const hasMiles = truck.miles > 0;
+                        const revPerMile = hasMiles ? truck.revenue / truck.miles : null;
+                        const costPerMile = hasMiles ? totalCost / truck.miles : null;
+                        const profitPerMile = hasMiles ? truck.netProfit / truck.miles : null;
+                        const shortId = truck.id ? truck.id.slice(-6).toUpperCase() : '—';
+                        const dash = <span className="text-gray-300 font-light">—</span>;
                         return (
-                          <tr key={truck.id} className="hover:bg-gray-50">
-                            <td className="px-4 py-3 text-sm font-medium text-gray-900">{truck.truckNumber}</td>
-                            <td className="px-4 py-3 text-sm text-right text-green-600 font-medium">{formatCurrency(truck.revenue)}</td>
-                            <td className="px-4 py-3 text-sm text-right text-red-600">{formatCurrency(truck.expenses)}</td>
-                            <td className="px-4 py-3 text-sm text-right text-blue-600">{formatCurrency(truck.payroll)}</td>
-                            <td className="px-4 py-3 text-sm text-right font-bold text-gray-900">{formatCurrency(truck.netProfit)}</td>
-                            <td className="px-4 py-3 text-sm text-center">
+                          <tr key={truck.id} className={`hover:bg-blue-50/40 transition-colors ${idx % 2 === 0 ? 'bg-white' : 'bg-gray-50/30'}`}>
+                            <td className="px-4 py-3 whitespace-nowrap">
+                              <span className="text-xs font-mono bg-blue-50 text-blue-600 border border-blue-200 px-2 py-0.5 rounded">#{shortId}</span>
+                            </td>
+                            <td className="px-4 py-3 text-sm font-bold text-gray-900 whitespace-nowrap">{truck.truckNumber}</td>
+                            <td className="px-4 py-3 text-sm text-right font-semibold text-green-600 whitespace-nowrap">{formatCurrency(truck.revenue)}</td>
+                            <td className="px-4 py-3 text-sm text-right text-red-500 whitespace-nowrap">{formatCurrency(truck.expenses)}</td>
+                            <td className="px-4 py-3 text-sm text-right text-blue-500 whitespace-nowrap">{formatCurrency(truck.payroll)}</td>
+                            <td className={`px-4 py-3 text-sm text-right font-bold whitespace-nowrap ${truck.netProfit >= 0 ? 'text-green-700' : 'text-red-600'}`}>
+                              {truck.netProfit < 0 ? '-' : ''}{formatCurrency(Math.abs(truck.netProfit))}
+                            </td>
+                            <td className="px-4 py-3 text-sm text-center whitespace-nowrap">
                               <div className="flex flex-col items-center gap-1">
-                                <span className="text-xs font-medium text-gray-700">{profitMargin.toFixed(1)}%</span>
-                                <div className="w-16 bg-gray-200 rounded-full h-1.5">
+                                <span className={`text-xs font-bold ${profitMargin > 30 ? 'text-green-600' : profitMargin > 0 ? 'text-yellow-600' : 'text-red-500'}`}>
+                                  {profitMargin.toFixed(1)}%
+                                </span>
+                                <div className="w-16 bg-gray-200 rounded-full h-1.5 overflow-hidden">
                                   <div
-                                    className={`h-1.5 rounded-full ${profitMargin > 50 ? 'bg-green-500' : profitMargin > 30 ? 'bg-yellow-500' : 'bg-red-500'}`}
-                                    style={{ width: `${Math.min(profitMargin, 100)}%` }}
-                                  ></div>
+                                    className={`h-1.5 rounded-full transition-all ${profitMargin > 30 ? 'bg-green-500' : profitMargin > 0 ? 'bg-yellow-400' : 'bg-red-400'}`}
+                                    style={{ width: `${Math.min(Math.max(profitMargin, 0), 100)}%` }}
+                                  />
                                 </div>
                               </div>
                             </td>
-                            <td className="px-4 py-3 text-sm text-center text-gray-700">{truck.trips}</td>
-                            <td className="px-4 py-3 text-sm text-right text-gray-700">{truck.miles.toLocaleString()}</td>
-                            <td className="px-4 py-3 text-sm text-right text-orange-600">{formatCurrency(truck.fuelCost)}</td>
-                            <td className="px-4 py-3 text-sm text-right text-purple-600">{formatCurrency(truck.maintenanceCost)}</td>
+                            <td className="px-4 py-3 text-sm text-center whitespace-nowrap">
+                              <span className={`inline-flex items-center justify-center min-w-[28px] h-6 px-2 rounded-full text-xs font-semibold ${truck.trips > 0 ? 'bg-[#42aeec]/10 text-[#42aeec]' : 'bg-gray-100 text-gray-500'}`}>
+                                {truck.trips}
+                              </span>
+                            </td>
+                            <td className="px-4 py-3 text-sm text-right text-gray-700 whitespace-nowrap">{hasMiles ? truck.miles.toLocaleString(undefined, { maximumFractionDigits: 1 }) : dash}</td>
+                            <td className="px-4 py-3 text-sm text-right whitespace-nowrap">{revPerMile !== null ? <span className="text-emerald-600 font-medium">${revPerMile.toFixed(2)}</span> : dash}</td>
+                            <td className="px-4 py-3 text-sm text-right whitespace-nowrap">{costPerMile !== null ? <span className="text-red-500">${costPerMile.toFixed(2)}</span> : dash}</td>
+                            <td className="px-4 py-3 text-sm text-right whitespace-nowrap">
+                              {profitPerMile !== null
+                                ? <span className={profitPerMile >= 0 ? 'text-green-600 font-medium' : 'text-red-500 font-medium'}>{profitPerMile < 0 ? '-' : ''}${Math.abs(profitPerMile).toFixed(2)}</span>
+                                : dash}
+                            </td>
+                            <td className="px-4 py-3 text-sm text-right text-orange-500 whitespace-nowrap">{formatCurrency(truck.fuelCost)}</td>
+                            <td className="px-4 py-3 text-sm text-right text-purple-500 whitespace-nowrap">{formatCurrency(truck.maintenanceCost)}</td>
                           </tr>
                         );
                       })}
-                      <tr className="bg-gray-50 font-bold">
-                        <td className="px-4 py-3 text-sm text-gray-900">Total</td>
-                        <td className="px-4 py-3 text-sm text-right text-green-600">{formatCurrency(totalRevenue)}</td>
-                        <td className="px-4 py-3 text-sm text-right text-red-600">{formatCurrency(totalExpenses)}</td>
-                        <td className="px-4 py-3 text-sm text-right text-blue-600">{formatCurrency(totalPayroll)}</td>
-                        <td className="px-4 py-3 text-sm text-right text-gray-900">{formatCurrency(totalNetProfit)}</td>
-                        <td className="px-4 py-3 text-sm text-center text-gray-700">
-                          {totalRevenue > 0 ? ((totalNetProfit / totalRevenue) * 100).toFixed(1) : '0.0'}%
-                        </td>
-                        <td className="px-4 py-3 text-sm text-center text-gray-700">{totalTrips}</td>
-                        <td className="px-4 py-3 text-sm text-right text-gray-700">
-                          {truckFinancialData.reduce((sum, t) => sum + t.miles, 0).toLocaleString()}
-                        </td>
-                        <td className="px-4 py-3 text-sm text-right text-orange-600">
-                          {formatCurrency(truckFinancialData.reduce((sum, t) => sum + t.fuelCost, 0))}
-                        </td>
-                        <td className="px-4 py-3 text-sm text-right text-purple-600">
-                          {formatCurrency(truckFinancialData.reduce((sum, t) => sum + t.maintenanceCost, 0))}
-                        </td>
-                      </tr>
+                      {truckFinancialData.length === 0 && (
+                        <tr><td colSpan={14} className="px-4 py-10 text-center text-gray-400 text-sm">No truck data available for this period</td></tr>
+                      )}
+                      {truckFinancialData.length > 0 && (() => {
+                        const totMiles = truckFinancialData.reduce((s, t) => s + t.miles, 0);
+                        const totRev = truckFinancialData.reduce((s, t) => s + t.revenue, 0);
+                        const totExp = truckFinancialData.reduce((s, t) => s + t.expenses, 0);
+                        const totPay = truckFinancialData.reduce((s, t) => s + t.payroll, 0);
+                        const totCost = totExp + totPay;
+                        const totProfit = truckFinancialData.reduce((s, t) => s + t.netProfit, 0);
+                        const totTrips = truckFinancialData.reduce((s, t) => s + t.trips, 0);
+                        const hasTotMiles = totMiles > 0;
+                        const totMargin = totRev > 0 ? (totProfit / totRev) * 100 : 0;
+                        return (
+                          <tr className="font-bold border-t-2 border-[#42aeec]/30 bg-[#42aeec]/5">
+                            <td colSpan={2} className="px-4 py-3 text-sm text-gray-800 font-bold">Fleet Total</td>
+                            <td className="px-4 py-3 text-sm text-right text-green-700 font-bold whitespace-nowrap">{formatCurrency(totRev)}</td>
+                            <td className="px-4 py-3 text-sm text-right text-red-600 font-bold whitespace-nowrap">{formatCurrency(totExp)}</td>
+                            <td className="px-4 py-3 text-sm text-right text-blue-600 font-bold whitespace-nowrap">{formatCurrency(totPay)}</td>
+                            <td className={`px-4 py-3 text-sm text-right font-bold whitespace-nowrap ${totProfit >= 0 ? 'text-green-700' : 'text-red-600'}`}>{formatCurrency(totProfit)}</td>
+                            <td className="px-4 py-3 text-sm text-center font-bold text-gray-700 whitespace-nowrap">{totMargin.toFixed(1)}%</td>
+                            <td className="px-4 py-3 text-sm text-center font-bold text-gray-700 whitespace-nowrap">{totTrips}</td>
+                            <td className="px-4 py-3 text-sm text-right text-gray-700 font-bold whitespace-nowrap">{hasTotMiles ? totMiles.toLocaleString(undefined, { maximumFractionDigits: 1 }) : <span className="text-gray-300 font-light">—</span>}</td>
+                            <td className="px-4 py-3 text-sm text-right text-emerald-600 font-bold whitespace-nowrap">{hasTotMiles ? `$${(totRev/totMiles).toFixed(2)}` : <span className="text-gray-300 font-light">—</span>}</td>
+                            <td className="px-4 py-3 text-sm text-right text-red-500 font-bold whitespace-nowrap">{hasTotMiles ? `$${(totCost/totMiles).toFixed(2)}` : <span className="text-gray-300 font-light">—</span>}</td>
+                            <td className={`px-4 py-3 text-sm text-right font-bold whitespace-nowrap ${totProfit >= 0 ? 'text-green-600' : 'text-red-500'}`}>{hasTotMiles ? `$${(totProfit/totMiles).toFixed(2)}` : <span className="text-gray-300 font-light">—</span>}</td>
+                            <td className="px-4 py-3 text-sm text-right text-orange-500 font-bold whitespace-nowrap">{formatCurrency(truckFinancialData.reduce((s,t)=>s+t.fuelCost,0))}</td>
+                            <td className="px-4 py-3 text-sm text-right text-purple-500 font-bold whitespace-nowrap">{formatCurrency(truckFinancialData.reduce((s,t)=>s+t.maintenanceCost,0))}</td>
+                          </tr>
+                        );
+                      })()}
                     </tbody>
                   </table>
                 </div>
@@ -1137,26 +1242,27 @@ const FinanceReport = () => {
             <div className="space-y-4">
               {/* Period Selector for Trip-wise */}
               <div className="bg-white rounded-lg shadow-sm border border-gray-100 p-4">
-                <div className="flex items-center gap-4">
-                  <label className="text-sm font-medium text-gray-700">Group by Period:</label>
+                <div className="flex items-center gap-4 flex-wrap">
+                  <label className="text-sm font-medium text-gray-700">Timeline:</label>
                   <div className="flex gap-2 flex-wrap">
-                    {(['2weeks', '1month', 'monthly'] as TimePeriod[]).map((period) => {
+                    {(['2weeks', '1month', 'monthly', 'quarterly', 'half-yearly', 'yearly'] as TimePeriod[]).map((period) => {
                       const getPeriodLabel = (p: TimePeriod) => {
                         switch (p) {
                           case '2weeks': return '2 Weeks';
                           case '1month': return '1 Month';
-                          default: return p.charAt(0).toUpperCase() + p.slice(1);
+                          case 'monthly': return 'Monthly';
+                          case 'quarterly': return 'Quarterly';
+                          case 'half-yearly': return 'Half-Yearly';
+                          case 'yearly': return 'Yearly';
+                          default: return p;
                         }
                       };
                       return (
                         <button
                           key={period}
-                          onClick={() => {
-                            console.log('📊 [Trip Period] Changing period to:', period);
-                            setTimePeriod(period);
-                          }}
+                          onClick={() => setTimePeriod(period)}
                           disabled={loading}
-                          className={`px-4 py-2 rounded-lg font-medium text-sm transition-all ${timePeriod === period
+                          className={`px-3 py-1.5 rounded-lg font-medium text-xs transition-all ${timePeriod === period
                               ? 'bg-gradient-to-r from-[#42aeec] to-[#0ea3d8] !text-white shadow-md'
                               : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
                             } ${loading ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}`}
@@ -1301,14 +1407,14 @@ const FinanceReport = () => {
                 </div>
               </div>
 
-              <div className="bg-white rounded-lg shadow-sm border border-gray-100 p-6">
-                <div className="flex items-center justify-between mb-4">
-                  <h2 className="text-lg font-bold text-gray-900 flex items-center gap-2">
-                    <MapPin size={20} className="text-[#42aeec]" />
+              <div className="bg-white rounded-xl shadow-sm border border-gray-100">
+                <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100">
+                  <h2 className="text-base font-bold text-gray-900 flex items-center gap-2">
+                    <MapPin size={18} className="text-[#42aeec]" />
                     Trip-wise Financial Details
                   </h2>
                   <button className="px-3 py-1.5 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg text-xs font-medium transition-all flex items-center gap-2">
-                    <Filter size={14} />
+                    <Filter size={13} />
                     Filter
                   </button>
                 </div>
@@ -1370,117 +1476,136 @@ const FinanceReport = () => {
                     ref={bottomScrollRef}
                     className="table-container-with-scrollbar"
                   >
-                    <table className="w-full">
-                      <thead className="bg-gray-50">
-                        <tr>
-                          <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Trip #</th>
-                          <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Truck</th>
-                          <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Route</th>
-                          <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase">Total Miles</th>
-                          <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Start Date</th>
-                          <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">End Date</th>
-                          <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase">Revenue</th>
-                          <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase">Expenses</th>
-                          <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase">Driver Pay</th>
-                          <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase">Net Profit</th>
-                          <th className="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase">Profit Margin</th>
-                          <th className="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase">Status</th>
+                    <table className="w-full" style={{ minWidth: '1400px' }}>
+                      <thead>
+                        <tr style={{ backgroundColor: '#42AEEC' }}>
+                          <th className="px-4 py-3 text-left text-xs font-semibold text-white uppercase tracking-wider whitespace-nowrap">Trip ID</th>
+                          <th className="px-4 py-3 text-left text-xs font-semibold text-white uppercase tracking-wider whitespace-nowrap">Trip #</th>
+                          <th className="px-4 py-3 text-left text-xs font-semibold text-white uppercase tracking-wider whitespace-nowrap">Truck</th>
+                          <th className="px-4 py-3 text-left text-xs font-semibold text-white uppercase tracking-wider whitespace-nowrap">Driver</th>
+                          <th className="px-4 py-3 text-left text-xs font-semibold text-white uppercase tracking-wider" style={{ minWidth: '180px' }}>Route</th>
+                          <th className="px-4 py-3 text-right text-xs font-semibold text-white uppercase tracking-wider whitespace-nowrap">Miles</th>
+                          <th className="px-4 py-3 text-left text-xs font-semibold text-white uppercase tracking-wider whitespace-nowrap">Start Date</th>
+                          <th className="px-4 py-3 text-left text-xs font-semibold text-white uppercase tracking-wider whitespace-nowrap">End Date</th>
+                          <th className="px-4 py-3 text-right text-xs font-semibold text-white uppercase tracking-wider whitespace-nowrap">Revenue</th>
+                          <th className="px-4 py-3 text-right text-xs font-semibold text-white uppercase tracking-wider whitespace-nowrap">Fuel Cost</th>
+                          <th className="px-4 py-3 text-right text-xs font-semibold text-white uppercase tracking-wider whitespace-nowrap">Other Exp</th>
+                          <th className="px-4 py-3 text-right text-xs font-semibold text-white uppercase tracking-wider whitespace-nowrap">Driver Pay</th>
+                          <th className="px-4 py-3 text-right text-xs font-semibold text-white uppercase tracking-wider whitespace-nowrap">Net Profit</th>
+                          <th className="px-4 py-3 text-right text-xs font-semibold text-white uppercase tracking-wider whitespace-nowrap">Rev/Mile</th>
+                          <th className="px-4 py-3 text-right text-xs font-semibold text-white uppercase tracking-wider whitespace-nowrap">Cost/Mile</th>
+                          <th className="px-4 py-3 text-right text-xs font-semibold text-white uppercase tracking-wider whitespace-nowrap">Profit/Mile</th>
+                          <th className="px-4 py-3 text-center text-xs font-semibold text-white uppercase tracking-wider whitespace-nowrap" style={{ minWidth: '100px' }}>Margin</th>
+                          <th className="px-4 py-3 text-center text-xs font-semibold text-white uppercase tracking-wider whitespace-nowrap">Status</th>
                         </tr>
                       </thead>
-                      <tbody className="bg-white divide-y divide-gray-200">
-                        {tripFinancialData.map((trip) => {
-                          // Ensure all values are numbers, defaulting to 0 if undefined/null
+                      <tbody className="divide-y divide-gray-100">
+                        {tripFinancialData.map((trip, idx) => {
                           const revenue = Number(trip.revenue) || 0;
-                          const expenses = Number(trip.expenses) || 0;
+                          const fuelCost = Number(trip.fuelCost) || 0;
+                          const otherExp = Math.max(0, (Number(trip.expenses) || 0) - fuelCost);
                           const driverPay = Number(trip.driverPay) || 0;
                           const netProfit = Number(trip.netProfit) || 0;
-
-                          // Calculate profit margin safely
+                          const miles = Number(trip.totalMiles) || 0;
+                          const hasMiles = miles > 0;
                           const profitMargin = revenue > 0 ? (netProfit / revenue) * 100 : 0;
-
-                          // Format dates safely
-                          let formattedStartDate = 'N/A';
-                          let formattedEndDate = 'N/A';
-                          try {
-                            if (trip.startDate) {
-                              formattedStartDate = new Date(trip.startDate).toLocaleDateString();
-                            }
-                          } catch (e) {
-                            formattedStartDate = 'N/A';
-                          }
-                          try {
-                            if (trip.endDate) {
-                              formattedEndDate = new Date(trip.endDate).toLocaleDateString();
-                            }
-                          } catch (e) {
-                            formattedEndDate = 'N/A';
-                          }
-
+                          const totalCost = (Number(trip.expenses) || 0) + driverPay;
+                          const revPerMile = hasMiles ? revenue / miles : null;
+                          const costPerMile = hasMiles ? totalCost / miles : null;
+                          const profitPerMile = hasMiles ? netProfit / miles : null;
+                          const shortId = trip.id ? trip.id.slice(-6).toUpperCase() : '—';
+                          const dash = <span className="text-gray-300 font-light">—</span>;
+                          let formattedStartDate = '—';
+                          let formattedEndDate = '—';
+                          try { if (trip.startDate) formattedStartDate = new Date(trip.startDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: '2-digit' }); } catch {}
+                          try { if (trip.endDate) formattedEndDate = new Date(trip.endDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: '2-digit' }); } catch {}
+                          const routeText = trip.origin && trip.destination && trip.origin !== 'N/A' && trip.destination !== 'N/A'
+                            ? `${trip.origin} → ${trip.destination}`
+                            : trip.origin !== 'N/A' ? trip.origin : trip.destination !== 'N/A' ? trip.destination : '—';
                           return (
-                            <tr key={trip.id} className="hover:bg-gray-50">
-                              <td className="px-4 py-3 text-sm font-medium text-gray-900">{trip.tripNumber || 'N/A'}</td>
-                              <td className="px-4 py-3 text-sm text-gray-700">{trip.truckNumber || 'N/A'}</td>
-                              <td className="px-4 py-3 text-sm text-gray-700">
-                                <div className="flex items-center gap-1">
-                                  <span>{trip.origin || 'N/A'}</span>
-                                  <ArrowUpRight size={12} className="text-gray-400" />
-                                  <span>{trip.destination || 'N/A'}</span>
+                            <tr key={trip.id} className={`hover:bg-blue-50/40 transition-colors ${idx % 2 === 0 ? 'bg-white' : 'bg-gray-50/30'}`}>
+                              <td className="px-4 py-3 whitespace-nowrap">
+                                <span className="text-xs font-mono bg-purple-50 text-purple-600 border border-purple-200 px-2 py-0.5 rounded">#{shortId}</span>
+                              </td>
+                              <td className="px-4 py-3 text-sm font-bold text-gray-900 whitespace-nowrap">{trip.tripNumber || '—'}</td>
+                              <td className="px-4 py-3 text-sm font-semibold text-gray-800 whitespace-nowrap">{trip.truckNumber || '—'}</td>
+                              <td className="px-4 py-3 text-sm text-gray-700 whitespace-nowrap">{trip.driverName || <span className="text-gray-300">—</span>}</td>
+                              <td className="px-4 py-3 text-sm text-gray-600" title={routeText}>
+                                <div className="flex items-center gap-1 min-w-0">
+                                  <span className="text-gray-700 font-medium truncate" style={{ maxWidth: '80px' }} title={trip.origin || ''}>{trip.origin && trip.origin !== 'N/A' ? trip.origin : <span className="text-gray-300">—</span>}</span>
+                                  <ArrowUpRight size={12} className="text-[#42aeec] flex-shrink-0" />
+                                  <span className="text-gray-700 font-medium truncate" style={{ maxWidth: '80px' }} title={trip.destination || ''}>{trip.destination && trip.destination !== 'N/A' ? trip.destination : <span className="text-gray-300">—</span>}</span>
                                 </div>
                               </td>
-                              <td className="px-4 py-3 text-sm text-right text-gray-700">{(trip.totalMiles || 0).toLocaleString()}</td>
-                              <td className="px-4 py-3 text-sm text-gray-700">{formattedStartDate}</td>
-                              <td className="px-4 py-3 text-sm text-gray-700">{formattedEndDate}</td>
-                              <td className="px-4 py-3 text-sm text-right text-green-600 font-medium">{formatCurrency(revenue)}</td>
-                              <td className="px-4 py-3 text-sm text-right text-red-600">{formatCurrency(expenses)}</td>
-                              <td className="px-4 py-3 text-sm text-right text-blue-600">{formatCurrency(driverPay)}</td>
-                              <td className="px-4 py-3 text-sm text-right font-bold text-gray-900">{formatCurrency(netProfit)}</td>
-                              <td className="px-4 py-3 text-sm text-center">
+                              <td className="px-4 py-3 text-sm text-right text-gray-700 whitespace-nowrap">{hasMiles ? miles.toLocaleString(undefined, { maximumFractionDigits: 1 }) : dash}</td>
+                              <td className="px-4 py-3 text-sm text-gray-600 whitespace-nowrap">{formattedStartDate}</td>
+                              <td className="px-4 py-3 text-sm text-gray-600 whitespace-nowrap">{formattedEndDate}</td>
+                              <td className="px-4 py-3 text-sm text-right font-semibold text-green-600 whitespace-nowrap">{formatCurrency(revenue)}</td>
+                              <td className="px-4 py-3 text-sm text-right whitespace-nowrap">{fuelCost > 0 ? <span className="text-orange-500">{formatCurrency(fuelCost)}</span> : dash}</td>
+                              <td className="px-4 py-3 text-sm text-right whitespace-nowrap">{otherExp > 0 ? <span className="text-red-500">{formatCurrency(otherExp)}</span> : dash}</td>
+                              <td className="px-4 py-3 text-sm text-right whitespace-nowrap">{driverPay > 0 ? <span className="text-blue-500">{formatCurrency(driverPay)}</span> : dash}</td>
+                              <td className={`px-4 py-3 text-sm text-right font-bold whitespace-nowrap ${netProfit >= 0 ? 'text-green-700' : 'text-red-600'}`}>
+                                {netProfit < 0 ? '-' : ''}{formatCurrency(Math.abs(netProfit))}
+                              </td>
+                              <td className="px-4 py-3 text-sm text-right whitespace-nowrap">{revPerMile !== null ? <span className="text-emerald-600 font-medium">${revPerMile.toFixed(2)}</span> : dash}</td>
+                              <td className="px-4 py-3 text-sm text-right whitespace-nowrap">{costPerMile !== null ? <span className="text-red-500">${costPerMile.toFixed(2)}</span> : dash}</td>
+                              <td className="px-4 py-3 text-sm text-right whitespace-nowrap">
+                                {profitPerMile !== null
+                                  ? <span className={profitPerMile >= 0 ? 'text-green-600 font-medium' : 'text-red-500 font-medium'}>{profitPerMile < 0 ? '-' : ''}${Math.abs(profitPerMile).toFixed(2)}</span>
+                                  : dash}
+                              </td>
+                              <td className="px-4 py-3 text-sm text-center whitespace-nowrap">
                                 <div className="flex flex-col items-center gap-1">
-                                  <span className="text-xs font-medium text-gray-700">{isNaN(profitMargin) ? '0.0' : profitMargin.toFixed(1)}%</span>
-                                  <div className="w-16 bg-gray-200 rounded-full h-1.5">
-                                    <div
-                                      className={`h-1.5 rounded-full ${profitMargin > 40 ? 'bg-green-500' : profitMargin > 25 ? 'bg-yellow-500' : 'bg-red-500'}`}
-                                      style={{ width: `${Math.min(Math.max(profitMargin, 0), 100)}%` }}
-                                    ></div>
+                                  <span className={`text-xs font-bold ${profitMargin > 30 ? 'text-green-600' : profitMargin > 0 ? 'text-yellow-600' : 'text-red-500'}`}>
+                                    {isNaN(profitMargin) ? '0.0' : profitMargin.toFixed(1)}%
+                                  </span>
+                                  <div className="w-14 bg-gray-200 rounded-full h-1.5 overflow-hidden">
+                                    <div className={`h-1.5 rounded-full ${profitMargin > 30 ? 'bg-green-500' : profitMargin > 0 ? 'bg-yellow-400' : 'bg-red-400'}`}
+                                      style={{ width: `${Math.min(Math.max(profitMargin, 0), 100)}%` }} />
                                   </div>
                                 </div>
                               </td>
-                              <td className="px-4 py-3 text-sm text-center">
-                                <span className={`px-2 py-1 rounded-full text-xs font-medium border ${getStatusBadge(trip.status || 'planned')}`}>
+                              <td className="px-4 py-3 text-sm text-center whitespace-nowrap">
+                                <span className={`px-2.5 py-0.5 rounded-full text-xs font-semibold border ${getStatusBadge(trip.status || 'planned')}`}>
                                   {(trip.status || 'planned').replace('-', ' ')}
                                 </span>
                               </td>
                             </tr>
                           );
                         })}
-                        <tr className="bg-gray-50 font-bold">
-                          <td colSpan={3} className="px-4 py-3 text-sm text-gray-900">Total</td>
-                          <td className="px-4 py-3 text-sm text-right text-gray-700">
-                            {tripFinancialData.reduce((sum, t) => sum + (Number(t.totalMiles) || 0), 0).toLocaleString()}
-                          </td>
-                          <td colSpan={2} className="px-4 py-3"></td>
-                          <td className="px-4 py-3 text-sm text-right text-green-600">
-                            {formatCurrency(tripFinancialData.reduce((sum, t) => sum + (Number(t.revenue) || 0), 0))}
-                          </td>
-                          <td className="px-4 py-3 text-sm text-right text-red-600">
-                            {formatCurrency(tripFinancialData.reduce((sum, t) => sum + (Number(t.expenses) || 0), 0))}
-                          </td>
-                          <td className="px-4 py-3 text-sm text-right text-blue-600">
-                            {formatCurrency(tripFinancialData.reduce((sum, t) => sum + (Number(t.driverPay) || 0), 0))}
-                          </td>
-                          <td className="px-4 py-3 text-sm text-right text-gray-900">
-                            {formatCurrency(tripFinancialData.reduce((sum, t) => sum + (Number(t.netProfit) || 0), 0))}
-                          </td>
-                          <td className="px-4 py-3 text-sm text-center text-gray-700">
-                            {(() => {
-                              const totalRevenue = tripFinancialData.reduce((sum, t) => sum + (Number(t.revenue) || 0), 0);
-                              const totalProfit = tripFinancialData.reduce((sum, t) => sum + (Number(t.netProfit) || 0), 0);
-                              return totalRevenue > 0 ? ((totalProfit / totalRevenue) * 100).toFixed(1) : '0.0';
-                            })()}
-                            %
-                          </td>
-                          <td className="px-4 py-3"></td>
-                        </tr>
+                        {tripFinancialData.length === 0 && (
+                          <tr><td colSpan={18} className="px-4 py-10 text-center text-gray-400 text-sm">No trip data available for this period</td></tr>
+                        )}
+                        {tripFinancialData.length > 0 && (() => {
+                          const totMiles = tripFinancialData.reduce((s,t) => s + (Number(t.totalMiles)||0), 0);
+                          const totRev = tripFinancialData.reduce((s,t) => s + (Number(t.revenue)||0), 0);
+                          const totFuelCost = tripFinancialData.reduce((s,t) => s + (Number(t.fuelCost)||0), 0);
+                          const totOtherExp = tripFinancialData.reduce((s,t) => s + Math.max(0, (Number(t.expenses)||0) - (Number(t.fuelCost)||0)), 0);
+                          const totPay = tripFinancialData.reduce((s,t) => s + (Number(t.driverPay)||0), 0);
+                          const totProfit = tripFinancialData.reduce((s,t) => s + (Number(t.netProfit)||0), 0);
+                          const totCost = totFuelCost + totOtherExp + totPay;
+                          const hasTotMiles = totMiles > 0;
+                          const totMargin = totRev > 0 ? (totProfit / totRev) * 100 : 0;
+                          const dash = <span className="text-gray-300 font-light">—</span>;
+                          return (
+                            <tr className="font-bold border-t-2 border-[#42aeec]/30 bg-[#42aeec]/5">
+                              <td colSpan={4} className="px-4 py-3 text-sm text-gray-800 font-bold whitespace-nowrap">All Trips Total</td>
+                              <td className="px-4 py-3 whitespace-nowrap"></td>
+                              <td className="px-4 py-3 text-sm text-right text-gray-700 font-bold whitespace-nowrap">{hasTotMiles ? totMiles.toLocaleString(undefined, { maximumFractionDigits: 1 }) : dash}</td>
+                              <td colSpan={2} className="px-4 py-3 whitespace-nowrap"></td>
+                              <td className="px-4 py-3 text-sm text-right text-green-700 font-bold whitespace-nowrap">{formatCurrency(totRev)}</td>
+                              <td className="px-4 py-3 text-sm text-right text-orange-500 font-bold whitespace-nowrap">{totFuelCost > 0 ? formatCurrency(totFuelCost) : dash}</td>
+                              <td className="px-4 py-3 text-sm text-right text-red-500 font-bold whitespace-nowrap">{totOtherExp > 0 ? formatCurrency(totOtherExp) : dash}</td>
+                              <td className="px-4 py-3 text-sm text-right text-blue-500 font-bold whitespace-nowrap">{totPay > 0 ? formatCurrency(totPay) : dash}</td>
+                              <td className={`px-4 py-3 text-sm text-right font-bold whitespace-nowrap ${totProfit >= 0 ? 'text-green-700' : 'text-red-600'}`}>{formatCurrency(totProfit)}</td>
+                              <td className="px-4 py-3 text-sm text-right text-emerald-600 font-bold whitespace-nowrap">{hasTotMiles ? `$${(totRev/totMiles).toFixed(2)}` : dash}</td>
+                              <td className="px-4 py-3 text-sm text-right text-red-500 font-bold whitespace-nowrap">{hasTotMiles ? `$${(totCost/totMiles).toFixed(2)}` : dash}</td>
+                              <td className={`px-4 py-3 text-sm text-right font-bold whitespace-nowrap ${totProfit >= 0 ? 'text-green-600' : 'text-red-500'}`}>{hasTotMiles ? `$${(totProfit/totMiles).toFixed(2)}` : dash}</td>
+                              <td className="px-4 py-3 text-sm text-center font-bold text-gray-700 whitespace-nowrap">{totMargin.toFixed(1)}%</td>
+                              <td className="px-4 py-3 whitespace-nowrap"></td>
+                            </tr>
+                          );
+                        })()}
                       </tbody>
                     </table>
                   </div>

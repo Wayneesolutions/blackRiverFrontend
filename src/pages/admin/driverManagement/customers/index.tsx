@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
-import { Plus, Download, Trash2, ChevronUp, ChevronDown, X, HelpCircle, Edit } from 'lucide-react';
+import { Plus, Download, Trash2, ChevronUp, ChevronDown, X, HelpCircle, Edit, FileDown } from 'lucide-react';
+import ExcelJS from 'exceljs';
 import { FaTimes, FaCheckCircle, FaExclamationTriangle } from 'react-icons/fa';
 import * as customerApi from '../../../../axios/api/customer';
 import AddressSearch from '../../../../components/common/AddressSearch';
@@ -284,6 +285,60 @@ const CustomersPage = () => {
   };
 
   const filteredCustomers = customers;
+
+  const handleExportCustomers = async () => {
+    const workbook = new ExcelJS.Workbook();
+    workbook.creator = 'Logistiq Innovation';
+    workbook.created = new Date();
+    const sheet = workbook.addWorksheet('Customers', { views: [{ state: 'frozen', ySplit: 1 }] });
+
+    sheet.columns = [
+      { header: 'Customer Name',  key: 'name',          width: 28 },
+      { header: 'Type',           key: 'type',          width: 18 },
+      { header: 'Address',        key: 'address',       width: 30 },
+      { header: 'City',           key: 'city',          width: 16 },
+      { header: 'Email',          key: 'email',         width: 28 },
+      { header: 'Phone',          key: 'phone',         width: 18 },
+      { header: 'Status',         key: 'status',        width: 14 },
+      { header: 'Last Load Date', key: 'lastLoadDate',  width: 18 },
+    ];
+
+    const headerRow = sheet.getRow(1);
+    headerRow.font = { bold: true, color: { argb: 'FFFFFFFF' }, size: 11 };
+    headerRow.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF42AEEC' } };
+    headerRow.alignment = { vertical: 'middle', horizontal: 'center' };
+    headerRow.height = 22;
+
+    filteredCustomers.forEach((c: any) => {
+      const row = sheet.addRow({
+        name:         c.name         || '',
+        type:         c.type         || '',
+        address:      c.address      || c.customerDetails?.address || '',
+        city:         c.city         || '',
+        email:        c.customerDetails?.emailPrimary || '',
+        phone:        c.customerDetails?.phonePrimary || '',
+        status:       c.status       || '',
+        lastLoadDate: c.lastLoadDate ? new Date(c.lastLoadDate).toLocaleDateString() : '',
+      });
+      row.alignment = { vertical: 'middle' };
+    });
+
+    sheet.eachRow((row, i) => {
+      if (i > 1) row.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: i % 2 === 0 ? 'FFF0F9FF' : 'FFFFFFFF' } };
+      row.eachCell(cell => { cell.border = { bottom: { style: 'thin', color: { argb: 'FFE2E8F0' } } }; });
+    });
+
+    const buffer = await workbook.xlsx.writeBuffer();
+    const blob = new Blob([buffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `Customers-${new Date().toISOString().split('T')[0]}.xlsx`;
+    document.body.appendChild(a);
+    a.click();
+    URL.revokeObjectURL(url);
+    document.body.removeChild(a);
+  };
 
   const handleSort = (key: keyof Customer) => {
     const newDirection = sortConfig.key === key && sortConfig.direction === 'asc' ? 'desc' : 'asc';
@@ -622,8 +677,12 @@ const CustomersPage = () => {
             <h1 className="text-3xl font-bold text-gray-900">Customers</h1>
             <div className="flex items-center gap-3">
               <span className="text-2xl font-bold text-gray-700">({filteredCustomers.length})</span>
-              <button className="text-gray-600 hover:text-gray-900 transition-colors">
-                <Download className="w-6 h-6" />
+              <button
+                onClick={handleExportCustomers}
+                title="Export to Excel"
+                className="w-10 h-10 bg-green-600 !text-white rounded-lg flex items-center justify-center hover:bg-green-700 transition-colors shadow-md"
+              >
+                <FileDown className="w-5 h-5" />
               </button>
               <button 
                 onClick={() => {

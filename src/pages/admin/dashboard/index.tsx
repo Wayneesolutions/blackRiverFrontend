@@ -10,7 +10,8 @@ import {
     ShieldCheck,
     DollarSign,
     Heart,
-    Settings
+    Settings,
+    FileText
 } from 'lucide-react';
 import { MapContainer, TileLayer, Marker, Popup, useMap } from 'react-leaflet';
 import L from 'leaflet';
@@ -379,6 +380,20 @@ const Index = () => {
                 accentColor: "bg-red-500",
                 percentage: stats.openIncidents > 0 ? Math.min(100, (stats.openIncidents / 20) * 100) : 0,
                 route: "/admin/healthandsafety",
+            },
+            {
+                id: "manifest",
+                title: "Manifest",
+                value: stats.activeLoads.toString(),
+                change: "+0%",
+                trend: "up",
+                subtitle: "Active Trips",
+                icon: FileText,
+                bgColor: "bg-teal-50",
+                iconColor: "text-teal-600",
+                accentColor: "bg-teal-500",
+                percentage: stats.activeLoads > 0 ? Math.min(100, (stats.activeLoads / 50) * 100) : 0,
+                route: "/admin/manifest",
             }
         ];
     }, [dashboardData]);

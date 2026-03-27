@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Plus, Upload, ChevronUp, ChevronDown, HelpCircle, Clock, X, Image as ImageIcon, Edit, Trash2, Calendar, ChevronLeft, ChevronRight, FileText } from 'lucide-react';
+import { Plus, Upload, ChevronUp, ChevronDown, HelpCircle, Clock, X, Image as ImageIcon, Edit, Trash2, Calendar, ChevronLeft, ChevronRight, FileText, FileDown } from 'lucide-react';
+import ExcelJS from 'exceljs';
 import { getAllTrailers, createTrailer, updateTrailer, deleteTrailer, getTrailerById } from '../../../../axios/api/trailer';
 import { getAllDrivers, type Driver } from '../../../../axios/api/driver';
 import { createVehicleDocument, updateVehicleDocument } from '../../../../axios/api/compilance.vehicledoc';
@@ -1512,6 +1513,76 @@ const TrailersPage: React.FC = () => {
 
     const filteredTrailers = getFilteredTrailers();
 
+    const handleExportTrailers = async () => {
+        const workbook = new ExcelJS.Workbook();
+        workbook.creator = 'Logistiq Innovation';
+        workbook.created = new Date();
+        const sheet = workbook.addWorksheet('Trailers', { views: [{ state: 'frozen', ySplit: 1 }] });
+
+        sheet.columns = [
+            { header: 'Unit Number',        key: 'unitNumber',          width: 16 },
+            { header: 'Plate Number',        key: 'plateNumber',         width: 16 },
+            { header: 'VIN Number',          key: 'vinNumber',           width: 22 },
+            { header: 'Type',                key: 'type',                width: 16 },
+            { header: 'Make',                key: 'make',                width: 14 },
+            { header: 'Model',               key: 'model',               width: 14 },
+            { header: 'Year',                key: 'year',                width: 10 },
+            { header: 'Ownership',           key: 'ownership',           width: 20 },
+            { header: 'Operating Status',    key: 'operatingStatus',     width: 18 },
+            { header: 'Loaded Status',       key: 'loadedStatus',        width: 16 },
+            { header: 'Compliance',          key: 'compliance',          width: 18 },
+            { header: 'Category',            key: 'category',            width: 14 },
+            { header: 'Reg. Country',        key: 'registrationCountry', width: 16 },
+            { header: 'Reg. Province',       key: 'registrationProvince',width: 16 },
+            { header: 'Last Drop Location',  key: 'lastDropLocation',    width: 24 },
+            { header: 'Notes',               key: 'notes',               width: 30 },
+        ];
+
+        const headerRow = sheet.getRow(1);
+        headerRow.font = { bold: true, color: { argb: 'FFFFFFFF' }, size: 11 };
+        headerRow.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF42AEEC' } };
+        headerRow.alignment = { vertical: 'middle', horizontal: 'center' };
+        headerRow.height = 22;
+
+        filteredTrailers.forEach((t: any) => {
+            const row = sheet.addRow({
+                unitNumber:           t.unitNumber || t.trailerNumber || t.trailer || '',
+                plateNumber:          t.plateNumber          || '',
+                vinNumber:            t.vinNumber            || '',
+                type:                 t.type                 || '',
+                make:                 t.make                 || '',
+                model:                t.model                || '',
+                year:                 t.year                 || '',
+                ownership:            t.ownership            || '',
+                operatingStatus:      t.operatingStatus      || '',
+                loadedStatus:         t.loadedStatus         || '',
+                compliance:           t.compliance           || '',
+                category:             t.category             || '',
+                registrationCountry:  t.registrationCountry  || '',
+                registrationProvince: t.registrationProvince || '',
+                lastDropLocation:     t.lastDropLocation      || '',
+                notes:                t.notes || t.note      || '',
+            });
+            row.alignment = { vertical: 'middle' };
+        });
+
+        sheet.eachRow((row, i) => {
+            if (i > 1) row.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: i % 2 === 0 ? 'FFF0F9FF' : 'FFFFFFFF' } };
+            row.eachCell(cell => { cell.border = { bottom: { style: 'thin', color: { argb: 'FFE2E8F0' } } }; });
+        });
+
+        const buffer = await workbook.xlsx.writeBuffer();
+        const blob = new Blob([buffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `Trailers-${new Date().toISOString().split('T')[0]}.xlsx`;
+        document.body.appendChild(a);
+        a.click();
+        URL.revokeObjectURL(url);
+        document.body.removeChild(a);
+    };
+
     // Count trailers by category
     const getCountByCategory = (category: string) => {
         // For yard tabs, use the yardCounts
@@ -1607,8 +1678,12 @@ const TrailersPage: React.FC = () => {
                         <h1 className="text-3xl font-bold text-gray-900">Trailers</h1>
                         <div className="flex items-center gap-3">
                             <span className="text-2xl font-bold text-gray-700">({filteredTrailers.length})</span>
-                            <button className="text-gray-600 hover:text-gray-900 transition-colors">
-                                <Upload className="w-6 h-6" />
+                            <button
+                                onClick={handleExportTrailers}
+                                title="Export to Excel"
+                                className="w-10 h-10 bg-green-600 !text-white rounded-lg flex items-center justify-center hover:bg-green-700 transition-colors shadow-md"
+                            >
+                                <FileDown className="w-5 h-5" />
                             </button>
                             <button
                                 onClick={() => {

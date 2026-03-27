@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { Building, Mail, Phone, MapPin, Upload, Save, Edit, X, AlertCircle, Settings, Key, Check, Wrench, Info, Plus, Trash2 } from 'lucide-react';
 import { getCompany, updateCompany, updateApiCredentials, updateMaintenancePolicy } from '../../../../axios/api/admin';
+import AddressSearch from '../../../../components/common/AddressSearch';
 import { useDispatch } from 'react-redux';
 import { setUserCredentials } from '../../../../redux/slices/userSlice';
 
@@ -678,13 +679,16 @@ const Company = () => {
                       Address
                     </label>
                     {isEditing ? (
-                      <textarea
-                        name="address"
+                      <AddressSearch
                         value={editForm.address}
-                        onChange={handleInputChange}
-                        rows={3}
-                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all resize-none"
-                        placeholder="Enter company address"
+                        label=""
+                        placeholder="Search for company address..."
+                        onAddressSelect={(selected) => {
+                          setEditForm(prev => ({ ...prev, address: selected.fullAddress }));
+                        }}
+                        onChange={(value) => {
+                          setEditForm(prev => ({ ...prev, address: value }));
+                        }}
                       />
                     ) : (
                       <div className="px-4 py-3 bg-gray-50 rounded-lg">

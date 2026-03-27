@@ -39,12 +39,16 @@ export const ChatProvider = ({ children }: any) => {
         });
     };
 
+    const setInitialUnreadCounts = (counts: Record<string, number>) => {
+        setUnreadCounts(counts);
+    };
+
     const clearChatNotification = () => setChatNotification(null);
 
     return (
         <ChatContext.Provider value={{
             activeDriverId, setActiveDriverId,
-            unreadCounts, totalUnread, addUnread, clearUnread,
+            unreadCounts, totalUnread, addUnread, clearUnread, setInitialUnreadCounts,
             chatNotification, setChatNotification, clearChatNotification
         }}>
             {children}

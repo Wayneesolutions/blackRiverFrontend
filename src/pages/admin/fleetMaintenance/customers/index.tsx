@@ -1,5 +1,7 @@
 import { useState, useCallback, useEffect } from 'react';
 import { FaMapMarkerAlt, FaStickyNote, FaPlus, FaCreditCard, FaInfoCircle, FaTimes, FaEdit, FaEye, FaTrash, FaCheckCircle, FaExclamationCircle } from 'react-icons/fa';
+import { FileDown } from 'lucide-react';
+import ExcelJS from 'exceljs';
 import {
   getFleetCustomers,
   createFleetCustomer,
@@ -179,6 +181,62 @@ const FleetMaintenanceCustomers = () => {
 
   const removeNotification = (id: number) => {
     setNotifications((prev) => prev.filter((n) => n.id !== id));
+  };
+
+  const handleExportCustomers = async () => {
+    const workbook = new ExcelJS.Workbook();
+    workbook.creator = 'Logistiq Innovation';
+    workbook.created = new Date();
+    const sheet = workbook.addWorksheet('Customers', { views: [{ state: 'frozen', ySplit: 1 }] });
+
+    sheet.columns = [
+      { header: 'Customer Name',     key: 'name',                 width: 28 },
+      { header: 'Type',              key: 'customerType',         width: 18 },
+      { header: 'Email',             key: 'email',                width: 28 },
+      { header: 'Phone',             key: 'phone',                width: 18 },
+      { header: 'City',              key: 'billingCity',          width: 16 },
+      { header: 'Province / State',  key: 'billingProvinceState', width: 18 },
+      { header: 'Country',           key: 'country',              width: 14 },
+      { header: 'Terms',             key: 'terms',                width: 14 },
+      { header: 'Payment Method',    key: 'paymentMethod',        width: 18 },
+    ];
+
+    const headerRow = sheet.getRow(1);
+    headerRow.font = { bold: true, color: { argb: 'FFFFFFFF' }, size: 11 };
+    headerRow.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF42AEEC' } };
+    headerRow.alignment = { vertical: 'middle', horizontal: 'center' };
+    headerRow.height = 22;
+
+    customers.forEach((c: CustomerRow) => {
+      const row = sheet.addRow({
+        name:                 c.name                || '',
+        customerType:         c.customerType        || '',
+        email:                c.email               || '',
+        phone:                c.phone               || '',
+        billingCity:          c.billingCity         || '',
+        billingProvinceState: c.billingProvinceState|| '',
+        country:              c.country             || '',
+        terms:                c.terms               || '',
+        paymentMethod:        c.paymentMethod       || '',
+      });
+      row.alignment = { vertical: 'middle' };
+    });
+
+    sheet.eachRow((row, i) => {
+      if (i > 1) row.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: i % 2 === 0 ? 'FFF0F9FF' : 'FFFFFFFF' } };
+      row.eachCell(cell => { cell.border = { bottom: { style: 'thin', color: { argb: 'FFE2E8F0' } } }; });
+    });
+
+    const buffer = await workbook.xlsx.writeBuffer();
+    const blob = new Blob([buffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `Customers-${new Date().toISOString().split('T')[0]}.xlsx`;
+    document.body.appendChild(a);
+    a.click();
+    URL.revokeObjectURL(url);
+    document.body.removeChild(a);
   };
 
   const fetchCustomers = useCallback(async () => {
@@ -515,6 +573,15 @@ const FleetMaintenanceCustomers = () => {
             <h2 className="text-lg font-semibold text-gray-900">All Customers</h2>
             <p className="text-sm text-gray-500 mt-0.5">Add new customers via the sidebar.</p>
           </div>
+          <div className="flex items-center gap-2">
+            <button
+              type="button"
+              onClick={handleExportCustomers}
+              title="Export to Excel"
+              className="w-9 h-9 bg-green-600 !text-white rounded-lg flex items-center justify-center hover:bg-green-700 transition-colors shadow-md"
+            >
+              <FileDown className="w-4 h-4" />
+            </button>
           <button
             type="button"
             onClick={() => { setEditingId(null); resetForm(); setAddCustomerSidebarOpen(true); }}
@@ -522,6 +589,7 @@ const FleetMaintenanceCustomers = () => {
           >
             <FaPlus size={14} /> Add Customer
           </button>
+          </div>
         </div>
         <div className="overflow-x-auto">
           <table className="w-full text-sm text-left">

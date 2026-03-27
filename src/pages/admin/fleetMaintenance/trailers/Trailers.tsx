@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
-import { Plus, Edit, Trash2, Search, Truck, AlertTriangle, CheckCircle } from 'lucide-react';
+import { Plus, Edit, Trash2, Search, Truck, AlertTriangle, CheckCircle, FileDown } from 'lucide-react';
+import ExcelJS from 'exceljs';
 import { FaExclamationCircle, FaTimes } from 'react-icons/fa';
 
 type TrailerType = 'Reefer Trailer' | 'Tri-Axle Trailer' | 'Dry Van' | 'Flatbed' | 'Step Deck' | 'Lowboy' | 'Tank Trailer' | 'Dump Trailer';
@@ -327,6 +328,78 @@ const Trailers: React.FC = () => {
     setSelectedTrailer(null);
   };
 
+  const handleExportTrailers = async () => {
+    const workbook = new ExcelJS.Workbook();
+    workbook.creator = 'Logistiq Innovation';
+    workbook.created = new Date();
+    const sheet = workbook.addWorksheet('Trailers', { views: [{ state: 'frozen', ySplit: 1 }] });
+
+    sheet.columns = [
+      { header: 'Internal ID',          key: 'internalId',          width: 16 },
+      { header: 'Trailer',              key: 'trailer',             width: 20 },
+      { header: 'Plate Number',         key: 'plateNumber',         width: 16 },
+      { header: 'VIN Number',           key: 'vinNumber',           width: 22 },
+      { header: 'Trailer Type',         key: 'trailerType',         width: 18 },
+      { header: 'Make',                 key: 'make',                width: 14 },
+      { header: 'Model',                key: 'model',               width: 14 },
+      { header: 'Year',                 key: 'year',                width: 10 },
+      { header: 'Capacity',             key: 'capacity',            width: 14 },
+      { header: 'Odometer',             key: 'odometer',            width: 14 },
+      { header: 'Status',               key: 'status',              width: 14 },
+      { header: 'Operation Status',     key: 'operationStatus',     width: 18 },
+      { header: 'Safety Expiry Date',   key: 'safetyExpiryDate',   width: 20 },
+      { header: 'Safety Decal #',       key: 'safetyDecalNumber',  width: 18 },
+      { header: 'Safety Paper #',       key: 'safetyPaperNumber',  width: 18 },
+      { header: 'Last Inspection Shop', key: 'lastInspectionShop', width: 22 },
+      { header: 'Last Inspection Inv.', key: 'lastInspectionInvoice', width: 22 },
+    ];
+
+    const headerRow = sheet.getRow(1);
+    headerRow.font = { bold: true, color: { argb: 'FFFFFFFF' }, size: 11 };
+    headerRow.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF42AEEC' } };
+    headerRow.alignment = { vertical: 'middle', horizontal: 'center' };
+    headerRow.height = 22;
+
+    filteredTrailers.forEach((t) => {
+      const row = sheet.addRow({
+        internalId:           t.internalId           || '',
+        trailer:              t.trailer              || '',
+        plateNumber:          t.plateNumber          || '',
+        vinNumber:            t.vinNumber            || '',
+        trailerType:          t.trailerType          || '',
+        make:                 t.make                 || '',
+        model:                t.model                || '',
+        year:                 t.year                 || '',
+        capacity:             t.capacity             || '',
+        odometer:             t.odometer             ?? '',
+        status:               t.status               || '',
+        operationStatus:      t.operationStatus      || '',
+        safetyExpiryDate:     t.safetyExpiryDate     || '',
+        safetyDecalNumber:    t.safetyDecalNumber    || '',
+        safetyPaperNumber:    t.safetyPaperNumber    || '',
+        lastInspectionShop:   t.lastInspectionShop   || '',
+        lastInspectionInvoice:t.lastInspectionInvoice|| '',
+      });
+      row.alignment = { vertical: 'middle' };
+    });
+
+    sheet.eachRow((row, i) => {
+      if (i > 1) row.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: i % 2 === 0 ? 'FFF0F9FF' : 'FFFFFFFF' } };
+      row.eachCell(cell => { cell.border = { bottom: { style: 'thin', color: { argb: 'FFE2E8F0' } } }; });
+    });
+
+    const buffer = await workbook.xlsx.writeBuffer();
+    const blob = new Blob([buffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `Trailers-${new Date().toISOString().split('T')[0]}.xlsx`;
+    document.body.appendChild(a);
+    a.click();
+    URL.revokeObjectURL(url);
+    document.body.removeChild(a);
+  };
+
   const handleConfirmDelete = () => {
     if (selectedTrailer) {
       setTrailers(trailers.filter(trailer => trailer._id !== selectedTrailer._id));
@@ -366,14 +439,23 @@ const Trailers: React.FC = () => {
                 </p>
               </div>
             </div>
-            <button
-              onClick={handleAddTrailer}
-              className="flex items-center gap-2 px-6 py-3 text-white rounded-lg shadow-lg transition-all duration-200 font-medium hover:opacity-90"
-              style={{ background: 'linear-gradient(to right, #016ab2, #063f6f)' }}
-            >
-              <Plus className="w-5 h-5" />
-              Add Trailer
-            </button>
+            <div className="flex items-center gap-3">
+              <button
+                onClick={handleExportTrailers}
+                title="Export to Excel"
+                className="w-10 h-10 bg-green-600 !text-white rounded-lg flex items-center justify-center hover:bg-green-700 transition-colors shadow-md"
+              >
+                <FileDown className="w-5 h-5" />
+              </button>
+              <button
+                onClick={handleAddTrailer}
+                className="flex items-center gap-2 px-6 py-3 text-white rounded-lg shadow-lg transition-all duration-200 font-medium hover:opacity-90"
+                style={{ background: 'linear-gradient(to right, #016ab2, #063f6f)' }}
+              >
+                <Plus className="w-5 h-5" />
+                Add Trailer
+              </button>
+            </div>
           </div>
         </div>
 

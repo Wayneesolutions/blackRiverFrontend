@@ -31,6 +31,7 @@ const AccountsRoute = lazy(() => import("./AdminFeatures/AccountsRoutes"))
 const HealthSafetyRoutes = lazy(() => import("./AdminFeatures/HealthSafetyRoutes"))
 const Subscription = lazy(() => import("../pages/admin/subscription/index"))
 const AdminHRTrainingView = lazy(() => import("../pages/admin/training/hrTraining/AdminHRTrainingView"))
+const ManifestRoutes = lazy(() => import("./AdminFeatures/ManifestRoutes"))
 
 // Debug wrapper to log route changes
 const RouteDebugger = ({ children }: { children: React.ReactNode }) => {
@@ -145,9 +146,13 @@ function AdminRoute() {
           path="mechanics/*" 
           element={<MechanicsRoutes />} 
         />
-        <Route 
-          path="healthandsafety/*" 
-          element={<HealthSafetyRoutes />} 
+        <Route
+          path="healthandsafety/*"
+          element={<HealthSafetyRoutes />}
+        />
+        <Route
+          path="manifest/*"
+          element={<ManifestRoutes />}
         />
       </Routes>
       </RouteDebugger>
