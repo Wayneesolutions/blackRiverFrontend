@@ -77,6 +77,7 @@ interface Subscription {
   stripeSessionId?: string;
   truckCount?: number;
   maxTrucks?: number;
+  usedTrucks?: number;
   extraTrucksPurchased?: number;
   installments?: {
     total: number;
@@ -597,27 +598,32 @@ const SubscriptionPage = () => {
                       </div>
                     )}
 
-                    {activeSubscription.installments && (
+                    {activeSubscription.maxTrucks != null && activeSubscription.maxTrucks > 0 && (
                       <div className="bg-gradient-to-br from-indigo-50 to-blue-50 rounded-xl p-4 border border-indigo-200 md:col-span-2">
                         <div className="flex items-center justify-between mb-3">
                           <div className="flex items-center gap-2">
                             <TrendingUp className="w-5 h-5 text-indigo-600" />
-                            <span className="text-gray-700 text-sm font-medium">Installment Progress</span>
+                            <span className="text-gray-700 text-sm font-medium">Truck Usage</span>
                           </div>
                           <span className="text-gray-900 font-bold">
-                            {activeSubscription.installments.paid} / {activeSubscription.installments.total}
+                            {activeSubscription.usedTrucks ?? 0} / {activeSubscription.maxTrucks}
                           </span>
                         </div>
                         <Progress
-                          percent={Math.round((activeSubscription.installments.paid / activeSubscription.installments.total) * 100)}
-                          strokeColor={{
-                            '0%': '#6366f1',
-                            '100%': '#4f46e5',
-                          }}
+                          percent={Math.min(
+                            100,
+                            Math.round(((activeSubscription.usedTrucks ?? 0) / activeSubscription.maxTrucks) * 100)
+                          )}
+                          strokeColor={
+                            (activeSubscription.usedTrucks ?? 0) >= activeSubscription.maxTrucks
+                              ? { '0%': '#ef4444', '100%': '#dc2626' }
+                              : { '0%': '#6366f1', '100%': '#4f46e5' }
+                          }
                           className="mb-2"
                         />
                         <p className="text-gray-600 text-xs">
-                          {activeSubscription.installments.remaining} payments remaining
+                          {Math.max(0, activeSubscription.maxTrucks - (activeSubscription.usedTrucks ?? 0))} truck slot{Math.max(0, activeSubscription.maxTrucks - (activeSubscription.usedTrucks ?? 0)) !== 1 ? 's' : ''} remaining
+                          {activeSubscription.extraTrucksPurchased ? ` (includes ${activeSubscription.extraTrucksPurchased} extra purchased)` : ''}
                         </p>
                       </div>
                     )}

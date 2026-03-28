@@ -111,6 +111,7 @@ const FleetUnits: React.FC = () => {
   const [showAddModal, setShowAddModal] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [truckLimitModal, setTruckLimitModal] = useState<{ show: boolean; maxTrucks: number; usedTrucks: number }>({ show: false, maxTrucks: 0, usedTrucks: 0 });
   const [selectedUnit, setSelectedUnit] = useState<FleetUnit | null>(null);
   const [units, setUnits] = useState<FleetUnit[]>([]);
   const [summary, setSummary] = useState<FleetUnitSummary>(defaultSummary);
@@ -718,10 +719,11 @@ const FleetUnits: React.FC = () => {
         const response = await apiCreateFleetUnit(payload);
         if (!response?.success) {
           if (response?.code === 'TRUCK_LIMIT_REACHED') {
-            const go = window.confirm(
-              `⚠️ Truck Limit Reached\n\n${response.message}\n\nClick OK to go to the Subscription page and add more trucks.`
-            );
-            if (go) navigate('/admin/subscription');
+            setTruckLimitModal({
+              show: true,
+              maxTrucks: response.maxTrucks ?? 0,
+              usedTrucks: response.usedTrucks ?? 0,
+            });
             return;
           }
           throw new Error(response?.message || 'Failed to create fleet unit');
@@ -2558,6 +2560,51 @@ const FleetUnits: React.FC = () => {
                 style={{ background: 'linear-gradient(to right, #016ab2, #063f6f)' }}
               >
                 {isSubmitting ? 'Saving...' : 'Save Changes'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Truck Limit Reached Modal */}
+      {truckLimitModal.show && (
+        <div className="fixed inset-0 bg-gray-900/50 backdrop-blur-sm z-[10000] flex items-center justify-center p-4">
+          <div className="bg-white rounded-xl shadow-2xl max-w-md w-full">
+            <div className="p-6 border-b border-gray-200">
+              <div className="flex items-start gap-4">
+                <div className="flex-shrink-0 w-12 h-12 bg-orange-100 rounded-full flex items-center justify-center">
+                  <svg className="w-6 h-6 text-orange-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z" />
+                  </svg>
+                </div>
+                <div className="flex-1">
+                  <h3 className="text-xl font-semibold text-gray-900">Truck Limit Reached</h3>
+                  <p className="text-sm text-gray-600 mt-1">
+                    Your plan allows <span className="font-bold text-gray-800">{truckLimitModal.maxTrucks}</span> truck{truckLimitModal.maxTrucks !== 1 ? 's' : ''}.
+                    You currently have <span className="font-bold text-red-600">{truckLimitModal.usedTrucks}</span> truck{truckLimitModal.usedTrucks !== 1 ? 's' : ''} in use.
+                  </p>
+                  <p className="text-sm text-gray-500 mt-2">
+                    To add more trucks, upgrade your plan or purchase additional truck slots from the Subscription page.
+                  </p>
+                  <div className="mt-3 bg-orange-50 border border-orange-200 rounded-lg p-3 flex items-center justify-between">
+                    <span className="text-xs font-medium text-orange-700">Trucks used</span>
+                    <span className="text-sm font-bold text-orange-800">{truckLimitModal.usedTrucks} / {truckLimitModal.maxTrucks}</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div className="p-6 flex items-center justify-end gap-3">
+              <button
+                onClick={() => setTruckLimitModal({ show: false, maxTrucks: 0, usedTrucks: 0 })}
+                className="px-5 py-2.5 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 font-medium transition-colors"
+              >
+                Close
+              </button>
+              <button
+                onClick={() => { setTruckLimitModal({ show: false, maxTrucks: 0, usedTrucks: 0 }); navigate('/admin/subscription'); }}
+                className="px-5 py-2.5 bg-blue-600 !text-white rounded-lg hover:bg-blue-700 font-medium transition-colors"
+              >
+                Upgrade / Add Trucks
               </button>
             </div>
           </div>
