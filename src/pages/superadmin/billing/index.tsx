@@ -890,119 +890,269 @@ const Billing = () => {
             )}
           </div>
         ) : viewMode === 'grid' ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {filteredAndSortedPlans.map((plan) => (
-              <div
-                key={plan._id}
-                className={`bg-white rounded-2xl shadow-lg border-2 overflow-hidden transition-all duration-300 hover:shadow-2xl hover:-translate-y-1 ${
-                  plan.isDefault ? 'border-purple-300 ring-2 ring-purple-200' : 'border-gray-200'
-                }`}
-              >
-                {/* Header with Gradient */}
-                <div className={`bg-gradient-to-r ${getPlanGradient(plan)} p-6 text-white relative overflow-hidden`}>
-                  <div className="absolute top-0 right-0 w-32 h-32 bg-white opacity-10 rounded-full -mr-16 -mt-16"></div>
-                  <div className="relative z-10">
-                    <div className="flex items-start justify-between mb-2">
-                      <h3 className="text-xl font-bold">{plan.planName}</h3>
-                        {plan.isDefault && (
-                        <Tooltip title="Default Plan">
-                          <Star className="w-5 h-5 fill-yellow-300 text-yellow-300" />
+          <div className="space-y-8">
+            {filteredAndSortedPlans.map((plan) => {
+              const tiers = plan.monthly?.truckPricing?.tiers ?? [];
+              const tp = plan.monthly?.truckPricing;
+              const extraPrice = tp?.extraTruckPrice ?? 0;
+              const bonusDays = tp?.sixMonthBonusDays ?? 15;
+              const freeMonths = tp?.annualFreeMonths ?? 1;
+              const planTab = previewTab;
+
+              return (
+                <div
+                  key={plan._id}
+                  className={`bg-white rounded-3xl shadow-xl overflow-hidden border-2 transition-all duration-300 hover:shadow-2xl ${
+                    plan.isDefault ? 'border-purple-300 ring-2 ring-purple-100' : 'border-gray-100 hover:border-gray-200'
+                  }`}
+                >
+                  {/* ── Plan Header ── */}
+                  <div className={`px-8 py-6 bg-gradient-to-r ${getPlanGradient(plan)} relative overflow-hidden`}>
+                    <div className="absolute top-0 right-0 w-40 h-40 bg-white opacity-10 rounded-full -mr-20 -mt-20" />
+                    <div className="relative z-10 flex items-start justify-between gap-4 flex-wrap">
+                      <div>
+                        <div className="flex items-center gap-3 mb-1 flex-wrap">
+                          <div className="p-2 bg-white/20 rounded-xl">
+                            <CreditCard className="w-5 h-5 text-white" />
+                          </div>
+                          <h3 className="text-2xl font-bold text-white">{plan.planName}</h3>
+                          {plan.isDefault && (
+                            <span className="bg-yellow-400 text-yellow-900 text-xs font-bold px-2.5 py-1 rounded-full flex items-center gap-1">
+                              <Star className="w-3 h-3 fill-yellow-900" /> Default
+                            </span>
+                          )}
+                          <span className={`text-xs font-bold px-2.5 py-1 rounded-full capitalize border ${plan.status === 'active' ? 'bg-white/20 border-white/30 text-white' : 'bg-black/20 border-black/30 text-white/80'}`}>
+                            {plan.status}
+                          </span>
+                        </div>
+                        {plan.description && (
+                          <p className="text-white/75 text-sm mt-1 max-w-xl">{plan.description}</p>
+                        )}
+                      </div>
+                      {/* Action buttons in header */}
+                      <div className="flex items-center gap-2 flex-shrink-0">
+                        <Tooltip title="View Details">
+                          <Button size="small" icon={<Eye className="w-3.5 h-3.5" />} onClick={() => handleView(plan)} className="bg-white/20 border-white/30 text-white hover:bg-white/30">View</Button>
                         </Tooltip>
-                      )}
-                    </div>
-                    <div className="flex items-center gap-2 flex-wrap">
-                      <span className="bg-white bg-opacity-90 backdrop-blur-sm px-3 py-1.5 rounded-full text-xs font-bold text-gray-900 border border-white shadow-md">
-                        Monthly · 6-Month · Annual
-                      </span>
-                      <span className={`bg-white bg-opacity-90 backdrop-blur-sm px-3 py-1.5 rounded-full text-xs font-bold text-gray-900 border border-white shadow-md capitalize ${plan.status === 'active' ? '' : 'opacity-75'}`}>
-                        {plan.status}
-                      </span>
-                    </div>
+                        <Tooltip title="Edit Description">
+                          <Button size="small" icon={<Edit className="w-3.5 h-3.5" />} onClick={() => handleEdit(plan)} className="bg-white/20 border-white/30 text-white hover:bg-white/30">Edit</Button>
+                        </Tooltip>
+                        <Tooltip title="Duplicate Plan">
+                          <Button size="small" icon={<Copy className="w-3.5 h-3.5" />} onClick={() => handleDuplicate(plan)} className="bg-white/20 border-white/30 text-white hover:bg-white/30" />
+                        </Tooltip>
+                        <Tooltip title="Delete Plan">
+                          <Button size="small" danger icon={<Trash2 className="w-3.5 h-3.5" />} onClick={(e) => { e.preventDefault(); e.stopPropagation(); handleDelete(plan); }} className="bg-red-500/80 border-red-400/50 text-white hover:bg-red-600" />
+                        </Tooltip>
+                      </div>
                     </div>
                   </div>
 
-                <div className="p-6">
-                  {/* Pricing */}
-                  {plan.monthly && (
-                    <div className="mb-3">
-                      {(plan.monthly.truckPricing?.tiers?.length ?? 0) > 0 ? (
-                        <div className="space-y-1.5">
-                          {plan.monthly.truckPricing!.tiers.slice(0, 2).map((tier, i) => (
-                            <div key={i} className="flex items-center justify-between bg-green-50 px-3 py-1.5 rounded-lg border border-green-100">
-                              <span className="text-xs font-medium text-gray-600">{tier.minTrucks}–{tier.maxTrucks} trucks</span>
-                              <span className="text-sm font-bold text-gray-900">{formatPrice(tier.monthlyPrice, tier.currency)}/mo</span>
+                  <div className="p-8">
+                    {tiers.length > 0 && (
+                      <>
+                        {/* ── Billing Period Selector ── */}
+                        <div className="flex justify-center mb-8">
+                          <div className="inline-flex bg-gray-100 rounded-2xl p-1 gap-1">
+                            {(['monthly', '6months', 'annual'] as const).map((tab) => (
+                              <button
+                                key={tab}
+                                onClick={() => setPreviewTab(tab)}
+                                className={`relative px-6 py-2.5 rounded-xl text-sm font-semibold transition-all duration-200 flex flex-col items-center min-w-[110px] ${
+                                  planTab === tab
+                                    ? 'bg-white shadow-md text-purple-700 ring-1 ring-purple-100'
+                                    : 'text-gray-500 hover:text-gray-700'
+                                }`}
+                              >
+                                <span>{tab === 'monthly' ? 'Monthly' : tab === '6months' ? '6 Months' : 'Annual'}</span>
+                                <span className={`text-[10px] font-bold mt-0.5 ${
+                                  planTab === tab
+                                    ? tab === '6months' ? 'text-amber-500' : tab === 'annual' ? 'text-green-600' : 'text-transparent'
+                                    : 'text-gray-400'
+                                }`}>
+                                  {tab === '6months' ? `+${bonusDays} days free` : tab === 'annual' ? `+${freeMonths} mo free` : '‎'}
+                                </span>
+                              </button>
+                            ))}
+                          </div>
+                        </div>
+
+                        {/* ── Bonus Banner ── */}
+                        {planTab === '6months' && bonusDays > 0 && (
+                          <div className="mb-6 flex items-center gap-4 bg-gradient-to-r from-amber-50 to-orange-50 border border-amber-200 rounded-2xl px-6 py-4">
+                            <div className="w-10 h-10 bg-amber-400 rounded-xl flex items-center justify-center flex-shrink-0 shadow-sm">
+                              <Zap className="w-5 h-5 text-white" />
+                            </div>
+                            <div>
+                              <p className="text-sm font-bold text-amber-900">6-Month Plan Bonus</p>
+                              <p className="text-xs text-amber-700 mt-0.5">Admins pay for 6 months and receive <strong>{bonusDays} extra days</strong> of access free</p>
+                            </div>
+                            <div className="ml-auto flex-shrink-0">
+                              <span className="bg-amber-400 text-amber-900 text-xs font-bold px-3 py-1.5 rounded-full">+{bonusDays} Days</span>
+                            </div>
+                          </div>
+                        )}
+                        {planTab === 'annual' && freeMonths > 0 && (
+                          <div className="mb-6 flex items-center gap-4 bg-gradient-to-r from-green-50 to-emerald-50 border border-green-200 rounded-2xl px-6 py-4">
+                            <div className="w-10 h-10 bg-green-500 rounded-xl flex items-center justify-center flex-shrink-0 shadow-sm">
+                              <Star className="w-5 h-5 text-white" />
+                            </div>
+                            <div>
+                              <p className="text-sm font-bold text-green-900">Annual Plan — Best Value</p>
+                              <p className="text-xs text-green-700 mt-0.5">Admins get <strong>{freeMonths} month{freeMonths > 1 ? 's' : ''} free</strong> when paying annually</p>
+                            </div>
+                            <div className="ml-auto flex-shrink-0">
+                              <span className="bg-green-500 text-white text-xs font-bold px-3 py-1.5 rounded-full">+{freeMonths} Mo Free</span>
+                            </div>
+                          </div>
+                        )}
+
+                        {/* ── Tier Cards ── */}
+                        <div className={`grid gap-5 mb-6 ${tiers.length === 1 ? 'grid-cols-1 max-w-sm mx-auto' : tiers.length === 2 ? 'grid-cols-1 sm:grid-cols-2' : 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-3'}`}>
+                          {tiers.map((tier, idx) => {
+                            const currency = tier.currency ?? 'CAD';
+                            const baseMonthly = tier.monthlyPrice;
+                            const displayPrice = planTab === 'monthly' ? baseMonthly : planTab === '6months' ? baseMonthly * 6 : baseMonthly * 12;
+                            const strikethroughPrice = planTab === 'annual' ? baseMonthly * (12 + freeMonths) : null;
+                            const isPopular = idx === 1 || (tiers.length === 1 && idx === 0);
+                            const isLastTier = idx === tiers.length - 1;
+
+                            return (
+                              <div
+                                key={idx}
+                                className={`relative rounded-2xl border-2 p-6 transition-all duration-200 flex flex-col ${
+                                  isPopular
+                                    ? 'border-purple-400 bg-gradient-to-b from-purple-50 to-indigo-50 shadow-xl ring-2 ring-purple-100'
+                                    : 'border-gray-200 bg-white hover:border-purple-200 hover:shadow-lg'
+                                }`}
+                              >
+                                {isPopular && (
+                                  <div className="absolute -top-3.5 left-1/2 -translate-x-1/2 bg-purple-600 text-white text-xs font-bold px-4 py-1 rounded-full shadow-lg whitespace-nowrap">
+                                    Most Popular
+                                  </div>
+                                )}
+
+                                <div className="flex items-center gap-3 mb-5">
+                                  <div className={`p-2.5 rounded-xl ${isPopular ? 'bg-purple-600' : 'bg-orange-100'}`}>
+                                    <BarChart3 className={`w-5 h-5 ${isPopular ? 'text-white' : 'text-orange-600'}`} />
+                                  </div>
+                                  <div>
+                                    <p className="text-[11px] text-gray-400 font-semibold uppercase tracking-wider">Fleet Size</p>
+                                    <p className="text-xl font-bold text-gray-900">{tier.minTrucks}–{tier.maxTrucks} Trucks</p>
+                                  </div>
+                                </div>
+
+                                <div className="mb-5 flex-1">
+                                  {strikethroughPrice && (
+                                    <p className="text-sm text-gray-400 line-through mb-0.5">{formatPrice(strikethroughPrice, currency)}</p>
+                                  )}
+                                  <div className="flex items-baseline gap-1.5">
+                                    <span className={`text-4xl font-extrabold ${isPopular ? 'text-purple-700' : 'text-gray-900'}`}>
+                                      {formatPrice(displayPrice, currency)}
+                                    </span>
+                                    <span className="text-sm text-gray-400 font-medium">
+                                      {planTab === 'monthly' ? '/mo' : planTab === '6months' ? '/6 mo' : '/yr'}
+                                    </span>
+                                  </div>
+                                  {planTab !== 'monthly' && (
+                                    <p className="text-xs text-gray-400 mt-1.5">
+                                      {formatPrice(baseMonthly, currency)}/mo equivalent
+                                    </p>
+                                  )}
+                                </div>
+
+                                {/* Additional truck note */}
+                                {extraPrice > 0 && (() => {
+                                  const lastTierMax = tiers[tiers.length - 1]?.maxTrucks ?? tier.maxTrucks;
+                                  const billingFactor = planTab === 'monthly' ? 1 : planTab === '6months' ? 6 : 12;
+                                  const billingLabel = planTab === 'monthly' ? '/mo' : planTab === '6months' ? '/6 mo' : '/yr';
+                                  return (
+                                    <div className="mb-4 rounded-lg border border-orange-200 bg-orange-50 overflow-hidden">
+                                      <div className="flex items-center gap-1.5 px-3 py-1.5 bg-orange-100 border-b border-orange-200">
+                                        <TrendingUp className="w-3 h-3 text-orange-500" />
+                                        <span className="text-[10px] font-bold text-orange-700 uppercase tracking-wide">Additional Trucks</span>
+                                      </div>
+                                      <div className="flex items-center justify-between px-3 py-2">
+                                        <span className="text-xs text-gray-600">Beyond {lastTierMax} trucks</span>
+                                        <span className="text-xs font-bold text-orange-600">+{formatPrice(extraPrice * billingFactor, tp?.extraTruckCurrency ?? 'CAD')}{billingLabel}/truck</span>
+                                      </div>
+                                    </div>
+                                  );
+                                })()}
+
+                                <div className={`h-px mb-5 ${isPopular ? 'bg-purple-200' : 'bg-gray-100'}`} />
+
+                                <div className="space-y-2">
+                                  <div className="flex items-center gap-2 text-sm text-gray-700">
+                                    <CheckCircle className="w-4 h-4 text-green-500 flex-shrink-0" />
+                                    Up to {tier.maxTrucks} trucks included
+                                  </div>
+                                  {planTab === '6months' && bonusDays > 0 && (
+                                    <div className="flex items-center gap-2 text-sm text-gray-700">
+                                      <CheckCircle className="w-4 h-4 text-green-500 flex-shrink-0" />
+                                      {bonusDays} bonus days free
+                                    </div>
+                                  )}
+                                  {planTab === 'annual' && freeMonths > 0 && (
+                                    <div className="flex items-center gap-2 text-sm text-gray-700">
+                                      <CheckCircle className="w-4 h-4 text-green-500 flex-shrink-0" />
+                                      {freeMonths} month{freeMonths > 1 ? 's' : ''} free — {12 + freeMonths} months total
+                                    </div>
+                                  )}
+                                </div>
+                              </div>
+                            );
+                          })}
+                        </div>
+
+                        {/* ── Additional Truck Pricing ── */}
+                        {extraPrice > 0 && (() => {
+                          const billingFactor = planTab === 'monthly' ? 1 : planTab === '6months' ? 6 : 12;
+                          const billingLabel = planTab === 'monthly' ? '/truck / month' : planTab === '6months' ? '/truck / 6 months' : '/truck / year';
+                          const extraDisplayPrice = extraPrice * billingFactor;
+                          const lastTierMax = tiers[tiers.length - 1]?.maxTrucks ?? 0;
+                          const extraCur = tp?.extraTruckCurrency ?? 'CAD';
+                          return (
+                            <div className="mb-6 rounded-2xl border-2 border-dashed border-orange-200 bg-orange-50 overflow-hidden">
+                              <div className="flex items-center gap-2 px-5 py-3 bg-orange-100 border-b border-orange-200">
+                                <TrendingUp className="w-4 h-4 text-orange-600" />
+                                <span className="text-sm font-bold text-orange-800">Additional Trucks Beyond {lastTierMax}</span>
+                              </div>
+                              <div className="flex items-center gap-5 flex-wrap px-5 py-4">
+                                <div className="flex-1 min-w-0">
+                                  <p className="text-sm text-gray-700">Admins with more than <strong>{lastTierMax} trucks</strong> are charged a flat per-truck rate.</p>
+                                  <p className="text-xs text-gray-500 mt-1">Base rate: {formatPrice(extraPrice, extraCur)}/truck/month</p>
+                                </div>
+                                <div className="text-right flex-shrink-0">
+                                  <p className="text-2xl font-extrabold text-orange-600">{formatPrice(extraDisplayPrice, extraCur)}</p>
+                                  <p className="text-xs text-orange-500 font-medium">{billingLabel}</p>
+                                </div>
+                              </div>
+                            </div>
+                          );
+                        })()}
+                      </>
+                    )}
+
+                    {/* ── Features ── */}
+                    {plan.features && plan.features.filter(f => f.included).length > 0 && (
+                      <div className={`${tiers.length > 0 ? 'border-t border-gray-100 pt-6' : ''}`}>
+                        <p className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-4">What's Included</p>
+                        <div className={`grid gap-2.5 ${plan.features.filter(f => f.included).length > 4 ? 'grid-cols-1 sm:grid-cols-2' : 'grid-cols-1'}`}>
+                          {plan.features.filter(f => f.included).map((f, fIdx) => (
+                            <div key={fIdx} className="flex items-center gap-2.5">
+                              <div className="w-5 h-5 bg-green-100 rounded-full flex items-center justify-center flex-shrink-0">
+                                <CheckCircle className="w-3.5 h-3.5 text-green-600" />
+                              </div>
+                              <span className="text-sm text-gray-700">{f.name}</span>
                             </div>
                           ))}
-                          {plan.monthly.truckPricing!.tiers.length > 2 && (
-                            <p className="text-xs text-gray-400 text-center">+{plan.monthly.truckPricing!.tiers.length - 2} more tier{plan.monthly.truckPricing!.tiers.length - 2 > 1 ? 's' : ''}</p>
-                          )}
                         </div>
-                      ) : plan.monthly.fullApp.enabled ? (
-                        <div className="bg-gradient-to-r from-green-50 to-emerald-50 p-3 rounded-lg border border-green-100">
-                          <div className="text-xs text-gray-600 mb-1">Monthly</div>
-                          <div className="text-xl font-bold text-gray-900">{formatPrice(plan.monthly.fullApp.price, plan.monthly.fullApp.currency)}<span className="text-sm font-normal text-gray-600">/mo</span></div>
-                        </div>
-                      ) : null}
-                    </div>
-                  )}
-
-                  {plan.description && (
-                    <p className="text-sm text-gray-600 mb-2 line-clamp-2">{plan.description}</p>
-                  )}
-
-                  {(plan.features?.length ?? 0) > 0 && (
-                    <div className="text-xs text-gray-500 mb-3">
-                      {plan.features!.filter(f => f.included).length} / {plan.features!.length} features included
-                    </div>
-                  )}
-
-                  {/* Actions */}
-                  <div className="flex items-center gap-2 pt-4 border-t border-gray-100">
-                    <Tooltip title="View Details">
-                    <Button
-                      type="text"
-                      icon={<Eye className="w-4 h-4" />}
-                      onClick={() => handleView(plan)}
-                        className="flex-1"
-                    >
-                      View
-                    </Button>
-                    </Tooltip>
-                    <Tooltip title="Edit Plan">
-                    <Button
-                      type="text"
-                      icon={<Edit className="w-4 h-4" />}
-                      onClick={() => handleEdit(plan)}
-                        className="flex-1"
-                    >
-                      Edit
-                    </Button>
-                    </Tooltip>
-                    <Tooltip title="Duplicate Plan">
-                      <Button
-                        type="text"
-                        icon={<Copy className="w-4 h-4" />}
-                        onClick={() => handleDuplicate(plan)}
-                        className="flex-1"
-                      />
-                    </Tooltip>
-                    <Tooltip title="Delete Plan">
-                    <Button
-                      type="text"
-                      danger
-                      icon={<Trash2 className="w-4 h-4" />}
-                      onClick={(e) => {
-                        e.preventDefault();
-                        e.stopPropagation();
-                        handleDelete(plan);
-                      }}
-                      className="flex-1"
-                    />
-                    </Tooltip>
+                      </div>
+                    )}
                   </div>
                 </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         ) : (
           // List View
