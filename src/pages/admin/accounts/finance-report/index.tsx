@@ -13,7 +13,20 @@ import {
   PieChart,
   ArrowUpRight,
   ArrowDownRight,
-  Filter
+  Filter,
+  Fuel,
+  Wrench,
+  Search,
+  ChevronDown,
+  ChevronUp,
+  ChevronsUpDown,
+  AlertCircle,
+  CheckCircle2,
+  XCircle,
+  Clock,
+  CreditCard,
+  RefreshCw,
+  IdCard
 } from 'lucide-react';
 import { getFinanceReport } from '../../../../axios/api/account.financeReport';
 import {
@@ -30,7 +43,22 @@ import {
 } from 'recharts';
 
 type TimePeriod = '2weeks' | '1month' | 'monthly' | 'quarterly' | 'half-yearly' | 'yearly';
-type ViewType = 'overview' | 'trucks' | 'trips' | 'time-based';
+type ViewType = 'overview' | 'trucks' | 'trips' | 'time-based' | 'payable';
+
+type PayableSubCategory = 'all' | 'expense' | 'employee-payroll' | 'driver-payroll' | 'fuel' | 'fleet-invoice' | 'maintenance';
+
+interface PayableItem {
+  id: string;
+  subCategory: Exclude<PayableSubCategory, 'all'>;
+  description: string;
+  reference: string;
+  amount: number;
+  date: string;
+  status: string;
+}
+
+type PayableSortKey = 'date' | 'amount' | 'subCategory' | 'status';
+type PayableSortDir = 'asc' | 'desc';
 
 interface TruckFinancialData {
   id: string;
@@ -103,6 +131,19 @@ const FinanceReport = () => {
   const [truckFinancialData, setTruckFinancialData] = useState<TruckFinancialData[]>([]);
   const [tripFinancialData, setTripFinancialData] = useState<TripFinancialData[]>([]);
   const [timeBasedData, setTimeBasedData] = useState<TimeBasedReport[]>([]);
+
+  // ── Payable tab state ──
+  const [payableItems, setPayableItems] = useState<PayableItem[]>([]);
+  const [payableLoading, setPayableLoading] = useState(false);
+  const [payableLoaded, setPayableLoaded] = useState(false);
+  const [payableSubFilter, setPayableSubFilter] = useState<PayableSubCategory>('all');
+  const [payableSearch, setPayableSearch] = useState('');
+  const [payableStatusFilter, setPayableStatusFilter] = useState('all');
+  const [payableSortKey, setPayableSortKey] = useState<PayableSortKey>('date');
+  const [payableSortDir, setPayableSortDir] = useState<PayableSortDir>('desc');
+  const [payablePage, setPayablePage] = useState(1);
+  const PAYABLE_PAGE_SIZE = 15;
+
   const topScrollRef = useRef<HTMLDivElement>(null);
   const bottomScrollRef = useRef<HTMLDivElement>(null);
   
@@ -169,6 +210,13 @@ const FinanceReport = () => {
     if (activeView === 'time-based' && dataLoaded) {
       console.log('📊 [useEffect] Switched to time-based view, fetching data');
       fetchFinanceReport();
+    }
+  }, [activeView]);
+
+  // Fetch payable data on first switch to payable tab
+  useEffect(() => {
+    if (activeView === 'payable' && !payableLoaded) {
+      fetchPayableData();
     }
   }, [activeView]);
 
@@ -268,7 +316,153 @@ const FinanceReport = () => {
     }
   };
 
+  const toNum = (v: unknown): number => {
+    const n = typeof v === 'string' ? parseFloat(v as string) : Number(v);
+    return isNaN(n) ? 0 : n;
+  };
 
+  const toIso = (v: unknown): string => {
+    if (!v) return new Date().toISOString();
+    const d = new Date(v as string);
+    return isNaN(d.getTime()) ? new Date().toISOString() : d.toISOString();
+  };
+
+  const fetchPayableData = async () => {
+    setPayableLoading(true);
+    try {
+      // Import all API modules in parallel
+      const [
+        { listExpenses },
+        { listPayrolls },
+        { listFuelReport },
+        { getFleetInvoices },
+        { getMaintenancePlans },
+      ] = await Promise.all([
+        import('../../../../axios/api/account.expense'),
+        import('../../../../axios/api/account.payroll'),
+        import('../../../../axios/api/dispatcher.fuelreport'),
+        import('../../../../axios/api/fleet.invoices'),
+        import('../../../../axios/api/account.fleetMaintenance'),
+      ]);
+
+      // Fetch all data sources in parallel — each returns { success, data: [...] }
+      const [expRes, payRes, fuelRes, fleetInvRes, maintRes] = await Promise.allSettled([
+        listExpenses(),
+        listPayrolls(),
+        listFuelReport({ limit: 500, sortBy: 'createdAt', sortOrder: 'desc' }),
+        getFleetInvoices(),
+        getMaintenancePlans(),
+      ]);
+
+      const items: PayableItem[] = [];
+
+      // ── Expenses ──────────────────────────────────────────────────
+      // listExpenses() returns { success, data: Expense[] }
+      if (expRes.status === 'fulfilled' && expRes.value?.success && Array.isArray(expRes.value.data)) {
+        expRes.value.data.forEach((e: any) => {
+          // type can be a string or a populated ExpenseType object
+          const typeName = typeof e.type === 'object' ? (e.type?.name || 'Expense') : (e.type || e.description || 'Expense');
+          items.push({
+            id: e._id,
+            subCategory: 'expense',
+            description: typeName,
+            reference: e._id?.slice(-6).toUpperCase() || '',
+            amount: toNum(e.amount),
+            date: toIso(e.date || e.createdAt),
+            status: (e.status || 'paid').toLowerCase(),
+          });
+        });
+      }
+
+      // ── Payrolls — split into employee vs driver ──────────────────
+      // listPayrolls() returns { success, data: Payroll[] }
+      if (payRes.status === 'fulfilled' && payRes.value?.success) {
+        const allPayrolls: any[] = payRes.value.data || [];
+        allPayrolls.forEach((p: any) => {
+          // userId may be a populated object { _id, name, role } or just an ObjectId string
+          const userObj = typeof p.userId === 'object' ? p.userId : null;
+          const role = (userObj?.role || '').toLowerCase();
+          const isDriver = role === 'driver';
+          const name = userObj?.name || (isDriver ? 'Driver' : 'Employee');
+          // Build a human-readable reference from role + pay period
+          const periodLabel = p.payPeriod || (p.month && p.year ? `${p.month}/${p.year}` : '') || '';
+          items.push({
+            id: p._id,
+            subCategory: isDriver ? 'driver-payroll' : 'employee-payroll',
+            description: name,
+            reference: [role || 'staff', periodLabel].filter(Boolean).join(' · '),
+            amount: toNum(p.totalSalary || p.netPay || p.grossPay),
+            date: toIso(p.payDate || p.createdAt),
+            status: (p.status || 'pending').toLowerCase(),
+          });
+        });
+      }
+
+      // ── Fuel Reports ──────────────────────────────────────────────
+      // listFuelReport() returns { success, data: FuelReport[], pagination }
+      if (fuelRes.status === 'fulfilled' && fuelRes.value?.success) {
+        const fuelList: any[] = Array.isArray(fuelRes.value.data) ? fuelRes.value.data : [];
+        fuelList.forEach((f: any) => {
+          // totalCost is the primary amount field; fall back to gallons × price
+          const gallons = toNum(f.gallons || f.quantity || 0);
+          const unitPrice = toNum(f.pricePerGallon || f.pricePerUnit || 0);
+          const amount = f.totalCost ? toNum(f.totalCost) : gallons * unitPrice;
+          // Vehicle description: prefer unit number from vehicleId populated object
+          const vehicleLabel = f.vehicleId?.unitNumber || f.vehicleId?.unitNo || f.vehicle || f.truckNumber || 'Vehicle';
+          const fuelTypeLabel = typeof f.fuelTypeId === 'object' ? (f.fuelTypeId?.name || 'Fuel') : (f.fuelType || 'Fuel');
+          items.push({
+            id: f._id,
+            subCategory: 'fuel',
+            description: `${vehicleLabel} — ${fuelTypeLabel}`,
+            reference: f.receiptNumber || f._id?.slice(-6).toUpperCase() || '',
+            amount,
+            date: toIso(f.date || f.fillDate || f.createdAt),
+            status: (f.status || 'paid').toLowerCase(),
+          });
+        });
+      }
+
+      // ── Fleet Invoices ────────────────────────────────────────────
+      // getFleetInvoices() returns { success, data: InvoiceRow[] }
+      // InvoiceRow fields: _id, invoiceNumber, customerName, total, status, invoiceDate, dueDate
+      if (fleetInvRes.status === 'fulfilled' && fleetInvRes.value?.success && Array.isArray(fleetInvRes.value.data)) {
+        fleetInvRes.value.data.forEach((fi: any) => {
+          items.push({
+            id: fi._id,
+            subCategory: 'fleet-invoice',
+            description: fi.customerName || fi.vendorName || fi.description || 'Fleet Invoice',
+            reference: fi.invoiceNumber || fi._id?.slice(-6).toUpperCase() || '',
+            amount: toNum(fi.total || fi.totalAmount || fi.amount),
+            date: toIso(fi.invoiceDate || fi.dueDate || fi.createdAt),
+            status: (fi.status || 'pending').toLowerCase(),
+          });
+        });
+      }
+
+      // ── Maintenance Plans ─────────────────────────────────────────
+      // getMaintenancePlans() returns { success, data: MaintenancePlan[] }
+      if (maintRes.status === 'fulfilled' && maintRes.value?.success && Array.isArray(maintRes.value.data)) {
+        maintRes.value.data.forEach((mp: any) => {
+          items.push({
+            id: mp._id,
+            subCategory: 'maintenance',
+            description: mp.planName || mp.description || 'Maintenance Plan',
+            reference: mp.vehicle || mp._id?.slice(-6).toUpperCase() || '',
+            amount: toNum(mp.actualCost != null ? mp.actualCost : mp.plannedCost),
+            date: toIso(mp.completedDate || mp.plannedDate || mp.createdAt),
+            status: (mp.status || 'pending').toLowerCase(),
+          });
+        });
+      }
+
+      setPayableItems(items);
+      setPayableLoaded(true);
+    } catch (err) {
+      console.error('Error fetching payable data:', err);
+    } finally {
+      setPayableLoading(false);
+    }
+  };
 
   // Static Trip-wise Financial Data (fallback)
 
@@ -635,7 +829,8 @@ const FinanceReport = () => {
                 { id: 'overview', label: 'Overview', icon: BarChart3 },
                 { id: 'trucks', label: 'Truck-wise', icon: Truck },
                 { id: 'trips', label: 'Trip-wise', icon: MapPin },
-                { id: 'time-based', label: 'Time Reports', icon: Calendar }
+                { id: 'time-based', label: 'Time Reports', icon: Calendar },
+                { id: 'payable', label: 'Payables', icon: CreditCard }
               ].map((tab) => {
                 const Icon = tab.icon;
                 return (
@@ -1878,6 +2073,343 @@ const FinanceReport = () => {
               )}
             </div>
           )}
+
+          {/* ── Payables Tab ── */}
+          {activeView === 'payable' && (() => {
+            const PAYABLE_META: Record<Exclude<PayableSubCategory, 'all'>, { label: string; color: string; bg: string; textColor: string; icon: React.ReactNode }> = {
+              expense:           { label: 'Expense',          color: '#ef4444', bg: 'bg-red-50',     textColor: 'text-red-700',     icon: <Receipt size={13} /> },
+              'employee-payroll':{ label: 'Employee Payroll', color: '#3b82f6', bg: 'bg-blue-50',    textColor: 'text-blue-700',    icon: <Users size={13} /> },
+              'driver-payroll':  { label: 'Driver Payroll',   color: '#10b981', bg: 'bg-emerald-50', textColor: 'text-emerald-700', icon: <IdCard size={13} /> },
+              fuel:              { label: 'Fuel Cost',        color: '#f59e0b', bg: 'bg-amber-50',   textColor: 'text-amber-700',   icon: <Fuel size={13} /> },
+              'fleet-invoice':   { label: 'Fleet Invoice',    color: '#8b5cf6', bg: 'bg-violet-50',  textColor: 'text-violet-700',  icon: <DollarSign size={13} /> },
+              maintenance:       { label: 'Maintenance',      color: '#06b6d4', bg: 'bg-cyan-50',    textColor: 'text-cyan-700',    icon: <Wrench size={13} /> },
+            };
+
+            const STATUS_META: Record<string, { bg: string; text: string; icon: React.ReactNode }> = {
+              paid:      { bg: 'bg-green-100',  text: 'text-green-700',  icon: <CheckCircle2 size={11} /> },
+              unpaid:    { bg: 'bg-red-100',    text: 'text-red-700',    icon: <XCircle size={11} /> },
+              pending:   { bg: 'bg-yellow-100', text: 'text-yellow-700', icon: <Clock size={11} /> },
+              overdue:   { bg: 'bg-orange-100', text: 'text-orange-700', icon: <AlertCircle size={11} /> },
+              completed: { bg: 'bg-green-100',  text: 'text-green-700',  icon: <CheckCircle2 size={11} /> },
+              approved:  { bg: 'bg-green-100',  text: 'text-green-700',  icon: <CheckCircle2 size={11} /> },
+              active:    { bg: 'bg-blue-100',   text: 'text-blue-700',   icon: <Clock size={11} /> },
+            };
+
+            const fmtCur = (n: number) =>
+              new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 0 }).format(n);
+
+            // Filtered items
+            const filtered = payableItems.filter(item => {
+              if (payableSubFilter !== 'all' && item.subCategory !== payableSubFilter) return false;
+              if (payableStatusFilter !== 'all' && item.status !== payableStatusFilter) return false;
+              if (payableSearch) {
+                const q = payableSearch.toLowerCase();
+                if (!item.description.toLowerCase().includes(q) && !item.reference.toLowerCase().includes(q)) return false;
+              }
+              return true;
+            });
+
+            // Summary totals
+            const totalPayable = filtered.reduce((s, i) => s + i.amount, 0);
+            const totalPaid    = filtered.filter(i => i.status === 'paid' || i.status === 'completed' || i.status === 'approved').reduce((s, i) => s + i.amount, 0);
+            const totalOutstanding = totalPayable - totalPaid;
+            const overdueCount = filtered.filter(i => i.status === 'overdue').length;
+
+            // Per-category totals
+            const catTotals = (Object.keys(PAYABLE_META) as Exclude<PayableSubCategory, 'all'>[]).map(cat => ({
+              cat,
+              total: payableItems.filter(i => i.subCategory === cat).reduce((s, i) => s + i.amount, 0),
+              count: payableItems.filter(i => i.subCategory === cat).length,
+            }));
+
+            // Sort
+            const sorted = [...filtered].sort((a, b) => {
+              let cmp = 0;
+              if (payableSortKey === 'date')        cmp = new Date(a.date).getTime() - new Date(b.date).getTime();
+              else if (payableSortKey === 'amount') cmp = a.amount - b.amount;
+              else if (payableSortKey === 'subCategory') cmp = a.subCategory.localeCompare(b.subCategory);
+              else if (payableSortKey === 'status') cmp = a.status.localeCompare(b.status);
+              return payableSortDir === 'asc' ? cmp : -cmp;
+            });
+
+            const totalPgPages = Math.max(1, Math.ceil(sorted.length / PAYABLE_PAGE_SIZE));
+            const pageRows = sorted.slice((payablePage - 1) * PAYABLE_PAGE_SIZE, payablePage * PAYABLE_PAGE_SIZE);
+
+            const handlePayableSort = (key: PayableSortKey) => {
+              if (payableSortKey === key) setPayableSortDir(d => d === 'asc' ? 'desc' : 'asc');
+              else { setPayableSortKey(key); setPayableSortDir('desc'); }
+              setPayablePage(1);
+            };
+
+            const SortIcon = ({ k }: { k: PayableSortKey }) =>
+              payableSortKey === k
+                ? (payableSortDir === 'asc' ? <ChevronUp size={12} /> : <ChevronDown size={12} />)
+                : <ChevronsUpDown size={12} className="text-gray-300" />;
+
+            return (
+              <div className="space-y-4">
+
+                {/* Refresh button */}
+                <div className="flex justify-end">
+                  <button
+                    onClick={() => { setPayableLoaded(false); fetchPayableData(); }}
+                    className="flex items-center gap-1.5 px-3 py-1.5 text-sm text-gray-600 border border-gray-200 bg-white rounded-lg hover:bg-gray-50 transition"
+                  >
+                    <RefreshCw size={13} className={payableLoading ? 'animate-spin text-[#42aeec]' : ''} />
+                    Refresh
+                  </button>
+                </div>
+
+                {/* Summary KPI cards */}
+                <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+                  <div className="bg-white rounded-xl border border-gray-200 p-4">
+                    <div className="flex items-center gap-2 mb-1">
+                      <CreditCard size={15} className="text-[#42aeec]" />
+                      <span className="text-xs text-gray-500 font-medium uppercase tracking-wide">Total Payables</span>
+                    </div>
+                    <div className="text-2xl font-bold text-gray-800">{fmtCur(totalPayable)}</div>
+                    <div className="text-xs text-gray-400 mt-1">{filtered.length} records</div>
+                  </div>
+                  <div className="bg-white rounded-xl border border-gray-200 p-4">
+                    <div className="flex items-center gap-2 mb-1">
+                      <CheckCircle2 size={15} className="text-emerald-500" />
+                      <span className="text-xs text-gray-500 font-medium uppercase tracking-wide">Paid / Settled</span>
+                    </div>
+                    <div className="text-2xl font-bold text-emerald-600">{fmtCur(totalPaid)}</div>
+                    <div className="text-xs text-gray-400 mt-1">{totalPayable > 0 ? Math.round((totalPaid / totalPayable) * 100) : 0}% of total</div>
+                  </div>
+                  <div className="bg-white rounded-xl border border-gray-200 p-4">
+                    <div className="flex items-center gap-2 mb-1">
+                      <TrendingDown size={15} className="text-red-400" />
+                      <span className="text-xs text-gray-500 font-medium uppercase tracking-wide">Outstanding</span>
+                    </div>
+                    <div className="text-2xl font-bold text-red-500">{fmtCur(totalOutstanding)}</div>
+                    <div className="text-xs text-gray-400 mt-1">{totalPayable > 0 ? Math.round((totalOutstanding / totalPayable) * 100) : 0}% unpaid</div>
+                  </div>
+                  <div className="bg-white rounded-xl border border-gray-200 p-4">
+                    <div className="flex items-center gap-2 mb-1">
+                      <AlertCircle size={15} className="text-orange-400" />
+                      <span className="text-xs text-gray-500 font-medium uppercase tracking-wide">Overdue Items</span>
+                    </div>
+                    <div className="text-2xl font-bold text-orange-500">{overdueCount}</div>
+                    <div className="text-xs text-gray-400 mt-1">Need attention</div>
+                  </div>
+                </div>
+
+                {/* Category breakdown cards */}
+                <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2">
+                  {catTotals.map(({ cat, total, count }) => {
+                    const meta = PAYABLE_META[cat];
+                    const isActive = payableSubFilter === cat;
+                    return (
+                      <button
+                        key={cat}
+                        onClick={() => { setPayableSubFilter(isActive ? 'all' : cat); setPayablePage(1); }}
+                        className={`rounded-xl p-3 text-left border transition ${isActive ? 'border-[#42aeec] bg-[#42aeec]/5 shadow-sm' : 'border-gray-200 bg-white hover:border-[#42aeec]/40'}`}
+                      >
+                        <div className="flex items-center justify-between mb-1.5">
+                          <span className="w-6 h-6 rounded-lg flex items-center justify-center" style={{ background: meta.color + '20', color: meta.color }}>
+                            {meta.icon}
+                          </span>
+                          {isActive && <span className="w-1.5 h-1.5 rounded-full bg-[#42aeec]" />}
+                        </div>
+                        <div className="text-sm font-bold text-gray-800 truncate">{fmtCur(total)}</div>
+                        <div className="text-xs text-gray-500 mt-0.5 truncate">{meta.label}</div>
+                        <div className="text-xs text-gray-400">{count} items</div>
+                      </button>
+                    );
+                  })}
+                </div>
+
+                {/* Filters */}
+                <div className="bg-white rounded-xl border border-gray-200 p-4">
+                  <div className="flex flex-wrap items-center gap-3">
+                    <div className="flex items-center gap-1.5 text-gray-500 text-sm font-medium">
+                      <Filter size={13} />
+                      Filters
+                    </div>
+
+                    {/* Search */}
+                    <div className="relative flex-1 min-w-[180px] max-w-xs">
+                      <Search size={13} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-gray-400" />
+                      <input
+                        type="text"
+                        placeholder="Search payables…"
+                        value={payableSearch}
+                        onChange={e => { setPayableSearch(e.target.value); setPayablePage(1); }}
+                        className="w-full pl-8 pr-3 py-1.5 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#42aeec]/30 focus:border-[#42aeec]"
+                      />
+                    </div>
+
+                    {/* Category */}
+                    <select
+                      value={payableSubFilter}
+                      onChange={e => { setPayableSubFilter(e.target.value as PayableSubCategory); setPayablePage(1); }}
+                      className="text-sm border border-gray-200 rounded-lg px-2.5 py-1.5 focus:outline-none focus:ring-2 focus:ring-[#42aeec]/30 focus:border-[#42aeec] bg-white"
+                    >
+                      <option value="all">All Categories</option>
+                      {(Object.keys(PAYABLE_META) as Exclude<PayableSubCategory,'all'>[]).map(k => (
+                        <option key={k} value={k}>{PAYABLE_META[k].label}</option>
+                      ))}
+                    </select>
+
+                    {/* Status */}
+                    <select
+                      value={payableStatusFilter}
+                      onChange={e => { setPayableStatusFilter(e.target.value); setPayablePage(1); }}
+                      className="text-sm border border-gray-200 rounded-lg px-2.5 py-1.5 focus:outline-none focus:ring-2 focus:ring-[#42aeec]/30 focus:border-[#42aeec] bg-white"
+                    >
+                      <option value="all">All Statuses</option>
+                      <option value="paid">Paid</option>
+                      <option value="unpaid">Unpaid</option>
+                      <option value="pending">Pending</option>
+                      <option value="overdue">Overdue</option>
+                      <option value="completed">Completed</option>
+                    </select>
+
+                    {(payableSubFilter !== 'all' || payableStatusFilter !== 'all' || payableSearch) && (
+                      <button
+                        onClick={() => { setPayableSubFilter('all'); setPayableStatusFilter('all'); setPayableSearch(''); setPayablePage(1); }}
+                        className="text-xs text-[#42aeec] hover:underline"
+                      >
+                        Clear
+                      </button>
+                    )}
+                  </div>
+                </div>
+
+                {/* Table */}
+                <div className="bg-white rounded-xl border border-gray-200">
+                  <div className="flex items-center justify-between px-4 py-3 border-b border-gray-100">
+                    <div>
+                      <h2 className="text-sm font-semibold text-gray-800">Payables List</h2>
+                      <p className="text-xs text-gray-400">Showing {Math.min(pageRows.length, PAYABLE_PAGE_SIZE)} of {filtered.length} records</p>
+                    </div>
+                  </div>
+
+                  {payableLoading ? (
+                    <div className="flex items-center justify-center py-16 gap-3 text-gray-400">
+                      <RefreshCw size={20} className="animate-spin text-[#42aeec]" />
+                      <span className="text-sm">Loading payables…</span>
+                    </div>
+                  ) : (
+                    <div className="overflow-x-auto">
+                      <table className="w-full text-sm">
+                        <thead>
+                          <tr className="bg-gray-50 text-xs text-gray-500 uppercase tracking-wide">
+                            <th className="text-left px-4 py-2.5 font-medium">
+                              <button onClick={() => handlePayableSort('subCategory')} className="flex items-center gap-1 hover:text-gray-700">
+                                Category <SortIcon k="subCategory" />
+                              </button>
+                            </th>
+                            <th className="text-left px-4 py-2.5 font-medium">Description</th>
+                            <th className="text-left px-4 py-2.5 font-medium">Reference</th>
+                            <th className="text-right px-4 py-2.5 font-medium">
+                              <button onClick={() => handlePayableSort('amount')} className="flex items-center gap-1 hover:text-gray-700 ml-auto">
+                                Amount <SortIcon k="amount" />
+                              </button>
+                            </th>
+                            <th className="text-left px-4 py-2.5 font-medium">
+                              <button onClick={() => handlePayableSort('date')} className="flex items-center gap-1 hover:text-gray-700">
+                                Date <SortIcon k="date" />
+                              </button>
+                            </th>
+                            <th className="text-left px-4 py-2.5 font-medium">
+                              <button onClick={() => handlePayableSort('status')} className="flex items-center gap-1 hover:text-gray-700">
+                                Status <SortIcon k="status" />
+                              </button>
+                            </th>
+                          </tr>
+                        </thead>
+                        <tbody className="divide-y divide-gray-50">
+                          {pageRows.length === 0 ? (
+                            <tr>
+                              <td colSpan={6} className="text-center py-14 text-gray-400 text-sm">
+                                {payableItems.length === 0 ? 'No payable records found.' : 'No records match the selected filters.'}
+                              </td>
+                            </tr>
+                          ) : pageRows.map(row => {
+                            const catMeta = PAYABLE_META[row.subCategory];
+                            const stMeta  = STATUS_META[row.status] ?? { bg: 'bg-gray-100', text: 'text-gray-600', icon: null };
+                            return (
+                              <tr key={`${row.subCategory}-${row.id}`} className="hover:bg-gray-50 transition">
+                                <td className="px-4 py-2.5">
+                                  <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium ${catMeta.bg} ${catMeta.textColor}`}>
+                                    {catMeta.icon}
+                                    {catMeta.label}
+                                  </span>
+                                </td>
+                                <td className="px-4 py-2.5 text-gray-700 max-w-[200px]">
+                                  <div className="truncate">{row.description}</div>
+                                </td>
+                                <td className="px-4 py-2.5 text-gray-400 text-xs font-mono">{row.reference}</td>
+                                <td className="px-4 py-2.5 text-right font-semibold text-gray-800">
+                                  {formatCurrency(row.amount)}
+                                </td>
+                                <td className="px-4 py-2.5 text-gray-500 text-xs whitespace-nowrap">
+                                  {new Date(row.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
+                                </td>
+                                <td className="px-4 py-2.5">
+                                  <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium ${stMeta.bg} ${stMeta.text}`}>
+                                    {stMeta.icon}
+                                    {row.status.charAt(0).toUpperCase() + row.status.slice(1)}
+                                  </span>
+                                </td>
+                              </tr>
+                            );
+                          })}
+                        </tbody>
+
+                        {/* Totals footer */}
+                        {pageRows.length > 0 && (
+                          <tfoot>
+                            <tr className="bg-[#42aeec]/5 border-t-2 border-[#42aeec]/20 font-semibold">
+                              <td colSpan={3} className="px-4 py-2.5 text-sm text-gray-700">
+                                Filtered Total ({filtered.length} records)
+                              </td>
+                              <td className="px-4 py-2.5 text-right text-sm font-bold text-gray-800">
+                                {formatCurrency(totalPayable)}
+                              </td>
+                              <td colSpan={2} className="px-4 py-2.5 text-xs text-gray-500">
+                                Paid: {fmtCur(totalPaid)} · Outstanding: {fmtCur(totalOutstanding)}
+                              </td>
+                            </tr>
+                          </tfoot>
+                        )}
+                      </table>
+                    </div>
+                  )}
+
+                  {/* Pagination */}
+                  {totalPgPages > 1 && (
+                    <div className="flex items-center justify-between px-4 py-3 border-t border-gray-100">
+                      <span className="text-xs text-gray-400">Page {payablePage} of {totalPgPages}</span>
+                      <div className="flex items-center gap-1">
+                        <button onClick={() => setPayablePage(p => Math.max(1, p - 1))} disabled={payablePage === 1}
+                          className="px-2.5 py-1 text-xs border border-gray-200 rounded hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed">
+                          Prev
+                        </button>
+                        {Array.from({ length: Math.min(5, totalPgPages) }, (_, i) => {
+                          const p = totalPgPages <= 5 ? i + 1 : Math.max(1, Math.min(payablePage - 2, totalPgPages - 4)) + i;
+                          return (
+                            <button key={p} onClick={() => setPayablePage(p)}
+                              className={`w-7 h-7 text-xs rounded transition ${p === payablePage ? 'bg-[#42aeec] text-white font-semibold' : 'border border-gray-200 text-gray-600 hover:bg-gray-50'}`}>
+                              {p}
+                            </button>
+                          );
+                        })}
+                        <button onClick={() => setPayablePage(p => Math.min(totalPgPages, p + 1))} disabled={payablePage === totalPgPages}
+                          className="px-2.5 py-1 text-xs border border-gray-200 rounded hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed">
+                          Next
+                        </button>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </div>
+            );
+          })()}
+
         </div>
       </div>
     </div>
