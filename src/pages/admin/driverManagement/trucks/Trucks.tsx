@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useParams } from 'react-router-dom';
+import { useParams, useNavigate } from 'react-router-dom';
 import { Plus, Upload, ChevronUp, ChevronDown, Clock, X, Image as ImageIcon, Calendar, ChevronLeft, ChevronRight, Edit, Trash2, FileText, Check, FileDown } from 'lucide-react';
 import ExcelJS from 'exceljs';
 import { getAllVehicles, createVehicle, updateVehicle, deleteVehicle, getVehicleById } from '../../../../axios/api/vehicle';
@@ -53,6 +53,7 @@ interface Country {
 
 const Trucks: React.FC = () => {
     const { category: routeCategory } = useParams<{ category?: string }>();
+    const navigate = useNavigate();
     
     
     // Initialize activeTab from route params, default to 'All'
@@ -1496,6 +1497,11 @@ const Trucks: React.FC = () => {
                         }));
                         setTrucks(transformedTrucks);
                     }
+                } else if (response?.code === 'TRUCK_LIMIT_REACHED') {
+                    const go = window.confirm(
+                      `⚠️ Truck Limit Reached\n\n${response.message}\n\nClick OK to go to the Subscription page and add more trucks.`
+                    );
+                    if (go) navigate('/admin/subscription');
                 } else {
                     alert(response?.message || 'Failed to create truck. Please try again.');
                 }

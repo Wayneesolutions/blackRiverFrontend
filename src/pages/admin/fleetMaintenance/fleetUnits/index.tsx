@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
+import { useNavigate } from 'react-router-dom';
 import type { CSSProperties } from 'react';
 import { Plus, Edit, Trash2, Search, Truck, CheckCircle, XCircle, Filter, MapPin, FileText, X, Download } from 'lucide-react';
 import { FaCheckCircle, FaExclamationCircle, FaTimes } from 'react-icons/fa';
@@ -102,6 +103,7 @@ const defaultSummary: FleetUnitSummary = {
 };
 
 const FleetUnits: React.FC = () => {
+  const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState<'all' | 'trucks' | 'trailers'>('all');
   const [statusFilter, setStatusFilter] = useState<'all' | 'active' | 'inactive'>('all');
   const [searchTerm, setSearchTerm] = useState('');
@@ -715,6 +717,13 @@ const FleetUnits: React.FC = () => {
       if (showAddModal) {
         const response = await apiCreateFleetUnit(payload);
         if (!response?.success) {
+          if (response?.code === 'TRUCK_LIMIT_REACHED') {
+            const go = window.confirm(
+              `⚠️ Truck Limit Reached\n\n${response.message}\n\nClick OK to go to the Subscription page and add more trucks.`
+            );
+            if (go) navigate('/admin/subscription');
+            return;
+          }
           throw new Error(response?.message || 'Failed to create fleet unit');
         }
         fleetUnitId = response.data?._id || (response.data as any)?.id;

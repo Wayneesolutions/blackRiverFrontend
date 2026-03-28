@@ -21,7 +21,7 @@ import {
   Truck,
 } from 'lucide-react';
 import { message, Modal, Button, Tag, Card, Spin, Tabs, Progress, Alert } from 'antd';
-import { getAllPlans, getMySubscription, getMySubscriptions, createCheckoutSession, cancelSubscription, getTrialStatus, verifyCheckoutSession } from '../../../axios/api/subscription';
+import { getAllPlans, getMySubscription, getMySubscriptions, createCheckoutSession, cancelSubscription, getTrialStatus, verifyCheckoutSession, addExtraTrucksCheckout } from '../../../axios/api/subscription';
 import { FLEET_COLORS } from '../fleetMaintenance/colorUtils';
 
 interface Plan {
@@ -76,6 +76,8 @@ interface Subscription {
   cancelledAt?: string;
   stripeSessionId?: string;
   truckCount?: number;
+  maxTrucks?: number;
+  extraTrucksPurchased?: number;
   installments?: {
     total: number;
     paid: number;
@@ -112,6 +114,9 @@ const SubscriptionPage = () => {
   const [truckCount, setTruckCount] = useState<number>(1);
   const [extraTrucks, setExtraTrucks] = useState<number>(0);
   const [pricingTabs, setPricingTabs] = useState<Record<string, 'monthly' | '6months' | 'annual'>>({});
+  const [showAddTruckModal, setShowAddTruckModal] = useState(false);
+  const [addTruckCount, setAddTruckCount] = useState(1);
+  const [addTruckProcessing, setAddTruckProcessing] = useState(false);
 
 
   const primaryButtonStyle: CSSProperties = {
@@ -213,6 +218,26 @@ const SubscriptionPage = () => {
       message.error(error?.message || 'Failed to create checkout session');
     } finally {
       setProcessing(false);
+    }
+  };
+
+  const confirmAddTrucks = async () => {
+    if (!activeSubscription) return;
+    const planId = typeof activeSubscription.plan === 'object' ? activeSubscription.plan?._id : activeSubscription.plan as string;
+    if (!planId) return;
+
+    setAddTruckProcessing(true);
+    try {
+      const response = await addExtraTrucksCheckout({ planId, extraTruck: addTruckCount });
+      if (response?.success && response.data?.url) {
+        window.location.href = response.data.url;
+      } else {
+        message.error(response?.message || 'Failed to create checkout session');
+      }
+    } catch (error: any) {
+      message.error(error?.message || 'Failed to create checkout session');
+    } finally {
+      setAddTruckProcessing(false);
     }
   };
 
@@ -626,6 +651,70 @@ const SubscriptionPage = () => {
             </div>
           </div>
         )}
+
+        {/* ── Add More Trucks (active subscription only) ── */}
+        {activeSubscription && activeSubscription.status === 'active' && (() => {
+          const activePlan = typeof activeSubscription.plan === 'object' ? activeSubscription.plan as Plan : null;
+          const extraTruckPrice = activePlan?.monthly?.truckPricing?.extraTruckPrice ?? 0;
+          const extraTruckCurrency = activePlan?.monthly?.truckPricing?.extraTruckCurrency ?? 'CAD';
+          const currentMaxTrucks = activeSubscription.maxTrucks ?? activeSubscription.truckCount ?? 0;
+          const extraAlreadyPurchased = activeSubscription.extraTrucksPurchased ?? 0;
+          if (extraTruckPrice <= 0) return null;
+          return (
+            <div className="mb-8 bg-white rounded-2xl shadow-lg border-2 border-orange-200 overflow-hidden">
+              <div className="px-6 py-4 bg-gradient-to-r from-orange-500 to-amber-500 flex items-center justify-between gap-4 flex-wrap">
+                <div className="flex items-center gap-3">
+                  <div className="p-2 bg-white/20 rounded-xl">
+                    <Truck className="w-5 h-5 text-white" />
+                  </div>
+                  <div>
+                    <h3 className="text-lg font-bold text-white">Need More Trucks?</h3>
+                    <p className="text-white/80 text-sm">Add extra trucks to your current plan — no plan change needed</p>
+                  </div>
+                </div>
+                <Button
+                  size="large"
+                  icon={<TrendingUp className="w-4 h-4" />}
+                  onClick={() => { setAddTruckCount(1); setShowAddTruckModal(true); }}
+                  className="bg-white text-orange-600 border-white font-bold hover:bg-orange-50 flex-shrink-0"
+                >
+                  Add Trucks
+                </Button>
+              </div>
+              <div className="px-6 py-4 flex flex-wrap gap-6 items-center">
+                <div className="flex items-center gap-2">
+                  <div className="w-9 h-9 bg-orange-100 rounded-lg flex items-center justify-center">
+                    <Truck className="w-4 h-4 text-orange-600" />
+                  </div>
+                  <div>
+                    <p className="text-xs text-gray-500 font-medium">Current Truck Limit</p>
+                    <p className="text-lg font-bold text-gray-900">{currentMaxTrucks} trucks</p>
+                  </div>
+                </div>
+                {extraAlreadyPurchased > 0 && (
+                  <div className="flex items-center gap-2">
+                    <div className="w-9 h-9 bg-green-100 rounded-lg flex items-center justify-center">
+                      <CheckCircle className="w-4 h-4 text-green-600" />
+                    </div>
+                    <div>
+                      <p className="text-xs text-gray-500 font-medium">Extra Trucks Added</p>
+                      <p className="text-lg font-bold text-gray-900">+{extraAlreadyPurchased} trucks</p>
+                    </div>
+                  </div>
+                )}
+                <div className="flex items-center gap-2">
+                  <div className="w-9 h-9 bg-orange-100 rounded-lg flex items-center justify-center">
+                    <DollarSign className="w-4 h-4 text-orange-600" />
+                  </div>
+                  <div>
+                    <p className="text-xs text-gray-500 font-medium">Rate Per Extra Truck</p>
+                    <p className="text-lg font-bold text-orange-600">{formatPrice(extraTruckPrice, extraTruckCurrency)}<span className="text-sm font-normal text-gray-500">/truck/mo</span></p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          );
+        })()}
 
         {/* Enhanced Available Plans with Tabs */}
         <div className="mb-8">
@@ -1268,6 +1357,92 @@ const SubscriptionPage = () => {
             </div>
           </div>
         )}
+      </Modal>
+
+      {/* Add Extra Trucks Modal */}
+      <Modal
+        title={
+          <div className="flex items-center gap-3">
+            <div className="p-2 bg-gradient-to-br from-orange-500 to-amber-500 rounded-lg">
+              <Truck className="w-5 h-5 text-white" />
+            </div>
+            <span className="text-xl font-bold">Add Extra Trucks</span>
+          </div>
+        }
+        open={showAddTruckModal}
+        onCancel={() => { setShowAddTruckModal(false); setAddTruckCount(1); }}
+        footer={[
+          <Button key="cancel" size="large" onClick={() => { setShowAddTruckModal(false); setAddTruckCount(1); }}>Cancel</Button>,
+          <Button
+            key="confirm"
+            type="primary"
+            size="large"
+            loading={addTruckProcessing}
+            onClick={confirmAddTrucks}
+            icon={<ArrowRight className="w-4 h-4" />}
+            style={{ background: 'linear-gradient(135deg, #f97316 0%, #f59e0b 100%)', border: 'none', fontWeight: 600 }}
+          >
+            {addTruckProcessing ? 'Processing...' : 'Proceed to Checkout'}
+          </Button>,
+        ]}
+        width={500}
+      >
+        {activeSubscription && (() => {
+          const activePlan = typeof activeSubscription.plan === 'object' ? activeSubscription.plan as Plan : null;
+          const extraTruckPrice = activePlan?.monthly?.truckPricing?.extraTruckPrice ?? 0;
+          const extraTruckCurrency = activePlan?.monthly?.truckPricing?.extraTruckCurrency ?? 'CAD';
+          const currentMaxTrucks = activeSubscription.maxTrucks ?? activeSubscription.truckCount ?? 0;
+          const totalCost = addTruckCount * extraTruckPrice;
+
+          return (
+            <div className="space-y-5 py-4">
+              <div className="bg-orange-50 border border-orange-200 rounded-xl p-4">
+                <p className="text-sm text-gray-700 mb-1">You are adding extra trucks to:</p>
+                <p className="text-lg font-bold text-orange-900">
+                  {activePlan?.planName || 'Your Current Plan'}
+                </p>
+                <p className="text-xs text-gray-500 mt-1">Current limit: {currentMaxTrucks} trucks</p>
+              </div>
+
+              <div className="bg-gray-50 rounded-xl border border-gray-200 p-5">
+                <p className="text-sm font-semibold text-gray-700 mb-3">How many extra trucks do you need?</p>
+                <div className="flex items-center gap-4 mb-4">
+                  <button
+                    onClick={() => setAddTruckCount(Math.max(1, addTruckCount - 1))}
+                    className="w-10 h-10 rounded-xl border-2 border-gray-300 bg-white flex items-center justify-center text-gray-700 hover:bg-gray-100 font-bold text-xl leading-none"
+                  >−</button>
+                  <span className="w-16 text-center font-bold text-2xl text-gray-900">{addTruckCount}</span>
+                  <button
+                    onClick={() => setAddTruckCount(addTruckCount + 1)}
+                    className="w-10 h-10 rounded-xl border-2 border-orange-400 bg-orange-50 flex items-center justify-center text-orange-600 hover:bg-orange-100 font-bold text-xl leading-none"
+                  >+</button>
+                  <div className="ml-2">
+                    <p className="text-xs text-gray-500">truck{addTruckCount > 1 ? 's' : ''} to add</p>
+                    <p className="text-xs text-gray-400">New limit: <strong>{currentMaxTrucks + addTruckCount}</strong> trucks</p>
+                  </div>
+                </div>
+
+                <div className="border-t border-gray-200 pt-4 space-y-2">
+                  <div className="flex items-center justify-between text-sm">
+                    <span className="text-gray-600">{addTruckCount} truck{addTruckCount > 1 ? 's' : ''} × {formatPrice(extraTruckPrice, extraTruckCurrency)}/truck/mo</span>
+                    <span className="font-semibold text-gray-900">{formatPrice(totalCost, extraTruckCurrency)}/mo</span>
+                  </div>
+                  <div className="flex items-center justify-between bg-orange-50 rounded-lg px-3 py-2">
+                    <span className="text-sm font-bold text-gray-800">Total charge now</span>
+                    <span className="text-xl font-extrabold text-orange-600">{formatPrice(totalCost, extraTruckCurrency)}</span>
+                  </div>
+                </div>
+              </div>
+
+              <div className="bg-blue-50 rounded-lg p-4 border border-blue-200 flex items-start gap-3">
+                <Info className="w-5 h-5 text-blue-600 mt-0.5 flex-shrink-0" />
+                <p className="text-sm text-gray-700">
+                  You will be redirected to <strong>Stripe checkout</strong> to complete the payment. Your truck limit will be increased immediately after payment.
+                </p>
+              </div>
+            </div>
+          );
+        })()}
       </Modal>
 
       {/* Cancel Subscription Modal */}

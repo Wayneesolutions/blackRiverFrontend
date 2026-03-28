@@ -143,11 +143,15 @@ export const getFleetUnitById = async (id: string) => {
 };
 
 export const createFleetUnit = async (payload: FleetUnitPayload) => {
-  const res = await apiClient.post<{ success: boolean; data: FleetUnitDto; message?: string }>(
-    `/admin/fleet-maintenance/units`,
-    payload
-  );
-  return res.data;
+  try {
+    const res = await apiClient.post<{ success: boolean; data: FleetUnitDto; message?: string; code?: string }>(
+      `/admin/fleet-maintenance/units`,
+      payload
+    );
+    return res.data;
+  } catch (error: any) {
+    return error?.response?.data ?? { success: false, message: 'Failed to create fleet unit' };
+  }
 };
 
 export const updateFleetUnit = async (id: string, payload: FleetUnitPayload) => {

@@ -75,6 +75,17 @@ export const cancelSubscription = async (subscriptionId: string) => {
   }
 };
 
+// ✅ Add Extra Trucks to Active Subscription
+export const addExtraTrucksCheckout = async (data: { planId: string; extraTruck: number }) => {
+  try {
+    const res: AxiosResponse = await apiClient.post('admin/subscription/add-truck-checkout', data);
+    return res.data;
+  } catch (error) {
+    console.log(error);
+    return (error as Error).response?.data;
+  }
+};
+
 // ✅ Get Trial Status
 export const getTrialStatus = async () => {
   try {
