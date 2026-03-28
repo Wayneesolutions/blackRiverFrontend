@@ -17,9 +17,25 @@ import {
   Copy,
   ArrowUpDown,
   Sparkles,
+  TrendingUp,
 } from 'lucide-react';
 import { message, Modal, Input, Select, Button, Switch, Tag, Tooltip, Dropdown } from 'antd';
 import { getAllPlans, createPlan, updatePlan, deletePlan } from '../../../axios/api/superadmin';
+
+interface TruckTier {
+  minTrucks: number;
+  maxTrucks: number;
+  monthlyPrice: number;
+  currency: string;
+}
+
+interface TruckPricing {
+  tiers: TruckTier[];
+  extraTruckPrice: number;
+  extraTruckCurrency: string;
+  sixMonthBonusDays: number;
+  annualFreeMonths: number;
+}
 
 interface Plan {
   _id: string;
@@ -27,31 +43,20 @@ interface Plan {
   planType: 'lifetime' | 'monthly';
   description: string;
   lifetime?: {
-    oneTime: {
-      price: number;
-      currency: string;
-    };
+    oneTime: { price: number; currency: string; };
     installments: {
-      threeMonths: {
-        price: number;
-        currency: string;
-        enabled: boolean;
-      };
-      sixMonths: {
-        price: number;
-        currency: string;
-        enabled: boolean;
-      };
+      threeMonths: { price: number; currency: string; enabled: boolean; };
+      sixMonths: { price: number; currency: string; enabled: boolean; };
     };
   };
   monthly?: {
-    fullApp: {
-      price: number;
-      currency: string;
-      enabled: boolean;
-    };
+    fullApp: { price: number; currency: string; enabled: boolean; };
+    truckPricing?: TruckPricing;
+    yearly?: { price: number; currency: string; enabled: boolean; };
   };
   features?: Array<{ name: string; included: boolean }>;
+  allowedRoles?: string[];
+  blockedRoles?: string[];
   status: 'active' | 'inactive';
   isDefault: boolean;
   createdAt?: string;
@@ -59,11 +64,37 @@ interface Plan {
 }
 
 type ViewMode = 'grid' | 'list';
-type FilterType = 'all' | 'active' | 'inactive' | 'lifetime' | 'monthly' | 'default';
+type FilterType = 'all' | 'active' | 'inactive' | 'default';
 type SortType = 'name' | 'price' | 'created' | 'status';
 
+const ROLE_OPTIONS = [
+  { value: 'driver', label: 'Driver' },
+  { value: 'dispatcher', label: 'Dispatcher' },
+  { value: 'hr', label: 'HR' },
+  { value: 'contact', label: 'Contact' },
+  { value: 'customer', label: 'Customer' },
+  { value: 'reporter', label: 'Reporter' },
+  { value: 'Maintenance Crew (Mechanics)', label: 'Maintenance Crew (Mechanics)' },
+  { value: 'Fleet Maintenance Manager', label: 'Fleet Maintenance Manager' },
+  { value: 'Compliance Manager', label: 'Compliance Manager' },
+  { value: 'safety officer', label: 'Safety Officer' },
+];
+
+const createDefaultTruckPricing = (): TruckPricing => ({
+  tiers: [
+    { minTrucks: 1,  maxTrucks: 10, monthlyPrice: 199, currency: 'CAD' },
+    { minTrucks: 11, maxTrucks: 20, monthlyPrice: 399, currency: 'CAD' },
+  ],
+  extraTruckPrice: 19.99,
+  extraTruckCurrency: 'CAD',
+  sixMonthBonusDays: 15,
+  annualFreeMonths: 1,
+});
+
 const createDefaultMonthly = () => ({
-  fullApp: { price: 699, currency: 'CAD', enabled: true }
+  fullApp: { price: 0, currency: 'CAD', enabled: false },
+  truckPricing: createDefaultTruckPricing(),
+  yearly: { price: 0, currency: 'CAD', enabled: false },
 });
 
 const Billing = () => {
@@ -84,10 +115,12 @@ const Billing = () => {
   const [filterType, setFilterType] = useState<FilterType>('all');
   const [sortType, setSortType] = useState<SortType>('name');
   const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('asc');
+  const [previewTab, setPreviewTab] = useState<'monthly' | '6months' | 'annual'>('monthly');
+  const [editDescription, setEditDescription] = useState('');
 
   const [formData, setFormData] = useState({
     planName: '',
-    planType: 'lifetime' as 'lifetime' | 'monthly',
+    planType: 'monthly' as 'lifetime' | 'monthly',
     description: '',
     lifetime: {
       oneTime: { price: 17999, currency: 'CAD' },
@@ -98,6 +131,8 @@ const Billing = () => {
     },
     monthly: createDefaultMonthly(),
     features: [] as Array<{ name: string; included: boolean }>,
+    allowedRoles: [] as string[],
+    blockedRoles: [] as string[],
     status: 'active' as 'active' | 'inactive',
     isDefault: false
   });
@@ -127,31 +162,26 @@ const Billing = () => {
     }
   };
 
+  // Only monthly plans are shown
+  const monthlyPlans = plans.filter(p => p.planType === 'monthly');
+
   // Calculate statistics
   const stats = {
-    totalPlans: plans.length,
-    activePlans: plans.filter(p => p.status === 'active').length,
-    lifetimePlans: plans.filter(p => p.planType === 'lifetime').length,
-    monthlyPlans: plans.filter(p => p.planType === 'monthly').length,
-    defaultPlan: plans.find(p => p.isDefault) || null,
+    totalPlans: monthlyPlans.length,
+    activePlans: monthlyPlans.filter(p => p.status === 'active').length,
+    defaultPlan: monthlyPlans.find(p => p.isDefault) || null,
   };
 
-  // Filter and sort plans
-  const filteredAndSortedPlans = plans
+  // Filter and sort plans (lifetime always hidden)
+  const filteredAndSortedPlans = monthlyPlans
     .filter(plan => {
-      // Search filter
       if (searchTerm && !plan.planName.toLowerCase().includes(searchTerm.toLowerCase()) &&
           !plan.description?.toLowerCase().includes(searchTerm.toLowerCase())) {
         return false;
       }
-      
-      // Type filter
       if (filterType === 'active' && plan.status !== 'active') return false;
       if (filterType === 'inactive' && plan.status !== 'inactive') return false;
-      if (filterType === 'lifetime' && plan.planType !== 'lifetime') return false;
-      if (filterType === 'monthly' && plan.planType !== 'monthly') return false;
       if (filterType === 'default' && !plan.isDefault) return false;
-      
       return true;
     })
     .sort((a, b) => {
@@ -184,7 +214,7 @@ const Billing = () => {
   const resetForm = () => {
     setFormData({
       planName: '',
-      planType: 'lifetime',
+      planType: 'monthly',
       description: '',
       lifetime: {
         oneTime: { price: 17999, currency: 'CAD' },
@@ -195,6 +225,8 @@ const Billing = () => {
       },
       monthly: createDefaultMonthly(),
       features: [],
+      allowedRoles: [],
+      blockedRoles: [],
       status: 'active',
       isDefault: false
     });
@@ -225,53 +257,22 @@ const Billing = () => {
 
   const handleEdit = (plan: Plan) => {
     setSelectedPlan(plan);
-    setFormData({
-      planName: plan.planName,
-      planType: plan.planType,
-      description: plan.description || '',
-      lifetime: plan.lifetime || {
-        oneTime: { price: 17999, currency: 'CAD' },
-        installments: {
-          threeMonths: { price: 6200, currency: 'CAD', enabled: true },
-          sixMonths: { price: 3150, currency: 'CAD', enabled: true }
-        }
-      },
-      monthly: plan.monthly?.fullApp
-        ? {
-            fullApp: {
-              price: plan.monthly.fullApp.price ?? 0,
-              currency: plan.monthly.fullApp.currency ?? 'CAD',
-              enabled: plan.monthly.fullApp.enabled ?? true,
-            },
-          }
-        : createDefaultMonthly(),
-      features: plan.features || [],
-      status: plan.status,
-      isDefault: plan.isDefault
-    });
+    setEditDescription(plan.description || '');
     setShowEditModal(true);
   };
 
   const handleUpdate = async () => {
     if (!selectedPlan) return;
-
     try {
-      if (!formData.planName) {
-        message.error('Plan name is required');
-        return;
-      }
-
-      const response = await updatePlan(selectedPlan._id, formData);
+      const response = await updatePlan(selectedPlan._id, { description: editDescription });
       if (response?.success) {
-        message.success(response.message || 'Plan updated successfully');
+        message.success('Description updated successfully');
         setShowEditModal(false);
-        resetForm();
         fetchPlans();
       } else {
         message.error(response?.message || 'Failed to update plan');
       }
     } catch (error: any) {
-      console.error('Error updating plan:', error);
       message.error(error?.message || 'Failed to update plan');
     }
   };
@@ -313,27 +314,32 @@ const Billing = () => {
 
   const handleDuplicate = async (plan: Plan) => {
     try {
+      const tp = plan.monthly?.truckPricing;
       setFormData({
         planName: `${plan.planName} (Copy)`,
         planType: plan.planType,
         description: plan.description || '',
-      lifetime: plan.lifetime || {
-        oneTime: { price: 17999, currency: 'CAD' },
-        installments: {
-          threeMonths: { price: 6200, currency: 'CAD', enabled: true },
-          sixMonths: { price: 3150, currency: 'CAD', enabled: true }
-        }
-      },
-      monthly: plan.monthly?.fullApp
-        ? {
-            fullApp: {
-              price: plan.monthly.fullApp.price ?? 0,
-              currency: plan.monthly.fullApp.currency ?? 'CAD',
-              enabled: plan.monthly.fullApp.enabled ?? true,
-            },
+        lifetime: plan.lifetime || {
+          oneTime: { price: 17999, currency: 'CAD' },
+          installments: {
+            threeMonths: { price: 6200, currency: 'CAD', enabled: true },
+            sixMonths: { price: 3150, currency: 'CAD', enabled: true }
           }
-        : createDefaultMonthly(),
+        },
+        monthly: {
+          fullApp: { price: plan.monthly?.fullApp?.price ?? 0, currency: 'CAD', enabled: plan.monthly?.fullApp?.enabled ?? false },
+          truckPricing: {
+            tiers: tp?.tiers ?? [],
+            extraTruckPrice: tp?.extraTruckPrice ?? 0,
+            extraTruckCurrency: tp?.extraTruckCurrency ?? 'CAD',
+            sixMonthBonusDays: tp?.sixMonthBonusDays ?? 15,
+            annualFreeMonths: tp?.annualFreeMonths ?? 1,
+          },
+          yearly: { price: plan.monthly?.yearly?.price ?? 0, currency: 'CAD', enabled: plan.monthly?.yearly?.enabled ?? false },
+        },
         features: plan.features || [],
+        allowedRoles: plan.allowedRoles || [],
+        blockedRoles: plan.blockedRoles || [],
         status: 'inactive',
         isDefault: false
       });
@@ -352,7 +358,6 @@ const Billing = () => {
 
   const getPlanGradient = (plan: Plan) => {
     if (plan.isDefault) return 'from-purple-500 to-indigo-600';
-    if (plan.planType === 'lifetime') return 'from-blue-500 to-cyan-600';
     return 'from-green-500 to-emerald-600';
   };
 
@@ -363,6 +368,359 @@ const Billing = () => {
       setSortType(type);
       setSortDirection('asc');
     }
+  };
+
+  const updateTruckPricing = (field: keyof TruckPricing, value: any) => {
+    setFormData(prev => ({
+      ...prev,
+      monthly: { ...prev.monthly, truckPricing: { ...prev.monthly.truckPricing!, [field]: value } }
+    }));
+  };
+
+  const addTier = () => {
+    const tiers = formData.monthly.truckPricing?.tiers || [];
+    const lastMax = tiers[tiers.length - 1]?.maxTrucks ?? 0;
+    updateTruckPricing('tiers', [...tiers, { minTrucks: lastMax + 1, maxTrucks: lastMax + 10, monthlyPrice: 0, currency: 'CAD' }]);
+  };
+
+  const removeTier = (idx: number) => {
+    updateTruckPricing('tiers', (formData.monthly.truckPricing?.tiers || []).filter((_, i) => i !== idx));
+  };
+
+  const updateTier = (idx: number, field: keyof TruckTier, value: number | string) => {
+    updateTruckPricing('tiers', (formData.monthly.truckPricing?.tiers || []).map((t, i) => i === idx ? { ...t, [field]: value } : t));
+  };
+
+  const addFeature = () => setFormData(prev => ({ ...prev, features: [...prev.features, { name: '', included: true }] }));
+  const removeFeature = (idx: number) => setFormData(prev => ({ ...prev, features: prev.features.filter((_, i) => i !== idx) }));
+  const updateFeature = (idx: number, field: 'name' | 'included', value: string | boolean) =>
+    setFormData(prev => ({ ...prev, features: prev.features.map((f, i) => i === idx ? { ...f, [field]: value } : f) }));
+
+  const renderPricingPreview = (tiers: TruckTier[], tp: TruckPricing, tab: 'monthly' | '6months' | 'annual', onTabChange: (t: 'monthly' | '6months' | 'annual') => void) => {
+    const bonusDays = tp.sixMonthBonusDays ?? 15;
+    const freeMonths = tp.annualFreeMonths ?? 1;
+    const extraPrice = tp.extraTruckPrice ?? 0;
+
+    return (
+      <div className="bg-[#f7f7f5] rounded-xl p-4 mt-4">
+        {/* Tabs */}
+        <div className="flex gap-2 mb-4 flex-wrap">
+          {(['monthly', '6months', 'annual'] as const).map(t => (
+            <button key={t} onClick={() => onTabChange(t)}
+              className={`px-4 py-2 rounded-full text-sm font-medium border transition-all ${tab === t ? 'bg-white border-gray-300 shadow-sm text-gray-900' : 'bg-transparent border-transparent text-gray-500 hover:text-gray-700'}`}>
+              {t === 'monthly' ? 'Monthly' : t === '6months' ? (
+                <span className="flex items-center gap-1.5">6 Months {bonusDays > 0 && <span className="bg-green-100 text-green-700 text-xs px-1.5 py-0.5 rounded-full font-semibold">+{bonusDays} days free</span>}</span>
+              ) : (
+                <span className="flex items-center gap-1.5">Annual {freeMonths > 0 && <span className="bg-blue-100 text-blue-700 text-xs px-1.5 py-0.5 rounded-full font-semibold">{freeMonths} month free</span>}</span>
+              )}
+            </button>
+          ))}
+        </div>
+
+        {/* Bonus banner */}
+        {tab === '6months' && bonusDays > 0 && (
+          <div className="bg-green-50 border border-green-200 rounded-lg px-4 py-2.5 mb-3 text-sm text-green-800">
+            <strong>6-month bonus:</strong> Pay upfront for 6 months and receive {bonusDays} extra days of usage at no additional cost.
+          </div>
+        )}
+        {tab === 'annual' && freeMonths > 0 && (
+          <div className="bg-blue-50 border border-blue-200 rounded-lg px-4 py-2.5 mb-3 text-sm text-blue-800">
+            <strong>Annual incentive:</strong> Pay for 12 months and get {freeMonths} full month{freeMonths > 1 ? 's' : ''} free — {12 + freeMonths} months of access for the price of 12.
+          </div>
+        )}
+
+        {tiers.length === 0 ? (
+          <p className="text-center text-sm text-gray-400 py-4 italic">Add truck tiers above to see pricing preview</p>
+        ) : (
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            {tiers.map((tier, i) => {
+              const isPopular = i === 1 || (tiers.length === 1 && i === 0);
+              const isLastTier = i === tiers.length - 1;
+              let price: number;
+              let priceLabel: string;
+              let strikethrough: number | null = null;
+              let saveLine: string | null = null;
+              if (tab === 'monthly') {
+                price = tier.monthlyPrice;
+                priceLabel = '/month';
+              } else if (tab === '6months') {
+                price = tier.monthlyPrice * 6;
+                priceLabel = ' for 6 months';
+                saveLine = `${formatPrice(tier.monthlyPrice, tier.currency)}/month equivalent`;
+              } else {
+                price = tier.monthlyPrice * 12;
+                strikethrough = tier.monthlyPrice * (12 + freeMonths);
+                priceLabel = '/year';
+                saveLine = `${formatPrice(tier.monthlyPrice, tier.currency)}/month · save ${formatPrice(tier.monthlyPrice * freeMonths, tier.currency)} vs monthly`;
+              }
+              return (
+                <div key={i} className={`relative bg-white rounded-xl p-4 border-2 transition-shadow ${isPopular ? 'border-blue-500 shadow-md' : 'border-gray-200'}`}>
+                  {isPopular && (
+                    <div className="absolute -top-3 left-1/2 -translate-x-1/2 bg-blue-100 text-blue-700 text-xs font-semibold px-3 py-1 rounded-full border border-blue-200">Most popular</div>
+                  )}
+                  <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1">{tier.minTrucks} – {tier.maxTrucks} Trucks</p>
+                  <div className="flex items-baseline gap-1 mb-1">
+                    {strikethrough !== null && <span className="text-sm text-gray-400 line-through mr-1">{formatPrice(strikethrough, tier.currency)}</span>}
+                    <span className="text-3xl font-bold text-gray-900">{formatPrice(price, tier.currency)}</span>
+                    <span className="text-sm text-gray-500">{priceLabel}</span>
+                  </div>
+                  {saveLine && <p className="text-xs text-gray-500 mb-3">{saveLine}</p>}
+                  <hr className="border-gray-100 mb-3" />
+                  <ul className="space-y-1.5">
+                    <li className="flex items-center gap-2 text-sm text-gray-700">
+                      <CheckCircle className="w-4 h-4 text-green-500 flex-shrink-0" />
+                      Up to {tier.maxTrucks} trucks included
+                    </li>
+                    {tab === '6months' && bonusDays > 0 && (
+                      <li className="flex items-center gap-2 text-sm text-gray-700">
+                        <CheckCircle className="w-4 h-4 text-green-500 flex-shrink-0" />
+                        {bonusDays} bonus days at no extra cost
+                      </li>
+                    )}
+                    {tab === 'annual' && freeMonths > 0 && (
+                      <li className="flex items-center gap-2 text-sm text-gray-700">
+                        <CheckCircle className="w-4 h-4 text-green-500 flex-shrink-0" />
+                        {freeMonths} month{freeMonths > 1 ? 's' : ''} free — {12 + freeMonths} months total
+                      </li>
+                    )}
+                    {isLastTier && extraPrice > 0 && (
+                      <li className="flex items-center gap-2 text-sm text-orange-700">
+                        <TrendingUp className="w-4 h-4 text-orange-500 flex-shrink-0" />
+                        +{formatPrice(extraPrice, tp.extraTruckCurrency ?? 'CAD')}/truck/mo beyond {tier.maxTrucks}
+                      </li>
+                    )}
+                  </ul>
+                </div>
+              );
+            })}
+          </div>
+        )}
+
+        {extraPrice > 0 && tiers.length > 0 && (() => {
+          const lastTierMax = tiers[tiers.length - 1]?.maxTrucks ?? 0;
+          const extraCur = tp.extraTruckCurrency ?? 'CAD';
+          const periodPrice = tab === 'monthly' ? extraPrice : tab === '6months' ? extraPrice * 6 : extraPrice * 12;
+          const periodLabel = tab === 'monthly' ? '/truck / month' : tab === '6months' ? '/truck / 6 months' : '/truck / year';
+          return (
+            <div className="mt-3 rounded-xl border-2 border-dashed border-orange-200 bg-orange-50 overflow-hidden">
+              <div className="flex items-center gap-2 px-4 py-2 bg-orange-100 border-b border-orange-200">
+                <span className="text-xs font-bold text-orange-800 uppercase tracking-wide">Additional Trucks Beyond {lastTierMax}</span>
+              </div>
+              <div className="flex items-center justify-between px-4 py-3 flex-wrap gap-3">
+                <p className="text-sm text-gray-700">
+                  Base rate: <strong>{formatPrice(extraPrice, extraCur)}/truck/month</strong>
+                  {tab !== 'monthly' && <span className="text-gray-500"> (applied per month within your billing period)</span>}
+                </p>
+                <div className="text-right">
+                  <span className="text-xl font-bold text-orange-600">{formatPrice(periodPrice, extraCur)}</span>
+                  <span className="text-xs text-orange-500 ml-1">{periodLabel}</span>
+                </div>
+              </div>
+            </div>
+          );
+        })()}
+      </div>
+    );
+  };
+
+  const renderPlanFormBody = () => {
+    const tp = formData.monthly.truckPricing || createDefaultTruckPricing();
+    const tiers = tp.tiers.length >= 2 ? tp.tiers : createDefaultTruckPricing().tiers;
+
+    return (
+      <div className="space-y-6 py-4">
+
+        {/* ── Identity ── */}
+        <div className="grid grid-cols-2 gap-4">
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Plan Name <span className="text-red-500">*</span></label>
+            <Input
+              value={formData.planName}
+              onChange={(e) => setFormData({ ...formData, planName: e.target.value })}
+              placeholder="e.g. Standard Fleet Plan"
+              size="large"
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Status</label>
+            <Select value={formData.status} onChange={(value) => setFormData({ ...formData, status: value })} className="w-full" size="large">
+              <Select.Option value="active">Active</Select.Option>
+              <Select.Option value="inactive">Inactive</Select.Option>
+            </Select>
+          </div>
+        </div>
+
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1">Description</label>
+          <Input.TextArea
+            value={formData.description}
+            onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+            placeholder="Briefly describe what this plan includes..."
+            rows={2}
+          />
+        </div>
+
+        <div className="flex items-center gap-3 px-4 py-3 bg-blue-50 rounded-xl border border-blue-100">
+          <Switch checked={formData.isDefault} onChange={(checked) => setFormData({ ...formData, isDefault: checked })} />
+          <div>
+            <p className="text-sm font-semibold text-gray-800">Set as Default Plan</p>
+            <p className="text-xs text-gray-500">New admins will be shown this plan first</p>
+          </div>
+        </div>
+
+        {/* ── Fleet Tier Pricing ── */}
+        <div className="border border-gray-200 rounded-xl overflow-hidden">
+          <div className="px-5 py-3 bg-gray-50 border-b border-gray-200 flex items-center gap-2">
+            <Zap className="w-4 h-4 text-blue-500" />
+            <span className="text-sm font-bold text-gray-800">Fleet Tier Pricing</span>
+            <span className="ml-auto text-xs text-gray-400 bg-white border border-gray-200 px-2 py-0.5 rounded-full">Fixed: 2 tiers</span>
+          </div>
+
+          <div className="p-5 grid grid-cols-2 gap-4">
+            {/* Tier 1: 1–10 Trucks */}
+            <div className="rounded-xl border-2 border-orange-200 bg-orange-50 p-4">
+              <div className="flex items-center gap-2 mb-3">
+                <div className="w-8 h-8 bg-orange-500 rounded-lg flex items-center justify-center">
+                  <Zap className="w-4 h-4 text-white" />
+                </div>
+                <div>
+                  <p className="text-xs text-orange-600 font-semibold uppercase tracking-wide">Tier 1</p>
+                  <p className="text-sm font-bold text-gray-900">1 – 10 Trucks</p>
+                </div>
+              </div>
+              <label className="block text-xs text-gray-500 mb-1">Monthly Price (CAD)</label>
+              <Input
+                type="number"
+                size="large"
+                value={tiers[0]?.monthlyPrice ?? 199}
+                min={0}
+                prefix="$"
+                addonAfter="CAD/mo"
+                onChange={(e) => updateTier(0, 'monthlyPrice', parseFloat(e.target.value) || 0)}
+              />
+            </div>
+
+            {/* Tier 2: 11–20 Trucks */}
+            <div className="rounded-xl border-2 border-blue-200 bg-blue-50 p-4">
+              <div className="flex items-center gap-2 mb-3">
+                <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center">
+                  <Star className="w-4 h-4 text-white" />
+                </div>
+                <div>
+                  <p className="text-xs text-blue-600 font-semibold uppercase tracking-wide">Tier 2</p>
+                  <p className="text-sm font-bold text-gray-900">11 – 20 Trucks</p>
+                </div>
+              </div>
+              <label className="block text-xs text-gray-500 mb-1">Monthly Price (CAD)</label>
+              <Input
+                type="number"
+                size="large"
+                value={tiers[1]?.monthlyPrice ?? 399}
+                min={0}
+                prefix="$"
+                addonAfter="CAD/mo"
+                onChange={(e) => updateTier(1, 'monthlyPrice', parseFloat(e.target.value) || 0)}
+              />
+            </div>
+          </div>
+
+          {/* Extra truck price */}
+          <div className="px-5 pb-5">
+            <div className="rounded-xl border border-dashed border-orange-300 bg-orange-50/50 p-4">
+              <div className="flex items-start gap-3">
+                <TrendingUp className="w-4 h-4 text-orange-500 mt-0.5 flex-shrink-0" />
+                <div className="flex-1">
+                  <label className="block text-sm font-semibold text-gray-800 mb-0.5">Additional Truck Rate</label>
+                  <p className="text-xs text-gray-500 mb-2">Charged per truck beyond 20 (last tier max)</p>
+                  <Input
+                    type="number"
+                    value={tp.extraTruckPrice}
+                    min={0}
+                    prefix="$"
+                    addonAfter="CAD / truck / month"
+                    onChange={(e) => updateTruckPricing('extraTruckPrice', parseFloat(e.target.value) || 0)}
+                    placeholder="19.99"
+                  />
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Billing bonuses */}
+          <div className="px-5 pb-5 border-t border-gray-100 pt-4">
+            <p className="text-xs font-bold text-gray-500 uppercase tracking-widest mb-3">Billing Period Bonuses</p>
+            <div className="grid grid-cols-2 gap-4">
+              <div className="bg-amber-50 border border-amber-200 rounded-xl p-4">
+                <div className="flex items-center gap-2 mb-2">
+                  <Zap className="w-3.5 h-3.5 text-amber-500" />
+                  <label className="text-sm font-semibold text-gray-800">6-Month Bonus</label>
+                </div>
+                <p className="text-xs text-gray-500 mb-2">Free days added when paying 6 months upfront</p>
+                <Input
+                  type="number"
+                  value={tp.sixMonthBonusDays}
+                  min={0}
+                  addonAfter="days free"
+                  onChange={(e) => updateTruckPricing('sixMonthBonusDays', parseInt(e.target.value) || 0)}
+                />
+              </div>
+              <div className="bg-green-50 border border-green-200 rounded-xl p-4">
+                <div className="flex items-center gap-2 mb-2">
+                  <Star className="w-3.5 h-3.5 text-green-500" />
+                  <label className="text-sm font-semibold text-gray-800">Annual Free Months</label>
+                </div>
+                <p className="text-xs text-gray-500 mb-2">Free months added when paying annually</p>
+                <Input
+                  type="number"
+                  value={tp.annualFreeMonths}
+                  min={0}
+                  addonAfter="month(s) free"
+                  onChange={(e) => updateTruckPricing('annualFreeMonths', parseInt(e.target.value) || 0)}
+                />
+              </div>
+            </div>
+          </div>
+
+          {/* Live Preview */}
+          <div className="px-5 pb-5 border-t border-gray-100 pt-4">
+            <p className="text-xs font-bold text-gray-500 uppercase tracking-widest mb-3">Live Pricing Preview</p>
+            {renderPricingPreview(tiers, tp, previewTab, setPreviewTab)}
+          </div>
+        </div>
+
+        {/* ── Features ── */}
+        <div className="border border-gray-200 rounded-xl overflow-hidden">
+          <div className="px-5 py-3 bg-gray-50 border-b border-gray-200 flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <CheckCircle className="w-4 h-4 text-green-500" />
+              <span className="text-sm font-bold text-gray-800">Plan Features</span>
+            </div>
+            <Button size="small" icon={<Plus className="w-3 h-3" />} onClick={addFeature}>Add Feature</Button>
+          </div>
+          <div className="p-5">
+            {formData.features.length === 0 && (
+              <p className="text-xs text-gray-400 italic text-center py-3">No features yet — click "Add Feature" to start</p>
+            )}
+            <div className="space-y-2">
+              {formData.features.map((feature, idx) => (
+                <div key={idx} className="flex items-center gap-2">
+                  <Switch size="small" checked={feature.included} onChange={(checked) => updateFeature(idx, 'included', checked)} />
+                  <Input
+                    value={feature.name}
+                    onChange={(e) => updateFeature(idx, 'name', e.target.value)}
+                    placeholder="e.g. Fleet Maintenance Tracking"
+                    className="flex-1"
+                    size="small"
+                  />
+                  <Button size="small" danger onClick={() => removeFeature(idx)}>×</Button>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+
+      </div>
+    );
   };
 
   return (
@@ -410,7 +768,7 @@ const Billing = () => {
           </div>
 
           {/* Statistics Cards */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4 mb-4">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
             <div className="bg-gradient-to-br from-purple-500 to-indigo-600 rounded-xl shadow-lg p-4 text-white">
               <div className="flex items-center justify-between">
                 <div>
@@ -420,7 +778,6 @@ const Billing = () => {
                 <CreditCard className="w-8 h-8 opacity-80" />
               </div>
             </div>
-            
             <div className="bg-gradient-to-br from-green-500 to-emerald-600 rounded-xl shadow-lg p-4 text-white">
               <div className="flex items-center justify-between">
                 <div>
@@ -430,34 +787,13 @@ const Billing = () => {
                 <CheckCircle className="w-8 h-8 opacity-80" />
               </div>
             </div>
-
-            <div className="bg-gradient-to-br from-blue-500 to-cyan-600 rounded-xl shadow-lg p-4 text-white">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm opacity-90 mb-1">Lifetime</p>
-                  <p className="text-2xl font-bold">{stats.lifetimePlans}</p>
-                </div>
-                <Zap className="w-8 h-8 opacity-80" />
-              </div>
-            </div>
-
-            <div className="bg-gradient-to-br from-orange-500 to-red-600 rounded-xl shadow-lg p-4 text-white">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm opacity-90 mb-1">Monthly</p>
-                  <p className="text-2xl font-bold">{stats.monthlyPlans}</p>
-                </div>
-                <Calendar className="w-8 h-8 opacity-80" />
-              </div>
-            </div>
-
             <div className="bg-gradient-to-br from-yellow-500 to-amber-600 rounded-xl shadow-lg p-4 text-white">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm opacity-90 mb-1">Default</p>
-                  <p className="text-2xl font-bold">{stats.defaultPlan ? '1' : '0'}</p>
+                  <p className="text-sm opacity-90 mb-1">Default Plan</p>
+                  <p className="text-lg font-bold truncate">{stats.defaultPlan ? stats.defaultPlan.planName : 'None'}</p>
                 </div>
-                <Star className="w-8 h-8 opacity-80" />
+                <Star className="w-8 h-8 opacity-80 flex-shrink-0" />
               </div>
             </div>
           </div>
@@ -485,8 +821,6 @@ const Billing = () => {
                 <Select.Option value="all">All Plans</Select.Option>
                 <Select.Option value="active">Active</Select.Option>
                 <Select.Option value="inactive">Inactive</Select.Option>
-                <Select.Option value="lifetime">Lifetime</Select.Option>
-                <Select.Option value="monthly">Monthly</Select.Option>
                 <Select.Option value="default">Default</Select.Option>
               </Select>
 
@@ -578,66 +912,48 @@ const Billing = () => {
                     </div>
                     <div className="flex items-center gap-2 flex-wrap">
                       <span className="bg-white bg-opacity-90 backdrop-blur-sm px-3 py-1.5 rounded-full text-xs font-bold text-gray-900 border border-white shadow-md">
-                        {plan.planType === 'lifetime' ? 'Lifetime' : 'Monthly'}
+                        Monthly · 6-Month · Annual
                       </span>
-                      <span className={`bg-white bg-opacity-90 backdrop-blur-sm px-3 py-1.5 rounded-full text-xs font-bold text-gray-900 border border-white shadow-md capitalize ${
-                        plan.status === 'active' ? '' : 'opacity-75'
-                      }`}>
-                          {plan.status}
+                      <span className={`bg-white bg-opacity-90 backdrop-blur-sm px-3 py-1.5 rounded-full text-xs font-bold text-gray-900 border border-white shadow-md capitalize ${plan.status === 'active' ? '' : 'opacity-75'}`}>
+                        {plan.status}
                       </span>
-                      </div>
+                    </div>
                     </div>
                   </div>
 
                 <div className="p-6">
                   {/* Pricing */}
-                  {plan.planType === 'lifetime' && plan.lifetime && (
-                    <div className="space-y-3 mb-4">
-                      <div className="bg-gradient-to-r from-blue-50 to-cyan-50 p-4 rounded-lg border border-blue-100">
-                        <div className="text-xs text-gray-600 mb-1">One-time Payment</div>
-                        <div className="text-2xl font-bold text-gray-900">
-                          {formatPrice(plan.lifetime.oneTime.price, plan.lifetime.oneTime.currency)}
-                      </div>
-                      </div>
-                      {(plan.lifetime.installments.threeMonths.enabled || plan.lifetime.installments.sixMonths.enabled) && (
-                        <div className="text-sm text-gray-600 space-y-1">
-                      {plan.lifetime.installments.threeMonths.enabled && (
-                            <div className="flex justify-between">
-                              <span>3 installments:</span>
-                              <span className="font-semibold">
-                            {formatPrice(plan.lifetime.installments.threeMonths.price, plan.lifetime.installments.threeMonths.currency)}/mo
-                          </span>
-                        </div>
-                      )}
-                      {plan.lifetime.installments.sixMonths.enabled && (
-                            <div className="flex justify-between">
-                              <span>6 installments:</span>
-                              <span className="font-semibold">
-                            {formatPrice(plan.lifetime.installments.sixMonths.price, plan.lifetime.installments.sixMonths.currency)}/mo
-                          </span>
+                  {plan.monthly && (
+                    <div className="mb-3">
+                      {(plan.monthly.truckPricing?.tiers?.length ?? 0) > 0 ? (
+                        <div className="space-y-1.5">
+                          {plan.monthly.truckPricing!.tiers.slice(0, 2).map((tier, i) => (
+                            <div key={i} className="flex items-center justify-between bg-green-50 px-3 py-1.5 rounded-lg border border-green-100">
+                              <span className="text-xs font-medium text-gray-600">{tier.minTrucks}–{tier.maxTrucks} trucks</span>
+                              <span className="text-sm font-bold text-gray-900">{formatPrice(tier.monthlyPrice, tier.currency)}/mo</span>
                             </div>
+                          ))}
+                          {plan.monthly.truckPricing!.tiers.length > 2 && (
+                            <p className="text-xs text-gray-400 text-center">+{plan.monthly.truckPricing!.tiers.length - 2} more tier{plan.monthly.truckPricing!.tiers.length - 2 > 1 ? 's' : ''}</p>
                           )}
                         </div>
-                      )}
-                    </div>
-                  )}
-
-                  {plan.planType === 'monthly' && plan.monthly && (
-                    <div className="space-y-3 mb-4">
-                      {plan.monthly.fullApp.enabled && (
-                        <div className="bg-gradient-to-r from-green-50 to-emerald-50 p-4 rounded-lg border border-green-100">
-                          <div className="text-xs text-gray-600 mb-1">Monthly Price</div>
-                          <div className="text-2xl font-bold text-gray-900">
-                            {formatPrice(plan.monthly.fullApp.price, plan.monthly.fullApp.currency)}<span className="text-sm font-normal text-gray-600">/mo</span>
-                          </div>
+                      ) : plan.monthly.fullApp.enabled ? (
+                        <div className="bg-gradient-to-r from-green-50 to-emerald-50 p-3 rounded-lg border border-green-100">
+                          <div className="text-xs text-gray-600 mb-1">Monthly</div>
+                          <div className="text-xl font-bold text-gray-900">{formatPrice(plan.monthly.fullApp.price, plan.monthly.fullApp.currency)}<span className="text-sm font-normal text-gray-600">/mo</span></div>
                         </div>
-                      )}
-                  
+                      ) : null}
                     </div>
                   )}
 
                   {plan.description && (
-                    <p className="text-sm text-gray-600 mb-4 line-clamp-2">{plan.description}</p>
+                    <p className="text-sm text-gray-600 mb-2 line-clamp-2">{plan.description}</p>
+                  )}
+
+                  {(plan.features?.length ?? 0) > 0 && (
+                    <div className="text-xs text-gray-500 mb-3">
+                      {plan.features!.filter(f => f.included).length} / {plan.features!.length} features included
+                    </div>
                   )}
 
                   {/* Actions */}
@@ -760,437 +1076,50 @@ const Billing = () => {
       <Modal
         title="Create New Plan"
         open={showCreateModal}
-        onCancel={() => {
-          setShowCreateModal(false);
-          resetForm();
-        }}
+        onCancel={() => { setShowCreateModal(false); resetForm(); }}
         footer={null}
-        width={800}
+        width={860}
       >
-        <div className="space-y-6 py-4">
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">Plan Name *</label>
-            <Input
-              value={formData.planName}
-              onChange={(e) => setFormData({ ...formData, planName: e.target.value })}
-              placeholder="Enter plan name"
-              required
-            />
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">Plan Type *</label>
-            <Select
-              value={formData.planType}
-              onChange={(value) => {
-                setFormData({ ...formData, planType: value });
-              }}
-              className="w-full"
-            >
-              <Select.Option value="lifetime">Lifetime</Select.Option>
-              <Select.Option value="monthly">Monthly</Select.Option>
-            </Select>
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">Description</label>
-            <Input.TextArea
-              value={formData.description}
-              onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-              placeholder="Enter plan description"
-              rows={3}
-            />
-          </div>
-
-          {formData.planType === 'lifetime' && (
-            <div className="space-y-4 border p-4 rounded-lg">
-              <h4 className="font-medium text-gray-900 mb-3">Lifetime Pricing</h4>
-              
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">One-time Price (CAD) *</label>
-                <Input
-                  type="number"
-                  value={formData.lifetime.oneTime.price}
-                  onChange={(e) => setFormData({
-                    ...formData,
-                    lifetime: {
-                      ...formData.lifetime,
-                      oneTime: {
-                        ...formData.lifetime.oneTime,
-                        price: parseFloat(e.target.value) || 0
-                      }
-                    }
-                  })}
-                  placeholder="17999"
-                />
-              </div>
-
-              <div className="space-y-3">
-                <div className="flex items-center justify-between">
-                  <label className="text-sm font-medium text-gray-700">3 Installments</label>
-                  <Switch
-                    checked={formData.lifetime.installments.threeMonths.enabled}
-                    onChange={(checked) => setFormData({
-                      ...formData,
-                      lifetime: {
-                        ...formData.lifetime,
-                        installments: {
-                          ...formData.lifetime.installments,
-                          threeMonths: {
-                            ...formData.lifetime.installments.threeMonths,
-                            enabled: checked
-                          }
-                        }
-                      }
-                    })}
-                  />
-                </div>
-                {formData.lifetime.installments.threeMonths.enabled && (
-                  <Input
-                    type="number"
-                    value={formData.lifetime.installments.threeMonths.price}
-                    onChange={(e) => setFormData({
-                      ...formData,
-                      lifetime: {
-                        ...formData.lifetime,
-                        installments: {
-                          ...formData.lifetime.installments,
-                          threeMonths: {
-                            ...formData.lifetime.installments.threeMonths,
-                            price: parseFloat(e.target.value) || 0
-                          }
-                        }
-                      }
-                    })}
-                    placeholder="6200"
-                    addonAfter="CAD/month"
-                  />
-                )}
-              </div>
-
-              <div className="space-y-3">
-                <div className="flex items-center justify-between">
-                  <label className="text-sm font-medium text-gray-700">6 Installments</label>
-                  <Switch
-                    checked={formData.lifetime.installments.sixMonths.enabled}
-                    onChange={(checked) => setFormData({
-                      ...formData,
-                      lifetime: {
-                        ...formData.lifetime,
-                        installments: {
-                          ...formData.lifetime.installments,
-                          sixMonths: {
-                            ...formData.lifetime.installments.sixMonths,
-                            enabled: checked
-                          }
-                        }
-                      }
-                    })}
-                  />
-                </div>
-                {formData.lifetime.installments.sixMonths.enabled && (
-                  <Input
-                    type="number"
-                    value={formData.lifetime.installments.sixMonths.price}
-                    onChange={(e) => setFormData({
-                      ...formData,
-                      lifetime: {
-                        ...formData.lifetime,
-                        installments: {
-                          ...formData.lifetime.installments,
-                          sixMonths: {
-                            ...formData.lifetime.installments.sixMonths,
-                            price: parseFloat(e.target.value) || 0
-                          }
-                        }
-                      }
-                    })}
-                    placeholder="3150"
-                    addonAfter="CAD/month"
-                  />
-                )}
-              </div>
-            </div>
-          )}
-
-          {formData.planType === 'monthly' && (
-            <div className="space-y-4 border p-4 rounded-lg">
-              <h4 className="font-medium text-gray-900 mb-3">Monthly Pricing</h4>
-              
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Monthly Price (CAD) *</label>
-                <Input
-                  type="number"
-                  value={formData.monthly.fullApp.price}
-                  onChange={(e) => setFormData({
-                    ...formData,
-                    monthly: {
-                      ...formData.monthly,
-                      fullApp: {
-                        ...formData.monthly.fullApp,
-                        price: parseFloat(e.target.value) || 0,
-                        enabled: true
-                      }
-                    }
-                  })}
-                  placeholder="699"
-                  addonAfter="CAD/month"
-                />
-              </div>
-            </div>
-          )}
-
-          <div className="flex items-center justify-between">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">Status</label>
-              <Select
-                value={formData.status}
-                onChange={(value) => setFormData({ ...formData, status: value })}
-                className="w-32"
-              >
-                <Select.Option value="active">Active</Select.Option>
-                <Select.Option value="inactive">Inactive</Select.Option>
-              </Select>
-            </div>
-            <div className="flex items-center space-x-2">
-              <label className="text-sm font-medium text-gray-700">Set as Default</label>
-              <Switch
-                checked={formData.isDefault}
-                onChange={(checked) => setFormData({ ...formData, isDefault: checked })}
-              />
-            </div>
-          </div>
-
-          <div className="flex justify-end space-x-3 pt-4 border-t">
-            <Button onClick={() => {
-              setShowCreateModal(false);
-              resetForm();
-            }}>
-              Cancel
-            </Button>
-            <Button type="primary" onClick={handleCreate} className="bg-purple-600 hover:bg-purple-700">
-              Create Plan
-            </Button>
-          </div>
+        <div className="overflow-y-auto max-h-[75vh]">
+          {renderPlanFormBody()}
+        </div>
+        <div className="flex justify-end space-x-3 pt-4 border-t mt-2">
+          <Button onClick={() => { setShowCreateModal(false); resetForm(); }}>Cancel</Button>
+          <Button type="primary" onClick={handleCreate} className="bg-purple-600 hover:bg-purple-700 !ml-2">Create Plan</Button>
         </div>
       </Modal>
 
-      {/* Edit Plan Modal */}
+      {/* Edit Plan Modal — description only */}
       <Modal
-        title="Edit Plan"
+        title={
+          <div className="flex items-center gap-2">
+            <Edit className="w-4 h-4 text-purple-600" />
+            <span>Edit Plan — {selectedPlan?.planName}</span>
+          </div>
+        }
         open={showEditModal}
-        onCancel={() => {
-          setShowEditModal(false);
-          resetForm();
-        }}
+        onCancel={() => setShowEditModal(false)}
         footer={null}
-        width={800}
+        width={500}
       >
-        <div className="space-y-6 py-4">
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">Plan Name *</label>
-            <Input
-              value={formData.planName}
-              onChange={(e) => setFormData({ ...formData, planName: e.target.value })}
-              placeholder="Enter plan name"
-              required
-            />
+        <div className="py-4 space-y-4">
+          <div className="bg-yellow-50 border border-yellow-200 rounded-lg px-3 py-2 text-sm text-yellow-800">
+            Only the plan description can be edited after creation.
           </div>
-
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">Plan Type *</label>
-            <Select
-              value={formData.planType}
-              onChange={(value) => {
-                setFormData({ ...formData, planType: value });
-              }}
-              className="w-full"
-            >
-              <Select.Option value="lifetime">Lifetime</Select.Option>
-              <Select.Option value="monthly">Monthly</Select.Option>
-            </Select>
-          </div>
-
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">Description</label>
             <Input.TextArea
-              value={formData.description}
-              onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+              value={editDescription}
+              onChange={(e) => setEditDescription(e.target.value)}
               placeholder="Enter plan description"
-              rows={3}
+              rows={4}
+              autoFocus
             />
           </div>
-
-          {formData.planType === 'lifetime' && (
-            <div className="space-y-4 border p-4 rounded-lg">
-              <h4 className="font-medium text-gray-900 mb-3">Lifetime Pricing</h4>
-              
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">One-time Price (CAD) *</label>
-                <Input
-                  type="number"
-                  value={formData.lifetime.oneTime.price}
-                  onChange={(e) => setFormData({
-                    ...formData,
-                    lifetime: {
-                      ...formData.lifetime,
-                      oneTime: {
-                        ...formData.lifetime.oneTime,
-                        price: parseFloat(e.target.value) || 0
-                      }
-                    }
-                  })}
-                  placeholder="17999"
-                />
-              </div>
-
-              <div className="space-y-3">
-                <div className="flex items-center justify-between">
-                  <label className="text-sm font-medium text-gray-700">3 Installments</label>
-                  <Switch
-                    checked={formData.lifetime.installments.threeMonths.enabled}
-                    onChange={(checked) => setFormData({
-                      ...formData,
-                      lifetime: {
-                        ...formData.lifetime,
-                        installments: {
-                          ...formData.lifetime.installments,
-                          threeMonths: {
-                            ...formData.lifetime.installments.threeMonths,
-                            enabled: checked
-                          }
-                        }
-                      }
-                    })}
-                  />
-                </div>
-                {formData.lifetime.installments.threeMonths.enabled && (
-                  <Input
-                    type="number"
-                    value={formData.lifetime.installments.threeMonths.price}
-                    onChange={(e) => setFormData({
-                      ...formData,
-                      lifetime: {
-                        ...formData.lifetime,
-                        installments: {
-                          ...formData.lifetime.installments,
-                          threeMonths: {
-                            ...formData.lifetime.installments.threeMonths,
-                            price: parseFloat(e.target.value) || 0
-                          }
-                        }
-                      }
-                    })}
-                    placeholder="6200"
-                    addonAfter="CAD/month"
-                  />
-                )}
-              </div>
-
-              <div className="space-y-3">
-                <div className="flex items-center justify-between">
-                  <label className="text-sm font-medium text-gray-700">6 Installments</label>
-                  <Switch
-                    checked={formData.lifetime.installments.sixMonths.enabled}
-                    onChange={(checked) => setFormData({
-                      ...formData,
-                      lifetime: {
-                        ...formData.lifetime,
-                        installments: {
-                          ...formData.lifetime.installments,
-                          sixMonths: {
-                            ...formData.lifetime.installments.sixMonths,
-                            enabled: checked
-                          }
-                        }
-                      }
-                    })}
-                  />
-                </div>
-                {formData.lifetime.installments.sixMonths.enabled && (
-                  <Input
-                    type="number"
-                    value={formData.lifetime.installments.sixMonths.price}
-                    onChange={(e) => setFormData({
-                      ...formData,
-                      lifetime: {
-                        ...formData.lifetime,
-                        installments: {
-                          ...formData.lifetime.installments,
-                          sixMonths: {
-                            ...formData.lifetime.installments.sixMonths,
-                            price: parseFloat(e.target.value) || 0
-                          }
-                        }
-                      }
-                    })}
-                    placeholder="3150"
-                    addonAfter="CAD/month"
-                  />
-                )}
-              </div>
-            </div>
-          )}
-
-          {formData.planType === 'monthly' && (
-            <div className="space-y-4 border p-4 rounded-lg">
-              <h4 className="font-medium text-gray-900 mb-3">Monthly Pricing</h4>
-              
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Monthly Price (CAD) *</label>
-                <Input
-                  type="number"
-                  value={formData.monthly.fullApp.price}
-                  onChange={(e) => setFormData({
-                    ...formData,
-                    monthly: {
-                      ...formData.monthly,
-                      fullApp: {
-                        ...formData.monthly.fullApp,
-                        price: parseFloat(e.target.value) || 0,
-                        enabled: true
-                      }
-                    }
-                  })}
-                  placeholder="699"
-                  addonAfter="CAD/month"
-                />
-              </div>
-            </div>
-          )}
-
-          <div className="flex items-center justify-between">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">Status</label>
-              <Select
-                value={formData.status}
-                onChange={(value) => setFormData({ ...formData, status: value })}
-                className="w-32"
-              >
-                <Select.Option value="active">Active</Select.Option>
-                <Select.Option value="inactive">Inactive</Select.Option>
-              </Select>
-            </div>
-            <div className="flex items-center space-x-2">
-              <label className="text-sm font-medium text-gray-700">Set as Default</label>
-              <Switch
-                checked={formData.isDefault}
-                onChange={(checked) => setFormData({ ...formData, isDefault: checked })}
-              />
-            </div>
-          </div>
-
-          <div className="flex justify-end space-x-3 pt-4 border-t">
-            <Button onClick={() => {
-              setShowEditModal(false);
-              resetForm();
-            }}>
-              Cancel
-            </Button>
-            <Button type="primary" onClick={handleUpdate} className="bg-purple-600 hover:bg-purple-700">
-              Update Plan
-            </Button>
-          </div>
+        </div>
+        <div className="flex justify-end gap-3 pt-3 border-t">
+          <Button onClick={() => setShowEditModal(false)}>Cancel</Button>
+          <Button type="primary" onClick={handleUpdate} className="bg-purple-600 hover:bg-purple-700">Save Description</Button>
         </div>
       </Modal>
 
@@ -1313,30 +1242,58 @@ const Billing = () => {
               </div>
             )}
 
-            {selectedPlan.planType === 'monthly' && selectedPlan.monthly && (
-              <div className="border-t pt-6">
-                <h4 className="text-lg font-bold text-gray-900 mb-4 flex items-center gap-2">
-                  <Calendar className="w-5 h-5 text-green-500" />
-                  Monthly Pricing Options
+            {selectedPlan.planType === 'monthly' && selectedPlan.monthly && (selectedPlan.monthly.truckPricing?.tiers?.length ?? 0) > 0 && (
+              <div className="border-t pt-4">
+                <h4 className="text-base font-bold text-gray-900 mb-2 flex items-center gap-2">
+                  <Calendar className="w-4 h-4 text-green-500" />
+                  Pricing Plans
                 </h4>
-                <div className="space-y-3">
-                  {selectedPlan.monthly.fullApp.enabled && (
-                    <div className="bg-gradient-to-r from-green-50 to-emerald-50 p-5 rounded-xl border-2 border-green-200">
-                      <div className="flex items-center justify-between">
-                    <div>
-                          <p className="text-sm text-gray-600 mb-1">Monthly Pricing</p>
-                          <p className="text-3xl font-bold text-gray-900">
-                            {formatPrice(selectedPlan.monthly.fullApp.price, selectedPlan.monthly.fullApp.currency)}
-                            <span className="text-lg font-normal text-gray-600">/month</span>
-                          </p>
-                          <p className="text-xs text-gray-500 mt-1">Includes all features</p>
-                        </div>
-                        <CheckCircle className="w-8 h-8 text-green-500" />
-                      </div>
+                {renderPricingPreview(
+                  selectedPlan.monthly.truckPricing!.tiers,
+                  selectedPlan.monthly.truckPricing as TruckPricing,
+                  previewTab,
+                  setPreviewTab
+                )}
+              </div>
+            )}
+
+            {/* Features */}
+            {(selectedPlan.features?.length ?? 0) > 0 && (
+              <div className="border-t pt-6">
+                <h4 className="text-lg font-bold text-gray-900 mb-3">Features</h4>
+                <div className="grid grid-cols-2 gap-2">
+                  {selectedPlan.features!.map((f, i) => (
+                    <div key={i} className="flex items-center gap-2 text-sm">
+                      {f.included
+                        ? <CheckCircle className="w-4 h-4 text-green-500 flex-shrink-0" />
+                        : <XCircle className="w-4 h-4 text-gray-300 flex-shrink-0" />}
+                      <span className={f.included ? 'text-gray-900' : 'text-gray-400 line-through'}>{f.name}</span>
                     </div>
-                  )}
-                  
+                  ))}
                 </div>
+              </div>
+            )}
+
+            {/* Roles */}
+            {((selectedPlan.allowedRoles?.length ?? 0) > 0 || (selectedPlan.blockedRoles?.length ?? 0) > 0) && (
+              <div className="border-t pt-6">
+                <h4 className="text-lg font-bold text-gray-900 mb-3">Role Access</h4>
+                {(selectedPlan.allowedRoles?.length ?? 0) > 0 && (
+                  <div className="mb-3">
+                    <p className="text-sm font-medium text-gray-700 mb-2">Allowed Roles</p>
+                    <div className="flex flex-wrap gap-1">
+                      {selectedPlan.allowedRoles!.map(r => <Tag key={r} color="blue">{r}</Tag>)}
+                    </div>
+                  </div>
+                )}
+                {(selectedPlan.blockedRoles?.length ?? 0) > 0 && (
+                  <div>
+                    <p className="text-sm font-medium text-gray-700 mb-2">Blocked Roles</p>
+                    <div className="flex flex-wrap gap-1">
+                      {selectedPlan.blockedRoles!.map(r => <Tag key={r} color="red">{r}</Tag>)}
+                    </div>
+                  </div>
+                )}
               </div>
             )}
           </div>

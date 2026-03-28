@@ -21,7 +21,7 @@ import {
   Truck,
 } from 'lucide-react';
 import { message, Modal, Button, Tag, Card, Spin, Tabs, Progress, Alert } from 'antd';
-import { getAllPlans, getMySubscription, getMySubscriptions, createCheckoutSession, cancelSubscription, getTrialStatus } from '../../../axios/api/subscription';
+import { getAllPlans, getMySubscription, getMySubscriptions, createCheckoutSession, cancelSubscription, getTrialStatus, verifyCheckoutSession } from '../../../axios/api/subscription';
 import { FLEET_COLORS } from '../fleetMaintenance/colorUtils';
 
 interface Plan {
@@ -41,8 +41,11 @@ interface Plan {
     withoutHR?: { price: number; currency: string; enabled: boolean };
     yearly?: { price: number; currency: string; enabled: boolean };
     truckPricing?: {
-      tiers: { minTrucks: number; maxTrucks: number; totalPrice: number; currency: string; _id: string }[];
+      tiers: { minTrucks: number; maxTrucks: number; monthlyPrice: number; currency: string; _id: string }[];
       extraTruckPrice: number;
+      extraTruckCurrency?: string;
+      sixMonthBonusDays?: number;
+      annualFreeMonths?: number;
     };
   };
   allowedRoles?: string[];
@@ -72,6 +75,7 @@ interface Subscription {
   nextBillingDate?: string;
   cancelledAt?: string;
   stripeSessionId?: string;
+  truckCount?: number;
   installments?: {
     total: number;
     paid: number;
@@ -104,8 +108,10 @@ const SubscriptionPage = () => {
   const [cancelSubscriptionId, setCancelSubscriptionId] = useState<string | null>(null);
   const [cancelling, setCancelling] = useState(false);
   const [trialStatus, setTrialStatus] = useState<TrialStatus | null>(null);
-  const [selectedTier, setSelectedTier] = useState<{ minTrucks: number; maxTrucks: number; totalPrice: number; currency: string; _id: string } | null>(null);
+  const [selectedTier, setSelectedTier] = useState<{ minTrucks: number; maxTrucks: number; monthlyPrice: number; currency: string; _id: string } | null>(null);
   const [truckCount, setTruckCount] = useState<number>(1);
+  const [extraTrucks, setExtraTrucks] = useState<number>(0);
+  const [pricingTabs, setPricingTabs] = useState<Record<string, 'monthly' | '6months' | 'annual'>>({});
 
 
   const primaryButtonStyle: CSSProperties = {
@@ -174,11 +180,12 @@ const SubscriptionPage = () => {
     setShowSubscribeModal(true);
   };
 
-  const handleTruckSubscribe = (plan: Plan, tier: { minTrucks: number; maxTrucks: number; totalPrice: number; currency: string; _id: string }) => {
+  const handleTierSubscribe = (plan: Plan, tier: { minTrucks: number; maxTrucks: number; monthlyPrice: number; currency: string; _id: string }, subscriptionType: string) => {
     setSelectedPlan(plan);
-    setSelectedType('1-month');
+    setSelectedType(subscriptionType);
     setSelectedTier(tier);
-    setTruckCount(tier.minTrucks);
+    setTruckCount(tier.maxTrucks);
+    setExtraTrucks(0);
     setShowSubscribeModal(true);
   };
 
@@ -190,7 +197,9 @@ const SubscriptionPage = () => {
       const response = await createCheckoutSession({
         planId: selectedPlan._id,
         subscriptionType: selectedType,
-        ...((selectedType === '1-month' || selectedType === '1-year') && { truckCount }),
+        ...((selectedType === '1-month' || selectedType === '6-months' || selectedType === '1-year') && {
+          truckCount: selectedTier ? selectedTier.maxTrucks + extraTrucks : truckCount,
+        }),
       });
 
       if (response?.success && response.data?.url) {
@@ -280,15 +289,23 @@ const SubscriptionPage = () => {
     const params = new URLSearchParams(window.location.search);
     const status = params.get('status');
     const sessionId = params.get('session_id');
+    window.history.replaceState({}, '', window.location.pathname);
 
     if (status === 'success' && sessionId) {
-      message.success('Payment successful! Your subscription is being activated.');
-      fetchData();
-      // Clean URL
-      window.history.replaceState({}, '', window.location.pathname);
+      // Verify payment directly with Stripe — don't rely solely on webhook
+      verifyCheckoutSession(sessionId).then((res) => {
+        if (res?.success && res?.data?.status === 'active') {
+          message.success('Payment successful! Your subscription is now active.');
+        } else {
+          message.info('Payment received. Activating your subscription...');
+        }
+        fetchData();
+      }).catch(() => {
+        message.info('Payment received. Loading your subscription...');
+        fetchData();
+      });
     } else if (status === 'cancel') {
       message.info('Payment was cancelled.');
-      window.history.replaceState({}, '', window.location.pathname);
     }
   }, []);
 
@@ -648,274 +665,296 @@ const SubscriptionPage = () => {
           />
 
           {activeTab === 'plans' && (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 items-start">
-              {plans.map((plan) => {
+            <div className="space-y-8">
+              {plans.filter(p => p.planType === 'monthly').map((plan) => {
                 const currentPlanId = typeof activeSubscription?.plan === 'object' ? activeSubscription.plan?._id : null;
                 const isCurrentPlan = currentPlanId === plan._id;
+                const tiers = plan.monthly?.truckPricing?.tiers ?? [];
+                const tp = plan.monthly?.truckPricing;
+                const extraPrice = tp?.extraTruckPrice ?? 0;
+                const extraCurrency = tp?.extraTruckCurrency ?? 'CAD';
+                const bonusDays = tp?.sixMonthBonusDays ?? 15;
+                const freeMonths = tp?.annualFreeMonths ?? 1;
+
+                // Auto-select the tab matching the current subscription's billing period
+                const activeSubType = activeSubscription?.subscriptionType;
+                const defaultTab: 'monthly' | '6months' | 'annual' =
+                  isCurrentPlan && activeSubType === '6-months' ? '6months' :
+                  isCurrentPlan && activeSubType === '1-year' ? 'annual' : 'monthly';
+                const planTab = pricingTabs[plan._id] ?? defaultTab;
+
+                // Determine which tier index matches the active subscription
+                const activeTierIndex = (() => {
+                  if (!isCurrentPlan || !activeSubscription?.amount) return -1;
+                  const factor = activeSubType === '1-month' ? 1 : activeSubType === '6-months' ? 6 : 12;
+                  const monthlyEquiv = activeSubscription.amount / factor;
+                  return tiers.findIndex(t => Math.abs(t.monthlyPrice - monthlyEquiv) < 0.01);
+                })();
+
                 return (
                   <div
                     key={plan._id}
-                    className={`group relative bg-white rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-300 overflow-hidden border-2 flex flex-col ${isCurrentPlan
-                        ? 'border-blue-300 ring-2 ring-blue-100'
-                        : 'border-gray-200 hover:border-blue-300'
-                      }`}
-                    style={isCurrentPlan ? { borderColor: '#93c5fd', boxShadow: '0 10px 25px rgba(59, 130, 246, 0.15)' } : cardAccentStyle}
+                    className={`bg-white rounded-3xl shadow-xl overflow-hidden border-2 transition-all duration-300 ${isCurrentPlan ? 'border-blue-400 ring-4 ring-blue-50' : 'border-gray-100 hover:border-gray-200'}`}
                   >
-                    {/* Plan Header with Light Background */}
-                    <div
-                      className={`relative p-6 ${isCurrentPlan
-                          ? 'bg-gradient-to-br from-blue-50 to-indigo-50 border-b-2 border-blue-200'
-                          : 'bg-gradient-to-br from-gray-50 to-blue-50 border-b-2 border-gray-200'
-                        }`}
-                    >
-                      {isCurrentPlan && (
-                        <div className="absolute top-4 right-4">
-                          <div className="bg-yellow-400 text-purple-900 px-3 py-1 rounded-full text-xs font-bold flex items-center gap-1 shadow-lg">
-                            <Crown className="w-3 h-3" />
-                            Current Plan {plan.planType}
+                    {/* ── Plan Header ── */}
+                    <div className={`px-8 py-6 ${isCurrentPlan ? 'bg-gradient-to-r from-blue-600 to-indigo-700' : 'bg-gradient-to-r from-slate-700 to-slate-800'}`}>
+                      <div className="flex items-start justify-between gap-4 flex-wrap">
+                        <div>
+                          <div className="flex items-center gap-3 mb-1 flex-wrap">
+                            <div className="p-2 bg-white/20 rounded-xl">
+                              <Truck className="w-5 h-5 text-white" />
+                            </div>
+                            <h3 className="text-2xl font-bold text-white">{plan.planName}</h3>
+                            {plan.isDefault && (
+                              <span className="bg-yellow-400 text-yellow-900 text-xs font-bold px-2.5 py-1 rounded-full">Default</span>
+                            )}
+                          </div>
+                          {plan.description && (
+                            <p className="text-white/75 text-sm mt-1 max-w-xl">{plan.description}</p>
+                          )}
+                        </div>
+                        {isCurrentPlan && (
+                          <div className="bg-white/15 backdrop-blur border border-white/30 px-4 py-2 rounded-xl flex items-center gap-2 flex-shrink-0">
+                            <Crown className="w-4 h-4 text-yellow-300" />
+                            <span className="text-white font-bold text-sm">Your Active Plan</span>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+
+                    <div className="p-8">
+                      {tiers.length > 0 && (
+                        <>
+                          {/* ── Billing Period Selector ── */}
+                          <div className="flex justify-center mb-8">
+                            <div className="inline-flex bg-gray-100 rounded-2xl p-1 gap-1">
+                              {(['monthly', '6months', 'annual'] as const).map((tab) => {
+                                const isActiveTab = planTab === tab;
+                                const isCurrentBillingTab = isCurrentPlan && (
+                                  (tab === 'monthly' && activeSubType === '1-month') ||
+                                  (tab === '6months' && activeSubType === '6-months') ||
+                                  (tab === 'annual' && activeSubType === '1-year')
+                                );
+                                return (
+                                  <button
+                                    key={tab}
+                                    onClick={() => setPricingTabs(prev => ({ ...prev, [plan._id]: tab }))}
+                                    className={`relative px-6 py-2.5 rounded-xl text-sm font-semibold transition-all duration-200 flex flex-col items-center min-w-[110px] ${
+                                      isActiveTab
+                                        ? 'bg-white shadow-md text-blue-700 ring-1 ring-blue-100'
+                                        : 'text-gray-500 hover:text-gray-700'
+                                    }`}
+                                  >
+                                    <span>{tab === 'monthly' ? 'Monthly' : tab === '6months' ? '6 Months' : 'Annual'}</span>
+                                    <span className={`text-[10px] font-bold mt-0.5 ${
+                                      isActiveTab
+                                        ? tab === '6months' ? 'text-amber-500' : tab === 'annual' ? 'text-green-600' : 'text-transparent'
+                                        : 'text-gray-400'
+                                    }`}>
+                                      {tab === '6months' ? `+${bonusDays} days free` : tab === 'annual' ? `+${freeMonths} mo free` : '‎'}
+                                    </span>
+                                    {isCurrentBillingTab && (
+                                      <span className="absolute -top-1.5 -right-1.5 w-3 h-3 bg-blue-500 rounded-full border-2 border-white shadow-sm" />
+                                    )}
+                                  </button>
+                                );
+                              })}
+                            </div>
+                          </div>
+
+                          {/* ── Savings / Bonus Banner ── */}
+                          {planTab === '6months' && (
+                            <div className="mb-6 flex items-center gap-4 bg-gradient-to-r from-amber-50 to-orange-50 border border-amber-200 rounded-2xl px-6 py-4">
+                              <div className="w-10 h-10 bg-amber-400 rounded-xl flex items-center justify-center flex-shrink-0 shadow-sm">
+                                <Zap className="w-5 h-5 text-white" />
+                              </div>
+                              <div>
+                                <p className="text-sm font-bold text-amber-900">6-Month Plan Bonus</p>
+                                <p className="text-xs text-amber-700 mt-0.5">Pay for 6 months and receive <strong>{bonusDays} extra days</strong> of access — completely free</p>
+                              </div>
+                              <div className="ml-auto text-right flex-shrink-0">
+                                <span className="bg-amber-400 text-amber-900 text-xs font-bold px-3 py-1.5 rounded-full">+{bonusDays} Days</span>
+                              </div>
+                            </div>
+                          )}
+                          {planTab === 'annual' && (
+                            <div className="mb-6 flex items-center gap-4 bg-gradient-to-r from-green-50 to-emerald-50 border border-green-200 rounded-2xl px-6 py-4">
+                              <div className="w-10 h-10 bg-green-500 rounded-xl flex items-center justify-center flex-shrink-0 shadow-sm">
+                                <Star className="w-5 h-5 text-white" />
+                              </div>
+                              <div>
+                                <p className="text-sm font-bold text-green-900">Annual Plan — Best Value</p>
+                                <p className="text-xs text-green-700 mt-0.5">Pay 12 months upfront and get <strong>{freeMonths} month{freeMonths > 1 ? 's' : ''} completely free</strong></p>
+                              </div>
+                              <div className="ml-auto text-right flex-shrink-0">
+                                <span className="bg-green-500 text-white text-xs font-bold px-3 py-1.5 rounded-full">+{freeMonths} Mo Free</span>
+                              </div>
+                            </div>
+                          )}
+
+                          {/* ── Tier Cards ── */}
+                          <div className={`grid gap-5 mb-6 ${tiers.length === 1 ? 'grid-cols-1 max-w-sm mx-auto' : tiers.length === 2 ? 'grid-cols-1 sm:grid-cols-2' : 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-3'}`}>
+                            {tiers.map((tier, idx) => {
+                              const currency = tier.currency ?? 'CAD';
+                              const baseMonthly = tier.monthlyPrice;
+                              const displayPrice = planTab === 'monthly' ? baseMonthly : planTab === '6months' ? baseMonthly * 6 : baseMonthly * 12;
+                              const strikethroughPrice = planTab === 'annual' ? baseMonthly * (12 + freeMonths) : null;
+                              const subscriptionType = planTab === 'monthly' ? '1-month' : planTab === '6months' ? '6-months' : '1-year';
+
+                              // Is this tier the one the user is currently on (any billing period)?
+                              const isActiveTier = idx === activeTierIndex && isCurrentPlan;
+                              // Is this tier active AND on the same billing period currently shown?
+                              const isCurrentTabAndTier = isActiveTier && (
+                                (planTab === 'monthly' && activeSubType === '1-month') ||
+                                (planTab === '6months' && activeSubType === '6-months') ||
+                                (planTab === 'annual' && activeSubType === '1-year')
+                              );
+
+                              return (
+                                <div
+                                  key={tier._id}
+                                  className={`relative rounded-2xl border-2 p-6 transition-all duration-200 flex flex-col ${
+                                    isCurrentTabAndTier
+                                      ? 'border-blue-500 bg-gradient-to-b from-blue-50 to-indigo-50 shadow-xl ring-2 ring-blue-100'
+                                      : isActiveTier
+                                        ? 'border-blue-200 bg-blue-50/40 shadow-md'
+                                        : 'border-gray-200 bg-white hover:border-blue-200 hover:shadow-lg'
+                                  }`}
+                                >
+                                  {/* "Your Current Plan" badge */}
+                                  {isCurrentTabAndTier && (
+                                    <div className="absolute -top-3.5 left-1/2 -translate-x-1/2 bg-blue-600 text-white text-xs font-bold px-4 py-1 rounded-full flex items-center gap-1.5 shadow-lg whitespace-nowrap">
+                                      <CheckCircle className="w-3 h-3" />
+                                      Your Current Plan
+                                    </div>
+                                  )}
+                                  {/* "Same tier, different billing" hint */}
+                                  {isActiveTier && !isCurrentTabAndTier && (
+                                    <div className="absolute -top-3.5 left-1/2 -translate-x-1/2 bg-blue-400 text-white text-xs font-semibold px-4 py-1 rounded-full whitespace-nowrap shadow">
+                                      Your Tier
+                                    </div>
+                                  )}
+
+                                  {/* Tier label */}
+                                  <div className="flex items-center gap-3 mb-5">
+                                    <div className={`p-2.5 rounded-xl ${isCurrentTabAndTier ? 'bg-blue-600' : 'bg-orange-100'}`}>
+                                      <Truck className={`w-5 h-5 ${isCurrentTabAndTier ? 'text-white' : 'text-orange-600'}`} />
+                                    </div>
+                                    <div>
+                                      <p className="text-[11px] text-gray-400 font-semibold uppercase tracking-wider">Fleet Size</p>
+                                      <p className="text-xl font-bold text-gray-900">{tier.minTrucks}–{tier.maxTrucks} Trucks</p>
+                                    </div>
+                                  </div>
+
+                                  {/* Price block */}
+                                  <div className="mb-5 flex-1">
+                                    {strikethroughPrice && (
+                                      <p className="text-sm text-gray-400 line-through mb-0.5">{formatPrice(strikethroughPrice, currency)}</p>
+                                    )}
+                                    <div className="flex items-baseline gap-1.5">
+                                      <span className={`text-4xl font-extrabold ${isCurrentTabAndTier ? 'text-blue-700' : 'text-gray-900'}`}>
+                                        {formatPrice(displayPrice, currency)}
+                                      </span>
+                                      <span className="text-sm text-gray-400 font-medium">
+                                        {planTab === 'monthly' ? '/mo' : planTab === '6months' ? '/6 mo' : '/yr'}
+                                      </span>
+                                    </div>
+                                    {planTab !== 'monthly' && (
+                                      <p className="text-xs text-gray-400 mt-1.5 flex items-center gap-1">
+                                        <span className="w-1 h-1 bg-gray-300 rounded-full" />
+                                        {formatPrice(baseMonthly, currency)}/mo equivalent
+                                      </p>
+                                    )}
+                                  </div>
+
+                                  {/* Additional truck note — shown on every tier */}
+                                  {extraPrice > 0 && (() => {
+                                    const lastTierMax = tiers[tiers.length - 1]?.maxTrucks ?? tier.maxTrucks;
+                                    const billingFactor = planTab === 'monthly' ? 1 : planTab === '6months' ? 6 : 12;
+                                    const billingLabel = planTab === 'monthly' ? '/mo' : planTab === '6months' ? '/6 mo' : '/yr';
+                                    return (
+                                      <div className="mb-4 rounded-lg border border-orange-200 bg-orange-50 overflow-hidden">
+                                        <div className="flex items-center gap-1.5 px-3 py-1.5 bg-orange-100 border-b border-orange-200">
+                                          <TrendingUp className="w-3 h-3 text-orange-500" />
+                                          <span className="text-[10px] font-bold text-orange-700 uppercase tracking-wide">Additional Trucks</span>
+                                        </div>
+                                        <div className="flex items-center justify-between px-3 py-2">
+                                          <span className="text-xs text-gray-600">Beyond {lastTierMax} trucks</span>
+                                          <span className="text-xs font-bold text-orange-600">+{formatPrice(extraPrice * billingFactor, extraCurrency)}{billingLabel}/truck</span>
+                                        </div>
+                                      </div>
+                                    );
+                                  })()}
+
+                                  {/* Divider */}
+                                  <div className={`h-px mb-5 ${isCurrentTabAndTier ? 'bg-blue-200' : 'bg-gray-100'}`} />
+
+                                  {/* CTA */}
+                                  <Button
+                                    type="primary"
+                                    size="middle"
+                                    block
+                                    icon={isCurrentTabAndTier
+                                      ? <CheckCircle className="w-4 h-4" />
+                                      : <ArrowRight className="w-4 h-4" />}
+                                    onClick={() => { if (!isCurrentTabAndTier) handleTierSubscribe(plan, tier, subscriptionType); }}
+                                    disabled={isCurrentTabAndTier}
+                                    style={isCurrentTabAndTier
+                                      ? { background: '#2563eb', color: '#fff', border: 'none', cursor: 'default', opacity: 1, fontWeight: 600 }
+                                      : { ...primaryButtonStyle, fontWeight: 600 }}
+                                  >
+                                    {isCurrentTabAndTier ? 'Current Plan' : isCurrentPlan ? 'Switch to This' : 'Subscribe Now'}
+                                  </Button>
+                                </div>
+                              );
+                            })}
+                          </div>
+
+                          {/* ── Additional Truck Pricing ── */}
+                          {extraPrice > 0 && (() => {
+                            const billingFactor = planTab === 'monthly' ? 1 : planTab === '6months' ? 6 : 12;
+                            const billingLabel = planTab === 'monthly' ? '/truck / month' : planTab === '6months' ? '/truck / 6 months' : '/truck / year';
+                            const extraDisplayPrice = extraPrice * billingFactor;
+                            const lastTierMax = tiers[tiers.length - 1]?.maxTrucks ?? 0;
+                            return (
+                              <div className="mb-6 rounded-2xl border-2 border-dashed border-orange-200 bg-orange-50 overflow-hidden">
+                                <div className="flex items-center gap-2 px-5 py-3 bg-orange-100 border-b border-orange-200">
+                                  <TrendingUp className="w-4 h-4 text-orange-600" />
+                                  <span className="text-sm font-bold text-orange-800">Additional Trucks Beyond {lastTierMax}</span>
+                                </div>
+                                <div className="flex items-center gap-5 flex-wrap px-5 py-4">
+                                  <div className="flex-1 min-w-0">
+                                    <p className="text-sm text-gray-700">Have more than <strong>{lastTierMax} trucks</strong>? Add extras at a flat per-truck rate — no plan change needed.</p>
+                                    <p className="text-xs text-gray-500 mt-1">Base rate: {formatPrice(extraPrice, extraCurrency)}/truck/month</p>
+                                  </div>
+                                  <div className="text-right flex-shrink-0">
+                                    <p className="text-2xl font-extrabold text-orange-600">{formatPrice(extraDisplayPrice, extraCurrency)}</p>
+                                    <p className="text-xs text-orange-500 font-medium">{billingLabel}</p>
+                                  </div>
+                                </div>
+                              </div>
+                            );
+                          })()}
+                        </>
+                      )}
+
+                      {/* ── Features ── */}
+                      {plan.features && plan.features.filter(f => f.included).length > 0 && (
+                        <div className={`${tiers.length > 0 ? 'border-t border-gray-100 pt-6' : ''}`}>
+                          <p className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-4">What's Included</p>
+                          <div className={`grid gap-2.5 ${plan.features.filter(f => f.included).length > 4 ? 'grid-cols-1 sm:grid-cols-2' : 'grid-cols-1'}`}>
+                            {plan.features.filter(f => f.included).map((f, fIdx) => (
+                              <div key={fIdx} className="flex items-center gap-2.5">
+                                <div className="w-5 h-5 bg-green-100 rounded-full flex items-center justify-center flex-shrink-0">
+                                  <CheckCircle className="w-3.5 h-3.5 text-green-600" />
+                                </div>
+                                <span className="text-sm text-gray-700">{f.name}</span>
+                              </div>
+                            ))}
                           </div>
                         </div>
                       )}
-                      <div className="flex items-center justify-between mb-3">
-                        <h3 className={`text-2xl font-bold ${isCurrentPlan ? 'text-gray-900' : 'text-gray-900'}`}>
-                          {plan.planName}
-                        </h3>
-                        <Tag
-                          color={plan.planType === 'lifetime' ? 'blue' : 'green'}
-                        >
-                          {plan.planType}
-                        </Tag>
-                      </div>
-                      {plan.description && (
-                        <p className={`text-sm ${isCurrentPlan ? 'text-gray-700' : 'text-gray-600'}`}>
-                          {plan.description}
-                        </p>
-                      )}
                     </div>
-
-                    {((plan.planType === 'lifetime' && plan.lifetime) || (plan.planType === 'monthly' && plan.monthly && (plan.monthly.fullApp?.enabled || plan.monthly.withoutHR?.enabled || plan.monthly.yearly?.enabled || (plan.monthly.truckPricing?.tiers?.length ?? 0) > 0))) && (
-                      <div className="p-6">
-                        {/* Pricing Options */}
-                        {plan.planType === 'lifetime' && plan.lifetime && (
-                          <div className="space-y-4">
-                            <div className="p-4 bg-gradient-to-br from-blue-50 to-indigo-50 rounded-xl border-2 border-blue-200 hover:border-blue-300 transition-colors">
-                              <div className="flex items-center justify-between mb-3">
-                                <div className="flex items-center gap-2">
-                                  <Zap className="w-4 h-4 text-blue-600" />
-                                  <span className="text-sm font-semibold text-gray-900">One-time Payment</span>
-                                </div>
-                                <Button
-                                  type="primary"
-                                  size="small"
-                                  icon={!isCurrentPlan && <ArrowRight className="w-3 h-3" />}
-                                  onClick={() => handleSubscribe(plan, 'one-time')}
-                                  disabled={isCurrentPlan}
-                                  style={isCurrentPlan ? {
-                                    background: '#3b82f6',
-                                    color: '#fff',
-                                    border: 'none',
-                                    cursor: 'default'
-                                  } : primaryButtonStyle}
-                                >
-                                  {isCurrentPlan ? 'Current' : 'Subscribe'}
-                                </Button>
-                              </div>
-                              <p className="text-2xl font-bold text-gray-900">
-                                {formatPrice(plan.lifetime.oneTime.price, plan.lifetime.oneTime.currency)}
-                              </p>
-                              <p className="text-xs text-gray-600 mt-1">One-time payment, lifetime access</p>
-                            </div>
-
-                            {plan.lifetime.installments?.threeMonths?.enabled && (
-                              <div className="p-4 bg-gradient-to-br from-purple-50 to-pink-50 rounded-xl border-2 border-purple-200 hover:border-purple-300 transition-colors">
-                                <div className="flex items-center justify-between mb-3">
-                                  <div className="flex items-center gap-2">
-                                    <Calendar className="w-4 h-4 text-purple-600" />
-                                    <span className="text-sm font-semibold text-gray-900">3 Monthly Installments</span>
-                                  </div>
-                                  <Button
-                                    type="primary"
-                                    size="small"
-                                    icon={!isCurrentPlan && <ArrowRight className="w-3 h-3" />}
-                                    onClick={() => handleSubscribe(plan, '3-months')}
-                                    disabled={isCurrentPlan}
-                                    style={isCurrentPlan ? {
-                                      background: '#3b82f6',
-                                      color: '#fff',
-                                      border: 'none',
-                                      cursor: 'default'
-                                    } : primaryButtonStyle}
-                                  >
-                                    {isCurrentPlan ? 'Current' : 'Subscribe'}
-                                  </Button>
-                                </div>
-                                <p className="text-2xl font-bold text-gray-900">
-                                  {formatPrice(plan.lifetime.installments.threeMonths.price, plan.lifetime.installments.threeMonths.currency)}
-                                  <span className="text-sm font-normal text-gray-600">/month</span>
-                                </p>
-                                <p className="text-xs text-gray-600 mt-1">3 payments of {formatPrice(plan.lifetime.installments.threeMonths.price, plan.lifetime.installments.threeMonths.currency)}</p>
-                              </div>
-                            )}
-
-                            {plan.lifetime.installments?.sixMonths?.enabled && (
-                              <div className="p-4 bg-gradient-to-br from-green-50 to-emerald-50 rounded-xl border-2 border-green-200 hover:border-green-300 transition-colors">
-                                <div className="flex items-center justify-between mb-3">
-                                  <div className="flex items-center gap-2">
-                                    <Calendar className="w-4 h-4 text-green-600" />
-                                    <span className="text-sm font-semibold text-gray-900">6 Monthly Installments</span>
-                                  </div>
-                                  <Button
-                                    type="primary"
-                                    size="small"
-                                    icon={!isCurrentPlan && <ArrowRight className="w-3 h-3" />}
-                                    onClick={() => handleSubscribe(plan, '6-months')}
-                                    disabled={isCurrentPlan}
-                                    style={isCurrentPlan ? {
-                                      background: '#3b82f6',
-                                      color: '#fff',
-                                      border: 'none',
-                                      cursor: 'default'
-                                    } : primaryButtonStyle}
-                                  >
-                                    {isCurrentPlan ? 'Current' : 'Subscribe'}
-                                  </Button>
-                                </div>
-                                <p className="text-2xl font-bold text-gray-900">
-                                  {formatPrice(plan.lifetime.installments.sixMonths.price, plan.lifetime.installments.sixMonths.currency)}
-                                  <span className="text-sm font-normal text-gray-600">/month</span>
-                                </p>
-                                <p className="text-xs text-gray-600 mt-1">6 payments of {formatPrice(plan.lifetime.installments.sixMonths.price, plan.lifetime.installments.sixMonths.currency)}</p>
-                              </div>
-                            )}
-                          </div>
-                        )}
-
-                        {plan.planType === 'monthly' && plan.monthly && (
-                          <>
-                            {plan.monthly.fullApp?.enabled && (plan.monthly.fullApp.price ?? 0) > 0 && (
-                              <div className="p-4 bg-gradient-to-br from-blue-50 to-indigo-50 rounded-xl border-2 border-blue-200 hover:border-blue-300 transition-colors">
-                                <div className="flex items-center justify-between mb-3">
-                                  <div className="flex items-center gap-2">
-                                    <Sparkles className="w-4 h-4 text-blue-600" />
-                                    <span className="text-sm font-semibold text-gray-900">Full App</span>
-                                  </div>
-                                  <Button
-                                    type="primary"
-                                    size="small"
-                                    icon={!isCurrentPlan && <ArrowRight className="w-3 h-3" />}
-                                    onClick={() => handleSubscribe(plan, 'full-app')}
-                                    disabled={isCurrentPlan}
-                                    style={isCurrentPlan ? {
-                                      background: '#3b82f6',
-                                      color: '#fff',
-                                      border: 'none',
-                                      cursor: 'default'
-                                    } : primaryButtonStyle}
-                                  >
-                                    {isCurrentPlan ? 'Current' : 'Subscribe'}
-                                  </Button>
-                                </div>
-                                <p className="text-2xl font-bold text-gray-900">
-                                  {formatPrice(plan.monthly.fullApp.price, plan.monthly.fullApp.currency)}
-                                  <span className="text-sm font-normal text-gray-600">/month</span>
-                                </p>
-                                <p className="text-xs text-gray-600 mt-1">Complete feature bundle</p>
-                              </div>
-                            )}
-
-                            {plan.monthly.truckPricing?.tiers && plan.monthly.truckPricing.tiers.length > 0 && (
-                              <div className="mt-4 rounded-xl border-2 border-orange-200 overflow-hidden">
-                                <div className="flex items-center gap-2 px-4 py-3 bg-gradient-to-r from-orange-50 to-amber-50 border-b border-orange-200">
-                                  <Truck className="w-4 h-4 text-orange-600" />
-                                  <span className="text-sm font-semibold text-gray-900">Monthly — Truck-Based Pricing</span>
-                                </div>
-                                <div className="divide-y divide-orange-100">
-                                  {plan.monthly.truckPricing.tiers.map((tier) => (
-                                    <div key={tier._id} className="flex items-center justify-between px-4 py-3 bg-orange-50 hover:bg-orange-100 transition-colors">
-                                      <div>
-                                        <span className="text-sm font-medium text-gray-900">{tier.minTrucks}–{tier.maxTrucks} Trucks</span>
-                                        <p className="text-lg font-bold text-gray-900 mt-0.5">
-                                          {formatPrice(tier.totalPrice, tier.currency)}
-                                          <span className="text-xs font-normal text-gray-500 ml-1">/month</span>
-                                        </p>
-                                      </div>
-                                      <Button
-                                        type="primary"
-                                        size="small"
-                                        icon={!isCurrentPlan && <ArrowRight className="w-3 h-3" />}
-                                        onClick={() => handleTruckSubscribe(plan, tier)}
-                                        disabled={isCurrentPlan}
-                                        style={isCurrentPlan ? { background: '#3b82f6', color: '#fff', border: 'none', cursor: 'default' } : primaryButtonStyle}
-                                      >
-                                        {isCurrentPlan ? 'Current' : 'Subscribe'}
-                                      </Button>
-                                    </div>
-                                  ))}
-                                </div>
-                              </div>
-                            )}
-
-                            {plan.monthly.yearly?.enabled && (
-                              <div className="mt-4 p-4 bg-gradient-to-br from-green-50 to-teal-50 rounded-xl border-2 border-green-200 hover:border-green-300 transition-colors">
-                                <div className="flex items-center justify-between mb-3">
-                                  <div className="flex items-center gap-2">
-                                    <Calendar className="w-4 h-4 text-green-600" />
-                                    <span className="text-sm font-semibold text-gray-900">Annual Plan</span>
-                                    <Tag color="green" className="text-xs">Best Value</Tag>
-                                  </div>
-                                  <Button
-                                    type="primary"
-                                    size="small"
-                                    icon={!isCurrentPlan && <ArrowRight className="w-3 h-3" />}
-                                    onClick={() => handleSubscribe(plan, '1-year')}
-                                    disabled={isCurrentPlan}
-                                    style={isCurrentPlan ? { background: '#3b82f6', color: '#fff', border: 'none', cursor: 'default' } : primaryButtonStyle}
-                                  >
-                                    {isCurrentPlan ? 'Current' : 'Subscribe'}
-                                  </Button>
-                                </div>
-                                <p className="text-2xl font-bold text-gray-900">
-                                  {formatPrice(plan.monthly.yearly.price, plan.monthly.yearly.currency)}
-                                  <span className="text-sm font-normal text-gray-600">/year</span>
-                                </p>
-                                <p className="text-xs text-gray-600 mt-1">Billed annually — save vs monthly</p>
-                              </div>
-                            )}
-
-                            {plan.monthly.withoutHR?.enabled && (
-                              <div className={`p-4 bg-gradient-to-br from-purple-50 to-pink-50 rounded-xl border-2 border-purple-200 hover:border-purple-300 transition-colors ${plan.monthly.fullApp?.enabled ? 'mt-4' : ''}`}>
-                                <div className="flex items-center justify-between mb-3">
-                                  <div className="flex items-center gap-2">
-                                    <Users className="w-4 h-4 text-purple-600" />
-                                    <span className="text-sm font-semibold text-gray-900">Without HR</span>
-                                  </div>
-                                  <Button
-                                    type="primary"
-                                    size="small"
-                                    icon={!isCurrentPlan && <ArrowRight className="w-3 h-3" />}
-                                    onClick={() => handleSubscribe(plan, 'without-hr')}
-                                    disabled={isCurrentPlan}
-                                    style={isCurrentPlan ? {
-                                      background: '#3b82f6',
-                                      color: '#fff',
-                                      border: 'none',
-                                      cursor: 'default'
-                                    } : primaryButtonStyle}
-                                  >
-                                    {isCurrentPlan ? 'Current' : 'Subscribe'}
-                                  </Button>
-                                </div>
-                                <p className="text-2xl font-bold text-gray-900">
-                                  {formatPrice(plan.monthly.withoutHR.price, plan.monthly.withoutHR.currency)}
-                                  <span className="text-sm font-normal text-gray-600">/month</span>
-                                </p>
-                                <p className="text-xs text-gray-600 mt-1">Access without HR features</p>
-                              </div>
-                            )}
-                          </>
-                        )}
-                      </div>
-                    )}
                   </div>
                 );
               })}
@@ -1046,6 +1085,7 @@ const SubscriptionPage = () => {
           setSelectedType('');
           setSelectedTier(null);
           setTruckCount(1);
+          setExtraTrucks(0);
         }}
         footer={[
           <Button
@@ -1113,19 +1153,19 @@ const SubscriptionPage = () => {
                   {selectedType === '3-months' && (
                     <div>
                       <p className="text-3xl font-bold text-gray-900 mb-2">
-                        {formatPrice(selectedPlan.lifetime.installments.threeMonths.price, selectedPlan.lifetime.installments.threeMonths.currency)}
+                        {formatPrice(selectedPlan.lifetime.installments?.threeMonths?.price ?? 0, selectedPlan.lifetime.installments?.threeMonths?.currency ?? 'CAD')}
                         <span className="text-lg font-normal text-gray-600">/month</span>
                       </p>
-                      <p className="text-sm text-gray-600">3 monthly payments of {formatPrice(selectedPlan.lifetime.installments.threeMonths.price, selectedPlan.lifetime.installments.threeMonths.currency)}</p>
+                      <p className="text-sm text-gray-600">3 monthly payments of {formatPrice(selectedPlan.lifetime.installments?.threeMonths?.price ?? 0, selectedPlan.lifetime.installments?.threeMonths?.currency ?? 'CAD')}</p>
                     </div>
                   )}
                   {selectedType === '6-months' && (
                     <div>
                       <p className="text-3xl font-bold text-gray-900 mb-2">
-                        {formatPrice(selectedPlan.lifetime.installments.sixMonths.price, selectedPlan.lifetime.installments.sixMonths.currency)}
+                        {formatPrice(selectedPlan.lifetime.installments?.sixMonths?.price ?? 0, selectedPlan.lifetime.installments?.sixMonths?.currency ?? 'CAD')}
                         <span className="text-lg font-normal text-gray-600">/month</span>
                       </p>
-                      <p className="text-sm text-gray-600">6 monthly payments of {formatPrice(selectedPlan.lifetime.installments.sixMonths.price, selectedPlan.lifetime.installments.sixMonths.currency)}</p>
+                      <p className="text-sm text-gray-600">6 monthly payments of {formatPrice(selectedPlan.lifetime.installments?.sixMonths?.price ?? 0, selectedPlan.lifetime.installments?.sixMonths?.currency ?? 'CAD')}</p>
                     </div>
                   )}
                 </>
@@ -1150,42 +1190,72 @@ const SubscriptionPage = () => {
                       <p className="text-sm text-gray-600">Streamlined experience without HR</p>
                     </div>
                   )}
-                  {selectedType === '1-month' && selectedTier && (
-                    <div>
-                      <div className="flex items-center gap-2 mb-3">
-                        <Truck className="w-4 h-4 text-orange-600" />
-                        <span className="text-sm text-gray-600">Tier: {selectedTier.minTrucks}–{selectedTier.maxTrucks} Trucks — {formatPrice(selectedTier.totalPrice, selectedTier.currency)}/month</span>
+                  {(selectedType === '1-month' || selectedType === '6-months' || selectedType === '1-year') && selectedTier && (() => {
+                    const billingFactor = selectedType === '1-month' ? 1 : selectedType === '6-months' ? 6 : 12;
+                    const billingLabel = selectedType === '1-month' ? '/month' : selectedType === '6-months' ? '/6 months' : '/year';
+                    const allTiers = selectedPlan?.monthly?.truckPricing?.tiers ?? [];
+                    const globalMaxTrucks = allTiers.length > 0 ? allTiers[allTiers.length - 1].maxTrucks : selectedTier.maxTrucks;
+                    const extraTruckPrice = selectedPlan?.monthly?.truckPricing?.extraTruckPrice ?? 0;
+                    const extraTruckCurrency = selectedPlan?.monthly?.truckPricing?.extraTruckCurrency ?? selectedTier.currency;
+                    const basePriceTotal = selectedTier.monthlyPrice * billingFactor;
+                    const extraCostTotal = extraTrucks * extraTruckPrice * billingFactor;
+                    const grandTotal = basePriceTotal + extraCostTotal;
+
+                    return (
+                      <div className="space-y-4">
+                        {/* Tier base price row */}
+                        <div className="bg-gray-50 rounded-xl border border-gray-200 overflow-hidden">
+                          <div className="flex items-center justify-between px-4 py-3 border-b border-gray-200">
+                            <div className="flex items-center gap-2">
+                              <Truck className="w-4 h-4 text-orange-500" />
+                              <span className="text-sm font-semibold text-gray-800">{selectedTier.minTrucks}–{selectedTier.maxTrucks} Trucks (base)</span>
+                            </div>
+                            <span className="text-sm font-bold text-gray-900">
+                              {formatPrice(basePriceTotal, selectedTier.currency)}<span className="text-xs font-normal text-gray-500">{billingLabel}</span>
+                            </span>
+                          </div>
+
+                          {/* Extra trucks row — shown for all tiers */}
+                          {extraTruckPrice > 0 && (
+                            <div className="px-4 py-3 border-b border-gray-200">
+                              <div className="flex items-center justify-between mb-2">
+                                <span className="text-sm text-gray-600">Extra trucks (beyond {globalMaxTrucks})</span>
+                                <span className="text-xs text-orange-600 font-medium">{formatPrice(extraTruckPrice, extraTruckCurrency)}/truck/mo</span>
+                              </div>
+                              <div className="flex items-center gap-3">
+                                <button
+                                  onClick={() => setExtraTrucks(Math.max(0, extraTrucks - 1))}
+                                  className="w-8 h-8 rounded-lg border border-gray-300 bg-white flex items-center justify-center text-gray-700 hover:bg-gray-100 font-bold text-lg leading-none"
+                                >−</button>
+                                <span className="w-12 text-center font-bold text-lg text-gray-900">{extraTrucks}</span>
+                                <button
+                                  onClick={() => setExtraTrucks(extraTrucks + 1)}
+                                  className="w-8 h-8 rounded-lg border border-gray-300 bg-white flex items-center justify-center text-gray-700 hover:bg-gray-100 font-bold text-lg leading-none"
+                                >+</button>
+                                {extraTrucks > 0 && (
+                                  <span className="ml-auto text-sm font-semibold text-orange-600">
+                                    +{formatPrice(extraCostTotal, extraTruckCurrency)}{billingLabel}
+                                  </span>
+                                )}
+                              </div>
+                            </div>
+                          )}
+
+                          {/* Grand total */}
+                          <div className="flex items-center justify-between px-4 py-3 bg-blue-50">
+                            <span className="text-sm font-bold text-gray-800">Total</span>
+                            <div className="text-right">
+                              <span className="text-xl font-extrabold text-blue-700">{formatPrice(grandTotal, selectedTier.currency)}</span>
+                              <span className="text-xs text-gray-500 ml-1">{billingLabel}</span>
+                              {selectedType !== '1-month' && (
+                                <p className="text-xs text-gray-400 mt-0.5">{formatPrice(grandTotal / billingFactor, selectedTier.currency)}/mo equivalent</p>
+                              )}
+                            </div>
+                          </div>
+                        </div>
                       </div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">Your exact truck count</label>
-                      <input
-                        type="number"
-                        min={selectedTier.minTrucks}
-                        max={selectedTier.maxTrucks}
-                        value={truckCount}
-                        onChange={(e) => setTruckCount(Math.max(selectedTier.minTrucks, Math.min(selectedTier.maxTrucks, Number(e.target.value))))}
-                        className="w-full border border-gray-300 rounded-lg px-3 py-2 text-gray-900 focus:outline-none focus:ring-2 focus:ring-purple-400"
-                      />
-                      <p className="text-xs text-gray-500 mt-1">Must be between {selectedTier.minTrucks} and {selectedTier.maxTrucks}</p>
-                    </div>
-                  )}
-                  {selectedType === '1-year' && selectedPlan.monthly.yearly && (
-                    <div>
-                      <div className="flex items-center gap-2 mb-3">
-                        <Calendar className="w-4 h-4 text-green-600" />
-                        <span className="text-sm text-gray-600">Annual billing — {formatPrice(selectedPlan.monthly.yearly.price, selectedPlan.monthly.yearly.currency)}/year</span>
-                      </div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">Your truck count</label>
-                      <input
-                        type="number"
-                        min={1}
-                        max={20}
-                        value={truckCount}
-                        onChange={(e) => setTruckCount(Math.max(1, Math.min(20, Number(e.target.value))))}
-                        className="w-full border border-gray-300 rounded-lg px-3 py-2 text-gray-900 focus:outline-none focus:ring-2 focus:ring-green-400"
-                      />
-                      <p className="text-xs text-gray-500 mt-1">Must be between 1 and 20</p>
-                    </div>
-                  )}
+                    );
+                  })()}
                 </>
               )}
             </div>

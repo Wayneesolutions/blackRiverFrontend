@@ -53,6 +53,17 @@ export const createCheckoutSession = async (data: { planId: string; subscription
   }
 };
 
+// ✅ Verify Stripe Checkout Session (fallback if webhook hasn't fired)
+export const verifyCheckoutSession = async (sessionId: string) => {
+  try {
+    const res: AxiosResponse = await apiClient.get(`admin/subscription/verify?session_id=${sessionId}`);
+    return res.data;
+  } catch (error) {
+    console.log(error);
+    return (error as Error).response?.data;
+  }
+};
+
 // ✅ Cancel Subscription
 export const cancelSubscription = async (subscriptionId: string) => {
   try {
