@@ -43,9 +43,9 @@ import {
 } from 'recharts';
 
 type TimePeriod = '2weeks' | '1month' | 'monthly' | 'quarterly' | 'half-yearly' | 'yearly';
-type ViewType = 'overview' | 'trucks' | 'trips' | 'time-based' | 'payable';
+type ViewType = 'overview' | 'trucks' | 'trips' | 'payable';
 
-type PayableSubCategory = 'all' | 'expense' | 'employee-payroll' | 'driver-payroll' | 'fuel' | 'fleet-invoice' | 'maintenance';
+type PayableSubCategory = 'all' | 'expense' | 'employee-payroll' | 'driver-payroll' | 'fuel' | 'fleet-invoice';
 
 interface PayableItem {
   id: string;
@@ -70,7 +70,7 @@ interface TruckFinancialData {
   trips: number;
   miles: number;
   fuelCost: number;
-  maintenanceCost: number;
+  fleetInvoiceCost: number;
 }
 
 interface TripFinancialData {
@@ -125,7 +125,7 @@ const FinanceReport = () => {
   });
   const [expenseBreakdown, setExpenseBreakdown] = useState({
     fuelCosts: 0,
-    maintenance: 0,
+    fleetInvoices: 0,
     otherExpenses: 0
   });
   const [truckFinancialData, setTruckFinancialData] = useState<TruckFinancialData[]>([]);
@@ -279,14 +279,14 @@ const FinanceReport = () => {
         if (response.data.expenseBreakdown) {
           const expenseBreakdownData = {
             fuelCosts: Number(response.data.expenseBreakdown.fuelCosts) || 0,
-            maintenance: Number(response.data.expenseBreakdown.maintenance) || 0,
+            fleetInvoices: Number(response.data.expenseBreakdown.fleetInvoices) || 0,
             otherExpenses: Number(response.data.expenseBreakdown.otherExpenses) || 0
           };
           console.log('📊 [Finance Report Frontend] Setting expense breakdown:', expenseBreakdownData);
           setExpenseBreakdown(expenseBreakdownData);
         } else {
           console.warn('📊 [Finance Report Frontend] No expense breakdown data in response');
-          setExpenseBreakdown({ fuelCosts: 0, maintenance: 0, otherExpenses: 0 });
+          setExpenseBreakdown({ fuelCosts: 0, fleetInvoices: 0, otherExpenses: 0 });
         }
 
         setTruckFinancialData(response.data.truckWise || []);
@@ -336,22 +336,19 @@ const FinanceReport = () => {
         { listPayrolls },
         { listFuelReport },
         { getFleetInvoices },
-        { getMaintenancePlans },
       ] = await Promise.all([
         import('../../../../axios/api/account.expense'),
         import('../../../../axios/api/account.payroll'),
         import('../../../../axios/api/dispatcher.fuelreport'),
         import('../../../../axios/api/fleet.invoices'),
-        import('../../../../axios/api/account.fleetMaintenance'),
       ]);
 
       // Fetch all data sources in parallel — each returns { success, data: [...] }
-      const [expRes, payRes, fuelRes, fleetInvRes, maintRes] = await Promise.allSettled([
+      const [expRes, payRes, fuelRes, fleetInvRes] = await Promise.allSettled([
         listExpenses(),
         listPayrolls(),
         listFuelReport({ limit: 500, sortBy: 'createdAt', sortOrder: 'desc' }),
         getFleetInvoices(),
-        getMaintenancePlans(),
       ]);
 
       const items: PayableItem[] = [];
@@ -403,21 +400,24 @@ const FinanceReport = () => {
       if (fuelRes.status === 'fulfilled' && fuelRes.value?.success) {
         const fuelList: any[] = Array.isArray(fuelRes.value.data) ? fuelRes.value.data : [];
         fuelList.forEach((f: any) => {
-          // totalCost is the primary amount field; fall back to gallons × price
-          const gallons = toNum(f.gallons || f.quantity || 0);
-          const unitPrice = toNum(f.pricePerGallon || f.pricePerUnit || 0);
-          const amount = f.totalCost ? toNum(f.totalCost) : gallons * unitPrice;
-          // Vehicle description: prefer unit number from vehicleId populated object
-          const vehicleLabel = f.vehicleId?.unitNumber || f.vehicleId?.unitNo || f.vehicle || f.truckNumber || 'Vehicle';
-          const fuelTypeLabel = typeof f.fuelTypeId === 'object' ? (f.fuelTypeId?.name || 'Fuel') : (f.fuelType || 'Fuel');
+          // transactionAmount is the primary amount field in FuelReport model
+          const amount = toNum(f.transactionAmount || f.totalCost || 0);
+          // vehicle/unit is a populated object; backend may set 'N/A' as fallback — skip those
+          const vehicleObj = typeof f.vehicle === 'object' ? f.vehicle : (typeof f.unit === 'object' ? f.unit : null);
+          const isValid = (v: any) => v && v !== 'N/A';
+          const vehicleLabel =
+            [vehicleObj?.unitNo, vehicleObj?.plateNumber, vehicleObj?.internalId, vehicleObj?.makeModel, f.truckNumber]
+              .find(isValid) || 'Unknown';
+          // fuel type: product field or types array or legacy type string
+          const fuelTypeLabel = f.product || (Array.isArray(f.types) && f.types[0]) || f.type || 'Fuel';
           items.push({
             id: f._id,
             subCategory: 'fuel',
             description: `${vehicleLabel} — ${fuelTypeLabel}`,
-            reference: f.receiptNumber || f._id?.slice(-6).toUpperCase() || '',
+            reference: f.transactionNumber || f.receiptNumber || f._id?.slice(-6).toUpperCase() || '',
             amount,
-            date: toIso(f.date || f.fillDate || f.createdAt),
-            status: (f.status || 'paid').toLowerCase(),
+            date: toIso(f.date || f.createdAt),
+            status: (f.status || 'pending').toLowerCase(),
           });
         });
       }
@@ -435,22 +435,6 @@ const FinanceReport = () => {
             amount: toNum(fi.total || fi.totalAmount || fi.amount),
             date: toIso(fi.invoiceDate || fi.dueDate || fi.createdAt),
             status: (fi.status || 'pending').toLowerCase(),
-          });
-        });
-      }
-
-      // ── Maintenance Plans ─────────────────────────────────────────
-      // getMaintenancePlans() returns { success, data: MaintenancePlan[] }
-      if (maintRes.status === 'fulfilled' && maintRes.value?.success && Array.isArray(maintRes.value.data)) {
-        maintRes.value.data.forEach((mp: any) => {
-          items.push({
-            id: mp._id,
-            subCategory: 'maintenance',
-            description: mp.planName || mp.description || 'Maintenance Plan',
-            reference: mp.vehicle || mp._id?.slice(-6).toUpperCase() || '',
-            amount: toNum(mp.actualCost != null ? mp.actualCost : mp.plannedCost),
-            date: toIso(mp.completedDate || mp.plannedDate || mp.createdAt),
-            status: (mp.status || 'pending').toLowerCase(),
           });
         });
       }
@@ -829,7 +813,6 @@ const FinanceReport = () => {
                 { id: 'overview', label: 'Overview', icon: BarChart3 },
                 { id: 'trucks', label: 'Truck-wise', icon: Truck },
                 { id: 'trips', label: 'Trip-wise', icon: MapPin },
-                { id: 'time-based', label: 'Time Reports', icon: Calendar },
                 { id: 'payable', label: 'Payables', icon: CreditCard }
               ].map((tab) => {
                 const Icon = tab.icon;
@@ -1109,15 +1092,15 @@ const FinanceReport = () => {
                       <span className="text-lg font-bold text-blue-600">{formatCurrency(expenseBreakdown.fuelCosts)}</span>
                     </div>
                     <div className="flex justify-between items-center p-3 bg-orange-50 rounded-lg">
-                      <span className="text-sm font-medium text-gray-700">Maintenance</span>
-                      <span className="text-lg font-bold text-orange-600">{formatCurrency(expenseBreakdown.maintenance)}</span>
+                      <span className="text-sm font-medium text-gray-700">Fleet Invoices</span>
+                      <span className="text-lg font-bold text-orange-600">{formatCurrency(expenseBreakdown.fleetInvoices)}</span>
                     </div>
                     <div className="flex justify-between items-center p-3 bg-purple-50 rounded-lg">
                       <span className="text-sm font-medium text-gray-700">Other Expenses</span>
                       <span className="text-lg font-bold text-purple-600">{formatCurrency(expenseBreakdown.otherExpenses)}</span>
                     </div>
                   </div>
-                  {dataLoaded && expenseBreakdown.fuelCosts === 0 && expenseBreakdown.maintenance === 0 && expenseBreakdown.otherExpenses === 0 && (
+                  {dataLoaded && expenseBreakdown.fuelCosts === 0 && expenseBreakdown.fleetInvoices === 0 && expenseBreakdown.otherExpenses === 0 && (
                     <p className="text-xs text-gray-400 mt-2 text-center">No expense data available</p>
                   )}
                 </div>
@@ -1338,7 +1321,7 @@ const FinanceReport = () => {
                         <th className="px-4 py-3 text-right text-xs font-semibold text-white uppercase tracking-wider whitespace-nowrap">Cost/Mile</th>
                         <th className="px-4 py-3 text-right text-xs font-semibold text-white uppercase tracking-wider whitespace-nowrap">Profit/Mile</th>
                         <th className="px-4 py-3 text-right text-xs font-semibold text-white uppercase tracking-wider whitespace-nowrap">Fuel Cost</th>
-                        <th className="px-4 py-3 text-right text-xs font-semibold text-white uppercase tracking-wider whitespace-nowrap">Maintenance</th>
+                        <th className="px-4 py-3 text-right text-xs font-semibold text-white uppercase tracking-wider whitespace-nowrap">Fleet Invoice</th>
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-gray-100">
@@ -1390,7 +1373,7 @@ const FinanceReport = () => {
                                 : dash}
                             </td>
                             <td className="px-4 py-3 text-sm text-right text-orange-500 whitespace-nowrap">{formatCurrency(truck.fuelCost)}</td>
-                            <td className="px-4 py-3 text-sm text-right text-purple-500 whitespace-nowrap">{formatCurrency(truck.maintenanceCost)}</td>
+                            <td className="px-4 py-3 text-sm text-right text-purple-500 whitespace-nowrap">{formatCurrency(truck.fleetInvoiceCost)}</td>
                           </tr>
                         );
                       })}
@@ -1421,7 +1404,7 @@ const FinanceReport = () => {
                             <td className="px-4 py-3 text-sm text-right text-red-500 font-bold whitespace-nowrap">{hasTotMiles ? `$${(totCost/totMiles).toFixed(2)}` : <span className="text-gray-300 font-light">—</span>}</td>
                             <td className={`px-4 py-3 text-sm text-right font-bold whitespace-nowrap ${totProfit >= 0 ? 'text-green-600' : 'text-red-500'}`}>{hasTotMiles ? `$${(totProfit/totMiles).toFixed(2)}` : <span className="text-gray-300 font-light">—</span>}</td>
                             <td className="px-4 py-3 text-sm text-right text-orange-500 font-bold whitespace-nowrap">{formatCurrency(truckFinancialData.reduce((s,t)=>s+t.fuelCost,0))}</td>
-                            <td className="px-4 py-3 text-sm text-right text-purple-500 font-bold whitespace-nowrap">{formatCurrency(truckFinancialData.reduce((s,t)=>s+t.maintenanceCost,0))}</td>
+                            <td className="px-4 py-3 text-sm text-right text-purple-500 font-bold whitespace-nowrap">{formatCurrency(truckFinancialData.reduce((s,t)=>s+t.fleetInvoiceCost,0))}</td>
                           </tr>
                         );
                       })()}
@@ -1725,11 +1708,18 @@ const FinanceReport = () => {
                               <td className="px-4 py-3 text-sm font-bold text-gray-900 whitespace-nowrap">{trip.tripNumber || '—'}</td>
                               <td className="px-4 py-3 text-sm font-semibold text-gray-800 whitespace-nowrap">{trip.truckNumber || '—'}</td>
                               <td className="px-4 py-3 text-sm text-gray-700 whitespace-nowrap">{trip.driverName || <span className="text-gray-300">—</span>}</td>
-                              <td className="px-4 py-3 text-sm text-gray-600" title={routeText}>
-                                <div className="flex items-center gap-1 min-w-0">
-                                  <span className="text-gray-700 font-medium truncate" style={{ maxWidth: '80px' }} title={trip.origin || ''}>{trip.origin && trip.origin !== 'N/A' ? trip.origin : <span className="text-gray-300">—</span>}</span>
+                              <td className="px-4 py-3 text-sm text-gray-600">
+                                <div className="relative group inline-flex items-center gap-1 min-w-0 cursor-default">
+                                  <span className="text-gray-700 font-medium truncate" style={{ maxWidth: '80px' }}>{trip.origin && trip.origin !== 'N/A' ? trip.origin : <span className="text-gray-300">—</span>}</span>
                                   <ArrowUpRight size={12} className="text-[#42aeec] flex-shrink-0" />
-                                  <span className="text-gray-700 font-medium truncate" style={{ maxWidth: '80px' }} title={trip.destination || ''}>{trip.destination && trip.destination !== 'N/A' ? trip.destination : <span className="text-gray-300">—</span>}</span>
+                                  <span className="text-gray-700 font-medium truncate" style={{ maxWidth: '80px' }}>{trip.destination && trip.destination !== 'N/A' ? trip.destination : <span className="text-gray-300">—</span>}</span>
+                                  {routeText !== '—' && (
+                                    <div className="absolute z-50 bottom-full left-0 mb-1.5 px-2.5 py-1.5 bg-gray-900 text-white text-xs rounded-lg whitespace-nowrap shadow-lg opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity duration-150">
+                                      {trip.origin && trip.origin !== 'N/A' ? trip.origin : '—'}
+                                      <span className="mx-1.5 text-[#42aeec]">→</span>
+                                      {trip.destination && trip.destination !== 'N/A' ? trip.destination : '—'}
+                                    </div>
+                                  )}
                                 </div>
                               </td>
                               <td className="px-4 py-3 text-sm text-right text-gray-700 whitespace-nowrap">{hasMiles ? miles.toLocaleString(undefined, { maximumFractionDigits: 1 }) : dash}</td>
@@ -1809,8 +1799,8 @@ const FinanceReport = () => {
             </div>
           )}
 
-          {/* Time-based Reports View */}
-          {activeView === 'time-based' && (
+          {/* Time-based Reports View — removed */}
+          {false && (
             <div className="space-y-4">
               {/* Period Selector */}
               <div className="bg-white rounded-lg shadow-sm border border-gray-100 p-4">
@@ -2082,7 +2072,6 @@ const FinanceReport = () => {
               'driver-payroll':  { label: 'Driver Payroll',   color: '#10b981', bg: 'bg-emerald-50', textColor: 'text-emerald-700', icon: <IdCard size={13} /> },
               fuel:              { label: 'Fuel Cost',        color: '#f59e0b', bg: 'bg-amber-50',   textColor: 'text-amber-700',   icon: <Fuel size={13} /> },
               'fleet-invoice':   { label: 'Fleet Invoice',    color: '#8b5cf6', bg: 'bg-violet-50',  textColor: 'text-violet-700',  icon: <DollarSign size={13} /> },
-              maintenance:       { label: 'Maintenance',      color: '#06b6d4', bg: 'bg-cyan-50',    textColor: 'text-cyan-700',    icon: <Wrench size={13} /> },
             };
 
             const STATUS_META: Record<string, { bg: string; text: string; icon: React.ReactNode }> = {
