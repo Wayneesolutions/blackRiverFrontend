@@ -15,7 +15,6 @@ import {
   ArrowDownRight,
   Filter,
   Fuel,
-  Wrench,
   Search,
   ChevronDown,
   ChevronUp,
@@ -207,7 +206,7 @@ const FinanceReport = () => {
 
   // Also fetch when switching to time-based view
   useEffect(() => {
-    if (activeView === 'time-based' && dataLoaded) {
+    if ((activeView as string) === 'time-based' && dataLoaded) {
       console.log('📊 [useEffect] Switched to time-based view, fetching data');
       fetchFinanceReport();
     }
@@ -930,7 +929,7 @@ const FinanceReport = () => {
                             boxShadow: '0 4px 12px rgba(0,0,0,0.1)',
                             fontSize: '12px'
                           }}
-                          formatter={(value: number) => formatCurrency(value)}
+                          formatter={(value) => formatCurrency(value as number)}
                         />
                         <Legend />
                         <Bar dataKey="Revenue" fill="#10b981" radius={[8, 8, 0, 0]} />
@@ -1272,7 +1271,7 @@ const FinanceReport = () => {
                           boxShadow: '0 4px 12px rgba(0,0,0,0.1)',
                           fontSize: '12px'
                         }}
-                        formatter={(value: number) => formatCurrency(value)}
+                        formatter={(value) => formatCurrency(value as number)}
                         labelFormatter={(label, payload) => {
                           if (payload && payload[0]) {
                             const data = payload[0].payload;
@@ -1564,7 +1563,7 @@ const FinanceReport = () => {
                           boxShadow: '0 4px 12px rgba(0,0,0,0.1)',
                           fontSize: '12px'
                         }}
-                        formatter={(value: number) => formatCurrency(value)}
+                        formatter={(value) => formatCurrency(value as number)}
                         labelFormatter={(label, payload) => {
                           if (payload && payload[0]) {
                             const data = payload[0].payload;
@@ -1903,7 +1902,7 @@ const FinanceReport = () => {
                                 boxShadow: '0 4px 12px rgba(0,0,0,0.1)',
                                 fontSize: '12px'
                               }}
-                              formatter={(value: number) => formatCurrency(value)}
+                              formatter={(value) => formatCurrency(value as number)}
                             />
                             <Legend />
                             <Line
@@ -1985,7 +1984,7 @@ const FinanceReport = () => {
                                 boxShadow: '0 4px 12px rgba(0,0,0,0.1)',
                                 fontSize: '12px'
                               }}
-                              formatter={(value: number) => formatCurrency(value)}
+                              formatter={(value) => formatCurrency(value as number)}
                               labelFormatter={(label) => `Period: ${label}`}
                             />
                             <Legend

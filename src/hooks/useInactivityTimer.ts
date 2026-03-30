@@ -11,7 +11,7 @@ import { isAuthenticated, isSuperAdmin } from '../utils/auth';
 export const useInactivityTimer = () => {
   const { logout } = useLogout();
   const location = useLocation();
-  const timeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const lastActivityRef = useRef<number>(Date.now());
   
   // Inactivity timeout: 1 hour = 3600000 milliseconds

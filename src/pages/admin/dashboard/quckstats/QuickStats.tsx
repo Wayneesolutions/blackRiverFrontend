@@ -381,7 +381,7 @@ export default function QuickStatsUI() {
                       boxShadow: '0 4px 12px rgba(0,0,0,0.1)',
                       fontSize: '12px'
                     }}
-                    formatter={(value: number) => `$${value.toLocaleString()}`}
+                    formatter={(value) => `$${(value as number).toLocaleString()}`}
                   />
                   <Line 
                     type="monotone" 

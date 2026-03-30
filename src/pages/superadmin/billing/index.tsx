@@ -67,18 +67,6 @@ type ViewMode = 'grid' | 'list';
 type FilterType = 'all' | 'active' | 'inactive' | 'default';
 type SortType = 'name' | 'price' | 'created' | 'status';
 
-const ROLE_OPTIONS = [
-  { value: 'driver', label: 'Driver' },
-  { value: 'dispatcher', label: 'Dispatcher' },
-  { value: 'hr', label: 'HR' },
-  { value: 'contact', label: 'Contact' },
-  { value: 'customer', label: 'Customer' },
-  { value: 'reporter', label: 'Reporter' },
-  { value: 'Maintenance Crew (Mechanics)', label: 'Maintenance Crew (Mechanics)' },
-  { value: 'Fleet Maintenance Manager', label: 'Fleet Maintenance Manager' },
-  { value: 'Compliance Manager', label: 'Compliance Manager' },
-  { value: 'safety officer', label: 'Safety Officer' },
-];
 
 const createDefaultTruckPricing = (): TruckPricing => ({
   tiers: [
@@ -375,16 +363,6 @@ const Billing = () => {
       ...prev,
       monthly: { ...prev.monthly, truckPricing: { ...prev.monthly.truckPricing!, [field]: value } }
     }));
-  };
-
-  const addTier = () => {
-    const tiers = formData.monthly.truckPricing?.tiers || [];
-    const lastMax = tiers[tiers.length - 1]?.maxTrucks ?? 0;
-    updateTruckPricing('tiers', [...tiers, { minTrucks: lastMax + 1, maxTrucks: lastMax + 10, monthlyPrice: 0, currency: 'CAD' }]);
-  };
-
-  const removeTier = (idx: number) => {
-    updateTruckPricing('tiers', (formData.monthly.truckPricing?.tiers || []).filter((_, i) => i !== idx));
   };
 
   const updateTier = (idx: number, field: keyof TruckTier, value: number | string) => {
@@ -1014,8 +992,6 @@ const Billing = () => {
                             const displayPrice = planTab === 'monthly' ? baseMonthly : planTab === '6months' ? baseMonthly * 6 : baseMonthly * 12;
                             const strikethroughPrice = planTab === 'annual' ? baseMonthly * (12 + freeMonths) : null;
                             const isPopular = idx === 1 || (tiers.length === 1 && idx === 0);
-                            const isLastTier = idx === tiers.length - 1;
-
                             return (
                               <div
                                 key={idx}

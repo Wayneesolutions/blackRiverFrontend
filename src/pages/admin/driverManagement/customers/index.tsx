@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
-import { Plus, Download, Trash2, ChevronUp, ChevronDown, X, HelpCircle, Edit, FileDown } from 'lucide-react';
+import { Plus, Trash2, ChevronUp, ChevronDown, X, HelpCircle, Edit, FileDown } from 'lucide-react';
 import ExcelJS from 'exceljs';
 import { FaTimes, FaCheckCircle, FaExclamationTriangle } from 'react-icons/fa';
 import * as customerApi from '../../../../axios/api/customer';

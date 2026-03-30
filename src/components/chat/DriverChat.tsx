@@ -74,7 +74,7 @@ const DriverChat: React.FC<DriverChatProps> = ({ onClose }) => {
 
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const typingTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const typingTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const selectedDriverRef = useRef<Driver | null>(null);
   const messagesRef = useRef<ChatMessage[]>([]);

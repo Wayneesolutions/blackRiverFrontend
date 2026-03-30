@@ -40,20 +40,6 @@ const StatCard = ({
   </div>
 );
 
-const StatusRow = ({
-  icon, label, value, color, bg,
-}: {
-  icon: React.ReactNode; label: string; value: number; color: string; bg: string;
-}) => (
-  <div className="flex items-center justify-between py-2.5 border-b border-gray-50 last:border-0">
-    <div className="flex items-center gap-2.5">
-      <span className={`${bg} ${color} p-1.5 rounded-lg`}>{icon}</span>
-      <span className="text-sm text-gray-700 font-medium">{label}</span>
-    </div>
-    <span className={`text-sm font-bold ${color}`}>{value}</span>
-  </div>
-);
-
 const Dashboard = () => {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(true);

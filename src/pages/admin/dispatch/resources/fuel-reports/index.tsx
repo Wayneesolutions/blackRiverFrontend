@@ -1108,7 +1108,7 @@ const FuelReports = () => {
                       <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
                       <XAxis dataKey="month" tick={{ fontSize: 10 }} />
                       <YAxis tick={{ fontSize: 10 }} tickFormatter={(v) => `$${(v / 1000).toFixed(0)}k`} />
-                      <Tooltip formatter={(v: number) => [`$${v.toLocaleString()}`, "Spend"]} />
+                      <Tooltip formatter={(v) => [`$${(v as number).toLocaleString()}`, "Spend"]} />
                       <Line type="monotone" dataKey="spend" stroke={FLEET_COLORS.primary} strokeWidth={2} dot={{ r: 3 }} />
                     </LineChart>
                   </ResponsiveContainer>

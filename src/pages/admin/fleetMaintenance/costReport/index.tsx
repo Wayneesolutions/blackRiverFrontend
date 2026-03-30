@@ -437,8 +437,8 @@ const CostReports = () => {
                       dataKey="totalCost"
                       stroke="#ffffff"
                       strokeWidth={2}
-                      label={({ plateNumber, percent }) => 
-                        percent && percent > 0.05 ? `${plateNumber}` : ''
+                      label={(props: any) =>
+                        props.percent && props.percent > 0.05 ? `${props.plateNumber}` : ''
                       }
                       labelLine={false}
                     >
@@ -450,8 +450,8 @@ const CostReports = () => {
                       ))}
                     </Pie>
                     <Tooltip 
-                      formatter={(value: number, _name: string, props: any) => [
-                        `${value.toLocaleString()}`, 
+                      formatter={(value, _name, props: any) => [
+                        `${(value as number).toLocaleString()}`,
                         props.payload.plateNumber
                       ]}
                       contentStyle={{

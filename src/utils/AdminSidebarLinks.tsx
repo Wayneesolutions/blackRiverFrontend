@@ -9,7 +9,7 @@ import {
 import { BsPersonVcard } from "react-icons/bs";
 import { RiBillLine } from "react-icons/ri";
 import { RiFoldersLine } from "react-icons/ri";
-import { FaTruck,FaUsers, FaGraduationCap, FaFileAlt } from "react-icons/fa";
+import { FaTruck,FaUsers, FaGraduationCap } from "react-icons/fa";
 
 export type AdminSidebarLink = {
     key: string;
