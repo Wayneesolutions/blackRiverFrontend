@@ -30,6 +30,7 @@ export const useExpiringDocuments = () => {
         console.log('🔍 useExpiringDocuments useEffect triggered (HR panel only)');
         
         const oneHourInMs = 60 * 60 * 1000; // 1 hour in milliseconds
+
         
         // Check if it's time to show alerts (every hour after login)
         const shouldShowAlerts = (): boolean => {
@@ -44,18 +45,28 @@ export const useExpiringDocuments = () => {
                 const loginTime = parseInt(loginTimestamp, 10);
                 const currentTime = Date.now();
                 const timeSinceLogin = currentTime - loginTime;
+                console.log("timeSinceLogin", timeSinceLogin, "ms");
                 
                 // Calculate which hour mark we're at (1st hour, 2nd hour, etc.)
                 const hoursSinceLogin = Math.floor(timeSinceLogin / oneHourInMs);
                 
+                    // Get the last hour mark when alerts were shown
+                const lastShownHourKey = 'expiringDocsLastShownHour';
+                const lastShownHour = localStorage.getItem(lastShownHourKey);
+              
+                
+                    if (timeSinceLogin <= 10000 && !lastShownHour) {
+                    console.log("🚀 Showing popup within 10 seconds of login");
+                    localStorage.setItem(lastShownHourKey, "0");
+                    return true;
+                    }
                 // Must be at least 1 hour since login
                 if (hoursSinceLogin < 1) {
                     return false;
-                }
+                   }
                 
-                // Get the last hour mark when alerts were shown
-                const lastShownHourKey = 'expiringDocsLastShownHour';
-                const lastShownHour = localStorage.getItem(lastShownHourKey);
+
+            
                 
                 // If we haven't shown alerts yet, or we're at a new hour mark, show alerts
                 if (!lastShownHour || parseInt(lastShownHour, 10) < hoursSinceLogin) {
@@ -63,6 +74,10 @@ export const useExpiringDocuments = () => {
                     localStorage.setItem(lastShownHourKey, hoursSinceLogin.toString());
                     return true;
                 }
+
+                
+                  
+
                 
                 return false;
             } catch (e) {
@@ -124,6 +139,7 @@ export const useExpiringDocuments = () => {
                 // Handle employee documents
                 if (employeeDocsRes && employeeDocsRes.success && employeeDocsRes.data && employeeDocsRes.data.length > 0) {
                     setExpiringDocuments(employeeDocsRes.data);
+                    console.log("employeeDocsRes.data", employeeDocsRes.data);
                     // Show both popup and toast
                     setShowExpiringToast(true);
                     setShowExpiringPopup(true);

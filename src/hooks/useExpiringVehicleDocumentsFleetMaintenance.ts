@@ -49,6 +49,7 @@ export const useExpiringVehicleDocumentsFleetMaintenance = () => {
             
             // Check for admin, superadmin, or Fleet Maintenance Manager roles
             const userRole = effectiveUserData?.role;
+            console.log('👤 Effective user info for expiring docs check:', userRole);
             if (!effectiveUserInfo || !userRole || !['admin', 'Fleet Maintenance Manager', 'superadmin'].includes(userRole)) {
                 return;
             }
@@ -56,6 +57,7 @@ export const useExpiringVehicleDocumentsFleetMaintenance = () => {
             try {
                 // Fetch expiring vehicle documents
                 const vehicleDocsRes = await import('../axios/api/compilance.vehicledoc').then(m => m.getExpiringVehicleDocuments(30));
+                console.log('📄 Expiring vehicle documents response:---------------', vehicleDocsRes);
                 
                 // Handle vehicle documents
                 if (vehicleDocsRes && vehicleDocsRes.success && vehicleDocsRes.data && vehicleDocsRes.data.length > 0) {

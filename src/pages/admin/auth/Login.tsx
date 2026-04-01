@@ -132,6 +132,7 @@ export default function LoginPage() {
         // Persist the new token immediately so subsequent API calls succeed
         localStorage.setItem("token", token);
         sessionStorage.setItem("tokenSetTime", Date.now().toString());
+        localStorage.setItem("loginTimestamp", Date.now().toString());
 
         // Normalize user data
         const rawCompany =

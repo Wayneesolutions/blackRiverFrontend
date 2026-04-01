@@ -18,6 +18,7 @@ function Layout() {
     const toggleSidebar = () => {
         setIsSidebarCollapsed(!isSidebarCollapsed);
     };
+    console.log("showExpiringToast", showExpiringToast)
 
     return (
         <div className="flex h-screen bg-[#eeeeee]">

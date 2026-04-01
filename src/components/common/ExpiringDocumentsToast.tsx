@@ -18,24 +18,30 @@ const ExpiringDocumentsToast: React.FC<ExpiringDocumentsToastProps> = ({
   count
 }) => {
   const [visible, setVisible] = useState(false);
-
+ 
   // 🔁 Show toast every 1 hour
   useEffect(() => {
     if (count === 0) return;
+    
+ const initialDelayTimer = setTimeout(() => {
+    console.log("🚀 Showing toast after 10 seconds");
+    setVisible(true);
+  }, 10000);
 
     // Show first time after 1 hour
-    const initialTimer = setTimeout(() => {
-      setVisible(true);
-    }, ONE_HOUR);
+    // const initialTimer = setTimeout(() => {
+    //   setVisible(true);
+    // }, ONE_HOUR);
 
     // Show again every 1 hour
     const interval = setInterval(() => {
       setVisible(true);
-    }, ONE_HOUR);
+    }, 15000);
 
     return () => {
-      clearTimeout(initialTimer);
+      // clearTimeout(initialTimer);
       clearInterval(interval);
+      clearTimeout(initialDelayTimer);
     };
   }, [count]);
 
@@ -50,6 +56,8 @@ const ExpiringDocumentsToast: React.FC<ExpiringDocumentsToastProps> = ({
       return () => clearTimeout(closeTimer);
     }
   }, [visible, onClose]);
+
+  console.log("isOpen............",isOpen)
 
   if (!visible || !isOpen || count === 0) {
     return null;
