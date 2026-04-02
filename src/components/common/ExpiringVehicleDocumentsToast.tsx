@@ -23,10 +23,13 @@ const ExpiringVehicleDocumentsToast: React.FC<ExpiringVehicleDocumentsToastProps
   useEffect(() => {
     if (count === 0) return;
 
+    
+
     // First show after 1 hour
     const initialTimer = setTimeout(() => {
+    console.log('⏱ Showing expiring vehicle documents toast');
       setVisible(true);
-    }, ONE_HOUR);
+    }, 10000); 
 
     // Repeat every 1 hour
     const interval = setInterval(() => {

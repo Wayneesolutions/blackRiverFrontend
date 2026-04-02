@@ -132,21 +132,28 @@ export const useExpiringDocuments = () => {
                 return;
             }
 
-            try {
+            try { 
                 // Check only employee documents (vehicle documents moved to Fleet Maintenance)
-                const employeeDocsRes = await import('../axios/api/employeeDocument').then(m => m.getExpiringDocuments(30));
-                
-                // Handle employee documents
-                if (employeeDocsRes && employeeDocsRes.success && employeeDocsRes.data && employeeDocsRes.data.length > 0) {
-                    setExpiringDocuments(employeeDocsRes.data);
-                    console.log("employeeDocsRes.data", employeeDocsRes.data);
-                    // Show both popup and toast
-                    setShowExpiringToast(true);
-                    setShowExpiringPopup(true);
-                } else {
-                    setShowExpiringToast(false);
-                    setShowExpiringPopup(false);
-                }
+                const [employeeDocsRes, vehicleDocsRes] = await Promise.all([
+  import('../axios/api/employeeDocument').then(m => m.getExpiringDocuments(30)),
+  import('../axios/api/compilance.vehicledoc').then(m => m.getExpiringVehicleDocuments(30))
+]);
+
+const employeeDocs = employeeDocsRes?.data || [];
+const vehicleDocs = vehicleDocsRes?.data || [];
+
+const allDocs = [...employeeDocs, ...vehicleDocs];
+                      
+if (allDocs.length > 0) {
+    setExpiringDocuments(allDocs);
+    console.log("Expiring documents found:", allDocs);
+    setShowExpiringToast(true);
+    setShowExpiringPopup(true);
+} else {
+    setShowExpiringToast(false);
+    setShowExpiringPopup(false);
+}
+            //  
             } catch (error: any) {
                 // Silently handle errors - don't crash the app for background checks
                 if (error?.response?.status !== 403 && error?.response?.status !== 401) {

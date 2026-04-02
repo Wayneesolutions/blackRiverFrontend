@@ -16,7 +16,7 @@ export const useExpiringVehicleDocumentsFleetMaintenance = () => {
 
     // Check if we're in Fleet Maintenance panel routes
     const isFleetMaintenancePanel = location.pathname.startsWith('/fleetmaintenance') || location.pathname.startsWith('/admin/fleetmaintenance');
-
+    
     // Check for expiring documents continuously (only in Fleet Maintenance panel)
     useEffect(() => {
         // Only check if we're in Fleet Maintenance panel routes
@@ -79,13 +79,14 @@ export const useExpiringVehicleDocumentsFleetMaintenance = () => {
 
         // Add a small delay before first check to allow Redux state to update after login
         const initialCheckTimeout = setTimeout(() => {
+            console.log('⏱ Initial check for expiring vehicle documents after delay');
             checkExpiringDocuments();
         }, 500); // 500ms delay
 
         // Set up interval to check every 30 seconds
         const interval = setInterval(() => {
             checkExpiringDocuments();
-        }, 30 * 1000); // 30 seconds
+        }, 59*60*1000); // 59 minutes
 
         // Cleanup interval and timeout on unmount
         return () => {

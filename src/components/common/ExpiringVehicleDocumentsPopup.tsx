@@ -70,6 +70,8 @@ const ExpiringVehicleDocumentsPopup: React.FC<ExpiringVehicleDocumentsPopupProps
       setLoading(true);
       console.log('🔍 Fetching expiring vehicle documents...');
       const response = await getExpiringVehicleDocuments(daysThreshold);
+
+      console.log("📊 API Response:", response);
       
       if (response.success) {
         console.log('✅ Expiring vehicle documents fetched:', response.data.length);

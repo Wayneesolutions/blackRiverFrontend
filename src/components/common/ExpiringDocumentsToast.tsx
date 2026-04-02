@@ -8,7 +8,7 @@ interface ExpiringDocumentsToastProps {
   count: number;
 }
 
-const ONE_HOUR = 60 * 60 * 1000; // 3600000 ms
+// 3600000 ms
 const AUTO_CLOSE_TIME = 5000;   // 5 seconds
 
 const ExpiringDocumentsToast: React.FC<ExpiringDocumentsToastProps> = ({
