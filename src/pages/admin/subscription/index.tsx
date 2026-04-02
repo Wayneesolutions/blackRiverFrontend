@@ -8,7 +8,6 @@ import {
   Sparkles,
   Crown,
   Zap,
-  Users,
   Calendar,
   DollarSign,
   TrendingUp,
@@ -176,14 +175,6 @@ const SubscriptionPage = () => {
       style: 'currency',
       currency: currency,
     }).format(price);
-  };
-
-  const handleSubscribe = async (plan: Plan, subscriptionType: string) => {
-    setSelectedPlan(plan);
-    setSelectedType(subscriptionType);
-    setSelectedTier(null);
-    setTruckCount(1);
-    setShowSubscribeModal(true);
   };
 
   const handleTierSubscribe = (plan: Plan, tier: { minTrucks: number; maxTrucks: number; monthlyPrice: number; currency: string; _id: string }, subscriptionType: string) => {

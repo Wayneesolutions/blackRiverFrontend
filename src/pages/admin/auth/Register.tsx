@@ -154,6 +154,9 @@ export default function RegistrationPage() {
           duration: 3,
         });
 
+        // Mark fresh session so training pages redirect to dashboard first
+        sessionStorage.setItem('showDashboardFirst', 'true');
+
         // Navigate to admin dashboard after a short delay
         setTimeout(() => {
           navigate('/admin/dashboard', { replace: true });

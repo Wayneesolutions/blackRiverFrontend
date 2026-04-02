@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { FileText, Image, Video, MessageSquare, Upload, CheckCircle2, XCircle, Eye, Loader2 } from 'lucide-react';
-import { useLocation } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { getUserRole, getUserId } from '../../../utils/auth';
 import {
   getTrainingContent,
@@ -53,6 +53,7 @@ interface TestType {
 
 const TrainingContentView: React.FC = () => {
   const location = useLocation();
+  const navigate = useNavigate();
   const userRole = getUserRole();
   const userId = getUserId() || '';
   const [loading, setLoading] = useState(true);
@@ -65,38 +66,55 @@ const TrainingContentView: React.FC = () => {
   const [submitting, setSubmitting] = useState<Record<string, boolean>>({});
   const [, setTestResults] = useState<Record<string, TestResult>>({});
 
-  // Determine target role based on route
-  // If accessed from /dispatch/training, show Dispatcher content
-  // If accessed from /fleetmaintenance/training, show Fleet Maintenance Manager content
-  // If accessed from /compliance/training, show Compliance Manager content
-  // If accessed from /accounts/training, show Accountant content
-  // If accessed from /Management/training, show HR content
+  // Determine target role and dashboard route based on the current URL
   const isDispatchRoute = location.pathname.includes('/dispatch/training');
   const isFleetMaintenanceRoute = location.pathname.includes('/fleetmaintenance/training');
   const isComplianceRoute = location.pathname.includes('/compliance/training');
   const isAccountsRoute = location.pathname.includes('/accounts/training');
-  
+  const isHealthSafetyRoute = location.pathname.includes('/healthandsafety/training');
+
   let targetRole: string;
   let roleLabel: string;
-  
+  let dashboardRoute: string;
+
   if (isDispatchRoute) {
     targetRole = 'dispatcher';
     roleLabel = 'Dispatcher';
+    dashboardRoute = '/dispatch';
   } else if (isFleetMaintenanceRoute) {
     targetRole = 'Fleet Maintenance Manager';
     roleLabel = 'Fleet Maintenance';
+    dashboardRoute = '/fleetmaintenance';
   } else if (isComplianceRoute) {
     targetRole = 'Compliance Manager';
     roleLabel = 'Compliance';
+    dashboardRoute = '/compliance';
   } else if (isAccountsRoute) {
     targetRole = 'accountant';
     roleLabel = 'Accountant';
+    dashboardRoute = '/accounts';
+  } else if (isHealthSafetyRoute) {
+    targetRole = 'safety officer';
+    roleLabel = 'Health & Safety';
+    dashboardRoute = '/healthandsafety';
   } else {
     // Default to HR for Management route
     targetRole = 'hr';
     roleLabel = 'HR';
+    dashboardRoute = '/Management';
   }
-  
+
+  // Redirect to dashboard on the first login of each session.
+  // Login.tsx sets 'showDashboardFirst' in sessionStorage to ensure the user
+  // always sees their dashboard before accessing training content.
+  useEffect(() => {
+    const shouldShowDashboardFirst = sessionStorage.getItem('showDashboardFirst') === 'true';
+    if (shouldShowDashboardFirst) {
+      sessionStorage.removeItem('showDashboardFirst');
+      navigate(dashboardRoute, { replace: true });
+    }
+  }, [dashboardRoute, navigate]);
+
   console.log('TrainingContentView - Path:', location.pathname);
   console.log('TrainingContentView - User role:', userRole, 'Target role:', targetRole);
 

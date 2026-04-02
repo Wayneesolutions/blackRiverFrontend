@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect } from "react";
 import { FaUser, FaSignOutAlt, FaBars, FaChevronDown } from "react-icons/fa";
-import { Search, X, LogOut, AlertCircle, ArrowRight, MessageCircle } from "lucide-react";
+import { Search, X, LogOut, AlertCircle, ArrowRight } from "lucide-react";
 import { useLogout } from "../../hooks/useLogout";
 import { useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
@@ -19,7 +19,7 @@ const Header = ({ onToggleSidebar }: { onToggleSidebar: () => void }) => {
     const { filterActions } = useQuickActions();
     const userRole = getUserRole();
     const isDispatcher = userRole === "dispatcher";
-    const { totalUnread } = useChat();
+    useChat();
 
     const filteredActions = filterActions(searchQuery, isDispatcher ? 'dispatch' : 'admin');
     const pageTitle = usePageTitle();

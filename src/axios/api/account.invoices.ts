@@ -4,7 +4,7 @@ import axios from "axios";
 
 // Create a separate axios instance for public routes (no authentication needed)
 const publicApiClient = axios.create({
-  baseURL: 'http://localhost:3000'
+  baseURL: import.meta.env.VITE_APP_BASE_URL?.replace('/api/v1', '') || 'http://localhost:3000'
 });
 
 interface Error {
@@ -134,7 +134,7 @@ export const getPublicInvoice = async (invoiceId: string) => {
         console.log('🔍 getPublicInvoice called with ID:', invoiceId);
         const url = `/api/public/invoice/${invoiceId}`;
         console.log('📡 Making request to:', url);
-        console.log('📡 Full URL will be:', `http://localhost:3000${url}`);
+        console.log('📡 Full URL will be:', `${publicApiClient.defaults.baseURL}${url}`);
         
         const res: AxiosResponse = await publicApiClient.get(url);
         console.log('✅ Public invoice API response:', res);

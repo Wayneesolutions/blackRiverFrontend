@@ -200,6 +200,10 @@ export default function LoginPage() {
         setRememberMe(false);
         message.success(response.message || "Login successful");
 
+        // Mark that this is a fresh login session — training pages must not be shown
+        // before the user has visited their dashboard first
+        sessionStorage.setItem('showDashboardFirst', 'true');
+
         // Navigate based on user role
         const userRole = normalizedUserData.role || userData.role;
         if (userRole === 'dispatcher') {

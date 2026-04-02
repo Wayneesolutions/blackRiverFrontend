@@ -1,7 +1,6 @@
 import {
   Users,
   FileText,
-  UserPlus,
   FolderOpen,
   Clock,
   Briefcase,

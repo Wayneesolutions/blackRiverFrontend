@@ -16,7 +16,7 @@ interface ManifestHeaderProps {
   basePath?: string;
 }
 
-const getQuickActions = (basePath: string) => [
+const getQuickActions = (_basePath: string) => [
   {
     id: "dashboard",
     title: "Dashboard",

@@ -491,7 +491,7 @@ const ProfessionalTripTracker: React.FC = () => {
   const [loading, setLoading] = useState<boolean>(true);
   const [mapCenter, setMapCenter] = useState<[number, number]>([56.0, -96.0]); // Default to Canada
   const [mapZoom, setMapZoom] = useState<number>(4); // Zoom level to show Canada
-  const refreshIntervalRef = useRef<NodeJS.Timeout | null>(null);
+  const refreshIntervalRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const isInitialLoadRef = useRef<boolean>(true);
   const socket = useMemo(() => getSocket(), []);
 

@@ -218,7 +218,7 @@ const RevenuePerMilePage = () => {
                         boxShadow: '0 4px 12px rgba(0,0,0,0.1)',
                         fontSize: '12px'
                       }}
-                      formatter={(value: number) => `$${value.toFixed(2)}`}
+                      formatter={(value) => `$${(value as number).toFixed(2)}`}
                     />
                     <Bar
                       dataKey="revenuePerMile"
@@ -276,9 +276,10 @@ const RevenuePerMilePage = () => {
                         boxShadow: '0 4px 12px rgba(0,0,0,0.1)',
                         fontSize: '12px'
                       }}
-                      formatter={(value: number, name: string) => {
-                        if (name === 'revenuePerMile') return `$${value.toFixed(2)}`;
-                        return `$${value.toLocaleString()}`;
+                      formatter={(value, name) => {
+                        const v = value as number;
+                        if (name === 'revenuePerMile') return `$${v.toFixed(2)}`;
+                        return `$${v.toLocaleString()}`;
                       }}
                     />
                     <Legend />

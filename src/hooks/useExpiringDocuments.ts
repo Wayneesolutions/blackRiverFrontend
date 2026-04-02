@@ -180,7 +180,7 @@ if (allDocs.length > 0) {
         };
         
         // Set up initial check and scheduling
-        let scheduledTimeout: NodeJS.Timeout | null = null;
+        let scheduledTimeout: ReturnType<typeof setTimeout> | null = null;
         
         const scheduleNextHourCheck = () => {
             const timeUntilNextHour = getTimeUntilNextHour();
