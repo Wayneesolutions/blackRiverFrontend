@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect } from 'react'
 import { FaSignOutAlt, FaUser, FaBars, FaChevronDown } from "react-icons/fa";
-import { LogOut, AlertCircle, Search, X, ArrowRight } from "lucide-react";
+import { LogOut, AlertCircle, Search, X, ArrowRight, ArrowLeft } from "lucide-react";
 import { useLogout } from "../../hooks/useLogout";
 import { useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
@@ -8,6 +8,8 @@ import type { RootState } from "../../redux/store";
 import { getUserRole } from "../../utils/auth";
 import { useQuickActions } from "../common/QuickAction";
 import { usePageTitle } from "../../hooks/usePageTitle";
+import { useNotifications } from "../../hooks/useNotifications";
+import { NotificationBell } from "../common/NotificationPanel";
 
 function Header({ onToggleSidebar }: { onToggleSidebar: () => void }) {
   const [showLogoutModal, setShowLogoutModal] = useState(false);
@@ -15,10 +17,12 @@ function Header({ onToggleSidebar }: { onToggleSidebar: () => void }) {
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedIndex, setSelectedIndex] = useState(0);
+  const [isNotificationOpen, setIsNotificationOpen] = useState(false);
 
   const dropdownRef = useRef<HTMLDivElement>(null);
   const searchRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
+  const notificationRef = useRef<HTMLDivElement>(null);
 
   const { logout } = useLogout();
   const { userInfo } = useSelector((state: RootState) => state.userAuth);
@@ -26,146 +30,105 @@ function Header({ onToggleSidebar }: { onToggleSidebar: () => void }) {
   const userRole = getUserRole();
   const isHR = userRole === 'hr';
   const { filterActions } = useQuickActions();
-
   const filteredActions = filterActions(searchQuery, isHR ? 'hr' : 'admin');
   const pageTitle = usePageTitle();
 
-  // Close dropdown when clicking outside
+  const basePath = isHR ? '/Management' : '/admin/Management';
+
+  const { notifications, loading: notifLoading, totalCount } = useNotifications({
+    categories: ['employee_doc', 'driver_doc', 'vehicle_doc', 'test_approval'],
+    basePath,
+  });
+
+  // Close panels on outside click
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
-      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
-        setIsDropdownOpen(false);
-      }
-      if (searchRef.current && !searchRef.current.contains(event.target as Node)) {
-        setIsSearchOpen(false);
-      }
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) setIsDropdownOpen(false);
+      if (searchRef.current && !searchRef.current.contains(event.target as Node)) setIsSearchOpen(false);
+      if (notificationRef.current && !notificationRef.current.contains(event.target as Node)) setIsNotificationOpen(false);
     };
     document.addEventListener('mousedown', handleClickOutside);
     return () => document.removeEventListener('mousedown', handleClickOutside);
-  }, [isSearchOpen]);
+  }, []);
 
-  // Handle escape key
+  // Escape key
   useEffect(() => {
     const handleEscape = (event: KeyboardEvent) => {
-      if (event.key === 'Escape' && isSearchOpen) {
-        setIsSearchOpen(false);
-        setSearchQuery("");
-        setSelectedIndex(0);
+      if (event.key === 'Escape') {
+        setIsSearchOpen(false); setSearchQuery(""); setSelectedIndex(0);
+        setIsDropdownOpen(false);
+        setIsNotificationOpen(false);
       }
     };
     document.addEventListener('keydown', handleEscape);
     return () => document.removeEventListener('keydown', handleEscape);
-  }, [isSearchOpen]);
+  }, []);
 
-  // Focus input when search opens
-  useEffect(() => {
-    if (isSearchOpen) {
-      setTimeout(() => inputRef.current?.focus(), 100);
-    }
-  }, [isSearchOpen]);
+  useEffect(() => { if (isSearchOpen) setTimeout(() => inputRef.current?.focus(), 100); }, [isSearchOpen]);
+  useEffect(() => { setSelectedIndex(0); }, [searchQuery]);
 
-  // Reset index on query change
-  useEffect(() => {
-    setSelectedIndex(0);
-  }, [searchQuery]);
-
-  const handleLogoutClick = () => {
-    setIsDropdownOpen(false);
-    setShowLogoutModal(true);
-  };
-
-  const confirmLogout = () => {
-    setShowLogoutModal(false);
-    logout();
-  };
-
-  const cancelLogout = () => {
-    setShowLogoutModal(false);
-  };
-
-  const getProfilePath = () => {
-    const basePath = isHR ? '/Management' : '/admin/Management';
-    return `${basePath}/profile`;
-  };
-
-  const handleProfileClick = () => {
-    setIsDropdownOpen(false);
-    navigate(getProfilePath());
-  };
+  const handleLogoutClick = () => { setIsDropdownOpen(false); setShowLogoutModal(true); };
+  const confirmLogout = () => { setShowLogoutModal(false); logout(); };
+  const cancelLogout = () => setShowLogoutModal(false);
+  const handleProfileClick = () => { setIsDropdownOpen(false); navigate(`${basePath}/profile`); };
 
   const handleActionSelect = (action: any) => {
-    if (action.path) {
-      navigate(action.path);
-      setSearchQuery('');
-      setIsSearchOpen(false);
-      setSelectedIndex(0);
-    }
+    if (action.path) { navigate(action.path); setSearchQuery(''); setIsSearchOpen(false); setSelectedIndex(0); }
   };
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
     if (filteredActions.length === 0) return;
-
     switch (e.key) {
-      case 'ArrowDown':
-        e.preventDefault();
-        setSelectedIndex(prev =>
-          prev < filteredActions.length - 1 ? prev + 1 : 0
-        );
-        break;
-      case 'ArrowUp':
-        e.preventDefault();
-        setSelectedIndex(prev =>
-          prev > 0 ? prev - 1 : filteredActions.length - 1
-        );
-        break;
-      case 'Enter':
-        e.preventDefault();
-        if (filteredActions.length > 0) {
-          handleActionSelect(filteredActions[selectedIndex]);
-        }
-        break;
+      case 'ArrowDown': e.preventDefault(); setSelectedIndex(prev => prev < filteredActions.length - 1 ? prev + 1 : 0); break;
+      case 'ArrowUp': e.preventDefault(); setSelectedIndex(prev => prev > 0 ? prev - 1 : filteredActions.length - 1); break;
+      case 'Enter': e.preventDefault(); if (filteredActions[selectedIndex]) handleActionSelect(filteredActions[selectedIndex]); break;
     }
   };
 
   const handleSearchSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (filteredActions.length > 0) {
-      handleActionSelect(filteredActions[selectedIndex]);
-    }
+    if (filteredActions[selectedIndex]) handleActionSelect(filteredActions[selectedIndex]);
   };
 
   return (
     <>
       <header
         className="flex items-center justify-between px-6 py-3 shadow-sm relative z-20"
-        style={{
-          background: "linear-gradient(135deg, #42aeec 0%, #31a2d4 100%)"
-        }}
+        style={{ background: "linear-gradient(135deg, #42aeec 0%, #31a2d4 100%)" }}
       >
-        {/* LEFT: Sidebar toggle */}
-        <div className="flex items-center gap-4">
-          <button
-            onClick={onToggleSidebar}
-            className="p-2 rounded-lg hover:bg-white/20 transition-colors !text-white"
-          >
+        {/* LEFT */}
+        <div className="flex items-center gap-3">
+          <button onClick={onToggleSidebar} className="p-2 rounded-lg hover:bg-white/20 transition-colors !text-white" title="Toggle Sidebar">
             <FaBars size={20} />
+          </button>
+          <button onClick={() => navigate(-1)} className="p-2 rounded-lg hover:bg-white/20 transition-colors !text-white" title="Previous">
+            <ArrowLeft size={20} />
+          </button>
+          <button onClick={() => navigate(1)} className="p-2 rounded-lg hover:bg-white/20 transition-colors !text-white" title="Next">
+            <ArrowRight size={20} />
           </button>
         </div>
 
-        {/* MIDDLE: Page Title */}
-        <div className="flex items-center flex-1 justify-center gap-10 max-w-3xl">
-          <span className="text-white font-semibold text-lg tracking-wide">
-            {pageTitle || 'HR Management'}
-          </span>
+        {/* MIDDLE */}
+        <div className="absolute left-1/2 -translate-x-1/2 pointer-events-none">
+          <span className="text-white font-semibold text-lg tracking-wide">{pageTitle || 'HR Management'}</span>
         </div>
 
-        {/* RIGHT: Search + Profile Dropdown */}
-        <div className="flex items-center gap-4">
-          {/* Search Button */}
-          <button
-            onClick={() => setIsSearchOpen(true)}
-            className="p-2 rounded-lg hover:bg-white/20 transition-colors !text-white"
-          >
+        {/* RIGHT */}
+        <div className="flex items-center gap-3">
+          {/* Notification Bell */}
+          <NotificationBell
+            notifications={notifications}
+            loading={notifLoading}
+            totalCount={totalCount}
+            isOpen={isNotificationOpen}
+            onToggle={() => setIsNotificationOpen(o => !o)}
+            onClose={() => setIsNotificationOpen(false)}
+            containerRef={notificationRef}
+          />
+
+          {/* Search */}
+          <button onClick={() => setIsSearchOpen(true)} className="p-2 rounded-lg hover:bg-white/20 transition-colors !text-white" title="Search">
             <Search size={20} />
           </button>
 
@@ -178,34 +141,23 @@ function Header({ onToggleSidebar }: { onToggleSidebar: () => void }) {
               <div className="w-8 h-8 rounded-full bg-white/20 flex items-center justify-center">
                 <FaUser size={14} />
               </div>
-              <span className="hidden sm:block text-sm font-medium">
-                {userInfo?.userData?.name?.split(" ")[0] || "User"}
-              </span>
+              <span className="hidden sm:block text-sm font-medium">{userInfo?.userData?.name?.split(" ")[0] || "User"}</span>
               <FaChevronDown size={12} className={`transition-transform ${isDropdownOpen ? 'rotate-180' : ''}`} />
             </button>
 
-            {/* Dropdown Menu */}
             {isDropdownOpen && (
               <div className="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-xl border border-gray-100 overflow-hidden z-50">
                 <div className="px-4 py-3 border-b border-gray-100 bg-gray-50">
                   <p className="text-sm font-medium text-gray-900 truncate">{userInfo?.userData?.name || "User"}</p>
-                  <p className="text-xs text-gray-500 truncate">{userInfo?.userData?.email || "user@example.com"}</p>
+                  <p className="text-xs text-gray-500 truncate">{userInfo?.userData?.email || ""}</p>
                 </div>
                 <div className="py-1">
-                  <button
-                    onClick={handleProfileClick}
-                    className="flex items-center gap-3 w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
-                  >
-                    <FaUser size={14} className="text-gray-400" />
-                    Profile
+                  <button onClick={handleProfileClick} className="flex items-center gap-3 w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors">
+                    <FaUser size={14} className="text-gray-400" /> Profile
                   </button>
-                  <div className="border-t border-gray-100 my-1"></div>
-                  <button
-                    onClick={handleLogoutClick}
-                    className="flex items-center gap-3 w-full px-4 py-2 text-sm text-red-600 hover:bg-red-50 transition-colors"
-                  >
-                    <FaSignOutAlt size={14} />
-                    Logout
+                  <div className="border-t border-gray-100 my-1" />
+                  <button onClick={handleLogoutClick} className="flex items-center gap-3 w-full px-4 py-2 text-sm text-red-600 hover:bg-red-50 transition-colors">
+                    <FaSignOutAlt size={14} /> Logout
                   </button>
                 </div>
               </div>
@@ -217,127 +169,69 @@ function Header({ onToggleSidebar }: { onToggleSidebar: () => void }) {
       {/* SEARCH OVERLAY */}
       {isSearchOpen && (
         <div className="fixed inset-0 z-[100] flex items-start justify-center pt-20 bg-black/30 backdrop-blur-sm">
-          <div
-            ref={searchRef}
-            className="bg-white rounded-lg shadow-2xl w-full max-w-2xl mx-4"
-          >
+          <div ref={searchRef} className="bg-white rounded-lg shadow-2xl w-full max-w-2xl mx-4">
             <form onSubmit={handleSearchSubmit} className="p-4 border-b border-gray-200">
               <div className="relative">
-                <div className="absolute left-4 top-1/2 transform -translate-y-1/2">
-                  <Search className="text-gray-400" size={20} />
-                </div>
+                <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" size={20} />
                 <input
                   ref={inputRef}
                   type="text"
                   placeholder="Quick Action - Type to search..."
                   value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
+                  onChange={e => setSearchQuery(e.target.value)}
                   onKeyDown={handleKeyDown}
                   className="w-full pl-12 pr-12 py-3 text-lg border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#42aeec] focus:border-transparent"
                 />
-                <button
-                  type="button"
-                  onClick={() => {
-                    setIsSearchOpen(false);
-                    setSearchQuery("");
-                    setSelectedIndex(0);
-                  }}
-                  className="absolute right-4 top-1/2 transform -translate-y-1/2 p-1 hover:bg-gray-100 rounded-full transition-colors"
-                >
+                <button type="button" onClick={() => { setIsSearchOpen(false); setSearchQuery(""); setSelectedIndex(0); }} className="absolute right-4 top-1/2 -translate-y-1/2 p-1 hover:bg-gray-100 rounded-full">
                   <X className="text-gray-400" size={20} />
                 </button>
               </div>
             </form>
-
             {searchQuery.trim() !== "" && filteredActions.length > 0 && (
               <div className="max-h-[400px] overflow-y-auto">
                 <div className="py-2">
                   {filteredActions.map((action, index) => (
-                    <button
-                      key={action.id}
-                      onClick={() => handleActionSelect(action)}
-                      className={`w-full flex items-center gap-3 px-4 py-3 hover:bg-blue-50 transition-all duration-150 border-l-2 ${index === selectedIndex
-                        ? 'bg-blue-50 border-blue-500'
-                        : 'border-transparent hover:border-blue-300'
-                        }`}
-                    >
+                    <button key={action.id} onClick={() => handleActionSelect(action)}
+                      className={`w-full flex items-center gap-3 px-4 py-3 hover:bg-blue-50 transition-all duration-150 border-l-2 ${index === selectedIndex ? 'bg-blue-50 border-blue-500' : 'border-transparent hover:border-blue-300'}`}>
                       <div className={`flex-shrink-0 ${index === selectedIndex ? 'scale-110' : ''} transition-transform`}>
-                        <div className={`p-2 rounded-lg ${action.type === 'create' ? 'bg-green-100 text-green-700' :
-                          action.type === 'navigation' ? 'bg-blue-100 text-blue-700' :
-                            'bg-gray-100 text-gray-700'
-                          }`}>
+                        <div className={`p-2 rounded-lg ${action.type === 'create' ? 'bg-green-100 text-green-700' : action.type === 'navigation' ? 'bg-blue-100 text-blue-700' : 'bg-gray-100 text-gray-700'}`}>
                           {action.icon}
                         </div>
                       </div>
                       <div className="flex-1 text-left min-w-0">
                         <div className="flex items-center gap-2">
                           <span className="font-semibold text-gray-900 truncate">{action.title}</span>
-                          {action.type === 'create' && (
-                            <span className="text-xs bg-green-100 text-green-700 px-2 py-0.5 rounded-full font-medium flex-shrink-0">
-                              New
-                            </span>
-                          )}
-                          {action.type === 'navigation' && (
-                            <span className="text-xs bg-blue-100 text-blue-700 px-2 py-0.5 rounded-full font-medium flex-shrink-0">
-                              Navigate
-                            </span>
-                          )}
+                          {action.type === 'create' && <span className="text-xs bg-green-100 text-green-700 px-2 py-0.5 rounded-full font-medium flex-shrink-0">New</span>}
+                          {action.type === 'navigation' && <span className="text-xs bg-blue-100 text-blue-700 px-2 py-0.5 rounded-full font-medium flex-shrink-0">Navigate</span>}
                         </div>
-                        <p className="text-sm text-gray-500 mt-0.5 truncate">
-                          {action.description}
-                        </p>
+                        <p className="text-sm text-gray-500 mt-0.5 truncate">{action.description}</p>
                       </div>
-                      <ArrowRight
-                        className={`flex-shrink-0 transition-all ${index === selectedIndex
-                          ? 'text-blue-600 opacity-100 translate-x-0'
-                          : 'text-gray-400 opacity-0 -translate-x-1'
-                          }`}
-                        size={18}
-                      />
+                      <ArrowRight className={`flex-shrink-0 transition-all ${index === selectedIndex ? 'text-blue-600 opacity-100' : 'text-gray-400 opacity-0'}`} size={18} />
                     </button>
                   ))}
                 </div>
                 <div className="border-t border-gray-200 px-4 py-2 bg-gray-50">
-                  <p className="text-xs text-gray-500 text-center">
-                    {filteredActions.length} result{filteredActions.length !== 1 ? 's' : ''} • Use ↑↓ to navigate, Enter to select
-                  </p>
+                  <p className="text-xs text-gray-500 text-center">{filteredActions.length} result{filteredActions.length !== 1 ? 's' : ''} • Use ↑↓ to navigate, Enter to select</p>
                 </div>
               </div>
             )}
-
             {searchQuery.trim() !== "" && filteredActions.length === 0 && (
-              <div className="p-8">
-                <p className="text-sm text-gray-500 text-center">
-                  No actions found for "{searchQuery}"
-                </p>
-              </div>
+              <div className="p-8"><p className="text-sm text-gray-500 text-center">No actions found for "{searchQuery}"</p></div>
             )}
-
             {searchQuery.trim() === "" && (
-              <div className="p-8">
-                <p className="text-sm text-gray-500 text-center">
-                  Type to search for actions, pages, or create new items
-                </p>
-              </div>
+              <div className="p-8"><p className="text-sm text-gray-500 text-center">Type to search for actions, pages, or create new items</p></div>
             )}
           </div>
         </div>
       )}
 
-      {/* LOGOUT CONFIRMATION MODAL */}
+      {/* LOGOUT MODAL */}
       {showLogoutModal && (
-        <div
-          className="fixed inset-0 z-[10000] flex items-center justify-center bg-black/50 backdrop-blur-sm"
-          onClick={cancelLogout}
-        >
-          <div
-            className="bg-white rounded-2xl shadow-2xl max-w-md w-full mx-4 transform transition-all"
-            onClick={(e) => e.stopPropagation()}
-          >
-            {/* Modal Header */}
+        <div className="fixed inset-0 z-[10000] flex items-center justify-center bg-black/50 backdrop-blur-sm" onClick={cancelLogout}>
+          <div className="bg-white rounded-2xl shadow-2xl max-w-md w-full mx-4" onClick={e => e.stopPropagation()}>
             <div className="p-6 border-b border-gray-200">
               <div className="flex items-center gap-4">
-                <div className="flex-shrink-0 w-12 h-12 rounded-full bg-red-100 flex items-center justify-center">
+                <div className="w-12 h-12 rounded-full bg-red-100 flex items-center justify-center flex-shrink-0">
                   <LogOut className="text-red-600" size={24} />
                 </div>
                 <div>
@@ -346,31 +240,16 @@ function Header({ onToggleSidebar }: { onToggleSidebar: () => void }) {
                 </div>
               </div>
             </div>
-
-            {/* Modal Body */}
             <div className="p-6">
               <div className="flex items-start gap-3 p-4 bg-amber-50 border border-amber-200 rounded-lg">
                 <AlertCircle className="text-amber-600 flex-shrink-0 mt-0.5" size={20} />
-                <p className="text-sm text-amber-800">
-                  You'll need to sign in again to access your account after logging out.
-                </p>
+                <p className="text-sm text-amber-800">You'll need to sign in again to access your account after logging out.</p>
               </div>
             </div>
-
-            {/* Modal Footer */}
             <div className="p-6 border-t border-gray-200 flex justify-end gap-3">
-              <button
-                onClick={cancelLogout}
-                className="px-6 py-2.5 text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors font-medium"
-              >
-                Cancel
-              </button>
-              <button
-                onClick={confirmLogout}
-                className="px-6 py-2.5 !text-white bg-red-600 hover:bg-red-700 rounded-lg transition-colors font-medium flex items-center gap-2 shadow-lg shadow-red-500/30"
-              >
-                <LogOut size={18} />
-                Logout
+              <button onClick={cancelLogout} className="px-6 py-2.5 text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors font-medium">Cancel</button>
+              <button onClick={confirmLogout} className="px-6 py-2.5 !text-white bg-red-600 hover:bg-red-700 rounded-lg transition-colors font-medium flex items-center gap-2 shadow-lg shadow-red-500/30">
+                <LogOut size={18} /> Logout
               </button>
             </div>
           </div>

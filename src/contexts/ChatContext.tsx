@@ -1,5 +1,5 @@
 // ChatContext.tsx
-import { createContext, useContext, useState, useEffect } from "react";
+import { createContext, useContext, useState, useEffect, useMemo, useCallback } from "react";
 
 export interface ChatNotification {
     driverId: string;
@@ -14,7 +14,10 @@ export const ChatProvider = ({ children }: any) => {
     const [unreadCounts, setUnreadCounts] = useState<Record<string, number>>({});
     const [chatNotification, setChatNotification] = useState<ChatNotification | null>(null);
 
-    const totalUnread = Object.values(unreadCounts).reduce((sum, n) => sum + n, 0);
+    const totalUnread = useMemo(
+        () => Object.values(unreadCounts).reduce((sum, n) => sum + n, 0),
+        [unreadCounts]
+    );
 
     // Auto-clear unread when a driver becomes active
     useEffect(() => {
@@ -27,30 +30,32 @@ export const ChatProvider = ({ children }: any) => {
         }
     }, [activeDriverId]);
 
-    const addUnread = (driverId: string) => {
+    const addUnread = useCallback((driverId: string) => {
         setUnreadCounts(prev => ({ ...prev, [driverId]: (prev[driverId] || 0) + 1 }));
-    };
+    }, []);
 
-    const clearUnread = (driverId: string) => {
+    const clearUnread = useCallback((driverId: string) => {
         setUnreadCounts(prev => {
             const next = { ...prev };
             delete next[driverId];
             return next;
         });
-    };
+    }, []);
 
-    const setInitialUnreadCounts = (counts: Record<string, number>) => {
+    const setInitialUnreadCounts = useCallback((counts: Record<string, number>) => {
         setUnreadCounts(counts);
-    };
+    }, []);
 
-    const clearChatNotification = () => setChatNotification(null);
+    const clearChatNotification = useCallback(() => setChatNotification(null), []);
+
+    const contextValue = useMemo(() => ({
+        activeDriverId, setActiveDriverId,
+        unreadCounts, totalUnread, addUnread, clearUnread, setInitialUnreadCounts,
+        chatNotification, setChatNotification, clearChatNotification
+    }), [activeDriverId, unreadCounts, totalUnread, addUnread, clearUnread, setInitialUnreadCounts, chatNotification, clearChatNotification]);
 
     return (
-        <ChatContext.Provider value={{
-            activeDriverId, setActiveDriverId,
-            unreadCounts, totalUnread, addUnread, clearUnread, setInitialUnreadCounts,
-            chatNotification, setChatNotification, clearChatNotification
-        }}>
+        <ChatContext.Provider value={contextValue}>
             {children}
         </ChatContext.Provider>
     );

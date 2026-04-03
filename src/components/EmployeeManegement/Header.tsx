@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect } from 'react'
 import { FaUser, FaSignOutAlt, FaBars, FaChevronDown } from "react-icons/fa";
-import { Search, X, LogOut, AlertCircle, ArrowRight } from "lucide-react";
+import { Search, X, LogOut, AlertCircle, ArrowRight, ArrowLeft } from "lucide-react";
 import { useLogout } from "../../hooks/useLogout";
 import { useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
@@ -146,6 +146,20 @@ function Header({ onToggleSidebar }: { onToggleSidebar: () => void }) {
             className="p-2 rounded-lg hover:bg-white/20 transition-colors !text-white"
           >
             <FaBars size={20} />
+          </button>
+          <button
+            onClick={() => navigate(-1)}
+            className="p-2 rounded-lg hover:bg-white/20 transition-colors !text-white"
+            title="Previous"
+          >
+            <ArrowLeft size={22} />
+          </button>
+          <button
+            onClick={() => navigate(1)}
+            className="p-2 rounded-lg hover:bg-white/20 transition-colors !text-white"
+            title="Next"
+          >
+            <ArrowRight size={22} />
           </button>
         </div>
 

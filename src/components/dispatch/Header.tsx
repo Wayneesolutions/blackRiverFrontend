@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect } from "react";
 import { FaUser, FaSignOutAlt, FaBars, FaChevronDown } from "react-icons/fa";
-import { Search, X, LogOut, AlertCircle, ArrowRight } from "lucide-react";
+import { Search, X, LogOut, AlertCircle, ArrowRight,ArrowLeft } from "lucide-react";
 import { useLogout } from "../../hooks/useLogout";
 import { useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
@@ -9,7 +9,6 @@ import type { RootState } from "../../redux/store";
 import { getUserRole } from "../../utils/auth";
 import { useQuickActions } from "../common/QuickAction";
 import { useChat } from "../../contexts/ChatContext";
-
 const Header = ({ onToggleSidebar }: { onToggleSidebar: () => void }) => {
     const [isSearchOpen, setIsSearchOpen] = useState(false);
     const [isDropdownOpen, setIsDropdownOpen] = useState(false);
@@ -17,8 +16,10 @@ const Header = ({ onToggleSidebar }: { onToggleSidebar: () => void }) => {
     const [searchQuery, setSearchQuery] = useState("");
     const [selectedIndex, setSelectedIndex] = useState(0);
     const { filterActions } = useQuickActions();
+
     const userRole = getUserRole();
     const isDispatcher = userRole === "dispatcher";
+
     useChat();
 
     const filteredActions = filterActions(searchQuery, isDispatcher ? 'dispatch' : 'admin');
@@ -31,7 +32,7 @@ const Header = ({ onToggleSidebar }: { onToggleSidebar: () => void }) => {
     const { userInfo } = useSelector((state: RootState) => state.userAuth);
     const navigate = useNavigate();
 
-    // close search overlay on click outside
+    // close panels on click outside
     useEffect(() => {
         const handleClick = (e: MouseEvent) => {
             if (searchRef.current && !searchRef.current.contains(e.target as Node)) {
@@ -40,7 +41,7 @@ const Header = ({ onToggleSidebar }: { onToggleSidebar: () => void }) => {
             if (dropdownRef.current && !dropdownRef.current.contains(e.target as Node)) {
                 setIsDropdownOpen(false);
             }
-        };
+            };
         document.addEventListener("mousedown", handleClick);
         return () => document.removeEventListener("mousedown", handleClick);
     }, [isSearchOpen, isDropdownOpen]);
@@ -147,6 +148,20 @@ const Header = ({ onToggleSidebar }: { onToggleSidebar: () => void }) => {
                     >
                         <FaBars size={20} />
                     </button>
+                    <button
+                        onClick={() => navigate(-1)}
+                        className="p-2 rounded-lg hover:bg-white/20 transition-colors !text-white"
+                        title="Previous"
+                    >
+                        <ArrowLeft size={22} />
+                    </button>
+                    <button
+                        onClick={() => navigate(1)}
+                        className="p-2 rounded-lg hover:bg-white/20 transition-colors !text-white"
+                        title="Next"
+                    >
+                        <ArrowRight size={22} />
+                    </button>
                 </div>
 
                 {/* MIDDLE: Page Title */}
@@ -156,7 +171,7 @@ const Header = ({ onToggleSidebar }: { onToggleSidebar: () => void }) => {
                     </span>
                 </div>
 
-                {/* RIGHT: Chat Badge + Search + Profile Dropdown */}
+                {/* RIGHT: Search + Profile Dropdown */}
                 <div className="flex items-center gap-4">
                     {/* Chat Notification Badge */}
                     {/* <button

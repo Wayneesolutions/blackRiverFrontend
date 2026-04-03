@@ -1,9 +1,9 @@
 
-import { useState, useRef, useEffect } from "react";
-import { FaSignOutAlt, FaUser, FaCog, FaBars } from "react-icons/fa";
-import { Search, X, LogOut, AlertCircle, ArrowRight } from "lucide-react";
+import React, { useState, useRef, useEffect, useMemo, useCallback, memo } from "react";
+import { FaSignOutAlt, FaUser, FaCog, FaBars  } from "react-icons/fa";
+import { Search, X, LogOut, AlertCircle, ArrowRight ,ArrowLeft } from "lucide-react";
 import { useLogout } from "../../hooks/useLogout";
-import { useSelector } from "react-redux";
+import { useSelector, shallowEqual } from "react-redux";
 import { useNavigate } from "react-router-dom";
 import type { RootState } from "../../redux/store";
 import { useQuickActions } from "../common/QuickAction";
@@ -22,12 +22,14 @@ const Header: React.FC<HeaderProps> = ({ isSidebarCollapsed = false, onToggleSid
     const searchRef = useRef<HTMLDivElement>(null);
     const inputRef = useRef<HTMLInputElement>(null);
     const { logout } = useLogout();
-    const { userInfo } = useSelector((state: RootState) => state.userAuth);
+    const { userInfo } = useSelector((state: RootState) => state.userAuth, shallowEqual);
     const navigate = useNavigate();
     const { filterActions } = useQuickActions();
     const pageTitle = usePageTitle();
 
-    const filteredActions = filterActions(searchQuery, 'admin');
+    // Only recompute when searchQuery changes, not on every render
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    const filteredActions = useMemo(() => filterActions(searchQuery, 'admin'), [searchQuery]);
 
     // Close search overlay when clicking outside
     useEffect(() => {
@@ -68,41 +70,41 @@ const Header: React.FC<HeaderProps> = ({ isSidebarCollapsed = false, onToggleSid
         setSelectedIndex(0);
     }, [searchQuery]);
 
-    const handleLogout = () => {
+    const handleLogout = useCallback(() => {
         setShowLogoutModal(true);
-    };
+    }, []);
 
-    const confirmLogout = () => {
+    const confirmLogout = useCallback(() => {
         setShowLogoutModal(false);
         logout();
-    };
+    }, [logout]);
 
-    const cancelLogout = () => {
+    const cancelLogout = useCallback(() => {
         setShowLogoutModal(false);
-    };
+    }, []);
 
-    const handleProfileClick = () => {
+    const handleProfileClick = useCallback(() => {
         navigate('/admin/profile');
-    };
+    }, [navigate]);
 
-    const handleSettingsClick = () => {
+    const handleSettingsClick = useCallback(() => {
         navigate('/admin/company');
-    };
+    }, [navigate]);
 
-    const handleSearchClick = () => {
+    const handleSearchClick = useCallback(() => {
         setIsSearchOpen(true);
-    };
+    }, []);
 
-    const handleActionSelect = (action: typeof filteredActions[0]) => {
+    const handleActionSelect = useCallback((action: typeof filteredActions[0]) => {
         if (action.path) {
             navigate(action.path);
             setSearchQuery('');
             setIsSearchOpen(false);
             setSelectedIndex(0);
         }
-    };
+    }, [navigate]);
 
-    const handleKeyDown = (e: React.KeyboardEvent) => {
+    const handleKeyDown = useCallback((e: React.KeyboardEvent) => {
         if (filteredActions.length === 0) return;
 
         switch (e.key) {
@@ -125,14 +127,14 @@ const Header: React.FC<HeaderProps> = ({ isSidebarCollapsed = false, onToggleSid
                 }
                 break;
         }
-    };
+    }, [filteredActions, selectedIndex, handleActionSelect]);
 
-    const handleSearchSubmit = (e: React.FormEvent) => {
+    const handleSearchSubmit = useCallback((e: React.FormEvent) => {
         e.preventDefault();
         if (filteredActions.length > 0) {
             handleActionSelect(filteredActions[selectedIndex]);
         }
-    };
+    }, [filteredActions, selectedIndex, handleActionSelect]);
 
     return (
         <>
@@ -149,6 +151,20 @@ const Header: React.FC<HeaderProps> = ({ isSidebarCollapsed = false, onToggleSid
                         title={isSidebarCollapsed ? "Expand Sidebar" : "Collapse Sidebar"}
                     >
                         <FaBars size={20} />
+                    </button>
+                    <button
+                        onClick={() => navigate(-1)}
+                        className="p-2 rounded-lg hover:bg-white/20 transition-colors !text-white"
+                        title="Previous"
+                    >
+                        <ArrowLeft size={22} />
+                    </button>
+                    <button
+                        onClick={() => navigate(1)}
+                        className="p-2 rounded-lg hover:bg-white/20 transition-colors !text-white"
+                        title="Next"
+                    >
+                        <ArrowRight size={22} />
                     </button>
                 </div>
 
@@ -359,4 +375,4 @@ const Header: React.FC<HeaderProps> = ({ isSidebarCollapsed = false, onToggleSid
     );
 };
 
-export default Header;
+export default memo(Header);

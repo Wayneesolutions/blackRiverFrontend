@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect } from "react";
 import { FaSignOutAlt, FaUser, FaBars } from "react-icons/fa";
 import {
-  Search, X, LogOut, AlertCircle, ArrowRight,
+  Search, X, LogOut, AlertCircle, ArrowRight,ArrowLeft,
   LayoutDashboard, Truck, Package, Users,
 } from "lucide-react";
 import { useLogout } from "../../hooks/useLogout";
@@ -130,6 +130,20 @@ const ManifestHeader: React.FC<ManifestHeaderProps> = ({
             title={isSidebarCollapsed ? "Expand Sidebar" : "Collapse Sidebar"}
           >
             <FaBars size={20} />
+          </button>
+          <button
+            onClick={() => navigate(-1)}
+            className="p-2 rounded-lg hover:bg-white/20 transition-colors !text-white"
+            title="Previous"
+          >
+            <ArrowLeft size={22} />
+          </button>
+          <button
+            onClick={() => navigate(1)}
+            className="p-2 rounded-lg hover:bg-white/20 transition-colors !text-white"
+            title="Next"
+          >
+            <ArrowRight size={22} />
           </button>
         </div>
 

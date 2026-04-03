@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useCallback, memo } from "react";
 import { NavLink, useNavigate } from "react-router-dom";
 import { AdminSidebarLinks } from "../../utils/AdminSidebarLinks";
 import { FaChevronDown, FaChevronRight } from "react-icons/fa";
@@ -17,11 +17,11 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed = false }) => {
   const navigate = useNavigate();
 
   // Toggle expand/collapse for parent menus
-  const toggleMenu = (key: string) => {
+  const toggleMenu = useCallback((key: string) => {
     setOpenMenus((prev) =>
       prev.includes(key) ? prev.filter((k) => k !== key) : [...prev, key]
     );
-  };
+  }, []);
 
   // Helper function to check if route is active
   const isActiveLink = (linkKey: string, isActive: boolean, pathname: string) => {
@@ -33,11 +33,11 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed = false }) => {
   };
 
   // Handle link click: either navigate or open drawer
-  const handleClick = (link: any) => {
+  const handleClick = useCallback((link: any) => {
     if (link.action === "open-new-load") {
       setSidebarOpen(true);
     }
-  };
+  }, []);
 
   return (
     <>
@@ -163,12 +163,6 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed = false }) => {
                               >
                                 <NavLink
                                   to={`/admin/${child.key}`}
-                                  onClick={() => {
-                                    console.log(
-                                      "🔗 Sidebar navigation to:",
-                                      `/admin/${child.key}`
-                                    );
-                                  }}
                                   className={`flex items-center px-4 py-2 pl-12 gap-3 text-sm font-medium transition-all duration-200 ease-in-out group ${
                                     activeState
                                       ? "bg-[#42aeec]/10 text-[#42aeec]"
@@ -214,13 +208,6 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed = false }) => {
                       to={
                         link.key === "dashboard" ? "/admin/" : `/admin/${link.key}`
                       }
-                      onClick={() => {
-                        const targetPath =
-                          link.key === "dashboard"
-                            ? "/admin/"
-                            : `/admin/${link.key}`;
-                        console.log("🔗 Sidebar navigation to:", targetPath);
-                      }}
                       className={({ isActive }) => {
                         const pathname = window.location.pathname;
                         const activeState = isActiveLink(
@@ -296,4 +283,4 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed = false }) => {
   );
 };
 
-export default Sidebar;
+export default memo(Sidebar);

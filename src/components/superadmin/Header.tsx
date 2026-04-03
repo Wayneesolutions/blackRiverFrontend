@@ -1,7 +1,7 @@
 // components/Header.jsx
 import { useState, useRef, useEffect } from "react";
 import { FaUserCircle, FaSignOutAlt, FaUser, FaCog } from "react-icons/fa";
-import { Search, X, ArrowRight } from "lucide-react";
+import { Search, X, ArrowRight , ArrowLeft } from "lucide-react";
 import { useLogout } from "../../hooks/useLogout";
 import { useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
@@ -129,7 +129,22 @@ const Header = () => {
     return (
         <header className="flex items-center justify-between px-6 py-4 bg-white shadow-sm border-b border-gray-200 relative">
             {/* Left side */}
-            <div className="flex-1"></div>
+            <div className="flex items-center gap-2">
+                <button
+                    onClick={() => navigate(-1)}
+                    className="p-2 rounded-full hover:bg-gray-100 transition-colors"
+                    title="Previous"
+                >
+                    <ArrowLeft className="w-4 h-4 text-gray-600" />
+                </button>
+                <button
+                    onClick={() => navigate(1)}
+                    className="p-2 rounded-full hover:bg-gray-100 transition-colors"
+                    title="Next"
+                >
+                    <ArrowRight className="w-4 h-4 text-gray-600" />
+                </button>
+            </div>
 
             {pageTitle && (
                 <div className="absolute left-1/2 -translate-x-1/2 pointer-events-none">

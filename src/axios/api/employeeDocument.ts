@@ -216,7 +216,7 @@ export const getExpiringDocuments = async (days: number = 30) => {
     const response: AxiosResponse<{
       success: boolean;
       data: EmployeeDocument[];
-    }> = await apiClient.get(`/employee-documents/expiring?days=${days}`);
+    }> = await apiClient.get(`employee-documents/expiring?days=${days}`);
     
     return response.data;
   } catch (error: any) {

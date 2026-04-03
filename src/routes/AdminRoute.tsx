@@ -1,6 +1,5 @@
 import { Routes, Route, Navigate } from "react-router-dom";
 import { Suspense, lazy } from "react";
-import React from "react";
 import Layout from "../components/admin/Layout";
 import Loading from "../components/common/Loading";
 import ErrorBoundary from "../components/common/ErrorBoundary";
@@ -32,14 +31,6 @@ const HealthSafetyRoutes = lazy(() => import("./AdminFeatures/HealthSafetyRoutes
 const Subscription = lazy(() => import("../pages/admin/subscription/index"))
 const AdminHRTrainingView = lazy(() => import("../pages/admin/training/hrTraining/AdminHRTrainingView"))
 const ManifestRoutes = lazy(() => import("./AdminFeatures/ManifestRoutes"))
-
-// Debug wrapper to log route changes
-const RouteDebugger = ({ children }: { children: React.ReactNode }) => {
-  React.useEffect(() => {
-    console.log('📍 Current route:', window.location.pathname);
-  }, [window.location.pathname]);
-  return <>{children}</>;
-};
 
 function AdminRoute() {
   const userRole = getUserRole();
@@ -81,8 +72,7 @@ function AdminRoute() {
 
   return (
     <Suspense fallback={<Loading />}>
-      <RouteDebugger>
-        <Routes>
+      <Routes>
         {/* Redirect /admin/login to root login page */}
         <Route 
           path="login" 
@@ -155,7 +145,6 @@ function AdminRoute() {
           element={<ManifestRoutes />}
         />
       </Routes>
-      </RouteDebugger>
     </Suspense>
   );
 }

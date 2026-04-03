@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useMemo } from 'react';
 import { Edit, Trash2, Plus, X, RefreshCw, User, Search, FileText,  MapPin, DollarSign, Upload, Save, ChevronUp, ChevronDown, Calendar, Award, AlertTriangle, FileText as FileTextIcon, PlusCircle, Check, ClipboardCheck, Ticket, FlaskConical, Lock, Eye, EyeOff, FileDown } from 'lucide-react';
 import ExcelJS from 'exceljs';
 import { FaCheckCircle, FaExclamationCircle, FaTimes } from 'react-icons/fa';
@@ -1660,23 +1660,20 @@ const DriverManagement = () => {
 
   // Note: Removed documentsTab reload effect since we're showing all documents together
 
-  // Filter drivers based on active tab
-  const getFilteredDrivers = () => {
-    // Only use drivers from backend - no static/hardcoded data
+  // Filter drivers based on active tab — memoized to avoid recomputing on unrelated state changes
+  const filteredDrivers = useMemo(() => {
     let filtered = drivers;
-
-    // Tab filtering is now handled by the API (assignment parameter)
-    // The drivers array already contains only the drivers for the current activeTab
 
     // Apply search filter
     if (searchTerm) {
+      const term = searchTerm.toLowerCase();
       filtered = filtered.filter(
         driver =>
-          driver.driverId.toLowerCase().includes(searchTerm.toLowerCase()) ||
-          driver.firstName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-          driver.lastName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-          driver.driversLicence.toLowerCase().includes(searchTerm.toLowerCase()) ||
-          driver.passport.toLowerCase().includes(searchTerm.toLowerCase())
+          driver.driverId.toLowerCase().includes(term) ||
+          driver.firstName.toLowerCase().includes(term) ||
+          driver.lastName.toLowerCase().includes(term) ||
+          driver.driversLicence.toLowerCase().includes(term) ||
+          driver.passport.toLowerCase().includes(term)
       );
     }
 
@@ -1699,20 +1696,14 @@ const DriverManagement = () => {
         const aValue = a[sortConfig.key!];
         const bValue = b[sortConfig.key!];
 
-        if (aValue < bValue) {
-          return sortConfig.direction === 'asc' ? -1 : 1;
-        }
-        if (aValue > bValue) {
-          return sortConfig.direction === 'asc' ? 1 : -1;
-        }
+        if (aValue < bValue) return sortConfig.direction === 'asc' ? -1 : 1;
+        if (aValue > bValue) return sortConfig.direction === 'asc' ? 1 : -1;
         return 0;
       });
     }
 
     return filtered;
-  };
-
-  const filteredDrivers = getFilteredDrivers();
+  }, [drivers, searchTerm, complianceStatus, sortConfig]);
 
   // Sync scrollbar widths
   useEffect(() => {
@@ -3920,9 +3911,9 @@ const DriverManagement = () => {
                 </tr>
               </thead>
               <tbody className="bg-white divide-y divide-gray-200">
-                {filteredDrivers.map((driver, index) => (
-                  <tr 
-                    key={index} 
+                {filteredDrivers.map((driver) => (
+                  <tr
+                    key={driver._id || driver.driverId}
                     className="hover:bg-gray-50 transition-colors cursor-pointer"
                     onClick={(e) => {
                       // Prevent triggering if clicking on interactive elements (buttons, links, inputs, selects)

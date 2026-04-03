@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect } from "react";
 import { FaSignOutAlt, FaUser, FaBars } from "react-icons/fa";
-import { Search, X, LogOut, AlertCircle, ArrowRight, LayoutDashboard, ClipboardList, UserCheck } from "lucide-react";
+import { Search, X, LogOut, AlertCircle, ArrowRight, ArrowLeft , LayoutDashboard, ClipboardList, UserCheck } from "lucide-react";
 import { useLogout } from "../../hooks/useLogout";
 import { useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
@@ -119,6 +119,20 @@ const MechanicsHeader: React.FC<MechanicsHeaderProps> = ({
             title={isSidebarCollapsed ? "Expand Sidebar" : "Collapse Sidebar"}
           >
             <FaBars size={20} />
+          </button>
+          <button
+            onClick={() => navigate(-1)}
+            className="p-2 rounded-lg hover:bg-white/20 transition-colors !text-white"
+            title="Previous"
+          >
+            <ArrowLeft size={22} />
+          </button>
+          <button
+            onClick={() => navigate(1)}
+            className="p-2 rounded-lg hover:bg-white/20 transition-colors !text-white"
+            title="Next"
+          >
+            <ArrowRight size={22} />
           </button>
         </div>
 
