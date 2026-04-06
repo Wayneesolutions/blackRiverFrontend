@@ -21,6 +21,10 @@ export interface GeneralRepairDto {
   unitReference?: string;
   status?: 'Created' | 'Assigned' | 'Shared' | 'in-progress' | 'completed';
   shared?: boolean;
+  mechanicType?: 'internal' | 'external';
+  externalMechanicCompany?: string;
+  externalMechanicPhone?: string;
+  externalMechanicEmail?: string;
   verificationStatus?: 'not-verified' | 'verified';
   verifiedBy?: string;
   verifiedAt?: string;
@@ -46,6 +50,10 @@ export interface GeneralRepairPayload {
   duePayment?: string;
   unitSource?: string;
   unitReference?: string;
+  mechanicType?: 'internal' | 'external';
+  externalMechanicCompany?: string;
+  externalMechanicPhone?: string;
+  externalMechanicEmail?: string;
 }
 
 export interface GeneralRepairResponse {

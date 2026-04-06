@@ -36,12 +36,17 @@ interface WorkOrder {
     repairUpdates: RepairUpdate[];
     createdAt: string;
     // Additional fields from Excel Maintenance Log
-    unitNumber?: string; // Unit/Vehicle ID from Unit Number column
-    completionDate?: string; // Service Date from Excel
-    odometerReading?: number; // Odometer from Excel
-    partsUsed?: string[] | string; // Parts from Excel (array or comma-separated string)
-    serviceProvider?: string; // Service Provider/Shop from Excel
-    invoiceReference?: string; // Invoice Number from Excel
+    unitNumber?: string;
+    completionDate?: string;
+    odometerReading?: number;
+    partsUsed?: string[] | string;
+    serviceProvider?: string;
+    invoiceReference?: string;
+    mechanicType?: 'internal' | 'external';
+    externalMechanicName?: string;
+    externalMechanicCompany?: string;
+    externalMechanicPhone?: string;
+    externalMechanicEmail?: string;
 }
 
 interface CreateForm {
@@ -51,13 +56,17 @@ interface CreateForm {
     assignedMechanic: string;
     estimatedCost: string;
     estimatedTime: string;
-    // Additional fields from Excel Maintenance Log
     unitNumber?: string;
     completionDate?: string;
     odometerReading?: string;
-    partsUsed?: string; // Comma-separated or single part
+    partsUsed?: string;
     serviceProvider?: string;
     invoiceReference?: string;
+    mechanicType?: 'internal' | 'external';
+    externalMechanicName?: string;
+    externalMechanicCompany?: string;
+    externalMechanicPhone?: string;
+    externalMechanicEmail?: string;
 }
 
 interface UpdateForm {
@@ -67,13 +76,17 @@ interface UpdateForm {
     estimatedCost: string;
     estimatedTime: string;
     repairUpdate: string;
-    // Additional fields from Excel Maintenance Log
     unitNumber?: string;
     completionDate?: string;
     odometerReading?: string;
     partsUsed?: string;
     serviceProvider?: string;
     invoiceReference?: string;
+    mechanicType?: 'internal' | 'external';
+    externalMechanicName?: string;
+    externalMechanicCompany?: string;
+    externalMechanicPhone?: string;
+    externalMechanicEmail?: string;
 }
 
 type NotificationType = 'success' | 'error' | 'info';
@@ -161,6 +174,8 @@ function WorkOrdersPage() {
     const [userInfoReady, setUserInfoReady] = useState<boolean>(false);
     const [mechanics, setMechanics] = useState<Mechanic[]>([]);
     const [loadingMechanics, setLoadingMechanics] = useState<boolean>(false);
+    const [createMechanicType, setCreateMechanicType] = useState<'internal' | 'external'>('internal');
+    const [updateMechanicType, setUpdateMechanicType] = useState<'internal' | 'external'>('internal');
 
     // Use refs to store form data
     const createFormRef = useRef<CreateForm>({
@@ -175,7 +190,12 @@ function WorkOrdersPage() {
         odometerReading: '',
         partsUsed: '',
         serviceProvider: '',
-        invoiceReference: ''
+        invoiceReference: '',
+        mechanicType: 'internal',
+        externalMechanicName: '',
+        externalMechanicCompany: '',
+        externalMechanicPhone: '',
+        externalMechanicEmail: '',
     });
 
     const updateFormRef = useRef<UpdateForm>({
@@ -190,7 +210,12 @@ function WorkOrdersPage() {
         odometerReading: '',
         partsUsed: '',
         serviceProvider: '',
-        invoiceReference: ''
+        invoiceReference: '',
+        mechanicType: 'internal',
+        externalMechanicName: '',
+        externalMechanicCompany: '',
+        externalMechanicPhone: '',
+        externalMechanicEmail: '',
     });
 
     const addNotification = (type: NotificationType, message: string) => {
@@ -321,18 +346,26 @@ function WorkOrdersPage() {
             vehicleId: formData.vehicleId,
             issue: formData.issue,
             description: formData.description,
-            assignedMechanic: formData.assignedMechanic,
+            assignedMechanic: createMechanicType === 'internal' ? formData.assignedMechanic : '',
             estimatedCost: formData.estimatedCost ? parseFloat(formData.estimatedCost) : undefined,
-            estimatedTime: formData.estimatedTime
+            estimatedTime: formData.estimatedTime,
+            mechanicType: createMechanicType,
         };
 
-        // Add Excel Maintenance Log fields
+        // Mechanic fields
+        if (createMechanicType === 'external') {
+            data.externalMechanicName = formData.externalMechanicName || '';
+            data.externalMechanicCompany = formData.externalMechanicCompany || '';
+            data.externalMechanicPhone = formData.externalMechanicPhone || '';
+            data.externalMechanicEmail = formData.externalMechanicEmail || '';
+        }
+
+        // Add other fields
         if (formData.unitNumber) data.unitNumber = formData.unitNumber;
         if (formData.completionDate) data.completionDate = formData.completionDate;
         if (formData.odometerReading) data.odometerReading = parseFloat(formData.odometerReading);
         if (formData.partsUsed) {
-            // Convert comma-separated string to array if needed
-            data.partsUsed = typeof formData.partsUsed === 'string' 
+            data.partsUsed = typeof formData.partsUsed === 'string'
                 ? formData.partsUsed.split(',').map(p => p.trim()).filter(Boolean)
                 : formData.partsUsed;
         }
@@ -356,8 +389,14 @@ function WorkOrdersPage() {
                     odometerReading: '',
                     partsUsed: '',
                     serviceProvider: '',
-                    invoiceReference: ''
+                    invoiceReference: '',
+                    mechanicType: 'internal',
+                    externalMechanicName: '',
+                    externalMechanicCompany: '',
+                    externalMechanicPhone: '',
+                    externalMechanicEmail: '',
                 };
+                setCreateMechanicType('internal');
                 fetchAllWorkOrders();
             } else {
                 addNotification('error', res?.message || 'Failed to create work order');
@@ -380,7 +419,6 @@ function WorkOrdersPage() {
 
         if (formData.status) data.status = formData.status;
         if (formData.description !== undefined) data.description = formData.description;
-        if (formData.assignedMechanic !== undefined) data.assignedMechanic = formData.assignedMechanic;
         if (formData.estimatedCost !== undefined && formData.estimatedCost !== '') {
             data.estimatedCost = parseFloat(formData.estimatedCost);
         }
@@ -403,6 +441,16 @@ function WorkOrdersPage() {
         }
         if (formData.serviceProvider !== undefined) data.serviceProvider = formData.serviceProvider;
         if (formData.invoiceReference !== undefined) data.invoiceReference = formData.invoiceReference;
+        data.mechanicType = updateMechanicType;
+        if (updateMechanicType === 'internal') {
+            data.assignedMechanic = formData.assignedMechanic;
+        } else {
+            data.assignedMechanic = '';
+            data.externalMechanicName = formData.externalMechanicName || '';
+            data.externalMechanicCompany = formData.externalMechanicCompany || '';
+            data.externalMechanicPhone = formData.externalMechanicPhone || '';
+            data.externalMechanicEmail = formData.externalMechanicEmail || '';
+        }
 
         try {
             const res = await updateWorkOrder(selectedWorkOrder._id, data);
@@ -421,8 +469,14 @@ function WorkOrdersPage() {
                     odometerReading: '',
                     partsUsed: '',
                     serviceProvider: '',
-                    invoiceReference: ''
+                    invoiceReference: '',
+                    mechanicType: 'internal',
+                    externalMechanicName: '',
+                    externalMechanicCompany: '',
+                    externalMechanicPhone: '',
+                    externalMechanicEmail: '',
                 };
+                setUpdateMechanicType('internal');
                 fetchAllWorkOrders();
             } else {
                 addNotification('error', res?.message || 'Failed to update work order');
@@ -462,6 +516,8 @@ function WorkOrdersPage() {
 
     const openUpdateModal = (order: WorkOrder) => {
         setSelectedWorkOrder(order);
+        const mType = order.mechanicType || 'internal';
+        setUpdateMechanicType(mType);
         updateFormRef.current = {
             status: order.status,
             description: order.description || '',
@@ -474,7 +530,12 @@ function WorkOrdersPage() {
             odometerReading: order.odometerReading?.toString() || '',
             partsUsed: Array.isArray(order.partsUsed) ? order.partsUsed.join(', ') : (order.partsUsed || ''),
             serviceProvider: order.serviceProvider || '',
-            invoiceReference: order.invoiceReference || ''
+            invoiceReference: order.invoiceReference || '',
+            mechanicType: mType,
+            externalMechanicName: order.externalMechanicName || '',
+            externalMechanicCompany: order.externalMechanicCompany || '',
+            externalMechanicPhone: order.externalMechanicPhone || '',
+            externalMechanicEmail: order.externalMechanicEmail || '',
         };
         setShowUpdateModal(true);
     };
@@ -648,7 +709,14 @@ function WorkOrdersPage() {
                                             </div>
                                         </td>
                                         <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-600">
-                                            {order.assignedMechanic || 'N/A'}
+                                            {order.mechanicType === 'external' ? (
+                                                <div className="flex items-center gap-1">
+                                                    <span className="inline-flex items-center text-xs font-semibold px-1.5 py-0.5 rounded bg-orange-100 text-orange-700">Ext</span>
+                                                    <span>{order.externalMechanicName || 'N/A'}</span>
+                                                </div>
+                                            ) : (
+                                                order.assignedMechanic || 'N/A'
+                                            )}
                                         </td>
                                         <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-600">
                                             {order.estimatedCost ? `$${order.estimatedCost.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}` : 'N/A'}
@@ -838,35 +906,83 @@ function WorkOrdersPage() {
                                 </div>
 
                                 <div>
-                                    <label className="block text-sm font-semibold text-gray-700 mb-2">
-                                        Service Provider/Shop
-                                    </label>
-                                    <input
-                                        type="text"
-                                        defaultValue={createFormRef.current.serviceProvider}
-                                        onChange={(e) => createFormRef.current.serviceProvider = e.target.value}
-                                        className="w-full border border-gray-300 rounded-lg p-3 focus:ring-2 focus:ring-[#9793E4] focus:border-transparent transition-all"
-                                        placeholder="e.g., ABC Auto Shop, Internal Shop"
-                                    />
-                                </div>
+                                    <label className="block text-sm font-semibold text-gray-700 mb-2">Assigned Mechanic</label>
+                                    {/* Toggle */}
+                                    <div className="flex rounded-lg border border-gray-300 overflow-hidden mb-3 w-fit">
+                                        <button
+                                            type="button"
+                                            onClick={() => setCreateMechanicType('internal')}
+                                            className={`px-4 py-2 text-sm font-medium transition-colors ${createMechanicType === 'internal' ? 'bg-[#9793E4] !text-white' : 'bg-white text-gray-600 hover:bg-gray-50'}`}
+                                        >
+                                            Internal Mechanic
+                                        </button>
+                                        <button
+                                            type="button"
+                                            onClick={() => setCreateMechanicType('external')}
+                                            className={`px-4 py-2 text-sm font-medium border-l border-gray-300 transition-colors ${createMechanicType === 'external' ? 'bg-[#9793E4] !text-white' : 'bg-white text-gray-600 hover:bg-gray-50'}`}
+                                        >
+                                            External Mechanic
+                                        </button>
+                                    </div>
 
-                                <div>
-                                    <label className="block text-sm font-semibold text-gray-700 mb-2">
-                                        Assigned Mechanic
-                                    </label>
-                                    <select
-                                        defaultValue={createFormRef.current.assignedMechanic}
-                                        onChange={(e) => createFormRef.current.assignedMechanic = e.target.value}
-                                        className="w-full border border-gray-300 rounded-lg p-3 focus:ring-2 focus:ring-[#9793E4] focus:border-transparent transition-all"
-                                        disabled={loadingMechanics}
-                                    >
-                                        <option value="">{loadingMechanics ? 'Loading mechanics...' : 'Select Mechanic'}</option>
-                                        {mechanics.map(mechanic => (
-                                            <option key={mechanic._id} value={mechanic.name}>
-                                                {mechanic.name}
-                                            </option>
-                                        ))}
-                                    </select>
+                                    {createMechanicType === 'internal' ? (
+                                        <select
+                                            defaultValue={createFormRef.current.assignedMechanic}
+                                            onChange={(e) => createFormRef.current.assignedMechanic = e.target.value}
+                                            className="w-full border border-gray-300 rounded-lg p-3 focus:ring-2 focus:ring-[#9793E4] focus:border-transparent transition-all"
+                                            disabled={loadingMechanics}
+                                        >
+                                            <option value="">{loadingMechanics ? 'Loading mechanics...' : 'Select Mechanic'}</option>
+                                            {mechanics.map(mechanic => (
+                                                <option key={mechanic._id} value={mechanic.name}>
+                                                    {mechanic.name}
+                                                </option>
+                                            ))}
+                                        </select>
+                                    ) : (
+                                        <div className="grid grid-cols-2 gap-3 p-4 bg-orange-50 border border-orange-200 rounded-lg">
+                                            <div>
+                                                <label className="block text-xs font-medium text-gray-600 mb-1">Name *</label>
+                                                <input
+                                                    type="text"
+                                                    defaultValue={createFormRef.current.externalMechanicName}
+                                                    onChange={(e) => createFormRef.current.externalMechanicName = e.target.value}
+                                                    className="w-full border border-gray-300 rounded-lg p-2 text-sm focus:ring-2 focus:ring-[#9793E4] focus:border-transparent transition-all"
+                                                    placeholder="Mechanic / Shop name"
+                                                />
+                                            </div>
+                                            <div>
+                                                <label className="block text-xs font-medium text-gray-600 mb-1">Company</label>
+                                                <input
+                                                    type="text"
+                                                    defaultValue={createFormRef.current.externalMechanicCompany}
+                                                    onChange={(e) => createFormRef.current.externalMechanicCompany = e.target.value}
+                                                    className="w-full border border-gray-300 rounded-lg p-2 text-sm focus:ring-2 focus:ring-[#9793E4] focus:border-transparent transition-all"
+                                                    placeholder="Company / Shop"
+                                                />
+                                            </div>
+                                            <div>
+                                                <label className="block text-xs font-medium text-gray-600 mb-1">Phone</label>
+                                                <input
+                                                    type="tel"
+                                                    defaultValue={createFormRef.current.externalMechanicPhone}
+                                                    onChange={(e) => createFormRef.current.externalMechanicPhone = e.target.value}
+                                                    className="w-full border border-gray-300 rounded-lg p-2 text-sm focus:ring-2 focus:ring-[#9793E4] focus:border-transparent transition-all"
+                                                    placeholder="+1 (555) 000-0000"
+                                                />
+                                            </div>
+                                            <div>
+                                                <label className="block text-xs font-medium text-gray-600 mb-1">Email</label>
+                                                <input
+                                                    type="email"
+                                                    defaultValue={createFormRef.current.externalMechanicEmail}
+                                                    onChange={(e) => createFormRef.current.externalMechanicEmail = e.target.value}
+                                                    className="w-full border border-gray-300 rounded-lg p-2 text-sm focus:ring-2 focus:ring-[#9793E4] focus:border-transparent transition-all"
+                                                    placeholder="email@shop.com"
+                                                />
+                                            </div>
+                                        </div>
+                                    )}
                                 </div>
 
                                 <div>
@@ -1002,19 +1118,82 @@ function WorkOrdersPage() {
 
                                 <div>
                                     <label className="block text-sm font-semibold text-gray-700 mb-2">Assigned Mechanic</label>
-                                    <select
-                                        defaultValue={updateFormRef.current.assignedMechanic}
-                                        onChange={(e) => updateFormRef.current.assignedMechanic = e.target.value}
-                                        className="w-full border border-gray-300 rounded-lg p-3 focus:ring-2 focus:ring-[#9793E4] focus:border-transparent transition-all"
-                                        disabled={loadingMechanics}
-                                    >
-                                        <option value="">Keep current mechanic</option>
-                                        {mechanics.map(mechanic => (
-                                            <option key={mechanic._id} value={mechanic.name}>
-                                                {mechanic.name}
-                                            </option>
-                                        ))}
-                                    </select>
+                                    {/* Toggle */}
+                                    <div className="flex rounded-lg border border-gray-300 overflow-hidden mb-3 w-fit">
+                                        <button
+                                            type="button"
+                                            onClick={() => setUpdateMechanicType('internal')}
+                                            className={`px-4 py-2 text-sm font-medium transition-colors ${updateMechanicType === 'internal' ? 'bg-[#9793E4] !text-white' : 'bg-white text-gray-600 hover:bg-gray-50'}`}
+                                        >
+                                            Internal Mechanic
+                                        </button>
+                                        <button
+                                            type="button"
+                                            onClick={() => setUpdateMechanicType('external')}
+                                            className={`px-4 py-2 text-sm font-medium border-l border-gray-300 transition-colors ${updateMechanicType === 'external' ? 'bg-[#9793E4] !text-white' : 'bg-white text-gray-600 hover:bg-gray-50'}`}
+                                        >
+                                            External Mechanic
+                                        </button>
+                                    </div>
+
+                                    {updateMechanicType === 'internal' ? (
+                                        <select
+                                            defaultValue={updateFormRef.current.assignedMechanic}
+                                            onChange={(e) => updateFormRef.current.assignedMechanic = e.target.value}
+                                            className="w-full border border-gray-300 rounded-lg p-3 focus:ring-2 focus:ring-[#9793E4] focus:border-transparent transition-all"
+                                            disabled={loadingMechanics}
+                                        >
+                                            <option value="">Keep current mechanic</option>
+                                            {mechanics.map(mechanic => (
+                                                <option key={mechanic._id} value={mechanic.name}>
+                                                    {mechanic.name}
+                                                </option>
+                                            ))}
+                                        </select>
+                                    ) : (
+                                        <div className="grid grid-cols-2 gap-3 p-4 bg-orange-50 border border-orange-200 rounded-lg">
+                                            <div>
+                                                <label className="block text-xs font-medium text-gray-600 mb-1">Name *</label>
+                                                <input
+                                                    type="text"
+                                                    defaultValue={updateFormRef.current.externalMechanicName}
+                                                    onChange={(e) => updateFormRef.current.externalMechanicName = e.target.value}
+                                                    className="w-full border border-gray-300 rounded-lg p-2 text-sm focus:ring-2 focus:ring-[#9793E4] focus:border-transparent transition-all"
+                                                    placeholder="Mechanic / Shop name"
+                                                />
+                                            </div>
+                                            <div>
+                                                <label className="block text-xs font-medium text-gray-600 mb-1">Company</label>
+                                                <input
+                                                    type="text"
+                                                    defaultValue={updateFormRef.current.externalMechanicCompany}
+                                                    onChange={(e) => updateFormRef.current.externalMechanicCompany = e.target.value}
+                                                    className="w-full border border-gray-300 rounded-lg p-2 text-sm focus:ring-2 focus:ring-[#9793E4] focus:border-transparent transition-all"
+                                                    placeholder="Company / Shop"
+                                                />
+                                            </div>
+                                            <div>
+                                                <label className="block text-xs font-medium text-gray-600 mb-1">Phone</label>
+                                                <input
+                                                    type="tel"
+                                                    defaultValue={updateFormRef.current.externalMechanicPhone}
+                                                    onChange={(e) => updateFormRef.current.externalMechanicPhone = e.target.value}
+                                                    className="w-full border border-gray-300 rounded-lg p-2 text-sm focus:ring-2 focus:ring-[#9793E4] focus:border-transparent transition-all"
+                                                    placeholder="+1 (555) 000-0000"
+                                                />
+                                            </div>
+                                            <div>
+                                                <label className="block text-xs font-medium text-gray-600 mb-1">Email</label>
+                                                <input
+                                                    type="email"
+                                                    defaultValue={updateFormRef.current.externalMechanicEmail}
+                                                    onChange={(e) => updateFormRef.current.externalMechanicEmail = e.target.value}
+                                                    className="w-full border border-gray-300 rounded-lg p-2 text-sm focus:ring-2 focus:ring-[#9793E4] focus:border-transparent transition-all"
+                                                    placeholder="email@shop.com"
+                                                />
+                                            </div>
+                                        </div>
+                                    )}
                                 </div>
 
                                 <div>
@@ -1217,7 +1396,17 @@ function WorkOrdersPage() {
                                                     <FaUser className="text-[#9793E4]" size={14} />
                                                     Mechanic:
                                                 </span>
-                                                <p className="font-semibold text-gray-900">{selectedWorkOrder.assignedMechanic || 'Unassigned'}</p>
+                                                {selectedWorkOrder.mechanicType === 'external' ? (
+                                                    <div>
+                                                        <span className="inline-flex items-center text-xs font-semibold px-1.5 py-0.5 rounded bg-orange-100 text-orange-700 mb-1">External</span>
+                                                        <p className="font-semibold text-gray-900">{selectedWorkOrder.externalMechanicName || 'N/A'}</p>
+                                                        {selectedWorkOrder.externalMechanicCompany && <p className="text-xs text-gray-500">{selectedWorkOrder.externalMechanicCompany}</p>}
+                                                        {selectedWorkOrder.externalMechanicPhone && <p className="text-xs text-gray-500">{selectedWorkOrder.externalMechanicPhone}</p>}
+                                                        {selectedWorkOrder.externalMechanicEmail && <p className="text-xs text-gray-500">{selectedWorkOrder.externalMechanicEmail}</p>}
+                                                    </div>
+                                                ) : (
+                                                    <p className="font-semibold text-gray-900">{selectedWorkOrder.assignedMechanic || 'Unassigned'}</p>
+                                                )}
                                             </div>
                                             <div>
                                                 <span className="text-gray-500 font-medium flex items-center gap-1">

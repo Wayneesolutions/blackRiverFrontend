@@ -1087,7 +1087,14 @@ const SparePartsInventory = () => {
                                     const stockStatus = getStockStatus(part.stockQty, part.minStockLevel);
                                     const supplier = typeof part.supplier === 'object' ? part.supplier : suppliers.find(s => s._id === part.supplier);
                                     return (
-                                        <tr key={part._id} className="hover:bg-gray-50 transition-colors">
+                                        <tr
+                                            key={part._id}
+                                            className="hover:bg-gray-50 transition-colors cursor-pointer"
+                                            onClick={() => {
+                                                setSelectedPart(part);
+                                                setShowDetailsModal(true);
+                                            }}
+                                        >
                                             <td className="px-4 py-2 whitespace-nowrap">
                                                 <div className="text-xs font-semibold text-gray-900">{part.partNumber || 'N/A'}</div>
                                             </td>
@@ -1158,7 +1165,7 @@ const SparePartsInventory = () => {
                                                     </div>
                                                 )}
                                             </td>
-                                            <td className="px-4 py-4 whitespace-nowrap text-sm font-medium">
+                                            <td className="px-4 py-4 whitespace-nowrap text-sm font-medium" onClick={(e) => e.stopPropagation()}>
                                                 <ActionDropdown part={part} />
                                             </td>
                                         </tr>
@@ -1866,15 +1873,16 @@ const SparePartsInventory = () => {
                                 />
                             </div>
                             <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-1">
-                                    Address
-                                </label>
-                                <textarea
-                                    defaultValue={newSupplierRef.current.address}
-                                    onChange={(e) => newSupplierRef.current.address = e.target.value}
-                                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                                    rows={2}
-                                    placeholder="Enter address"
+                                <AddressSearch
+                                    label="Address"
+                                    placeholder="Search for an address..."
+                                    value={newSupplierRef.current.address}
+                                    onAddressSelect={(selected) => {
+                                        newSupplierRef.current.address = selected.fullAddress;
+                                    }}
+                                    onChange={(value) => {
+                                        newSupplierRef.current.address = value;
+                                    }}
                                 />
                             </div>
                             <div className="flex justify-end space-x-3 mt-6">
@@ -2278,7 +2286,7 @@ const SparePartsInventory = () => {
                                 </div>
                             </div>
 
-                            <div className="flex justify-end pt-2">
+                            <div className="flex justify-end gap-3 pt-2">
                                 <button
                                     onClick={() => {
                                         setShowDetailsModal(false);
@@ -2287,6 +2295,34 @@ const SparePartsInventory = () => {
                                     className="px-6 py-2.5 bg-white border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 font-medium transition-colors"
                                 >
                                     Close
+                                </button>
+                                <button
+                                    onClick={() => {
+                                        if (!selectedPart) return;
+                                        newPartRef.current = {
+                                            partNumber: selectedPart.partNumber || '',
+                                            partName: selectedPart.partName || '',
+                                            description: selectedPart.description || '',
+                                            category: selectedPart.category || '',
+                                            stockQty: selectedPart.stockQty.toString(),
+                                            minStockLevel: selectedPart.minStockLevel?.toString() || '',
+                                            maxStockLevel: selectedPart.maxStockLevel?.toString() || '',
+                                            buyingPrice: selectedPart.buyingPrice?.toString() || '',
+                                            sellingPrice: selectedPart.sellingPrice?.toString() || '',
+                                            purchaseDate: selectedPart.purchaseDate ? new Date(selectedPart.purchaseDate).toISOString().split('T')[0] : '',
+                                            supplier: typeof selectedPart.supplier === 'object' ? selectedPart.supplier._id : selectedPart.supplier || '',
+                                            location: selectedPart.location || '',
+                                            condition: selectedPart.condition || 'new',
+                                            warrantyPeriod: selectedPart.warrantyPeriod?.toString() || ''
+                                        };
+                                        setShowDetailsModal(false);
+                                        setShowEditModal(true);
+                                    }}
+                                    className="flex items-center gap-2 px-6 py-2.5 !text-white rounded-lg font-medium transition-all hover:opacity-90"
+                                    style={{ background: ACCENT_GRADIENT }}
+                                >
+                                    <FaEdit size={14} />
+                                    Edit Part
                                 </button>
                             </div>
                         </div>

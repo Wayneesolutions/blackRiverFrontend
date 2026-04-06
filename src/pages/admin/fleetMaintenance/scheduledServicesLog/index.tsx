@@ -87,6 +87,11 @@ interface ScheduledService {
   priority?: string;
   source?: 'samsara' | 'manual';
   parts?: Array<{ partName?: string; partNumber?: string; quantity?: number; cost?: number }> | string | null;
+  mechanicType?: 'internal' | 'external';
+  externalMechanicName?: string;
+  externalMechanicCompany?: string;
+  externalMechanicPhone?: string;
+  externalMechanicEmail?: string;
 }
 
 interface UnitOption {
@@ -136,6 +141,11 @@ interface ServiceFormState {
   amount: string;
   description: string;
   serviceProvider: string;
+  mechanicType: 'internal' | 'external';
+  externalMechanicName: string;
+  externalMechanicCompany: string;
+  externalMechanicPhone: string;
+  externalMechanicEmail: string;
 }
 
 const ScheduledServicesLog: React.FC = () => {
@@ -143,6 +153,7 @@ const ScheduledServicesLog: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [filterServiceType, setFilterServiceType] = useState<ServiceTypeFilter>('all');
   const [filterIncoming, setFilterIncoming] = useState(false);
+  const [filterMechanicType, setFilterMechanicType] = useState<'all' | 'internal' | 'external'>('all');
   const [showAddModal, setShowAddModal] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
@@ -176,7 +187,12 @@ const ScheduledServicesLog: React.FC = () => {
     status: 'pending',
     amount: '',
     description: '',
-    serviceProvider: ''
+    serviceProvider: '',
+    mechanicType: 'internal',
+    externalMechanicName: '',
+    externalMechanicCompany: '',
+    externalMechanicPhone: '',
+    externalMechanicEmail: '',
   });
 
   // Fetch company custom services on mount
@@ -283,7 +299,12 @@ const ScheduledServicesLog: React.FC = () => {
       status: service.status,
       priority: service.priority,
       source: (service as any).source || 'manual',
-      parts: (service as any).parts || undefined
+      parts: (service as any).parts || undefined,
+      mechanicType: (service as any).mechanicType || 'internal',
+      externalMechanicName: (service as any).externalMechanicName || undefined,
+      externalMechanicCompany: (service as any).externalMechanicCompany || undefined,
+      externalMechanicPhone: (service as any).externalMechanicPhone || undefined,
+      externalMechanicEmail: (service as any).externalMechanicEmail || undefined,
     };
   }, []);
 
@@ -568,14 +589,19 @@ const ScheduledServicesLog: React.FC = () => {
         (service.makeModel || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
         (service.invoiceNo || '').toLowerCase().includes(searchTerm.toLowerCase());
       const matchesType = filterServiceType === 'all' || service.serviceType === filterServiceType;
-      
+
+      // Apply mechanic type filter
+      const matchesMechanicType =
+        filterMechanicType === 'all' ||
+        (filterMechanicType === 'external' ? (service as any).mechanicType === 'external' : (service as any).mechanicType !== 'external');
+
       // Apply incoming filter if active
       let matchesIncoming = true;
       if (filterIncoming) {
         matchesIncoming = isIncomingService(service, vehiclesMap);
       }
-      
-      return matchesSearch && matchesType && matchesIncoming;
+
+      return matchesSearch && matchesType && matchesMechanicType && matchesIncoming;
     });
 
     console.log('🔍 [ScheduledServicesLog] Filtered services:', {
@@ -587,7 +613,7 @@ const ScheduledServicesLog: React.FC = () => {
     });
 
     return filtered;
-  }, [services, samsaraServices, searchTerm, filterServiceType, filterIncoming, units, isIncomingService]);
+  }, [services, samsaraServices, searchTerm, filterServiceType, filterMechanicType, filterIncoming, units, isIncomingService]);
 
   // Calculate summary statistics
   const summaryStats = useMemo(() => {
@@ -843,7 +869,12 @@ const ScheduledServicesLog: React.FC = () => {
       status: 'pending',
       amount: '',
       description: '',
-      serviceProvider: ''
+      serviceProvider: '',
+      mechanicType: 'internal',
+      externalMechanicName: '',
+      externalMechanicCompany: '',
+      externalMechanicPhone: '',
+      externalMechanicEmail: '',
     });
     setShowAddModal(true);
   };
@@ -880,7 +911,12 @@ const ScheduledServicesLog: React.FC = () => {
       status: service.status || 'pending',
       amount: service.amount !== undefined && service.amount !== null ? service.amount.toString() : '',
       description: (service as any).description || '',
-      serviceProvider: mechanicId
+      serviceProvider: mechanicId,
+      mechanicType: service.mechanicType || 'internal',
+      externalMechanicName: service.externalMechanicName || '',
+      externalMechanicCompany: service.externalMechanicCompany || '',
+      externalMechanicPhone: service.externalMechanicPhone || '',
+      externalMechanicEmail: service.externalMechanicEmail || '',
     });
     setShowEditModal(true);
   };
@@ -898,8 +934,12 @@ const ScheduledServicesLog: React.FC = () => {
       return;
     }
 
-    if (!formData.serviceProvider || formData.serviceProvider.trim() === '') {
-      setFormError('Please select a Service Provider (mechanic).');
+    if (formData.mechanicType === 'internal' && (!formData.serviceProvider || formData.serviceProvider.trim() === '')) {
+      setFormError('Please select an internal mechanic.');
+      return;
+    }
+    if (formData.mechanicType === 'external' && (!formData.externalMechanicName || formData.externalMechanicName.trim() === '')) {
+      setFormError('Please enter the external mechanic name.');
       return;
     }
 
@@ -918,14 +958,19 @@ const ScheduledServicesLog: React.FC = () => {
       priority: 'medium',
       dueDate: formData.serviceDate,
       dueMileage: formData.odometer ? Number(formData.odometer) : 0,
-      assignedMechanic: formData.serviceProvider,
+      assignedMechanic: formData.mechanicType === 'internal' ? formData.serviceProvider : undefined,
       description: formData.description || undefined,
       status: (formData.status as 'pending' | 'in-progress' | 'completed') || 'pending',
       serviceDate: formData.serviceDate,
       odometer: formData.odometer ? Number(formData.odometer) : undefined,
       invoiceNumber: formData.invoiceNo || undefined,
       notes: formData.notes || undefined,
-      amount: formData.amount && formData.amount.trim() !== '' ? (Number(formData.amount) || 0) : undefined
+      amount: formData.amount && formData.amount.trim() !== '' ? (Number(formData.amount) || 0) : undefined,
+      mechanicType: formData.mechanicType,
+      externalMechanicName: formData.mechanicType === 'external' ? formData.externalMechanicName || undefined : undefined,
+      externalMechanicCompany: formData.mechanicType === 'external' ? formData.externalMechanicCompany || undefined : undefined,
+      externalMechanicPhone: formData.mechanicType === 'external' ? formData.externalMechanicPhone || undefined : undefined,
+      externalMechanicEmail: formData.mechanicType === 'external' ? formData.externalMechanicEmail || undefined : undefined,
     };
 
     setSaving(true);
@@ -1151,6 +1196,29 @@ const ScheduledServicesLog: React.FC = () => {
                     <option value="" disabled>No services configured</option>
                   )}
                 </select>
+
+                {/* Mechanic Type Filter */}
+                <div className="flex rounded-lg border border-gray-300 overflow-hidden">
+                  {(['all', 'internal', 'external'] as const).map((type) => (
+                    <button
+                      key={type}
+                      type="button"
+                      onClick={() => setFilterMechanicType(type)}
+                      className={`px-3 py-2 text-sm font-medium transition-colors border-r border-gray-300 last:border-r-0 ${
+                        filterMechanicType === type
+                          ? 'bg-[#016ab2] !text-white'
+                          : 'bg-white text-gray-600 hover:bg-gray-50'
+                      }`}
+                    >
+                      {type === 'all' ? 'All Mechanics' : type === 'internal' ? 'Internal' : (
+                        <span className="flex items-center gap-1">
+                          <span className="w-2 h-2 rounded-full bg-orange-400 inline-block" />
+                          External
+                        </span>
+                      )}
+                    </button>
+                  ))}
+                </div>
               </div>
             </div>
           </div>
@@ -1355,20 +1423,39 @@ const ScheduledServicesLog: React.FC = () => {
                           {service.description || '—'}
                         </td>
                         <td className="px-6 py-4 text-gray-600">
-                          {(() => {
-                            if (service.assignedMechanic) {
-                              if (typeof service.assignedMechanic === 'object') {
-                                return service.assignedMechanic.name || '—';
-                              } else {
-                                const mechanic = mechanics.find(m => m._id === service.assignedMechanic);
-                                return mechanic?.name || service.assignedMechanic || '—';
-                              }
-                            } else if (service.serviceProvider) {
-                              const mechanic = mechanics.find(m => m._id === service.serviceProvider || m.name === service.serviceProvider);
-                              return mechanic?.name || service.serviceProvider || '—';
-                            }
-                            return '—';
-                          })()}
+                          {(service as any).mechanicType === 'external' ? (
+                            <div>
+                              <span className="inline-flex items-center gap-1 text-xs font-semibold px-2 py-0.5 rounded-full bg-orange-100 text-orange-700 mb-1">
+                                <span className="w-1.5 h-1.5 rounded-full bg-orange-400 inline-block" />
+                                External
+                              </span>
+                              <p className="text-sm font-medium text-gray-900">{(service as any).externalMechanicName || '—'}</p>
+                              {(service as any).externalMechanicCompany && (
+                                <p className="text-xs text-gray-500">{(service as any).externalMechanicCompany}</p>
+                              )}
+                            </div>
+                          ) : (
+                            <div>
+                              <span className="inline-flex items-center gap-1 text-xs font-semibold px-2 py-0.5 rounded-full bg-blue-100 text-blue-700 mb-1">
+                                <span className="w-1.5 h-1.5 rounded-full bg-blue-400 inline-block" />
+                                Internal
+                              </span>
+                              <p className="text-sm font-medium text-gray-900">
+                                {(() => {
+                                  if (service.assignedMechanic) {
+                                    if (typeof service.assignedMechanic === 'object') return service.assignedMechanic.name || '—';
+                                    const m = mechanics.find(m => m._id === service.assignedMechanic);
+                                    return m?.name || service.assignedMechanic || '—';
+                                  }
+                                  if (service.serviceProvider) {
+                                    const m = mechanics.find(m => m._id === service.serviceProvider || m.name === service.serviceProvider);
+                                    return m?.name || service.serviceProvider || '—';
+                                  }
+                                  return '—';
+                                })()}
+                              </p>
+                            </div>
+                          )}
                         </td>
                         <td className="px-6 py-4 text-gray-600 max-w-xs truncate" title={service.notes || undefined}>
                           {service.notes || 'N/A'}
@@ -1527,18 +1614,54 @@ const ScheduledServicesLog: React.FC = () => {
                             <p className="font-medium text-gray-900">{selectedService.description}</p>
                           </div>
                         )}
-                        {(selectedService.serviceProvider || selectedService.assignedMechanic) && (
-                          <div>
-                            <p className="text-sm text-gray-500 mb-1">Service Provider</p>
-                            <p className="font-medium text-gray-900">
-                              {selectedService.assignedMechanic 
-                                ? (typeof selectedService.assignedMechanic === 'object' 
-                                    ? selectedService.assignedMechanic.name 
-                                    : mechanics.find(m => m._id === selectedService.assignedMechanic)?.name || selectedService.assignedMechanic)
-                                : selectedService.serviceProvider || '—'}
-                            </p>
-                          </div>
-                        )}
+                        <div className="col-span-2">
+                          <p className="text-sm text-gray-500 mb-2">Service Provider</p>
+                          {selectedService.mechanicType === 'external' ? (
+                            <div className="bg-orange-50 border border-orange-200 rounded-lg p-3 space-y-2">
+                              <div className="flex items-center gap-2 mb-1">
+                                <span className="inline-flex items-center gap-1 text-xs font-semibold px-2 py-0.5 rounded-full bg-orange-100 text-orange-700">
+                                  <span className="w-1.5 h-1.5 rounded-full bg-orange-400 inline-block" />
+                                  External Mechanic
+                                </span>
+                              </div>
+                              <p className="font-semibold text-gray-900 text-base">{selectedService.externalMechanicName || '—'}</p>
+                              {selectedService.externalMechanicCompany && (
+                                <p className="text-sm text-gray-600 flex items-center gap-1.5">
+                                  <span className="text-gray-400">Company:</span>
+                                  {selectedService.externalMechanicCompany}
+                                </p>
+                              )}
+                              {selectedService.externalMechanicPhone && (
+                                <p className="text-sm text-gray-600 flex items-center gap-1.5">
+                                  <span className="text-gray-400">Phone:</span>
+                                  {selectedService.externalMechanicPhone}
+                                </p>
+                              )}
+                              {selectedService.externalMechanicEmail && (
+                                <p className="text-sm text-gray-600 flex items-center gap-1.5">
+                                  <span className="text-gray-400">Email:</span>
+                                  {selectedService.externalMechanicEmail}
+                                </p>
+                              )}
+                            </div>
+                          ) : (
+                            <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
+                              <div className="flex items-center gap-2 mb-1">
+                                <span className="inline-flex items-center gap-1 text-xs font-semibold px-2 py-0.5 rounded-full bg-blue-100 text-blue-700">
+                                  <span className="w-1.5 h-1.5 rounded-full bg-blue-400 inline-block" />
+                                  Internal Mechanic
+                                </span>
+                              </div>
+                              <p className="font-semibold text-gray-900 text-base">
+                                {selectedService.assignedMechanic
+                                  ? (typeof selectedService.assignedMechanic === 'object'
+                                      ? selectedService.assignedMechanic.name
+                                      : mechanics.find(m => m._id === selectedService.assignedMechanic)?.name || selectedService.assignedMechanic)
+                                  : selectedService.serviceProvider || '—'}
+                              </p>
+                            </div>
+                          )}
+                        </div>
                       </div>
                       {selectedService.notes && (
                         <div className="mt-4">
@@ -1726,31 +1849,93 @@ const ScheduledServicesLog: React.FC = () => {
                           <option value="completed">Completed</option>
                         </select>
                       </div>
-                      <div>
+                      <div className="col-span-2">
                         <label className="block text-sm font-medium text-gray-700 mb-2">Service Provider *</label>
-                        <select
-                          value={formData.serviceProvider}
-                          onChange={(e) => setFormData({ ...formData, serviceProvider: e.target.value })}
-                          className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:border-transparent"
-                          style={{ '--tw-ring-color': '#016ab2' } as React.CSSProperties & { '--tw-ring-color': string }}
-                          onFocus={(e) => { e.target.style.borderColor = '#016ab2'; e.target.style.boxShadow = '0 0 0 2px rgba(1, 106, 178, 0.2)'; }}
-                          onBlur={(e) => { e.target.style.borderColor = ''; e.target.style.boxShadow = ''; }}
-                        >
-                          <option value="">Select a mechanic</option>
-                          {mechanics.length === 0 ? (
-                            <option value="" disabled>No mechanics found. Add an employee with a mechanic role to list service providers.</option>
-                          ) : (
-                            mechanics.map((mechanic) => (
-                              <option key={mechanic._id} value={mechanic._id}>
-                                {mechanic.name}
-                              </option>
-                            ))
-                          )}
-                        </select>
-                        {mechanics.length === 0 && (
-                          <p className="text-xs text-gray-500 mt-1">
-                            Add an employee with a mechanic role to list service providers.
-                          </p>
+                        {/* Toggle */}
+                        <div className="flex rounded-lg border border-gray-300 overflow-hidden mb-3 w-fit">
+                          <button
+                            type="button"
+                            onClick={() => setFormData({ ...formData, mechanicType: 'internal' })}
+                            className={`px-5 py-2 text-sm font-medium transition-colors ${formData.mechanicType === 'internal' ? 'bg-[#016ab2] !text-white' : 'bg-white text-gray-600 hover:bg-gray-50'}`}
+                          >
+                            Internal Mechanic
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => setFormData({ ...formData, mechanicType: 'external' })}
+                            className={`px-5 py-2 text-sm font-medium transition-colors border-l border-gray-300 ${formData.mechanicType === 'external' ? 'bg-[#016ab2] !text-white' : 'bg-white text-gray-600 hover:bg-gray-50'}`}
+                          >
+                            External Mechanic
+                          </button>
+                        </div>
+
+                        {formData.mechanicType === 'internal' ? (
+                          <select
+                            value={formData.serviceProvider}
+                            onChange={(e) => setFormData({ ...formData, serviceProvider: e.target.value })}
+                            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:border-transparent"
+                            style={{ '--tw-ring-color': '#016ab2' } as React.CSSProperties & { '--tw-ring-color': string }}
+                            onFocus={(e) => { e.target.style.borderColor = '#016ab2'; e.target.style.boxShadow = '0 0 0 2px rgba(1, 106, 178, 0.2)'; }}
+                            onBlur={(e) => { e.target.style.borderColor = ''; e.target.style.boxShadow = ''; }}
+                          >
+                            <option value="">Select a mechanic</option>
+                            {mechanics.length === 0 ? (
+                              <option value="" disabled>No mechanics found.</option>
+                            ) : (
+                              mechanics.map((mechanic) => (
+                                <option key={mechanic._id} value={mechanic._id}>
+                                  {mechanic.name}
+                                </option>
+                              ))
+                            )}
+                          </select>
+                        ) : (
+                          <div className="grid grid-cols-2 gap-3 p-4 bg-orange-50 border border-orange-200 rounded-lg">
+                            <div>
+                              <label className="block text-xs font-medium text-gray-600 mb-1">Name *</label>
+                              <input
+                                type="text"
+                                value={formData.externalMechanicName}
+                                onChange={(e) => setFormData({ ...formData, externalMechanicName: e.target.value })}
+                                className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:border-transparent"
+                                style={{ '--tw-ring-color': '#016ab2' } as React.CSSProperties & { '--tw-ring-color': string }}
+                                placeholder="Mechanic / Shop name"
+                              />
+                            </div>
+                            <div>
+                              <label className="block text-xs font-medium text-gray-600 mb-1">Company</label>
+                              <input
+                                type="text"
+                                value={formData.externalMechanicCompany}
+                                onChange={(e) => setFormData({ ...formData, externalMechanicCompany: e.target.value })}
+                                className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:border-transparent"
+                                style={{ '--tw-ring-color': '#016ab2' } as React.CSSProperties & { '--tw-ring-color': string }}
+                                placeholder="Company / Shop"
+                              />
+                            </div>
+                            <div>
+                              <label className="block text-xs font-medium text-gray-600 mb-1">Phone</label>
+                              <input
+                                type="tel"
+                                value={formData.externalMechanicPhone}
+                                onChange={(e) => setFormData({ ...formData, externalMechanicPhone: e.target.value })}
+                                className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:border-transparent"
+                                style={{ '--tw-ring-color': '#016ab2' } as React.CSSProperties & { '--tw-ring-color': string }}
+                                placeholder="+1 (555) 000-0000"
+                              />
+                            </div>
+                            <div>
+                              <label className="block text-xs font-medium text-gray-600 mb-1">Email</label>
+                              <input
+                                type="email"
+                                value={formData.externalMechanicEmail}
+                                onChange={(e) => setFormData({ ...formData, externalMechanicEmail: e.target.value })}
+                                className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:border-transparent"
+                                style={{ '--tw-ring-color': '#016ab2' } as React.CSSProperties & { '--tw-ring-color': string }}
+                                placeholder="email@shop.com"
+                              />
+                            </div>
+                          </div>
                         )}
                       </div>
                     </div>

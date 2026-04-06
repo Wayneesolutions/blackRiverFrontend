@@ -68,6 +68,10 @@ interface FormState {
   serviceProviderId?: string;
   status?: string;
   shared?: boolean;
+  mechanicType: 'internal' | 'external';
+  externalMechanicCompany: string;
+  externalMechanicPhone: string;
+  externalMechanicEmail: string;
 }
 
 const formatDate = (value?: string) => {
@@ -126,7 +130,11 @@ const GeneralRepairsLog: React.FC = () => {
     serviceProvider: '',
     serviceProviderId: undefined,
     status: 'Created',
-    shared: false
+    shared: false,
+    mechanicType: 'internal',
+    externalMechanicCompany: '',
+    externalMechanicPhone: '',
+    externalMechanicEmail: '',
   });
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
@@ -138,7 +146,8 @@ const GeneralRepairsLog: React.FC = () => {
   const [serviceProviders, setServiceProviders] = useState<ServiceProviderOption[]>([]);
   const [serviceProvidersLoading, setServiceProvidersLoading] = useState(false);
   const [serviceProvidersError, setServiceProvidersError] = useState<string | null>(null);
-  const [useCustomProvider, setUseCustomProvider] = useState(true);
+  // useCustomProvider replaced by formData.mechanicType toggle
+  const [filterMechanicType, setFilterMechanicType] = useState<'all' | 'internal' | 'external'>('all');
   const [exporting, setExporting] = useState(false);
   const [sending, setSending] = useState(false);
   
@@ -196,9 +205,6 @@ const GeneralRepairsLog: React.FC = () => {
               internalId: employee.internalId
             })) || [];
         setServiceProviders(mechanics);
-        if (mechanics.length > 0 && !showEditModal) {
-          setUseCustomProvider(false);
-        }
       } else {
         setServiceProviders([]);
         setServiceProvidersError(response?.message || 'Unable to load mechanics.');
@@ -330,23 +336,7 @@ const GeneralRepairsLog: React.FC = () => {
     };
   }, [repairs, searchTerm]);
 
-  useEffect(() => {
-    if (!showEditModal || !selectedRepair || serviceProviders.length === 0) return;
-    setFormData((prev) => {
-      if (!selectedRepair.serviceProvider) {
-        return prev.serviceProviderId ? { ...prev, serviceProviderId: undefined } : prev;
-      }
-      const match = serviceProviders.find((p) => p.name === selectedRepair.serviceProvider);
-      if (match && prev.serviceProviderId !== match.id) {
-        setUseCustomProvider(false);
-        return { ...prev, serviceProviderId: match.id };
-      }
-      if (!match && !useCustomProvider) {
-        setUseCustomProvider(true);
-      }
-      return prev;
-    });
-  }, [serviceProviders, selectedRepair, showEditModal, useCustomProvider]);
+  // serviceProviderId sync is now handled in handleEditRepair
 
   const formatTaxesDisplay = useCallback((taxes: { name: string; percentage: number }[] | undefined) => {
     if (!taxes?.length) return '—';
@@ -355,9 +345,13 @@ const GeneralRepairsLog: React.FC = () => {
 
 
   const filteredRepairs = useMemo(() => {
-    if (!searchTerm) return repairs;
+    let result = repairs;
+    if (filterMechanicType !== 'all') {
+      result = result.filter((repair) => (repair.mechanicType || 'internal') === filterMechanicType);
+    }
+    if (!searchTerm) return result;
     const term = searchTerm.toLowerCase();
-    return repairs.filter((repair) => {
+    return result.filter((repair) => {
       return (
         repair.unitNumber.toLowerCase().includes(term) ||
         (repair.makeModel || '').toLowerCase().includes(term) ||
@@ -365,7 +359,7 @@ const GeneralRepairsLog: React.FC = () => {
         repair.description.toLowerCase().includes(term)
       );
     });
-  }, [repairs, searchTerm]);
+  }, [repairs, searchTerm, filterMechanicType]);
 
   // Calculate summary statistics
   const summaryStats = useMemo(() => {
@@ -513,13 +507,6 @@ const GeneralRepairsLog: React.FC = () => {
     }
   };
 
-  const providerSelectValue = useCustomProvider ? '__custom__' : formData.serviceProviderId || '';
-
-  useEffect(() => {
-    if (serviceProviders.length === 0) {
-      setUseCustomProvider(true);
-    }
-  }, [serviceProviders.length]);
 
   const handleAddRepair = () => {
     setFormData({
@@ -531,18 +518,22 @@ const GeneralRepairsLog: React.FC = () => {
       serviceProvider: '',
       serviceProviderId: undefined,
       status: 'Created',
-      shared: false
+      shared: false,
+      mechanicType: 'internal',
+      externalMechanicCompany: '',
+      externalMechanicPhone: '',
+      externalMechanicEmail: '',
     });
     setFormError(null);
-    setUseCustomProvider(serviceProviders.length === 0);
     setShowAddModal(true);
   };
 
   const handleEditRepair = (repair: GeneralRepairDto) => {
     setSelectedRepair(repair);
     setFormError(null);
-    const providerMatch = serviceProviders.find((p) => p.name === repair.serviceProvider);
-    const status = providerMatch ? 'Assigned' : 'Created';
+    const mType = repair.mechanicType || 'internal';
+    const providerMatch = mType === 'internal' ? serviceProviders.find((p) => p.name === repair.serviceProvider) : undefined;
+    const status = providerMatch ? 'Assigned' : (repair.status || 'Created');
     setFormData({
       serviceDate: toDateInputValue(repair.serviceDate),
       unitNumber: repair.unitNumber,
@@ -552,9 +543,12 @@ const GeneralRepairsLog: React.FC = () => {
       serviceProvider: repair.serviceProvider,
       serviceProviderId: providerMatch?.id,
       status: status,
-      shared: (repair as any).shared || false
+      shared: (repair as any).shared || false,
+      mechanicType: mType,
+      externalMechanicCompany: repair.externalMechanicCompany || '',
+      externalMechanicPhone: repair.externalMechanicPhone || '',
+      externalMechanicEmail: repair.externalMechanicEmail || '',
     });
-    setUseCustomProvider(!providerMatch);
     setShowEditModal(true);
   };
 
@@ -572,13 +566,16 @@ const GeneralRepairsLog: React.FC = () => {
 
 
   const buildPayload = (): GeneralRepairPayload | null => {
-    if (
-      !formData.serviceDate ||
-      !formData.unitNumber ||
-      !formData.description ||
-      !formData.serviceProvider
-    ) {
+    if (!formData.serviceDate || !formData.unitNumber || !formData.description) {
       setFormError('Please fill in all required fields.');
+      return null;
+    }
+    if (formData.mechanicType === 'internal' && !formData.serviceProvider) {
+      setFormError('Please select an internal mechanic.');
+      return null;
+    }
+    if (formData.mechanicType === 'external' && !formData.serviceProvider.trim()) {
+      setFormError('Please enter the external mechanic name.');
       return null;
     }
     const selectedUnit = units.find((unit) => unit.unitNo === formData.unitNumber);
@@ -593,7 +590,11 @@ const GeneralRepairsLog: React.FC = () => {
       serviceProvider: formData.serviceProvider,
       invoiceNumber: undefined,
       unitSource: selectedUnit?.referenceType,
-      unitReference: selectedUnit?._id || selectedUnit?.referenceId
+      unitReference: selectedUnit?._id || selectedUnit?.referenceId,
+      mechanicType: formData.mechanicType,
+      externalMechanicCompany: formData.mechanicType === 'external' ? formData.externalMechanicCompany || undefined : undefined,
+      externalMechanicPhone: formData.mechanicType === 'external' ? formData.externalMechanicPhone || undefined : undefined,
+      externalMechanicEmail: formData.mechanicType === 'external' ? formData.externalMechanicEmail || undefined : undefined,
     };
   };
 
@@ -821,7 +822,7 @@ const GeneralRepairsLog: React.FC = () => {
           </div>
 
           <div className="bg-white rounded-lg shadow-sm border border-gray-100 p-4 mb-4">
-            <div className="relative">
+            <div className="relative mb-3">
               <Search className="w-5 h-5 absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
               <input
                 type="text"
@@ -839,6 +840,40 @@ const GeneralRepairsLog: React.FC = () => {
                   e.target.style.boxShadow = '';
                 }}
               />
+            </div>
+            <div className="flex items-center gap-2">
+              <span className="text-xs text-gray-500 font-medium mr-1">Mechanic:</span>
+              <button
+                onClick={() => setFilterMechanicType('all')}
+                className={`px-3 py-1.5 text-xs font-medium rounded-md border transition-colors ${
+                  filterMechanicType === 'all'
+                    ? 'bg-gray-800 !text-white border-gray-800'
+                    : 'bg-white text-gray-600 border-gray-300 hover:border-gray-400'
+                }`}
+              >
+                All Mechanics
+              </button>
+              <button
+                onClick={() => setFilterMechanicType('internal')}
+                className={`px-3 py-1.5 text-xs font-medium rounded-md border transition-colors ${
+                  filterMechanicType === 'internal'
+                    ? 'bg-blue-600 !text-white border-blue-600'
+                    : 'bg-white text-gray-600 border-gray-300 hover:border-blue-300'
+                }`}
+              >
+                Internal
+              </button>
+              <button
+                onClick={() => setFilterMechanicType('external')}
+                className={`px-3 py-1.5 text-xs font-medium rounded-md border transition-colors flex items-center gap-1.5 ${
+                  filterMechanicType === 'external'
+                    ? 'bg-orange-500 !text-white border-orange-500'
+                    : 'bg-white text-gray-600 border-gray-300 hover:border-orange-300'
+                }`}
+              >
+                <span className={`w-1.5 h-1.5 rounded-full ${filterMechanicType === 'external' ? 'bg-white' : 'bg-orange-400'}`} />
+                External
+              </button>
             </div>
           </div>
 
@@ -947,7 +982,16 @@ const GeneralRepairsLog: React.FC = () => {
                         <td className="px-6 py-4 text-gray-900">
                           {typeof repair.odometer === 'number' ? `${repair.odometer.toLocaleString()} km` : '—'}
                         </td>
-                        <td className="px-6 py-4 text-gray-900">{repair.serviceProvider}</td>
+                        <td className="px-6 py-4 text-gray-900">
+                          {repair.mechanicType === 'external' ? (
+                            <div className="flex items-center gap-1">
+                              <span className="inline-flex items-center text-xs font-semibold px-1.5 py-0.5 rounded bg-orange-100 text-orange-700">Ext</span>
+                              <span>{repair.serviceProvider || '—'}</span>
+                            </div>
+                          ) : (
+                            repair.serviceProvider || '—'
+                          )}
+                        </td>
                         <td className="px-6 py-4 text-gray-600 font-mono text-sm">{repair.invoiceNumber || '—'}</td>
                         <td className="px-6 py-4">
                           <span className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold ${
@@ -1097,7 +1141,17 @@ const GeneralRepairsLog: React.FC = () => {
                         </div>
                         <div>
                           <p className="text-sm text-gray-500 mb-1">Service Provider</p>
-                          <p className="font-medium text-gray-900">{selectedRepair.serviceProvider || "—"}</p>
+                          {selectedRepair.mechanicType === 'external' ? (
+                            <div className="space-y-0.5">
+                              <span className="inline-flex items-center text-xs font-semibold px-2 py-0.5 rounded-full bg-orange-100 text-orange-700 mb-1">External Mechanic</span>
+                              <p className="font-medium text-gray-900">{selectedRepair.serviceProvider || '—'}</p>
+                              {selectedRepair.externalMechanicCompany && <p className="text-sm text-gray-500">{selectedRepair.externalMechanicCompany}</p>}
+                              {selectedRepair.externalMechanicPhone && <p className="text-sm text-gray-500">{selectedRepair.externalMechanicPhone}</p>}
+                              {selectedRepair.externalMechanicEmail && <p className="text-sm text-gray-500">{selectedRepair.externalMechanicEmail}</p>}
+                            </div>
+                          ) : (
+                            <p className="font-medium text-gray-900">{selectedRepair.serviceProvider || "—"}</p>
+                          )}
                         </div>
                         <div>
                           <p className="text-sm text-gray-500 mb-1">Invoice Number</p>
@@ -1323,31 +1377,37 @@ const GeneralRepairsLog: React.FC = () => {
                           placeholder="0"
                         />
                       </div>
-                      <div>
+                      <div className="md:col-span-2">
                         <label className="block text-sm font-medium text-gray-700 mb-2">Service Provider *</label>
-                        {serviceProvidersLoading ? (
-                          <div className="flex items-center gap-2 text-sm text-gray-500">
-                            <span className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-500 inline-block" />
-                            Loading mechanics...
-                          </div>
-                        ) : serviceProviders.length > 0 ? (
-                          <>
+                        {/* Toggle */}
+                        <div className="flex rounded-lg border border-gray-300 overflow-hidden mb-3 w-fit">
+                          <button
+                            type="button"
+                            onClick={() => setFormData((prev) => ({ ...prev, mechanicType: 'internal', serviceProvider: '', serviceProviderId: undefined }))}
+                            className={`px-5 py-2 text-sm font-medium transition-colors ${formData.mechanicType === 'internal' ? 'bg-[#016ab2] !text-white' : 'bg-white text-gray-600 hover:bg-gray-50'}`}
+                          >
+                            Internal Mechanic
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => setFormData((prev) => ({ ...prev, mechanicType: 'external', serviceProviderId: undefined }))}
+                            className={`px-5 py-2 text-sm font-medium border-l border-gray-300 transition-colors ${formData.mechanicType === 'external' ? 'bg-[#016ab2] !text-white' : 'bg-white text-gray-600 hover:bg-gray-50'}`}
+                          >
+                            External Mechanic
+                          </button>
+                        </div>
+
+                        {formData.mechanicType === 'internal' ? (
+                          serviceProvidersLoading ? (
+                            <div className="flex items-center gap-2 text-sm text-gray-500">
+                              <span className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-500 inline-block" />
+                              Loading mechanics...
+                            </div>
+                          ) : serviceProviders.length > 0 ? (
                             <select
-                              value={providerSelectValue}
+                              value={formData.serviceProviderId || ''}
                               onChange={(e) => {
-                                const value = e.target.value;
-                                if (!value) {
-                                  setUseCustomProvider(false);
-                                  setFormData((prev) => ({ ...prev, serviceProviderId: undefined, serviceProvider: '' }));
-                                  return;
-                                }
-                                if (value === '__custom__') {
-                                  setUseCustomProvider(true);
-                                  setFormData((prev) => ({ ...prev, serviceProviderId: undefined, serviceProvider: '' }));
-                                  return;
-                                }
-                                const provider = serviceProviders.find((option) => option.id === value);
-                                setUseCustomProvider(false);
+                                const provider = serviceProviders.find((p) => p.id === e.target.value);
                                 setFormData((prev) => ({
                                   ...prev,
                                   serviceProviderId: provider?.id,
@@ -1356,14 +1416,8 @@ const GeneralRepairsLog: React.FC = () => {
                               }}
                               className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:border-transparent"
                               style={{ '--tw-ring-color': '#016ab2' } as React.CSSProperties & { '--tw-ring-color': string }}
-                              onFocus={(e) => {
-                                e.target.style.borderColor = '#016ab2';
-                                e.target.style.boxShadow = '0 0 0 2px rgba(1, 106, 178, 0.2)';
-                              }}
-                              onBlur={(e) => {
-                                e.target.style.borderColor = '';
-                                e.target.style.boxShadow = '';
-                              }}
+                              onFocus={(e) => { e.target.style.borderColor = '#016ab2'; e.target.style.boxShadow = '0 0 0 2px rgba(1, 106, 178, 0.2)'; }}
+                              onBlur={(e) => { e.target.style.borderColor = ''; e.target.style.boxShadow = ''; }}
                             >
                               <option value="">Select mechanic</option>
                               {serviceProviders.map((provider) => (
@@ -1371,47 +1425,61 @@ const GeneralRepairsLog: React.FC = () => {
                                   {provider.name} {provider.role ? `(${provider.role})` : ''}
                                 </option>
                               ))}
-                              <option value="__custom__">Other / External Vendor</option>
                             </select>
-                            {useCustomProvider && (
+                          ) : (
+                            <p className="text-xs text-gray-500">
+                              No internal mechanics found. Add an employee with a mechanic role, or switch to External Mechanic.
+                            </p>
+                          )
+                        ) : (
+                          <div className="grid grid-cols-2 gap-3 p-4 bg-orange-50 border border-orange-200 rounded-lg">
+                            <div>
+                              <label className="block text-xs font-medium text-gray-600 mb-1">Name *</label>
                               <input
                                 type="text"
                                 value={formData.serviceProvider}
-                                onChange={(e) =>
-                                  setFormData({
-                                    ...formData,
-                                    serviceProvider: e.target.value,
-                                    serviceProviderId: undefined
-                                  })
-                                }
-                                className="mt-3 w-full px-4 !mt-2 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:border-transparent"
+                                onChange={(e) => setFormData({ ...formData, serviceProvider: e.target.value })}
+                                className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:border-transparent"
                                 style={{ '--tw-ring-color': '#016ab2' } as React.CSSProperties & { '--tw-ring-color': string }}
-                                placeholder="Enter shop or vendor name"
+                                placeholder="Mechanic / Shop name"
                               />
-                            )}
-                          </>
-                        ) : (
-                          <>
-                            <input
-                              type="text"
-                              value={formData.serviceProvider}
-                              onChange={(e) =>
-                                setFormData({
-                                  ...formData,
-                                  serviceProvider: e.target.value,
-                                  serviceProviderId: undefined
-                                })
-                              }
-                              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:border-transparent"
-                              style={{ '--tw-ring-color': '#016ab2' } as React.CSSProperties & { '--tw-ring-color': string }}
-                              placeholder="Enter shop or vendor name"
-                            />
-                            <p className="text-xs text-gray-500 mt-2">
-                              Add an employee with a mechanic role to list service providers.
-                            </p>
-                          </>
+                            </div>
+                            <div>
+                              <label className="block text-xs font-medium text-gray-600 mb-1">Company</label>
+                              <input
+                                type="text"
+                                value={formData.externalMechanicCompany}
+                                onChange={(e) => setFormData({ ...formData, externalMechanicCompany: e.target.value })}
+                                className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:border-transparent"
+                                style={{ '--tw-ring-color': '#016ab2' } as React.CSSProperties & { '--tw-ring-color': string }}
+                                placeholder="Company / Shop"
+                              />
+                            </div>
+                            <div>
+                              <label className="block text-xs font-medium text-gray-600 mb-1">Phone</label>
+                              <input
+                                type="tel"
+                                value={formData.externalMechanicPhone}
+                                onChange={(e) => setFormData({ ...formData, externalMechanicPhone: e.target.value })}
+                                className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:border-transparent"
+                                style={{ '--tw-ring-color': '#016ab2' } as React.CSSProperties & { '--tw-ring-color': string }}
+                                placeholder="+1 (555) 000-0000"
+                              />
+                            </div>
+                            <div>
+                              <label className="block text-xs font-medium text-gray-600 mb-1">Email</label>
+                              <input
+                                type="email"
+                                value={formData.externalMechanicEmail}
+                                onChange={(e) => setFormData({ ...formData, externalMechanicEmail: e.target.value })}
+                                className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:border-transparent"
+                                style={{ '--tw-ring-color': '#016ab2' } as React.CSSProperties & { '--tw-ring-color': string }}
+                                placeholder="email@shop.com"
+                              />
+                            </div>
+                          </div>
                         )}
-                        {serviceProvidersError && (
+                        {serviceProvidersError && formData.mechanicType === 'internal' && (
                           <p className="text-sm text-red-600 mt-2">{serviceProvidersError}</p>
                         )}
                       </div>

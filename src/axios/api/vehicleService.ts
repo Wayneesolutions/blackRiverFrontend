@@ -55,6 +55,11 @@ export interface VehicleServiceData {
   amount?: number;
   estimatedCost?: number;
   estimatedTime?: string;
+  mechanicType?: 'internal' | 'external';
+  externalMechanicName?: string;
+  externalMechanicCompany?: string;
+  externalMechanicPhone?: string;
+  externalMechanicEmail?: string;
 }
 
 export interface UpdateServiceData extends Partial<VehicleServiceData> {}
@@ -101,6 +106,11 @@ export interface VehicleServiceResponse {
   amount?: number;
   status: VehicleServiceStatus;
   parts?: Array<{ partName?: string; partNumber?: string; quantity?: number; cost?: number }> | string | null;
+  mechanicType?: 'internal' | 'external';
+  externalMechanicName?: string;
+  externalMechanicCompany?: string;
+  externalMechanicPhone?: string;
+  externalMechanicEmail?: string;
   createdAt: string;
   updatedAt: string;
 }

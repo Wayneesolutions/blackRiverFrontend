@@ -16,7 +16,7 @@ import {
   FaFilePdf,
 } from 'react-icons/fa';
 
-import { getFleetCustomers, type FleetCustomer } from '../../../../axios/api/fleet.customers';
+import { getFleetCustomers, createFleetCustomer, type FleetCustomer } from '../../../../axios/api/fleet.customers';
 import { listVehicleServices, type VehicleServiceResponse } from '../../../../axios/api/vehicleService';
 import { listGeneralRepairs, type GeneralRepairDto } from '../../../../axios/api/generalRepairs';
 import { getCompany } from '../../../../axios/api/admin';
@@ -189,6 +189,12 @@ const FleetInvoicesPage = () => {
   const [customers, setCustomers] = useState<FleetCustomer[]>([]);
   const [customersLoading, setCustomersLoading] = useState(false);
   const [customersError, setCustomersError] = useState<string | null>(null);
+  const [showAddCustomer, setShowAddCustomer] = useState(false);
+  const [newCustomerName, setNewCustomerName] = useState('');
+  const [newCustomerEmail, setNewCustomerEmail] = useState('');
+  const [newCustomerPhone, setNewCustomerPhone] = useState('');
+  const [addingCustomer, setAddingCustomer] = useState(false);
+  const [addCustomerError, setAddCustomerError] = useState<string | null>(null);
 
   const [productOptions, setProductOptions] = useState<ProductOption[]>([]);
   const [productOptionsLoading, setProductOptionsLoading] = useState(false);
@@ -460,6 +466,36 @@ const FleetInvoicesPage = () => {
     } else {
       setCustomerEmail('');
       setBillingAddress('');
+    }
+  };
+
+  const handleAddNewCustomer = async () => {
+    if (!newCustomerName.trim()) {
+      setAddCustomerError('Customer name is required.');
+      return;
+    }
+    setAddingCustomer(true);
+    setAddCustomerError(null);
+    try {
+      const res = await createFleetCustomer({
+        name: newCustomerName.trim(),
+        email: newCustomerEmail.trim(),
+        phone: newCustomerPhone.trim() || undefined,
+      });
+      if (res?.success && res.data) {
+        setCustomers((prev) => [...prev, res.data as FleetCustomer]);
+        handleCustomerChange(res.data._id);
+        setShowAddCustomer(false);
+        setNewCustomerName('');
+        setNewCustomerEmail('');
+        setNewCustomerPhone('');
+      } else {
+        setAddCustomerError(res?.message || 'Failed to create customer.');
+      }
+    } catch (err: any) {
+      setAddCustomerError(err?.response?.data?.message || err?.message || 'Failed to create customer.');
+    } finally {
+      setAddingCustomer(false);
     }
   };
 
@@ -931,348 +967,433 @@ const FleetInvoicesPage = () => {
     if (!response?.success || !response.data) throw new Error('Failed to load invoice for PDF');
     const invoice = response.data;
 
-      // Fetch vehicle information for PDF
-      let vehicleInfoForPDF: Array<{
-        unitNumber: string;
-        unitType?: string;
-        makeModel?: string;
-        vinNumber?: string;
-        plateNumber?: string;
-      }> = [];
-      if (Array.isArray(invoice.items) && invoice.items.length > 0) {
-        vehicleInfoForPDF = await fetchVehicleInfoFromItems(invoice.items);
-      }
+    // Fetch vehicle information for PDF
+    let vehicleInfoForPDF: Array<{
+      unitNumber: string;
+      unitType?: string;
+      makeModel?: string;
+      vinNumber?: string;
+      plateNumber?: string;
+    }> = [];
+    if (Array.isArray(invoice.items) && invoice.items.length > 0) {
+      vehicleInfoForPDF = await fetchVehicleInfoFromItems(invoice.items);
+    }
 
-      let companyData: { companyName?: string; address?: string; contactPhone?: string; contactEmail?: string; taxNumber?: string; logoUrl?: string } | null = null;
-      try {
-        const companyRes = await getCompany();
-        if (companyRes?.success && companyRes?.data) {
-          companyData = companyRes.data;
-        }
-      } catch {
-        // Use defaults if company fetch fails
-      }
+    let companyData: { companyName?: string; address?: string; contactPhone?: string; contactEmail?: string; taxNumber?: string; logoUrl?: string } | null = null;
+    try {
+      const companyRes = await getCompany();
+      if (companyRes?.success && companyRes?.data) companyData = companyRes.data;
+    } catch { /* use defaults */ }
 
-      const doc = new jsPDF('p', 'mm', 'a4');
-      const pageWidth = doc.internal.pageSize.getWidth();
-      const pageHeight = doc.internal.pageSize.getHeight();
-      const margin = 20;
-      const contentWidth = pageWidth - margin * 2;
-      const textColor: [number, number, number] = [31, 41, 55];
-      const grayColor: [number, number, number] = [107, 114, 128];
+    const doc = new jsPDF('p', 'mm', 'a4');
+    const pageWidth = doc.internal.pageSize.getWidth();
+    const pageHeight = doc.internal.pageSize.getHeight();
+    const margin = 15;
+    const contentWidth = pageWidth - margin * 2;
 
-      let yPos = margin;
+    // Palette
+    const blue: [number, number, number]    = [1, 106, 178];
+    const dark: [number, number, number]    = [31, 41, 55];
+    const gray: [number, number, number]    = [107, 114, 128];
+    const lightBlue: [number, number, number] = [235, 246, 255];
+    const rowAlt: [number, number, number]  = [249, 250, 251];
+    const white: [number, number, number]   = [255, 255, 255];
+    const lineGray: [number, number, number] = [209, 213, 219];
 
-      const checkPageBreak = (requiredHeight: number) => {
-        if (yPos + requiredHeight > pageHeight - 25) {
-          doc.addPage();
-          yPos = margin;
-        }
-      };
+    let yPos = 0;
 
-      // Company logo
-      if (companyData?.logoUrl) {
-        try {
-          const res = await fetch(companyData.logoUrl);
-          const blob = await res.blob();
-          const base64 = await new Promise<string>((resolve) => {
-            const reader = new FileReader();
-            reader.onloadend = () => resolve(reader.result as string);
-            reader.readAsDataURL(blob);
-          });
-          doc.addImage(base64, 'PNG', margin, yPos, 45, 25);
-        } catch {
-          // Skip logo on error
-        }
-      }
+    const checkPageBreak = (h: number) => {
+      if (yPos + h > pageHeight - 18) { doc.addPage(); yPos = margin; }
+    };
 
-      doc.setFontSize(24);
+    const hRule = (y: number, color: [number, number, number] = lineGray, lw = 0.25) => {
+      doc.setDrawColor(...color);
+      doc.setLineWidth(lw);
+      doc.line(margin, y, pageWidth - margin, y);
+    };
+
+    const sectionHeader = (label: string, y: number) => {
       doc.setFont('helvetica', 'bold');
-      doc.setTextColor(...textColor);
-      doc.text('FLEET INVOICE', pageWidth - margin, yPos + 12, { align: 'right' });
-      yPos += 35;
-
-      const leftCol = margin;
-      const rightCol = pageWidth / 2 + 10;
-      const colWidth = (pageWidth - margin * 2) / 2 - 10;
-
-      // From (Company)
-      if (companyData) {
-        doc.setFontSize(11);
-        doc.setFont('helvetica', 'bold');
-        doc.text(companyData.companyName || 'Company', leftCol, yPos);
-        yPos += 6;
-        doc.setFontSize(9);
-        doc.setFont('helvetica', 'normal');
-        doc.setTextColor(...grayColor);
-        if (companyData.address) {
-          const lines = doc.splitTextToSize(companyData.address, colWidth);
-          doc.text(lines, leftCol, yPos);
-          yPos += lines.length * 5;
-        }
-        if (companyData.contactPhone) {
-          doc.text(`Phone: ${companyData.contactPhone}`, leftCol, yPos);
-          yPos += 5;
-        }
-        if (companyData.contactEmail) {
-          doc.text(`Email: ${companyData.contactEmail}`, leftCol, yPos);
-          yPos += 5;
-        }
-        if (companyData.taxNumber) {
-          doc.text(`GST No: ${companyData.taxNumber}`, leftCol, yPos);
-          yPos += 5;
-        }
-        doc.setTextColor(...textColor);
-      }
-
-      // Bill To
-      let rightY = 55;
-      doc.setFontSize(11);
-      doc.setFont('helvetica', 'bold');
-      doc.text('Bill To:', rightCol, rightY);
-      rightY += 7;
-      doc.setFontSize(10);
-      doc.setFont('helvetica', 'normal');
-      doc.text(invoice.customerName || '—', rightCol, rightY);
-      rightY += 6;
-      if (invoice.customerEmail) {
-        doc.text(invoice.customerEmail, rightCol, rightY);
-        rightY += 5;
-      }
-      if (invoice.customerAddress) {
-        const addrLines = doc.splitTextToSize(invoice.customerAddress, colWidth);
-        doc.text(addrLines, rightCol, rightY);
-        rightY += addrLines.length * 5;
-      }
-      if (invoice.customerPhone) {
-        doc.text(`Phone: ${invoice.customerPhone}`, rightCol, rightY);
-        rightY += 5;
-      }
-
-      yPos = Math.max(yPos, rightY) + 12;
-
-      // Vehicle Information (if available)
-      if (vehicleInfoForPDF.length > 0) {
-        checkPageBreak(vehicleInfoForPDF.length * 20 + 10);
-        doc.setFontSize(10);
-        doc.setFont('helvetica', 'bold');
-        doc.setTextColor(...textColor);
-        doc.text('Vehicle Information:', leftCol, yPos);
-        yPos += 7;
-        
-        doc.setFontSize(9);
-        doc.setFont('helvetica', 'normal');
-        doc.setTextColor(...grayColor);
-        
-        vehicleInfoForPDF.forEach((vehicle) => {
-          const vehicleLines: string[] = [];
-          vehicleLines.push(`Unit ${vehicle.unitNumber || '—'}`);
-          if (vehicle.unitType) vehicleLines.push(`Type: ${vehicle.unitType}`);
-          if (vehicle.makeModel) vehicleLines.push(`Make/Model: ${vehicle.makeModel}`);
-          if (vehicle.plateNumber) vehicleLines.push(`Plate: ${vehicle.plateNumber}`);
-          if (vehicle.vinNumber) vehicleLines.push(`VIN: ${vehicle.vinNumber}`);
-          
-          const vehicleText = vehicleLines.join(' | ');
-          const wrappedLines = doc.splitTextToSize(vehicleText, contentWidth);
-          doc.text(wrappedLines, leftCol, yPos);
-          yPos += wrappedLines.length * 5 + 3;
-        });
-        
-        yPos += 5;
-        doc.setTextColor(...textColor);
-      }
-
-      // Invoice details
-      doc.setFontSize(9);
-      doc.setTextColor(...grayColor);
-      const invDate = invoice.invoiceDate ? new Date(invoice.invoiceDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : '—';
-      const dueDateStr = invoice.dueDate ? new Date(invoice.dueDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : '—';
-      doc.text(`Invoice #: ${invoice.invoiceNumber || '—'}`, leftCol, yPos);
-      doc.text(`Invoice Date: ${invDate}`, leftCol, yPos + 5);
-      doc.text(`Due Date: ${dueDateStr}`, leftCol, yPos + 10);
-      if (invoice.terms) {
-        doc.text(`Terms: ${invoice.terms}`, leftCol, yPos + 15);
-        yPos += 20;
-      } else {
-        yPos += 15;
-      }
-      doc.setTextColor(...textColor);
-
-      // Message on invoice
-      if (invoice.messageOnInvoice) {
-        checkPageBreak(15);
-        doc.setFontSize(9);
-        doc.setFont('helvetica', 'italic');
-        doc.setTextColor(...grayColor);
-        const msgLines = doc.splitTextToSize(invoice.messageOnInvoice, contentWidth);
-        doc.text(msgLines, leftCol, yPos);
-        yPos += msgLines.length * 5 + 5;
-        doc.setFont('helvetica', 'normal');
-        doc.setTextColor(...textColor);
-      }
-
-      // Line items table - fixed column layout
-      checkPageBreak(25);
-      yPos += 5;
-      const tableLeft = leftCol;
-      const colDateLeft = tableLeft;
-      const colDateWidth = 26;
-      const colDescLeft = tableLeft + colDateWidth + 4;
-      const colDescWidth = 82;
-      const colQtyLeft = colDescLeft + colDescWidth + 4;
-      const colQtyWidth = 12;
-      const colRateLeft = colQtyLeft + colQtyWidth + 4;
-      const colRateWidth = 22;
-      
-      const tableRight = pageWidth - margin;
-
-      doc.setFontSize(9);
-      doc.setFont('helvetica', 'bold');
-      doc.text('Date', colDateLeft, yPos);
-      doc.text('Description', colDescLeft, yPos);
-      doc.text('QTY', colQtyLeft + colQtyWidth / 2, yPos, { align: 'center' });
-      doc.text('Rate', colRateLeft + colRateWidth, yPos, { align: 'right' });
-      doc.text('Amount', tableRight, yPos, { align: 'right' });
-      doc.setDrawColor(200, 200, 200);
-      doc.line(tableLeft, yPos + 3, tableRight, yPos + 3);
-      yPos += 8;
-
-      doc.setFont('helvetica', 'normal');
-      const items = Array.isArray(invoice.items) ? invoice.items : [];
-      const lineHeight = 6;
-      for (const item of items) {
-        const desc = (item.description || '—').toString().trim();
-        const descLines = doc.splitTextToSize(desc, colDescWidth);
-        const rowHeight = Math.max(descLines.length * lineHeight, 10);
-        checkPageBreak(rowHeight);
-
-        const svcDate = item.serviceDate ? new Date(item.serviceDate + 'T12:00:00').toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : '—';
-        const qty = Number(item.quantity) || 1;
-        const rate = Number(item.unitPrice) || 0;
-        const amt = Number(item.totalPrice) || rate * qty;
-
-        const rowYStart = yPos;
-        doc.setFontSize(9);
-
-        // Date - single line, left-aligned
-        doc.text(svcDate, colDateLeft, rowYStart);
-
-        // Description - can wrap to multiple lines
-        doc.text(descLines, colDescLeft, rowYStart);
-
-        // QTY, Rate, Amount - aligned with first line of description
-        doc.text(String(qty), colQtyLeft + colQtyWidth / 2, rowYStart, { align: 'center' });
-        doc.text(`$${rate.toFixed(2)}`, colRateLeft + colRateWidth, rowYStart, { align: 'right' });
-        doc.text(`$${amt.toFixed(2)}`, tableRight, rowYStart, { align: 'right' });
-
-        yPos += rowHeight;
-      }
-
-      // Labour Charges section (if applicable)
-      const labourHours = Number(invoice.labourHours) || 0;
-      const labourRate = Number(invoice.labourRate) || 0;
-      const labourAmount = Number(invoice.labourAmount) || labourHours * labourRate;
-      const labourTaxPercent = Number(invoice.labourTaxPercent) || 0;
-      const labourTaxAmount = labourAmount * (labourTaxPercent / 100);
-
-      if (labourAmount > 0) {
-        yPos += 10;
-        checkPageBreak(20);
-        
-        doc.setFont('helvetica', 'bold');
-        doc.setFontSize(10);
-        doc.text('Labour Charges', tableLeft, yPos);
-        yPos += 8;
-
-        doc.setFont('helvetica', 'normal');
-        doc.setFontSize(9);
-        doc.text(`Hours: ${labourHours.toFixed(1)}`, tableLeft, yPos);
-        doc.text(`Hourly Rate: $${labourRate.toFixed(2)}`, colDescLeft, yPos);
-        doc.text(`Labour Amount: $${labourAmount.toFixed(2)}`, tableRight, yPos, { align: 'right' });
-        yPos += 6;
-
-        if (labourTaxAmount > 0) {
-          doc.text(`Labour Tax (${labourTaxPercent}%): $${labourTaxAmount.toFixed(2)}`, tableRight, yPos, { align: 'right' });
-          yPos += 6;
-        }
-      }
-
-      yPos += 10;
-      checkPageBreak(35);
-
-      // Calculate breakdown
-      const itemsSubtotal = items.reduce((sum: number, item: any) => {
-        const qty = Number(item.quantity) || 1;
-        const rate = Number(item.unitPrice) || 0;
-        return sum + (qty * rate);
-      }, 0);
-      const itemsTax = items.reduce((sum: number, item: any) => {
-        const qty = Number(item.quantity) || 1;
-        const rate = Number(item.unitPrice) || 0;
-        const itemTotal = qty * rate;
-        const taxPercent = Number(item.taxPercent) || 0;
-        return sum + (itemTotal * taxPercent / 100);
-      }, 0);
-
-      // Totals
-      const subtotal = Number(invoice.subtotal) || (itemsSubtotal + labourAmount);
-      const taxAmount = Number(invoice.taxAmount) || (itemsTax + labourTaxAmount);
-      const total = Number(invoice.total) || subtotal + taxAmount;
-
-      // Show breakdown if both items and labour exist
-      if (itemsSubtotal > 0 && labourAmount > 0) {
-        doc.setFont('helvetica', 'bold');
-        doc.text('Items Subtotal:', colRateLeft + colRateWidth, yPos, { align: 'right' });
-        doc.setFont('helvetica', 'normal');
-        doc.text(`$${itemsSubtotal.toFixed(2)}`, tableRight, yPos, { align: 'right' });
-        yPos += 7;
-
-        doc.setFont('helvetica', 'bold');
-        doc.text('Labour Charges:', colRateLeft + colRateWidth, yPos, { align: 'right' });
-        doc.setFont('helvetica', 'normal');
-        doc.text(`$${labourAmount.toFixed(2)}`, tableRight, yPos, { align: 'right' });
-        yPos += 7;
-      }
-
-      doc.setFont('helvetica', 'bold');
-      doc.text('Subtotal:', colRateLeft + colRateWidth, yPos, { align: 'right' });
-      doc.setFont('helvetica', 'normal');
-      doc.text(`$${subtotal.toFixed(2)}`, tableRight, yPos, { align: 'right' });
-      yPos += 7;
-
-      // Show tax breakdown if both items tax and labour tax exist
-      if (itemsTax > 0 && labourTaxAmount > 0) {
-        doc.setFont('helvetica', 'normal');
-        doc.setFontSize(8);
-        doc.text(`Items Tax: $${itemsTax.toFixed(2)}`, tableRight, yPos, { align: 'right' });
-        yPos += 5;
-        doc.text(`Labour Tax: $${labourTaxAmount.toFixed(2)}`, tableRight, yPos, { align: 'right' });
-        yPos += 5;
-      }
-
-      doc.setFont('helvetica', 'bold');
-      doc.setFontSize(9);
-      doc.text('Tax:', colRateLeft + colRateWidth, yPos, { align: 'right' });
-      doc.setFont('helvetica', 'normal');
-      doc.text(`$${taxAmount.toFixed(2)}`, tableRight, yPos, { align: 'right' });
-      yPos += 12;
-
-      doc.rect(margin, yPos, contentWidth, 18);
-      doc.setFontSize(12);
-      doc.setFont('helvetica', 'bold');
-      doc.text('Total Balance Due', margin + 5, yPos + 12);
-      doc.setFontSize(14);
-      doc.text(`$${total.toFixed(2)}`, pageWidth - margin - 5, yPos + 12, { align: 'right' });
-      yPos += 25;
-
-      // Footer
       doc.setFontSize(8);
-      doc.setFont('helvetica', 'italic');
-      doc.setTextColor(...grayColor);
-      doc.text('Thank you for your business!', pageWidth / 2, pageHeight - 15, { align: 'center' });
+      doc.setTextColor(...blue);
+      doc.text(label, margin, y);
+      doc.setDrawColor(...blue);
+      doc.setLineWidth(0.4);
+      doc.line(margin, y + 1.5, pageWidth - margin, y + 1.5);
+      doc.setDrawColor(...lineGray);
+      doc.setLineWidth(0.25);
+    };
 
-      const fileName = `Fleet_Invoice_${(invoice.invoiceNumber || invoiceId.slice(-8)).replace(/\s+/g, '_')}.pdf`;
-      return { doc, fileName };
+    // ── HEADER BAR ──────────────────────────────────────────────
+    doc.setFillColor(...blue);
+    doc.rect(0, 0, pageWidth, 36, 'F');
+
+    // Logo
+    let logoEndX = margin;
+    if (companyData?.logoUrl) {
+      try {
+        const res = await fetch(companyData.logoUrl);
+        const blob = await res.blob();
+        const base64 = await new Promise<string>((resolve) => {
+          const reader = new FileReader();
+          reader.onloadend = () => resolve(reader.result as string);
+          reader.readAsDataURL(blob);
+        });
+        doc.addImage(base64, 'PNG', margin, 5, 24, 14);
+        logoEndX = margin + 28;
+      } catch { /* skip */ }
+    }
+
+    // Company name + contact in header
+    doc.setTextColor(...white);
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(13);
+    doc.text(companyData?.companyName || 'Mechanic Shop', logoEndX, 14);
+    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(7.5);
+    const contactParts: string[] = [];
+    if (companyData?.address) contactParts.push(companyData.address);
+    if (companyData?.contactPhone) contactParts.push(companyData.contactPhone);
+    if (companyData?.contactEmail) contactParts.push(companyData.contactEmail);
+    if (contactParts.length) doc.text(contactParts.join('  |  '), logoEndX, 21);
+    if (companyData?.taxNumber) doc.text(`GST/Tax No: ${companyData.taxNumber}`, logoEndX, 27);
+
+    // "INVOICE" label right-aligned
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(22);
+    doc.text('INVOICE', pageWidth - margin, 22, { align: 'right' });
+
+    yPos = 44;
+
+    // ── INVOICE META (# / Date / Due / Terms) ───────────────────
+    const invDate = invoice.invoiceDate
+      ? new Date(invoice.invoiceDate).toLocaleDateString('en-CA')
+      : '—';
+    const dueDateStr = invoice.dueDate
+      ? new Date(invoice.dueDate).toLocaleDateString('en-CA')
+      : '—';
+
+    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(9);
+    doc.setTextColor(...dark);
+
+    // Row 1: Invoice # | Date
+    doc.setFont('helvetica', 'bold');
+    doc.text('Invoice #:', margin, yPos);
+    doc.setFont('helvetica', 'normal');
+    doc.text(invoice.invoiceNumber || '—', margin + 21, yPos);
+    doc.setFont('helvetica', 'bold');
+    doc.text('Date:', margin + 90, yPos);
+    doc.setFont('helvetica', 'normal');
+    doc.text(invDate, margin + 103, yPos);
+    yPos += 6;
+
+    // Row 2: Due Date | Terms
+    doc.setFont('helvetica', 'bold');
+    doc.text('Due Date:', margin, yPos);
+    doc.setFont('helvetica', 'normal');
+    doc.text(dueDateStr, margin + 21, yPos);
+    if (invoice.terms) {
+      doc.setFont('helvetica', 'bold');
+      doc.text('Terms:', margin + 90, yPos);
+      doc.setFont('helvetica', 'normal');
+      doc.text(invoice.terms, margin + 103, yPos);
+    }
+    yPos += 8;
+    hRule(yPos);
+    yPos += 7;
+
+    // ── CUSTOMER INFO  |  VEHICLE INFO ──────────────────────────
+    const midX = pageWidth / 2 + 2;
+    const halfW = midX - margin - 6;
+
+    // Left header
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(8);
+    doc.setTextColor(...blue);
+    doc.text('CUSTOMER INFO', margin, yPos);
+    doc.text('VEHICLE INFO', midX, yPos);
+    yPos += 2;
+    doc.setDrawColor(...blue);
+    doc.setLineWidth(0.4);
+    doc.line(margin, yPos, midX - 6, yPos);
+    doc.line(midX, yPos, pageWidth - margin, yPos);
+    yPos += 5;
+
+    doc.setTextColor(...dark);
+    doc.setFontSize(9);
+
+    // Build customer rows
+    type InfoRow = [string, string];
+    const custRows: InfoRow[] = [];
+    custRows.push(['Name', invoice.customerName || '—']);
+    custRows.push(['Phone', invoice.customerPhone || '—']);
+    custRows.push(['Email', invoice.customerEmail || '—']);
+    if (invoice.customerAddress) {
+      const addrLines: string[] = doc.splitTextToSize(invoice.customerAddress, halfW - 16);
+      addrLines.forEach((l: string, i: number) => custRows.push([i === 0 ? 'Address' : '', l]));
+    }
+
+    // Build vehicle rows
+    const vehRows: InfoRow[] = [];
+    if (vehicleInfoForPDF.length > 0) {
+      const v = vehicleInfoForPDF[0];
+      if (v.makeModel) {
+        const parts = v.makeModel.split(' ');
+        vehRows.push(['Make', parts[0] || '—']);
+        if (parts.length > 1) vehRows.push(['Model', parts.slice(1).join(' ')]);
+      }
+      if (v.unitNumber) vehRows.push(['Unit', v.unitNumber]);
+      if (v.unitType)   vehRows.push(['Type', v.unitType]);
+      if (v.plateNumber) vehRows.push(['Plate', v.plateNumber]);
+      if (v.vinNumber)  vehRows.push(['VIN', v.vinNumber]);
+    } else {
+      vehRows.push(['', 'N/A']);
+    }
+
+    const maxRows = Math.max(custRows.length, vehRows.length);
+    const rowH = 6;
+    const infoStartY = yPos;
+    for (let i = 0; i < maxRows; i++) {
+      checkPageBreak(rowH);
+      const ry = infoStartY + i * rowH;
+      if (i < custRows.length) {
+        const [lbl, val] = custRows[i];
+        if (lbl) {
+          doc.setFont('helvetica', 'bold');
+          doc.text(`${lbl}:`, margin, ry);
+        }
+        doc.setFont('helvetica', 'normal');
+        doc.text(val, margin + 17, ry);
+      }
+      if (i < vehRows.length) {
+        const [lbl, val] = vehRows[i];
+        if (lbl) {
+          doc.setFont('helvetica', 'bold');
+          doc.text(`${lbl}:`, midX, ry);
+        }
+        doc.setFont('helvetica', 'normal');
+        doc.text(val, midX + 15, ry);
+      }
+    }
+    yPos = infoStartY + maxRows * rowH + 6;
+    hRule(yPos - 3);
+    yPos += 4;
+
+    // ── JOB DETAILS ─────────────────────────────────────────────
+    checkPageBreak(22);
+    sectionHeader('JOB DETAILS', yPos);
+    yPos += 6;
+
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(9);
+    doc.setTextColor(...dark);
+    doc.text('Job ID:', margin, yPos);
+    doc.setFont('helvetica', 'normal');
+    doc.text(invoice.invoiceNumber || '—', margin + 17, yPos);
+    yPos += 6;
+
+    // First item description as the main job description
+    const items = Array.isArray(invoice.items) ? invoice.items : [];
+    const allDescriptions = items.map((it: any) => it.description).filter(Boolean);
+    if (allDescriptions.length > 0) {
+      doc.setFont('helvetica', 'bold');
+      doc.text('Description:', margin, yPos);
+      doc.setFont('helvetica', 'normal');
+      const dLines: string[] = doc.splitTextToSize(allDescriptions.join('; '), contentWidth - 26);
+      doc.text(dLines, margin + 26, yPos);
+      yPos += dLines.length * 5 + 3;
+    }
+    yPos += 2;
+    hRule(yPos - 2);
+    yPos += 5;
+
+    // ── ITEMS TABLE ─────────────────────────────────────────────
+    checkPageBreak(22);
+    sectionHeader('ITEMS', yPos);
+    yPos += 5;
+
+    // Column layout: Type | Description | Qty/Hrs | Rate | Amount
+    const tRight = pageWidth - margin;
+    const typeW  = 20;
+    const qtyW   = 18;
+    const rateW  = 24;
+    const amtW   = 24;
+    const descW  = contentWidth - typeW - qtyW - rateW - amtW;
+
+    const xType = margin;
+    const xDesc = margin + typeW;
+    const xQty  = xDesc + descW + qtyW / 2;
+    const xRate = xDesc + descW + qtyW + rateW;
+    const xAmt  = tRight;
+
+    // Table header row
+    doc.setFillColor(...lightBlue);
+    doc.rect(margin, yPos - 4, contentWidth, 9, 'F');
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(8.5);
+    doc.setTextColor(...blue);
+    doc.text('Type',      xType + 1,     yPos);
+    doc.text('Description', xDesc + 1,   yPos);
+    doc.text('Qty/Hrs',   xQty,          yPos, { align: 'center' });
+    doc.text('Rate',      xRate,         yPos, { align: 'right' });
+    doc.text('Amount',    xAmt,          yPos, { align: 'right' });
+    yPos += 2;
+    hRule(yPos, blue, 0.4);
+    yPos += 4;
+
+    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(9);
+    doc.setTextColor(...dark);
+
+    let rowIdx = 0;
+    for (const item of items) {
+      const desc     = (item.description || '—').toString().trim();
+      const dLines: string[] = doc.splitTextToSize(desc, descW - 3);
+      const rh       = Math.max(dLines.length * 5.5, 7);
+      checkPageBreak(rh + 3);
+
+      // Alternating row background
+      if (rowIdx % 2 === 0) {
+        doc.setFillColor(...rowAlt);
+        doc.rect(margin, yPos - 3.5, contentWidth, rh + 2, 'F');
+      }
+
+      const qty = Number(item.quantity) || 1;
+      const rate = Number(item.unitPrice) || 0;
+      const amt  = Number(item.totalPrice) || rate * qty;
+      const ps   = item.productService || '';
+      const itemType = ps.startsWith('service:') ? 'Labor' : ps.startsWith('repair:') ? 'Part' : 'Item';
+
+      doc.setTextColor(...gray);
+      doc.setFont('helvetica', 'normal');
+      doc.text(itemType,         xType + 1, yPos);
+      doc.setTextColor(...dark);
+      doc.text(dLines,           xDesc + 1, yPos);
+      doc.text(String(qty),      xQty,      yPos, { align: 'center' });
+      doc.text(`$${rate.toFixed(2)}`, xRate, yPos, { align: 'right' });
+      doc.text(`$${amt.toFixed(2)}`,  xAmt,  yPos, { align: 'right' });
+
+      // Tax badge on second line if applicable
+      if (item.taxName && Number(item.taxPercent) > 0) {
+        doc.setFontSize(7);
+        doc.setTextColor(...gray);
+        doc.text(`${item.taxName} ${item.taxPercent}%`, xDesc + 1, yPos + dLines.length * 5.5 - 1);
+        doc.setFontSize(9);
+        yPos += 4;
+      }
+
+      yPos += rh + 1;
+      rowIdx++;
+    }
+
+    // Labour row if applicable
+    const labourHrs    = Number(invoice.labourHours)  || 0;
+    const labourRate   = Number(invoice.labourRate)   || 0;
+    const labourAmount = Number(invoice.labourAmount) || labourHrs * labourRate;
+    const labourTaxPct = Number(invoice.labourTaxPercent) || 0;
+    const labourTaxAmt = labourAmount * (labourTaxPct / 100);
+
+    if (labourAmount > 0) {
+      checkPageBreak(9);
+      if (rowIdx % 2 === 0) {
+        doc.setFillColor(...rowAlt);
+        doc.rect(margin, yPos - 3.5, contentWidth, 9, 'F');
+      }
+      doc.setTextColor(...gray);
+      doc.text('Labor', xType + 1, yPos);
+      doc.setTextColor(...dark);
+      doc.text('Labour Charges', xDesc + 1, yPos);
+      doc.text(`${labourHrs.toFixed(1)} hrs`, xQty, yPos, { align: 'center' });
+      doc.text(`$${labourRate.toFixed(2)}/hr`, xRate, yPos, { align: 'right' });
+      doc.text(`$${labourAmount.toFixed(2)}`, xAmt, yPos, { align: 'right' });
+      yPos += 8;
+    }
+
+    yPos += 2;
+    hRule(yPos);
+    yPos += 6;
+
+    // ── SUMMARY ─────────────────────────────────────────────────
+    checkPageBreak(32);
+    const itemsSubtotal = items.reduce((sum: number, it: any) =>
+      sum + (Number(it.quantity) || 1) * (Number(it.unitPrice) || 0), 0);
+    const itemsTax = items.reduce((sum: number, it: any) => {
+      const base = (Number(it.quantity) || 1) * (Number(it.unitPrice) || 0);
+      return sum + base * (Number(it.taxPercent) || 0) / 100;
+    }, 0);
+    const subtotal  = Number(invoice.subtotal)  || (itemsSubtotal + labourAmount);
+    const taxAmount = Number(invoice.taxAmount) || (itemsTax + labourTaxAmt);
+    const total     = Number(invoice.total)     || subtotal + taxAmount;
+
+    const sumLabelX = pageWidth - margin - 55;
+    const sumValX   = tRight;
+    const sumRowH   = 6.5;
+
+    doc.setFontSize(9);
+    doc.setFont('helvetica', 'normal');
+    doc.setTextColor(...gray);
+    doc.text('Subtotal:', sumLabelX, yPos);
+    doc.setTextColor(...dark);
+    doc.text(`$${subtotal.toFixed(2)}`, sumValX, yPos, { align: 'right' });
+    yPos += sumRowH;
+
+    doc.setTextColor(...gray);
+    doc.text('Tax:', sumLabelX, yPos);
+    doc.setTextColor(...dark);
+    doc.text(`$${taxAmount.toFixed(2)}`, sumValX, yPos, { align: 'right' });
+    yPos += sumRowH + 2;
+
+    // Total highlighted box
+    doc.setFillColor(...blue);
+    doc.roundedRect(sumLabelX - 4, yPos - 5, pageWidth - margin - sumLabelX + 4 + 2, 13, 2, 2, 'F');
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(10);
+    doc.setTextColor(...white);
+    doc.text('TOTAL:', sumLabelX, yPos + 3.5);
+    doc.text(`$${total.toFixed(2)}`, sumValX, yPos + 3.5, { align: 'right' });
+    yPos += 18;
+
+    // ── NOTES / TERMS ────────────────────────────────────────────
+    const hasNotes = invoice.messageOnInvoice || invoice.terms;
+    if (hasNotes) {
+      checkPageBreak(22);
+      hRule(yPos - 2);
+      yPos += 5;
+      sectionHeader('NOTES / TERMS', yPos);
+      yPos += 6;
+      doc.setFont('helvetica', 'normal');
+      doc.setFontSize(9);
+      doc.setTextColor(...dark);
+      if (invoice.terms) {
+        doc.setFont('helvetica', 'bold');
+        doc.text('Payment Terms:', margin, yPos);
+        doc.setFont('helvetica', 'normal');
+        doc.text(invoice.terms, margin + 29, yPos);
+        yPos += 6;
+      }
+      if (invoice.messageOnInvoice) {
+        const msgLines: string[] = doc.splitTextToSize(invoice.messageOnInvoice, contentWidth);
+        doc.text(msgLines, margin, yPos);
+        yPos += msgLines.length * 5 + 4;
+      }
+    }
+
+    // ── FOOTER BAR ───────────────────────────────────────────────
+    const footerY = pageHeight - 14;
+    doc.setFillColor(...blue);
+    doc.rect(0, footerY - 2, pageWidth, 16, 'F');
+    doc.setFont('helvetica', 'italic');
+    doc.setFontSize(8);
+    doc.setTextColor(...white);
+    doc.text('Thank you for your business!', pageWidth / 2, footerY + 6, { align: 'center' });
+    if (companyData?.contactEmail) {
+      doc.setFont('helvetica', 'normal');
+      doc.text(companyData.contactEmail, pageWidth - margin, footerY + 6, { align: 'right' });
+    }
+
+    const fileName = `Fleet_Invoice_${(invoice.invoiceNumber || invoiceId.slice(-8)).replace(/\s+/g, '_')}.pdf`;
+    return { doc, fileName };
   };
 
   const handleDownloadInvoicePDF = async (invoiceId: string) => {
@@ -1381,6 +1502,11 @@ const FleetInvoicesPage = () => {
     setLabourTax('gst');
     setVehicleInfo([]);
     setExtractedVendorName('');
+    setShowAddCustomer(false);
+    setNewCustomerName('');
+    setNewCustomerEmail('');
+    setNewCustomerPhone('');
+    setAddCustomerError(null);
   };
 
   return (
@@ -1798,6 +1924,92 @@ const FleetInvoicesPage = () => {
                       )}
                       {customersError && !customersLoading && (
                         <p className="mt-1 text-xs text-red-600">{customersError}</p>
+                      )}
+                      {!showAddCustomer ? (
+                        <button
+                          type="button"
+                          onClick={() => { setShowAddCustomer(true); setAddCustomerError(null); }}
+                          className="mt-2 inline-flex items-center gap-1 text-xs font-medium text-blue-600 hover:text-blue-700 transition-colors"
+                        >
+                          <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" strokeWidth="2"/><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8v8M8 12h8"/></svg>
+                          Add New Customer
+                        </button>
+                      ) : (
+                        <div className="mt-2 rounded-xl border border-gray-200 bg-white shadow-sm overflow-hidden">
+                          <div className="flex items-center justify-between px-4 py-2.5 bg-gray-50 border-b border-gray-200">
+                            <span className="text-xs font-semibold text-gray-700 tracking-wide uppercase">New Customer</span>
+                            <button
+                              type="button"
+                              onClick={() => { setShowAddCustomer(false); setAddCustomerError(null); setNewCustomerName(''); setNewCustomerEmail(''); setNewCustomerPhone(''); }}
+                              className="text-gray-400 hover:text-gray-600 transition-colors"
+                              aria-label="Close"
+                            >
+                              <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M6 18L18 6M6 6l12 12"/></svg>
+                            </button>
+                          </div>
+                          <div className="px-4 py-3 space-y-2.5">
+                            <div>
+                              <label className="block text-xs font-medium text-gray-600 mb-1">Name <span className="text-red-500">*</span></label>
+                              <input
+                                type="text"
+                                placeholder="e.g. Acme Corp"
+                                value={newCustomerName}
+                                onChange={(e) => setNewCustomerName(e.target.value)}
+                                className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent placeholder-gray-400"
+                              />
+                            </div>
+                            <div className="grid grid-cols-2 gap-2">
+                              <div>
+                                <label className="block text-xs font-medium text-gray-600 mb-1">Email</label>
+                                <input
+                                  type="email"
+                                  placeholder="email@example.com"
+                                  value={newCustomerEmail}
+                                  onChange={(e) => setNewCustomerEmail(e.target.value)}
+                                  className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent placeholder-gray-400"
+                                />
+                              </div>
+                              <div>
+                                <label className="block text-xs font-medium text-gray-600 mb-1">Phone</label>
+                                <input
+                                  type="text"
+                                  placeholder="+1 (555) 000-0000"
+                                  value={newCustomerPhone}
+                                  onChange={(e) => setNewCustomerPhone(e.target.value)}
+                                  className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent placeholder-gray-400"
+                                />
+                              </div>
+                            </div>
+                            {addCustomerError && (
+                              <p className="text-xs text-red-600 flex items-center gap-1">
+                                <svg className="w-3.5 h-3.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd"/></svg>
+                                {addCustomerError}
+                              </p>
+                            )}
+                          </div>
+                          <div className="px-4 py-3 bg-gray-50 border-t border-gray-200 flex items-center justify-end gap-2">
+                            <button
+                              type="button"
+                              onClick={() => { setShowAddCustomer(false); setAddCustomerError(null); setNewCustomerName(''); setNewCustomerEmail(''); setNewCustomerPhone(''); }}
+                              className="px-3 py-1.5 text-xs font-medium text-gray-600 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
+                            >
+                              Cancel
+                            </button>
+                            <button
+                              type="button"
+                              onClick={handleAddNewCustomer}
+                              disabled={addingCustomer}
+                              className="px-4 py-1.5 text-xs font-semibold bg-blue-600 !text-white rounded-lg hover:bg-blue-700 disabled:opacity-60 transition-colors flex items-center gap-1.5"
+                            >
+                              {addingCustomer ? (
+                                <>
+                                  <svg className="w-3 h-3 animate-spin" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"/></svg>
+                                  Saving...
+                                </>
+                              ) : 'Save Customer'}
+                            </button>
+                          </div>
+                        </div>
                       )}
                     </div>
                     <div>
