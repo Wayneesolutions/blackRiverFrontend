@@ -1,7 +1,7 @@
 
 import React, { useState, useRef, useEffect, useMemo, useCallback, memo } from "react";
-import { FaSignOutAlt, FaUser, FaCog, FaBars  } from "react-icons/fa";
-import { Search, X, LogOut, AlertCircle, ArrowRight ,ArrowLeft } from "lucide-react";
+import { FaSignOutAlt, FaUser, FaCog, FaBars } from "react-icons/fa";
+import { Search, X, LogOut, AlertCircle, ArrowRight, ArrowLeft } from "lucide-react";
 import { useLogout } from "../../hooks/useLogout";
 import { useSelector, shallowEqual } from "react-redux";
 import { useNavigate } from "react-router-dom";
@@ -139,33 +139,35 @@ const Header: React.FC<HeaderProps> = ({ isSidebarCollapsed = false, onToggleSid
     return (
         <>
             <header
-                className="flex items-center justify-between px-6 py-4 shadow-sm relative z-20"
-                style={{
-                    background: 'linear-gradient(135deg, #42aeec 0%, #31a2d4 100%)'
-                }}
+                className="flex items-center justify-between px-6 py-4 shadow-sm relative z-20 bg-main "
+
             >
                 <div className="flex items-center gap-4">
+
                     <button
                         onClick={onToggleSidebar}
-                        className="p-2 rounded-lg hover:bg-white/20 transition-colors !text-white"
+                        className="header-btn"
                         title={isSidebarCollapsed ? "Expand Sidebar" : "Collapse Sidebar"}
                     >
                         <FaBars size={20} />
                     </button>
+
                     <button
                         onClick={() => navigate(-1)}
-                        className="p-2 rounded-lg hover:bg-white/20 transition-colors !text-white"
+                        className="header-btn"
                         title="Previous"
                     >
                         <ArrowLeft size={22} />
                     </button>
+
                     <button
                         onClick={() => navigate(1)}
-                        className="p-2 rounded-lg hover:bg-white/20 transition-colors !text-white"
+                        className="header-btn"
                         title="Next"
                     >
                         <ArrowRight size={22} />
                     </button>
+
                 </div>
 
                 {pageTitle && (
@@ -175,9 +177,10 @@ const Header: React.FC<HeaderProps> = ({ isSidebarCollapsed = false, onToggleSid
                 )}
 
                 <div className="flex items-center gap-4">
+
                     <button
                         onClick={handleSearchClick}
-                        className="p-2 rounded-lg hover:bg-white/20 transition-colors !text-white"
+                        className="p-2 rounded-lg hover-accent text-primary transition"
                         title="Search"
                     >
                         <Search size={20} />
@@ -185,7 +188,7 @@ const Header: React.FC<HeaderProps> = ({ isSidebarCollapsed = false, onToggleSid
 
                     <button
                         onClick={handleProfileClick}
-                        className="flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-white/20 transition-colors !text-white"
+                        className="flex items-center gap-2 px-3 py-2 rounded-lg hover-accent text-primary transition"
                         title="Profile"
                     >
                         <FaUser size={16} />
@@ -196,7 +199,7 @@ const Header: React.FC<HeaderProps> = ({ isSidebarCollapsed = false, onToggleSid
 
                     <button
                         onClick={handleSettingsClick}
-                        className="p-2 rounded-lg hover:bg-white/20 transition-colors !text-white"
+                        className="p-2 rounded-lg hover-accent text-primary transition"
                         title="Settings"
                     >
                         <FaCog size={18} />
@@ -204,26 +207,34 @@ const Header: React.FC<HeaderProps> = ({ isSidebarCollapsed = false, onToggleSid
 
                     <button
                         onClick={handleLogout}
-                        className="p-2 rounded-lg hover:bg-white/20 transition-colors !text-white"
+                        className="p-2 rounded-lg hover-accent text-primary transition"
                         title="Logout"
                     >
                         <FaSignOutAlt size={18} />
                     </button>
+
                 </div>
             </header>
 
             {/* Search Overlay */}
             {isSearchOpen && (
-                <div className="fixed inset-0 z-[100] flex items-start justify-center pt-20 bg-black/30 backdrop-blur-sm">
+                <div className="fixed inset-0 z-[100] flex items-start justify-center pt-20 bg-black/50 backdrop-blur-md">
+
                     <div
                         ref={searchRef}
-                        className="bg-white rounded-lg shadow-2xl w-full max-w-2xl mx-4"
+                        className="bg-card text-primary border border-theme rounded-xl shadow-2xl w-full max-w-2xl mx-4"
                     >
-                        <form onSubmit={handleSearchSubmit} className="p-4 border-b border-gray-200">
+
+                        <form onSubmit={handleSearchSubmit} className="p-4 border-b border-theme">
+
                             <div className="relative">
-                                <div className="absolute left-4 top-1/2 transform -translate-y-1/2">
-                                    <Search className="text-gray-400" size={20} />
+
+                                {/* Search Icon */}
+                                <div className="absolute left-4 top-1/2 -translate-y-1/2">
+                                    <Search className="text-secondary" size={20} />
                                 </div>
+
+                                {/* Input */}
                                 <input
                                     ref={inputRef}
                                     type="text"
@@ -231,8 +242,10 @@ const Header: React.FC<HeaderProps> = ({ isSidebarCollapsed = false, onToggleSid
                                     value={searchQuery}
                                     onChange={(e) => setSearchQuery(e.target.value)}
                                     onKeyDown={handleKeyDown}
-                                    className="w-full pl-12 pr-12 py-3 text-lg border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#42aeec] focus:border-transparent"
+                                    className="w-full pl-12 pr-12 py-3 text-lg bg-main text-primary border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent-blue)]"
                                 />
+
+                                {/* Close */}
                                 <button
                                     type="button"
                                     onClick={() => {
@@ -240,72 +253,94 @@ const Header: React.FC<HeaderProps> = ({ isSidebarCollapsed = false, onToggleSid
                                         setSearchQuery("");
                                         setSelectedIndex(0);
                                     }}
-                                    className="absolute right-4 top-1/2 transform -translate-y-1/2 p-1 hover:bg-gray-100 rounded-full transition-colors"
+                                    className="absolute right-4 top-1/2 -translate-y-1/2 p-1 rounded-full text-secondary hover-accent hover:text-accent transition"
                                 >
-                                    <X className="text-gray-400" size={20} />
+                                    <X size={20} />
                                 </button>
+
                             </div>
                         </form>
 
                         {searchQuery.trim() !== "" && filteredActions.length > 0 && (
                             <div className="max-h-[400px] overflow-y-auto">
+
                                 <div className="py-2">
                                     {filteredActions.map((action, index) => (
                                         <button
                                             key={action.id}
                                             onClick={() => handleActionSelect(action)}
-                                            className={`w-full flex items-center gap-3 px-4 py-3 hover:bg-blue-50 transition-all duration-150 border-l-2 ${index === selectedIndex
-                                                ? 'bg-blue-50 border-blue-500'
-                                                : 'border-transparent hover:border-blue-300'
+                                            className={`w-full flex items-center gap-3 px-4 py-3 transition-all duration-150 border-l-2 ${index === selectedIndex
+                                                    ? "active-accent border-[var(--accent-blue)]"
+                                                    : "border-transparent hover-accent"
                                                 }`}
                                         >
-                                            <div className={`flex-shrink-0 ${index === selectedIndex ? 'scale-110' : ''} transition-transform`}>
-                                                <div className={`p-2 rounded-lg ${action.type === 'create' ? 'bg-green-100 text-green-700' :
-                                                    action.type === 'navigation' ? 'bg-blue-100 text-blue-700' :
-                                                        'bg-gray-100 text-gray-700'
-                                                    }`}>
+
+                                            {/* Icon */}
+                                            <div className={`flex-shrink-0 ${index === selectedIndex ? 'scale-110' : ''}`}>
+                                                <div
+                                                    className={`p-2 rounded-lg ${action.type === "create"
+                                                            ? "bg-[rgba(0,255,163,0.1)] text-[var(--accent-green)]"
+                                                            : action.type === "navigation"
+                                                                ? "bg-[rgba(0,209,255,0.1)] text-[var(--accent-blue)]"
+                                                                : "bg-[rgba(255,255,255,0.05)] text-secondary"
+                                                        }`}
+                                                >
                                                     {action.icon}
                                                 </div>
                                             </div>
+
+                                            {/* Content */}
                                             <div className="flex-1 text-left min-w-0">
                                                 <div className="flex items-center gap-2">
-                                                    <span className="font-semibold text-gray-900 truncate">{action.title}</span>
-                                                    {action.type === 'create' && (
-                                                        <span className="text-xs bg-green-100 text-green-700 px-2 py-0.5 rounded-full font-medium flex-shrink-0">
+
+                                                    <span className="font-semibold text-primary truncate">
+                                                        {action.title}
+                                                    </span>
+
+                                                    {action.type === "create" && (
+                                                        <span className="text-xs px-2 py-0.5 rounded-full font-medium bg-[rgba(0,255,163,0.1)] text-[var(--accent-green)]">
                                                             New
                                                         </span>
                                                     )}
-                                                    {action.type === 'navigation' && (
-                                                        <span className="text-xs bg-blue-100 text-blue-700 px-2 py-0.5 rounded-full font-medium flex-shrink-0">
+
+                                                    {action.type === "navigation" && (
+                                                        <span className="text-xs px-2 py-0.5 rounded-full font-medium bg-[rgba(0,209,255,0.1)] text-[var(--accent-blue)]">
                                                             Navigate
                                                         </span>
                                                     )}
+
                                                 </div>
-                                                <p className="text-sm text-gray-500 mt-0.5 truncate">
+
+                                                <p className="text-sm text-secondary mt-0.5 truncate">
                                                     {action.description}
                                                 </p>
                                             </div>
+
+                                            {/* Arrow */}
                                             <ArrowRight
                                                 className={`flex-shrink-0 transition-all ${index === selectedIndex
-                                                    ? 'text-blue-600 opacity-100 translate-x-0'
-                                                    : 'text-gray-400 opacity-0 -translate-x-1'
+                                                        ? "text-[var(--accent-blue)] opacity-100"
+                                                        : "text-secondary opacity-0"
                                                     }`}
                                                 size={18}
                                             />
                                         </button>
                                     ))}
                                 </div>
-                                <div className="border-t border-gray-200 px-4 py-2 bg-gray-50">
-                                    <p className="text-xs text-gray-500 text-center">
-                                        {filteredActions.length} result{filteredActions.length !== 1 ? 's' : ''} • Use ↑↓ to navigate, Enter to select
+
+                                {/* Footer */}
+                                <div className="border-t border-theme px-4 py-2 bg-card">
+                                    <p className="text-xs text-secondary text-center">
+                                        {filteredActions.length} result{filteredActions.length !== 1 ? "s" : ""} • Use ↑↓ to navigate
                                     </p>
                                 </div>
+
                             </div>
                         )}
 
                         {searchQuery.trim() !== "" && filteredActions.length === 0 && (
                             <div className="p-8">
-                                <p className="text-sm text-gray-500 text-center">
+                                <p className="text-sm text-secondary text-center">
                                     No actions found for "{searchQuery}"
                                 </p>
                             </div>
@@ -313,61 +348,12 @@ const Header: React.FC<HeaderProps> = ({ isSidebarCollapsed = false, onToggleSid
 
                         {searchQuery.trim() === "" && (
                             <div className="p-8">
-                                <p className="text-sm text-gray-500 text-center">
+                                <p className="text-sm text-secondary text-center">
                                     Type to search for actions, pages, or create new items
                                 </p>
                             </div>
                         )}
-                    </div>
-                </div>
-            )}
 
-            {/* Logout Confirmation Modal */}
-            {showLogoutModal && (
-                <div
-                    className="fixed inset-0 z-[10000] flex items-center justify-center bg-black/50 backdrop-blur-sm"
-                    onClick={cancelLogout}
-                >
-                    <div
-                        className="bg-white rounded-2xl shadow-2xl max-w-md w-full mx-4 transform transition-all"
-                        onClick={(e) => e.stopPropagation()}
-                    >
-                        <div className="p-6 border-b border-gray-200">
-                            <div className="flex items-center gap-4">
-                                <div className="flex-shrink-0 w-12 h-12 rounded-full bg-red-100 flex items-center justify-center">
-                                    <LogOut className="text-red-600" size={24} />
-                                </div>
-                                <div>
-                                    <h3 className="text-xl font-bold text-gray-900">Confirm Logout</h3>
-                                    <p className="text-sm text-gray-500 mt-1">Are you sure you want to logout?</p>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div className="p-6">
-                            <div className="flex items-start gap-3 p-4 bg-amber-50 border border-amber-200 rounded-lg">
-                                <AlertCircle className="text-amber-600 flex-shrink-0 mt-0.5" size={20} />
-                                <p className="text-sm text-amber-800">
-                                    You'll need to sign in again to access your account after logging out.
-                                </p>
-                            </div>
-                        </div>
-
-                        <div className="p-6 border-t border-gray-200 flex justify-end gap-3">
-                            <button
-                                onClick={cancelLogout}
-                                className="px-6 py-2.5 text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors font-medium"
-                            >
-                                Cancel
-                            </button>
-                            <button
-                                onClick={confirmLogout}
-                                className="px-6 py-2.5 !text-white bg-red-600 hover:bg-red-700 rounded-lg transition-colors font-medium flex items-center gap-2 shadow-lg shadow-red-500/30"
-                            >
-                                <LogOut size={18} />
-                                Logout
-                            </button>
-                        </div>
                     </div>
                 </div>
             )}

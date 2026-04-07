@@ -118,15 +118,15 @@ const AddressSearch: React.FC<AddressSearchProps> = ({
       // Try Google Places Text Search API first (better for full addresses like "12 Aster Dr Unit 103 A, Rosser, MB...")
       console.log('🔍 [AddressSearch] Starting address search for:', query.substring(0, 50));
       const baseUrl = import.meta.env.VITE_APP_BASE_URL || 'http://localhost:3000/api/v1';
-      
+
       // Try Text Search API first (better for complete addresses)
       const textSearchUrl = `${baseUrl}/places/textsearch?query=${encodeURIComponent(query)}&type=address`;
-      
+
       console.log('🌐 [AddressSearch] Attempting Google Places Text Search API first (better for full addresses)...');
       console.log('🌐 [AddressSearch] Backend URL:', baseUrl);
       console.log('🌐 [AddressSearch] API Key: Will be retrieved from backend (process.env.GOOGLE_MAPS_API_KEY)');
       console.log('🌐 [AddressSearch] Search query:', query);
-      
+
       try {
         const textSearchResponse = await fetch(textSearchUrl, {
           method: 'GET',
@@ -142,23 +142,23 @@ const AddressSearch: React.FC<AddressSearchProps> = ({
           console.warn('⚠️ [AddressSearch] Failed to parse Text Search response, trying Autocomplete...');
           throw new Error('Invalid response from Text Search API');
         }
-        
+
         // Check if Text Search was successful
         if (textSearchResponse.ok && textSearchData.success && textSearchData.data?.status === 'OK' && textSearchData.data?.predictions && textSearchData.data.predictions.length > 0) {
           console.log('✅ [AddressSearch] Google Places Text Search API successful! Found', textSearchData.data.predictions.length, 'predictions');
           console.log('📍 [AddressSearch] Using: Google Places Text Search API');
-          
+
           // Process Text Search results (they're already in the right format)
           const validResults: AddressResult[] = [];
-          
+
           // Fetch place details for each prediction
           const placeDetailsPromises = textSearchData.data.predictions.slice(0, 8).map(async (prediction: any) => {
             try {
               const detailsUrl = `${baseUrl}/places/details?place_id=${encodeURIComponent(prediction.place_id)}&fields=formatted_address,geometry,address_components,place_id`;
-              
+
               const controller = new AbortController();
               const timeoutId = setTimeout(() => controller.abort(), 3000);
-              
+
               const detailsResponse = await fetch(detailsUrl, {
                 signal: controller.signal,
                 headers: {
@@ -166,18 +166,18 @@ const AddressSearch: React.FC<AddressSearchProps> = ({
                 }
               });
               clearTimeout(timeoutId);
-              
+
               if (detailsResponse.ok) {
                 const detailsData = await detailsResponse.json();
                 if (detailsData.success && detailsData.data?.status === 'OK' && detailsData.data?.result) {
                   const result = detailsData.data.result;
                   const addressComponents = result.address_components || [];
-                  
+
                   const getComponent = (type: string) => {
                     const component = addressComponents.find((comp: any) => comp.types.includes(type));
                     return component?.long_name || '';
                   };
-                  
+
                   const getShortComponent = (type: string) => {
                     const component = addressComponents.find((comp: any) => comp.types.includes(type));
                     return component?.short_name || '';
@@ -242,10 +242,10 @@ const AddressSearch: React.FC<AddressSearchProps> = ({
       } catch (textSearchError) {
         console.warn('⚠️ [AddressSearch] Text Search API failed, trying Autocomplete API:', textSearchError);
       }
-      
+
       // Fallback to Autocomplete API
       const autocompleteUrl = `${baseUrl}/places/autocomplete?input=${encodeURIComponent(query)}&components=country:ca|country:us&types=address`;
-      
+
       console.log('🔄 [AddressSearch] Trying Google Places Autocomplete API as fallback...');
       try {
         const placesResponse = await fetch(autocompleteUrl, {
@@ -263,7 +263,7 @@ const AddressSearch: React.FC<AddressSearchProps> = ({
           console.warn('Failed to parse Google Places response, falling back to Photon');
           throw new Error('Invalid response from Google Places API');
         }
-        
+
         // Check if request was successful and has valid predictions
         if (placesResponse.ok && placesData.success) {
           if (placesData.data?.status === 'ZERO_RESULTS') {
@@ -277,11 +277,11 @@ const AddressSearch: React.FC<AddressSearchProps> = ({
             const placeDetailsPromises = topPredictions.map(async (prediction: any) => {
               try {
                 const detailsUrl = `${baseUrl}/places/details?place_id=${encodeURIComponent(prediction.place_id)}&fields=formatted_address,geometry,address_components,place_id`;
-                
+
                 // Add timeout to prevent hanging
                 const controller = new AbortController();
                 const timeoutId = setTimeout(() => controller.abort(), 3000);
-                
+
                 const detailsResponse = await fetch(detailsUrl, {
                   signal: controller.signal,
                   headers: {
@@ -289,19 +289,19 @@ const AddressSearch: React.FC<AddressSearchProps> = ({
                   }
                 });
                 clearTimeout(timeoutId);
-                
+
                 if (detailsResponse.ok) {
                   const detailsData = await detailsResponse.json();
                   if (detailsData.success && detailsData.data?.status === 'OK' && detailsData.data?.result) {
                     const result = detailsData.data.result;
                     const addressComponents = result.address_components || [];
-                    
+
                     // Extract address components
                     const getComponent = (type: string) => {
                       const component = addressComponents.find((comp: any) => comp.types.includes(type));
                       return component?.long_name || '';
                     };
-                    
+
                     const getShortComponent = (type: string) => {
                       const component = addressComponents.find((comp: any) => comp.types.includes(type));
                       return component?.short_name || '';
@@ -347,7 +347,7 @@ const AddressSearch: React.FC<AddressSearchProps> = ({
             // Use allSettled to handle partial failures gracefully
             const placeDetailsResults = await Promise.allSettled(placeDetailsPromises);
             const validResults: AddressResult[] = [];
-            
+
             for (const result of placeDetailsResults) {
               if (result.status === 'fulfilled' && result.value !== null) {
                 validResults.push(result.value);
@@ -370,15 +370,15 @@ const AddressSearch: React.FC<AddressSearchProps> = ({
             console.warn('⚠️ [AddressSearch] Google Places API status:', placesData.data?.status, '- Falling back to Photon API');
           }
         } else {
-            // Backend returned an error or no results - fall through to Photon
-            if (placesData?.fallback_available || placesResponse.status === 503) {
-              console.warn('⚠️ [AddressSearch] Google Places API unavailable (billing/authentication issue), falling back to Photon API');
-            } else if (placesData?.data?.status) {
-              console.warn('⚠️ [AddressSearch] Google Places API error:', placesData.data.status, placesData.data?.error_message, '- Falling back to Photon API');
-            } else {
-              console.warn('⚠️ [AddressSearch] Google Places API backend error:', placesData?.message || 'Unknown error', '- Falling back to Photon API');
-            }
+          // Backend returned an error or no results - fall through to Photon
+          if (placesData?.fallback_available || placesResponse.status === 503) {
+            console.warn('⚠️ [AddressSearch] Google Places API unavailable (billing/authentication issue), falling back to Photon API');
+          } else if (placesData?.data?.status) {
+            console.warn('⚠️ [AddressSearch] Google Places API error:', placesData.data.status, placesData.data?.error_message, '- Falling back to Photon API');
+          } else {
+            console.warn('⚠️ [AddressSearch] Google Places API backend error:', placesData?.message || 'Unknown error', '- Falling back to Photon API');
           }
+        }
       } catch (googleError) {
         console.warn('⚠️ [AddressSearch] Google Places API via backend failed:', googleError, '- Falling back to Photon API');
         // Fall through to Photon API
@@ -412,7 +412,7 @@ const AddressSearch: React.FC<AddressSearchProps> = ({
       }
 
       const data: PhotonResponse = await response.json();
-      
+
       console.log('✅ [AddressSearch] Photon API successful! Found', data.features?.length || 0, 'results');
 
       // Convert Photon format to our AddressResult format
@@ -597,14 +597,21 @@ const AddressSearch: React.FC<AddressSearchProps> = ({
 
   return (
     <div className={`relative ${className}`}>
+
+      {/* Label */}
       {label && (
-        <label className="block text-xs font-medium text-gray-700 mb-1">
+        <label className="block text-xs font-medium text-secondary mb-1">
           {label}
         </label>
       )}
+
       <div className="relative">
+
+        {/* INPUT */}
         <div className="relative">
-          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
+
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-secondary" />
+
           <input
             ref={inputRef}
             type="text"
@@ -612,94 +619,120 @@ const AddressSearch: React.FC<AddressSearchProps> = ({
             value={searchQuery}
             onChange={(e) => {
               setSearchQuery(e.target.value);
-              if (onChange) {
-                onChange(e.target.value);
-              }
+              onChange?.(e.target.value);
             }}
             onKeyDown={handleKeyDown}
-            onFocus={() => {
-              if (results.length > 0) {
-                setShowResults(true);
-              }
-            }}
-            className="w-full pl-10 pr-10 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
+            onFocus={() => results.length > 0 && setShowResults(true)}
+            className="
+            w-full pl-10 pr-10 py-2 text-sm
+            bg-main text-primary
+            border border-theme
+            rounded-lg
+            focus:outline-none
+            focus:ring-2 focus:ring-[var(--accent-blue)]
+          "
           />
+
+          {/* CLEAR BUTTON */}
           {searchQuery && (
             <button
               onClick={() => {
                 setSearchQuery('');
                 setResults([]);
                 setShowResults(false);
-                if (onChange) {
-                  onChange('');
-                }
+                onChange?.('');
               }}
-              className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
+              className="absolute right-3 top-1/2 -translate-y-1/2 text-secondary hover:text-accent transition"
             >
               <X className="w-4 h-4" />
             </button>
           )}
+
+          {/* LOADER */}
           {isSearching && (
-            <div className="absolute right-10 top-1/2 transform -translate-y-1/2">
-              <Loader2 className="w-4 h-4 animate-spin text-gray-400" />
+            <div className="absolute right-10 top-1/2 -translate-y-1/2">
+              <Loader2 className="w-4 h-4 animate-spin text-accent" />
             </div>
           )}
         </div>
 
-        {/* Search Results Dropdown */}
+        {/* RESULTS */}
         {showResults && results.length > 0 && (
           <div
             ref={resultsRef}
-            className="absolute z-50 w-full mt-1 bg-white border border-gray-300 rounded-lg shadow-lg max-h-64 overflow-y-auto"
+            className="
+            absolute z-50 w-full mt-1
+            bg-card border border-theme
+            rounded-lg shadow-3xl
+            max-h-64 overflow-y-auto
+          "
           >
             {results.map((result, index) => (
               <button
                 key={`${result.lat}_${result.lon}_${index}`}
                 type="button"
                 onClick={() => handleAddressSelect(result)}
-                className={`w-full text-left px-4 py-3 hover:bg-blue-50 transition-colors border-b border-gray-100 last:border-b-0 ${selectedIndex === index ? 'bg-blue-50' : ''
-                  }`}
                 onMouseEnter={() => setSelectedIndex(index)}
+                className={`
+                w-full text-left px-4 py-3 transition
+                border-b border-theme last:border-b-0
+                ${selectedIndex === index
+                    ? "active-accent"
+                    : "hover-accent"}
+              `}
               >
                 <div className="flex items-start gap-2">
-                  <MapPin className="w-4 h-4 text-blue-500 mt-0.5 flex-shrink-0" />
+
+                  <MapPin className="w-4 h-4 text-accent mt-0.5 flex-shrink-0" />
+
                   <div className="flex-1 min-w-0">
-                    <p className="text-sm font-medium text-gray-900 truncate">
+                    <p className="text-sm font-medium text-primary truncate">
                       {result.display_name.split(',')[0]}
                     </p>
-                    <p className="text-xs text-gray-500 truncate">
+                    <p className="text-xs text-secondary truncate">
                       {result.display_name}
                     </p>
                   </div>
+
                 </div>
               </button>
             ))}
           </div>
         )}
 
-        {/* Error Message */}
+        {/* ERROR */}
         {errorMessage && (
-          <div className="absolute z-50 w-full mt-1 bg-yellow-50 border border-yellow-300 rounded-lg shadow-lg p-3">
-            <p className="text-sm text-yellow-800 text-center">
+          <div className="
+          absolute z-50 w-full mt-1
+          bg-[rgba(245,158,11,0.1)]
+          border border-[var(--accent-orange)]
+          rounded-lg shadow-3xl p-3
+        ">
+            <p className="text-sm text-[var(--accent-orange)] text-center">
               {errorMessage}
             </p>
             <button
               onClick={() => setErrorMessage(null)}
-              className="absolute right-2 top-2 text-yellow-600 hover:text-yellow-800"
+              className="absolute right-2 top-2 text-[var(--accent-orange)] hover:opacity-80"
             >
               <X className="w-4 h-4" />
             </button>
           </div>
         )}
 
-        {/* No Results Message */}
+        {/* NO RESULTS */}
         {showResults && !isSearching && !errorMessage && results.length === 0 && searchQuery.trim().length >= 3 && (
-          <div className="absolute z-50 w-full mt-1 bg-white border border-gray-300 rounded-lg shadow-lg p-4">
-            <p className="text-sm text-gray-500 text-center">
+          <div className="
+          absolute z-50 w-full mt-1
+          bg-card border border-theme
+          rounded-lg shadow-3xl p-4
+        ">
+            <p className="text-sm text-secondary text-center">
               No addresses found. Try a different search term.
             </p>
           </div>
         )}
+
       </div>
     </div>
   );
