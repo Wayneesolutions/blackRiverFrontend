@@ -14,6 +14,7 @@ import {
 import { Truck, Users, Package, Wrench, FileText, AlertTriangle, Calendar, Clock, RefreshCw } from "lucide-react";
 import { quickStats, loadsPerMonth, revenueTrend, fuelEfficiency, recentAlerts } from "../../../../axios/api/main.dashboard";
 import ExpiringDocumentsPopup from "../../../../components/common/ExpiringDocumentsPopup";
+import Card from "../../../../components/admin/Card";
 
 interface Stats {
   totalVehicles: number;
@@ -99,7 +100,7 @@ export default function QuickStatsUI() {
       setLoading(true);
       setError(null);
       setAlertError(null);
-      
+
       // Fetch all data in parallel
       const results = await Promise.allSettled([
         quickStats(),
@@ -120,14 +121,14 @@ export default function QuickStatsUI() {
           pendingWorkOrders: statsData.pendingWorkOrders || 0,
           pendingInvoices: statsData.pendingInvoices || 0,
         });
-        
+
         if (results[0].value.requiresCompanySetup && results[0].value.message) {
           setError(results[0].value.message);
         }
       } else {
         console.error("Failed to fetch quick stats:", results[0]);
-        const errorMsg = results[0].status === 'rejected' 
-          ? 'Failed to fetch statistics' 
+        const errorMsg = results[0].status === 'rejected'
+          ? 'Failed to fetch statistics'
           : (results[0].value?.message || 'Failed to fetch statistics');
         setError(errorMsg);
       }
@@ -216,7 +217,7 @@ export default function QuickStatsUI() {
 
   if (loading) {
     return (
-      <div className="p-6 flex items-center justify-center min-h-screen bg-[#EDF8FF]">
+      <div className="p-6 flex items-center justify-center min-h-screen bg-main">
         <div className="text-center">
           <RefreshCw className="animate-spin h-10 w-10 text-blue-600 mx-auto mb-3" />
           <p className="text-gray-600">Loading dashboard...</p>
@@ -227,8 +228,8 @@ export default function QuickStatsUI() {
 
   if (error) {
     return (
-      <div className="p-6 flex items-center justify-center min-h-screen bg-[#EDF8FF]">
-        <div className="text-center bg-white p-6 rounded-lg shadow-lg">
+      <div className="p-6 flex items-center justify-center min-h-screen bg-main border-2 border-red-700">
+        <div className="text-center bg-main p-6 rounded-lg shadow-lg">
           <AlertTriangle className="h-12 w-12 text-red-500 mx-auto mb-3" />
           <div className="text-red-600 text-lg font-semibold mb-2">{error}</div>
           <button
@@ -244,54 +245,60 @@ export default function QuickStatsUI() {
   }
 
   return (
-    <div className="p-5 space-y-5 bg-[#EDF8FF] min-h-screen relative overflow-hidden">
+    <div className="p-5 space-y-5 bg-main min-h-screen relative overflow-hidden">
       {/* Animated Background Elements */}
       <div className="absolute top-0 left-0 w-96 h-96 bg-blue-400/5 rounded-full blur-3xl animate-pulse"></div>
       <div className="absolute bottom-0 right-0 w-96 h-96 bg-violet-400/5 rounded-full blur-3xl animate-pulse" style={{ animationDelay: '1s' }}></div>
       <div className="absolute top-1/2 left-1/3 w-64 h-64 bg-emerald-400/5 rounded-full blur-3xl animate-pulse" style={{ animationDelay: '2s' }}></div>
-      
+
       {/* Top Cards - Smaller & More Elegant */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3 relative z-10">
-        <StatCard 
-          title="Total Vehicles" 
-          value={stats.totalVehicles} 
-          icon={<Truck className="h-5 w-5 text-blue-600" />}
+
+        <StatCard
+          title="Total Vehicles"
+          value={stats.totalVehicles}
+          icon={<Truck className="h-5 w-5" />}
           color="blue"
           onClick={() => navigate("/admin/fleetmaintenance/fleet-units")}
         />
-        <StatCard 
-          title="Drivers on Duty" 
-          value={stats.driversOnDuty} 
-          icon={<Users className="h-5 w-5 text-emerald-600" />}
+
+        <StatCard
+          title="Drivers on Duty"
+          value={stats.driversOnDuty}
+          icon={<Users className="h-5 w-5" />}
           color="green"
           onClick={() => navigate("/admin/dispatch/drivers")}
         />
-        <StatCard 
-          title="Active Trips" 
-          value={stats.activeTrips || stats.activeLoads || 0} 
-          icon={<Package className="h-5 w-5 text-violet-600" />}
+
+        <StatCard
+          title="Active Trips"
+          value={stats.activeTrips || stats.activeLoads || 0}
+          icon={<Package className="h-5 w-5" />}
           color="purple"
           onClick={() => navigate("/admin/dispatch/trips")}
         />
-        <StatCard 
-          title="Pending Work Orders" 
-          value={stats.pendingWorkOrders} 
-          icon={<Wrench className="h-5 w-5 text-amber-600" />}
+
+        <StatCard
+          title="Pending Work Orders"
+          value={stats.pendingWorkOrders}
+          icon={<Wrench className="h-5 w-5" />}
           color="orange"
           onClick={() => navigate("/admin/fleetmaintenance/maintenance-orders-log")}
         />
-        <StatCard 
-          title="Pending Invoices" 
-          value={stats.pendingInvoices} 
-          icon={<FileText className="h-5 w-5 text-rose-600" />}
+
+        <StatCard
+          title="Pending Invoices"
+          value={stats.pendingInvoices}
+          icon={<FileText className="h-5 w-5" />}
           color="red"
           onClick={() => navigate("/admin/accounts/invoice")}
         />
+
       </div>
 
       {/* Charts - Compact & Elegant */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 relative z-10">
-        <Card className="lg:col-span-2 cursor-pointer hover:shadow-xl transition-all duration-300 hover:-translate-y-0.5" onClick={() => navigate("/admin/dispatch/trips")}>
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 relative z-10 border-2 border-green-700">
+        <InternalCard className="lg:col-span-2 cursor-pointer hover:shadow-xl transition-all duration-300 hover:-translate-y-0.5" onClick={() => navigate("/admin/dispatch/trips")}>
           <div className="flex items-center justify-between mb-3">
             <h3 className="text-base font-semibold text-gray-800 flex items-center gap-2">
               <div className="p-1.5 bg-blue-100 rounded-lg">
@@ -300,7 +307,7 @@ export default function QuickStatsUI() {
               Trips per Month
             </h3>
             <div className="flex items-center gap-1 text-xs text-gray-500">
-              <div className="w-2 h-2 bg-blue-500 rounded-full animate-pulse"></div>
+              <div className="w-2 h-2 bg-blue-500 rounded-full animate-pulse border-2 border-red-700"></div>
               Live
             </div>
           </div>
@@ -309,30 +316,30 @@ export default function QuickStatsUI() {
               <ResponsiveContainer>
                 <BarChart data={loadsData} barCategoryGap="15%">
                   <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
-                  <XAxis 
-                    dataKey="name" 
-                    stroke="#9ca3af" 
-                    style={{ fontSize: '11px', fontWeight: 500 }} 
+                  <XAxis
+                    dataKey="name"
+                    stroke="#9ca3af"
+                    style={{ fontSize: '11px', fontWeight: 500 }}
                   />
-                  <YAxis 
-                    stroke="#9ca3af" 
+                  <YAxis
+                    stroke="#9ca3af"
                     style={{ fontSize: '11px' }}
                     allowDecimals={false}
                   />
-                  <Tooltip 
-                    contentStyle={{ 
-                      backgroundColor: '#fff', 
-                      border: 'none', 
+                  <Tooltip
+                    contentStyle={{
+                      backgroundColor: '#fff',
+                      border: 'none',
                       borderRadius: '8px',
                       boxShadow: '0 4px 12px rgba(0,0,0,0.1)',
                       fontSize: '12px'
                     }}
                     cursor={{ fill: 'rgba(59, 130, 246, 0.08)' }}
                   />
-                  <Bar 
-                    dataKey="value" 
-                    fill="url(#blueGradient)" 
-                    name="Trips" 
+                  <Bar
+                    dataKey="value"
+                    fill="url(#blueGradient)"
+                    name="Trips"
                     radius={[8, 8, 0, 0]}
                     maxBarSize={60}
                   />
@@ -351,9 +358,9 @@ export default function QuickStatsUI() {
               <p className="text-sm">No trip data available</p>
             </div>
           )}
-        </Card>
+        </InternalCard>
 
-        <Card className="cursor-pointer hover:shadow-xl transition-all duration-300 hover:-translate-y-0.5" onClick={() => navigate("/admin/accounts/invoice")}>
+        <InternalCard className="cursor-pointer hover:shadow-xl transition-all duration-300 hover:-translate-y-0.5" onClick={() => navigate("/admin/accounts/invoice")}>
           <div className="flex items-center justify-between mb-3">
             <h3 className="text-base font-semibold text-gray-800 flex items-center gap-2">
               <div className="p-1.5 bg-emerald-100 rounded-lg">
@@ -373,22 +380,22 @@ export default function QuickStatsUI() {
                   <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
                   <XAxis dataKey="name" stroke="#9ca3af" style={{ fontSize: '11px' }} />
                   <YAxis stroke="#9ca3af" style={{ fontSize: '11px' }} />
-                  <Tooltip 
-                    contentStyle={{ 
-                      backgroundColor: '#fff', 
-                      border: 'none', 
+                  <Tooltip
+                    contentStyle={{
+                      backgroundColor: '#fff',
+                      border: 'none',
                       borderRadius: '8px',
                       boxShadow: '0 4px 12px rgba(0,0,0,0.1)',
                       fontSize: '12px'
                     }}
                     formatter={(value) => `$${(value as number).toLocaleString()}`}
                   />
-                  <Line 
-                    type="monotone" 
-                    dataKey="value" 
-                    stroke="url(#emeraldGradient)" 
-                    strokeWidth={3} 
-                    dot={{ r: 4, fill: '#10b981', strokeWidth: 2, stroke: '#fff' }} 
+                  <Line
+                    type="monotone"
+                    dataKey="value"
+                    stroke="url(#emeraldGradient)"
+                    strokeWidth={3}
+                    dot={{ r: 4, fill: '#10b981', strokeWidth: 2, stroke: '#fff' }}
                     activeDot={{ r: 6, fill: '#10b981', strokeWidth: 2 }}
                   />
                   <defs>
@@ -406,15 +413,15 @@ export default function QuickStatsUI() {
               <p className="text-sm">No revenue data available</p>
             </div>
           )}
-        </Card>
+        </InternalCard>
       </div>
 
       {/* Recent Alerts - Compact */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 relative z-10">
-        <Card className="lg:col-span-2 relative overflow-hidden">
+        <InternalCard className="lg:col-span-2 relative overflow-hidden">
           {/* Decorative gradient orb */}
           <div className="absolute -right-8 -top-8 w-32 h-32 bg-gradient-to-br from-rose-300/20 to-amber-300/20 rounded-full blur-2xl"></div>
-          
+
           <h3 className="text-base font-semibold mb-3 text-gray-800 flex items-center gap-2 relative z-10">
             <div className="p-1.5 bg-rose-100 rounded-lg">
               <AlertTriangle className="h-4 w-4 text-rose-600" />
@@ -432,16 +439,16 @@ export default function QuickStatsUI() {
             </div>
           ) : (
             <div className="space-y-3">
-              <AlertSection 
-                title="Maintenance Due" 
+              <AlertSection
+                title="Maintenance Due"
                 count={alerts.maintenanceDue?.length || 0}
                 icon={<Wrench className="h-3.5 w-3.5" />}
                 onClick={() => navigate("/admin/fleetmaintenance/scheduled-services-log")}
               >
                 {alerts.maintenanceDue && alerts.maintenanceDue.length > 0 ? (
                   alerts.maintenanceDue.map((vehicle, idx) => (
-                    <div 
-                      key={idx} 
+                    <div
+                      key={idx}
                       className="flex justify-between items-center p-2.5 bg-gradient-to-r from-rose-50 to-red-50 rounded-lg border border-rose-200 hover:border-rose-300 transition-all cursor-pointer"
                       onClick={() => navigate("/admin/fleetmaintenance/scheduled-services-log")}
                     >
@@ -466,16 +473,16 @@ export default function QuickStatsUI() {
                 )}
               </AlertSection>
 
-              <AlertSection 
-                title="Document Expiry" 
+              <AlertSection
+                title="Document Expiry"
                 count={alerts.expiringDocs?.length || 0}
                 icon={<FileText className="h-3.5 w-3.5" />}
                 onClick={() => navigate("/admin/Management/documents")}
               >
                 {alerts.expiringDocs && alerts.expiringDocs.length > 0 ? (
                   alerts.expiringDocs.map((doc, idx) => (
-                    <div 
-                      key={idx} 
+                    <div
+                      key={idx}
                       className="flex justify-between items-center p-2.5 bg-gradient-to-r from-amber-50 to-yellow-50 rounded-lg border border-amber-200 hover:border-amber-300 transition-all cursor-pointer"
                       onClick={() => navigate("/admin/Management/documents")}
                     >
@@ -500,16 +507,16 @@ export default function QuickStatsUI() {
                 )}
               </AlertSection>
 
-              <AlertSection 
-                title="Delayed Trips" 
+              <AlertSection
+                title="Delayed Trips"
                 count={alerts.delayedLoads?.length || 0}
                 icon={<Clock className="h-3.5 w-3.5" />}
                 onClick={() => navigate("/admin/dispatch/trips")}
               >
                 {alerts.delayedLoads && alerts.delayedLoads.length > 0 ? (
                   alerts.delayedLoads.map((trip, idx) => (
-                    <div 
-                      key={idx} 
+                    <div
+                      key={idx}
                       className="flex justify-between items-center p-2.5 bg-gradient-to-r from-orange-50 to-amber-50 rounded-lg border border-orange-200 hover:border-orange-300 transition-all cursor-pointer"
                       onClick={() => navigate("/admin/dispatch/trips")}
                     >
@@ -535,13 +542,13 @@ export default function QuickStatsUI() {
               </AlertSection>
             </div>
           )}
-        </Card>
+        </InternalCard>
 
         {/* Summary Card - Compact */}
-        <Card className="relative overflow-hidden">
+        <InternalCard className="relative overflow-hidden">
           {/* Decorative gradient orb */}
           <div className="absolute -left-8 -bottom-8 w-32 h-32 bg-gradient-to-tr from-blue-300/20 to-violet-300/20 rounded-full blur-2xl"></div>
-          
+
           <h3 className="text-base font-semibold mb-3 text-gray-800 relative z-10">Summary</h3>
           <div className="space-y-2 relative z-10">
             <SummaryItem label="Total Vehicles" value={stats.totalVehicles} icon={<Truck className="h-3.5 w-3.5 text-blue-600" />} />
@@ -550,7 +557,7 @@ export default function QuickStatsUI() {
             <SummaryItem label="Pending Work Orders" value={stats.pendingWorkOrders} icon={<Wrench className="h-3.5 w-3.5 text-amber-600" />} />
             <SummaryItem label="Pending Invoices" value={stats.pendingInvoices} icon={<FileText className="h-3.5 w-3.5 text-rose-600" />} />
           </div>
-          
+
           <button
             onClick={fetchDashboardData}
             className="mt-4 w-full px-3 py-2 bg-gradient-to-r from-blue-600 via-blue-600 to-blue-700 !text-white rounded-lg hover:from-blue-700 hover:via-blue-700 hover:to-blue-800 transition-all text-sm font-medium flex items-center justify-center gap-2 shadow-md hover:shadow-lg relative z-10 group overflow-hidden"
@@ -560,7 +567,7 @@ export default function QuickStatsUI() {
             <RefreshCw className="h-3.5 w-3.5 relative z-10" />
             <span className="relative z-10">Refresh Data</span>
           </button>
-        </Card>
+        </InternalCard>
       </div>
 
       {/* Expiring Documents Popup */}
@@ -577,46 +584,46 @@ export default function QuickStatsUI() {
   );
 }
 
-function StatCard({ title, value, icon, color, onClick }: { title: string; value: number; icon: React.ReactNode; color: string; onClick?: () => void }) {
-  const colorClasses: Record<string, string> = {
-    blue: 'bg-gradient-to-br from-blue-400/20 via-blue-300/10 to-blue-100/30 border-blue-300/40 hover:border-blue-400/60 hover:shadow-blue-200/50',
-    green: 'bg-gradient-to-br from-emerald-400/20 via-emerald-300/10 to-emerald-100/30 border-emerald-300/40 hover:border-emerald-400/60 hover:shadow-emerald-200/50',
-    purple: 'bg-gradient-to-br from-violet-400/20 via-violet-300/10 to-violet-100/30 border-violet-300/40 hover:border-violet-400/60 hover:shadow-violet-200/50',
-    orange: 'bg-gradient-to-br from-amber-400/20 via-amber-300/10 to-amber-100/30 border-amber-300/40 hover:border-amber-400/60 hover:shadow-amber-200/50',
-    red: 'bg-gradient-to-br from-rose-400/20 via-rose-300/10 to-rose-100/30 border-rose-300/40 hover:border-rose-400/60 hover:shadow-rose-200/50',
-  };
+// function StatCard({ title, value, icon, color, onClick }: { title: string; value: number; icon: React.ReactNode; color: string; onClick?: () => void }) {
+//   const colorClasses: Record<string, string> = {
+//     blue: 'bg-gradient-to-br from-blue-400/20 via-blue-300/10 to-blue-100/30 border-blue-300/40 hover:border-blue-400/60 hover:shadow-blue-200/50',
+//     green: 'bg-gradient-to-br from-emerald-400/20 via-emerald-300/10 to-emerald-100/30 border-emerald-300/40 hover:border-emerald-400/60 hover:shadow-emerald-200/50',
+//     purple: 'bg-gradient-to-br from-violet-400/20 via-violet-300/10 to-violet-100/30 border-violet-300/40 hover:border-violet-400/60 hover:shadow-violet-200/50',
+//     orange: 'bg-gradient-to-br from-amber-400/20 via-amber-300/10 to-amber-100/30 border-amber-300/40 hover:border-amber-400/60 hover:shadow-amber-200/50',
+//     red: 'bg-gradient-to-br from-rose-400/20 via-rose-300/10 to-rose-100/30 border-rose-300/40 hover:border-rose-400/60 hover:shadow-rose-200/50',
+//   };
 
-  const iconBgClasses: Record<string, string> = {
-    blue: 'bg-blue-100/80 group-hover:bg-blue-200/80',
-    green: 'bg-emerald-100/80 group-hover:bg-emerald-200/80',
-    purple: 'bg-violet-100/80 group-hover:bg-violet-200/80',
-    orange: 'bg-amber-100/80 group-hover:bg-amber-200/80',
-    red: 'bg-rose-100/80 group-hover:bg-rose-200/80',
-  };
+//   const iconBgClasses: Record<string, string> = {
+//     blue: 'bg-blue-100/80 group-hover:bg-blue-200/80',
+//     green: 'bg-emerald-100/80 group-hover:bg-emerald-200/80',
+//     purple: 'bg-violet-100/80 group-hover:bg-violet-200/80',
+//     orange: 'bg-amber-100/80 group-hover:bg-amber-200/80',
+//     red: 'bg-rose-100/80 group-hover:bg-rose-200/80',
+//   };
 
+//   return (
+//     <div
+//       className={`group ${colorClasses[color]} rounded-xl p-4 shadow-md border hover:shadow-lg transition-all duration-300 ${onClick ? 'cursor-pointer transform hover:-translate-y-1' : ''} backdrop-blur-sm relative overflow-hidden`}
+//       onClick={onClick}
+//     >
+//       {/* Animated shimmer effect */}
+//       <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000"></div>
+
+//       <div className="flex items-center justify-between mb-2 relative z-10">
+//         <div className="text-xs font-semibold text-gray-700">{title}</div>
+//         <div className={`p-2 rounded-lg ${iconBgClasses[color]} transition-all duration-300`}>
+//           {icon}
+//         </div>
+//       </div>
+//       <div className="text-2xl font-bold text-gray-900 relative z-10">{value}</div>
+//     </div>
+//   );
+// }
+
+function InternalCard({ children, className = "", onClick }: { children: React.ReactNode; className?: string; onClick?: () => void }) {
   return (
-    <div 
-      className={`group ${colorClasses[color]} rounded-xl p-4 shadow-md border hover:shadow-lg transition-all duration-300 ${onClick ? 'cursor-pointer transform hover:-translate-y-1' : ''} backdrop-blur-sm relative overflow-hidden`}
-      onClick={onClick}
-    >
-      {/* Animated shimmer effect */}
-      <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000"></div>
-      
-      <div className="flex items-center justify-between mb-2 relative z-10">
-        <div className="text-xs font-semibold text-gray-700">{title}</div>
-        <div className={`p-2 rounded-lg ${iconBgClasses[color]} transition-all duration-300`}>
-          {icon}
-        </div>
-      </div>
-      <div className="text-2xl font-bold text-gray-900 relative z-10">{value}</div>
-    </div>
-  );
-}
-
-function Card({ children, className = "", onClick }: { children: React.ReactNode; className?: string; onClick?: () => void }) {
-  return (
-    <div 
-      className={`bg-white/90 backdrop-blur-md rounded-xl p-4 shadow-md border border-gray-200/50 hover:border-gray-300/50 ${className}`}
+    <div
+      className={`bg-white/90 backdrop-blur-md rounded-xl p-4 shadow-md border border-gray-200/50 hover:border-gray-300/50 ${className} border-2 border-green-700`}
       onClick={onClick}
     >
       {children}
@@ -627,7 +634,7 @@ function Card({ children, className = "", onClick }: { children: React.ReactNode
 function AlertSection({ title, children, count, icon, onClick }: { title: string; children: React.ReactNode; count: number; icon: React.ReactNode; onClick?: () => void }) {
   return (
     <div>
-      <div 
+      <div
         className={`flex items-center justify-between mb-2 ${onClick ? 'cursor-pointer hover:text-gray-900 transition-colors' : ''}`}
         onClick={onClick}
       >
@@ -655,5 +662,84 @@ function SummaryItem({ label, value, icon }: { label: string; value: number; ico
       </div>
       <span className="text-base font-semibold text-gray-900">{value}</span>
     </div>
+  );
+}
+
+
+function StatCard({
+  title,
+  value,
+  icon,
+  color,
+  onClick,
+}: {
+  title: string;
+  value: number;
+  icon: React.ReactNode;
+  color: string;
+  onClick?: () => void;
+}) {
+  const styles: Record<string, any> = {
+    blue: {
+      bg: "bg-blue-500/10",
+      text: "text-blue-400",
+      glow: "shadow-[0_0_20px_rgba(59,130,246,0.3)]",
+    },
+    green: {
+      bg: "bg-emerald-500/10",
+      text: "text-emerald-400",
+      glow: "shadow-[0_0_20px_rgba(16,185,129,0.3)]",
+    },
+    purple: {
+      bg: "bg-violet-500/10",
+      text: "text-violet-400",
+      glow: "shadow-[0_0_20px_rgba(139,92,246,0.3)]",
+    },
+    orange: {
+      bg: "bg-amber-500/10",
+      text: "text-amber-400",
+      glow: "shadow-[0_0_20px_rgba(245,158,11,0.3)]",
+    },
+    red: {
+      bg: "bg-rose-500/10",
+      text: "text-rose-400",
+      glow: "shadow-[0_0_20px_rgba(244,63,94,0.3)]",
+    },
+  };
+
+  const style = styles[color] || styles.blue;
+
+  return (
+    <Card
+      onClick={onClick}
+      className="cursor-pointer hover:scale-[1.02] active:scale-[0.98] card-premium"
+    >
+      <div className="flex items-start gap-4">
+
+        {/* ICON */}
+        <div className={`rounded-xl p-3 ${style.bg} ${style.glow}`}>
+          <div className={style.text}>
+            {icon}
+          </div>
+        </div>
+
+        {/* CONTENT */}
+        <div className="flex-1">
+          <h3 className="text-sm font-semibold text-primary">
+            {title}
+          </h3>
+
+          <div className="text-2xl font-bold text-primary mt-1">
+            {value}
+          </div>
+        </div>
+
+      </div>
+
+      {/* PROGRESS */}
+      <div className="mt-4 h-[3px] bg-white/10 rounded-full overflow-hidden">
+        <div className={`h-full ${style.bg}`} style={{ width: "60%" }} />
+      </div>
+    </Card>
   );
 }
