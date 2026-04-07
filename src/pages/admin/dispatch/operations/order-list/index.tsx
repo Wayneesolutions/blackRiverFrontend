@@ -272,6 +272,9 @@ interface Order {
   };
   documentsApprovedAt?: string;
   approvedWithoutDocuments?: boolean;
+  driverAcceptanceStatus?: 'pending' | 'accepted' | 'rejected';
+  driverRejectionReason?: string;
+  _id?: string;
 }
 
 const OrderList = () => {
@@ -734,6 +737,37 @@ const OrderList = () => {
     fetchUnreadCounts();
   }, [orders]);
 
+  // Real-time driver acceptance updates
+  useEffect(() => {
+    const handleOrderAcceptanceUpdated = (data: {
+      orderId: string;
+      orderNumber: string;
+      driverAcceptanceStatus: 'accepted' | 'rejected';
+      driverRejectionReason?: string;
+    }) => {
+      if (!data?.orderId) return;
+
+      // Update badge in-place without refetch
+      setOrders(prev => prev.map(o =>
+        (o as any)._id === data.orderId
+          ? { ...o, driverAcceptanceStatus: data.driverAcceptanceStatus, driverRejectionReason: data.driverRejectionReason } as any
+          : o
+      ));
+
+      // Show toast
+      const label = data.orderNumber ? `Order ${data.orderNumber}` : 'An order';
+      if (data.driverAcceptanceStatus === 'accepted') {
+        addNotification('success', `${label}: Driver accepted the assignment.`);
+      } else {
+        const reason = data.driverRejectionReason ? ` Reason: "${data.driverRejectionReason}".` : '';
+        addNotification('warning', `${label}: Driver rejected the assignment.${reason} Please assign another driver.`);
+      }
+    };
+
+    socketService.onOrderAcceptanceUpdated(handleOrderAcceptanceUpdated);
+    return () => socketService.offOrderAcceptanceUpdated();
+  }, [addNotification]);
+
   // Helper function to safely extract location string
   const extractLocationString = (location: any): string => {
     if (!location) return '';
@@ -835,6 +869,10 @@ const OrderList = () => {
           // Document fields
           attachments: order.attachments || [],
           documentVerification: order.documentVerification || null,
+          // Driver acceptance
+          driverAcceptanceStatus: order.driverAcceptanceStatus || 'pending',
+          driverRejectionReason: order.driverRejectionReason || '',
+          _id: order._id,
           // Keep full order object for reference
           _fullOrder: order
         }));
@@ -1285,6 +1323,9 @@ const OrderList = () => {
                   Driver
                 </th>
                 <th className="px-4 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                  Driver Response
+                </th>
+                <th className="px-4 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
                   Carrier
                 </th>
                 <th className="px-4 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
@@ -1295,14 +1336,14 @@ const OrderList = () => {
             <tbody className="bg-white divide-y divide-gray-200">
               {loading ? (
                 <tr>
-                  <td colSpan={25} className="px-6 py-12 text-center text-gray-500">
+                  <td colSpan={26} className="px-6 py-12 text-center text-gray-500">
                     <div className="animate-spin rounded-full h-8 w-8 border-b-2 mx-auto" style={{ borderBottomColor: PRIMARY_COLOR }}></div>
                     <p className="mt-2">Loading orders...</p>
                   </td>
                 </tr>
               ) : paginatedOrders.length === 0 ? (
                 <tr>
-                  <td colSpan={25} className="px-6 py-12 text-center text-gray-500">
+                  <td colSpan={26} className="px-6 py-12 text-center text-gray-500">
                     <p className="text-lg font-medium">No orders found</p>
                     <p className="text-sm">Create a new order to get started</p>
                   </td>
@@ -1540,6 +1581,26 @@ const OrderList = () => {
                       </td>
                       <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-900">
                         {driverDisplay}
+                      </td>
+                      <td className="px-4 py-4 whitespace-nowrap" onClick={(e) => e.stopPropagation()}>
+                        {(order as any).driverAcceptanceStatus === 'accepted' ? (
+                          <span className="inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-semibold bg-green-100 text-green-700" title="Driver accepted this assignment">
+                            <FaCheckCircle size={10} /> Accepted
+                          </span>
+                        ) : (order as any).driverAcceptanceStatus === 'rejected' ? (
+                          <span
+                            className="inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-semibold bg-red-100 text-red-700 cursor-help"
+                            title={(order as any).driverRejectionReason ? `Reason: ${(order as any).driverRejectionReason}` : 'Driver rejected this assignment'}
+                          >
+                            <FaTimes size={10} /> Rejected
+                          </span>
+                        ) : (order as any).driver ? (
+                          <span className="inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-semibold bg-yellow-100 text-yellow-700" title="Awaiting driver response">
+                            <FaExclamationCircle size={10} /> Pending
+                          </span>
+                        ) : (
+                          <span className="text-gray-400 text-xs">—</span>
+                        )}
                       </td>
                       <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-900">
                         {carrierName}

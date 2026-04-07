@@ -7,6 +7,7 @@ import ConfirmationModal from "../../../../../components/common/ConfirmationModa
 import { FLEET_COLORS, getFocusStyles } from "../../../fleetMaintenance/colorUtils";
 import { getUnreadMessageCount } from "../../../../../axios/api/chat";
 import { useLocation, useNavigate } from "react-router-dom";
+import { socketService } from "../../../../../services/socketService";
 
 interface Trip {
   _id: string;
@@ -55,6 +56,9 @@ interface Trip {
     deliveryLocation?: any;
   }>;
   status: 'planned' | 'in-progress' | 'pending_completion' | 'completed' | 'cancelled';
+  driverAcceptanceStatus?: 'pending' | 'accepted' | 'rejected';
+  driverRejectionReason?: string;
+  driverRespondedAt?: string;
   completionStatus?: 'pending' | 'approved' | 'rejected';
   completionApprovedBy?: {
     _id: string;
@@ -508,6 +512,43 @@ const Trips = () => {
       // Don't delete global function - keep it available
     };
   }, []); // Empty deps - we use ref for handler
+
+  // Real-time driver acceptance updates via socket
+  useEffect(() => {
+    const handleTripAcceptanceUpdated = (data: {
+      tripId: string;
+      tripNumber?: string;
+      driverAcceptanceStatus: 'accepted' | 'rejected';
+      driverRejectionReason?: string;
+      driverRespondedAt?: string;
+    }) => {
+      if (!data?.tripId) return;
+
+      // Update the trip row in state
+      setTrips(prev => prev.map(t =>
+        t._id === data.tripId
+          ? {
+              ...t,
+              driverAcceptanceStatus: data.driverAcceptanceStatus,
+              driverRejectionReason: data.driverRejectionReason,
+              driverRespondedAt: data.driverRespondedAt
+            }
+          : t
+      ));
+
+      // Show a notification banner to the dispatcher
+      const tripLabel = data.tripNumber ? `Trip ${data.tripNumber}` : 'A trip';
+      if (data.driverAcceptanceStatus === 'accepted') {
+        addNotification('success', `${tripLabel}: Driver accepted the assignment.`);
+      } else if (data.driverAcceptanceStatus === 'rejected') {
+        const reasonPart = data.driverRejectionReason ? ` Reason: "${data.driverRejectionReason}".` : '';
+        addNotification('warning', `${tripLabel}: Driver rejected the assignment.${reasonPart} Please assign another driver.`);
+      }
+    };
+
+    socketService.onTripAcceptanceUpdated(handleTripAcceptanceUpdated);
+    return () => socketService.offTripAcceptanceUpdated();
+  }, [addNotification]);
 
   // Refs for scrollbar synchronization
   const topScrollRef = useRef<HTMLDivElement>(null);
@@ -1334,6 +1375,7 @@ const Trips = () => {
                     <th className="px-4 py-3 text-left text-xs font-semibold text-gray-700 uppercase">Orders</th>
                     <th className="px-4 py-3 text-left text-xs font-semibold text-gray-700 uppercase">Documents</th>
                     <th className="px-4 py-3 text-left text-xs font-semibold text-gray-700 uppercase">Start Date</th>
+                    <th className="px-4 py-3 text-left text-xs font-semibold text-gray-700 uppercase">Driver Response</th>
                     <th className="px-4 py-3 text-left text-xs font-semibold text-gray-700 uppercase">Status</th>
                     <th className="px-4 py-3 text-left text-xs font-semibold text-gray-700 uppercase">Actions</th>
                   </tr>
@@ -1474,6 +1516,24 @@ const Trips = () => {
                       </td>
                       <td className="px-4 py-3 whitespace-nowrap text-gray-600">
                         {formatDate(trip.plannedStartDate)}
+                      </td>
+                      <td className="px-4 py-3 whitespace-nowrap">
+                        {trip.driverAcceptanceStatus === 'accepted' ? (
+                          <span className="inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-semibold bg-green-100 text-green-700" title="Driver accepted this trip">
+                            <FaCheckCircle size={11} /> Accepted
+                          </span>
+                        ) : trip.driverAcceptanceStatus === 'rejected' ? (
+                          <span
+                            className="inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-semibold bg-red-100 text-red-700 cursor-help"
+                            title={trip.driverRejectionReason ? `Reason: ${trip.driverRejectionReason}` : 'Driver rejected this trip'}
+                          >
+                            <FaTimes size={11} /> Rejected
+                          </span>
+                        ) : (
+                          <span className="inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-semibold bg-yellow-100 text-yellow-700" title="Awaiting driver response">
+                            <FaExclamationCircle size={11} /> Pending
+                          </span>
+                        )}
                       </td>
                       <td className="px-4 py-3 whitespace-nowrap">
                         <div className="flex items-center gap-2">

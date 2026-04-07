@@ -800,7 +800,8 @@ const DriverManagement = () => {
       if (response?.success) {
         addNotification('success', 'Test approved successfully');
         closeApprovalModal();
-        
+        window.dispatchEvent(new Event('notification:refetch'));
+
         // Refresh driver details and test results
         if (editingId) {
           // Reload driver data - this will trigger useEffect and refresh all data
@@ -832,7 +833,8 @@ const DriverManagement = () => {
       if (response?.success) {
         addNotification('success', 'Test rejected successfully');
         closeApprovalModal();
-        
+        window.dispatchEvent(new Event('notification:refetch'));
+
         // Refresh driver details and test results
         if (editingId) {
           // Reload driver data - this will trigger useEffect and refresh all data
