@@ -234,10 +234,10 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100 flex items-center justify-center px-4 py-6" style={{ fontFamily: 'var(--font-poppins)' }}>
+    <div className="min-h-screen bg-main flex items-center justify-center px-4 py-6" style={{ fontFamily: 'var(--font-poppins)' }}>
       {/* Floating Background Elements */}
       <div className="fixed inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute top-1/4 left-1/4 w-48 h-48 bg-gradient-to-r from-blue-400/10 to-indigo-400/10 rounded-full blur-3xl animate-pulse"></div>
+        <div className="absolute top-1/4 left-1/4 w-48 h-48 bg-gradient-to-r from-[var(--bg-card)] to-[var(--bg-card-light)] rounded-full blur-3xl animate-pulse"></div>
         <div className="absolute bottom-1/4 right-1/4 w-72 h-72 bg-gradient-to-r from-blue-400/10 to-blue-500/10 rounded-full blur-3xl animate-pulse delay-1000"></div>
       </div>
 
@@ -257,7 +257,7 @@ export default function LoginPage() {
             {/* Feature Cards */}
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
               <div className="bg-card/60 backdrop-blur-sm rounded-xl p-4 border border-theme/50 hover:shadow-lg transition-all duration-300">
-                <div className="w-10 h-10 bg-gradient-to-r from-blue-500 to-blue-600 rounded-lg flex items-center justify-center mx-auto mb-2">
+                <div className="w-10 h-10 bg-gradient-to-r bg-[var(--accent-blue)] rounded-lg flex items-center justify-center mx-auto mb-2">
                   <Truck className="w-5 h-5 text-white" />
                 </div>
                 <h4 className="font-semibold text-xs text-primary mb-1">Fleet Tracking</h4>
@@ -265,7 +265,7 @@ export default function LoginPage() {
               </div>
 
               <div className="bg-card/60 backdrop-blur-sm rounded-xl p-4 border border-theme/50 hover:shadow-lg transition-all duration-300">
-                <div className="w-10 h-10 bg-gradient-to-r from-emerald-500 to-emerald-600 rounded-lg flex items-center justify-center mx-auto mb-2">
+                <div className="w-10 h-10 bg-gradient-to-r bg-[var(--accent-green)] rounded-lg flex items-center justify-center mx-auto mb-2">
                   <MapPin className="w-5 h-5 text-white" />
                 </div>
                 <h4 className="font-semibold text-xs text-primary mb-1">Route Planning</h4>
@@ -283,11 +283,11 @@ export default function LoginPage() {
           </div>
 
           {/* Right Side - Login Form (Larger) */}
-          <div className="w-full max-w-lg mx-auto">
-            <div className="bg-card/80 backdrop-blur-xl rounded-2xl shadow-2xl ring-1 ring-gray-200/50 overflow-hidden">
+          <div className="w-full max-w-lg mx-auto  ">
+            <div className="bg-card/80 backdrop-blur-xl rounded-2xl shadow-2xl border border-theme overflow-hidden card-premium">
               {/* Form Header */}
               <div className="pt-8 pb-1 text-center border-b border-theme">
-                <div className="w-14 h-14 mb-1 rounded-xl flex items-center justify-center mx-auto shadow-lg" style={{ backgroundColor: '#42aeec' }}>
+                <div className="w-14 h-14 mb-1 rounded-xl flex items-center justify-center mx-auto shadow-lg bg-[var(--accent-blue)]">
                   <Lock className="w-7 h-7 text-white" />
                 </div>
                 <h3 className="text-2xl font-bold text-primary !mb-1" style={{ fontFamily: 'var(--font-futura)' }}>Sign In</h3>
@@ -308,8 +308,8 @@ export default function LoginPage() {
                       disabled={loading}
                       className={`block w-full rounded-lg border pl-11 pr-4 py-3 text-sm transition-all duration-200 focus:outline-none focus:ring-2 focus:border-transparent disabled:opacity-50 disabled:cursor-not-allowed ${errors.email ? "border-red-400 bg-card" : "border-theme hover:border-gray-300"
                         }`}
-                      style={{ '--tw-ring-color': '#42aeec' } as React.CSSProperties & { '--tw-ring-color': string }}
-                      onFocus={(e) => { e.target.style.borderColor = '#42aeec'; e.target.style.boxShadow = '0 0 0 2px rgba(66, 174, 236, 0.2)'; }}
+                      style={{ '--tw-ring-color': 'var(--accent-blue)' } as React.CSSProperties & { '--tw-ring-color': string }}
+                      onFocus={(e) => { e.target.style.borderColor = 'var(--accent-blue)'; e.target.style.boxShadow = '0 0 0 2px rgba(66, 174, 236, 0.2)'; }}
                       onBlur={(e) => { e.target.style.borderColor = ''; e.target.style.boxShadow = ''; }}
                       placeholder="Enter your email"
                       autoComplete="email"
@@ -360,7 +360,7 @@ export default function LoginPage() {
                       onChange={(e) => setRememberMe(e.target.checked)}
                       disabled={loading}
                       className="h-4 w-4 rounded border-gray-300 disabled:opacity-50"
-                      style={{ accentColor: '#42aeec' }}
+                      style={{ accentColor: 'var(--accent-blue)' }}
                     />
                     <label htmlFor="remember" className="text-sm text-secondary">
                       Remember me
@@ -384,9 +384,9 @@ export default function LoginPage() {
                       ? "cursor-not-allowed opacity-60"
                       : "hover:shadow-xl transform hover:-translate-y-0.5"
                       }`}
-                    style={loading ? {} : { backgroundColor: '#42aeec' }}
-                    onMouseEnter={(e) => { if (!loading) e.currentTarget.style.backgroundColor = '#2e9cd9'; }}
-                    onMouseLeave={(e) => { if (!loading) e.currentTarget.style.backgroundColor = '#42aeec'; }}
+                    style={loading ? {} : { backgroundColor: 'var(--accent-blue)' }}
+                    onMouseEnter={(e) => { if (!loading) e.currentTarget.style.backgroundColor = 'var(--accent-blue)'; }}
+                    onMouseLeave={(e) => { if (!loading) e.currentTarget.style.backgroundColor = 'var(--accent-blue)'; }}
                   >
                     {loading ? (
                       <>
@@ -408,7 +408,10 @@ export default function LoginPage() {
                 <div className="text-center pt-3 border-t border-theme">
                   <p className="text-sm text-secondary">
                     Don't have an account?{" "}
-                    <a href="/admin/register" className="font-medium underline" style={{ color: '#42aeec' }} onMouseEnter={(e) => e.currentTarget.style.color = '#2e9cd9'} onMouseLeave={(e) => e.currentTarget.style.color = '#42aeec'}>
+                    <a
+                      href="/admin/register"
+                      className="font-medium underline text-accent hover:opacity-80 transition-all duration-200"
+                    >
                       Create one now
                     </a>
                   </p>

@@ -92,7 +92,7 @@ interface Trip {
   actualEndDate?: string;
   notes?: string;
 }
- type PaymentStatus = 'PENDING' | 'PAID' | 'OVERDUE';
+type PaymentStatus = 'PENDING' | 'PAID' | 'OVERDUE';
 
 interface Order {
   id: string;
@@ -117,7 +117,7 @@ interface Order {
   coDriver?: string;
   truckNo?: string;
   trailerNo?: string;
-  paymentStatus?: PaymentStatus; 
+  paymentStatus?: PaymentStatus;
   // Keep original fields if needed for broader compatibility, or just use the mapped ones. 
   // For this component, we only use the mapped ones.
 }
@@ -790,10 +790,7 @@ const Index = () => {
           {/* Gradient band */}
           <div
             className="absolute inset-x-0 top-0"
-            style={{
-              background: `linear-gradient(90deg, #42aeec 0%, #1db5f5 40%, #0ea3d8 100%)`,
-              height: '101px'
-            }}
+
             aria-hidden="true"
           />
 
