@@ -388,3 +388,7 @@ body {
     opacity: 0;
   }
 }
+
+.divide-theme> :not([hidden])~ :not([hidden]) {
+  border-color: rgba(0, 209, 255, 0.1);
+}

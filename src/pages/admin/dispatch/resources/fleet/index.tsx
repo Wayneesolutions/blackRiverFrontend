@@ -54,12 +54,12 @@ const formatNumber = (value?: string | number | null) => {
 const formatStatusBadge = (status?: string) => {
   const normalized = (status || "").toLowerCase();
   if (normalized === "active") {
-    return "bg-green-50 text-green-700";
+    return "bg-[var(--accent-green)]/10 text-[var(--accent-green)]";
   }
   if (normalized === "inactive") {
-    return "bg-card text-[#A855F7]";
+    return "bg-[var(--accent-purple)]/10 text-[var(--accent-purple)]";
   }
-  return "bg-gray-100 text-secondary";
+  return "bg-card border border-theme text-secondary";
 };
 
 const normalizeAddress = (value: string) => value?.replace(/\s+/g, " ").trim() || "";
@@ -457,7 +457,7 @@ const Index = () => {
   }, [visibleFleetUnits, fleetTab, unitAssignments]);
 
   return (
-    <div className="min-h-screen bg-main p-6 border-2 border-red-700">
+    <div className="min-h-screen bg-main p-6 ">
       <div className="w-full mx-auto space-y-6">
         <header className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
           <div>
@@ -467,7 +467,7 @@ const Index = () => {
               View the same truck and trailer roster configured inside Fleet Maintenance.
             </p>
           </div>
-          <div className="flex items-center gap-2 bg-gray-100 rounded-2xl p-1 w-fit">
+          <div className="flex items-center gap-2 bg-card border border-theme rounded-2xl p-1 w-fit">
             {(["trucks", "trailers"] as const).map((tab) => (
               <button
                 key={tab}
@@ -477,7 +477,7 @@ const Index = () => {
                   setSearchTerm("");
                   setStatusFilter("all");
                 }}
-                className={`px-4 py-2 text-sm font-semibold rounded-2xl transition-colors ${fleetTab === tab ? "bg-card text-[#00D1FF] shadow" : "text-secondary"
+                className={`px-4 py-2 text-sm font-semibold rounded-2xl transition-colors ${fleetTab === tab ? "bg-card text-accent shadow" : "text-secondary"
                   }`}
               >
                 {tab === "trucks" ? "Trucks" : "Trailers"}
@@ -489,10 +489,10 @@ const Index = () => {
         <section className="grid grid-cols-1 gap-2 md:grid-cols-3">
           {/* Total Units – Pastel Orange */}
           <div className="rounded-lg p-3 shadow-sm bg-card">
-            <p className="text-[10px] font-semibold uppercase text-[#F59E0B]">
+            <p className="text-[10px] font-semibold uppercase text-[var(--accent-orange)]">
               Total Units
             </p>
-            <p className="text-xl font-semibold mt-0.5 text-orange-700">
+            <p className="text-xl font-semibold mt-0.5 text-[var(--accent-orange)]">
               {summary.total}
             </p>
             <p className="text-[11px] text-orange-500">
@@ -501,27 +501,27 @@ const Index = () => {
           </div>
 
           {/* Active – Pastel Green */}
-          <div className="rounded-lg p-3 shadow-sm bg-green-50">
-            <p className="text-[10px] font-semibold uppercase text-green-600">
+          <div className="rounded-lg p-3 shadow-sm bg-[var(--accent-green)]/10">
+            <p className="text-[10px] font-semibold uppercase text-[var(--accent-green)]">
               Active
             </p>
-            <p className="text-xl font-semibold mt-0.5 text-green-700">
+            <p className="text-xl font-semibold mt-0.5 text-[var(--accent-green)]">
               {summary.active}
             </p>
-            <p className="text-[11px] text-green-500">
+            <p className="text-[11px] text-[var(--accent-green)]">
               Passing checks / ready for assignment
             </p>
           </div>
 
           {/* Currently Dispatched – Pastel Purple */}
           <div className="rounded-lg p-3 shadow-sm bg-card">
-            <p className="text-[10px] font-semibold uppercase text-purple-600">
+            <p className="text-[10px] font-semibold uppercase text-[var(--accent-purple)]">
               Currently Dispatched
             </p>
-            <p className="text-xl font-semibold mt-0.5 text-purple-700">
+            <p className="text-xl font-semibold mt-0.5 text-[var(--accent-purple)]">
               {assignmentSnapshot.unitsWithActiveOrders}
             </p>
-            <p className="text-[11px] text-purple-500">
+            <p className="text-[11px] text-[var(--accent-purple)]">
               {assignmentSnapshot.availableUnits} available in pool
             </p>
           </div>
@@ -613,7 +613,7 @@ const Index = () => {
                 </thead>
 
                 {/* Body */}
-                <tbody className="divide-y divide-gray-50">
+                <tbody className="divide-y divide-theme">
                   {fleetUnitsLoading ? (
                     <tr>
                       <td
@@ -650,7 +650,7 @@ const Index = () => {
                       return (
                         <tr
                           key={previewKey}
-                          className="hover:bg-blue-50 transition-colors cursor-pointer"
+                          className="hover:bg-[rgba(0,209,255,0.05)] transition-colors cursor-pointer"
                           onClick={() => {
                             setSelectedUnit(unit);
                             setShowUnitDetails(true);
@@ -680,7 +680,7 @@ const Index = () => {
                                 >
                                   <button
                                     type="button"
-                                    className={`mt-1 rounded-full border p-2 text-xs font-semibold uppercase ${activeOrder ? "text-[#00D1FF] border-blue-200" : "text-secondary border-theme"
+                                    className={`mt-1 rounded-full border p-2 text-xs font-semibold uppercase ${activeOrder ? "text-accent border-theme" : "text-secondary border-theme"
                                       }`}
                                     title={activeOrder ? "View assignment details" : "No active assignment"}
                                     onMouseEnter={() => setPreviewUnitId(previewKey)}
@@ -804,7 +804,7 @@ const Index = () => {
           <>
             {/* Overlay */}
             <div
-              className="fixed inset-0 bg-gray-900/50 backdrop-blur-sm z-40 transition-opacity"
+              className="fixed inset-0 bg-black/60 backdrop-blur-sm z-40 transition-opacity"
               onClick={() => {
                 setShowUnitDetails(false);
                 setTimeout(() => setSelectedUnit(null), 300);
@@ -832,16 +832,16 @@ const Index = () => {
 
                 <div className="space-y-6">
                   {/* Unit Header */}
-                  <div className="bg-gradient-to-r from-[#4A90E2] to-[#357ABD] text-white p-6 rounded-lg">
+                  <div className="bg-gradient-to-r from-[rgba(0,209,255,0.2)] to-[rgba(168,85,247,0.2)] text-white p-6 rounded-lg">
                     <div className="flex items-center gap-4">
                       <div className="h-20 w-20 flex-shrink-0">
-                        <div className="h-20 w-20 rounded-full flex items-center justify-center text-white font-bold text-2xl border-4 border-white bg-gradient-to-br from-blue-500 to-purple-600">
+                        <div className="h-20 w-20 rounded-full flex items-center justify-center text-white font-bold text-2xl border-4 border-white bg-gradient-to-br from-[var(--accent-blue)] to-[var(--accent-purple)]">
                           <Truck size={32} />
                         </div>
                       </div>
                       <div className="flex-1">
                         <h3 className="text-2xl font-bold mb-1">{selectedUnit.unitNo || 'N/A'}</h3>
-                        <p className="text-blue-100 text-sm flex items-center gap-2">
+                        <p className="text-secondary text-sm flex items-center gap-2">
                           <Truck size={16} />
                           {fleetTab === "trucks" ? "Truck" : "Trailer"} Unit
                         </p>
@@ -870,7 +870,7 @@ const Index = () => {
                   {/* Unit Information */}
                   <div className="bg-card p-6 rounded-lg border border-theme">
                     <h4 className="font-semibold text-primary mb-4 text-lg flex items-center gap-2">
-                      <Truck size={20} className="text-[#00D1FF]" />
+                      <Truck size={20} className="text-accent" />
                       Unit Information
                     </h4>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -922,9 +922,9 @@ const Index = () => {
                     if (!assignment && !loadStats) return null;
 
                     return (
-                      <div className="bg-gradient-to-br from-blue-50 to-indigo-50 p-6 rounded-lg border border-blue-200">
+                      <div className="bg-gradient-to-br from-blue-50 to-indigo-50 p-6 rounded-lg border border-theme">
                         <h4 className="font-semibold text-primary mb-4 text-lg flex items-center gap-2">
-                          <MapPin size={20} className="text-[#00D1FF]" />
+                          <MapPin size={20} className="text-accent" />
                           Dispatch Snapshot
                         </h4>
                         <div className="space-y-4">
@@ -1002,7 +1002,7 @@ const Index = () => {
                             </div>
                           )}
                           {loadStats && (
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-2 border-t border-blue-200">
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-2 border-t border-theme">
                               <div>
                                 <p className="text-sm text-secondary mb-1">Total Loads</p>
                                 <p className="font-medium text-primary">{loadStats.totalLoads}</p>
@@ -1048,7 +1048,7 @@ const Index = () => {
                         setShowUnitDetails(false);
                         setTimeout(() => setSelectedUnit(null), 300);
                       }}
-                      className="px-6 py-2.5 bg-gray-200 text-primary font-medium rounded-lg hover:bg-gray-300 transition-all"
+                      className="px-6 py-2.5 bg-card border border-theme text-primary font-medium rounded-lg hover:bg-[rgba(255,255,255,0.05)] transition-all"
                     >
                       Close
                     </button>
