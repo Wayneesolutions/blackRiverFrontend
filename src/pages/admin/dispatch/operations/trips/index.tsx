@@ -513,6 +513,15 @@ const Trips = () => {
     };
   }, []); // Empty deps - we use ref for handler
 
+  const addNotification = useCallback((
+    type: NotificationType,
+    message: string,
+    extra?: { tripId?: string; tripNumber?: string; driverName?: string; orderId?: string; orderNumber?: string }
+  ) => {
+    const id = Date.now();
+    setNotifications(prev => [...prev, { id, type, message, ...extra }]);
+  }, []);
+
   // Real-time driver acceptance updates via socket
   useEffect(() => {
     const handleTripAcceptanceUpdated = (data: {
@@ -581,15 +590,6 @@ const Trips = () => {
   // Filters data
   const [drivers, setDrivers] = useState<any[]>([]);
   const [trucks, setTrucks] = useState<any[]>([]);
-
-  const addNotification = useCallback((
-    type: NotificationType,
-    message: string,
-    extra?: { tripId?: string; tripNumber?: string; driverName?: string; orderId?: string; orderNumber?: string }
-  ) => {
-    const id = Date.now();
-    setNotifications(prev => [...prev, { id, type, message, ...extra }]);
-  }, []);
 
   const removeNotification = useCallback((id: number) => {
     setNotifications(prev => prev.filter(n => n.id !== id));
