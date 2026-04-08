@@ -136,7 +136,7 @@ const Dashboard = () => {
         const [gpsRes] = await Promise.all([
           getGpsVehicleDashboardStats()
         ]);
-        
+
         if (gpsRes.success) {
           setDashboardData(gpsRes.data);
         }
@@ -244,291 +244,288 @@ const Dashboard = () => {
 
   return (
     <>
-    <div className="min-h-screen" >
-      <div className="relative w-full mx-auto p-2">
-        {/* Gradient band */}
-        <div
-          className="absolute inset-x-0 top-0"
-          style={{
-            background: `linear-gradient(90deg, var(--accent-blue) 0%, var(--accent-blue) 40%, rgba(0,209,255,0.15) 100%)`,
-            height: '101px'
-          }}
-          aria-hidden="true"
-        />
+      <div className="min-h-screen" >
+        <div className="relative w-full mx-auto p-2">
+          {/* Gradient band */}
+          <div
+            className="absolute inset-x-0 top-0"
 
-        {/* Main content */}
-        <div className="relative z-10 px-4 pt-3 pb-6">
-          {/* Header Section */}
-          <div className="mb-4 relative z-10">
-            <div className="flex items-center justify-between">
-              <h1 className="text-xl font-bold text-white">GPS Vehicle Tracking</h1>
-              <div className="flex items-center gap-2 text-white/90">
-                <span className="text-xs">Dashboard</span>
+            aria-hidden="true"
+          />
+
+          {/* Main content */}
+          <div className="relative z-10 px-4 pt-3 pb-6">
+            {/* Header Section */}
+            <div className="mb-4 relative z-10">
+              <div className="flex items-center justify-between">
+                <h1 className="text-xl font-bold text-white">GPS Vehicle Tracking</h1>
+                <div className="flex items-center gap-2 text-white/90">
+                  <span className="text-xs">Dashboard</span>
+                </div>
               </div>
             </div>
-          </div>
 
-          {/* Pickups Today and Deliveries Today Cards */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-3 -mt-2 mb-3">
-            {/* Deliveries Today */}
-            <div
-              onClick={scrollToDeliveries}
-              className="bg-card rounded-lg p-3 shadow-sm border border-theme hover:shadow-md transition-all cursor-pointer hover:border-[var(--accent-blue)]/20 hover:scale-[1.02] active:scale-[0.98]"
-            >
-              <div className="flex items-start justify-between mb-2">
-                <div className="flex-1">
-                  <h3 className="text-sm font-bold text-primary mb-1">Deliveries Today</h3>
-                  <div className="flex items-baseline gap-2 mb-0.5">
-                    <span className="text-xl font-bold text-primary">{deliveriesToday.length}</span>
+            {/* Pickups Today and Deliveries Today Cards */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3 -mt-2 mb-3">
+              {/* Deliveries Today */}
+              <div
+                onClick={scrollToDeliveries}
+                className="bg-card rounded-lg p-3 shadow-sm border border-theme hover:shadow-md transition-all cursor-pointer hover:border-[var(--accent-blue)]/20 hover:scale-[1.02] active:scale-[0.98]"
+              >
+                <div className="flex items-start justify-between mb-2">
+                  <div className="flex-1">
+                    <h3 className="text-sm font-bold text-primary mb-1">Deliveries Today</h3>
+                    <div className="flex items-baseline gap-2 mb-0.5">
+                      <span className="text-xl font-bold text-primary">{deliveriesToday.length}</span>
+                    </div>
+                    <p className="text-xs text-secondary">Scheduled for today</p>
                   </div>
-                  <p className="text-xs text-secondary">Scheduled for today</p>
-                </div>
-                <div className="bg-card rounded-lg p-2 shadow-sm">
-                  <Calendar className="text-[#F59E0B]" size={21} strokeWidth={2} />
-                </div>
-              </div>
-            </div>
-
-            {/* Pickups Today */}
-            <div
-              onClick={scrollToPickups}
-              className="bg-card rounded-lg p-3 shadow-sm border border-theme hover:shadow-md transition-all cursor-pointer hover:border-[var(--accent-blue)]/20 hover:scale-[1.02] active:scale-[0.98]"
-            >
-              <div className="flex items-start justify-between mb-2">
-                <div className="flex-1">
-                  <h3 className="text-sm font-bold text-primary mb-1">Pickups Today</h3>
-                  <div className="flex items-baseline gap-2 mb-0.5">
-                    <span className="text-xl font-bold text-primary">{pickupsTomorrow.length}</span>
+                  <div className="bg-card rounded-lg p-2 shadow-sm">
+                    <Calendar className="text-[#F59E0B]" size={21} strokeWidth={2} />
                   </div>
-                  <p className="text-xs text-secondary">Scheduled for tomorrow</p>
                 </div>
-                <div className="bg-card rounded-lg p-2 shadow-sm">
-                  <TrendingUp className="text-[#00FFA3]" size={21} strokeWidth={2} />
+              </div>
+
+              {/* Pickups Today */}
+              <div
+                onClick={scrollToPickups}
+                className="bg-card rounded-lg p-3 shadow-sm border border-theme hover:shadow-md transition-all cursor-pointer hover:border-[var(--accent-blue)]/20 hover:scale-[1.02] active:scale-[0.98]"
+              >
+                <div className="flex items-start justify-between mb-2">
+                  <div className="flex-1">
+                    <h3 className="text-sm font-bold text-primary mb-1">Pickups Today</h3>
+                    <div className="flex items-baseline gap-2 mb-0.5">
+                      <span className="text-xl font-bold text-primary">{pickupsTomorrow.length}</span>
+                    </div>
+                    <p className="text-xs text-secondary">Scheduled for tomorrow</p>
+                  </div>
+                  <div className="bg-card rounded-lg p-2 shadow-sm">
+                    <TrendingUp className="text-[#00FFA3]" size={21} strokeWidth={2} />
+                  </div>
                 </div>
               </div>
             </div>
-          </div>
 
-          {/* Deliveries Today Listing */}
-          <div id="deliveries-today-table" className="bg-card rounded-lg shadow-sm border border-theme mb-4">
-            <div className="p-4 border-b border-theme">
-              <h2 className="text-lg font-bold text-primary">Deliveries Today</h2>
-              <p className="text-sm text-secondary mt-1">Scheduled deliveries for today</p>
-            </div>
-            <div className="overflow-x-auto">
-              <table className="w-full">
-                <thead className="bg-card border-b border-theme">
-                  <tr>
-                    <th className="px-4 py-3 text-left text-xs font-semibold text-primary uppercase tracking-wider">
-                      Order Number
-                    </th>
-                    <th className="px-4 py-3 text-left text-xs font-semibold text-primary uppercase tracking-wider">
-                      Customer
-                    </th>
-                    <th className="px-4 py-3 text-left text-xs font-semibold text-primary uppercase tracking-wider">
-                      Delivery Location
-                    </th>
-                    <th className="px-4 py-3 text-left text-xs font-semibold text-primary uppercase tracking-wider">
-                      Time
-                    </th>
-                    <th className="px-4 py-3 text-left text-xs font-semibold text-primary uppercase tracking-wider">
-                      Driver
-                    </th>
-                    <th className="px-4 py-3 text-left text-xs font-semibold text-primary uppercase tracking-wider">
-                      Truck
-                    </th>
-                    <th className="px-4 py-3 text-left text-xs font-semibold text-primary uppercase tracking-wider">
-                      Items
-                    </th>
-                    <th className="px-4 py-3 text-left text-xs font-semibold text-primary uppercase tracking-wider">
-                      Status
-                    </th>
-                  </tr>
-                </thead>
-                <tbody className="bg-card divide-y divide-theme">
-                  {deliveriesLoading ? (
+            {/* Deliveries Today Listing */}
+            <div id="deliveries-today-table" className="bg-card rounded-lg shadow-sm border border-theme mb-4">
+              <div className="p-4 border-b border-theme">
+                <h2 className="text-lg font-bold text-primary">Deliveries Today</h2>
+                <p className="text-sm text-secondary mt-1">Scheduled deliveries for today</p>
+              </div>
+              <div className="overflow-x-auto">
+                <table className="w-full">
+                  <thead className="bg-card border-b border-theme">
                     <tr>
-                      <td colSpan={8} className="px-4 py-8 text-center">
-                        <Loader2 className="w-5 h-5 animate-spin text-blue-500 mx-auto" />
-                      </td>
+                      <th className="px-4 py-3 text-left text-xs font-semibold text-primary uppercase tracking-wider">
+                        Order Number
+                      </th>
+                      <th className="px-4 py-3 text-left text-xs font-semibold text-primary uppercase tracking-wider">
+                        Customer
+                      </th>
+                      <th className="px-4 py-3 text-left text-xs font-semibold text-primary uppercase tracking-wider">
+                        Delivery Location
+                      </th>
+                      <th className="px-4 py-3 text-left text-xs font-semibold text-primary uppercase tracking-wider">
+                        Time
+                      </th>
+                      <th className="px-4 py-3 text-left text-xs font-semibold text-primary uppercase tracking-wider">
+                        Driver
+                      </th>
+                      <th className="px-4 py-3 text-left text-xs font-semibold text-primary uppercase tracking-wider">
+                        Truck
+                      </th>
+                      <th className="px-4 py-3 text-left text-xs font-semibold text-primary uppercase tracking-wider">
+                        Items
+                      </th>
+                      <th className="px-4 py-3 text-left text-xs font-semibold text-primary uppercase tracking-wider">
+                        Status
+                      </th>
                     </tr>
-                  ) : deliveriesToday.length === 0 ? (
-                    <tr>
-                      <td colSpan={8} className="px-4 py-8 text-center text-secondary">
-                        No deliveries scheduled for today
-                      </td>
-                    </tr>
-                  ) : (
-                    deliveriesToday.map((delivery) => (
-                      <tr key={delivery.id || delivery._id} className="hover:bg-[rgba(255,255,255,0.03)] transition-colors">
-                        <td className="px-4 py-3">
-                          <div className="text-sm font-medium text-primary">{delivery.orderNumber || 'N/A'}</div>
-                          {delivery.customerOrderNo && (
-                            <div className="text-xs text-secondary">Cust: {delivery.customerOrderNo}</div>
-                          )}
-                          {delivery.tripNo && (
-                            <div className="text-xs text-[#00D1FF]">Trip: {delivery.tripNo}</div>
-                          )}
-                        </td>
-                        <td className="px-4 py-3 whitespace-nowrap">
-                          <div className="text-sm text-primary">{delivery.customerName || 'N/A'}</div>
-                        </td>
-                        <td className="px-4 py-3">
-                          <div className="flex items-center text-sm text-primary">
-                            <MapPin className="w-4 h-4 mr-1 text-secondary flex-shrink-0" />
-                            <span className="truncate max-w-xs">{delivery.deliveryLocation || 'Location not specified'}</span>
-                          </div>
-                        </td>
-                        <td className="px-4 py-3 whitespace-nowrap">
-                          <div className="text-sm text-primary">{delivery.deliveryTime || 'Not specified'}</div>
-                        </td>
-                        <td className="px-4 py-3">
-                          <div className="flex items-center text-sm text-primary">
-                            <User className="w-4 h-4 mr-1 text-secondary flex-shrink-0" />
-                            <div>
-                              <div>{delivery.driverName || 'Not assigned'}</div>
-                              {delivery.coDriver?.name && (
-                                <div className="text-xs text-secondary">Co: {delivery.coDriver.name}</div>
-                              )}
-                            </div>
-                          </div>
-                        </td>
-                        <td className="px-4 py-3">
-                          <div className="flex items-center text-sm text-primary">
-                            <Truck className="w-4 h-4 mr-1 text-secondary flex-shrink-0" />
-                            <div>
-                              <div>{delivery.truckPlate || 'Not assigned'}</div>
-                              {delivery.trailer?.licensePlate && (
-                                <div className="text-xs text-secondary">Trailer: {delivery.trailer.licensePlate}</div>
-                              )}
-                            </div>
-                          </div>
-                        </td>
-                        <td className="px-4 py-3 whitespace-nowrap">
-                          <div className="text-sm text-primary">{delivery.items || 0}</div>
-                        </td>
-                        <td className="px-4 py-3 whitespace-nowrap">
-                          {getStatusBadge(delivery.status)}
+                  </thead>
+                  <tbody className="bg-card divide-y divide-theme">
+                    {deliveriesLoading ? (
+                      <tr>
+                        <td colSpan={8} className="px-4 py-8 text-center">
+                          <Loader2 className="w-5 h-5 animate-spin text-blue-500 mx-auto" />
                         </td>
                       </tr>
-                    ))
-                  )}
-                </tbody>
-              </table>
-            </div>
-          </div>
-
-          {/* Pickups Tomorrow Listing */}
-          <div id="pickups-tomorrow-table" className="bg-card rounded-lg shadow-sm border border-theme">
-            <div className="p-4 border-b border-theme">
-              <h2 className="text-lg font-bold text-primary">Pickups Tomorrow</h2>
-              <p className="text-sm text-secondary mt-1">Scheduled pickups for tomorrow</p>
-            </div>
-            <div className="overflow-x-auto">
-              <table className="w-full">
-                <thead className="bg-card border-b border-theme">
-                  <tr>
-                    <th className="px-4 py-3 text-left text-xs font-semibold text-primary uppercase tracking-wider">
-                      Order Number
-                    </th>
-                    <th className="px-4 py-3 text-left text-xs font-semibold text-primary uppercase tracking-wider">
-                      Customer
-                    </th>
-                    <th className="px-4 py-3 text-left text-xs font-semibold text-primary uppercase tracking-wider">
-                      Pickup Location
-                    </th>
-                    <th className="px-4 py-3 text-left text-xs font-semibold text-primary uppercase tracking-wider">
-                      Time
-                    </th>
-                    <th className="px-4 py-3 text-left text-xs font-semibold text-primary uppercase tracking-wider">
-                      Driver
-                    </th>
-                    <th className="px-4 py-3 text-left text-xs font-semibold text-primary uppercase tracking-wider">
-                      Truck
-                    </th>
-                    <th className="px-4 py-3 text-left text-xs font-semibold text-primary uppercase tracking-wider">
-                      Items
-                    </th>
-                    <th className="px-4 py-3 text-left text-xs font-semibold text-primary uppercase tracking-wider">
-                      Status
-                    </th>
-                  </tr>
-                </thead>
-                <tbody className="bg-card divide-y divide-theme">
-                  {pickupsLoading ? (
-                    <tr>
-                      <td colSpan={8} className="px-4 py-8 text-center">
-                        <Loader2 className="w-5 h-5 animate-spin text-blue-500 mx-auto" />
-                      </td>
-                    </tr>
-                  ) : pickupsTomorrow.length === 0 ? (
-                    <tr>
-                      <td colSpan={8} className="px-4 py-8 text-center text-secondary">
-                        No pickups scheduled for tomorrow
-                      </td>
-                    </tr>
-                  ) : (
-                    pickupsTomorrow.map((pickup) => (
-                      <tr key={pickup.id || pickup._id} className="hover:bg-[rgba(255,255,255,0.03)] transition-colors">
-                        <td className="px-4 py-3">
-                          <div className="text-sm font-medium text-primary">{pickup.orderNumber || 'N/A'}</div>
-                          {pickup.customerOrderNo && (
-                            <div className="text-xs text-secondary">Cust: {pickup.customerOrderNo}</div>
-                          )}
-                          {pickup.tripNo && (
-                            <div className="text-xs text-[#00D1FF]">Trip: {pickup.tripNo}</div>
-                          )}
-                        </td>
-                        <td className="px-4 py-3 whitespace-nowrap">
-                          <div className="text-sm text-primary">{pickup.customerName || 'N/A'}</div>
-                        </td>
-                        <td className="px-4 py-3">
-                          <div className="flex items-center text-sm text-primary">
-                            <MapPin className="w-4 h-4 mr-1 text-secondary flex-shrink-0" />
-                            <span className="truncate max-w-xs">{pickup.pickupLocation || 'Location not specified'}</span>
-                          </div>
-                        </td>
-                        <td className="px-4 py-3 whitespace-nowrap">
-                          <div className="text-sm text-primary">{pickup.pickupTime || 'Not specified'}</div>
-                        </td>
-                        <td className="px-4 py-3">
-                          <div className="flex items-center text-sm text-primary">
-                            <User className="w-4 h-4 mr-1 text-secondary flex-shrink-0" />
-                            <div>
-                              <div>{pickup.driverName || 'Not assigned'}</div>
-                              {pickup.coDriver?.name && (
-                                <div className="text-xs text-secondary">Co: {pickup.coDriver.name}</div>
-                              )}
-                            </div>
-                          </div>
-                        </td>
-                        <td className="px-4 py-3">
-                          <div className="flex items-center text-sm text-primary">
-                            <Truck className="w-4 h-4 mr-1 text-secondary flex-shrink-0" />
-                            <div>
-                              <div>{pickup.truckPlate || 'Not assigned'}</div>
-                              {pickup.trailer?.licensePlate && (
-                                <div className="text-xs text-secondary">Trailer: {pickup.trailer.licensePlate}</div>
-                              )}
-                            </div>
-                          </div>
-                        </td>
-                        <td className="px-4 py-3 whitespace-nowrap">
-                          <div className="text-sm text-primary">{pickup.items || 0}</div>
-                        </td>
-                        <td className="px-4 py-3 whitespace-nowrap">
-                          {getStatusBadge(pickup.status)}
+                    ) : deliveriesToday.length === 0 ? (
+                      <tr>
+                        <td colSpan={8} className="px-4 py-8 text-center text-secondary">
+                          No deliveries scheduled for today
                         </td>
                       </tr>
-                    ))
-                  )}
-                </tbody>
-              </table>
+                    ) : (
+                      deliveriesToday.map((delivery) => (
+                        <tr key={delivery.id || delivery._id} className="hover:bg-[rgba(255,255,255,0.03)] transition-colors">
+                          <td className="px-4 py-3">
+                            <div className="text-sm font-medium text-primary">{delivery.orderNumber || 'N/A'}</div>
+                            {delivery.customerOrderNo && (
+                              <div className="text-xs text-secondary">Cust: {delivery.customerOrderNo}</div>
+                            )}
+                            {delivery.tripNo && (
+                              <div className="text-xs text-[#00D1FF]">Trip: {delivery.tripNo}</div>
+                            )}
+                          </td>
+                          <td className="px-4 py-3 whitespace-nowrap">
+                            <div className="text-sm text-primary">{delivery.customerName || 'N/A'}</div>
+                          </td>
+                          <td className="px-4 py-3">
+                            <div className="flex items-center text-sm text-primary">
+                              <MapPin className="w-4 h-4 mr-1 text-secondary flex-shrink-0" />
+                              <span className="truncate max-w-xs">{delivery.deliveryLocation || 'Location not specified'}</span>
+                            </div>
+                          </td>
+                          <td className="px-4 py-3 whitespace-nowrap">
+                            <div className="text-sm text-primary">{delivery.deliveryTime || 'Not specified'}</div>
+                          </td>
+                          <td className="px-4 py-3">
+                            <div className="flex items-center text-sm text-primary">
+                              <User className="w-4 h-4 mr-1 text-secondary flex-shrink-0" />
+                              <div>
+                                <div>{delivery.driverName || 'Not assigned'}</div>
+                                {delivery.coDriver?.name && (
+                                  <div className="text-xs text-secondary">Co: {delivery.coDriver.name}</div>
+                                )}
+                              </div>
+                            </div>
+                          </td>
+                          <td className="px-4 py-3">
+                            <div className="flex items-center text-sm text-primary">
+                              <Truck className="w-4 h-4 mr-1 text-secondary flex-shrink-0" />
+                              <div>
+                                <div>{delivery.truckPlate || 'Not assigned'}</div>
+                                {delivery.trailer?.licensePlate && (
+                                  <div className="text-xs text-secondary">Trailer: {delivery.trailer.licensePlate}</div>
+                                )}
+                              </div>
+                            </div>
+                          </td>
+                          <td className="px-4 py-3 whitespace-nowrap">
+                            <div className="text-sm text-primary">{delivery.items || 0}</div>
+                          </td>
+                          <td className="px-4 py-3 whitespace-nowrap">
+                            {getStatusBadge(delivery.status)}
+                          </td>
+                        </tr>
+                      ))
+                    )}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+
+            {/* Pickups Tomorrow Listing */}
+            <div id="pickups-tomorrow-table" className="bg-card rounded-lg shadow-sm border border-theme">
+              <div className="p-4 border-b border-theme">
+                <h2 className="text-lg font-bold text-primary">Pickups Tomorrow</h2>
+                <p className="text-sm text-secondary mt-1">Scheduled pickups for tomorrow</p>
+              </div>
+              <div className="overflow-x-auto">
+                <table className="w-full">
+                  <thead className="bg-card border-b border-theme">
+                    <tr>
+                      <th className="px-4 py-3 text-left text-xs font-semibold text-primary uppercase tracking-wider">
+                        Order Number
+                      </th>
+                      <th className="px-4 py-3 text-left text-xs font-semibold text-primary uppercase tracking-wider">
+                        Customer
+                      </th>
+                      <th className="px-4 py-3 text-left text-xs font-semibold text-primary uppercase tracking-wider">
+                        Pickup Location
+                      </th>
+                      <th className="px-4 py-3 text-left text-xs font-semibold text-primary uppercase tracking-wider">
+                        Time
+                      </th>
+                      <th className="px-4 py-3 text-left text-xs font-semibold text-primary uppercase tracking-wider">
+                        Driver
+                      </th>
+                      <th className="px-4 py-3 text-left text-xs font-semibold text-primary uppercase tracking-wider">
+                        Truck
+                      </th>
+                      <th className="px-4 py-3 text-left text-xs font-semibold text-primary uppercase tracking-wider">
+                        Items
+                      </th>
+                      <th className="px-4 py-3 text-left text-xs font-semibold text-primary uppercase tracking-wider">
+                        Status
+                      </th>
+                    </tr>
+                  </thead>
+                  <tbody className="bg-card divide-y divide-theme">
+                    {pickupsLoading ? (
+                      <tr>
+                        <td colSpan={8} className="px-4 py-8 text-center">
+                          <Loader2 className="w-5 h-5 animate-spin text-blue-500 mx-auto" />
+                        </td>
+                      </tr>
+                    ) : pickupsTomorrow.length === 0 ? (
+                      <tr>
+                        <td colSpan={8} className="px-4 py-8 text-center text-secondary">
+                          No pickups scheduled for tomorrow
+                        </td>
+                      </tr>
+                    ) : (
+                      pickupsTomorrow.map((pickup) => (
+                        <tr key={pickup.id || pickup._id} className="hover:bg-[rgba(255,255,255,0.03)] transition-colors">
+                          <td className="px-4 py-3">
+                            <div className="text-sm font-medium text-primary">{pickup.orderNumber || 'N/A'}</div>
+                            {pickup.customerOrderNo && (
+                              <div className="text-xs text-secondary">Cust: {pickup.customerOrderNo}</div>
+                            )}
+                            {pickup.tripNo && (
+                              <div className="text-xs text-[#00D1FF]">Trip: {pickup.tripNo}</div>
+                            )}
+                          </td>
+                          <td className="px-4 py-3 whitespace-nowrap">
+                            <div className="text-sm text-primary">{pickup.customerName || 'N/A'}</div>
+                          </td>
+                          <td className="px-4 py-3">
+                            <div className="flex items-center text-sm text-primary">
+                              <MapPin className="w-4 h-4 mr-1 text-secondary flex-shrink-0" />
+                              <span className="truncate max-w-xs">{pickup.pickupLocation || 'Location not specified'}</span>
+                            </div>
+                          </td>
+                          <td className="px-4 py-3 whitespace-nowrap">
+                            <div className="text-sm text-primary">{pickup.pickupTime || 'Not specified'}</div>
+                          </td>
+                          <td className="px-4 py-3">
+                            <div className="flex items-center text-sm text-primary">
+                              <User className="w-4 h-4 mr-1 text-secondary flex-shrink-0" />
+                              <div>
+                                <div>{pickup.driverName || 'Not assigned'}</div>
+                                {pickup.coDriver?.name && (
+                                  <div className="text-xs text-secondary">Co: {pickup.coDriver.name}</div>
+                                )}
+                              </div>
+                            </div>
+                          </td>
+                          <td className="px-4 py-3">
+                            <div className="flex items-center text-sm text-primary">
+                              <Truck className="w-4 h-4 mr-1 text-secondary flex-shrink-0" />
+                              <div>
+                                <div>{pickup.truckPlate || 'Not assigned'}</div>
+                                {pickup.trailer?.licensePlate && (
+                                  <div className="text-xs text-secondary">Trailer: {pickup.trailer.licensePlate}</div>
+                                )}
+                              </div>
+                            </div>
+                          </td>
+                          <td className="px-4 py-3 whitespace-nowrap">
+                            <div className="text-sm text-primary">{pickup.items || 0}</div>
+                          </td>
+                          <td className="px-4 py-3 whitespace-nowrap">
+                            {getStatusBadge(pickup.status)}
+                          </td>
+                        </tr>
+                      ))
+                    )}
+                  </tbody>
+                </table>
+              </div>
             </div>
           </div>
         </div>
       </div>
-    </div>
     </>
   );
 };

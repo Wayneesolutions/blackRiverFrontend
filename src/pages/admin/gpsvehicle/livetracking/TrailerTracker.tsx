@@ -60,11 +60,11 @@ const statusBgColors: Record<string, string> = {
 // Component to handle map center updates
 const MapController: React.FC<{ center: [number, number]; zoom: number }> = ({ center, zoom }) => {
     const map = useMap();
-    
+
     useEffect(() => {
         map.setView(center, zoom);
     }, [map, center, zoom]);
-    
+
     return null;
 };
 
@@ -82,7 +82,7 @@ const createTrailerIcon = (color: string) => {
             </g>
         </svg>
     `;
-    
+
     return L.divIcon({
         html: svg,
         className: 'custom-trailer-icon',
@@ -210,9 +210,9 @@ const ProfessionalTrailerTracker: React.FC = () => {
                         }
                     };
                 });
-                
+
                 setTrailers(formatted);
-                
+
                 // Set map center to first trailer if available with valid location
                 if (formatted.length > 0 && formatted[0].currentLocation) {
                     const firstTrailer = formatted[0];
@@ -231,7 +231,7 @@ const ProfessionalTrailerTracker: React.FC = () => {
                     setMapCenter([56.1304, -106.3468]);
                     setMapZoom(6);
                 }
-                
+
                 if (formatted.length > 0 && !selectedTrailer) {
                     handleTrailerClick(formatted[0]);
                 }
@@ -266,9 +266,9 @@ const ProfessionalTrailerTracker: React.FC = () => {
 
     if (loading && trailers.length === 0) {
         return (
-            <div className="flex items-center justify-center h-screen bg-gray-100">
+            <div className="flex items-center justify-center h-screen bg-main">
                 <div className="text-center">
-                    <RefreshCw className="w-8 h-8 animate-spin text-[#00D1FF] mx-auto mb-4" />
+                    <RefreshCw className="w-8 h-8 animate-spin text-accent mx-auto mb-4" />
                     <p className="text-secondary">Loading trailer tracking data...</p>
                 </div>
             </div>
@@ -282,33 +282,40 @@ const ProfessionalTrailerTracker: React.FC = () => {
                 className={`bg-card shadow-xl transition-all duration-300 ease-in-out ${sidebarCollapsed ? "w-0" : "w-72"
                     } overflow-hidden`}
             >
-                <div className="h-full flex flex-col">
+                <div className="h-full flex flex-col ">
                     {/* Header */}
-                    <div className="bg-[linear-gradient(90deg,var(--accent-blue)_0%,var(--accent-blue)_40%,rgba(0,209,255,0.15)_100%)] p-4 text-white">
+                    <div className="bg-gradient-to-r from-[rgba(0,209,255,0.2)] via-[rgba(0,209,255,0.15)] to-[rgba(168,85,247,0.2)] p-4 text-white border border-theme rounded-lg">
+
                         <div className="flex items-center justify-between mb-4">
-                            <h2 className="text-xl font-bold flex items-center gap-2">
-                                <Package className="w-5 h-5" />
+                            <h2 className="text-xl font-bold flex items-center gap-2 text-primary">
+                                <Package className="w-5 h-5 text-accent" />
                                 Trailer Tracker
                             </h2>
+
                             <button
                                 onClick={() => setSidebarCollapsed(true)}
-                                className="p-1 hover:bg-card/20 rounded-lg transition-colors"
+                                className="p-1 hover:bg-[rgba(255,255,255,0.08)] rounded-lg transition-colors"
                             >
-                                <ChevronLeft className="w-5 h-5" />
+                                <ChevronLeft className="w-5 h-5 text-secondary hover:text-primary" />
                             </button>
                         </div>
 
                         {/* Search Bar */}
                         <div className="relative">
                             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-3 h-3 text-secondary" />
+
                             <input
                                 type="text"
                                 placeholder="Search by plate number..."
-                                className="w-full pl-10 pr-4 py-1.5 text-sm rounded-lg bg-card/90 text-primary placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-white/50"
+                                className="w-full pl-10 pr-4 py-1.5 text-sm rounded-lg 
+      bg-card text-primary placeholder:text-secondary 
+      border border-theme 
+      focus:outline-none focus:ring-2 focus:ring-[var(--accent-blue)]"
                                 value={searchTerm}
                                 onChange={(e) => setSearchTerm(e.target.value)}
                             />
                         </div>
+
                     </div>
 
                     {/* Trailer List */}
@@ -401,18 +408,18 @@ const ProfessionalTrailerTracker: React.FC = () => {
                         url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
                     />
                     <MapController center={mapCenter} zoom={mapZoom} />
-                    
+
                     {/* Trailer Markers */}
                     {filteredTrailers.map((trailer) => {
                         const lat = Number(trailer.currentLocation?.latitude);
                         const lng = Number(trailer.currentLocation?.longitude);
-                        
+
                         if (isNaN(lat) || isNaN(lng) || lat === 0 || lng === 0) {
                             return null;
                         }
-                        
+
                         const markerColor = statusColors[trailer.status] || '#6b7280';
-                        
+
                         return (
                             <Marker
                                 key={trailer._id}

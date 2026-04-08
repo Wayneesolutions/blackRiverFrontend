@@ -160,7 +160,7 @@ const DriverList = () => {
     const [showDetailsSidebar, setShowDetailsSidebar] = useState(false);
     const [drivers, setDrivers] = useState<Driver[]>([]);
     const [loading, setLoading] = useState(true);
-    
+
     // Refs for scrollbar synchronization
     const topScrollRef = useRef<HTMLDivElement>(null);
     const bottomScrollRef = useRef<HTMLDivElement>(null);
@@ -280,9 +280,9 @@ const DriverList = () => {
 
     const getStatusColor = (status: string) => {
         switch (status) {
-            case 'active': return 'text-emerald-700 bg-emerald-50 border-emerald-200';
-            case 'inactive': return 'text-slate-700 bg-slate-50 border-slate-200';
-            default: return 'text-slate-700 bg-slate-50 border-slate-200';
+            case 'active': return 'text-[var(--accent-green)] bg-[var(--accent-green)]/10 border-theme';
+            case 'inactive': return 'text-primary text-accent divide-theme';
+            default: return 'text-primary text-accent divide-theme';
         }
     };
 
@@ -394,13 +394,13 @@ const DriverList = () => {
         className = "",
     }) => (
         <th
-            className={`px-6 py-4 text-left text-xs font-semibold text-slate-600 uppercase tracking-wider cursor-pointer hover:bg-slate-50 transition-colors duration-150 ${className}`}
+            className={`px-6 py-4 text-left text-xs font-semibold text-secondary uppercase tracking-wider cursor-pointer hover:text-accent transition-colors duration-150 ${className}`}
             onClick={() => handleSort(field)}
         >
             <div className="flex items-center space-x-1">
                 <span>{children}</span>
                 {sortBy === field && (
-                    <span className="text-blue-500 text-sm font-bold">
+                    <span className="text-accent text-sm font-bold">
                         {sortOrder === "asc" ? "↑" : "↓"}
                     </span>
                 )}
@@ -466,8 +466,8 @@ const DriverList = () => {
 
         const bottomTable = bottomScroll.querySelector('table');
         if (bottomTable) {
-            tableObserver.observe(bottomTable, { 
-                childList: true, 
+            tableObserver.observe(bottomTable, {
+                childList: true,
                 subtree: true,
                 attributes: true,
                 attributeFilter: ['style', 'class']
@@ -491,7 +491,7 @@ const DriverList = () => {
 
     if (loading) {
         return (
-            <div className="min-h-screen p-4 bg-card px-6 flex items-center justify-center">
+            <div className="min-h-screen p-4 text-accent px-6 flex items-center justify-center">
                 <div className="text-secondary">Loading drivers...</div>
             </div>
         );
@@ -504,35 +504,36 @@ const DriverList = () => {
                 <div className="mb-8">
                     <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between">
                         <div>
-                            <h1 className="text-3xl font-bold text-slate-900 mb-2">Driver Fleet</h1>
-                            <p className="text-slate-600">Manage and monitor your driver fleet</p>
+                            <h1 className="text-3xl font-bold text-primary mb-2">Driver Fleet</h1>
+                            <p className="text-secondary">Manage and monitor your driver fleet</p>
                         </div>
                     </div>
                 </div>
 
                 {/* Stats Cards */}
                 <div className="grid grid-cols-2 md:grid-cols-5 gap-4 mb-8">
+
                     {/* Total Drivers */}
-                    <div className="rounded-xl p-4 bg-slate-50 border border-slate-200">
-                        <div className="text-2xl font-bold text-slate-700 mb-1">
+                    <div className="rounded-xl p-4 bg-card border border-theme">
+                        <div className="text-2xl font-bold text-primary mb-1">
                             {stats.total}
                         </div>
-                        <div className="text-sm font-medium text-slate-600">
+                        <div className="text-sm font-medium text-secondary">
                             Total Drivers
                         </div>
                     </div>
 
                     {/* Active */}
-                    <div className="rounded-xl p-4 bg-green-50 border border-green-200">
-                        <div className="text-2xl font-bold text-green-600 mb-1">
+                    <div className="rounded-xl p-4 bg-[var(--accent-green)]/10 border border-theme">
+                        <div className="text-2xl font-bold text-[var(--accent-green)] mb-1">
                             {stats.active}
                         </div>
-                        <div className="text-sm font-medium text-green-600">
+                        <div className="text-sm font-medium text-[var(--accent-green)]">
                             Active
                         </div>
-                        <div className="w-full bg-green-100 rounded-full h-1 mt-2">
+                        <div className="w-full bg-[var(--accent-green)]/10 rounded-full h-1 mt-2">
                             <div
-                                className="bg-green-500 h-1 rounded-full"
+                                className="bg-[var(--accent-green)] h-1 rounded-full"
                                 style={{
                                     width: `${stats.total > 0 ? (stats.active / stats.total) * 100 : 0}%`,
                                 }}
@@ -541,16 +542,16 @@ const DriverList = () => {
                     </div>
 
                     {/* Inactive */}
-                    <div className="rounded-xl p-4 bg-slate-100 border border-slate-200">
-                        <div className="text-2xl font-bold text-slate-600 mb-1">
+                    <div className="rounded-xl p-4 bg-card border border-theme">
+                        <div className="text-2xl font-bold text-secondary mb-1">
                             {stats.inactive}
                         </div>
-                        <div className="text-sm font-medium text-slate-600">
+                        <div className="text-sm font-medium text-secondary">
                             Inactive
                         </div>
-                        <div className="w-full bg-slate-200 rounded-full h-1 mt-2">
+                        <div className="w-full bg-white/10 rounded-full h-1 mt-2">
                             <div
-                                className="bg-slate-500 h-1 rounded-full"
+                                className="bg-secondary h-1 rounded-full"
                                 style={{
                                     width: `${stats.total > 0 ? (stats.inactive / stats.total) * 100 : 0}%`,
                                 }}
@@ -559,16 +560,16 @@ const DriverList = () => {
                     </div>
 
                     {/* With Vehicle */}
-                    <div className="rounded-xl p-4 bg-card border border-purple-200">
-                        <div className="text-2xl font-bold text-purple-600 mb-1">
+                    <div className="rounded-xl p-4 bg-[var(--accent-purple)]/10 border border-theme">
+                        <div className="text-2xl font-bold text-[var(--accent-purple)] mb-1">
                             {stats.withVehicle}
                         </div>
-                        <div className="text-sm font-medium text-purple-600">
+                        <div className="text-sm font-medium text-[var(--accent-purple)]">
                             With Vehicle
                         </div>
-                        <div className="w-full bg-purple-100 rounded-full h-1 mt-2">
+                        <div className="w-full bg-[var(--accent-purple)]/10 rounded-full h-1 mt-2">
                             <div
-                                className="bg-purple-500 h-1 rounded-full"
+                                className="bg-[var(--accent-purple)] h-1 rounded-full"
                                 style={{
                                     width: `${stats.total > 0 ? (stats.withVehicle / stats.total) * 100 : 0}%`,
                                 }}
@@ -577,36 +578,37 @@ const DriverList = () => {
                     </div>
 
                     {/* Unassigned */}
-                    <div className="rounded-xl p-4 bg-card border border-orange-200">
-                        <div className="text-2xl font-bold text-[#F59E0B] mb-1">
+                    <div className="rounded-xl p-4 bg-[var(--accent-orange)]/10 border border-theme">
+                        <div className="text-2xl font-bold text-[var(--accent-orange)] mb-1">
                             {stats.withoutVehicle}
                         </div>
-                        <div className="text-sm font-medium text-[#F59E0B]">
+                        <div className="text-sm font-medium text-[var(--accent-orange)]">
                             Unassigned
                         </div>
-                        <div className="w-full bg-orange-100 rounded-full h-1 mt-2">
+                        <div className="w-full bg-[var(--accent-orange)]/10 rounded-full h-1 mt-2">
                             <div
-                                className="bg-orange-500 h-1 rounded-full"
+                                className="bg-[var(--accent-orange)] h-1 rounded-full"
                                 style={{
                                     width: `${stats.total > 0 ? (stats.withoutVehicle / stats.total) * 100 : 0}%`,
                                 }}
                             />
                         </div>
                     </div>
+
                 </div>
 
 
                 {/* Filters and Search */}
-                <div className="bg-card rounded-xl shadow-sm border border-slate-200 mb-6 overflow-hidden">
-                    <div className="p-6 border-b border-slate-100">
+                <div className="text-accent rounded-xl shadow-sm border divide-theme mb-6 overflow-hidden">
+                    <div className="p-6 border-b divide-theme">
                         <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center">
                             <div className="flex-1">
                                 <div className="relative">
-                                    <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400 w-5 h-5" />
+                                    <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-secondary w-5 h-5" />
                                     <input
                                         type="text"
                                         placeholder="Search by name, email, phone, ID, or location..."
-                                        className="w-full pl-10 pr-4 py-3 border border-slate-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-150"
+                                        className="w-full pl-10 pr-4 py-3 border divide-theme rounded-lg focus:ring-2 focus:ring-[var(--accent-blue)] focus:border-[var(--accent-blue)] transition-colors duration-150"
                                         value={searchTerm}
                                         onChange={(e) => setSearchTerm(e.target.value)}
                                     />
@@ -615,9 +617,9 @@ const DriverList = () => {
 
                             <div className="flex gap-3">
                                 <div className="relative">
-                                    <Filter className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400 w-4 h-4" />
+                                    <Filter className="absolute left-3 top-1/2 transform -translate-y-1/2 text-secondary w-4 h-4" />
                                     <select
-                                        className="pl-10 pr-8 py-3 border border-slate-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 appearance-none bg-card min-w-40 transition-colors duration-150"
+                                        className="pl-10 pr-8 py-3 border divide-theme rounded-lg focus:ring-2 focus:ring-[var(--accent-blue)] focus:border-[var(--accent-blue)] appearance-none text-accent min-w-40 transition-colors duration-150"
                                         value={filterStatus}
                                         onChange={(e) => setFilterStatus(e.target.value)}
                                     >
@@ -629,11 +631,11 @@ const DriverList = () => {
                             </div>
                         </div>
 
-                        <div className="mt-4 flex justify-between items-center text-sm text-slate-600">
+                        <div className="mt-4 flex justify-between items-center text-sm text-secondary">
                             <span>Showing {indexOfFirstDriver + 1}-{Math.min(indexOfLastDriver, sortedDrivers.length)} of {sortedDrivers.length} drivers</span>
                             <div className="flex items-center space-x-2">
                                 <span>Show:</span>
-                                <select className="border border-slate-200 rounded-lg px-3 py-1 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                                <select className="border divide-theme rounded-lg px-3 py-1 text-sm focus:ring-2 focus:ring-[var(--accent-blue)] focus:border-[var(--accent-blue)]">
                                     <option value="10">10</option>
                                     <option value="25">25</option>
                                     <option value="50">50</option>
@@ -650,14 +652,14 @@ const DriverList = () => {
                             height: 8px;
                         }
                         .top-scrollbar-container::-webkit-scrollbar-track {
-                            background: #f7fafc;
+                            background: rgba(255,255,255,0.05);
                         }
                         .top-scrollbar-container::-webkit-scrollbar-thumb {
-                            background: #cbd5e0;
+                            background: rgba(255,255,255,0.2);
                             border-radius: 4px;
                         }
                         .top-scrollbar-container::-webkit-scrollbar-thumb:hover {
-                            background: #a0aec0;
+                            background: rgba(255,255,255,0.3);
                         }
                         .table-container-hidden-scrollbar {
                             scrollbar-width: none; /* Firefox */
@@ -667,10 +669,10 @@ const DriverList = () => {
                             display: none; /* Chrome, Safari, Opera */
                         }
                     `}</style>
-                    <div 
+                    <div
                         ref={topScrollRef}
                         className="overflow-x-auto overflow-y-hidden top-scrollbar-container"
-                        style={{ 
+                        style={{
                             maxHeight: '20px',
                             marginBottom: '2px',
                             scrollbarWidth: 'thin',
@@ -680,12 +682,12 @@ const DriverList = () => {
                         <div className="top-scroll-content" style={{ height: '1px' }}></div>
                     </div>
                     {/* Main Table - Scrollbar hidden, controlled by top scrollbar */}
-                    <div 
+                    <div
                         ref={bottomScrollRef}
                         className="overflow-x-auto overflow-y-visible table-container-hidden-scrollbar"
                     >
                         <table className="min-w-full divide-y divide-slate-200" style={{ minWidth: '1200px' }}>
-                            <thead className="bg-slate-50">
+                            <thead className="text-accent">
                                 <tr>
                                     <SortHeader field="internalId">Driver ID</SortHeader>
                                     <SortHeader field="name">Name</SortHeader>
@@ -695,19 +697,19 @@ const DriverList = () => {
                                     <SortHeader field="avgSpeed">Avg Speed</SortHeader>
                                     <SortHeader field="status">Status</SortHeader>
                                     <SortHeader field="joinDate">Join Date</SortHeader>
-                                    <th className="px-6 py-4 text-left text-xs font-semibold text-slate-600 uppercase tracking-wider">
+                                    <th className="px-6 py-4 text-left text-xs font-semibold text-secondary uppercase tracking-wider">
                                         Actions
                                     </th>
                                 </tr>
                             </thead>
-                            <tbody className="bg-card divide-y divide-slate-100">
+                            <tbody className="text-accent divide-y divide-slate-100">
                                 {currentDrivers.length === 0 ? (
                                     <tr>
                                         <td colSpan={9} className="px-6 py-12 text-center">
                                             <div className="flex flex-col items-center justify-center">
-                                                <User className="w-12 h-12 text-slate-400 mb-4" />
-                                                <p className="text-slate-600 font-medium">No drivers found</p>
-                                                <p className="text-slate-500 text-sm mt-1">
+                                                <User className="w-12 h-12 text-secondary mb-4" />
+                                                <p className="text-secondary font-medium">No drivers found</p>
+                                                <p className="text-secondary text-sm mt-1">
                                                     {searchTerm || filterStatus !== 'all'
                                                         ? 'Try adjusting your search or filter criteria'
                                                         : 'No drivers are available for your company'}
@@ -717,9 +719,9 @@ const DriverList = () => {
                                     </tr>
                                 ) : (
                                     currentDrivers.map((driver) => (
-                                        <tr 
-                                            key={driver._id} 
-                                            className="hover:bg-slate-50 transition-colors duration-150 cursor-pointer"
+                                        <tr
+                                            key={driver._id}
+                                            className="hover:text-accent transition-colors duration-150 cursor-pointer"
                                             onClick={() => {
                                                 setSelectedDriver(driver);
                                                 setShowDetailsSidebar(true);
@@ -727,10 +729,10 @@ const DriverList = () => {
                                         >
                                             <td className="px-6 py-4 whitespace-nowrap">
                                                 <div className="flex items-center">
-                                                    <div className="p-2 bg-card rounded-lg mr-3 border border-blue-100">
-                                                        <User className="w-5 h-5 text-[#00D1FF]" />
+                                                    <div className="p-2 text-accent rounded-lg mr-3 border border-blue-100">
+                                                        <User className="w-5 h-5 text-accent" />
                                                     </div>
-                                                    <div className="text-sm font-semibold text-slate-900">
+                                                    <div className="text-sm font-semibold text-primary">
                                                         {driver.internalId}
                                                     </div>
                                                 </div>
@@ -742,7 +744,7 @@ const DriverList = () => {
                                                         <img
                                                             src={driver.avatar || driver.profileImageUrl}
                                                             alt={driver.name}
-                                                            className="w-10 h-10 rounded-full mr-3 object-cover border border-slate-200"
+                                                            className="w-10 h-10 rounded-full mr-3 object-cover border divide-theme"
                                                             onError={(e) => {
                                                                 // Handle broken image URLs
                                                                 e.currentTarget.style.display = 'none';
@@ -751,17 +753,17 @@ const DriverList = () => {
                                                             }}
                                                         />
                                                     ) : null}
-                                                    <div 
-                                                        className={`w-10 h-10 rounded-full mr-3 bg-blue-100 flex items-center justify-center border border-blue-200 ${driver.avatar || driver.profileImageUrl ? 'hidden' : ''}`}
+                                                    <div
+                                                        className={`w-10 h-10 rounded-full mr-3 bg-[var(--accent-blue)]/10 flex items-center justify-center border border-theme ${driver.avatar || driver.profileImageUrl ? 'hidden' : ''}`}
                                                     >
-                                                        <User className="w-5 h-5 text-[#00D1FF]" />
+                                                        <User className="w-5 h-5 text-accent" />
                                                     </div>
                                                     <div>
-                                                        <div className="text-sm font-medium text-slate-900">
+                                                        <div className="text-sm font-medium text-primary">
                                                             {driver.name}
                                                         </div>
                                                         {driver.details?.employeeCode && (
-                                                            <div className="text-xs text-slate-500">
+                                                            <div className="text-xs text-secondary">
                                                                 Code: {driver.details.employeeCode}
                                                             </div>
                                                         )}
@@ -770,13 +772,13 @@ const DriverList = () => {
                                             </td>
 
                                             <td className="px-6 py-4">
-                                                <div className="text-sm text-slate-900">
+                                                <div className="text-sm text-primary">
                                                     <div className="flex items-center space-x-2 mb-1">
-                                                        <Mail className="w-4 h-4 text-slate-400" />
+                                                        <Mail className="w-4 h-4 text-secondary" />
                                                         <span>{driver.email}</span>
                                                     </div>
                                                     <div className="flex items-center space-x-2">
-                                                        <Phone className="w-4 h-4 text-slate-400" />
+                                                        <Phone className="w-4 h-4 text-secondary" />
                                                         <span>{driver.phone}</span>
                                                     </div>
                                                 </div>
@@ -784,33 +786,33 @@ const DriverList = () => {
 
                                             <td className="px-6 py-4">
                                                 <div className="flex items-start space-x-2">
-                                                    <MapPin className="w-4 h-4 text-slate-400 mt-0.5 flex-shrink-0" />
-                                                    <div className="text-sm text-slate-900 max-w-xs">
+                                                    <MapPin className="w-4 h-4 text-secondary mt-0.5 flex-shrink-0" />
+                                                    <div className="text-sm text-primary max-w-xs">
                                                         {driver.location?.address || 'Location not available'}
                                                     </div>
                                                 </div>
                                                 {(driver.details?.vehicle || driver.vehicle) && (
                                                     <div className="flex items-center space-x-1 mt-2 ml-6">
-                                                        <Truck className="w-3 h-3 text-blue-500" />
-                                                        <span className="text-xs text-[#00D1FF] font-medium">
+                                                        <Truck className="w-3 h-3 text-accent" />
+                                                        <span className="text-xs text-accent font-medium">
                                                             {(driver.vehicle || driver.details?.vehicle)?.plateNumber || 'N/A'}
                                                         </span>
                                                     </div>
                                                 )}
                                             </td>
                                             <td className="px-6 py-4 whitespace-nowrap">
-                                                <p className="text-sm font-semibold text-slate-900">
+                                                <p className="text-sm font-semibold text-primary">
                                                     {driver.milesToday !== undefined
                                                         ? `${driver.milesToday.toLocaleString()} mi`
                                                         : '—'}
                                                 </p>
-                                                <p className="text-xs text-slate-500">Today</p>
+                                                <p className="text-xs text-secondary">Today</p>
                                             </td>
                                             <td className="px-6 py-4 whitespace-nowrap">
-                                                <p className="text-sm font-semibold text-slate-900">
+                                                <p className="text-sm font-semibold text-primary">
                                                     {driver.avgSpeed !== undefined ? `${driver.avgSpeed} mph` : '—'}
                                                 </p>
-                                                <p className="text-xs text-slate-500">Avg speed</p>
+                                                <p className="text-xs text-secondary">Avg speed</p>
                                             </td>
 
                                             <td className="px-6 py-4 whitespace-nowrap">
@@ -822,8 +824,8 @@ const DriverList = () => {
 
                                             <td className="px-6 py-4 whitespace-nowrap">
                                                 <div className="flex items-center space-x-2">
-                                                    <Calendar className="w-4 h-4 text-slate-400" />
-                                                    <span className="text-sm text-slate-900">
+                                                    <Calendar className="w-4 h-4 text-secondary" />
+                                                    <span className="text-sm text-primary">
                                                         {new Date(driver.joinDate).toLocaleDateString()}
                                                     </span>
                                                 </div>
@@ -832,7 +834,7 @@ const DriverList = () => {
                                             <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium" onClick={(e) => e.stopPropagation()}>
                                                 <button
                                                     onClick={() => handleViewDetails(driver)}
-                                                    className="inline-flex items-center space-x-1 text-[#00D1FF] hover:text-blue-700 px-3 py-2 rounded-lg hover:bg-blue-50 transition-colors duration-150 text-sm font-medium"
+                                                    className="inline-flex items-center space-x-1 text-accent hover:text-blue-700 px-3 py-2 rounded-lg hover:bg-[rgba(255,255,255,0.05)] transition-colors duration-150 text-sm font-medium"
                                                 >
                                                     <Eye className="w-4 h-4" />
                                                     <span>Details</span>
@@ -847,26 +849,26 @@ const DriverList = () => {
 
                     {/* Pagination */}
                     {totalPages > 1 && (
-                        <div className="bg-slate-50 px-6 py-4 border-t border-slate-200 flex items-center justify-between">
+                        <div className="text-accent px-6 py-4 border-t divide-theme flex items-center justify-between">
                             <div className="flex-1 flex justify-between sm:hidden">
                                 <button
                                     onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
                                     disabled={currentPage === 1}
-                                    className="relative inline-flex items-center px-4 py-2 border border-slate-300 text-sm font-medium rounded-lg text-slate-700 bg-card hover:bg-slate-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors duration-150"
+                                    className="relative inline-flex items-center px-4 py-2 border border-slate-300 text-sm font-medium rounded-lg text-primary text-accent hover:text-accent disabled:opacity-50 disabled:cursor-not-allowed transition-colors duration-150"
                                 >
                                     Previous
                                 </button>
                                 <button
                                     onClick={() => setCurrentPage(Math.min(totalPages, currentPage + 1))}
                                     disabled={currentPage === totalPages}
-                                    className="ml-3 relative inline-flex items-center px-4 py-2 border border-slate-300 text-sm font-medium rounded-lg text-slate-700 bg-card hover:bg-slate-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors duration-150"
+                                    className="ml-3 relative inline-flex items-center px-4 py-2 border border-slate-300 text-sm font-medium rounded-lg text-primary text-accent hover:text-accent disabled:opacity-50 disabled:cursor-not-allowed transition-colors duration-150"
                                 >
                                     Next
                                 </button>
                             </div>
                             <div className="hidden sm:flex-1 sm:flex sm:items-center sm:justify-between">
                                 <div>
-                                    <p className="text-sm text-slate-700 font-medium">
+                                    <p className="text-sm text-primary font-medium">
                                         Showing <span className="font-semibold">{indexOfFirstDriver + 1}</span> to{' '}
                                         <span className="font-semibold">{Math.min(indexOfLastDriver, sortedDrivers.length)}</span> of{' '}
                                         <span className="font-semibold">{sortedDrivers.length}</span> results
@@ -877,7 +879,7 @@ const DriverList = () => {
                                         <button
                                             onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
                                             disabled={currentPage === 1}
-                                            className="relative inline-flex items-center px-3 py-2 rounded-l-lg border border-slate-300 bg-card text-sm font-medium text-slate-500 hover:bg-slate-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors duration-150"
+                                            className="relative inline-flex items-center px-3 py-2 rounded-l-lg border border-slate-300 text-accent text-sm font-medium text-secondary hover:text-accent disabled:opacity-50 disabled:cursor-not-allowed transition-colors duration-150"
                                         >
                                             <ChevronLeft className="h-4 w-4" />
                                         </button>
@@ -889,8 +891,8 @@ const DriverList = () => {
                                                     key={page}
                                                     onClick={() => setCurrentPage(page)}
                                                     className={`relative inline-flex items-center px-4 py-2 border text-sm font-medium transition-colors duration-150 ${currentPage === page
-                                                        ? 'z-10 bg-card border-blue-500 text-[#00D1FF]'
-                                                        : 'bg-card border-slate-300 text-slate-500 hover:bg-slate-50'
+                                                        ? 'z-10 text-accent border-blue-500 text-accent'
+                                                        : 'text-accent border-slate-300 text-secondary hover:text-accent'
                                                         }`}
                                                 >
                                                     {page}
@@ -901,7 +903,7 @@ const DriverList = () => {
                                         <button
                                             onClick={() => setCurrentPage(Math.min(totalPages, currentPage + 1))}
                                             disabled={currentPage === totalPages}
-                                            className="relative inline-flex items-center px-3 py-2 rounded-r-lg border border-slate-300 bg-card text-sm font-medium text-slate-500 hover:bg-slate-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors duration-150"
+                                            className="relative inline-flex items-center px-3 py-2 rounded-r-lg border border-slate-300 text-accent text-sm font-medium text-secondary hover:text-accent disabled:opacity-50 disabled:cursor-not-allowed transition-colors duration-150"
                                         >
                                             <ChevronRight className="h-4 w-4" />
                                         </button>
@@ -914,19 +916,19 @@ const DriverList = () => {
 
                 {/* Driver Details Modal */}
                 {showDetails && selectedDriver && (
-                    <div className="fixed inset-0 bg-gray-900/50 backdrop-blur-sm z-[100] overflow-hidden">
+                    <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[100] overflow-hidden">
                         <div className="absolute inset-0" onClick={() => setShowDetails(false)} />
-                        <div className="absolute inset-y-0 right-0 max-w-2xl w-full bg-card shadow-xl">
+                        <div className="absolute inset-y-0 right-0 max-w-2xl w-full text-accent shadow-xl">
                             <div className="flex h-full flex-col">
                                 {/* Header */}
-                                <div className="bg-slate-50 px-6 py-4 border-b border-slate-200">
+                                <div className="text-accent px-6 py-4 border-b divide-theme">
                                     <div className="flex items-center justify-between">
                                         <div className="flex items-center space-x-3">
                                             {selectedDriver.avatar || selectedDriver.profileImageUrl ? (
                                                 <img
                                                     src={selectedDriver.avatar || selectedDriver.profileImageUrl}
                                                     alt={selectedDriver.name}
-                                                    className="w-12 h-12 rounded-lg object-cover border border-slate-200"
+                                                    className="w-12 h-12 rounded-lg object-cover border divide-theme"
                                                     onError={(e) => {
                                                         e.currentTarget.style.display = 'none';
                                                         const fallback = e.currentTarget.nextElementSibling as HTMLElement;
@@ -934,23 +936,23 @@ const DriverList = () => {
                                                     }}
                                                 />
                                             ) : null}
-                                            <div 
-                                                className={`w-12 h-12 rounded-lg bg-blue-100 flex items-center justify-center border border-blue-200 ${selectedDriver.avatar || selectedDriver.profileImageUrl ? 'hidden' : ''}`}
+                                            <div
+                                                className={`w-12 h-12 rounded-lg bg-[var(--accent-blue)]/10 flex items-center justify-center border border-theme ${selectedDriver.avatar || selectedDriver.profileImageUrl ? 'hidden' : ''}`}
                                             >
-                                                <User className="w-6 h-6 text-[#00D1FF]" />
+                                                <User className="w-6 h-6 text-accent" />
                                             </div>
                                             <div>
-                                                <h2 className="text-xl font-bold text-slate-900">
+                                                <h2 className="text-xl font-bold text-primary">
                                                     {selectedDriver.name}
                                                 </h2>
-                                                <p className="text-sm text-slate-600">{selectedDriver.internalId}</p>
+                                                <p className="text-sm text-secondary">{selectedDriver.internalId}</p>
                                             </div>
                                         </div>
                                         <button
                                             onClick={() => setShowDetails(false)}
-                                            className="p-2 hover:bg-slate-200 rounded-lg transition-colors duration-150"
+                                            className="p-2 hover:border-theme rounded-lg transition-colors duration-150"
                                         >
-                                            <X className="w-5 h-5 text-slate-600" />
+                                            <X className="w-5 h-5 text-secondary" />
                                         </button>
                                     </div>
                                 </div>
@@ -959,50 +961,50 @@ const DriverList = () => {
                                 <div className="flex-1 overflow-y-auto">
                                     <div className="p-6 space-y-6">
                                         {/* Basic Information */}
-                                        <div className="bg-card border border-slate-200 rounded-lg p-6">
-                                            <h3 className="text-lg font-semibold text-slate-900 mb-4 flex items-center">
-                                                <User className="w-5 h-5 mr-2 text-[#00D1FF]" />
+                                        <div className="text-accent border divide-theme rounded-lg p-6">
+                                            <h3 className="text-lg font-semibold text-primary mb-4 flex items-center">
+                                                <User className="w-5 h-5 mr-2 text-accent" />
                                                 Driver Information
                                             </h3>
                                             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                                 <div>
-                                                    <label className="text-sm font-medium text-slate-600">Name</label>
-                                                    <p className="text-sm text-slate-900 font-medium">{selectedDriver.name}</p>
+                                                    <label className="text-sm font-medium text-secondary">Name</label>
+                                                    <p className="text-sm text-primary font-medium">{selectedDriver.name}</p>
                                                 </div>
                                                 <div>
-                                                    <label className="text-sm font-medium text-slate-600">Internal ID</label>
-                                                    <p className="text-sm text-slate-900 font-medium">{selectedDriver.internalId}</p>
+                                                    <label className="text-sm font-medium text-secondary">Internal ID</label>
+                                                    <p className="text-sm text-primary font-medium">{selectedDriver.internalId}</p>
                                                 </div>
                                                 <div>
-                                                    <label className="text-sm font-medium text-slate-600">Email</label>
-                                                    <p className="text-sm text-slate-900 font-medium">{selectedDriver.email}</p>
+                                                    <label className="text-sm font-medium text-secondary">Email</label>
+                                                    <p className="text-sm text-primary font-medium">{selectedDriver.email}</p>
                                                 </div>
                                                 <div>
-                                                    <label className="text-sm font-medium text-slate-600">Phone</label>
-                                                    <p className="text-sm text-slate-900 font-medium">{selectedDriver.phone}</p>
+                                                    <label className="text-sm font-medium text-secondary">Phone</label>
+                                                    <p className="text-sm text-primary font-medium">{selectedDriver.phone}</p>
                                                 </div>
                                                 <div>
-                                                    <label className="text-sm font-medium text-slate-600">Employee Code</label>
-                                                    <p className="text-sm text-slate-900 font-medium">{selectedDriver.details?.employeeCode || 'N/A'}</p>
+                                                    <label className="text-sm font-medium text-secondary">Employee Code</label>
+                                                    <p className="text-sm text-primary font-medium">{selectedDriver.details?.employeeCode || 'N/A'}</p>
                                                 </div>
                                                 <div>
-                                                    <label className="text-sm font-medium text-slate-600">License Number</label>
-                                                    <p className="text-sm text-slate-900 font-medium">{selectedDriver.details?.licenceNumber || 'N/A'}</p>
+                                                    <label className="text-sm font-medium text-secondary">License Number</label>
+                                                    <p className="text-sm text-primary font-medium">{selectedDriver.details?.licenceNumber || 'N/A'}</p>
                                                 </div>
                                                 <div>
-                                                    <label className="text-sm font-medium text-slate-600">Country</label>
-                                                    <p className="text-sm text-slate-900 font-medium">{selectedDriver.country || 'N/A'}</p>
+                                                    <label className="text-sm font-medium text-secondary">Country</label>
+                                                    <p className="text-sm text-primary font-medium">{selectedDriver.country || 'N/A'}</p>
                                                 </div>
                                                 <div>
-                                                    <label className="text-sm font-medium text-slate-600">Join Date</label>
-                                                    <p className="text-sm text-slate-900 font-medium">{new Date(selectedDriver.joinDate).toLocaleDateString()}</p>
+                                                    <label className="text-sm font-medium text-secondary">Join Date</label>
+                                                    <p className="text-sm text-primary font-medium">{new Date(selectedDriver.joinDate).toLocaleDateString()}</p>
                                                 </div>
                                             </div>
                                         </div>
 
                                         {/* Status */}
-                                        <div className="bg-card border border-slate-200 rounded-lg p-6">
-                                            <h3 className="text-lg font-semibold text-slate-900 mb-4 flex items-center">
+                                        <div className="text-accent border divide-theme rounded-lg p-6">
+                                            <h3 className="text-lg font-semibold text-primary mb-4 flex items-center">
                                                 <Activity className="w-5 h-5 mr-2 text-purple-600" />
                                                 Status
                                             </h3>
@@ -1015,25 +1017,25 @@ const DriverList = () => {
                                         </div>
 
                                         {/* Location Information */}
-                                        <div className="bg-card border border-slate-200 rounded-lg p-6">
-                                            <h3 className="text-lg font-semibold text-slate-900 mb-4 flex items-center">
+                                        <div className="text-accent border divide-theme rounded-lg p-6">
+                                            <h3 className="text-lg font-semibold text-primary mb-4 flex items-center">
                                                 <MapPin className="w-5 h-5 mr-2 text-[#A855F7]" />
                                                 Current Location
                                             </h3>
                                             <div className="space-y-2">
                                                 <div>
-                                                    <label className="text-sm font-medium text-slate-600">Address</label>
-                                                    <p className="text-sm text-slate-900">{selectedDriver.location?.address || 'Location not available'}</p>
+                                                    <label className="text-sm font-medium text-secondary">Address</label>
+                                                    <p className="text-sm text-primary">{selectedDriver.location?.address || 'Location not available'}</p>
                                                 </div>
                                                 {selectedDriver.location?.latitude && selectedDriver.location?.longitude && (
                                                     <div className="grid grid-cols-2 gap-4">
                                                         <div>
-                                                            <label className="text-sm font-medium text-slate-600">Latitude</label>
-                                                            <p className="text-sm text-slate-900 font-mono">{selectedDriver.location.latitude}</p>
+                                                            <label className="text-sm font-medium text-secondary">Latitude</label>
+                                                            <p className="text-sm text-primary font-mono">{selectedDriver.location.latitude}</p>
                                                         </div>
                                                         <div>
-                                                            <label className="text-sm font-medium text-slate-600">Longitude</label>
-                                                            <p className="text-sm text-slate-900 font-mono">{selectedDriver.location.longitude}</p>
+                                                            <label className="text-sm font-medium text-secondary">Longitude</label>
+                                                            <p className="text-sm text-primary font-mono">{selectedDriver.location.longitude}</p>
                                                         </div>
                                                     </div>
                                                 )}
@@ -1042,8 +1044,8 @@ const DriverList = () => {
 
                                         {/* Vehicle Information */}
                                         {(selectedDriver.details?.vehicle || selectedDriver.vehicle) ? (
-                                            <div className="bg-card border border-slate-200 rounded-lg p-6">
-                                                <h3 className="text-lg font-semibold text-slate-900 mb-4 flex items-center">
+                                            <div className="text-accent border divide-theme rounded-lg p-6">
+                                                <h3 className="text-lg font-semibold text-primary mb-4 flex items-center">
                                                     <Truck className="w-5 h-5 mr-2 text-[#F59E0B]" />
                                                     Assigned Vehicle
                                                 </h3>
@@ -1052,73 +1054,73 @@ const DriverList = () => {
                                                     return (
                                                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                                             <div>
-                                                                <label className="text-sm font-medium text-slate-600">Plate Number</label>
-                                                                <p className="text-sm text-slate-900 font-medium">{vehicle?.plateNumber || 'N/A'}</p>
+                                                                <label className="text-sm font-medium text-secondary">Plate Number</label>
+                                                                <p className="text-sm text-primary font-medium">{vehicle?.plateNumber || 'N/A'}</p>
                                                             </div>
                                                             <div>
-                                                                <label className="text-sm font-medium text-slate-600">Vehicle ID</label>
-                                                                <p className="text-sm text-slate-900 font-medium">{vehicle?.internalId || 'N/A'}</p>
+                                                                <label className="text-sm font-medium text-secondary">Vehicle ID</label>
+                                                                <p className="text-sm text-primary font-medium">{vehicle?.internalId || 'N/A'}</p>
                                                             </div>
                                                             <div>
-                                                                <label className="text-sm font-medium text-slate-600">Make & Model</label>
-                                                                <p className="text-sm text-slate-900 font-medium">{vehicle?.make || ''} {vehicle?.model || ''}</p>
+                                                                <label className="text-sm font-medium text-secondary">Make & Model</label>
+                                                                <p className="text-sm text-primary font-medium">{vehicle?.make || ''} {vehicle?.model || ''}</p>
                                                             </div>
                                                             {vehicle?.year && (
                                                                 <div>
-                                                                    <label className="text-sm font-medium text-slate-600">Year</label>
-                                                                    <p className="text-sm text-slate-900 font-medium">{vehicle.year}</p>
+                                                                    <label className="text-sm font-medium text-secondary">Year</label>
+                                                                    <p className="text-sm text-primary font-medium">{vehicle.year}</p>
                                                                 </div>
                                                             )}
                                                             <div>
-                                                                <label className="text-sm font-medium text-slate-600">Vehicle Status</label>
-                                                                <p className="text-sm text-slate-900 font-medium capitalize">{vehicle?.status || 'N/A'}</p>
+                                                                <label className="text-sm font-medium text-secondary">Vehicle Status</label>
+                                                                <p className="text-sm text-primary font-medium capitalize">{vehicle?.status || 'N/A'}</p>
                                                             </div>
                                                             {vehicle?.type && (
                                                                 <div>
-                                                                    <label className="text-sm font-medium text-slate-600">Type</label>
-                                                                    <p className="text-sm text-slate-900 font-medium">{vehicle.type}</p>
+                                                                    <label className="text-sm font-medium text-secondary">Type</label>
+                                                                    <p className="text-sm text-primary font-medium">{vehicle.type}</p>
                                                                 </div>
                                                             )}
                                                             {vehicle?.ownership && (
                                                                 <div>
-                                                                    <label className="text-sm font-medium text-slate-600">Ownership</label>
-                                                                    <p className="text-sm text-slate-900 font-medium">{vehicle.ownership}</p>
+                                                                    <label className="text-sm font-medium text-secondary">Ownership</label>
+                                                                    <p className="text-sm text-primary font-medium">{vehicle.ownership}</p>
                                                                 </div>
                                                             )}
                                                             {vehicle?.currentLocation?.address && (
                                                                 <div className="md:col-span-2">
-                                                                    <label className="text-sm font-medium text-slate-600">Vehicle Location</label>
-                                                                    <p className="text-sm text-slate-900">{vehicle.currentLocation.address}</p>
+                                                                    <label className="text-sm font-medium text-secondary">Vehicle Location</label>
+                                                                    <p className="text-sm text-primary">{vehicle.currentLocation.address}</p>
                                                                 </div>
                                                             )}
                                                             {vehicle?.speed !== undefined && (
                                                                 <div>
-                                                                    <label className="text-sm font-medium text-slate-600">Speed</label>
-                                                                    <p className="text-sm text-slate-900 font-medium">{vehicle.speed} km/h</p>
+                                                                    <label className="text-sm font-medium text-secondary">Speed</label>
+                                                                    <p className="text-sm text-primary font-medium">{vehicle.speed} km/h</p>
                                                                 </div>
                                                             )}
                                                             {vehicle?.fuelLevel !== undefined && (
                                                                 <div>
-                                                                    <label className="text-sm font-medium text-slate-600">Fuel Level</label>
-                                                                    <p className="text-sm text-slate-900 font-medium">{vehicle.fuelLevel}%</p>
+                                                                    <label className="text-sm font-medium text-secondary">Fuel Level</label>
+                                                                    <p className="text-sm text-primary font-medium">{vehicle.fuelLevel}%</p>
                                                                 </div>
                                                             )}
                                                             {vehicle?.odometer !== undefined && (
                                                                 <div>
-                                                                    <label className="text-sm font-medium text-slate-600">Odometer</label>
-                                                                    <p className="text-sm text-slate-900 font-medium">{vehicle.odometer.toLocaleString()} km</p>
+                                                                    <label className="text-sm font-medium text-secondary">Odometer</label>
+                                                                    <p className="text-sm text-primary font-medium">{vehicle.odometer.toLocaleString()} km</p>
                                                                 </div>
                                                             )}
                                                             {vehicle?.engineOn !== undefined && (
                                                                 <div>
-                                                                    <label className="text-sm font-medium text-slate-600">Engine Status</label>
-                                                                    <p className="text-sm text-slate-900 font-medium">{vehicle.engineOn ? 'On' : 'Off'}</p>
+                                                                    <label className="text-sm font-medium text-secondary">Engine Status</label>
+                                                                    <p className="text-sm text-primary font-medium">{vehicle.engineOn ? 'On' : 'Off'}</p>
                                                                 </div>
                                                             )}
                                                             {vehicle?.trackingKey && (
                                                                 <div className="md:col-span-2">
-                                                                    <label className="text-sm font-medium text-slate-600">Tracking Key</label>
-                                                                    <p className="text-sm text-slate-900 font-mono">{vehicle.trackingKey}</p>
+                                                                    <label className="text-sm font-medium text-secondary">Tracking Key</label>
+                                                                    <p className="text-sm text-primary font-mono">{vehicle.trackingKey}</p>
                                                                 </div>
                                                             )}
                                                         </div>
@@ -1126,12 +1128,12 @@ const DriverList = () => {
                                                 })()}
                                             </div>
                                         ) : (
-                                            <div className="bg-card border border-slate-200 rounded-lg p-6">
-                                                <h3 className="text-lg font-semibold text-slate-900 mb-4 flex items-center">
+                                            <div className="text-accent border divide-theme rounded-lg p-6">
+                                                <h3 className="text-lg font-semibold text-primary mb-4 flex items-center">
                                                     <Truck className="w-5 h-5 mr-2 text-[#F59E0B]" />
                                                     Assigned Vehicle
                                                 </h3>
-                                                <div className="text-sm text-slate-500 italic">No vehicle assigned</div>
+                                                <div className="text-sm text-secondary italic">No vehicle assigned</div>
                                             </div>
                                         )}
                                     </div>
@@ -1146,7 +1148,7 @@ const DriverList = () => {
                     <>
                         {/* Overlay */}
                         <div
-                            className="fixed inset-0 bg-gray-900/50 backdrop-blur-sm z-40 transition-opacity"
+                            className="fixed inset-0 bg-black/60 backdrop-blur-sm z-40 transition-opacity"
                             onClick={() => {
                                 setShowDetailsSidebar(false);
                                 setTimeout(() => setSelectedDriver(null), 300);
@@ -1155,7 +1157,7 @@ const DriverList = () => {
 
                         {/* Sidebar Panel */}
                         <div
-                            className="fixed right-0 top-0 h-full w-full md:w-2/3 lg:w-1/2 bg-card shadow-2xl z-50 overflow-y-auto transform transition-transform duration-300 translate-x-0"
+                            className="fixed right-0 top-0 h-full w-full md:w-2/3 lg:w-1/2 text-accent shadow-2xl z-50 overflow-y-auto transform transition-transform duration-300 translate-x-0"
                         >
                             <div className="p-6">
                                 {/* Header */}
@@ -1174,7 +1176,7 @@ const DriverList = () => {
 
                                 <div className="space-y-6">
                                     {/* Driver Header */}
-                                    <div className="bg-gradient-to-r from-[#4A90E2] to-[#357ABD] text-white p-6 rounded-lg">
+                                    <div className="bg-gradient-to-r from-[rgba(0,209,255,0.3)] to-[rgba(168,85,247,0.3)] text-white p-6 rounded-lg">
                                         <div className="flex items-center gap-4">
                                             <div className="h-20 w-20 flex-shrink-0">
                                                 {selectedDriver.avatar || selectedDriver.profileImageUrl ? (
@@ -1189,7 +1191,7 @@ const DriverList = () => {
                                                         }}
                                                     />
                                                 ) : null}
-                                                <div 
+                                                <div
                                                     className={`h-20 w-20 rounded-full flex items-center justify-center text-white font-bold text-2xl border-4 border-white bg-gradient-to-br from-blue-500 to-purple-600 ${selectedDriver.avatar || selectedDriver.profileImageUrl ? 'hidden' : ''}`}
                                                 >
                                                     {selectedDriver.name?.charAt(0) || '?'}
@@ -1224,9 +1226,9 @@ const DriverList = () => {
                                     </div>
 
                                     {/* Personal Information */}
-                                    <div className="bg-card p-6 rounded-lg border border-theme">
+                                    <div className="text-accent p-6 rounded-lg border border-theme">
                                         <h4 className="font-semibold text-primary mb-4 text-lg flex items-center gap-2">
-                                            <User size={20} className="text-[#00D1FF]" />
+                                            <User size={20} className="text-accent" />
                                             Personal Information
                                         </h4>
                                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -1277,9 +1279,9 @@ const DriverList = () => {
 
                                     {/* Location Information */}
                                     {selectedDriver.location?.address && (
-                                        <div className="bg-gradient-to-br from-blue-50 to-indigo-50 p-6 rounded-lg border border-blue-200">
+                                        <div className="bg-gradient-to-br from-blue-50 to-indigo-50 p-6 rounded-lg border border-theme">
                                             <h4 className="font-semibold text-primary mb-4 text-lg flex items-center gap-2">
-                                                <MapPin size={20} className="text-[#00D1FF]" />
+                                                <MapPin size={20} className="text-accent" />
                                                 Location
                                             </h4>
                                             <div>
@@ -1291,9 +1293,9 @@ const DriverList = () => {
 
                                     {/* Vehicle Information */}
                                     {(selectedDriver.details?.vehicle || selectedDriver.vehicle) && (
-                                        <div className="bg-card p-6 rounded-lg border border-theme">
+                                        <div className="text-accent p-6 rounded-lg border border-theme">
                                             <h4 className="font-semibold text-primary mb-4 text-lg flex items-center gap-2">
-                                                <Truck size={20} className="text-[#00D1FF]" />
+                                                <Truck size={20} className="text-accent" />
                                                 Assigned Vehicle
                                             </h4>
                                             {(() => {
@@ -1368,9 +1370,9 @@ const DriverList = () => {
 
                                     {/* Performance Metrics */}
                                     {(selectedDriver.milesToday !== undefined || selectedDriver.avgSpeed !== undefined) && (
-                                        <div className="bg-card p-6 rounded-lg border border-theme">
+                                        <div className="text-accent p-6 rounded-lg border border-theme">
                                             <h4 className="font-semibold text-primary mb-4 text-lg flex items-center gap-2">
-                                                <Activity size={20} className="text-[#00D1FF]" />
+                                                <Activity size={20} className="text-accent" />
                                                 Performance Metrics
                                             </h4>
                                             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -1397,7 +1399,7 @@ const DriverList = () => {
                                                 setShowDetailsSidebar(false);
                                                 setTimeout(() => setSelectedDriver(null), 300);
                                             }}
-                                            className="px-6 py-2.5 bg-gray-200 text-primary font-medium rounded-lg hover:bg-gray-300 transition-all"
+                                            className="px-6 py-2.5 bg-card border border-theme hover:bg-[rgba(255,255,255,0.05)] text-primary font-medium rounded-lg transition-all"
                                         >
                                             Close
                                         </button>

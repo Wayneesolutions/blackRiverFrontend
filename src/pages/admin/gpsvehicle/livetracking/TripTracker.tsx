@@ -10,9 +10,9 @@ import { getSocket } from '../../../../socket/socketClient';
 // Fix for default marker icons in Leaflet
 delete (L.Icon.Default.prototype as any)._getIconUrl;
 L.Icon.Default.mergeOptions({
-    iconRetinaUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon-2x.png',
-    iconUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon.png',
-    shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-shadow.png',
+  iconRetinaUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon-2x.png',
+  iconUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon.png',
+  shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-shadow.png',
 });
 
 // Type definitions - based on Order model
@@ -89,341 +89,341 @@ interface ActiveOrderGroup {
 
 // Component to handle map center updates
 const MapController: React.FC<{ center: [number, number]; zoom: number }> = ({ center, zoom }) => {
-    const map = useMap();
-    
-    useEffect(() => {
-        map.setView(center, zoom);
-    }, [map, center, zoom]);
-    
-    return null;
+  const map = useMap();
+
+  useEffect(() => {
+    map.setView(center, zoom);
+  }, [map, center, zoom]);
+
+  return null;
 };
 
 // Helper function to create intermediate points for smoother routes
 const createIntermediatePoints = (start: [number, number], end: [number, number], numPoints: number = 10): [number, number][] => {
-    const points: [number, number][] = [];
-    for (let i = 0; i <= numPoints; i++) {
-        const ratio = i / numPoints;
-        const lat = start[0] + (end[0] - start[0]) * ratio;
-        const lng = start[1] + (end[1] - start[1]) * ratio;
-        points.push([lat, lng]);
-    }
-    return points;
+  const points: [number, number][] = [];
+  for (let i = 0; i <= numPoints; i++) {
+    const ratio = i / numPoints;
+    const lat = start[0] + (end[0] - start[0]) * ratio;
+    const lng = start[1] + (end[1] - start[1]) * ratio;
+    points.push([lat, lng]);
+  }
+  return points;
 };
 
 // Component to render route polyline
-const RoutePolyline: React.FC<{ 
-    waypoints: RouteWaypoint[]; 
-    yardLocation?: { lat: number; lng: number };
-    currentLocation?: { lat: number; lng: number };
+const RoutePolyline: React.FC<{
+  waypoints: RouteWaypoint[];
+  yardLocation?: { lat: number; lng: number };
+  currentLocation?: { lat: number; lng: number };
 }> = ({ waypoints, yardLocation, currentLocation }) => {
-    const [routeCoordinates, setRouteCoordinates] = useState<[number, number][]>([]);
-    const [yardToTruckRoute, setYardToTruckRoute] = useState<[number, number][]>([]);
+  const [routeCoordinates, setRouteCoordinates] = useState<[number, number][]>([]);
+  const [yardToTruckRoute, setYardToTruckRoute] = useState<[number, number][]>([]);
 
-    useEffect(() => {
-        setRouteCoordinates([]);
-        setYardToTruckRoute([]);
-        
-        // Include yard location as starting point if available
-        const allPoints: Array<{ lat: number; lng: number }> = [];
-        
-        // Add yard as first point if available
-        if (yardLocation && yardLocation.lat && yardLocation.lng && 
-            !isNaN(yardLocation.lat) && !isNaN(yardLocation.lng) &&
-            yardLocation.lat !== 0 && yardLocation.lng !== 0) {
-            allPoints.push({ lat: yardLocation.lat, lng: yardLocation.lng });
-        }
-        
-        // Add waypoints (but NOT current location - that's a separate route)
-        const validWaypoints = waypoints.filter(wp => 
-            wp.lat && wp.lng && 
-            !isNaN(wp.lat) && !isNaN(wp.lng) &&
-            wp.lat !== 0 && wp.lng !== 0
-        );
-        allPoints.push(...validWaypoints.map(wp => ({ lat: wp.lat, lng: wp.lng })));
-        
-        console.log('🛣️ RoutePolyline - All points:', {
-            yardLocation,
-            waypointsCount: validWaypoints.length,
-            currentLocation,
-            totalPoints: allPoints.length
-        });
-        
-        // If we have yard and current location, create a separate route from yard to truck
-        if (yardLocation && currentLocation && 
-            yardLocation.lat && yardLocation.lng && 
-            currentLocation.lat && currentLocation.lng &&
-            !isNaN(yardLocation.lat) && !isNaN(yardLocation.lng) &&
-            !isNaN(currentLocation.lat) && !isNaN(currentLocation.lng) &&
-            yardLocation.lat !== 0 && yardLocation.lng !== 0 &&
-            currentLocation.lat !== 0 && currentLocation.lng !== 0) {
-            
-            // Fetch route from yard to current truck location
-            const fetchYardToTruckRoute = async () => {
-                try {
-                    const coords = `${yardLocation.lng},${yardLocation.lat};${currentLocation.lng},${currentLocation.lat}`;
-                    const url = `https://router.project-osrm.org/route/v1/driving/${coords}?overview=full&geometries=geojson&steps=false`;
-                    
-                    console.log('🛣️ Fetching yard to truck route:', url);
-                    
-                    const response = await fetch(url);
-                    const data = await response.json();
-                    
-                    if (data.code === 'Ok' && data.routes && data.routes.length > 0) {
-                        const geometry = data.routes[0].geometry;
-                        if (geometry && geometry.coordinates && geometry.coordinates.length > 0) {
-                            const coords = geometry.coordinates.map((coord: [number, number]) => 
-                                [coord[1], coord[0]] as [number, number]
-                            );
-                            console.log('✅ Yard to truck route fetched:', coords.length, 'points');
-                            setYardToTruckRoute(coords);
-                            return;
-                        }
-                    }
-                    // Fallback: create intermediate points
-                    console.warn('⚠️ OSRM failed for yard to truck, using intermediate points');
-                    const intermediate = createIntermediatePoints(
-                        [yardLocation.lat, yardLocation.lng],
-                        [currentLocation.lat, currentLocation.lng],
-                        30
-                    );
-                    setYardToTruckRoute(intermediate);
-                } catch (error) {
-                    console.warn('⚠️ Error fetching yard to truck route:', error);
-                    // Fallback: create intermediate points
-                    const intermediate = createIntermediatePoints(
-                        [yardLocation.lat, yardLocation.lng],
-                        [currentLocation.lat, currentLocation.lng],
-                        30
-                    );
-                    setYardToTruckRoute(intermediate);
-                }
-            };
-            
-            fetchYardToTruckRoute();
-        } else {
-            setYardToTruckRoute([]);
-        }
-        
-        if (allPoints.length < 2) {
-            console.warn('⚠️ Not enough points for route:', allPoints.length);
-            setRouteCoordinates([]);
-            return;
-        }
+  useEffect(() => {
+    setRouteCoordinates([]);
+    setYardToTruckRoute([]);
 
-        // Use OSRM routing service (free, no API key required)
-        const fetchRoute = async () => {
-            try {
-                // Filter out invalid waypoints
-                const validWaypoints = allPoints.filter(wp => 
-                    wp.lat && wp.lng && 
-                    !isNaN(wp.lat) && !isNaN(wp.lng) &&
-                    wp.lat !== 0 && wp.lng !== 0
-                );
+    // Include yard location as starting point if available
+    const allPoints: Array<{ lat: number; lng: number }> = [];
 
-                if (validWaypoints.length < 2) {
-                    setRouteCoordinates([]);
-                    return;
-                }
+    // Add yard as first point if available
+    if (yardLocation && yardLocation.lat && yardLocation.lng &&
+      !isNaN(yardLocation.lat) && !isNaN(yardLocation.lng) &&
+      yardLocation.lat !== 0 && yardLocation.lng !== 0) {
+      allPoints.push({ lat: yardLocation.lat, lng: yardLocation.lng });
+    }
 
-                // Build coordinates string for OSRM
-                // OSRM format: lng,lat;lng,lat;...
-                const coords = validWaypoints.map(wp => `${wp.lng},${wp.lat}`).join(';');
-                
-                // Use OSRM route service with waypoints support
-                const url = `https://router.project-osrm.org/route/v1/driving/${coords}?overview=full&geometries=geojson&steps=false`;
-
-                console.log('🛣️ Fetching route from OSRM:', url);
-
-                const response = await fetch(url, {
-                    method: 'GET',
-                    headers: {
-                        'Accept': 'application/json',
-                    },
-                });
-
-                if (!response.ok) {
-                    throw new Error(`OSRM API error: ${response.status}`);
-                }
-
-                const data = await response.json();
-
-                if (data.code === 'Ok' && data.routes && data.routes.length > 0) {
-                    const geometry = data.routes[0].geometry;
-                    if (geometry && geometry.coordinates && geometry.coordinates.length > 0) {
-                        // Convert GeoJSON coordinates [lng, lat] to Leaflet [lat, lng]
-                        const coords = geometry.coordinates.map((coord: [number, number]) => 
-                            [coord[1], coord[0]] as [number, number]
-                        );
-                        console.log('✅ Route fetched successfully:', coords.length, 'points');
-                        setRouteCoordinates(coords);
-                        return;
-                    }
-                }
-
-                // If OSRM fails, try segment-by-segment routing
-                console.warn('⚠️ OSRM route failed, trying segment-by-segment routing');
-                await fetchRouteSegments(validWaypoints.map(wp => ({ lat: wp.lat, lng: wp.lng })));
-
-            } catch (error) {
-                console.error('❌ Error fetching route from OSRM:', error);
-                // Try segment-by-segment routing as fallback
-                const validWaypoints = allPoints.filter(wp => 
-                    wp.lat && wp.lng && 
-                    !isNaN(wp.lat) && !isNaN(wp.lng) &&
-                    wp.lat !== 0 && wp.lng !== 0
-                );
-                await fetchRouteSegments(validWaypoints);
-            }
-        };
-
-        // Fetch route segment by segment for better reliability
-        const fetchRouteSegments = async (validWaypoints: Array<{ lat: number; lng: number }>) => {
-            try {
-                const allCoords: [number, number][] = [];
-                
-                // Fetch route for each segment between consecutive waypoints
-                for (let i = 0; i < validWaypoints.length - 1; i++) {
-                    const start = validWaypoints[i];
-                    const end = validWaypoints[i + 1];
-                    
-                    try {
-                        const coords = `${start.lng},${start.lat};${end.lng},${end.lat}`;
-                        const url = `https://router.project-osrm.org/route/v1/driving/${coords}?overview=full&geometries=geojson&steps=false`;
-                        
-                        const response = await fetch(url);
-                        const data = await response.json();
-                        
-                        if (data.code === 'Ok' && data.routes && data.routes.length > 0) {
-                            const geometry = data.routes[0].geometry;
-                            if (geometry && geometry.coordinates) {
-                                const segmentCoords = geometry.coordinates.map((coord: [number, number]) => 
-                                    [coord[1], coord[0]] as [number, number]
-                                );
-                                
-                                // Add segment coordinates (skip first point if not first segment to avoid duplicates)
-                                if (i === 0) {
-                                    allCoords.push(...segmentCoords);
-                                } else {
-                                    allCoords.push(...segmentCoords.slice(1)); // Skip first point to avoid duplicate
-                                }
-                            } else {
-                                // Fallback: create intermediate points for this segment
-                                const intermediate = createIntermediatePoints(
-                                    [start.lat, start.lng],
-                                    [end.lat, end.lng],
-                                    20
-                                );
-                                if (i === 0) {
-                                    allCoords.push(...intermediate);
-                                } else {
-                                    allCoords.push(...intermediate.slice(1));
-                                }
-                            }
-                        } else {
-                            // Fallback: create intermediate points for this segment
-                            const intermediate = createIntermediatePoints(
-                                [start.lat, start.lng],
-                                [end.lat, end.lng],
-                                20
-                            );
-                            if (i === 0) {
-                                allCoords.push(...intermediate);
-                            } else {
-                                allCoords.push(...intermediate.slice(1));
-                            }
-                        }
-                    } catch (segmentError) {
-                        console.warn(`⚠️ Error fetching segment ${i}-${i+1}:`, segmentError);
-                        // Fallback: create intermediate points for this segment
-                        const intermediate = createIntermediatePoints(
-                            [start.lat, start.lng],
-                            [end.lat, end.lng],
-                            20
-                        );
-                        if (i === 0) {
-                            allCoords.push(...intermediate);
-                        } else {
-                            allCoords.push(...intermediate.slice(1));
-                        }
-                    }
-                    
-                    // Small delay to avoid rate limiting
-                    if (i < validWaypoints.length - 2) {
-                        await new Promise(resolve => setTimeout(resolve, 100));
-                    }
-                }
-                
-                if (allCoords.length > 0) {
-                    console.log('✅ Route built from segments:', allCoords.length, 'points');
-                    setRouteCoordinates(allCoords);
-                } else {
-                    // Final fallback: create smooth intermediate points between all waypoints
-                    const fallbackCoords: [number, number][] = [];
-                    for (let i = 0; i < validWaypoints.length - 1; i++) {
-                        const start = [validWaypoints[i].lat, validWaypoints[i].lng] as [number, number];
-                        const end = [validWaypoints[i + 1].lat, validWaypoints[i + 1].lng] as [number, number];
-                        const intermediate = createIntermediatePoints(start, end, 30);
-                        if (i === 0) {
-                            fallbackCoords.push(...intermediate);
-                        } else {
-                            fallbackCoords.push(...intermediate.slice(1));
-                        }
-                    }
-                    console.log('⚠️ Using fallback route with intermediate points:', fallbackCoords.length, 'points');
-                    setRouteCoordinates(fallbackCoords);
-                }
-            } catch (error) {
-                console.error('❌ Error in segment routing:', error);
-                // Final fallback: create smooth intermediate points
-                const fallbackCoords: [number, number][] = [];
-                for (let i = 0; i < validWaypoints.length - 1; i++) {
-                    const start = [validWaypoints[i].lat, validWaypoints[i].lng] as [number, number];
-                    const end = [validWaypoints[i + 1].lat, validWaypoints[i + 1].lng] as [number, number];
-                    const intermediate = createIntermediatePoints(start, end, 30);
-                    if (i === 0) {
-                        fallbackCoords.push(...intermediate);
-                    } else {
-                        fallbackCoords.push(...intermediate.slice(1));
-                    }
-                }
-                setRouteCoordinates(fallbackCoords);
-            }
-        };
-
-        fetchRoute();
-    }, [waypoints, yardLocation, currentLocation]);
-
-    // Show route even if loading (will update when ready)
-    return (
-        <>
-            {/* Main route: Yard -> Waypoints */}
-            {routeCoordinates.length >= 2 && (
-                <Polyline
-                    positions={routeCoordinates}
-                    color="#3b82f6"
-                    weight={5}
-                    opacity={0.7}
-                    smoothFactor={1}
-                />
-            )}
-            {/* Route from Yard to Current Truck Location (if live location available) */}
-            {yardToTruckRoute.length >= 2 && (
-                <Polyline
-                    positions={yardToTruckRoute}
-                    color="#10b981"
-                    weight={4}
-                    opacity={0.8}
-                    smoothFactor={1}
-                    dashArray="10, 5"
-                />
-            )}
-        </>
+    // Add waypoints (but NOT current location - that's a separate route)
+    const validWaypoints = waypoints.filter(wp =>
+      wp.lat && wp.lng &&
+      !isNaN(wp.lat) && !isNaN(wp.lng) &&
+      wp.lat !== 0 && wp.lng !== 0
     );
+    allPoints.push(...validWaypoints.map(wp => ({ lat: wp.lat, lng: wp.lng })));
+
+    console.log('🛣️ RoutePolyline - All points:', {
+      yardLocation,
+      waypointsCount: validWaypoints.length,
+      currentLocation,
+      totalPoints: allPoints.length
+    });
+
+    // If we have yard and current location, create a separate route from yard to truck
+    if (yardLocation && currentLocation &&
+      yardLocation.lat && yardLocation.lng &&
+      currentLocation.lat && currentLocation.lng &&
+      !isNaN(yardLocation.lat) && !isNaN(yardLocation.lng) &&
+      !isNaN(currentLocation.lat) && !isNaN(currentLocation.lng) &&
+      yardLocation.lat !== 0 && yardLocation.lng !== 0 &&
+      currentLocation.lat !== 0 && currentLocation.lng !== 0) {
+
+      // Fetch route from yard to current truck location
+      const fetchYardToTruckRoute = async () => {
+        try {
+          const coords = `${yardLocation.lng},${yardLocation.lat};${currentLocation.lng},${currentLocation.lat}`;
+          const url = `https://router.project-osrm.org/route/v1/driving/${coords}?overview=full&geometries=geojson&steps=false`;
+
+          console.log('🛣️ Fetching yard to truck route:', url);
+
+          const response = await fetch(url);
+          const data = await response.json();
+
+          if (data.code === 'Ok' && data.routes && data.routes.length > 0) {
+            const geometry = data.routes[0].geometry;
+            if (geometry && geometry.coordinates && geometry.coordinates.length > 0) {
+              const coords = geometry.coordinates.map((coord: [number, number]) =>
+                [coord[1], coord[0]] as [number, number]
+              );
+              console.log('✅ Yard to truck route fetched:', coords.length, 'points');
+              setYardToTruckRoute(coords);
+              return;
+            }
+          }
+          // Fallback: create intermediate points
+          console.warn('⚠️ OSRM failed for yard to truck, using intermediate points');
+          const intermediate = createIntermediatePoints(
+            [yardLocation.lat, yardLocation.lng],
+            [currentLocation.lat, currentLocation.lng],
+            30
+          );
+          setYardToTruckRoute(intermediate);
+        } catch (error) {
+          console.warn('⚠️ Error fetching yard to truck route:', error);
+          // Fallback: create intermediate points
+          const intermediate = createIntermediatePoints(
+            [yardLocation.lat, yardLocation.lng],
+            [currentLocation.lat, currentLocation.lng],
+            30
+          );
+          setYardToTruckRoute(intermediate);
+        }
+      };
+
+      fetchYardToTruckRoute();
+    } else {
+      setYardToTruckRoute([]);
+    }
+
+    if (allPoints.length < 2) {
+      console.warn('⚠️ Not enough points for route:', allPoints.length);
+      setRouteCoordinates([]);
+      return;
+    }
+
+    // Use OSRM routing service (free, no API key required)
+    const fetchRoute = async () => {
+      try {
+        // Filter out invalid waypoints
+        const validWaypoints = allPoints.filter(wp =>
+          wp.lat && wp.lng &&
+          !isNaN(wp.lat) && !isNaN(wp.lng) &&
+          wp.lat !== 0 && wp.lng !== 0
+        );
+
+        if (validWaypoints.length < 2) {
+          setRouteCoordinates([]);
+          return;
+        }
+
+        // Build coordinates string for OSRM
+        // OSRM format: lng,lat;lng,lat;...
+        const coords = validWaypoints.map(wp => `${wp.lng},${wp.lat}`).join(';');
+
+        // Use OSRM route service with waypoints support
+        const url = `https://router.project-osrm.org/route/v1/driving/${coords}?overview=full&geometries=geojson&steps=false`;
+
+        console.log('🛣️ Fetching route from OSRM:', url);
+
+        const response = await fetch(url, {
+          method: 'GET',
+          headers: {
+            'Accept': 'application/json',
+          },
+        });
+
+        if (!response.ok) {
+          throw new Error(`OSRM API error: ${response.status}`);
+        }
+
+        const data = await response.json();
+
+        if (data.code === 'Ok' && data.routes && data.routes.length > 0) {
+          const geometry = data.routes[0].geometry;
+          if (geometry && geometry.coordinates && geometry.coordinates.length > 0) {
+            // Convert GeoJSON coordinates [lng, lat] to Leaflet [lat, lng]
+            const coords = geometry.coordinates.map((coord: [number, number]) =>
+              [coord[1], coord[0]] as [number, number]
+            );
+            console.log('✅ Route fetched successfully:', coords.length, 'points');
+            setRouteCoordinates(coords);
+            return;
+          }
+        }
+
+        // If OSRM fails, try segment-by-segment routing
+        console.warn('⚠️ OSRM route failed, trying segment-by-segment routing');
+        await fetchRouteSegments(validWaypoints.map(wp => ({ lat: wp.lat, lng: wp.lng })));
+
+      } catch (error) {
+        console.error('❌ Error fetching route from OSRM:', error);
+        // Try segment-by-segment routing as fallback
+        const validWaypoints = allPoints.filter(wp =>
+          wp.lat && wp.lng &&
+          !isNaN(wp.lat) && !isNaN(wp.lng) &&
+          wp.lat !== 0 && wp.lng !== 0
+        );
+        await fetchRouteSegments(validWaypoints);
+      }
+    };
+
+    // Fetch route segment by segment for better reliability
+    const fetchRouteSegments = async (validWaypoints: Array<{ lat: number; lng: number }>) => {
+      try {
+        const allCoords: [number, number][] = [];
+
+        // Fetch route for each segment between consecutive waypoints
+        for (let i = 0; i < validWaypoints.length - 1; i++) {
+          const start = validWaypoints[i];
+          const end = validWaypoints[i + 1];
+
+          try {
+            const coords = `${start.lng},${start.lat};${end.lng},${end.lat}`;
+            const url = `https://router.project-osrm.org/route/v1/driving/${coords}?overview=full&geometries=geojson&steps=false`;
+
+            const response = await fetch(url);
+            const data = await response.json();
+
+            if (data.code === 'Ok' && data.routes && data.routes.length > 0) {
+              const geometry = data.routes[0].geometry;
+              if (geometry && geometry.coordinates) {
+                const segmentCoords = geometry.coordinates.map((coord: [number, number]) =>
+                  [coord[1], coord[0]] as [number, number]
+                );
+
+                // Add segment coordinates (skip first point if not first segment to avoid duplicates)
+                if (i === 0) {
+                  allCoords.push(...segmentCoords);
+                } else {
+                  allCoords.push(...segmentCoords.slice(1)); // Skip first point to avoid duplicate
+                }
+              } else {
+                // Fallback: create intermediate points for this segment
+                const intermediate = createIntermediatePoints(
+                  [start.lat, start.lng],
+                  [end.lat, end.lng],
+                  20
+                );
+                if (i === 0) {
+                  allCoords.push(...intermediate);
+                } else {
+                  allCoords.push(...intermediate.slice(1));
+                }
+              }
+            } else {
+              // Fallback: create intermediate points for this segment
+              const intermediate = createIntermediatePoints(
+                [start.lat, start.lng],
+                [end.lat, end.lng],
+                20
+              );
+              if (i === 0) {
+                allCoords.push(...intermediate);
+              } else {
+                allCoords.push(...intermediate.slice(1));
+              }
+            }
+          } catch (segmentError) {
+            console.warn(`⚠️ Error fetching segment ${i}-${i + 1}:`, segmentError);
+            // Fallback: create intermediate points for this segment
+            const intermediate = createIntermediatePoints(
+              [start.lat, start.lng],
+              [end.lat, end.lng],
+              20
+            );
+            if (i === 0) {
+              allCoords.push(...intermediate);
+            } else {
+              allCoords.push(...intermediate.slice(1));
+            }
+          }
+
+          // Small delay to avoid rate limiting
+          if (i < validWaypoints.length - 2) {
+            await new Promise(resolve => setTimeout(resolve, 100));
+          }
+        }
+
+        if (allCoords.length > 0) {
+          console.log('✅ Route built from segments:', allCoords.length, 'points');
+          setRouteCoordinates(allCoords);
+        } else {
+          // Final fallback: create smooth intermediate points between all waypoints
+          const fallbackCoords: [number, number][] = [];
+          for (let i = 0; i < validWaypoints.length - 1; i++) {
+            const start = [validWaypoints[i].lat, validWaypoints[i].lng] as [number, number];
+            const end = [validWaypoints[i + 1].lat, validWaypoints[i + 1].lng] as [number, number];
+            const intermediate = createIntermediatePoints(start, end, 30);
+            if (i === 0) {
+              fallbackCoords.push(...intermediate);
+            } else {
+              fallbackCoords.push(...intermediate.slice(1));
+            }
+          }
+          console.log('⚠️ Using fallback route with intermediate points:', fallbackCoords.length, 'points');
+          setRouteCoordinates(fallbackCoords);
+        }
+      } catch (error) {
+        console.error('❌ Error in segment routing:', error);
+        // Final fallback: create smooth intermediate points
+        const fallbackCoords: [number, number][] = [];
+        for (let i = 0; i < validWaypoints.length - 1; i++) {
+          const start = [validWaypoints[i].lat, validWaypoints[i].lng] as [number, number];
+          const end = [validWaypoints[i + 1].lat, validWaypoints[i + 1].lng] as [number, number];
+          const intermediate = createIntermediatePoints(start, end, 30);
+          if (i === 0) {
+            fallbackCoords.push(...intermediate);
+          } else {
+            fallbackCoords.push(...intermediate.slice(1));
+          }
+        }
+        setRouteCoordinates(fallbackCoords);
+      }
+    };
+
+    fetchRoute();
+  }, [waypoints, yardLocation, currentLocation]);
+
+  // Show route even if loading (will update when ready)
+  return (
+    <>
+      {/* Main route: Yard -> Waypoints */}
+      {routeCoordinates.length >= 2 && (
+        <Polyline
+          positions={routeCoordinates}
+          color="#3b82f6"
+          weight={5}
+          opacity={0.7}
+          smoothFactor={1}
+        />
+      )}
+      {/* Route from Yard to Current Truck Location (if live location available) */}
+      {yardToTruckRoute.length >= 2 && (
+        <Polyline
+          positions={yardToTruckRoute}
+          color="#10b981"
+          weight={4}
+          opacity={0.8}
+          smoothFactor={1}
+          dashArray="10, 5"
+        />
+      )}
+    </>
+  );
 };
 
 // Create custom icons
 const createTruckIcon = () => {
-    const svg = `
+  const svg = `
         <svg width="30" height="30" viewBox="0 0 30 30" xmlns="http://www.w3.org/2000/svg">
             <circle cx="15" cy="15" r="14" fill="#10b981" stroke="white" stroke-width="2"/>
             <g transform="translate(5, 7)">
@@ -435,35 +435,35 @@ const createTruckIcon = () => {
             </g>
         </svg>
     `;
-    
-    return L.divIcon({
-        html: svg,
-        className: 'custom-truck-icon',
-        iconSize: [30, 30],
-        iconAnchor: [15, 15],
-    });
+
+  return L.divIcon({
+    html: svg,
+    className: 'custom-truck-icon',
+    iconSize: [30, 30],
+    iconAnchor: [15, 15],
+  });
 };
 
 const createPickupIcon = () => {
-    return L.divIcon({
-        html: '<div style="background-color: #3b82f6; width: 20px; height: 20px; border-radius: 50%; border: 3px solid white; box-shadow: 0 2px 4px rgba(0,0,0,0.3);"></div>',
-        className: 'custom-pickup-icon',
-        iconSize: [20, 20],
-        iconAnchor: [10, 10],
-    });
+  return L.divIcon({
+    html: '<div style="background-color: #3b82f6; width: 20px; height: 20px; border-radius: 50%; border: 3px solid white; box-shadow: 0 2px 4px rgba(0,0,0,0.3);"></div>',
+    className: 'custom-pickup-icon',
+    iconSize: [20, 20],
+    iconAnchor: [10, 10],
+  });
 };
 
 const createDeliveryIcon = () => {
-    return L.divIcon({
-        html: '<div style="background-color: #f59e0b; width: 20px; height: 20px; border-radius: 50%; border: 3px solid white; box-shadow: 0 2px 4px rgba(0,0,0,0.3);"></div>',
-        className: 'custom-delivery-icon',
-        iconSize: [20, 20],
-        iconAnchor: [10, 10],
-    });
+  return L.divIcon({
+    html: '<div style="background-color: #f59e0b; width: 20px; height: 20px; border-radius: 50%; border: 3px solid white; box-shadow: 0 2px 4px rgba(0,0,0,0.3);"></div>',
+    className: 'custom-delivery-icon',
+    iconSize: [20, 20],
+    iconAnchor: [10, 10],
+  });
 };
 
 const createYardIcon = () => {
-    const svg = `
+  const svg = `
         <svg width="28" height="28" viewBox="0 0 28 28" xmlns="http://www.w3.org/2000/svg">
             <circle cx="14" cy="14" r="13" fill="#8b5cf6" stroke="white" stroke-width="2"/>
             <g transform="translate(6, 6)">
@@ -474,13 +474,13 @@ const createYardIcon = () => {
             </g>
         </svg>
     `;
-    
-    return L.divIcon({
-        html: svg,
-        className: 'custom-yard-icon',
-        iconSize: [28, 28],
-        iconAnchor: [14, 14],
-    });
+
+  return L.divIcon({
+    html: svg,
+    className: 'custom-yard-icon',
+    iconSize: [28, 28],
+    iconAnchor: [14, 14],
+  });
 };
 
 const ProfessionalTripTracker: React.FC = () => {
@@ -516,7 +516,7 @@ const ProfessionalTripTracker: React.FC = () => {
         if (isInitialLoad && orderGroupsData.length > 0 && !selectedOrderGroup) {
           const firstGroup = orderGroupsData[0];
           setSelectedOrderGroup(firstGroup);
-          
+
           // Set map center
           const currentLocation = firstGroup.currentLocation;
           const yardLocation = firstGroup.yardLocation;
@@ -608,7 +608,7 @@ const ProfessionalTripTracker: React.FC = () => {
             engineOn: data.engineOn !== undefined ? data.engineOn : prev.engineOn
           };
         });
-        
+
         // Update map center to follow truck
         if (data.currentLocation) {
           const lat = Number(data.currentLocation.latitude || 0);
@@ -637,21 +637,21 @@ const ProfessionalTripTracker: React.FC = () => {
 
     setSelectedOrderGroup(group);
 
-          // Center map on current location, yard location, or first waypoint
-          const currentLocation = group.currentLocation;
-          const yardLocation = group.yardLocation;
-          const firstWaypoint = group.routeWaypoints?.[0];
-          
-          if (currentLocation && currentLocation.lat && currentLocation.lng) {
-            setMapCenter([currentLocation.lat, currentLocation.lng]);
-            setMapZoom(15);
-          } else if (yardLocation) {
-            setMapCenter([yardLocation.lat, yardLocation.lng]);
-            setMapZoom(12);
-          } else if (firstWaypoint) {
-            setMapCenter([firstWaypoint.lat, firstWaypoint.lng]);
-            setMapZoom(12);
-          }
+    // Center map on current location, yard location, or first waypoint
+    const currentLocation = group.currentLocation;
+    const yardLocation = group.yardLocation;
+    const firstWaypoint = group.routeWaypoints?.[0];
+
+    if (currentLocation && currentLocation.lat && currentLocation.lng) {
+      setMapCenter([currentLocation.lat, currentLocation.lng]);
+      setMapZoom(15);
+    } else if (yardLocation) {
+      setMapCenter([yardLocation.lat, yardLocation.lng]);
+      setMapZoom(12);
+    } else if (firstWaypoint) {
+      setMapCenter([firstWaypoint.lat, firstWaypoint.lng]);
+      setMapZoom(12);
+    }
   }, [selectedOrderGroup]);
 
   // Filter order groups by search
@@ -682,7 +682,7 @@ const ProfessionalTripTracker: React.FC = () => {
   // Compute values
   const currentLocation = getCurrentLocation(selectedOrderGroup);
   const waypoints = getRouteWaypoints(selectedOrderGroup);
-  
+
   // Debug: Log waypoints
   useEffect(() => {
     if (selectedOrderGroup && waypoints.length > 0) {
@@ -710,31 +710,38 @@ const ProfessionalTripTracker: React.FC = () => {
           } overflow-hidden flex flex-col`}
       >
         {/* Header */}
-        <div className="bg-[linear-gradient(90deg,var(--accent-blue)_0%,var(--accent-blue)_40%,rgba(0,209,255,0.15)_100%)] p-4 text-white">
+        <div className="bg-gradient-to-r from-[rgba(0,209,255,0.2)] via-[rgba(0,209,255,0.15)] to-[rgba(168,85,247,0.2)] p-4 border border-theme rounded-lg">
+
           <div className="flex items-center justify-between mb-4">
-            <h2 className="text-xl font-bold flex items-center gap-2">
-              <Route className="w-5 h-5" />
+            <h2 className="text-xl font-bold flex items-center gap-2 text-primary">
+              <Route className="w-5 h-5 text-accent" />
               Order Tracker
             </h2>
+
             <button
               onClick={() => setSidebarCollapsed(true)}
-              className="p-1 hover:bg-card/20 rounded-lg transition-colors"
+              className="p-1 hover:bg-[rgba(255,255,255,0.08)] rounded-lg transition-colors"
             >
-              <ChevronLeft className="w-5 h-5" />
+              <ChevronLeft className="w-5 h-5 text-secondary hover:text-primary" />
             </button>
           </div>
 
           {/* Search Bar */}
           <div className="relative">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-3 h-3 text-secondary" />
+
             <input
               type="text"
               placeholder="Search by driver, truck, order number..."
-              className="w-full pl-10 pr-4 py-1.5 text-sm rounded-lg bg-card/90 text-primary placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-white/50"
+              className="w-full pl-10 pr-4 py-1.5 text-sm rounded-lg 
+      bg-card text-primary placeholder:text-secondary 
+      border border-theme 
+      focus:outline-none focus:ring-2 focus:ring-[var(--accent-blue)]"
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
             />
           </div>
+
         </div>
 
         {/* Order Group List */}
@@ -840,11 +847,11 @@ const ProfessionalTripTracker: React.FC = () => {
             url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
           />
           <MapController center={mapCenter} zoom={mapZoom} />
-          
+
           {/* Route Polyline */}
           {selectedOrderGroup && (
-            <RoutePolyline 
-              waypoints={waypoints} 
+            <RoutePolyline
+              waypoints={waypoints}
               yardLocation={selectedOrderGroup.yardLocation ? {
                 lat: selectedOrderGroup.yardLocation.lat,
                 lng: selectedOrderGroup.yardLocation.lng
@@ -881,37 +888,37 @@ const ProfessionalTripTracker: React.FC = () => {
           )}
 
           {/* Current Truck Location Marker (only show if live location is available) */}
-          {currentLocation && currentLocation.lat && currentLocation.lng && 
-           !isNaN(currentLocation.lat) && !isNaN(currentLocation.lng) &&
-           currentLocation.lat !== 0 && currentLocation.lng !== 0 && (
-            <Marker
-              position={[currentLocation.lat, currentLocation.lng]}
-              icon={createTruckIcon()}
-            >
-              <Popup>
-                <div className="p-2">
-                  <h3 className="font-bold text-sm mb-2">
-                    {selectedOrderGroup?.truck?.plateNumber || 'Truck Location'}
-                  </h3>
-                  <div className="space-y-1 text-xs">
-                    <div className="flex items-center justify-between">
-                      <span className="text-secondary">Speed:</span>
-                      <span className="font-medium">{selectedOrderGroup?.speed || 0} km/h</span>
+          {currentLocation && currentLocation.lat && currentLocation.lng &&
+            !isNaN(currentLocation.lat) && !isNaN(currentLocation.lng) &&
+            currentLocation.lat !== 0 && currentLocation.lng !== 0 && (
+              <Marker
+                position={[currentLocation.lat, currentLocation.lng]}
+                icon={createTruckIcon()}
+              >
+                <Popup>
+                  <div className="p-2">
+                    <h3 className="font-bold text-sm mb-2">
+                      {selectedOrderGroup?.truck?.plateNumber || 'Truck Location'}
+                    </h3>
+                    <div className="space-y-1 text-xs">
+                      <div className="flex items-center justify-between">
+                        <span className="text-secondary">Speed:</span>
+                        <span className="font-medium">{selectedOrderGroup?.speed || 0} km/h</span>
+                      </div>
+                      <div className="flex items-center justify-between">
+                        <span className="text-secondary">Status:</span>
+                        <span className="font-medium">{selectedOrderGroup?.engineOn ? 'Engine On' : 'Engine Off'}</span>
+                      </div>
+                      {selectedOrderGroup?.currentLocation?.address && (
+                        <p className="text-secondary text-xs mt-2">
+                          {selectedOrderGroup.currentLocation.address}
+                        </p>
+                      )}
                     </div>
-                    <div className="flex items-center justify-between">
-                      <span className="text-secondary">Status:</span>
-                      <span className="font-medium">{selectedOrderGroup?.engineOn ? 'Engine On' : 'Engine Off'}</span>
-                    </div>
-                    {selectedOrderGroup?.currentLocation?.address && (
-                      <p className="text-secondary text-xs mt-2">
-                        {selectedOrderGroup.currentLocation.address}
-                      </p>
-                    )}
                   </div>
-                </div>
-              </Popup>
-            </Marker>
-          )}
+                </Popup>
+              </Marker>
+            )}
 
           {/* Route Waypoints (Pickup and Delivery) */}
           {waypoints
@@ -924,7 +931,7 @@ const ProfessionalTripTracker: React.FC = () => {
             .map((waypoint, index) => {
               const lat = Number(waypoint.lat);
               const lng = Number(waypoint.lng);
-              
+
               return (
                 <Marker
                   key={`waypoint-${waypoint.orderId}-${waypoint.type}-${waypoint.stopNumber || 0}-${index}-${lat}-${lng}`}
@@ -1053,7 +1060,7 @@ const ProfessionalTripTracker: React.FC = () => {
                     </div>
                   </div>
                 )}
-                
+
                 {/* Orders List */}
                 {selectedOrderGroup.orders.length > 0 && (
                   <div className="pt-2 border-t border-theme">
