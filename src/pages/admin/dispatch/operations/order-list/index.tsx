@@ -1476,7 +1476,7 @@ const OrderList = () => {
                             }
                           }}
                           onClick={(e) => e.stopPropagation()}
-                          className={`text-xs font-medium rounded-full px-2 py-1 border-0 ring-1 ring-inset focus:ring-2 focus:ring-inset sm:text-sm sm:leading-6 cursor-pointer outline-none ${(order.accountingStatus || 'pending') === 'paid' ? 'bg-[var(--accent-green)]/10 text-[var(--accent-green)] ring-green-600/20' :
+                          className={`text-xs font-medium rounded-full px-2 py-1 border-0 ring-1 ring-inset focus:ring-2 focus:ring-inset sm:text-sm sm:leading-6 cursor-pointer outline-none ${(order.accountingStatus || 'pending') === 'paid' ? 'bg-[var(--accent-green)]/10 text-[var(--accent-green)]' :
                             (order.accountingStatus || 'pending') === 'unpaid' ? 'bg-[var(--accent-purple)]/10 text-[var(--accent-purple)]' :
                               'bg-[var(--accent-orange)]/10 text-[var(--accent-orange)]'
                             }`}

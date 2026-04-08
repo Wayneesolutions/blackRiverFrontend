@@ -212,7 +212,7 @@ const AuditTrail = () => {
                   placeholder="Search by order, user, or details..."
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
-                  className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  className="w-full pl-10 pr-4 py-2 border border-theme rounded-lg focus:ring-2 focus:ring-[var(--accent-blue)] focus:border-transparent"
                 />
               </div>
             </div>
@@ -222,7 +222,7 @@ const AuditTrail = () => {
               <select
                 value={filterUser}
                 onChange={(e) => setFilterUser(e.target.value)}
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                className="w-full px-4 py-2 border border-theme rounded-lg focus:ring-2 focus:ring-[var(--accent-blue)] focus:border-transparent"
               >
                 <option value="all">All Users</option>
                 {uniqueUsers.map((user) => (
@@ -238,7 +238,7 @@ const AuditTrail = () => {
               <select
                 value={filterEntityType}
                 onChange={(e) => setFilterEntityType(e.target.value)}
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                className="w-full px-4 py-2 border border-theme rounded-lg focus:ring-2 focus:ring-[var(--accent-blue)] focus:border-transparent"
               >
                 <option value="all">All Types</option>
                 {uniqueEntityTypes.map((type) => (
@@ -254,7 +254,7 @@ const AuditTrail = () => {
               <select
                 value={filterAction}
                 onChange={(e) => setFilterAction(e.target.value)}
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                className="w-full px-4 py-2 border border-theme rounded-lg focus:ring-2 focus:ring-[var(--accent-blue)] focus:border-transparent"
               >
                 <option value="all">All Actions</option>
                 {uniqueActions.map((action) => (
@@ -268,77 +268,23 @@ const AuditTrail = () => {
 
           {/* Date Filter */}
           <div className="mt-4 flex gap-2">
-            <button
-              onClick={() => setDateFilter("all")}
-              style={
-                dateFilter === "all"
-                  ? {
-                    background:
-                      "linear-gradient(90deg, #42aeec 0%, #1db5f5 40%, #0ea3d8 100%)",
-                  }
-                  : undefined
-              }
-              className={`px-4 py-1 rounded-lg text-sm font-medium transition-colors ${dateFilter === "all"
-                ? "!text-white"
-                : "bg-gray-100 text-primary hover:bg-gray-200"
-                }`}
-            >
-              All Time
-            </button>
-
-            <button
-              onClick={() => setDateFilter("today")}
-              style={
-                dateFilter === "today"
-                  ? {
-                    background:
-                      "linear-gradient(90deg, #42aeec 0%, #1db5f5 40%, #0ea3d8 100%)",
-                  }
-                  : undefined
-              }
-              className={`px-4 py-1 rounded-lg text-sm font-medium transition-colors ${dateFilter === "today"
-                ? "!text-white"
-                : "bg-gray-100 text-primary hover:bg-gray-200"
-                }`}
-            >
-              Today
-            </button>
-
-            <button
-              onClick={() => setDateFilter("week")}
-              style={
-                dateFilter === "week"
-                  ? {
-                    background:
-                      "linear-gradient(90deg, #42aeec 0%, #1db5f5 40%, #0ea3d8 100%)",
-                  }
-                  : undefined
-              }
-              className={`px-4 py-1 rounded-lg text-sm font-medium transition-colors ${dateFilter === "week"
-                ? "!text-white"
-                : "bg-gray-100 text-primary hover:bg-gray-200"
-                }`}
-            >
-              Last 7 Days
-            </button>
-
-            <button
-              onClick={() => setDateFilter("month")}
-              style={
-                dateFilter === "month"
-                  ? {
-                    background:
-                      "linear-gradient(90deg, #42aeec 0%, #1db5f5 40%, #0ea3d8 100%)",
-                  }
-                  : undefined
-              }
-              className={`px-4 py-1 rounded-lg text-sm font-medium transition-colors ${dateFilter === "month"
-                ? "!text-white"
-                : "bg-gray-100 text-primary hover:bg-gray-200"
-                }`}
-            >
-              Last 30 Days
-            </button>
+            {[
+              { label: "All Time", value: "all" },
+              { label: "Today", value: "today" },
+              { label: "Last 7 Days", value: "week" },
+              { label: "Last 30 Days", value: "month" },
+            ].map((item) => (
+              <button
+                key={item.value}
+                onClick={() => setDateFilter(item.value)}
+                className={`px-4 py-1 rounded-lg text-sm font-medium transition-all ${dateFilter === item.value
+                    ? "bg-gradient-to-r from-[var(--accent-blue)] to-[var(--accent-purple)] text-white"
+                    : "bg-card border border-theme text-primary hover:bg-[rgba(255,255,255,0.08)]"
+                  }`}
+              >
+                {item.label}
+              </button>
+            ))}
           </div>
 
         </div>
@@ -372,7 +318,7 @@ const AuditTrail = () => {
                 <div className="flex items-start gap-4">
                   {/* Icon */}
                   <div className="flex-shrink-0 mt-1">
-                    <div className="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center">
+                    <div className="w-10 h-10 rounded-full bg-card border border-theme flex items-center justify-center">
                       {getActionIcon(entry.action)}
                     </div>
                   </div>
@@ -403,10 +349,10 @@ const AuditTrail = () => {
 
                     <div className="mb-3">
                       <div className="flex items-center gap-2 mb-1">
-                        <span className="inline-flex items-center px-2 py-1 rounded text-xs font-medium bg-blue-100 text-blue-800">
+                        <span className="inline-flex items-center px-2 py-1 rounded text-xs font-medium bg-[var(--accent-blue)]/10 text-blue-800">
                           {entry.action}
                         </span>
-                        <span className="inline-flex items-center px-2 py-1 rounded text-xs font-medium bg-gray-100 text-primary">
+                        <span className="inline-flex items-center px-2 py-1 rounded text-xs font-medium bg-card border border-theme text-primary">
                           {entry.entityType}
                         </span>
                       </div>

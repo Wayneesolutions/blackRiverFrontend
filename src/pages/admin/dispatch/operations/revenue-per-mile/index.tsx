@@ -79,7 +79,7 @@ const RevenuePerMilePage = () => {
   return (
     <div className="min-h-screen" >
       <div className="relative w-full mx-auto">
-  
+
 
         {/* Main content */}
         <div className="relative z-10 px-4 pt-3 pb-6">
@@ -87,7 +87,7 @@ const RevenuePerMilePage = () => {
           <div className="mb-4 relative z-10">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
-                <h1 className="text-xl font-bold text-black">Revenue Per Mile</h1>
+                <h1 className="text-xl font-bold text-primary">Revenue Per Mile</h1>
               </div>
               <div className="flex items-center gap-2">
                 {/* Date Filter Toggle */}
@@ -98,7 +98,7 @@ const RevenuePerMilePage = () => {
                   <Calendar size={18} />
                   Date Filter
                 </button>
-                
+
                 {/* Clear Filters */}
                 {(startDate || endDate || searchTerm) && (
                   <button
@@ -187,51 +187,87 @@ const RevenuePerMilePage = () => {
           {/* Charts Section */}
           {loading ? (
             <div className="flex justify-center items-center py-12 bg-card rounded-lg shadow-sm border border-theme">
-              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[var(--accent-blue)]"></div>
             </div>
           ) : (
             <>
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-4">
                 {/* Revenue Per Mile by Truck - Bar Chart */}
                 <div className="bg-card rounded-lg shadow-sm border border-theme p-6">
-                  <h2 className="text-lg font-semibold text-primary mb-4">Revenue Per Mile by Truck</h2>
+                  <h2 className="text-lg font-semibold text-primary mb-4">
+                    Revenue Per Mile by Truck
+                  </h2>
+
                   {vehicleRevenueData.length > 0 ? (
-                    <div style={{ width: '100%', height: 300 }}>
+                    <div style={{ width: "100%", height: 300 }}>
                       <ResponsiveContainer>
                         <BarChart data={vehicleRevenueData} barCategoryGap="20%">
-                    <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
-                    <XAxis
-                      dataKey="plateNumber"
-                      stroke="#6b7280"
-                      style={{ fontSize: '11px' }}
-                    />
-                    <YAxis
-                      stroke="#6b7280"
-                      style={{ fontSize: '11px' }}
-                      tickFormatter={(value) => `$${value.toFixed(2)}`}
-                    />
-                    <Tooltip
-                      contentStyle={{
-                        backgroundColor: '#fff',
-                        border: 'none',
-                        borderRadius: '8px',
-                        boxShadow: '0 4px 12px rgba(0,0,0,0.1)',
-                        fontSize: '12px'
-                      }}
-                      formatter={(value) => `$${(value as number).toFixed(2)}`}
-                    />
-                    <Bar
-                      dataKey="revenuePerMile"
-                      fill="url(#revenueGradient)"
-                      name="Revenue/Mile"
-                      radius={[8, 8, 0, 0]}
-                    />
-                    <defs>
-                      <linearGradient id="revenueGradient" x1="0" y1="0" x2="0" y2="1">
-                        <stop offset="0%" stopColor="#42aeec" stopOpacity={1} />
-                        <stop offset="100%" stopColor="#1db5f5" stopOpacity={0.7} />
-                      </linearGradient>
-                    </defs>
+
+                          {/* GRID */}
+                          <CartesianGrid stroke="rgba(255,255,255,0.08)" />
+
+                          {/* X AXIS */}
+                          <XAxis
+                            dataKey="plateNumber"
+                            stroke="rgba(255,255,255,0.5)"
+                            style={{ fontSize: "11px" }}
+                          />
+
+                          {/* Y AXIS */}
+                          <YAxis
+                            stroke="rgba(255,255,255,0.5)"
+                            style={{ fontSize: "11px" }}
+                            domain={[0, "dataMax + 1"]}   // ✅ ensures visibility
+                            tickFormatter={(value) => `$${value.toFixed(2)}`}
+                          />
+
+                          {/* 🔥 TOOLTIP (FIXED CURSOR ISSUE) */}
+                          <Tooltip
+                            cursor={{ fill: "rgba(0,209,255,0.08)" }}   // ✅ NO MORE GREY BLOCK
+                            contentStyle={{
+                              backgroundColor: "#121A2B",
+                              border: "1px solid rgba(255,255,255,0.1)",
+                              borderRadius: "8px",
+                              boxShadow: "0 4px 20px rgba(0,0,0,0.5)",
+                              fontSize: "12px",
+                              color: "#fff",
+                            }}
+                            formatter={(value) => `$${(value as number).toFixed(2)}`}
+                          />
+
+                          {/* 🔥 BAR */}
+                          <Bar
+                            dataKey="revenuePerMile"
+                            fill="url(#revenueGradient)"
+                            name="Revenue/Mile"
+                            radius={[8, 8, 0, 0]}
+                            minPointSize={5}
+                            activeBar={{
+                              fill: "url(#hoverGradient)",   // ✅ themed hover
+                              stroke: "var(--accent-blue)",
+                              strokeWidth: 1,
+                              style: {
+                                filter: "drop-shadow(0 0 8px rgba(0,209,255,0.5))",
+                              },
+                            }}
+                          />
+
+                          {/* 🔥 GRADIENTS */}
+                          <defs>
+                            {/* NORMAL */}
+                            <linearGradient id="revenueGradient" x1="0" y1="0" x2="0" y2="1">
+                              <stop offset="0%" stopColor="var(--accent-blue)" stopOpacity={1} />
+                              <stop offset="100%" stopColor="var(--accent-purple)" stopOpacity={0.7} />
+                            </linearGradient>
+
+                            {/* HOVER */}
+                            <linearGradient id="hoverGradient" x1="0" y1="0" x2="0" y2="1">
+                              <stop offset="0%" stopColor="var(--accent-blue)" stopOpacity={1} />
+                              <stop offset="50%" stopColor="var(--accent-purple)" stopOpacity={0.9} />
+                              <stop offset="100%" stopColor="#0B1220" stopOpacity={0.4} />
+                            </linearGradient>
+                          </defs>
+
                         </BarChart>
                       </ResponsiveContainer>
                     </div>
@@ -249,58 +285,54 @@ const RevenuePerMilePage = () => {
                     <div style={{ width: '100%', height: 300 }}>
                       <ResponsiveContainer>
                         <LineChart data={monthlyTrendData}>
-                    <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
-                    <XAxis
-                      dataKey="month"
-                      stroke="#6b7280"
-                      style={{ fontSize: '11px' }}
-                    />
-                    <YAxis
-                      stroke="#6b7280"
-                      style={{ fontSize: '11px' }}
-                      yAxisId="left"
-                      tickFormatter={(value) => `$${value.toFixed(2)}`}
-                    />
-                    <YAxis
-                      stroke="#6b7280"
-                      style={{ fontSize: '11px' }}
-                      yAxisId="right"
-                      orientation="right"
-                      tickFormatter={(value) => `$${(value / 1000).toFixed(0)}k`}
-                    />
-                    <Tooltip
-                      contentStyle={{
-                        backgroundColor: '#fff',
-                        border: 'none',
-                        borderRadius: '8px',
-                        boxShadow: '0 4px 12px rgba(0,0,0,0.1)',
-                        fontSize: '12px'
-                      }}
-                      formatter={(value, name) => {
-                        const v = value as number;
-                        if (name === 'revenuePerMile') return `$${v.toFixed(2)}`;
-                        return `$${v.toLocaleString()}`;
-                      }}
-                    />
-                    <Legend />
-                    <Line
-                      yAxisId="left"
-                      type="monotone"
-                      dataKey="revenuePerMile"
-                      stroke="#42aeec"
-                      strokeWidth={2}
-                      name="Revenue/Mile"
-                      dot={{ fill: '#42aeec', r: 4 }}
-                    />
-                    <Line
-                      yAxisId="right"
-                      type="monotone"
-                      dataKey="totalRevenue"
-                      stroke="#10b981"
-                      strokeWidth={2}
-                      name="Total Revenue"
-                      dot={{ fill: '#10b981', r: 4 }}
-                    />
+                          <CartesianGrid stroke="rgba(255,255,255,0.08)" />
+                          <XAxis
+                            dataKey="month"
+                            stroke="rgba(255,255,255,0.5)"
+                            style={{ fontSize: '11px' }}
+                          />
+                          <YAxis
+                            stroke="rgba(255,255,255,0.5)"
+                            style={{ fontSize: '11px' }}
+                            yAxisId="left"
+                            tickFormatter={(value) => `$${value.toFixed(2)}`}
+                          />
+                          <YAxis
+                            stroke="rgba(255,255,255,0.5)"
+                            style={{ fontSize: '11px' }}
+                            yAxisId="right"
+                            orientation="right"
+                            tickFormatter={(value) => `$${(value / 1000).toFixed(0)}k`}
+                          />
+                          <Tooltip
+                            contentStyle={{
+                              backgroundColor: '#121A2B',
+                              border: '1px solid rgba(255,255,255,0.1)',
+                              borderRadius: '8px',
+                              boxShadow: '0 4px 20px rgba(0,0,0,0.5)',
+                              fontSize: '12px',
+                              color: '#fff'
+                            }}
+                          />
+                          <Legend />
+                          <Line
+                            yAxisId="left"
+                            type="monotone"
+                            dataKey="revenuePerMile"
+                            stroke="var(--accent-blue)"
+                            strokeWidth={2}
+                            name="Revenue/Mile"
+                            dot={{ fill: 'var(--accent-blue)', r: 4 }}
+                          />
+                          <Line
+                            yAxisId="right"
+                            type="monotone"
+                            dataKey="totalRevenue"
+                            stroke="#10b981"
+                            strokeWidth={2}
+                            name="Total Revenue"
+                            dot={{ fill: '#10b981', r: 4 }}
+                          />
                         </LineChart>
                       </ResponsiveContainer>
                     </div>
@@ -328,7 +360,7 @@ const RevenuePerMilePage = () => {
                   placeholder="Search by truck ID or plate number..."
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
-                  className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#42aeec] focus:border-transparent"
+                  className="w-full pl-10 pr-4 py-2 border border-theme bg-card text-primary focus:ring-2 focus:ring-[var(--accent-blue)] focus:border-transparent"
                 />
                 <Truck className="absolute left-3 top-1/2 transform -translate-y-1/2 text-secondary w-5 h-5" />
               </div>
