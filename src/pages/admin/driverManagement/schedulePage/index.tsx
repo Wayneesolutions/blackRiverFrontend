@@ -249,7 +249,7 @@ const UnifiedSchedulingPage = () => {
     return Array.from(driverMap.values());
   }, [orders]);
 
-  
+
   const currentMonth = currentDate.getMonth();
   const currentYear = currentDate.getFullYear();
 
@@ -298,7 +298,7 @@ const UnifiedSchedulingPage = () => {
     }
   };
 
- 
+
 
   const handleDrop = (date: Date) => {
     if (draggedOrder) {
@@ -368,15 +368,15 @@ const UnifiedSchedulingPage = () => {
   const getStatusColor = (status: string) => {
     switch (status) {
       case 'COMPLETED':
-        return 'bg-green-100 text-green-800 border-green-200';
+        return 'bg-[var(--accent-green)]/10 text-[var(--accent-green)] border-theme';
       case 'IN_PROGRESS':
-        return 'bg-blue-100 text-blue-800 border-blue-200';
+        return 'bg-[var(--accent-blue)]/10 text-[var(--accent-blue)] border-theme';
       case 'CONFIRMED':
-        return 'bg-purple-100 text-purple-800 border-purple-200';
+        return 'bg-[var(--accent-purple)]/10 text-[var(--accent-purple)] border-theme';
       case 'QUOTED':
-        return 'bg-yellow-100 text-yellow-800 border-yellow-200';
+        return 'bg-[var(--accent-orange)]/10 text-[var(--accent-orange)] border-theme';
       default:
-        return 'bg-gray-100 text-primary border-theme';
+        return 'bg-card text-primary border-theme';
     }
   };
 
@@ -403,7 +403,7 @@ const UnifiedSchedulingPage = () => {
     return (
       <div className="min-h-screen bg-card flex items-center justify-center">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[var(--accent-blue)] mx-auto mb-4"></div>
           <p className="text-secondary">Loading orders...</p>
         </div>
       </div>
@@ -443,17 +443,17 @@ const UnifiedSchedulingPage = () => {
 
           {/* Quick Info Cards */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-3 mt-3">
-            <div className="bg-gradient-to-br from-blue-50 to-blue-100 rounded-md p-3 border border-blue-200">
-              <div className="text-xl font-bold text-blue-700">{scheduledOrders.length}</div>
-              <div className="text-xs text-[#00D1FF]">Scheduled Orders</div>
+            <div className="bg-gradient-to-br from-[var(--accent-blue)]/10 to-[var(--accent-blue)]/5 rounded-md p-3 border border-blue-200">
+              <div className="text-xl font-bold text-[var(--accent-blue)]">{scheduledOrders.length}</div>
+              <div className="text-xs text-accent">Scheduled Orders</div>
             </div>
-            <div className="bg-gradient-to-br from-green-50 to-green-100 rounded-md p-3 border border-green-200">
-              <div className="text-xl font-bold text-green-700">{orders.filter(o => o.status === 'COMPLETED').length}</div>
-              <div className="text-xs text-green-600">Completed</div>
+            <div className="bg-gradient-to-br from-[var(--accent-green)]/10 to-[var(--accent-green)]/5 rounded-md p-3 border border-green-200">
+              <div className="text-xl font-bold text-[var(--accent-green)]">{orders.filter(o => o.status === 'COMPLETED').length}</div>
+              <div className="text-xs text-[var(--accent-green)]">Completed</div>
             </div>
-            <div className="bg-gradient-to-br from-purple-50 to-purple-100 rounded-md p-3 border border-purple-200">
-              <div className="text-xl font-bold text-purple-700">{orders.filter(o => o.status === 'IN_PROGRESS').length}</div>
-              <div className="text-xs text-purple-600">In Progress</div>
+            <div className="bg-gradient-to-br from-[var(--accent-purple)]/10 to-[var(--accent-purple)]/5 rounded-md p-3 border border-purple-200">
+              <div className="text-xl font-bold text-[var(--accent-purple)]">{orders.filter(o => o.status === 'IN_PROGRESS').length}</div>
+              <div className="text-xs text-[var(--accent-purple)]">In Progress</div>
             </div>
           </div>
         </div>
@@ -469,7 +469,7 @@ const UnifiedSchedulingPage = () => {
                 <select
                   value={driverFilter}
                   onChange={(e) => setDriverFilter(e.target.value)}
-                  className="w-full px-2.5 py-1.5 border border-theme rounded-md focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-2.5 py-1.5 border border-theme rounded-md focus:ring-2 focus:ring-[var(--accent-blue)]"
                 >
                   <option value="all">All Drivers</option>
                   {uniqueDrivers.map((driver) => (
@@ -484,7 +484,7 @@ const UnifiedSchedulingPage = () => {
                 <select
                   value={statusFilter}
                   onChange={(e) => setStatusFilter(e.target.value)}
-                  className="w-full px-2.5 py-1.5 border border-theme rounded-md focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-2.5 py-1.5 border border-theme rounded-md focus:ring-2 focus:ring-[var(--accent-blue)]"
                 >
                   <option value="all">All Status</option>
                   <option value="QUOTED">Quoted</option>
@@ -499,7 +499,7 @@ const UnifiedSchedulingPage = () => {
                     setDriverFilter('all');
                     setStatusFilter('all');
                   }}
-                  className="w-[50%] px-2 py-1.5 text-sm text-primary bg-card hover:bg-gray-200 rounded-md transition-colors"
+                  className="w-[50%] px-2 py-1.5 text-sm text-primary bg-card hover:bg-[rgba(255,255,255,0.05)] rounded-md transition-colors"
                 >
                   Clear Filters
                 </button>
@@ -511,7 +511,7 @@ const UnifiedSchedulingPage = () => {
 
       {emptyStateMessage && orders.length === 0 && (
         <div className="w-full mx-auto p-5">
-          <div className="bg-card border border-blue-100 text-blue-700 px-3.5 py-2.5 rounded-md flex items-center gap-2.5">
+          <div className="bg-card border border-blue-100 text-[var(--accent-blue)] px-3.5 py-2.5 rounded-md flex items-center gap-2.5">
             <Calendar className="text-lg" />
             <span className="text-sm">{emptyStateMessage}</span>
           </div>
@@ -532,7 +532,7 @@ const UnifiedSchedulingPage = () => {
                   scheduledOrders.map((order) => (
                     <div
                       key={order._id || order.id}
-                      className="p-2.5 rounded-md border bg-green-50 border-green-200 cursor-pointer transition-all hover:shadow-md"
+                      className="p-2.5 rounded-md border bg-[var(--accent-green)]/10 border-theme cursor-pointer transition-all hover:shadow-md"
                       onClick={() => {
                         setSelectedOrder(order);
                       }}
@@ -572,7 +572,7 @@ const UnifiedSchedulingPage = () => {
                   ))
                 ) : (
                   <div className="col-span-full text-center py-7">
-                    <Truck className="mx-auto mb-2.5 text-gray-300" size={30} />
+                    <Truck className="mx-auto mb-2.5 text-secondary" size={30} />
                     <p className="text-secondary text-sm">No scheduled orders found</p>
                     {emptyStateMessage && (
                       <p className="text-xs text-secondary mt-1">{emptyStateMessage}</p>
@@ -609,13 +609,13 @@ const UnifiedSchedulingPage = () => {
                 </div>
                 <button
                   onClick={goToToday}
-                  className="px-2.5 py-1 text-sm bg-blue-100 text-blue-700 rounded-md hover:bg-blue-200 transition-colors"
+                  className="px-2.5 py-1 text-sm bg-[var(--accent-blue)]/20 text-[var(--accent-blue)] rounded-md hover:bg-[var(--accent-blue)]/20 transition-colors"
                 >
                   Today
                 </button>
               </div>
 
-              <div className="flex items-center space-x-1.5 bg-gray-100 rounded-md p-0.5">
+              <div className="flex items-center space-x-1.5 bg-card border border-theme rounded-md p-0.5">
                 {['month', 'week', 'day'].map((mode) => (
                   <button
                     key={mode}
@@ -657,12 +657,12 @@ const UnifiedSchedulingPage = () => {
                         className={`min-h-[115px] p-1.5 border-r border-b last:border-r-0 cursor-pointer transition-colors
                           ${!day.isCurrentMonth ? 'bg-card' : 'bg-card'}
                           ${isToday ? 'bg-card' : ''}
-                          ${hasOrder && !isToday ? 'bg-green-50' : ''}
-                          ${draggedOrder ? 'bg-blue-100 border-2 border-dashed border-blue-300' : ''}
+                          ${hasOrder && !isToday ? 'bg-[var(--accent-green)]/10' : ''}
+                          ${draggedOrder ? 'bg-[var(--accent-blue)]/10 border-2 border-dashed border-[var(--accent-blue)]' : ''}
                           hover:bg-[rgba(255,255,255,0.03)]
                         `}
                       >
-                        <div className={`text-sm font-medium mb-1.5 ${!day.isCurrentMonth ? 'text-secondary' : isToday ? 'text-[#00D1FF] font-bold' : 'text-primary'
+                        <div className={`text-sm font-medium mb-1.5 ${!day.isCurrentMonth ? 'text-secondary' : isToday ? 'text-accent font-bold' : 'text-primary'
                           }`}>
                           {day.date.getDate()}
                         </div>
@@ -702,19 +702,19 @@ const UnifiedSchedulingPage = () => {
                   <h4 className="text-sm font-medium text-primary mb-2.5">Calendar Legend</h4>
                   <div className="grid grid-cols-2 md:grid-cols-4 gap-2.5 text-xs">
                     <div className="flex items-center">
-                      <div className="w-3.5 h-3.5 bg-card border-2 border-blue-300 rounded mr-1.5"></div>
+                      <div className="w-3.5 h-3.5 bg-card border-2 border-[var(--accent-blue)] rounded mr-1.5"></div>
                       <span>Today</span>
                     </div>
                     <div className="flex items-center">
-                      <div className="w-3.5 h-3.5 bg-green-50 rounded mr-1.5"></div>
+                      <div className="w-3.5 h-3.5 bg-[var(--accent-green)]/10 rounded mr-1.5"></div>
                       <span>Has Orders</span>
                     </div>
                     <div className="flex items-center">
-                      <div className="w-3.5 h-3.5 bg-blue-100 border-2 border-dashed border-blue-300 rounded mr-1.5"></div>
+                      <div className="w-3.5 h-3.5 bg-[var(--accent-blue)]/10 border-2 border-dashed border-[var(--accent-blue)] rounded mr-1.5"></div>
                       <span>Drop Zone</span>
                     </div>
                     <div className="flex items-center">
-                      <div className="w-3.5 h-3.5 bg-gray-400 rounded mr-1.5"></div>
+                      <div className="w-3.5 h-3.5 bg-secondary rounded mr-1.5"></div>
                       <span>Other Month</span>
                     </div>
                   </div>
@@ -738,7 +738,7 @@ const UnifiedSchedulingPage = () => {
                         <div className="text-sm font-medium text-secondary">
                           {day.toLocaleDateString('en-US', { weekday: 'short' })}
                         </div>
-                        <div className={`text-base font-semibold ${isToday ? 'text-[#00D1FF]' : 'text-primary'}`}>
+                        <div className={`text-base font-semibold ${isToday ? 'text-accent' : 'text-primary'}`}>
                           {day.getDate()}
                         </div>
                         {dayOrders.length > 0 && (
@@ -883,7 +883,7 @@ const UnifiedSchedulingPage = () => {
 
       {/* Schedule Modal */}
       {showScheduleModal && selectedOrder && (
-        <div className="fixed inset-0 bg-gray-900/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
           <div className="bg-card rounded-lg p-6 w-96 max-w-full">
             <h3 className="text-lg font-semibold text-primary mb-4">
               Schedule Order
@@ -920,7 +920,7 @@ const UnifiedSchedulingPage = () => {
                     setCurrentDate(new Date(e.target.value));
                   }
                 }}
-                className="w-full px-3 py-2 border border-theme rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full px-3 py-2 border border-theme rounded-md focus:outline-none focus:ring-2 focus:ring-[var(--accent-blue)]"
               />
             </div>
 
@@ -932,7 +932,7 @@ const UnifiedSchedulingPage = () => {
                 type="time"
                 value={selectedTime}
                 onChange={(e) => setSelectedTime(e.target.value || DEFAULT_SCHEDULE_TIME)}
-                className="w-full px-3 py-2 border border-theme rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full px-3 py-2 border border-theme rounded-md focus:outline-none focus:ring-2 focus:ring-[var(--accent-blue)]"
               />
             </div>
 
@@ -954,7 +954,7 @@ const UnifiedSchedulingPage = () => {
                   setSelectedOrder(null);
                   setSelectedTime(DEFAULT_SCHEDULE_TIME);
                 }}
-                className="px-4 py-2 text-sm font-medium !text-white bg-blue-600 rounded-md hover:bg-blue-700"
+                className="px-4 py-2 text-sm font-medium !text-white bg-[var(--accent-blue)] rounded-md hover:bg-[var(--accent-blue)]"
                 style={{
                   background: "linear-gradient(90deg, var(--accent-blue) 0%, var(--accent-blue) 40%, rgba(0,209,255,0.15) 100%)",
                 }}
@@ -968,7 +968,7 @@ const UnifiedSchedulingPage = () => {
 
       {/* Order Details Modal */}
       {selectedOrder && !showScheduleModal && (
-        <div className="fixed inset-0 bg-gray-900/50 backdrop-blur-sm flex items-center justify-center p-4 z-50">
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 z-50">
           <div className="bg-card rounded-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
             <div className="p-6">
               <div className="flex items-center justify-between mb-6">
@@ -1084,7 +1084,7 @@ const UnifiedSchedulingPage = () => {
                 <div className="flex justify-end space-x-3 pt-4 border-t">
                   <button
                     onClick={() => setSelectedOrder(null)}
-                    className="px-4 py-2 text-sm font-medium text-primary bg-gray-100 rounded-md hover:bg-gray-200"
+                    className="px-4 py-2 text-sm font-medium text-primary bg-card border border-theme rounded-md hover:bg-[rgba(255,255,255,0.05)]"
                   >
                     Close
                   </button>
