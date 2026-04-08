@@ -333,7 +333,7 @@ const SubscriptionPage = () => {
       <div className="flex justify-center items-center min-h-screen bg-card" >
         <div className="text-center">
           <Spin size="large" />
-          <p className="mt-4 text-black">Loading your subscriptions...</p>
+          <p className="mt-4 text-primary">Loading your subscriptions...</p>
         </div>
       </div>
     );
@@ -346,17 +346,14 @@ const SubscriptionPage = () => {
         <div className="mb-8">
           <div className="flex items-center justify-between mb-4">
             <div className="flex items-center gap-4">
-              <div
-                className="p-3 rounded-2xl shadow-lg"
-
-              >
-                <CreditCard className="w-8 h-8 text-black" />
+              <div className="p-3 rounded-2xl shadow-lg bg-[rgba(0,209,255,0.1)]">
+                <CreditCard className="w-8 h-8 text-[#00D1FF]" />
               </div>
               <div>
-                <h1 className="text-4xl font-bold" style={{ color: FLEET_COLORS.light }}>
+                <h1 className="text-4xl font-bold text-primary">
                   Subscription & Plans
                 </h1>
-                <p className="text-black/90 mt-1 flex items-center gap-2">
+                <p className="text-secondary mt-1 flex items-center gap-2">
                   <Sparkles className="w-4 h-4" />
                   Manage your subscription and choose from available plans
                 </p>
@@ -388,7 +385,7 @@ const SubscriptionPage = () => {
               closable={false}
               className="border-2 border-red-500"
               style={{
-                backgroundColor: '#fef2f2',
+                backgroundColor: 'rgba(239,68,68,0.1)',
                 borderColor: '#ef4444',
                 padding: '20px'
               }}
@@ -518,7 +515,7 @@ const SubscriptionPage = () => {
               <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-6">
                 <div className="flex-1">
                   <div className="flex items-center gap-3 mb-6">
-                    <div className="p-2 bg-gradient-to-br from-blue-100 to-purple-100 rounded-lg">
+                    <div className="p-2 bg-[rgba(0,209,255,0.1)] rounded-lg">
                       <Crown className="w-6 h-6 text-[#00D1FF]" />
                     </div>
                     <div>
@@ -538,7 +535,7 @@ const SubscriptionPage = () => {
                   </div>
 
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
-                    <div className="bg-gradient-to-br from-blue-50 to-indigo-50 rounded-xl p-4 border border-blue-200">
+                    <div className="bg-[rgba(0,209,255,0.06)] rounded-xl p-4 border border-[rgba(0,209,255,0.15)]">
                       <div className="flex items-center gap-2 mb-2">
                         <Package className="w-5 h-5 text-[#00D1FF]" />
                         <span className="text-primary text-sm font-medium">Plan Name</span>
@@ -550,9 +547,9 @@ const SubscriptionPage = () => {
                       </p>
                     </div>
 
-                    <div className="bg-gradient-to-br from-purple-50 to-pink-50 rounded-xl p-4 border border-purple-200">
+                    <div className="bg-[rgba(168,85,247,0.06)] rounded-xl p-4 border border-[rgba(168,85,247,0.2)]">
                       <div className="flex items-center gap-2 mb-2">
-                        <Zap className="w-5 h-5 text-purple-600" />
+                        <Zap className="w-5 h-5 text-[#A855F7]" />
                         <span className="text-primary text-sm font-medium">Subscription Type</span>
                       </div>
                       <p className="text-primary text-xl font-bold capitalize">
@@ -560,9 +557,9 @@ const SubscriptionPage = () => {
                       </p>
                     </div>
 
-                    <div className="bg-gradient-to-br from-green-50 to-emerald-50 rounded-xl p-4 border border-green-200">
+                    <div className="bg-[rgba(0,255,163,0.06)] rounded-xl p-4 border border-[rgba(0,255,163,0.2)]">
                       <div className="flex items-center gap-2 mb-2">
-                        <DollarSign className="w-5 h-5 text-green-600" />
+                        <DollarSign className="w-5 h-5 text-[#00FFA3]" />
                         <span className="text-primary text-sm font-medium">Amount</span>
                       </div>
                       <p className="text-primary text-2xl font-bold">
@@ -574,9 +571,9 @@ const SubscriptionPage = () => {
                     </div>
 
                     {activeSubscription.nextBillingDate && (
-                      <div className="bg-gradient-to-br from-yellow-50 to-orange-50 rounded-xl p-4 border border-yellow-200">
+                      <div className="bg-[rgba(245,158,11,0.06)] rounded-xl p-4 border border-[rgba(245,158,11,0.2)]">
                         <div className="flex items-center gap-2 mb-2">
-                          <Calendar className="w-5 h-5 text-[#00FFA3]" />
+                          <Calendar className="w-5 h-5 text-[#F59E0B]" />
                           <span className="text-primary text-sm font-medium">Next Billing</span>
                         </div>
                         <p className="text-primary text-xl font-bold">
@@ -590,10 +587,10 @@ const SubscriptionPage = () => {
                     )}
 
                     {activeSubscription.maxTrucks != null && activeSubscription.maxTrucks > 0 && (
-                      <div className="bg-gradient-to-br from-indigo-50 to-blue-50 rounded-xl p-4 border border-indigo-200 md:col-span-2">
+                      <div className="bg-[rgba(0,209,255,0.06)] rounded-xl p-4 border border-[rgba(0,209,255,0.15)] md:col-span-2">
                         <div className="flex items-center justify-between mb-3">
                           <div className="flex items-center gap-2">
-                            <TrendingUp className="w-5 h-5 text-indigo-600" />
+                            <TrendingUp className="w-5 h-5 text-[#00D1FF]" />
                             <span className="text-primary text-sm font-medium">Truck Usage</span>
                           </div>
                           <span className="text-primary font-bold">
@@ -608,7 +605,7 @@ const SubscriptionPage = () => {
                           strokeColor={
                             (activeSubscription.usedTrucks ?? 0) >= activeSubscription.maxTrucks
                               ? { '0%': '#ef4444', '100%': '#dc2626' }
-                              : { '0%': '#6366f1', '100%': '#4f46e5' }
+                              : { '0%': '#00D1FF', '100%': '#00FFA3' }
                           }
                           className="mb-2"
                         />
@@ -658,7 +655,7 @@ const SubscriptionPage = () => {
           const extraAlreadyPurchased = activeSubscription.extraTrucksPurchased ?? 0;
           if (extraTruckPrice <= 0) return null;
           return (
-            <div className="mb-8 bg-card rounded-2xl shadow-lg border-2 border-orange-200 overflow-hidden">
+            <div className="mb-8 bg-card rounded-2xl shadow-lg border-2 border-[rgba(245,158,11,0.3)] overflow-hidden">
               <div className="px-6 py-4 bg-gradient-to-r from-orange-500 to-amber-500 flex items-center justify-between gap-4 flex-wrap">
                 <div className="flex items-center gap-3">
                   <div className="p-2 bg-card/20 rounded-xl">
@@ -673,14 +670,14 @@ const SubscriptionPage = () => {
                   size="large"
                   icon={<TrendingUp className="w-4 h-4" />}
                   onClick={() => { setAddTruckCount(1); setShowAddTruckModal(true); }}
-                  className="bg-card text-[#F59E0B] border-white font-bold hover:bg-orange-50 flex-shrink-0"
+                  className="bg-card text-[#F59E0B] border-white/30 font-bold hover:bg-[rgba(245,158,11,0.1)] flex-shrink-0"
                 >
                   Add Trucks
                 </Button>
               </div>
               <div className="px-6 py-4 flex flex-wrap gap-6 items-center">
                 <div className="flex items-center gap-2">
-                  <div className="w-9 h-9 bg-orange-100 rounded-lg flex items-center justify-center">
+                  <div className="w-9 h-9 bg-[rgba(245,158,11,0.1)] rounded-lg flex items-center justify-center">
                     <Truck className="w-4 h-4 text-[#F59E0B]" />
                   </div>
                   <div>
@@ -690,8 +687,8 @@ const SubscriptionPage = () => {
                 </div>
                 {extraAlreadyPurchased > 0 && (
                   <div className="flex items-center gap-2">
-                    <div className="w-9 h-9 bg-green-100 rounded-lg flex items-center justify-center">
-                      <CheckCircle className="w-4 h-4 text-green-600" />
+                    <div className="w-9 h-9 bg-[rgba(0,255,163,0.1)] rounded-lg flex items-center justify-center">
+                      <CheckCircle className="w-4 h-4 text-[#00FFA3]" />
                     </div>
                     <div>
                       <p className="text-xs text-secondary font-medium">Extra Trucks Added</p>
@@ -700,7 +697,7 @@ const SubscriptionPage = () => {
                   </div>
                 )}
                 <div className="flex items-center gap-2">
-                  <div className="w-9 h-9 bg-orange-100 rounded-lg flex items-center justify-center">
+                  <div className="w-9 h-9 bg-[rgba(245,158,11,0.1)] rounded-lg flex items-center justify-center">
                     <DollarSign className="w-4 h-4 text-[#F59E0B]" />
                   </div>
                   <div>
@@ -717,8 +714,8 @@ const SubscriptionPage = () => {
         <div className="mb-8">
           <div className="flex items-center justify-between mb-6">
             <div className="flex items-center gap-3">
-              <div className="p-2 bg-gradient-to-br from-blue-500 to-purple-600 rounded-lg">
-                <Star className="w-5 h-5 text-white" />
+              <div className="p-2 bg-[rgba(168,85,247,0.15)] rounded-lg">
+                <Star className="w-5 h-5 text-[#A855F7]" />
               </div>
               <h2 className="text-3xl font-bold text-primary">Available Plans</h2>
             </div>
@@ -780,7 +777,7 @@ const SubscriptionPage = () => {
                 return (
                   <div
                     key={plan._id}
-                    className={`bg-card rounded-3xl shadow-xl overflow-hidden border-2 transition-all duration-300 ${isCurrentPlan ? 'border-blue-400 ring-4 ring-blue-50' : 'border-theme hover:border-theme'}`}
+                    className={`bg-card rounded-3xl shadow-xl overflow-hidden border-2 transition-all duration-300 ${isCurrentPlan ? 'border-[#00D1FF]' : 'border-theme hover:border-theme'}`}
                   >
                     {/* ── Plan Header ── */}
                     <div className={`px-8 py-6 ${isCurrentPlan ? 'bg-gradient-to-r from-blue-600 to-indigo-700' : 'bg-gradient-to-r from-slate-700 to-slate-800'}`}>
@@ -813,7 +810,7 @@ const SubscriptionPage = () => {
                         <>
                           {/* ── Billing Period Selector ── */}
                           <div className="flex justify-center mb-8">
-                            <div className="inline-flex bg-gray-100 rounded-2xl p-1 gap-1">
+                            <div className="inline-flex bg-[#0B1220] rounded-2xl p-1 gap-1 border border-[rgba(0,209,255,0.12)]">
                               {(['monthly', '6months', 'annual'] as const).map((tab) => {
                                 const isActiveTab = planTab === tab;
                                 const isCurrentBillingTab = isCurrentPlan && (
@@ -827,20 +824,20 @@ const SubscriptionPage = () => {
                                     onClick={() => setPricingTabs(prev => ({ ...prev, [plan._id]: tab }))}
                                     className={`relative px-6 py-2.5 rounded-xl text-sm font-semibold transition-all duration-200 flex flex-col items-center min-w-[110px] ${
                                       isActiveTab
-                                        ? 'bg-card shadow-md text-blue-700 ring-1 ring-blue-100'
+                                        ? 'bg-[#182235] shadow-md text-[#00D1FF] ring-1 ring-[rgba(0,209,255,0.2)]'
                                         : 'text-secondary hover:text-primary'
                                     }`}
                                   >
                                     <span>{tab === 'monthly' ? 'Monthly' : tab === '6months' ? '6 Months' : 'Annual'}</span>
                                     <span className={`text-[10px] font-bold mt-0.5 ${
                                       isActiveTab
-                                        ? tab === '6months' ? 'text-amber-500' : tab === 'annual' ? 'text-green-600' : 'text-transparent'
+                                        ? tab === '6months' ? 'text-[#F59E0B]' : tab === 'annual' ? 'text-[#00FFA3]' : 'text-transparent'
                                         : 'text-secondary'
                                     }`}>
                                       {tab === '6months' ? `+${bonusDays} days free` : tab === 'annual' ? `+${freeMonths} mo free` : '‎'}
                                     </span>
                                     {isCurrentBillingTab && (
-                                      <span className="absolute -top-1.5 -right-1.5 w-3 h-3 bg-blue-500 rounded-full border-2 border-white shadow-sm" />
+                                      <span className="absolute -top-1.5 -right-1.5 w-3 h-3 bg-[#00D1FF] rounded-full border-2 border-[#121A2B] shadow-sm" />
                                     )}
                                   </button>
                                 );
@@ -850,30 +847,30 @@ const SubscriptionPage = () => {
 
                           {/* ── Savings / Bonus Banner ── */}
                           {planTab === '6months' && (
-                            <div className="mb-6 flex items-center gap-4 bg-gradient-to-r from-amber-50 to-orange-50 border border-amber-200 rounded-2xl px-6 py-4">
-                              <div className="w-10 h-10 bg-amber-400 rounded-xl flex items-center justify-center flex-shrink-0 shadow-sm">
+                            <div className="mb-6 flex items-center gap-4 bg-[rgba(245,158,11,0.08)] border border-[rgba(245,158,11,0.3)] rounded-2xl px-6 py-4">
+                              <div className="w-10 h-10 bg-[#F59E0B] rounded-xl flex items-center justify-center flex-shrink-0 shadow-sm">
                                 <Zap className="w-5 h-5 text-white" />
                               </div>
                               <div>
-                                <p className="text-sm font-bold text-amber-900">6-Month Plan Bonus</p>
-                                <p className="text-xs text-amber-700 mt-0.5">Pay for 6 months and receive <strong>{bonusDays} extra days</strong> of access — completely free</p>
+                                <p className="text-sm font-bold text-[#F59E0B]">6-Month Plan Bonus</p>
+                                <p className="text-xs text-secondary mt-0.5">Pay for 6 months and receive <strong>{bonusDays} extra days</strong> of access — completely free</p>
                               </div>
                               <div className="ml-auto text-right flex-shrink-0">
-                                <span className="bg-amber-400 text-amber-900 text-xs font-bold px-3 py-1.5 rounded-full">+{bonusDays} Days</span>
+                                <span className="bg-[rgba(245,158,11,0.2)] text-[#F59E0B] text-xs font-bold px-3 py-1.5 rounded-full">+{bonusDays} Days</span>
                               </div>
                             </div>
                           )}
                           {planTab === 'annual' && (
-                            <div className="mb-6 flex items-center gap-4 bg-gradient-to-r from-green-50 to-emerald-50 border border-green-200 rounded-2xl px-6 py-4">
-                              <div className="w-10 h-10 bg-green-500 rounded-xl flex items-center justify-center flex-shrink-0 shadow-sm">
-                                <Star className="w-5 h-5 text-white" />
+                            <div className="mb-6 flex items-center gap-4 bg-[rgba(0,255,163,0.08)] border border-[rgba(0,255,163,0.3)] rounded-2xl px-6 py-4">
+                              <div className="w-10 h-10 bg-[#00FFA3] rounded-xl flex items-center justify-center flex-shrink-0 shadow-sm">
+                                <Star className="w-5 h-5 text-[#0B1220]" />
                               </div>
                               <div>
-                                <p className="text-sm font-bold text-green-900">Annual Plan — Best Value</p>
-                                <p className="text-xs text-green-700 mt-0.5">Pay 12 months upfront and get <strong>{freeMonths} month{freeMonths > 1 ? 's' : ''} completely free</strong></p>
+                                <p className="text-sm font-bold text-[#00FFA3]">Annual Plan — Best Value</p>
+                                <p className="text-xs text-secondary mt-0.5">Pay 12 months upfront and get <strong>{freeMonths} month{freeMonths > 1 ? 's' : ''} completely free</strong></p>
                               </div>
                               <div className="ml-auto text-right flex-shrink-0">
-                                <span className="bg-green-500 text-white text-xs font-bold px-3 py-1.5 rounded-full">+{freeMonths} Mo Free</span>
+                                <span className="bg-[rgba(0,255,163,0.2)] text-[#00FFA3] text-xs font-bold px-3 py-1.5 rounded-full">+{freeMonths} Mo Free</span>
                               </div>
                             </div>
                           )}
@@ -901,30 +898,30 @@ const SubscriptionPage = () => {
                                   key={tier._id}
                                   className={`relative rounded-2xl border-2 p-6 transition-all duration-200 flex flex-col ${
                                     isCurrentTabAndTier
-                                      ? 'border-blue-500 bg-gradient-to-b from-blue-50 to-indigo-50 shadow-xl ring-2 ring-blue-100'
+                                      ? 'border-[#00D1FF] bg-[rgba(0,209,255,0.06)] shadow-xl ring-2 ring-[rgba(0,209,255,0.15)]'
                                       : isActiveTier
-                                        ? 'border-blue-200 bg-blue-50/40 shadow-md'
-                                        : 'border-theme bg-card hover:border-blue-200 hover:shadow-lg'
+                                        ? 'border-[rgba(0,209,255,0.3)] bg-[rgba(0,209,255,0.03)] shadow-md'
+                                        : 'border-theme bg-card hover:border-[rgba(0,209,255,0.25)] hover:shadow-lg'
                                   }`}
                                 >
                                   {/* "Your Current Plan" badge */}
                                   {isCurrentTabAndTier && (
-                                    <div className="absolute -top-3.5 left-1/2 -translate-x-1/2 bg-blue-600 text-white text-xs font-bold px-4 py-1 rounded-full flex items-center gap-1.5 shadow-lg whitespace-nowrap">
+                                    <div className="absolute -top-3.5 left-1/2 -translate-x-1/2 bg-[#00D1FF] text-[#0B1220] text-xs font-bold px-4 py-1 rounded-full flex items-center gap-1.5 shadow-lg whitespace-nowrap">
                                       <CheckCircle className="w-3 h-3" />
                                       Your Current Plan
                                     </div>
                                   )}
                                   {/* "Same tier, different billing" hint */}
                                   {isActiveTier && !isCurrentTabAndTier && (
-                                    <div className="absolute -top-3.5 left-1/2 -translate-x-1/2 bg-blue-400 text-white text-xs font-semibold px-4 py-1 rounded-full whitespace-nowrap shadow">
+                                    <div className="absolute -top-3.5 left-1/2 -translate-x-1/2 bg-[rgba(0,209,255,0.2)] text-[#00D1FF] text-xs font-semibold px-4 py-1 rounded-full whitespace-nowrap shadow border border-[rgba(0,209,255,0.3)]">
                                       Your Tier
                                     </div>
                                   )}
 
                                   {/* Tier label */}
                                   <div className="flex items-center gap-3 mb-5">
-                                    <div className={`p-2.5 rounded-xl ${isCurrentTabAndTier ? 'bg-blue-600' : 'bg-orange-100'}`}>
-                                      <Truck className={`w-5 h-5 ${isCurrentTabAndTier ? 'text-white' : 'text-[#F59E0B]'}`} />
+                                    <div className={`p-2.5 rounded-xl ${isCurrentTabAndTier ? 'bg-[#00D1FF]' : 'bg-[rgba(245,158,11,0.1)]'}`}>
+                                      <Truck className={`w-5 h-5 ${isCurrentTabAndTier ? 'text-[#0B1220]' : 'text-[#F59E0B]'}`} />
                                     </div>
                                     <div>
                                       <p className="text-[11px] text-secondary font-semibold uppercase tracking-wider">Fleet Size</p>
@@ -938,7 +935,7 @@ const SubscriptionPage = () => {
                                       <p className="text-sm text-secondary line-through mb-0.5">{formatPrice(strikethroughPrice, currency)}</p>
                                     )}
                                     <div className="flex items-baseline gap-1.5">
-                                      <span className={`text-4xl font-extrabold ${isCurrentTabAndTier ? 'text-blue-700' : 'text-primary'}`}>
+                                      <span className={`text-4xl font-extrabold ${isCurrentTabAndTier ? 'text-[#00D1FF]' : 'text-primary'}`}>
                                         {formatPrice(displayPrice, currency)}
                                       </span>
                                       <span className="text-sm text-secondary font-medium">
@@ -947,7 +944,7 @@ const SubscriptionPage = () => {
                                     </div>
                                     {planTab !== 'monthly' && (
                                       <p className="text-xs text-secondary mt-1.5 flex items-center gap-1">
-                                        <span className="w-1 h-1 bg-gray-300 rounded-full" />
+                                        <span className="w-1 h-1 bg-[#8B9BB4] rounded-full" />
                                         {formatPrice(baseMonthly, currency)}/mo equivalent
                                       </p>
                                     )}
@@ -959,10 +956,10 @@ const SubscriptionPage = () => {
                                     const billingFactor = planTab === 'monthly' ? 1 : planTab === '6months' ? 6 : 12;
                                     const billingLabel = planTab === 'monthly' ? '/mo' : planTab === '6months' ? '/6 mo' : '/yr';
                                     return (
-                                      <div className="mb-4 rounded-lg border border-orange-200 bg-card overflow-hidden">
-                                        <div className="flex items-center gap-1.5 px-3 py-1.5 bg-orange-100 border-b border-orange-200">
-                                          <TrendingUp className="w-3 h-3 text-orange-500" />
-                                          <span className="text-[10px] font-bold text-orange-700 uppercase tracking-wide">Additional Trucks</span>
+                                      <div className="mb-4 rounded-lg border border-[rgba(245,158,11,0.25)] bg-card overflow-hidden">
+                                        <div className="flex items-center gap-1.5 px-3 py-1.5 bg-[rgba(245,158,11,0.08)] border-b border-[rgba(245,158,11,0.2)]">
+                                          <TrendingUp className="w-3 h-3 text-[#F59E0B]" />
+                                          <span className="text-[10px] font-bold text-[#F59E0B] uppercase tracking-wide">Additional Trucks</span>
                                         </div>
                                         <div className="flex items-center justify-between px-3 py-2">
                                           <span className="text-xs text-secondary">Beyond {lastTierMax} trucks</span>
@@ -973,7 +970,7 @@ const SubscriptionPage = () => {
                                   })()}
 
                                   {/* Divider */}
-                                  <div className={`h-px mb-5 ${isCurrentTabAndTier ? 'bg-blue-200' : 'bg-gray-100'}`} />
+                                  <div className={`h-px mb-5 ${isCurrentTabAndTier ? 'bg-[rgba(0,209,255,0.2)]' : 'bg-[rgba(255,255,255,0.06)]'}`} />
 
                                   {/* CTA */}
                                   <Button
@@ -1003,10 +1000,10 @@ const SubscriptionPage = () => {
                             const extraDisplayPrice = extraPrice * billingFactor;
                             const lastTierMax = tiers[tiers.length - 1]?.maxTrucks ?? 0;
                             return (
-                              <div className="mb-6 rounded-2xl border-2 border-dashed border-orange-200 bg-card overflow-hidden">
-                                <div className="flex items-center gap-2 px-5 py-3 bg-orange-100 border-b border-orange-200">
+                              <div className="mb-6 rounded-2xl border-2 border-dashed border-[rgba(245,158,11,0.35)] bg-card overflow-hidden">
+                                <div className="flex items-center gap-2 px-5 py-3 bg-[rgba(245,158,11,0.08)] border-b border-[rgba(245,158,11,0.2)]">
                                   <TrendingUp className="w-4 h-4 text-[#F59E0B]" />
-                                  <span className="text-sm font-bold text-orange-800">Additional Trucks Beyond {lastTierMax}</span>
+                                  <span className="text-sm font-bold text-[#F59E0B]">Additional Trucks Beyond {lastTierMax}</span>
                                 </div>
                                 <div className="flex items-center gap-5 flex-wrap px-5 py-4">
                                   <div className="flex-1 min-w-0">
@@ -1031,8 +1028,8 @@ const SubscriptionPage = () => {
                           <div className={`grid gap-2.5 ${plan.features.filter(f => f.included).length > 4 ? 'grid-cols-1 sm:grid-cols-2' : 'grid-cols-1'}`}>
                             {plan.features.filter(f => f.included).map((f, fIdx) => (
                               <div key={fIdx} className="flex items-center gap-2.5">
-                                <div className="w-5 h-5 bg-green-100 rounded-full flex items-center justify-center flex-shrink-0">
-                                  <CheckCircle className="w-3.5 h-3.5 text-green-600" />
+                                <div className="w-5 h-5 bg-[rgba(0,255,163,0.1)] rounded-full flex items-center justify-center flex-shrink-0">
+                                  <CheckCircle className="w-3.5 h-3.5 text-[#00FFA3]" />
                                 </div>
                                 <span className="text-sm text-primary">{f.name}</span>
                               </div>
@@ -1073,7 +1070,7 @@ const SubscriptionPage = () => {
                             </Tag>
                           </div>
                           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                            <div className="bg-gradient-to-br from-blue-50 to-indigo-50 rounded-lg p-3 border border-blue-200">
+                            <div className="bg-[rgba(0,209,255,0.06)] rounded-lg p-3 border border-[rgba(0,209,255,0.15)]">
                               <div className="flex items-center gap-2 mb-1">
                                 <DollarSign className="w-4 h-4 text-[#00D1FF]" />
                                 <span className="text-xs text-secondary font-medium">Amount</span>
@@ -1085,9 +1082,9 @@ const SubscriptionPage = () => {
                                 )}
                               </p>
                             </div>
-                            <div className="bg-gradient-to-br from-purple-50 to-pink-50 rounded-lg p-3 border border-purple-200">
+                            <div className="bg-[rgba(168,85,247,0.06)] rounded-lg p-3 border border-[rgba(168,85,247,0.2)]">
                               <div className="flex items-center gap-2 mb-1">
-                                <Calendar className="w-4 h-4 text-purple-600" />
+                                <Calendar className="w-4 h-4 text-[#A855F7]" />
                                 <span className="text-xs text-secondary font-medium">Started</span>
                               </div>
                               <p className="text-sm font-bold text-primary">
@@ -1099,9 +1096,9 @@ const SubscriptionPage = () => {
                               </p>
                             </div>
                             {sub.nextBillingDate && (
-                              <div className="bg-gradient-to-br from-green-50 to-emerald-50 rounded-lg p-3 border border-green-200">
+                              <div className="bg-[rgba(0,255,163,0.06)] rounded-lg p-3 border border-[rgba(0,255,163,0.2)]">
                                 <div className="flex items-center gap-2 mb-1">
-                                  <Clock className="w-4 h-4 text-green-600" />
+                                  <Clock className="w-4 h-4 text-[#00FFA3]" />
                                   <span className="text-xs text-secondary font-medium">Next Billing</span>
                                 </div>
                                 <p className="text-sm font-bold text-primary">
@@ -1114,9 +1111,9 @@ const SubscriptionPage = () => {
                               </div>
                             )}
                             {sub.installments && (
-                              <div className="bg-gradient-to-br from-yellow-50 to-orange-50 rounded-lg p-3 border border-yellow-200">
+                              <div className="bg-[rgba(245,158,11,0.06)] rounded-lg p-3 border border-[rgba(245,158,11,0.2)]">
                                 <div className="flex items-center gap-2 mb-1">
-                                  <TrendingUp className="w-4 h-4 text-[#00FFA3]" />
+                                  <TrendingUp className="w-4 h-4 text-[#F59E0B]" />
                                   <span className="text-xs text-secondary font-medium">Installments</span>
                                 </div>
                                 <p className="text-sm font-bold text-primary">
@@ -1204,11 +1201,11 @@ const SubscriptionPage = () => {
       >
         {selectedPlan && (
           <div className="space-y-6 py-4">
-            <div className="bg-gradient-to-br from-purple-50 to-blue-50 rounded-xl p-4 border-2 border-purple-200">
+            <div className="bg-[rgba(168,85,247,0.08)] rounded-xl p-4 border-2 border-[rgba(168,85,247,0.25)]">
               <p className="text-primary mb-2">
                 You are about to subscribe to
               </p>
-              <h3 className="text-2xl font-bold text-purple-900 mb-4">{selectedPlan.planName}</h3>
+              <h3 className="text-2xl font-bold text-primary mb-4">{selectedPlan.planName}</h3>
               <div className="flex items-center gap-2">
                 <Tag color={selectedPlan.planType === 'lifetime' ? 'blue' : 'green'}>
                   {selectedPlan.planType}
@@ -1217,7 +1214,7 @@ const SubscriptionPage = () => {
               </div>
             </div>
 
-            <div className="bg-gradient-to-br from-gray-50 to-gray-100 rounded-xl p-6 border-2 border-theme">
+            <div className="bg-[#0B1220] rounded-xl p-6 border-2 border-theme">
               <div className="flex items-center justify-between mb-4">
                 <div className="flex items-center gap-2">
                   <Zap className="w-5 h-5 text-purple-600" />
@@ -1311,12 +1308,12 @@ const SubscriptionPage = () => {
                               <div className="flex items-center gap-3">
                                 <button
                                   onClick={() => setExtraTrucks(Math.max(0, extraTrucks - 1))}
-                                  className="w-8 h-8 rounded-lg border border-gray-300 bg-card flex items-center justify-center text-primary hover:bg-gray-100 font-bold text-lg leading-none"
+                                  className="w-8 h-8 rounded-lg border border-[rgba(0,209,255,0.2)] bg-[#0B1220] flex items-center justify-center text-primary hover:bg-[rgba(0,209,255,0.08)] font-bold text-lg leading-none"
                                 >−</button>
                                 <span className="w-12 text-center font-bold text-lg text-primary">{extraTrucks}</span>
                                 <button
                                   onClick={() => setExtraTrucks(extraTrucks + 1)}
-                                  className="w-8 h-8 rounded-lg border border-gray-300 bg-card flex items-center justify-center text-primary hover:bg-gray-100 font-bold text-lg leading-none"
+                                  className="w-8 h-8 rounded-lg border border-[rgba(0,209,255,0.2)] bg-[#0B1220] flex items-center justify-center text-primary hover:bg-[rgba(0,209,255,0.08)] font-bold text-lg leading-none"
                                 >+</button>
                                 {extraTrucks > 0 && (
                                   <span className="ml-auto text-sm font-semibold text-[#F59E0B]">
@@ -1331,7 +1328,7 @@ const SubscriptionPage = () => {
                           <div className="flex items-center justify-between px-4 py-3 bg-card">
                             <span className="text-sm font-bold text-primary">Total</span>
                             <div className="text-right">
-                              <span className="text-xl font-extrabold text-blue-700">{formatPrice(grandTotal, selectedTier.currency)}</span>
+                              <span className="text-xl font-extrabold text-[#00D1FF]">{formatPrice(grandTotal, selectedTier.currency)}</span>
                               <span className="text-xs text-secondary ml-1">{billingLabel}</span>
                               {selectedType !== '1-month' && (
                                 <p className="text-xs text-secondary mt-0.5">{formatPrice(grandTotal / billingFactor, selectedTier.currency)}/mo equivalent</p>
@@ -1346,7 +1343,7 @@ const SubscriptionPage = () => {
               )}
             </div>
 
-            <div className="bg-card rounded-lg p-4 border border-blue-200 flex items-start gap-3">
+            <div className="bg-card rounded-lg p-4 border border-[rgba(0,209,255,0.15)] flex items-start gap-3">
               <Info className="w-5 h-5 text-[#00D1FF] mt-0.5 flex-shrink-0" />
               <p className="text-sm text-primary">
                 You will be redirected to <strong>Stripe checkout</strong> to complete your payment securely.
@@ -1393,9 +1390,9 @@ const SubscriptionPage = () => {
 
           return (
             <div className="space-y-5 py-4">
-              <div className="bg-card border border-orange-200 rounded-xl p-4">
+              <div className="bg-card border border-[rgba(245,158,11,0.25)] rounded-xl p-4">
                 <p className="text-sm text-primary mb-1">You are adding extra trucks to:</p>
-                <p className="text-lg font-bold text-orange-900">
+                <p className="text-lg font-bold text-[#F59E0B]">
                   {activePlan?.planName || 'Your Current Plan'}
                 </p>
                 <p className="text-xs text-secondary mt-1">Current limit: {currentMaxTrucks} trucks</p>
@@ -1406,12 +1403,12 @@ const SubscriptionPage = () => {
                 <div className="flex items-center gap-4 mb-4">
                   <button
                     onClick={() => setAddTruckCount(Math.max(1, addTruckCount - 1))}
-                    className="w-10 h-10 rounded-xl border-2 border-gray-300 bg-card flex items-center justify-center text-primary hover:bg-gray-100 font-bold text-xl leading-none"
+                    className="w-10 h-10 rounded-xl border-2 border-[rgba(0,209,255,0.2)] bg-[#0B1220] flex items-center justify-center text-primary hover:bg-[rgba(0,209,255,0.08)] font-bold text-xl leading-none"
                   >−</button>
                   <span className="w-16 text-center font-bold text-2xl text-primary">{addTruckCount}</span>
                   <button
                     onClick={() => setAddTruckCount(addTruckCount + 1)}
-                    className="w-10 h-10 rounded-xl border-2 border-orange-400 bg-card flex items-center justify-center text-[#F59E0B] hover:bg-orange-100 font-bold text-xl leading-none"
+                    className="w-10 h-10 rounded-xl border-2 border-[rgba(245,158,11,0.4)] bg-[#0B1220] flex items-center justify-center text-[#F59E0B] hover:bg-[rgba(245,158,11,0.08)] font-bold text-xl leading-none"
                   >+</button>
                   <div className="ml-2">
                     <p className="text-xs text-secondary">truck{addTruckCount > 1 ? 's' : ''} to add</p>
@@ -1431,7 +1428,7 @@ const SubscriptionPage = () => {
                 </div>
               </div>
 
-              <div className="bg-card rounded-lg p-4 border border-blue-200 flex items-start gap-3">
+              <div className="bg-card rounded-lg p-4 border border-[rgba(0,209,255,0.15)] flex items-start gap-3">
                 <Info className="w-5 h-5 text-[#00D1FF] mt-0.5 flex-shrink-0" />
                 <p className="text-sm text-primary">
                   You will be redirected to <strong>Stripe checkout</strong> to complete the payment. Your truck limit will be increased immediately after payment.
@@ -1494,10 +1491,10 @@ const SubscriptionPage = () => {
               This action cannot be undone.
             </p>
           </div>
-          <div className="bg-card border border-yellow-200 rounded-lg p-3">
+          <div className="bg-card border border-[rgba(245,158,11,0.25)] rounded-lg p-3">
             <div className="flex items-start gap-2">
               <Info className="w-4 h-4 text-[#00FFA3] mt-0.5 flex-shrink-0" />
-              <p className="text-sm text-yellow-800">
+              <p className="text-sm text-secondary">
                 Your subscription will remain active until the end of the current billing period.
               </p>
             </div>

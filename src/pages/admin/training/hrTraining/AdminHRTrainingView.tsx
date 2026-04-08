@@ -590,9 +590,9 @@ const AdminHRTrainingView: React.FC = () => {
                           <span className="text-sm font-semibold text-primary">HR</span>
                           {avgScore > 0 && (
                             <div className={`px-2 py-0.5 rounded-full text-xs font-bold ${
-                              avgScore >= 0.9 ? 'bg-green-100 text-green-700' : 
-                              avgScore >= 0.7 ? 'bg-yellow-100 text-yellow-700' : 
-                              'bg-red-100 text-red-700'
+                              avgScore >= 0.9 ? 'bg-[#00FFA3]/10 text-[#00FFA3]' :
+                              avgScore >= 0.7 ? 'bg-[#F59E0B]/10 text-[#F59E0B]' :
+                              'bg-rose-500/10 text-rose-400'
                             }`}>
                               {Math.round(avgScore * 100)}%
                             </div>
@@ -614,10 +614,10 @@ const AdminHRTrainingView: React.FC = () => {
                             </div>
                           )}
                           {avgScore > 0 && (
-                            <div className="w-full bg-gray-200 rounded-full h-1.5 mt-2">
+                            <div className="w-full bg-[rgba(255,255,255,0.08)] rounded-full h-1.5 mt-2">
                               <div
-                                className={`h-1.5 rounded-full ${
-                                  avgScore >= 0.9 ? 'bg-green-500' : avgScore >= 0.7 ? 'bg-yellow-500' : 'bg-red-500'
+                                className={`h-1.5 rounded-full transition-all ${
+                                  avgScore >= 0.9 ? 'bg-[#00FFA3]' : avgScore >= 0.7 ? 'bg-[#F59E0B]' : 'bg-rose-400'
                                 }`}
                                 style={{ width: `${avgScore * 100}%` }}
                               />
@@ -628,7 +628,7 @@ const AdminHRTrainingView: React.FC = () => {
                         {/* Dropdown Toggle Button */}
                         <button
                           onClick={() => setOpenDropdown(isDropdownOpen ? null : 'hr')}
-                          className="w-full mt-3 flex items-center justify-between px-2 py-1.5 text-xs font-medium text-primary bg-card rounded border border-gray-300 hover:bg-[rgba(255,255,255,0.03)] transition-colors"
+                          className="w-full mt-3 flex items-center justify-between px-2 py-1.5 text-xs font-medium text-[#8B9BB4] bg-[rgba(0,209,255,0.05)] rounded-lg border border-[rgba(0,209,255,0.2)] hover:bg-[rgba(0,209,255,0.1)] hover:text-[#00D1FF] transition-colors"
                         >
                           <span>View Users ({roleUsers.length})</span>
                           <ChevronDown className={`w-3.5 h-3.5 transition-transform ${isDropdownOpen ? 'rotate-180' : ''}`} />
@@ -643,7 +643,7 @@ const AdminHRTrainingView: React.FC = () => {
                               const getStatusBadge = () => {
                                 if (user.status === 'passed') {
                                   return (
-                                    <div className="flex items-center gap-1.5 px-2 py-0.5 bg-green-50 text-green-700 rounded text-xs font-medium">
+                                    <div className="flex items-center gap-1.5 px-2 py-0.5 bg-[#00FFA3]/10 text-[#00FFA3] border border-[#00FFA3]/20 rounded-full text-xs font-medium">
                                       <CheckCircle className="w-3 h-3" />
                                       <span>Passed</span>
                                       {user.score !== undefined && (
@@ -653,7 +653,7 @@ const AdminHRTrainingView: React.FC = () => {
                                   );
                                 } else if (user.status === 'failed') {
                                   return (
-                                    <div className="flex items-center gap-1.5 px-2 py-0.5 bg-card text-red-700 rounded text-xs font-medium">
+                                    <div className="flex items-center gap-1.5 px-2 py-0.5 bg-rose-500/10 text-rose-400 border border-rose-500/20 rounded-full text-xs font-medium">
                                       <XCircle className="w-3 h-3" />
                                       <span>Failed</span>
                                       {user.score !== undefined && (
@@ -663,7 +663,7 @@ const AdminHRTrainingView: React.FC = () => {
                                   );
                                 } else {
                                   return (
-                                    <div className="flex items-center gap-1.5 px-2 py-0.5 bg-gray-100 text-secondary rounded text-xs font-medium">
+                                    <div className="flex items-center gap-1.5 px-2 py-0.5 bg-[rgba(255,255,255,0.06)] text-[#8B9BB4] border border-[rgba(255,255,255,0.08)] rounded-full text-xs font-medium">
                                       <Clock className="w-3 h-3" />
                                       <span>Not Attempted</span>
                                     </div>
@@ -694,11 +694,11 @@ const AdminHRTrainingView: React.FC = () => {
                           <div className="border-t border-theme p-2 bg-card rounded-b-lg">
                             <div className="grid grid-cols-3 gap-2 text-xs">
                               <div className="text-center">
-                                <div className="font-semibold text-green-700">{passedCount}</div>
+                                <div className="font-semibold text-[#00FFA3]">{passedCount}</div>
                                 <div className="text-secondary">Passed</div>
                               </div>
                               <div className="text-center">
-                                <div className="font-semibold text-red-700">{failedCount}</div>
+                                <div className="font-semibold text-rose-400">{failedCount}</div>
                                 <div className="text-secondary">Failed</div>
                               </div>
                               <div className="text-center">
@@ -738,7 +738,7 @@ const AdminHRTrainingView: React.FC = () => {
                   setUploadDescription('');
                   setUploadFile(null);
                 }}
-                className="flex items-center gap-2 px-4 py-2 bg-[#0ea3d8] !text-white rounded-lg hover:bg-[#0d8fc4] transition-colors"
+                className="flex items-center gap-2 px-4 py-2 bg-[#00D1FF]/10 border border-[#00D1FF]/30 text-[#00D1FF] rounded-lg hover:bg-[#00D1FF]/20 hover:border-[#00D1FF]/60 hover:shadow-[0_0_16px_rgba(0,209,255,0.2)] transition-all"
               >
                 <Plus className="w-4 h-4" />
                 Upload Content
@@ -758,13 +758,13 @@ const AdminHRTrainingView: React.FC = () => {
                   <div key={item._id} className="bg-card rounded-lg p-4 border border-theme">
                     <div className="flex items-start justify-between mb-2">
                       <div className="flex items-center gap-2 flex-1">
-                        <div className="text-[#0ea3d8]">{getIcon(item.type)}</div>
+                        <div className="text-[#00D1FF]">{getIcon(item.type)}</div>
                         <h3 className="font-semibold text-primary">{item.name}</h3>
                       </div>
                       <div className="flex items-center gap-1">
                         <button
                           onClick={() => handleViewContent(item._id, item.type)}
-                          className="text-[#0ea3d8] hover:text-[#0d8fc4] p-1"
+                          className="text-[#00D1FF] hover:text-[#00FFA3] p-1 transition-colors"
                           title="View content"
                         >
                           <Eye className="w-4 h-4" />
@@ -783,8 +783,8 @@ const AdminHRTrainingView: React.FC = () => {
                     )}
                     <div className="flex items-center justify-between text-sm text-secondary mt-3">
                       <div className="flex items-center gap-2">
-                        <span className="capitalize bg-gray-200 px-2 py-1 rounded">{getTypeLabel(item.type)}</span>
-                        <span className="bg-blue-100 text-blue-700 px-2 py-1 rounded text-xs">{getTestTypeDisplayName(item.testType)}</span>
+                        <span className="capitalize bg-[rgba(255,255,255,0.08)] text-[#8B9BB4] px-2 py-1 rounded-md text-xs">{getTypeLabel(item.type)}</span>
+                        <span className="bg-[#00D1FF]/10 text-[#00D1FF] border border-[#00D1FF]/20 px-2 py-1 rounded-md text-xs">{getTestTypeDisplayName(item.testType)}</span>
                       </div>
                       <span>
                         {item.createdAt ? new Date(item.createdAt).toLocaleDateString() : 'N/A'}
@@ -818,7 +818,7 @@ const AdminHRTrainingView: React.FC = () => {
                   setCurrentQOptions(['', '', '', '']);
                   setCurrentQCorrectAnswer(0);
                 }}
-                className="flex items-center gap-2 px-4 py-2 bg-[#0ea3d8] !text-white rounded-lg hover:bg-[#0d8fc4] transition-colors"
+                className="flex items-center gap-2 px-4 py-2 bg-[#00D1FF]/10 border border-[#00D1FF]/30 text-[#00D1FF] rounded-lg hover:bg-[#00D1FF]/20 hover:border-[#00D1FF]/60 hover:shadow-[0_0_16px_rgba(0,209,255,0.2)] transition-all"
               >
                 <Plus className="w-4 h-4" />
                 Add Q&A

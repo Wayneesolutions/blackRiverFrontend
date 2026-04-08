@@ -817,27 +817,27 @@ const InvoiceManagement: React.FC = () => {
 
         return (
             <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40  ">
-                <div className="bg-card rounded-lg shadow-xl max-w-md w-full mx-4">
+                <div className="bg-[#121A2B] rounded-xl shadow-2xl border border-[rgba(0,209,255,0.1)] max-w-md w-full mx-4">
                     <div className="p-6">
                         <div className="flex items-center gap-3 mb-4">
-                            <div className="bg-red-100 p-3 rounded-full">
-                                <Trash2 className="h-6 w-6 text-[#A855F7]" />
+                            <div className="bg-rose-500/10 p-3 rounded-xl border border-rose-500/20">
+                                <Trash2 className="h-5 w-5 text-rose-400" />
                             </div>
-                            <h3 className="text-lg font-semibold text-primary">Delete Invoice</h3>
+                            <h3 className="text-base font-semibold text-[#E6EDF3]">Delete Invoice</h3>
                         </div>
-                        <p className="text-secondary mb-6">
+                        <p className="text-[#8B9BB4] text-sm mb-6">
                             Are you sure you want to delete this invoice? This action cannot be undone.
                         </p>
                         <div className="flex gap-3 justify-end">
                             <button
                                 onClick={() => setDeleteModal({ show: false, invoiceId: null })}
-                                className="px-4 py-2 text-primary bg-gray-100 rounded-md hover:bg-gray-200 transition-colors"
+                                className="px-4 py-2 text-[#8B9BB4] bg-[rgba(255,255,255,0.05)] border border-[rgba(255,255,255,0.08)] rounded-lg hover:bg-[rgba(255,255,255,0.08)] transition-colors text-sm"
                             >
                                 Cancel
                             </button>
                             <button
                                 onClick={handleConfirmDelete}
-                                className="px-4 py-2 !text-white bg-red-600 rounded-md hover:bg-red-700 transition-colors"
+                                className="px-4 py-2 text-white bg-rose-500/80 border border-rose-500/30 rounded-lg hover:bg-rose-500 transition-colors text-sm"
                             >
                                 Delete
                             </button>
@@ -849,65 +849,55 @@ const InvoiceManagement: React.FC = () => {
     };
 
     const DashboardOverview: React.FC = () => (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-            <div className="bg-[#E3F2FD] rounded-lg p-6 border border-blue-100 shadow-sm">
-                <div className="flex items-center justify-between">
-                    <div>
-                        <p className="text-sm font-medium text-[#063f6f]">Total Revenue</p>
-                        <p className="text-2xl font-bold text-[#016ab2]">
-                            {formatCurrency(stats.totalAmount)}
-                        </p>
-                        <p className="text-xs text-[#063f6f]">{invoices.length} invoices</p>
-                    </div>
-                    <div className="bg-card p-3 rounded-full">
-                        <DollarSign className="h-6 w-6 text-[#42aeec]" />
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+            {/* Total Revenue */}
+            <div className="bg-[#121A2B] rounded-xl p-5 border border-[rgba(0,209,255,0.12)] shadow-[0_0_20px_rgba(0,209,255,0.05)] hover:border-[rgba(0,209,255,0.25)] transition-all">
+                <div className="flex items-center justify-between mb-3">
+                    <p className="text-xs font-medium text-[#8B9BB4] uppercase tracking-wider">Total Revenue</p>
+                    <div className="p-2 rounded-lg bg-[#00D1FF]/10 shadow-[0_0_12px_rgba(0,209,255,0.2)]">
+                        <DollarSign className="h-4 w-4 text-[#00D1FF]" />
                     </div>
                 </div>
+                <p className="text-2xl font-bold text-[#E6EDF3]">{formatCurrency(stats.totalAmount)}</p>
+                <p className="text-xs text-[#8B9BB4] mt-1">{invoices.length} invoices total</p>
             </div>
 
-            <div className="bg-[#E8F5E9] rounded-lg p-6 border border-green-100 shadow-sm">
-                <div className="flex items-center justify-between">
-                    <div>
-                        <p className="text-sm font-medium text-[#063f6f]">Paid</p>
-                        <p className="text-2xl font-bold text-[#016ab2]">
-                            {formatCurrency(stats.paidAmount)}
-                        </p>
-                        <p className="text-xs text-[#063f6f]">{stats.paidCount} invoices</p>
-                    </div>
-                    <div className="bg-card p-3 rounded-full">
-                        <TrendingUp className="h-6 w-6 text-[#0ea3d8]" />
+            {/* Paid */}
+            <div className="bg-[#121A2B] rounded-xl p-5 border border-[rgba(0,255,163,0.12)] shadow-[0_0_20px_rgba(0,255,163,0.05)] hover:border-[rgba(0,255,163,0.25)] transition-all">
+                <div className="flex items-center justify-between mb-3">
+                    <p className="text-xs font-medium text-[#8B9BB4] uppercase tracking-wider">Paid</p>
+                    <div className="p-2 rounded-lg bg-[#00FFA3]/10 shadow-[0_0_12px_rgba(0,255,163,0.2)]">
+                        <TrendingUp className="h-4 w-4 text-[#00FFA3]" />
                     </div>
                 </div>
+                <p className="text-2xl font-bold text-[#E6EDF3]">{formatCurrency(stats.paidAmount)}</p>
+                <p className="text-xs text-[#8B9BB4] mt-1">{stats.paidCount} invoices paid</p>
             </div>
 
-            <div className="bg-[#FFF8E1] rounded-lg p-6 border border-yellow-100 shadow-sm">
-                <div className="flex items-center justify-between">
-                    <div>
-                        <p className="text-sm font-medium text-[#063f6f]">Pending</p>
-                        <p className="text-2xl font-bold text-[#016ab2]">
-                            {formatCurrency(stats.pendingAmount)}
-                        </p>
-                        <p className="text-xs text-[#063f6f]">{stats.pendingCount} invoices</p>
-                    </div>
-                    <div className="bg-card p-3 rounded-full">
-                        <Calendar className="h-6 w-6 text-[#f59e0b]" />
+            {/* Pending */}
+            <div className="bg-[#121A2B] rounded-xl p-5 border border-[rgba(245,158,11,0.12)] shadow-[0_0_20px_rgba(245,158,11,0.05)] hover:border-[rgba(245,158,11,0.25)] transition-all">
+                <div className="flex items-center justify-between mb-3">
+                    <p className="text-xs font-medium text-[#8B9BB4] uppercase tracking-wider">Pending</p>
+                    <div className="p-2 rounded-lg bg-[#F59E0B]/10 shadow-[0_0_12px_rgba(245,158,11,0.2)]">
+                        <Calendar className="h-4 w-4 text-[#F59E0B]" />
                     </div>
                 </div>
+                <p className="text-2xl font-bold text-[#E6EDF3]">{formatCurrency(stats.pendingAmount)}</p>
+                <p className="text-xs text-[#8B9BB4] mt-1">{stats.pendingCount} invoices pending</p>
             </div>
 
-            <div className="bg-[#F3E5F5] rounded-lg p-6 border border-purple-100 shadow-sm">
-                <div className="flex items-center justify-between">
-                    <div>
-                        <p className="text-sm font-medium text-[#063f6f]">Collection Rate</p>
-                        <p className="text-2xl font-bold text-[#016ab2]">
-                            {stats.totalAmount > 0 ? ((stats.paidAmount / stats.totalAmount) * 100).toFixed(1) : 0}%
-                        </p>
-                        <p className="text-xs text-[#063f6f]">Payment efficiency</p>
-                    </div>
-                    <div className="bg-card p-3 rounded-full">
-                        <Users className="h-6 w-6 text-[#1db5f5]" />
+            {/* Collection Rate */}
+            <div className="bg-[#121A2B] rounded-xl p-5 border border-[rgba(168,85,247,0.12)] shadow-[0_0_20px_rgba(168,85,247,0.05)] hover:border-[rgba(168,85,247,0.25)] transition-all">
+                <div className="flex items-center justify-between mb-3">
+                    <p className="text-xs font-medium text-[#8B9BB4] uppercase tracking-wider">Collection Rate</p>
+                    <div className="p-2 rounded-lg bg-[#A855F7]/10 shadow-[0_0_12px_rgba(168,85,247,0.2)]">
+                        <Users className="h-4 w-4 text-[#A855F7]" />
                     </div>
                 </div>
+                <p className="text-2xl font-bold text-[#E6EDF3]">
+                    {stats.totalAmount > 0 ? ((stats.paidAmount / stats.totalAmount) * 100).toFixed(1) : 0}%
+                </p>
+                <p className="text-xs text-[#8B9BB4] mt-1">Payment efficiency</p>
             </div>
         </div>
     );
@@ -923,7 +913,7 @@ const InvoiceManagement: React.FC = () => {
                             <select
                                 value={statusFilter}
                                 onChange={(e) => setStatusFilter(e.target.value as StatusFilter)}
-                                className="border border-gray-300 rounded-md px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                className="bg-[#0B1220] border border-[rgba(0,209,255,0.15)] text-[#E6EDF3] rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-[#00D1FF] focus:ring-1 focus:ring-[rgba(0,209,255,0.3)] transition-colors"
                             >
                                 <option value="all">All Status</option>
                                 <option value="paid">Paid</option>
@@ -952,7 +942,7 @@ const InvoiceManagement: React.FC = () => {
                                 <th className="text-left py-3 px-6 font-medium text-secondary">Actions</th>
                             </tr>
                         </thead>
-                        <tbody className="divide-y divide-gray-200">
+                        <tbody className="divide-y divide-[rgba(255,255,255,0.05)]">
                             {filteredInvoices.map((invoice) => {
                                 // Extract trip number from notes if tripId is null
                                 const extractTripNumberFromNotes = (notes: string): string | null => {
@@ -1067,7 +1057,7 @@ const InvoiceManagement: React.FC = () => {
                                                         e.stopPropagation();
                                                         handleDownloadPDF(invoice);
                                                     }}
-                                                    className="p-2 text-primary hover:text-primary hover:bg-gray-100 rounded-lg transition-all"
+                                                    className="p-2 text-primary hover:text-[#00D1FF] hover:bg-[rgba(0,209,255,0.08)] rounded-lg transition-all"
                                                     title="Download PDF"
                                                 >
                                                     <Download className="h-4 w-4" />
@@ -1143,7 +1133,7 @@ const InvoiceManagement: React.FC = () => {
                             </button>
                             <button
                                 onClick={() => setActiveTab('list')}
-                                className="text-secondary hover:text-primary transition-colors px-3 py-2 hover:bg-gray-100 rounded-lg"
+                                className="text-[#8B9BB4] hover:text-[#00D1FF] transition-colors px-3 py-2 hover:bg-[rgba(0,209,255,0.08)] rounded-lg text-sm"
                             >
                                 ← Back to List
                             </button>
@@ -1151,7 +1141,7 @@ const InvoiceManagement: React.FC = () => {
                     </div>
                 </div>
 
-                <div className="p-6 bg-gray-100">
+                <div className="p-6 bg-[#0B1220]">
                     {/* Invoice Document Preview */}
                     <div className="max-w-4xl mx-auto bg-card shadow-2xl rounded-sm overflow-hidden border border-theme">
                         {/* Header - White Background with Logo and Title */}
