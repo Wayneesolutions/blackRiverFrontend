@@ -40,9 +40,9 @@ const ToastNotificationComponent = ({ notification, onClose }: { notification: T
 
   const bgColors = {
     success: 'bg-green-50 border-green-200',
-    error: 'bg-red-50 border-red-200',
-    info: 'bg-blue-50 border-blue-200',
-    warning: 'bg-yellow-50 border-yellow-200'
+    error: 'bg-card border-red-200',
+    info: 'bg-card border-blue-200',
+    warning: 'bg-card border-yellow-200'
   };
 
   useEffect(() => {
@@ -57,10 +57,10 @@ const ToastNotificationComponent = ({ notification, onClose }: { notification: T
       <div className="flex-shrink-0 mt-0.5">
         {icons[notification.type]}
       </div>
-      <p className="flex-1 text-sm font-medium text-gray-800">{notification.message}</p>
+      <p className="flex-1 text-sm font-medium text-primary">{notification.message}</p>
       <button
         onClick={() => onClose(notification.id)}
-        className="flex-shrink-0 text-gray-400 hover:text-gray-600 transition-colors"
+        className="flex-shrink-0 text-secondary hover:text-secondary transition-colors"
       >
         <FaTimes size={16} />
       </button>
@@ -477,10 +477,10 @@ export default function TaxConfigurationPage() {
                       <td className="px-4 py-3 text-sm text-slate-700">${item.rate}</td>
                       <td className="px-4 py-3 text-sm text-slate-700">{item.effectiveDate}</td>
                       <td className="px-4 py-3 text-right" onClick={(e) => e.stopPropagation()}>
-                        <button onClick={() => handleEdit(item)} className="text-blue-600 !mr-3 hover:text-blue-800 mr-3">
+                        <button onClick={() => handleEdit(item)} className="text-[#00D1FF] !mr-3 hover:text-blue-800 mr-3">
                           <Edit2 className="w-4 h-4" />
                         </button>
-                        <button onClick={() => handleDelete(item._id || item.id?.toString() || '')} className="text-red-600 hover:text-red-800">
+                        <button onClick={() => handleDelete(item._id || item.id?.toString() || '')} className="text-[#A855F7] hover:text-red-800">
                           <Trash2 className="w-4 h-4" />
                         </button>
                       </td>
@@ -532,10 +532,10 @@ export default function TaxConfigurationPage() {
                         </span>
                       </td>
                       <td className="px-4 py-3 text-right" onClick={(e) => e.stopPropagation()}>
-                        <button onClick={() => handleEdit(item)} className="text-blue-600 !mr-3 hover:text-blue-800 mr-3">
+                        <button onClick={() => handleEdit(item)} className="text-[#00D1FF] !mr-3 hover:text-blue-800 mr-3">
                           <Edit2 className="w-4 h-4" />
                         </button>
-                        <button onClick={() => handleDelete(item._id || item.id?.toString() || '')} className="text-red-600 hover:text-red-800">
+                        <button onClick={() => handleDelete(item._id || item.id?.toString() || '')} className="text-[#A855F7] hover:text-red-800">
                           <Trash2 className="w-4 h-4" />
                         </button>
                       </td>
@@ -587,10 +587,10 @@ export default function TaxConfigurationPage() {
                         </span>
                       </td>
                       <td className="px-4 py-3 text-right" onClick={(e) => e.stopPropagation()}>
-                        <button onClick={() => handleEdit(item)} className="text-blue-600 !mr-3 hover:text-blue-800 mr-3">
+                        <button onClick={() => handleEdit(item)} className="text-[#00D1FF] !mr-3 hover:text-blue-800 mr-3">
                           <Edit2 className="w-4 h-4" />
                         </button>
-                        <button onClick={() => handleDelete(item._id || item.id?.toString() || '')} className="text-red-600 hover:text-red-800">
+                        <button onClick={() => handleDelete(item._id || item.id?.toString() || '')} className="text-[#A855F7] hover:text-red-800">
                           <Trash2 className="w-4 h-4" />
                         </button>
                       </td>
@@ -640,10 +640,10 @@ export default function TaxConfigurationPage() {
                       <td className="px-4 py-3 text-sm text-slate-700">{item.payableAccount}</td>
                       <td className="px-4 py-3 text-sm text-slate-700">{item.expenseAccount}</td>
                       <td className="px-4 py-3 text-right" onClick={(e) => e.stopPropagation()}>
-                        <button onClick={() => handleEdit(item)} className="text-blue-600 !mr-3 hover:text-blue-800 mr-3">
+                        <button onClick={() => handleEdit(item)} className="text-[#00D1FF] !mr-3 hover:text-blue-800 mr-3">
                           <Edit2 className="w-4 h-4" />
                         </button>
-                        <button onClick={() => handleDelete(item._id || item.id?.toString() || '')} className="text-red-600 hover:text-red-800">
+                        <button onClick={() => handleDelete(item._id || item.id?.toString() || '')} className="text-[#A855F7] hover:text-red-800">
                           <Trash2 className="w-4 h-4" />
                         </button>
                       </td>
@@ -686,7 +686,7 @@ export default function TaxConfigurationPage() {
   const tabInfo = getTabInfo();
 
   return (
-    <div className="min-h-screen bg-[#EDF8FF] p-4">
+    <div className="min-h-screen bg-main p-4">
       {/* Toast Notifications */}
       <div className="fixed top-4 right-4 z-[10000] space-y-2">
         {notifications.map(notification => (
@@ -700,7 +700,7 @@ export default function TaxConfigurationPage() {
 
       <div className="w-full mx-auto p-2">
         {/* Header */}
-        <div className="bg-white rounded-lg shadow-sm p-6 mb-6">
+        <div className="bg-card rounded-lg shadow-sm p-6 mb-6">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
               <div className="p-3 rounded-lg" style={{ background: 'linear-gradient(90deg, #42aeec 0%, #1db5f5 40%, #0ea3d8 100%)' }}>
@@ -721,21 +721,21 @@ export default function TaxConfigurationPage() {
         </div>
 
         {/* Navigation Tabs */}
-        <div className="bg-white rounded-lg shadow-sm mb-6 overflow-hidden">
+        <div className="bg-card rounded-lg shadow-sm mb-6 overflow-hidden">
           <div className="flex border-b border-slate-200">
-            <button onClick={() => setActiveTab('ifta')} className={`flex items-center gap-2 px-6 py-4 font-medium transition-colors flex-1 ${activeTab === 'ifta' ? 'text-[#016ab2] border-b-2 border-[#42aeec] bg-blue-50' : 'text-slate-600 hover:bg-slate-50'}`}>
+            <button onClick={() => setActiveTab('ifta')} className={`flex items-center gap-2 px-6 py-4 font-medium transition-colors flex-1 ${activeTab === 'ifta' ? 'text-[#016ab2] border-b-2 border-[#42aeec] bg-card' : 'text-slate-600 hover:bg-slate-50'}`}>
               <FileText className="w-5 h-5" />
               <span className="hidden sm:inline">IFTA Rates</span>
             </button>
-            <button onClick={() => setActiveTab('sales')} className={`flex items-center gap-2 px-6 py-4 font-medium transition-colors flex-1 ${activeTab === 'sales' ? 'text-[#016ab2] border-b-2 border-[#42aeec] bg-blue-50' : 'text-slate-600 hover:bg-slate-50'}`}>
+            <button onClick={() => setActiveTab('sales')} className={`flex items-center gap-2 px-6 py-4 font-medium transition-colors flex-1 ${activeTab === 'sales' ? 'text-[#016ab2] border-b-2 border-[#42aeec] bg-card' : 'text-slate-600 hover:bg-slate-50'}`}>
               <MapPin className="w-5 h-5" />
               <span className="hidden sm:inline">Sales Tax</span>
             </button>
-            <button onClick={() => setActiveTab('payroll')} className={`flex items-center gap-2 px-6 py-4 font-medium transition-colors flex-1 ${activeTab === 'payroll' ? 'text-[#016ab2] border-b-2 border-[#42aeec] bg-blue-50' : 'text-slate-600 hover:bg-slate-50'}`}>
+            <button onClick={() => setActiveTab('payroll')} className={`flex items-center gap-2 px-6 py-4 font-medium transition-colors flex-1 ${activeTab === 'payroll' ? 'text-[#016ab2] border-b-2 border-[#42aeec] bg-card' : 'text-slate-600 hover:bg-slate-50'}`}>
               <Calculator className="w-5 h-5" />
               <span className="hidden sm:inline">Payroll</span>
             </button>
-            <button onClick={() => setActiveTab('vendor')} className={`flex items-center gap-2 px-6 py-4 font-medium transition-colors flex-1 ${activeTab === 'vendor' ? 'text-[#016ab2] border-b-2 border-[#42aeec] bg-blue-50' : 'text-slate-600 hover:bg-slate-50'}`}>
+            <button onClick={() => setActiveTab('vendor')} className={`flex items-center gap-2 px-6 py-4 font-medium transition-colors flex-1 ${activeTab === 'vendor' ? 'text-[#016ab2] border-b-2 border-[#42aeec] bg-card' : 'text-slate-600 hover:bg-slate-50'}`}>
               <DollarSign className="w-5 h-5" />
               <span className="hidden sm:inline">Vendor Tax</span>
             </button>
@@ -743,7 +743,7 @@ export default function TaxConfigurationPage() {
         </div>
 
         {/* Content Area */}
-        <div className="bg-white rounded-lg shadow-sm p-6">
+        <div className="bg-card rounded-lg shadow-sm p-6">
           <div className="flex items-center justify-between mb-6">
             <div className="flex items-center gap-3">
               {tabInfo.icon}
@@ -773,7 +773,7 @@ export default function TaxConfigurationPage() {
         {/* Add/Edit Modal */}
         {showAddModal && (
           <div className="fixed inset-0 flex items-center justify-center z-50">
-            <div className="bg-white rounded-lg shadow-xl p-6 w-full max-w-md">
+            <div className="bg-card rounded-lg shadow-xl p-6 w-full max-w-md">
               <div className="flex items-center justify-between mb-4">
                 <h3 className="text-lg font-bold text-slate-800">
                   {editingItem ? 'Edit Entry' : 'Add New Entry'}
@@ -851,7 +851,7 @@ export default function TaxConfigurationPage() {
                           type="checkbox"
                           checked={salesFormData.qbSync}
                           onChange={(e) => setSalesFormData({ ...salesFormData, qbSync: e.target.checked })}
-                          className="w-4 h-4 text-blue-600 border-slate-300 rounded focus:ring-blue-500"
+                          className="w-4 h-4 text-[#00D1FF] border-slate-300 rounded focus:ring-blue-500"
                         />
                         <span className="text-sm font-medium text-slate-700">QuickBooks Sync</span>
                       </label>
@@ -970,18 +970,18 @@ export default function TaxConfigurationPage() {
       {/* Delete Confirmation Modal */}
       {showDeleteModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
-          <div className="bg-white rounded-lg shadow-xl w-full max-w-md p-6">
-            <div className="flex items-center gap-3 mb-4 text-red-600">
+          <div className="bg-card rounded-lg shadow-xl w-full max-w-md p-6">
+            <div className="flex items-center gap-3 mb-4 text-[#A855F7]">
               <Trash2 className="w-6 h-6" />
               <h3 className="text-lg font-bold">Confirm Deletion</h3>
             </div>
-            <p className="text-gray-600 mb-6">
+            <p className="text-secondary mb-6">
               Are you sure you want to delete this item? This action cannot be undone.
             </p>
             <div className="flex justify-end gap-3">
               <button
                 onClick={() => setShowDeleteModal(false)}
-                className="px-4 py-2 text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors"
+                className="px-4 py-2 text-primary bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors"
               >
                 Cancel
               </button>
@@ -1002,9 +1002,9 @@ export default function TaxConfigurationPage() {
       {/* Detail View Modal */}
       {showDetailModal && selectedItem && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
-          <div className="bg-white rounded-lg shadow-xl w-full max-w-2xl mx-4 max-h-[90vh] overflow-y-auto">
-            <div className="sticky top-0 bg-white border-b border-gray-200 px-6 py-4 flex items-center justify-between">
-              <h2 className="text-2xl font-bold text-gray-900">
+          <div className="bg-card rounded-lg shadow-xl w-full max-w-2xl mx-4 max-h-[90vh] overflow-y-auto">
+            <div className="sticky top-0 bg-card border-b border-theme px-6 py-4 flex items-center justify-between">
+              <h2 className="text-2xl font-bold text-primary">
                 {selectedItemType === 'ifta' && 'IFTA Rate Details'}
                 {selectedItemType === 'sales' && 'Sales Tax Rule Details'}
                 {selectedItemType === 'payroll' && 'Payroll Tax Formula Details'}
@@ -1016,7 +1016,7 @@ export default function TaxConfigurationPage() {
                   setSelectedItem(null);
                   setSelectedItemType(null);
                 }}
-                className="text-gray-400 hover:text-gray-600 transition-colors"
+                className="text-secondary hover:text-secondary transition-colors"
               >
                 <X className="w-6 h-6" />
               </button>
@@ -1026,7 +1026,7 @@ export default function TaxConfigurationPage() {
               {/* IFTA Rate Details */}
               {selectedItemType === 'ifta' && (
                 <div className="space-y-6">
-                  <div className="bg-blue-50 p-4 rounded-lg border border-blue-200">
+                  <div className="bg-card p-4 rounded-lg border border-blue-200">
                     <label className="text-sm font-medium text-blue-900 mb-1 block">Jurisdiction (State/Province)</label>
                     <p className="text-2xl font-semibold text-blue-700">{(selectedItem as IftaRate).jurisdiction}</p>
                   </div>
@@ -1036,7 +1036,7 @@ export default function TaxConfigurationPage() {
                       <label className="text-sm font-medium text-green-900 mb-1 block">Fuel Tax Rate</label>
                       <p className="text-3xl font-bold text-green-700">${(selectedItem as IftaRate).rate}/gal</p>
                     </div>
-                    <div className="bg-purple-50 p-4 rounded-lg border border-purple-200">
+                    <div className="bg-card p-4 rounded-lg border border-purple-200">
                       <label className="text-sm font-medium text-purple-900 mb-1 block">Effective Date</label>
                       <p className="text-xl font-semibold text-purple-700">{(selectedItem as IftaRate).effectiveDate}</p>
                     </div>
@@ -1047,13 +1047,13 @@ export default function TaxConfigurationPage() {
               {/* Sales Tax Rule Details */}
               {selectedItemType === 'sales' && (
                 <div className="space-y-6">
-                  <div className="bg-blue-50 p-4 rounded-lg border border-blue-200">
+                  <div className="bg-card p-4 rounded-lg border border-blue-200">
                     <label className="text-sm font-medium text-blue-900 mb-1 block">Rule Name</label>
                     <p className="text-2xl font-semibold text-blue-700">{(selectedItem as SalesTaxRule).name}</p>
                   </div>
 
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div className="bg-purple-50 p-4 rounded-lg border border-purple-200">
+                    <div className="bg-card p-4 rounded-lg border border-purple-200">
                       <label className="text-sm font-medium text-purple-900 mb-2 block">Tax Type</label>
                       <span className="inline-block px-4 py-2 bg-purple-100 text-purple-800 rounded-full text-sm font-semibold border-2 border-purple-300">
                         {(selectedItem as SalesTaxRule).type}
@@ -1076,7 +1076,7 @@ export default function TaxConfigurationPage() {
               {/* Payroll Tax Formula Details */}
               {selectedItemType === 'payroll' && (
                 <div className="space-y-6">
-                  <div className="bg-blue-50 p-4 rounded-lg border border-blue-200">
+                  <div className="bg-card p-4 rounded-lg border border-blue-200">
                     <label className="text-sm font-medium text-blue-900 mb-1 block">Income Tax Bracket</label>
                     <p className="text-2xl font-semibold text-blue-700">{(selectedItem as PayrollTaxFormula).bracket}</p>
                   </div>
@@ -1086,7 +1086,7 @@ export default function TaxConfigurationPage() {
                       <label className="text-sm font-medium text-green-900 mb-1 block">Tax Rate</label>
                       <p className="text-3xl font-bold text-green-700">{(selectedItem as PayrollTaxFormula).rate}%</p>
                     </div>
-                    <div className="bg-purple-50 p-4 rounded-lg border border-purple-200">
+                    <div className="bg-card p-4 rounded-lg border border-purple-200">
                       <label className="text-sm font-medium text-purple-900 mb-2 block">Classification</label>
                       <span className={`inline-block px-4 py-2 rounded-full text-sm font-semibold border-2 ${
                         (selectedItem as PayrollTaxFormula).classification === 'Employee'
@@ -1104,7 +1104,7 @@ export default function TaxConfigurationPage() {
               {selectedItemType === 'vendor' && (
                 <div className="space-y-6">
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div className="bg-blue-50 p-4 rounded-lg border border-blue-200">
+                    <div className="bg-card p-4 rounded-lg border border-blue-200">
                       <label className="text-sm font-medium text-blue-900 mb-1 block">Tax Rate Name</label>
                       <p className="text-xl font-semibold text-blue-700">{(selectedItem as VendorTax).taxName}</p>
                     </div>
@@ -1114,7 +1114,7 @@ export default function TaxConfigurationPage() {
                     </div>
                   </div>
 
-                  <div className="bg-purple-50 p-4 rounded-lg border border-purple-200">
+                  <div className="bg-card p-4 rounded-lg border border-purple-200">
                     <label className="text-sm font-medium text-purple-900 mb-1 block">Tax Payable Account</label>
                     <p className="text-lg font-semibold text-purple-700">{(selectedItem as VendorTax).payableAccount}</p>
                   </div>
@@ -1127,7 +1127,7 @@ export default function TaxConfigurationPage() {
               )}
             </div>
 
-            <div className="sticky bottom-0 bg-gray-50 border-t border-gray-200 px-6 py-4">
+            <div className="sticky bottom-0 bg-card border-t border-theme px-6 py-4">
               <button
                 onClick={() => {
                   setShowDetailModal(false);

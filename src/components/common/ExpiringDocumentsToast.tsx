@@ -65,18 +65,18 @@ const ExpiringDocumentsToast: React.FC<ExpiringDocumentsToastProps> = ({
 
   return (
     <div className="fixed top-4 right-4 z-[9999] max-w-md w-full animate-slide-in">
-      <div className="bg-white rounded-lg shadow-xl border-l-4 border-orange-500 overflow-hidden">
+      <div className="bg-card rounded-lg shadow-xl border-l-4 border-orange-500 overflow-hidden">
         <div className="p-4">
           <div className="flex items-start justify-between">
             <div className="flex items-start gap-3 flex-1">
               <div className="p-2 bg-orange-100 rounded-lg">
-                <AlertTriangle className="w-5 h-5 text-orange-600" />
+                <AlertTriangle className="w-5 h-5 text-[#F59E0B]" />
               </div>
               <div className="flex-1">
-                <h3 className="text-sm font-semibold text-gray-900 mb-1">
+                <h3 className="text-sm font-semibold text-primary mb-1">
                   Documents Expiring Soon
                 </h3>
-                <p className="text-sm text-gray-600">
+                <p className="text-sm text-secondary">
                   {count} document{count !== 1 ? 's' : ''}{' '}
                   {count === 1 ? 'is' : 'are'} expiring within 30 days
                 </p>
@@ -90,7 +90,7 @@ const ExpiringDocumentsToast: React.FC<ExpiringDocumentsToastProps> = ({
               }}
               className="p-1 hover:bg-gray-100 rounded transition-colors ml-2"
             >
-              <X className="w-4 h-4 text-gray-500" />
+              <X className="w-4 h-4 text-secondary" />
             </button>
           </div>
 

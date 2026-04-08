@@ -19,8 +19,8 @@ const ToastNotification = ({ notification, onClose }: { notification: ToastNotif
 
     const bgColors = {
         success: 'bg-green-50 border-green-200',
-        error: 'bg-red-50 border-red-200',
-        warning: 'bg-yellow-50 border-yellow-200',
+        error: 'bg-card border-red-200',
+        warning: 'bg-card border-yellow-200',
     };
 
     React.useEffect(() => {
@@ -35,10 +35,10 @@ const ToastNotification = ({ notification, onClose }: { notification: ToastNotif
             <div className="flex-shrink-0 mt-0.5">
                 {icons[notification.type]}
             </div>
-            <p className="flex-1 text-[13px] font-medium text-gray-800">{notification.message}</p>
+            <p className="flex-1 text-[13px] font-medium text-primary">{notification.message}</p>
             <button
                 onClick={() => onClose(notification.id)}
-                className="flex-shrink-0 text-gray-400 hover:text-gray-600 transition-colors"
+                className="flex-shrink-0 text-secondary hover:text-secondary transition-colors"
             >
                 <FaTimes size={15} />
             </button>
@@ -242,9 +242,9 @@ const NewBulkOrderSidebar = ({ order, onClose, onSave }: any) => {
     };
 
     return (
-        <div className="min-h-screen flex flex-col bg-white">
+        <div className="min-h-screen flex flex-col bg-card">
             {/* Header */}
-            <div className="flex items-center justify-between px-5 py-3.5 border-b border-gray-200" style={{
+            <div className="flex items-center justify-between px-5 py-3.5 border-b border-theme" style={{
                 background: 'linear-gradient(90deg, #42aeec 0%, #1db5f5 40%, #0ea3d8 100%)'
             }}>
                 <h2 className="text-base font-semibold text-white">
@@ -252,7 +252,7 @@ const NewBulkOrderSidebar = ({ order, onClose, onSave }: any) => {
                 </h2>
                 <button
                     onClick={onClose}
-                    className="p-1.5 hover:bg-white/20 rounded-lg transition-colors"
+                    className="p-1.5 hover:bg-card/20 rounded-lg transition-colors"
                 >
                     <X className="w-5 h-5 text-white" />
                 </button>
@@ -264,15 +264,15 @@ const NewBulkOrderSidebar = ({ order, onClose, onSave }: any) => {
                     {/* Row 1: Customer, Commodity, Load Type */}
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-3.5">
                         <div className="md:col-span-1 relative">
-                            <label className="block text-[13px] font-medium text-gray-700 mb-1.5">
+                            <label className="block text-[13px] font-medium text-primary mb-1.5">
                                 Customer Name <span className="text-red-500">*</span>
                             </label>
                             <div className="relative">
                                 <div
                                     onClick={() => setCustomerDropdownOpen(!customerDropdownOpen)}
-                                    className="flex items-center gap-1 p-2 border border-gray-300 rounded-lg bg-white cursor-pointer hover:border-[#1db5f5] focus-within:border-[#1db5f5] focus-within:ring-1 focus-within:ring-[#42aeec]/30"
+                                    className="flex items-center gap-1 p-2 border border-gray-300 rounded-lg bg-card cursor-pointer hover:border-[#1db5f5] focus-within:border-[#1db5f5] focus-within:ring-1 focus-within:ring-[#42aeec]/30"
                                 >
-                                    <ChevronDown className={`w-3.5 h-3.5 text-gray-400 transition-transform flex-shrink-0 ${customerDropdownOpen ? 'rotate-180' : ''}`} />
+                                    <ChevronDown className={`w-3.5 h-3.5 text-secondary transition-transform flex-shrink-0 ${customerDropdownOpen ? 'rotate-180' : ''}`} />
                                     <input
                                         type="text"
                                         value={selectedCustomer ? `${selectedCustomer.name || ''} | ${selectedCustomer.address || selectedCustomer.email || ''}` : customerSearch}
@@ -294,15 +294,15 @@ const NewBulkOrderSidebar = ({ order, onClose, onSave }: any) => {
                                             }}
                                             className="p-1 hover:bg-gray-100 rounded flex-shrink-0"
                                         >
-                                            <X className="w-3.5 h-3.5 text-gray-400" />
+                                            <X className="w-3.5 h-3.5 text-secondary" />
                                         </button>
                                     )}
                                 </div>
                                 {customerDropdownOpen && (
-                                    <div className="absolute z-50 w-full mt-1 bg-white border border-gray-300 rounded-lg shadow-lg max-h-60 overflow-hidden">
-                                        <div className="p-2 border-b border-gray-200">
+                                    <div className="absolute z-50 w-full mt-1 bg-card border border-gray-300 rounded-lg shadow-lg max-h-60 overflow-hidden">
+                                        <div className="p-2 border-b border-theme">
                                             <div className="relative">
-                                                <Search className="absolute left-2 top-1/2 transform -translate-y-1/2 w-3.5 h-3.5 text-gray-400" />
+                                                <Search className="absolute left-2 top-1/2 transform -translate-y-1/2 w-3.5 h-3.5 text-secondary" />
                                                 <input
                                                     type="text"
                                                     value={customerSearch}
@@ -327,11 +327,11 @@ const NewBulkOrderSidebar = ({ order, onClose, onSave }: any) => {
                                                             }`}
                                                     >
                                                         <div className="font-medium text-[#016ab2]">{customer.name || 'Unnamed Customer'}</div>
-                                                        <div className="text-xs text-gray-600">{customer.address || customer.email || customer.phone || ''}</div>
+                                                        <div className="text-xs text-secondary">{customer.address || customer.email || customer.phone || ''}</div>
                                                     </div>
                                                 ))
                                             ) : (
-                                                <div className="px-3 py-2 text-[13px] text-gray-500">No customers found</div>
+                                                <div className="px-3 py-2 text-[13px] text-secondary">No customers found</div>
                                             )}
                                         </div>
                                     </div>
@@ -340,7 +340,7 @@ const NewBulkOrderSidebar = ({ order, onClose, onSave }: any) => {
                         </div>
 
                         <div className="md:col-span-1">
-                            <label className="block text-[13px] font-medium text-gray-700 mb-1.5">
+                            <label className="block text-[13px] font-medium text-primary mb-1.5">
                                 Commodity <span className="text-red-500">*</span>
                             </label>
                             <input
@@ -348,12 +348,12 @@ const NewBulkOrderSidebar = ({ order, onClose, onSave }: any) => {
                                 value={commodity}
                                 onChange={(e) => setCommodity(e.target.value)}
                                 placeholder="Enter commodity"
-                                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-1 focus:ring-[#42aeec]/30 focus:border-[#1db5f5] text-[13px] bg-white"
+                                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-1 focus:ring-[#42aeec]/30 focus:border-[#1db5f5] text-[13px] bg-card"
                             />
                         </div>
 
                         <div className="md:col-span-1">
-                            <label className="block text-[13px] font-medium text-gray-700 mb-1.5">
+                            <label className="block text-[13px] font-medium text-primary mb-1.5">
                                 Load Type
                             </label>
                             <div className="flex gap-2">
@@ -361,7 +361,7 @@ const NewBulkOrderSidebar = ({ order, onClose, onSave }: any) => {
                                     onClick={() => setLoadType("FTL")}
                                     className={`flex-1 px-4 py-2 rounded-lg text-[13px] font-medium transition-all ${loadType === "FTL"
                                             ? "!text-white shadow-md"
-                                            : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+                                            : "bg-gray-100 text-primary hover:bg-gray-200"
                                         }`}
                                     style={loadType === "FTL" ? {
                                         background: 'linear-gradient(90deg, #42aeec 0%, #1db5f5 40%, #0ea3d8 100%)'
@@ -373,7 +373,7 @@ const NewBulkOrderSidebar = ({ order, onClose, onSave }: any) => {
                                     onClick={() => setLoadType("LTL")}
                                     className={`flex-1 px-4 py-2 rounded-lg text-[13px] font-medium transition-all ${loadType === "LTL"
                                             ? "!text-white shadow-md"
-                                            : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+                                            : "bg-gray-100 text-primary hover:bg-gray-200"
                                         }`}
                                     style={loadType === "LTL" ? {
                                         background: 'linear-gradient(90deg, #42aeec 0%, #1db5f5 40%, #0ea3d8 100%)'
@@ -388,15 +388,15 @@ const NewBulkOrderSidebar = ({ order, onClose, onSave }: any) => {
                     {/* Row 2: Pickup Location & Date */}
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-3.5">
                         <div className="relative">
-                            <label className="block text-[13px] font-medium text-gray-700 mb-1.5">
+                            <label className="block text-[13px] font-medium text-primary mb-1.5">
                                 Pickup Location <span className="text-red-500">*</span>
                             </label>
                             <div className="relative">
                                 <div
                                     onClick={() => setPickupDropdownOpen(!pickupDropdownOpen)}
-                                    className="flex items-center gap-1 p-2 border border-gray-300 rounded-lg bg-white cursor-pointer hover:border-[#1db5f5] focus-within:border-[#1db5f5] focus-within:ring-1 focus-within:ring-[#42aeec]/30"
+                                    className="flex items-center gap-1 p-2 border border-gray-300 rounded-lg bg-card cursor-pointer hover:border-[#1db5f5] focus-within:border-[#1db5f5] focus-within:ring-1 focus-within:ring-[#42aeec]/30"
                                 >
-                                    <ChevronDown className={`w-3.5 h-3.5 text-gray-400 transition-transform flex-shrink-0 ${pickupDropdownOpen ? 'rotate-180' : ''}`} />
+                                    <ChevronDown className={`w-3.5 h-3.5 text-secondary transition-transform flex-shrink-0 ${pickupDropdownOpen ? 'rotate-180' : ''}`} />
                                     <input
                                         type="text"
                                         value={selectedPickupPlace ? `${selectedPickupPlace.name || ''} | ${selectedPickupPlace.currentLocation?.address || ''}` : pickupSearch}
@@ -418,15 +418,15 @@ const NewBulkOrderSidebar = ({ order, onClose, onSave }: any) => {
                                             }}
                                             className="p-1 hover:bg-gray-100 rounded flex-shrink-0"
                                         >
-                                            <X className="w-3.5 h-3.5 text-gray-400" />
+                                            <X className="w-3.5 h-3.5 text-secondary" />
                                         </button>
                                     )}
                                 </div>
                                 {pickupDropdownOpen && (
-                                    <div className="absolute z-50 w-full mt-1 bg-white border border-gray-300 rounded-lg shadow-lg max-h-60 overflow-hidden">
-                                        <div className="p-2 border-b border-gray-200">
+                                    <div className="absolute z-50 w-full mt-1 bg-card border border-gray-300 rounded-lg shadow-lg max-h-60 overflow-hidden">
+                                        <div className="p-2 border-b border-theme">
                                             <div className="relative">
-                                                <Search className="absolute left-2 top-1/2 transform -translate-y-1/2 w-3.5 h-3.5 text-gray-400" />
+                                                <Search className="absolute left-2 top-1/2 transform -translate-y-1/2 w-3.5 h-3.5 text-secondary" />
                                                 <input
                                                     type="text"
                                                     value={pickupSearch}
@@ -451,11 +451,11 @@ const NewBulkOrderSidebar = ({ order, onClose, onSave }: any) => {
                                                             }`}
                                                     >
                                                         <div className="font-medium text-[#016ab2]">{place.name || 'Unnamed Place'}</div>
-                                                        <div className="text-xs text-gray-600">{place.currentLocation?.address || `${place.city || ''}, ${place.state || ''}`}</div>
+                                                        <div className="text-xs text-secondary">{place.currentLocation?.address || `${place.city || ''}, ${place.state || ''}`}</div>
                                                     </div>
                                                 ))
                                             ) : (
-                                                <div className="px-3 py-2 text-[13px] text-gray-500">No places found</div>
+                                                <div className="px-3 py-2 text-[13px] text-secondary">No places found</div>
                                             )}
                                         </div>
                                     </div>
@@ -464,7 +464,7 @@ const NewBulkOrderSidebar = ({ order, onClose, onSave }: any) => {
                         </div>
 
                         <div>
-                            <label className="block text-[13px] font-medium text-gray-700 mb-1.5">
+                            <label className="block text-[13px] font-medium text-primary mb-1.5">
                                 Pickup Date <span className="text-red-500">*</span>
                             </label>
                             <div className="flex gap-2">
@@ -472,13 +472,13 @@ const NewBulkOrderSidebar = ({ order, onClose, onSave }: any) => {
                                     type="date"
                                     value={pickupDate}
                                     onChange={(e) => setPickupDate(e.target.value)}
-                                    className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-1 focus:ring-[#42aeec]/30 focus:border-[#1db5f5] text-[13px] bg-white"
+                                    className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-1 focus:ring-[#42aeec]/30 focus:border-[#1db5f5] text-[13px] bg-card"
                                 />
                                 <input
                                     type="time"
                                     value={deliveryTime}
                                     onChange={(e) => setDeliveryTime(e.target.value)}
-                                    className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-1 focus:ring-[#42aeec]/30 focus:border-[#1db5f5] text-[13px] bg-white"
+                                    className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-1 focus:ring-[#42aeec]/30 focus:border-[#1db5f5] text-[13px] bg-card"
                                 />
                             </div>
                         </div>
@@ -487,7 +487,7 @@ const NewBulkOrderSidebar = ({ order, onClose, onSave }: any) => {
                     {/* Row 4: Reference Numbers & Amount */}
                     <div className="grid grid-cols-1 md:grid-cols-4 gap-3.5">
                         <div>
-                            <label className="block text-[13px] font-medium text-gray-700 mb-1.5">
+                            <label className="block text-[13px] font-medium text-primary mb-1.5">
                                 Pickup Ref#
                             </label>
                             <input
@@ -495,12 +495,12 @@ const NewBulkOrderSidebar = ({ order, onClose, onSave }: any) => {
                                 value={pickupRefNo}
                                 onChange={(e) => setPickupRefNo(e.target.value)}
                                 placeholder="Enter reference"
-                                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-1 focus:ring-[#42aeec]/30 focus:border-[#1db5f5] text-[13px] bg-white"
+                                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-1 focus:ring-[#42aeec]/30 focus:border-[#1db5f5] text-[13px] bg-card"
                             />
                         </div>
 
                         <div>
-                            <label className="block text-[13px] font-medium text-gray-700 mb-1.5">
+                            <label className="block text-[13px] font-medium text-primary mb-1.5">
                                 Delivery Ref#
                             </label>
                             <input
@@ -508,19 +508,19 @@ const NewBulkOrderSidebar = ({ order, onClose, onSave }: any) => {
                                 value={deliveryRefNo}
                                 onChange={(e) => setDeliveryRefNo(e.target.value)}
                                 placeholder="Enter reference"
-                                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-1 focus:ring-[#42aeec]/30 focus:border-[#1db5f5] text-[13px] bg-white"
+                                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-1 focus:ring-[#42aeec]/30 focus:border-[#1db5f5] text-[13px] bg-card"
                             />
                         </div>
 
                         <div>
-                            <label className="block text-[13px] font-medium text-gray-700 mb-1.5">
+                            <label className="block text-[13px] font-medium text-primary mb-1.5">
                                 Amount
                             </label>
                             <div className="flex gap-2">
                                 <select
                                     value={valueOfGoodsCurrency}
                                     onChange={(e) => setValueOfGoodsCurrency(e.target.value)}
-                                    className="w-20 px-2 py-2 border border-gray-300 rounded-lg focus:ring-1 focus:ring-[#42aeec]/30 focus:border-[#1db5f5] text-[13px] bg-white"
+                                    className="w-20 px-2 py-2 border border-gray-300 rounded-lg focus:ring-1 focus:ring-[#42aeec]/30 focus:border-[#1db5f5] text-[13px] bg-card"
                                 >
                                     <option>CAD</option>
                                     <option>USD</option>
@@ -546,13 +546,13 @@ const NewBulkOrderSidebar = ({ order, onClose, onSave }: any) => {
                                         }
                                     }}
                                     placeholder="0.00"
-                                    className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-1 focus:ring-[#42aeec]/30 focus:border-[#1db5f5] text-[13px] bg-white"
+                                    className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-1 focus:ring-[#42aeec]/30 focus:border-[#1db5f5] text-[13px] bg-card"
                                 />
                             </div>
                         </div>
 
                         <div>
-                            <label className="block text-[13px] font-medium text-gray-700 mb-1.5">
+                            <label className="block text-[13px] font-medium text-primary mb-1.5">
                                 Customer Order # <span className="text-red-500">*</span>
                             </label>
                             <input
@@ -560,7 +560,7 @@ const NewBulkOrderSidebar = ({ order, onClose, onSave }: any) => {
                                 value={customerOrderNo}
                                 onChange={(e) => setCustomerOrderNo(e.target.value)}
                                 placeholder="Order number"
-                                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-1 focus:ring-[#42aeec]/30 focus:border-[#1db5f5] text-[13px] bg-white"
+                                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-1 focus:ring-[#42aeec]/30 focus:border-[#1db5f5] text-[13px] bg-card"
                             />
                         </div>
                     </div>
@@ -568,13 +568,13 @@ const NewBulkOrderSidebar = ({ order, onClose, onSave }: any) => {
                     {/* Row 5: Tax Information */}
                     <div className="grid grid-cols-1 md:grid-cols-4 gap-3.5">
                         <div>
-                            <label className="block text-[13px] font-medium text-gray-700 mb-1.5">
+                            <label className="block text-[13px] font-medium text-primary mb-1.5">
                                 Tax Based On
                             </label>
                             <select
                                 value={taxBasedOn}
                                 onChange={(e) => setTaxBasedOn(e.target.value)}
-                                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-1 focus:ring-[#42aeec]/30 focus:border-[#1db5f5] text-[13px] bg-white"
+                                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-1 focus:ring-[#42aeec]/30 focus:border-[#1db5f5] text-[13px] bg-card"
                             >
                                 <option>Delivery</option>
                                 <option>Pickup</option>
@@ -582,11 +582,11 @@ const NewBulkOrderSidebar = ({ order, onClose, onSave }: any) => {
                         </div>
 
                         <div>
-                            <label className="block text-[13px] font-medium text-gray-700 mb-1.5">
+                            <label className="block text-[13px] font-medium text-primary mb-1.5">
                                 Tax 1
                             </label>
                             <div className="flex items-center gap-2">
-                                <label className="flex items-center gap-2 px-3 py-2 border border-gray-300 rounded-lg cursor-pointer hover:bg-gray-50 bg-white min-w-fit">
+                                <label className="flex items-center gap-2 px-3 py-2 border border-gray-300 rounded-lg cursor-pointer hover:bg-[rgba(255,255,255,0.03)] bg-card min-w-fit">
                                     <input
                                         type="checkbox"
                                         checked={tax1}
@@ -613,15 +613,15 @@ const NewBulkOrderSidebar = ({ order, onClose, onSave }: any) => {
                                             }
                                         }}
                                         placeholder="0.00"
-                                        className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-1 focus:ring-[#42aeec]/30 focus:border-[#1db5f5] text-[13px] bg-white"
+                                        className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-1 focus:ring-[#42aeec]/30 focus:border-[#1db5f5] text-[13px] bg-card"
                                     />
-                                    <span className="text-[13px] text-gray-500 flex-shrink-0">%</span>
+                                    <span className="text-[13px] text-secondary flex-shrink-0">%</span>
                                 </div>
                             </div>
                         </div>
 
                         <div>
-                            <label className="block text-[13px] font-medium text-gray-700 mb-1.5">
+                            <label className="block text-[13px] font-medium text-primary mb-1.5">
                                 Total Tax
                             </label>
                             <input
@@ -630,13 +630,13 @@ const NewBulkOrderSidebar = ({ order, onClose, onSave }: any) => {
                                 value={totalTax}
                                 onChange={(e) => setTotalTax(e.target.value)}
                                 placeholder="0.00"
-                                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-1 focus:ring-[#42aeec]/30 focus:border-[#1db5f5] text-[13px] bg-gray-50"
+                                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-1 focus:ring-[#42aeec]/30 focus:border-[#1db5f5] text-[13px] bg-card"
                                 readOnly
                             />
                         </div>
 
                         <div>
-                            <label className="block text-[13px] font-medium text-gray-700 mb-1.5">
+                            <label className="block text-[13px] font-medium text-primary mb-1.5">
                                 Gross Total Freight
                             </label>
                             <input
@@ -645,7 +645,7 @@ const NewBulkOrderSidebar = ({ order, onClose, onSave }: any) => {
                                 value={grossTotalFreight}
                                 onChange={(e) => setGrossTotalFreight(e.target.value)}
                                 placeholder="0.00"
-                                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-1 focus:ring-[#42aeec]/30 focus:border-[#1db5f5] text-[13px] bg-gray-50"
+                                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-1 focus:ring-[#42aeec]/30 focus:border-[#1db5f5] text-[13px] bg-card"
                                 readOnly
                             />
                         </div>
@@ -654,10 +654,10 @@ const NewBulkOrderSidebar = ({ order, onClose, onSave }: any) => {
             </div>
 
             {/* Footer */}
-            <div className="flex items-center justify-end gap-3 px-5 py-3.5 border-t border-gray-200 bg-gray-50">
+            <div className="flex items-center justify-end gap-3 px-5 py-3.5 border-t border-theme bg-card">
                 <button
                     onClick={handleReset}
-                    className="px-5 py-2 text-[13px] font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
+                    className="px-5 py-2 text-[13px] font-medium text-primary bg-card border border-gray-300 rounded-lg hover:bg-[rgba(255,255,255,0.03)] transition-colors"
                 >
                     Reset
                 </button>
@@ -809,9 +809,9 @@ const BulkOrder = () => {
     };
 
     return (
-        <div className="p-4 bg-[#EDF8FF]  min-h-screen">
+        <div className="p-4 bg-main  min-h-screen">
             <div className="mb-4 flex items-center justify-between">
-                <h1 className="text-base font-bold text-gray-800">Bulk Order</h1>
+                <h1 className="text-base font-bold text-primary">Bulk Order</h1>
                 <div className="flex items-center gap-2">
                     {orders.length > 0 && (
                         <button
@@ -839,10 +839,10 @@ const BulkOrder = () => {
             </div>
 
             {orders.length > 0 ? (
-                <div className="bg-white rounded-lg shadow-md overflow-hidden">
+                <div className="bg-card rounded-lg shadow-md overflow-hidden">
                     <div className="overflow-x-auto">
                         <table className="w-full text-xs">
-                            <thead className="bg-gradient-to-r from-[#016ab2] to-[#063f6f] border-b border-gray-200">
+                            <thead className="bg-gradient-to-r from-[#016ab2] to-[#063f6f] border-b border-theme">
                                 <tr>
                                     <th className="px-3 py-2 text-left text-[11px] font-semibold text-white uppercase">Company</th>
                                     <th className="px-3 py-2 text-left text-[11px] font-semibold text-white uppercase">Customer Name</th>
@@ -858,22 +858,22 @@ const BulkOrder = () => {
                                     <th className="px-3 py-2 text-left text-[11px] font-semibold text-white uppercase">Actions</th>
                                 </tr>
                             </thead>
-                            <tbody className="bg-white divide-y divide-gray-200">
+                            <tbody className="bg-card divide-y divide-gray-200">
                                 {orders.map((order) => (
                                     <tr key={order.id} className="hover:bg-[#42aeec]/5">
-                                        <td className="px-3 py-2 whitespace-nowrap text-[11px] text-gray-900">{order.company}</td>
-                                        <td className="px-3 py-2 whitespace-nowrap text-[11px] text-gray-900">{order.customerName || "-"}</td>
-                                        <td className="px-3 py-2 whitespace-nowrap text-[11px] text-gray-900">{order.commodity || "-"}</td>
-                                        <td className="px-3 py-2 whitespace-nowrap text-[11px] text-gray-900">{order.loadType || "-"}</td>
-                                        <td className="px-3 py-2 text-[11px] text-gray-900 max-w-xs truncate" title={order.pickupLocation || ""}>{order.pickupLocation || "-"}</td>
-                                        <td className="px-3 py-2 whitespace-nowrap text-[11px] text-gray-900">{order.pickupDate || "-"}</td>
-                                        <td className="px-3 py-2 text-[11px] text-gray-900 max-w-xs truncate" title={order.deliveryLocation || ""}>{order.deliveryLocation || "-"}</td>
-                                        <td className="px-3 py-2 whitespace-nowrap text-[11px] text-gray-900">{order.deliveryDate || "-"}</td>
-                                        <td className="px-3 py-2 whitespace-nowrap text-[11px] text-gray-900">
+                                        <td className="px-3 py-2 whitespace-nowrap text-[11px] text-primary">{order.company}</td>
+                                        <td className="px-3 py-2 whitespace-nowrap text-[11px] text-primary">{order.customerName || "-"}</td>
+                                        <td className="px-3 py-2 whitespace-nowrap text-[11px] text-primary">{order.commodity || "-"}</td>
+                                        <td className="px-3 py-2 whitespace-nowrap text-[11px] text-primary">{order.loadType || "-"}</td>
+                                        <td className="px-3 py-2 text-[11px] text-primary max-w-xs truncate" title={order.pickupLocation || ""}>{order.pickupLocation || "-"}</td>
+                                        <td className="px-3 py-2 whitespace-nowrap text-[11px] text-primary">{order.pickupDate || "-"}</td>
+                                        <td className="px-3 py-2 text-[11px] text-primary max-w-xs truncate" title={order.deliveryLocation || ""}>{order.deliveryLocation || "-"}</td>
+                                        <td className="px-3 py-2 whitespace-nowrap text-[11px] text-primary">{order.deliveryDate || "-"}</td>
+                                        <td className="px-3 py-2 whitespace-nowrap text-[11px] text-primary">
                                             {order.currency} {order.amount || "0.00"}
                                         </td>
-                                        <td className="px-3 py-2 whitespace-nowrap text-[11px] text-gray-900">{order.customerOrderNo || "-"}</td>
-                                        <td className="px-3 py-2 whitespace-nowrap text-[11px] font-medium text-gray-900">
+                                        <td className="px-3 py-2 whitespace-nowrap text-[11px] text-primary">{order.customerOrderNo || "-"}</td>
+                                        <td className="px-3 py-2 whitespace-nowrap text-[11px] font-medium text-primary">
                                             {order.grossTotalFreight || "0.00"}
                                         </td>
                                         <td className="px-3 py-2 whitespace-nowrap">
@@ -887,7 +887,7 @@ const BulkOrder = () => {
                                                 </button>
                                                 <button
                                                     onClick={() => handleDeleteOrder(order.id)}
-                                                    className="p-1 text-red-600 hover:bg-red-50 rounded"
+                                                    className="p-1 text-[#A855F7] hover:bg-red-50 rounded"
                                                     title="Delete"
                                                 >
                                                     <Trash2 className="w-3 h-3" />
@@ -901,8 +901,8 @@ const BulkOrder = () => {
                     </div>
                 </div>
             ) : (
-                <div className="bg-white rounded-lg shadow-md p-8 text-center">
-                    <p className="text-[13px] text-gray-600">No orders added yet. Click "Add Order" to create your first order.</p>
+                <div className="bg-card rounded-lg shadow-md p-8 text-center">
+                    <p className="text-[13px] text-secondary">No orders added yet. Click "Add Order" to create your first order.</p>
                 </div>
             )}
 
@@ -910,7 +910,7 @@ const BulkOrder = () => {
                 <div className="fixed inset-0 z-[9998] bg-gray-900/50 backdrop-blur-sm" onClick={() => setSidebarOpen(false)} />
             )}
             <div
-                className={`fixed top-0 right-0 h-full max-w-4xl w-full bg-white shadow-2xl transform transition-transform duration-500 ease-out z-[9999] border-l border-gray-200 ${sidebarOpen ? "translate-x-0" : "translate-x-full"
+                className={`fixed top-0 right-0 h-full max-w-4xl w-full bg-card shadow-2xl transform transition-transform duration-500 ease-out z-[9999] border-l border-theme ${sidebarOpen ? "translate-x-0" : "translate-x-full"
                     }`}
             >
                 <NewBulkOrderSidebar
@@ -935,13 +935,13 @@ const BulkOrder = () => {
 
             {deleteConfirm.show && (
                 <div className="fixed inset-0 z-[10000] flex items-center justify-center bg-black/50">
-                    <div className="bg-white rounded-lg shadow-xl p-5 max-w-md w-full mx-4">
-                        <h3 className="text-base font-semibold text-gray-900 mb-3">Delete Order</h3>
-                        <p className="text-[13px] text-gray-600 mb-5">Are you sure you want to delete this order? This action cannot be undone.</p>
+                    <div className="bg-card rounded-lg shadow-xl p-5 max-w-md w-full mx-4">
+                        <h3 className="text-base font-semibold text-primary mb-3">Delete Order</h3>
+                        <p className="text-[13px] text-secondary mb-5">Are you sure you want to delete this order? This action cannot be undone.</p>
                         <div className="flex justify-end gap-2">
                             <button
                                 onClick={() => setDeleteConfirm({ show: false, orderId: null })}
-                                className="px-4 py-2 text-[13px] font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
+                                className="px-4 py-2 text-[13px] font-medium text-primary bg-card border border-gray-300 rounded-lg hover:bg-[rgba(255,255,255,0.03)] transition-colors"
                             >
                                 Cancel
                             </button>

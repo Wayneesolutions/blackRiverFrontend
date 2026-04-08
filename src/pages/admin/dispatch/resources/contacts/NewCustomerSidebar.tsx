@@ -18,7 +18,7 @@ const ToastNotification = ({ notification, onClose }: { notification: ToastNotif
 
   const bgColors = {
     success: 'bg-green-50 border-green-200',
-    error: 'bg-red-50 border-red-200',
+    error: 'bg-card border-red-200',
   };
 
   React.useEffect(() => {
@@ -33,10 +33,10 @@ const ToastNotification = ({ notification, onClose }: { notification: ToastNotif
       <div className="flex-shrink-0 mt-0.5">
         {icons[notification.type]}
       </div>
-      <p className="flex-1 text-sm font-medium text-gray-800">{notification.message}</p>
+      <p className="flex-1 text-sm font-medium text-primary">{notification.message}</p>
       <button
         onClick={() => onClose(notification.id)}
-        className="flex-shrink-0 text-gray-400 hover:text-gray-600 transition-colors"
+        className="flex-shrink-0 text-secondary hover:text-secondary transition-colors"
       >
         <FaTimes size={16} />
       </button>
@@ -343,14 +343,14 @@ const NewCustomerSidebar: FC<NewCustomerSidebarProps> = ({
 
             {/* Sidebar */}
             <div 
-                className="fixed right-0 top-0 h-full w-[600px] bg-white border-l border-gray-200 shadow-xl z-[101] flex flex-col"
+                className="fixed right-0 top-0 h-full w-[600px] bg-card border-l border-theme shadow-xl z-[101] flex flex-col"
                 onClick={(e) => e.stopPropagation()}
             >
                 {/* Header */}
-                <div className="p-6 border-b border-gray-200 flex-shrink-0">
+                <div className="p-6 border-b border-theme flex-shrink-0">
                     <div className="flex justify-between items-center">
-                        <h2 className="text-xl font-semibold text-gray-900">New Customer</h2>
-                        <button onClick={handleClose} className="text-gray-400 hover:text-gray-600 transition-colors">
+                        <h2 className="text-xl font-semibold text-primary">New Customer</h2>
+                        <button onClick={handleClose} className="text-secondary hover:text-secondary transition-colors">
                             <X className="w-5 h-5" />
                         </button>
                     </div>
@@ -361,10 +361,10 @@ const NewCustomerSidebar: FC<NewCustomerSidebarProps> = ({
                     <div className="space-y-6">
                         {/* Basic Information Section */}
                         <div>
-                            <h3 className="text-lg font-semibold text-gray-800 mb-4 pb-2 border-b border-gray-200">Basic Information</h3>
+                            <h3 className="text-lg font-semibold text-primary mb-4 pb-2 border-b border-theme">Basic Information</h3>
                             <div className="space-y-4">
                                 <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-1">Customer ID</label>
+                                    <label className="block text-sm font-medium text-primary mb-1">Customer ID</label>
                                     <input
                                         type="text"
                                         name="customerId"
@@ -376,7 +376,7 @@ const NewCustomerSidebar: FC<NewCustomerSidebarProps> = ({
                                 </div>
 
                                 <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-1">Customer *</label>
+                                    <label className="block text-sm font-medium text-primary mb-1">Customer *</label>
                                     <input
                                         type="text"
                                         name="customer"
@@ -389,7 +389,7 @@ const NewCustomerSidebar: FC<NewCustomerSidebarProps> = ({
                                 </div>
 
                                 <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-1">Email Address (Primary)</label>
+                                    <label className="block text-sm font-medium text-primary mb-1">Email Address (Primary)</label>
                                     <input
                                         type="email"
                                         name="emailPrimary"
@@ -401,7 +401,7 @@ const NewCustomerSidebar: FC<NewCustomerSidebarProps> = ({
                                 </div>
 
                                 <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-1">Email Address (Secondary)</label>
+                                    <label className="block text-sm font-medium text-primary mb-1">Email Address (Secondary)</label>
                                     <input
                                         type="email"
                                         name="emailSecondary"
@@ -413,7 +413,7 @@ const NewCustomerSidebar: FC<NewCustomerSidebarProps> = ({
                                 </div>
 
                                 <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-1">Tracking Email</label>
+                                    <label className="block text-sm font-medium text-primary mb-1">Tracking Email</label>
                                     <input
                                         type="email"
                                         name="trackingEmail"
@@ -425,7 +425,7 @@ const NewCustomerSidebar: FC<NewCustomerSidebarProps> = ({
                                 </div>
 
                                 <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-1">Tax ID or Business No.</label>
+                                    <label className="block text-sm font-medium text-primary mb-1">Tax ID or Business No.</label>
                                     <input
                                         type="text"
                                         name="taxId"
@@ -437,7 +437,7 @@ const NewCustomerSidebar: FC<NewCustomerSidebarProps> = ({
                                 </div>
 
                                 <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-1">Assigned Salesperson</label>
+                                    <label className="block text-sm font-medium text-primary mb-1">Assigned Salesperson</label>
                                     <input
                                         type="text"
                                         name="assignedSalesperson"
@@ -450,7 +450,7 @@ const NewCustomerSidebar: FC<NewCustomerSidebarProps> = ({
 
                                 <div className="grid grid-cols-2 gap-4">
                                     <div>
-                                        <label className="block text-sm font-medium text-gray-700 mb-1">Primary Phone #</label>
+                                        <label className="block text-sm font-medium text-primary mb-1">Primary Phone #</label>
                                         <input
                                             type="text"
                                             name="phonePrimary"
@@ -461,7 +461,7 @@ const NewCustomerSidebar: FC<NewCustomerSidebarProps> = ({
                                         />
                                     </div>
                                     <div>
-                                        <label className="block text-sm font-medium text-gray-700 mb-1">Secondary Phone #</label>
+                                        <label className="block text-sm font-medium text-primary mb-1">Secondary Phone #</label>
                                         <input
                                             type="text"
                                             name="phoneSecondary"
@@ -474,7 +474,7 @@ const NewCustomerSidebar: FC<NewCustomerSidebarProps> = ({
                                 </div>
 
                                 <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-1">Contact</label>
+                                    <label className="block text-sm font-medium text-primary mb-1">Contact</label>
                                     <input
                                         type="text"
                                         name="contact"
@@ -489,10 +489,10 @@ const NewCustomerSidebar: FC<NewCustomerSidebarProps> = ({
 
                         {/* Address Section */}
                         <div>
-                            <h3 className="text-lg font-semibold text-gray-800 mb-4 pb-2 border-b border-gray-200">Address</h3>
+                            <h3 className="text-lg font-semibold text-primary mb-4 pb-2 border-b border-theme">Address</h3>
                             <div className="space-y-4">
                                 <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-1">Address</label>
+                                    <label className="block text-sm font-medium text-primary mb-1">Address</label>
                                     <input
                                         type="text"
                                         name="address"
@@ -505,7 +505,7 @@ const NewCustomerSidebar: FC<NewCustomerSidebarProps> = ({
 
                                 <div className="grid grid-cols-2 gap-4">
                                     <div>
-                                        <label className="block text-sm font-medium text-gray-700 mb-1">City</label>
+                                        <label className="block text-sm font-medium text-primary mb-1">City</label>
                                         <input
                                             type="text"
                                             name="city"
@@ -516,7 +516,7 @@ const NewCustomerSidebar: FC<NewCustomerSidebarProps> = ({
                                         />
                                     </div>
                                     <div>
-                                        <label className="block text-sm font-medium text-gray-700 mb-1">Unit</label>
+                                        <label className="block text-sm font-medium text-primary mb-1">Unit</label>
                                         <input
                                             type="text"
                                             name="unit"
@@ -530,7 +530,7 @@ const NewCustomerSidebar: FC<NewCustomerSidebarProps> = ({
 
                                 <div className="grid grid-cols-2 gap-4">
                                     <div>
-                                        <label className="block text-sm font-medium text-gray-700 mb-1">State/Province</label>
+                                        <label className="block text-sm font-medium text-primary mb-1">State/Province</label>
                                         <input
                                             type="text"
                                             name="stateProvince"
@@ -541,7 +541,7 @@ const NewCustomerSidebar: FC<NewCustomerSidebarProps> = ({
                                         />
                                     </div>
                                     <div>
-                                        <label className="block text-sm font-medium text-gray-700 mb-1">Country</label>
+                                        <label className="block text-sm font-medium text-primary mb-1">Country</label>
                                         <input
                                             type="text"
                                             name="country"
@@ -554,7 +554,7 @@ const NewCustomerSidebar: FC<NewCustomerSidebarProps> = ({
                                 </div>
 
                                 <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-1">ZIP Code</label>
+                                    <label className="block text-sm font-medium text-primary mb-1">ZIP Code</label>
                                     <input
                                         type="text"
                                         name="zipCode"
@@ -569,10 +569,10 @@ const NewCustomerSidebar: FC<NewCustomerSidebarProps> = ({
 
                         {/* Finance Section */}
                         <div>
-                            <h3 className="text-lg font-semibold text-gray-800 mb-4 pb-2 border-b border-gray-200">Finance</h3>
+                            <h3 className="text-lg font-semibold text-primary mb-4 pb-2 border-b border-theme">Finance</h3>
                             <div className="space-y-4">
                                 <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-1">Credit Limit</label>
+                                    <label className="block text-sm font-medium text-primary mb-1">Credit Limit</label>
                                     <input
                                         type="number"
                                         name="creditLimit"
@@ -584,7 +584,7 @@ const NewCustomerSidebar: FC<NewCustomerSidebarProps> = ({
                                 </div>
 
                                 <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-1">Credit Term</label>
+                                    <label className="block text-sm font-medium text-primary mb-1">Credit Term</label>
                                     <input
                                         type="number"
                                         name="creditTerm"
@@ -596,7 +596,7 @@ const NewCustomerSidebar: FC<NewCustomerSidebarProps> = ({
                                 </div>
 
                                 <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-1">Invoice Net</label>
+                                    <label className="block text-sm font-medium text-primary mb-1">Invoice Net</label>
                                     <input
                                         type="number"
                                         name="invoiceNet"
@@ -608,7 +608,7 @@ const NewCustomerSidebar: FC<NewCustomerSidebarProps> = ({
                                 </div>
 
                                 <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-1">Default Quick Pay Discount (%)</label>
+                                    <label className="block text-sm font-medium text-primary mb-1">Default Quick Pay Discount (%)</label>
                                     <input
                                         type="number"
                                         name="defaultQuickPayDiscount"
@@ -627,9 +627,9 @@ const NewCustomerSidebar: FC<NewCustomerSidebarProps> = ({
                                         id="useFactoringCompany"
                                         checked={customerData.useFactoringCompany}
                                         onChange={handleInputChange}
-                                        className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+                                        className="w-4 h-4 text-[#00D1FF] border-gray-300 rounded focus:ring-blue-500"
                                     />
-                                    <label htmlFor="useFactoringCompany" className="ml-2 text-sm font-medium text-gray-700">
+                                    <label htmlFor="useFactoringCompany" className="ml-2 text-sm font-medium text-primary">
                                         Use Factoring Company
                                     </label>
                                 </div>
@@ -638,7 +638,7 @@ const NewCustomerSidebar: FC<NewCustomerSidebarProps> = ({
 
                         {/* Additional Settings Section */}
                         <div>
-                            <h3 className="text-lg font-semibold text-gray-800 mb-4 pb-2 border-b border-gray-200">Additional Settings</h3>
+                            <h3 className="text-lg font-semibold text-primary mb-4 pb-2 border-b border-theme">Additional Settings</h3>
                             <div className="space-y-3">
                                 <div className="flex items-center">
                                     <input
@@ -647,9 +647,9 @@ const NewCustomerSidebar: FC<NewCustomerSidebarProps> = ({
                                         id="csaFastApproved"
                                         checked={customerData.csaFastApproved}
                                         onChange={handleInputChange}
-                                        className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+                                        className="w-4 h-4 text-[#00D1FF] border-gray-300 rounded focus:ring-blue-500"
                                     />
-                                    <label htmlFor="csaFastApproved" className="ml-2 text-sm font-medium text-gray-700">
+                                    <label htmlFor="csaFastApproved" className="ml-2 text-sm font-medium text-primary">
                                         CSA/FAST Approved
                                     </label>
                                 </div>
@@ -661,9 +661,9 @@ const NewCustomerSidebar: FC<NewCustomerSidebarProps> = ({
                                         id="softBlock"
                                         checked={customerData.softBlock}
                                         onChange={handleInputChange}
-                                        className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+                                        className="w-4 h-4 text-[#00D1FF] border-gray-300 rounded focus:ring-blue-500"
                                     />
-                                    <label htmlFor="softBlock" className="ml-2 text-sm font-medium text-gray-700">
+                                    <label htmlFor="softBlock" className="ml-2 text-sm font-medium text-primary">
                                         Soft Block
                                     </label>
                                 </div>
@@ -675,9 +675,9 @@ const NewCustomerSidebar: FC<NewCustomerSidebarProps> = ({
                                         id="hardBlock"
                                         checked={customerData.hardBlock}
                                         onChange={handleInputChange}
-                                        className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+                                        className="w-4 h-4 text-[#00D1FF] border-gray-300 rounded focus:ring-blue-500"
                                     />
-                                    <label htmlFor="hardBlock" className="ml-2 text-sm font-medium text-gray-700">
+                                    <label htmlFor="hardBlock" className="ml-2 text-sm font-medium text-primary">
                                         Hard Block
                                     </label>
                                 </div>
@@ -687,11 +687,11 @@ const NewCustomerSidebar: FC<NewCustomerSidebarProps> = ({
                 </div>
 
                 {/* Footer */}
-                <div className="p-6 border-t border-gray-200 flex justify-between items-center bg-white sticky bottom-0 z-[102]">
+                <div className="p-6 border-t border-theme flex justify-between items-center bg-card sticky bottom-0 z-[102]">
                     <button
                         type="button"
                         onClick={handleClose}
-                        className="px-5 py-2.5 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors font-medium"
+                        className="px-5 py-2.5 border border-gray-300 rounded-lg text-primary hover:bg-[rgba(255,255,255,0.03)] transition-colors font-medium"
                         disabled={isLoading}
                     >
                         Cancel

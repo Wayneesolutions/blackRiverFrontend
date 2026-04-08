@@ -60,7 +60,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed = false }) => {
       <aside className={`h-screen flex flex-col bg-[var(--bg-card)] text-[var(--text-primary)] relative z-10 shadow-sm transition-all duration-300 ${isCollapsed ? 'w-20' : 'w-56'
         }`}>
         {/* Logo - fixed at top */}
-        <div className="flex-shrink-0 flex justify-center items-center py-4 border-b border-gray-200">
+        <div className="flex-shrink-0 flex justify-center items-center py-4 border-b border-theme">
           <div
             className="cursor-pointer flex items-center justify-center"
             onClick={() => navigate(getDashboardRoute())}
@@ -108,7 +108,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed = false }) => {
                           : 'flex items-center px-4 py-2 gap-3'
                           } ${openMenus.includes(link.key)
                             ? 'bg-[#42aeec]/10'
-                            : 'hover:bg-gray-50'
+                            : 'hover:bg-[rgba(255,255,255,0.03)]'
                           }`}
                         title={link.label}
                       >
@@ -116,7 +116,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed = false }) => {
                           className={`transition-all duration-200 ${isCollapsed ? 'text-2xl mb-1' : 'text-xl flex-shrink-0'
                             } ${openMenus.includes(link.key)
                               ? 'text-[#42aeec]'
-                              : 'text-gray-600 group-hover:text-[#42aeec]'
+                              : 'text-secondary group-hover:text-[#42aeec]'
                             }`}
                         >
                           {link.icon}
@@ -125,11 +125,11 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed = false }) => {
                           <>
                             <span className={`flex-1 text-sm font-medium transition-colors text-left ${openMenus.includes(link.key)
                               ? 'text-[#42aeec]'
-                              : 'text-gray-700 group-hover:text-[#42aeec]'
+                              : 'text-primary group-hover:text-[#42aeec]'
                               }`}>
                               {link.label}
                             </span>
-                            <span className="text-gray-400 flex-shrink-0">
+                            <span className="text-secondary flex-shrink-0">
                               {openMenus.includes(link.key) ? (
                                 <FaChevronDown className="text-xs" />
                               ) : (
@@ -142,7 +142,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed = false }) => {
 
                       {/* Expanded children */}
                       {!isCollapsed && openMenus.includes(link.key) && (
-                        <ul className="bg-gray-50/50">
+                        <ul className="bg-card">
                           {link.children.map((child) => {
                             const pathname = window.location.pathname;
                             const activeState = isActiveLink(
@@ -153,13 +153,13 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed = false }) => {
                             return (
                               <li
                                 key={child.key}
-                                className="border-b border-gray-100 last:border-b-0"
+                                className="border-b border-theme last:border-b-0"
                               >
                                 <NavLink
                                   to={`/admin/${child.key}`}
                                   className={`flex items-center px-4 py-2 pl-12 gap-3 text-sm font-medium transition-all duration-200 ease-in-out group ${activeState
                                     ? "bg-[#42aeec]/10 text-[#42aeec]"
-                                    : "text-gray-600 hover:bg-gray-100 hover:text-[#42aeec]"
+                                    : "text-secondary hover:bg-gray-100 hover:text-[#42aeec]"
                                     }`}
                                 >
                                   <span className="w-1.5 h-1.5 rounded-full bg-current opacity-60 flex-shrink-0"></span>
@@ -178,17 +178,17 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed = false }) => {
                       className={`w-full transition-all duration-200 group ${isCollapsed
                         ? 'flex flex-col items-center justify-center px-2 py-2'
                         : 'flex items-center px-4 py-2 gap-3'
-                        } hover:bg-gray-50`}
+                        } hover:bg-[rgba(255,255,255,0.03)]`}
                       title={link.label}
                     >
                       <span
                         className={`transition-all duration-200 ${isCollapsed ? 'text-2xl mb-1' : 'text-xl flex-shrink-0'
-                          } text-gray-600 group-hover:text-[#42aeec]`}
+                          } text-secondary group-hover:text-[#42aeec]`}
                       >
                         {link.icon}
                       </span>
                       {!isCollapsed && (
-                        <span className="flex-1 text-sm font-medium text-gray-700 group-hover:text-[#42aeec] text-left">
+                        <span className="flex-1 text-sm font-medium text-primary group-hover:text-[#42aeec] text-left">
                           {link.label}
                         </span>
                       )}
@@ -211,7 +211,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed = false }) => {
                           : 'flex items-center px-4 py-2 gap-3'
                           } ${activeState
                             ? "bg-[#42aeec]/10 text-[#42aeec]"
-                            : "text-gray-600 hover:bg-gray-50 hover:text-[#42aeec]"
+                            : "text-secondary hover:bg-[rgba(255,255,255,0.03)] hover:text-[#42aeec]"
                           }`;
                       }}
                       title={link.label}
@@ -227,13 +227,13 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed = false }) => {
                           <>
                             <span
                               className={`transition-all duration-200 ${isCollapsed ? 'text-2xl mb-1' : 'text-xl flex-shrink-0'
-                                } ${activeState ? 'text-[#42aeec]' : 'text-gray-600 group-hover:text-[#42aeec]'
+                                } ${activeState ? 'text-[#42aeec]' : 'text-secondary group-hover:text-[#42aeec]'
                                 }`}
                             >
                               {link.icon}
                             </span>
                             {!isCollapsed && (
-                              <span className={`flex-1 text-sm font-medium text-left ${activeState ? 'text-[#42aeec]' : 'text-gray-700 group-hover:text-[#42aeec]'
+                              <span className={`flex-1 text-sm font-medium text-left ${activeState ? 'text-[#42aeec]' : 'text-primary group-hover:text-[#42aeec]'
                                 }`}>
                                 {link.label}
                               </span>
@@ -253,7 +253,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed = false }) => {
 
       {/* --- Drawer for New Load --- */}
       <div
-        className={`fixed top-0 right-0 h-full max-w-5xl w-full bg-[var(--bg-card)] text-[var(--text-primary)] bg-opacity-95 backdrop-blur-xl shadow-2xl transform transition-transform duration-500 ease-out z-[9999] border-l border-gray-200 border-opacity-50 ${sidebarOpen ? "translate-x-0" : "translate-x-full"
+        className={`fixed top-0 right-0 h-full max-w-5xl w-full bg-[var(--bg-card)] text-[var(--text-primary)] bg-opacity-95 backdrop-blur-xl shadow-2xl transform transition-transform duration-500 ease-out z-[9999] border-l border-theme border-opacity-50 ${sidebarOpen ? "translate-x-0" : "translate-x-full"
           }`}
       >
         <NewLoad onClose={() => setSidebarOpen(false)} />

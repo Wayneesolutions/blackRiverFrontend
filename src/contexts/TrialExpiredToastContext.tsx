@@ -50,10 +50,10 @@ export const TrialExpiredToastProvider: React.FC<TrialExpiredToastProviderProps>
       {/* Global Toast Notification */}
       {showToast && (
         <div className="fixed top-4 right-4 z-[99999] w-[400px] max-w-[90vw]">
-          <div className="bg-yellow-50 border-2 border-yellow-300 rounded-lg shadow-xl p-4 animate-slide-in">
+          <div className="bg-card border-2 border-yellow-300 rounded-lg shadow-xl p-4 animate-slide-in">
             <div className="flex items-start gap-3">
               <div className="flex-shrink-0 mt-0.5">
-                <FaExclamationTriangle className="text-yellow-600" size={24} />
+                <FaExclamationTriangle className="text-[#00FFA3]" size={24} />
               </div>
               <div className="flex-1 min-w-0">
                 <p className="text-sm font-semibold text-yellow-900 mb-1">Subscription Ended</p>
@@ -72,7 +72,7 @@ export const TrialExpiredToastProvider: React.FC<TrialExpiredToastProviderProps>
               </div>
               <button
                 onClick={hideTrialExpiredToast}
-                className="flex-shrink-0 text-yellow-600 hover:text-yellow-800 transition-colors"
+                className="flex-shrink-0 text-[#00FFA3] hover:text-yellow-800 transition-colors"
               >
                 <FaTimes size={16} />
               </button>

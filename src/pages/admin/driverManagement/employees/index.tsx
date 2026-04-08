@@ -37,8 +37,8 @@ const ToastNotificationComponent = ({ notification, onClose }: { notification: T
 
   const bgColors = {
     success: 'bg-green-50 border-green-200',
-    error: 'bg-red-50 border-red-200',
-    warning: 'bg-yellow-50 border-yellow-200'
+    error: 'bg-card border-red-200',
+    warning: 'bg-card border-yellow-200'
   };
 
   useEffect(() => {
@@ -53,10 +53,10 @@ const ToastNotificationComponent = ({ notification, onClose }: { notification: T
       <div className="flex-shrink-0 mt-0.5">
         {icons[notification.type]}
       </div>
-      <p className="flex-1 text-sm font-medium text-gray-800">{notification.message}</p>
+      <p className="flex-1 text-sm font-medium text-primary">{notification.message}</p>
       <button
         onClick={() => onClose(notification.id)}
-        className="flex-shrink-0 text-gray-400 hover:text-gray-600 transition-colors"
+        className="flex-shrink-0 text-secondary hover:text-secondary transition-colors"
       >
         <FaTimes size={16} />
       </button>
@@ -417,15 +417,15 @@ const EmployeesPage = () => {
     if (sortConfig.key !== key) {
       return (
         <div className="flex flex-col">
-          <ChevronUp className="w-3 h-3 text-gray-400" />
-          <ChevronDown className="w-3 h-3 text-gray-400 -mt-1" />
+          <ChevronUp className="w-3 h-3 text-secondary" />
+          <ChevronDown className="w-3 h-3 text-secondary -mt-1" />
         </div>
       );
     }
     return sortConfig.direction === 'asc' ? (
-      <ChevronUp className="w-3 h-3 text-gray-700" />
+      <ChevronUp className="w-3 h-3 text-primary" />
     ) : (
-      <ChevronDown className="w-3 h-3 text-gray-700" />
+      <ChevronDown className="w-3 h-3 text-primary" />
     );
   };
 
@@ -1135,7 +1135,7 @@ const EmployeesPage = () => {
   };
 
   return (
-    <div className="min-h-screen bg-[#EDF8FF] p-6">
+    <div className="min-h-screen bg-main p-6">
       {/* Toast Notifications */}
       {notifications.map(notification => (
         <ToastNotificationComponent
@@ -1149,9 +1149,9 @@ const EmployeesPage = () => {
         {/* Header Section */}
         <div className="mb-6">
           <div className="flex items-center justify-between mb-4">
-            <h1 className="text-3xl font-bold text-gray-900">Employees</h1>
+            <h1 className="text-3xl font-bold text-primary">Employees</h1>
             <div className="flex items-center gap-2">
-              <span className="text-2xl font-bold text-gray-700">({filteredEmployees.length})</span>
+              <span className="text-2xl font-bold text-primary">({filteredEmployees.length})</span>
               <button
                 onClick={handleExportEmployees}
                 title="Export to Excel"
@@ -1169,12 +1169,12 @@ const EmployeesPage = () => {
           </div>
 
           {/* Navigation Tabs */}
-          <div className="flex gap-6 border-b-2 border-gray-200">
+          <div className="flex gap-6 border-b-2 border-theme">
             <button
               onClick={() => setActiveTab('users')}
               className={`pb-3 px-1 font-medium transition-colors ${activeTab === 'users'
                   ? 'text-[#42aeec] border-b-2 border-[#42aeec] -mb-[2px]'
-                  : 'text-gray-600 hover:text-gray-900'
+                  : 'text-secondary hover:text-primary'
                 }`}
             >
               Users
@@ -1183,7 +1183,7 @@ const EmployeesPage = () => {
               onClick={() => setActiveTab('nonSignin')}
               className={`pb-3 px-1 font-medium transition-colors ${activeTab === 'nonSignin'
                   ? 'text-[#42aeec] border-b-2 border-[#42aeec] -mb-[2px]'
-                  : 'text-gray-600 hover:text-gray-900'
+                  : 'text-secondary hover:text-primary'
                 }`}
             >
               Non Signin Employees
@@ -1192,7 +1192,7 @@ const EmployeesPage = () => {
               onClick={() => setActiveTab('advanced')}
               className={`pb-3 px-1 font-medium transition-colors ${activeTab === 'advanced'
                   ? 'text-[#42aeec] border-b-2 border-[#42aeec] -mb-[2px]'
-                  : 'text-gray-600 hover:text-gray-900'
+                  : 'text-secondary hover:text-primary'
                 }`}
             >
               Advanced Permissions
@@ -1204,8 +1204,8 @@ const EmployeesPage = () => {
         {activeTab === 'users' && (
           <div className="mb-6">
             <div className="flex items-center gap-2 mb-4">
-              <Info className="w-5 h-5 text-gray-600" />
-              <h2 className="text-lg font-semibold text-gray-900">User Roles & Permissions</h2>
+              <Info className="w-5 h-5 text-secondary" />
+              <h2 className="text-lg font-semibold text-primary">User Roles & Permissions</h2>
             </div>
 
             <div className="flex flex-wrap gap-2 mb-4">
@@ -1219,7 +1219,7 @@ const EmployeesPage = () => {
               ))}
             </div>
 
-            <p className="text-sm text-gray-600 mb-4">
+            <p className="text-sm text-secondary mb-4">
               Hover over role badges to see permissions. Salesperson users are automatically redirected to dispatch and see only their assigned loads.
             </p>
           </div>
@@ -1240,7 +1240,7 @@ const EmployeesPage = () => {
 
           <div className="flex items-center gap-4">
             <div className="flex items-center gap-2">
-              <label className="text-sm font-medium text-gray-700">Filter By:</label>
+              <label className="text-sm font-medium text-primary">Filter By:</label>
               <select
                 value={filterBy}
                 onChange={(e) => setFilterBy(e.target.value)}
@@ -1253,7 +1253,7 @@ const EmployeesPage = () => {
             </div>
 
             <div className="flex items-center gap-2">
-              <label className="text-sm font-medium text-gray-700">Sort By:</label>
+              <label className="text-sm font-medium text-primary">Sort By:</label>
               <select
                 value={sortBy}
                 onChange={(e) => {
@@ -1276,16 +1276,16 @@ const EmployeesPage = () => {
         </div>
 
         {/* Employees Table */}
-        <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
+        <div className="bg-card rounded-lg shadow-sm border border-theme overflow-hidden">
           <div className="overflow-x-auto">
             <table className="w-full">
-              <thead className="bg-gray-50 border-b border-gray-200">
+              <thead className="bg-card border-b border-theme">
                 <tr>
-                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase">
+                  <th className="px-4 py-3 text-left text-xs font-medium text-primary uppercase">
                     Image
                   </th>
                   <th
-                    className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase cursor-pointer hover:bg-gray-100"
+                    className="px-4 py-3 text-left text-xs font-medium text-primary uppercase cursor-pointer hover:bg-gray-100"
                     onClick={() => handleSort('firstName')}
                   >
                     <div className="flex items-center gap-2">
@@ -1294,7 +1294,7 @@ const EmployeesPage = () => {
                     </div>
                   </th>
                   <th
-                    className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase cursor-pointer hover:bg-gray-100"
+                    className="px-4 py-3 text-left text-xs font-medium text-primary uppercase cursor-pointer hover:bg-gray-100"
                     onClick={() => handleSort('lastName')}
                   >
                     <div className="flex items-center gap-2">
@@ -1303,7 +1303,7 @@ const EmployeesPage = () => {
                     </div>
                   </th>
                   <th
-                    className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase cursor-pointer hover:bg-gray-100"
+                    className="px-4 py-3 text-left text-xs font-medium text-primary uppercase cursor-pointer hover:bg-gray-100"
                     onClick={() => handleSort('email')}
                   >
                     <div className="flex items-center gap-2">
@@ -1312,7 +1312,7 @@ const EmployeesPage = () => {
                     </div>
                   </th>
                   <th
-                    className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase cursor-pointer hover:bg-gray-100"
+                    className="px-4 py-3 text-left text-xs font-medium text-primary uppercase cursor-pointer hover:bg-gray-100"
                     onClick={() => handleSort('role')}
                   >
                     <div className="flex items-center gap-2">
@@ -1321,7 +1321,7 @@ const EmployeesPage = () => {
                     </div>
                   </th>
                   <th
-                    className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase cursor-pointer hover:bg-gray-100"
+                    className="px-4 py-3 text-left text-xs font-medium text-primary uppercase cursor-pointer hover:bg-gray-100"
                     onClick={() => handleSort('status')}
                   >
                     <div className="flex items-center gap-2">
@@ -1329,27 +1329,27 @@ const EmployeesPage = () => {
                       {getSortIcon('status')}
                     </div>
                   </th>
-                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase">
+                  <th className="px-4 py-3 text-left text-xs font-medium text-primary uppercase">
                     Created
                   </th>
-                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase">
+                  <th className="px-4 py-3 text-left text-xs font-medium text-primary uppercase">
                     Updated
                   </th>
-                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase">
+                  <th className="px-4 py-3 text-left text-xs font-medium text-primary uppercase">
                     Actions
                   </th>
                 </tr>
               </thead>
-              <tbody className="bg-white divide-y divide-gray-200">
+              <tbody className="bg-card divide-y divide-gray-200">
                 {loading ? (
                   <tr>
-                    <td colSpan={9} className="px-4 py-8 text-center text-gray-500">
+                    <td colSpan={9} className="px-4 py-8 text-center text-secondary">
                       Loading...
                     </td>
                   </tr>
                 ) : filteredEmployees.length === 0 ? (
                   <tr>
-                    <td colSpan={9} className="px-4 py-8 text-center text-gray-500">
+                    <td colSpan={9} className="px-4 py-8 text-center text-secondary">
                       No employees found
                     </td>
                   </tr>
@@ -1357,7 +1357,7 @@ const EmployeesPage = () => {
                   filteredEmployees.map((employee, index) => (
                     <tr
                       key={employee._id || index}
-                      className="hover:bg-gray-50 transition-colors cursor-pointer"
+                      className="hover:bg-[rgba(255,255,255,0.03)] transition-colors cursor-pointer"
                       onClick={() => {
                         if (employee._id) {
                           setEditingId(employee._id);
@@ -1372,7 +1372,7 @@ const EmployeesPage = () => {
                             <img
                               src={employee.profileImageUrl || employee.profileImage}
                               alt={`${employee.firstName || ''} ${employee.lastName || ''}`}
-                              className="w-10 h-10 rounded-full object-cover border-2 border-gray-200"
+                              className="w-10 h-10 rounded-full object-cover border-2 border-theme"
                               onError={(e) => {
                                 // If image fails to load, show placeholder
                                 const target = e.target as HTMLImageElement;
@@ -1383,16 +1383,16 @@ const EmployeesPage = () => {
                             />
                           ) : null}
                           <div
-                            className={`w-10 h-10 rounded-full bg-gray-200 flex items-center justify-center border-2 border-gray-200 ${employee.profileImageUrl || employee.profileImage ? 'hidden' : ''}`}
+                            className={`w-10 h-10 rounded-full bg-gray-200 flex items-center justify-center border-2 border-theme ${employee.profileImageUrl || employee.profileImage ? 'hidden' : ''}`}
                           >
-                            <User className="w-6 h-6 text-gray-400" />
+                            <User className="w-6 h-6 text-secondary" />
                           </div>
                         </div>
                       </td>
-                      <td className="px-4 py-3 text-sm text-gray-900">{employee.firstName || '-'}</td>
-                      <td className="px-4 py-3 text-sm text-gray-900">{employee.lastName || '-'}</td>
-                      <td className="px-4 py-3 text-sm text-gray-900">{employee.email}</td>
-                      <td className="px-4 py-3 text-sm text-gray-900">{getRoleDisplayName(employee.role)}</td>
+                      <td className="px-4 py-3 text-sm text-primary">{employee.firstName || '-'}</td>
+                      <td className="px-4 py-3 text-sm text-primary">{employee.lastName || '-'}</td>
+                      <td className="px-4 py-3 text-sm text-primary">{employee.email}</td>
+                      <td className="px-4 py-3 text-sm text-primary">{getRoleDisplayName(employee.role)}</td>
                       <td className="px-4 py-3">
                         <span className={`px-3 py-1 rounded text-xs font-medium ${(employee.status === 'ACTIVE' || employee.status === 'active')
                             ? 'bg-green-100 text-green-800'
@@ -1401,10 +1401,10 @@ const EmployeesPage = () => {
                           {employee.status}
                         </span>
                       </td>
-                      <td className="px-4 py-3 text-sm text-gray-600">
+                      <td className="px-4 py-3 text-sm text-secondary">
                         {employee.createdAt ? new Date(employee.createdAt).toLocaleString(undefined, { dateStyle: 'short', timeStyle: 'short' }) : '—'}
                       </td>
-                      <td className="px-4 py-3 text-sm text-gray-600">
+                      <td className="px-4 py-3 text-sm text-secondary">
                         {employee.updatedAt ? new Date(employee.updatedAt).toLocaleString(undefined, { dateStyle: 'short', timeStyle: 'short' }) : '—'}
                       </td>
                       <td className="px-4 py-3">
@@ -1419,7 +1419,7 @@ const EmployeesPage = () => {
                                 setShowNewEmployeeModal(true);
                               }
                             }}
-                            className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
+                            className="p-2 text-[#00D1FF] hover:bg-blue-50 rounded-lg transition-colors"
                             title="Edit Employee"
                           >
                             <Edit className="w-4 h-4" />
@@ -1435,7 +1435,7 @@ const EmployeesPage = () => {
                                 });
                               }
                             }}
-                            className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                            className="p-2 text-[#A855F7] hover:bg-red-50 rounded-lg transition-colors"
                             title="Delete Employee"
                           >
                             <Trash2 className="w-4 h-4" />
@@ -1456,25 +1456,25 @@ const EmployeesPage = () => {
       {/* Delete Confirmation Modal */}
       {deleteConfirmation.show && (
         <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-lg shadow-2xl w-full max-w-md overflow-hidden">
-            <div className="p-6 border-b border-gray-200">
-              <h3 className="text-xl font-bold text-gray-900">Delete Employee</h3>
+          <div className="bg-card rounded-lg shadow-2xl w-full max-w-md overflow-hidden">
+            <div className="p-6 border-b border-theme">
+              <h3 className="text-xl font-bold text-primary">Delete Employee</h3>
             </div>
             <div className="p-6">
-              <p className="text-gray-700 mb-2">
+              <p className="text-primary mb-2">
                 Are you sure you want to delete this employee?
               </p>
-              <p className="text-gray-900 font-semibold">
+              <p className="text-primary font-semibold">
                 {deleteConfirmation.employeeName}
               </p>
-              <p className="text-sm text-red-600 mt-4">
+              <p className="text-sm text-[#A855F7] mt-4">
                 This action cannot be undone.
               </p>
             </div>
-            <div className="p-6 border-t border-gray-200 flex items-center justify-end gap-3">
+            <div className="p-6 border-t border-theme flex items-center justify-end gap-3">
               <button
                 onClick={() => setDeleteConfirmation({ show: false, employeeId: null, employeeName: '' })}
-                className="px-6 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors font-medium"
+                className="px-6 py-2 border border-gray-300 rounded-lg hover:bg-[rgba(255,255,255,0.03)] transition-colors font-medium"
               >
                 Cancel
               </button>
@@ -1500,13 +1500,13 @@ const EmployeesPage = () => {
           }}
         >
           <div
-            className="bg-white rounded-lg shadow-2xl w-full max-w-6xl max-h-[90vh] flex overflow-hidden"
+            className="bg-card rounded-lg shadow-2xl w-full max-w-6xl max-h-[90vh] flex overflow-hidden"
             onClick={(e) => e.stopPropagation()}
           >
             {/* Left Sidebar */}
-            <div className="w-64 bg-gray-50 border-r border-gray-200 flex flex-col">
+            <div className="w-64 bg-card border-r border-theme flex flex-col">
               {/* Image Upload Area */}
-              <div className="p-4 border-b border-gray-200">
+              <div className="p-4 border-b border-theme">
                 <div
                   className="border-2 border-dashed border-gray-300 p-8 text-center mb-3 cursor-pointer hover:border-[#42aeec] transition-colors"
                   onClick={() => fileInputRef.current?.click()}
@@ -1515,8 +1515,8 @@ const EmployeesPage = () => {
                     <img src={profileImagePreview} alt="Profile preview" className="w-full h-32 object-cover rounded-lg" />
                   ) : (
                     <>
-                      <Upload className="w-8 h-8 text-gray-400 mx-auto mb-2" />
-                      <p className="text-sm text-gray-600">Select Image</p>
+                      <Upload className="w-8 h-8 text-secondary mx-auto mb-2" />
+                      <p className="text-sm text-secondary">Select Image</p>
                     </>
                   )}
                 </div>
@@ -1589,8 +1589,8 @@ const EmployeesPage = () => {
             {/* Right Content Area */}
             <div className="flex-1 flex flex-col overflow-hidden">
               {/* Header */}
-              <div className="flex items-center justify-between p-6 border-b border-gray-200 bg-white">
-                <h2 className="text-2xl font-bold text-gray-900">{editingId ? 'Edit Employee' : 'New Employee'}</h2>
+              <div className="flex items-center justify-between p-6 border-b border-theme bg-card">
+                <h2 className="text-2xl font-bold text-primary">{editingId ? 'Edit Employee' : 'New Employee'}</h2>
                 <div className="flex items-center gap-3">
                   <button
                     onClick={handleSaveEmployee}
@@ -1601,7 +1601,7 @@ const EmployeesPage = () => {
                   </button>
                   <button
                     onClick={handleCloseModal}
-                    className="text-gray-400 hover:text-gray-600 transition-colors"
+                    className="text-secondary hover:text-secondary transition-colors"
                   >
                     <X className="w-6 h-6" />
                   </button>
@@ -1609,15 +1609,15 @@ const EmployeesPage = () => {
               </div>
 
               {/* Form Content */}
-              <div className="flex-1 overflow-y-auto overflow-x-hidden p-6 bg-white">
+              <div className="flex-1 overflow-y-auto overflow-x-hidden p-6 bg-card">
                 {activeFormTab === 'basic' && (
                   <div className="space-y-6 max-w-full">
-                    <h3 className="text-lg font-bold text-gray-900 mb-4">Basic Information</h3>
+                    <h3 className="text-lg font-bold text-primary mb-4">Basic Information</h3>
 
                     {/* First Row */}
                     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
                       <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                        <label className="block text-sm font-medium text-primary mb-1">
                           First Name<span className="text-red-500">*</span>
                         </label>
                         <input
@@ -1629,7 +1629,7 @@ const EmployeesPage = () => {
                         />
                       </div>
                       <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                        <label className="block text-sm font-medium text-primary mb-1">
                           Last Name<span className="text-red-500">*</span>
                         </label>
                         <input
@@ -1641,7 +1641,7 @@ const EmployeesPage = () => {
                         />
                       </div>
                       <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                        <label className="block text-sm font-medium text-primary mb-1">
                           Email<span className="text-red-500">*</span>
                         </label>
                         <input
@@ -1655,7 +1655,7 @@ const EmployeesPage = () => {
                       {/* Only show password field for roles that require sign-in (mechanics need password) */}
                       {!['reporter', 'operator', 'salesperson'].includes(basicData.role) && (
                         <div>
-                          <label className="block text-sm font-medium text-gray-700 mb-1">
+                          <label className="block text-sm font-medium text-primary mb-1">
                             Password{!editingId && <span className="text-red-500">*</span>}
                           </label>
                           {passwordIsExisting ? (
@@ -1668,7 +1668,7 @@ const EmployeesPage = () => {
                                   setPasswordIsExisting(false);
                                   setBasicData({ ...basicData, password: '' });
                                 }}
-                                className="w-full px-3 py-2 pr-20 border border-gray-300 rounded-lg bg-gray-50 cursor-text focus:outline-none focus:ring-2 focus:ring-[#42aeec] focus:border-transparent"
+                                className="w-full px-3 py-2 pr-20 border border-gray-300 rounded-lg bg-card cursor-text focus:outline-none focus:ring-2 focus:ring-[#42aeec] focus:border-transparent"
                               />
                               <button
                                 type="button"
@@ -1695,7 +1695,7 @@ const EmployeesPage = () => {
                               <button
                                 type="button"
                                 onClick={() => setShowPassword(prev => !prev)}
-                                className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                                className="absolute right-3 top-1/2 -translate-y-1/2 text-secondary hover:text-secondary"
                                 tabIndex={-1}
                               >
                                 {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
@@ -1709,7 +1709,7 @@ const EmployeesPage = () => {
                     {/* Second Row */}
                     <div className="grid grid-cols-4 gap-4">
                       <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                        <label className="block text-sm font-medium text-primary mb-1">
                           Status<span className="text-red-500">*</span>
                         </label>
                         <select
@@ -1723,7 +1723,7 @@ const EmployeesPage = () => {
                         </select>
                       </div>
                       <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                        <label className="block text-sm font-medium text-primary mb-1">
                           Role<span className="text-red-500">*</span>
                         </label>
                         <select
@@ -1743,12 +1743,12 @@ const EmployeesPage = () => {
 
                 {activeFormTab === 'personal' && (
                   <div className="space-y-6 max-w-full">
-                    <h3 className="text-lg font-bold text-gray-900 mb-4">Personal Information</h3>
+                    <h3 className="text-lg font-bold text-primary mb-4">Personal Information</h3>
 
                     {/* First Row */}
                     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
                       <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">Title</label>
+                        <label className="block text-sm font-medium text-primary mb-1">Title</label>
                         <input
                           type="text"
                           placeholder="Title"
@@ -1758,7 +1758,7 @@ const EmployeesPage = () => {
                         />
                       </div>
                       <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">Pay Type</label>
+                        <label className="block text-sm font-medium text-primary mb-1">Pay Type</label>
                         <select
                           value={personalData.payType}
                           onChange={(e) => setPersonalData({ ...personalData, payType: e.target.value })}
@@ -1771,11 +1771,11 @@ const EmployeesPage = () => {
                         </select>
                       </div>
                       <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">
-                          Pay Rate <span className="text-gray-500 text-xs font-normal">(per hour)</span>
+                        <label className="block text-sm font-medium text-primary mb-1">
+                          Pay Rate <span className="text-secondary text-xs font-normal">(per hour)</span>
                         </label>
                         <div className="relative">
-                          <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500 text-sm font-medium">$</span>
+                          <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-secondary text-sm font-medium">$</span>
                           <input
                             type="number"
                             step="0.01"
@@ -1794,7 +1794,7 @@ const EmployeesPage = () => {
                         </div>
                       </div>
                       <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">Vacation Pay %</label>
+                        <label className="block text-sm font-medium text-primary mb-1">Vacation Pay %</label>
                         <input
                           type="text"
                           placeholder="Vacation Pay %"
@@ -1808,7 +1808,7 @@ const EmployeesPage = () => {
                     {/* Second Row */}
                     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
                       <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">Department</label>
+                        <label className="block text-sm font-medium text-primary mb-1">Department</label>
                         <select
                           value={personalData.department}
                           onChange={(e) => setPersonalData({ ...personalData, department: e.target.value })}
@@ -1821,7 +1821,7 @@ const EmployeesPage = () => {
                         </select>
                       </div>
                       <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">Employment Type</label>
+                        <label className="block text-sm font-medium text-primary mb-1">Employment Type</label>
                         <select
                           value={personalData.employmentType}
                           onChange={(e) => setPersonalData({ ...personalData, employmentType: e.target.value as 'FULL-TIME' | 'PART-TIME' | 'CONTRACT BASIS' })}
@@ -1833,7 +1833,7 @@ const EmployeesPage = () => {
                         </select>
                       </div>
                       <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">Phone #</label>
+                        <label className="block text-sm font-medium text-primary mb-1">Phone #</label>
                         <div className="flex items-center border border-gray-300 rounded-lg focus-within:ring-2 focus-within:ring-[#42aeec] focus-within:border-transparent">
                           <div className="relative" ref={phoneCountryDropdownRef}>
                             <button
@@ -1844,21 +1844,21 @@ const EmployeesPage = () => {
                                   setPhoneCountrySearch('');
                                 }
                               }}
-                              className="flex items-center gap-1.5 px-2 py-2 text-sm bg-white border-none outline-none cursor-pointer h-full"
+                              className="flex items-center gap-1.5 px-2 py-2 text-sm bg-card border-none outline-none cursor-pointer h-full"
                               style={{ minWidth: '85px' }}
                             >
                               {countries.find(c => c.code === phoneCountry) && (
                                 <>
                                   <span className="text-sm" style={{ fontSize: '16px' }}>{countries.find(c => c.code === phoneCountry)?.flag}</span>
-                                  <span className="text-xs text-gray-600 font-medium">{countries.find(c => c.code === phoneCountry)?.dialCode}</span>
+                                  <span className="text-xs text-secondary font-medium">{countries.find(c => c.code === phoneCountry)?.dialCode}</span>
                                 </>
                               )}
-                              <ChevronDown className="w-3 h-3 text-gray-400 ml-auto" />
+                              <ChevronDown className="w-3 h-3 text-secondary ml-auto" />
                             </button>
                             {phoneCountryDropdownOpen && (
-                              <div className="absolute top-full left-0 z-50 bg-white border border-gray-300 rounded-lg shadow-lg mt-1" style={{ minWidth: '280px', maxWidth: '320px' }}>
+                              <div className="absolute top-full left-0 z-50 bg-card border border-gray-300 rounded-lg shadow-lg mt-1" style={{ minWidth: '280px', maxWidth: '320px' }}>
                                 {/* Search Input */}
-                                <div className="p-2 border-b border-gray-200 sticky top-0 bg-white">
+                                <div className="p-2 border-b border-theme sticky top-0 bg-card">
                                   <input
                                     type="text"
                                     placeholder="Search country..."
@@ -1890,12 +1890,12 @@ const EmployeesPage = () => {
                                           // Don't auto-fill dial code - let user type the number without country code
                                           // The dial code will be prepended when saving
                                         }}
-                                        className={`w-full flex items-center gap-2 px-3 py-2 text-xs text-left hover:bg-gray-100 transition-colors ${phoneCountry === country.code ? 'bg-blue-50' : ''
+                                        className={`w-full flex items-center gap-2 px-3 py-2 text-xs text-left hover:bg-gray-100 transition-colors ${phoneCountry === country.code ? 'bg-card' : ''
                                           }`}
                                       >
                                         <span className="text-base" style={{ fontSize: '18px' }}>{country.flag}</span>
                                         <span className="flex-1 truncate">{country.name}</span>
-                                        <span className="text-gray-600 font-medium">{country.dialCode}</span>
+                                        <span className="text-secondary font-medium">{country.dialCode}</span>
                                       </button>
                                     ))}
                                   {countries.filter((country) => {
@@ -1906,7 +1906,7 @@ const EmployeesPage = () => {
                                       country.dialCode.includes(searchLower)
                                     );
                                   }).length === 0 && (
-                                      <div className="px-3 py-4 text-xs text-gray-500 text-center">
+                                      <div className="px-3 py-4 text-xs text-secondary text-center">
                                         No countries found
                                       </div>
                                     )}
@@ -1959,7 +1959,7 @@ const EmployeesPage = () => {
                         />
                       </div>
                       <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">Address</label>
+                        <label className="block text-sm font-medium text-primary mb-1">Address</label>
                         <input
                           type="text"
                           placeholder="Address"
@@ -1973,7 +1973,7 @@ const EmployeesPage = () => {
                     {/* Country and Province Row */}
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                       <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                        <label className="block text-sm font-medium text-primary mb-1">
                           Country<span className="text-red-500">*</span>
                         </label>
                         <select
@@ -2001,7 +2001,7 @@ const EmployeesPage = () => {
                         </select>
                       </div>
                       <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                        <label className="block text-sm font-medium text-primary mb-1">
                           Province/State<span className="text-red-500">*</span>
                         </label>
                         <input
@@ -2018,7 +2018,7 @@ const EmployeesPage = () => {
                     {/* Fourth Row - Date Fields */}
                     <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
                       <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">Date of Birth</label>
+                        <label className="block text-sm font-medium text-primary mb-1">Date of Birth</label>
                         <input
                           type="date"
                           value={personalData.dateOfBirth}
@@ -2027,7 +2027,7 @@ const EmployeesPage = () => {
                         />
                       </div>
                       <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">Hire Date</label>
+                        <label className="block text-sm font-medium text-primary mb-1">Hire Date</label>
                         <input
                           type="date"
                           value={personalData.hireDate}
@@ -2036,7 +2036,7 @@ const EmployeesPage = () => {
                         />
                       </div>
                       <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">Employment Termination Date</label>
+                        <label className="block text-sm font-medium text-primary mb-1">Employment Termination Date</label>
                         <input
                           type="date"
                           value={personalData.terminationDate}
@@ -2049,7 +2049,7 @@ const EmployeesPage = () => {
                     {/* Fifth Row - SIN Number */}
                     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
                       <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                        <label className="block text-sm font-medium text-primary mb-1">
                           SIN Number<span className="text-red-500">*</span>
                         </label>
                         <input
@@ -2068,23 +2068,23 @@ const EmployeesPage = () => {
 
                 {activeFormTab === 'documents' && (
                   <div className="space-y-6 max-w-full">
-                    <h3 className="text-lg font-bold text-gray-900 mb-4">Documents</h3>
+                    <h3 className="text-lg font-bold text-primary mb-4">Documents</h3>
 
                     {/* Document Input Row */}
-                    <div className="border border-gray-200 rounded-lg overflow-x-auto">
+                    <div className="border border-theme rounded-lg overflow-x-auto">
                       <table className="w-full table-fixed">
-                        <thead className="bg-gray-50 border-b border-gray-200">
+                        <thead className="bg-card border-b border-theme">
                           <tr>
-                            <th className="w-[200px] px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase">EXPIRY DATE</th>
-                            <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase">DESCRIPTION</th>
-                            <th className="w-[200px] px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase">SELECT FILE</th>
-                            <th className="w-[180px] px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase">IGNORE EXPIRATION</th>
-                            <th className="w-[80px] px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase"></th>
+                            <th className="w-[200px] px-4 py-3 text-left text-xs font-medium text-primary uppercase">EXPIRY DATE</th>
+                            <th className="px-4 py-3 text-left text-xs font-medium text-primary uppercase">DESCRIPTION</th>
+                            <th className="w-[200px] px-4 py-3 text-left text-xs font-medium text-primary uppercase">SELECT FILE</th>
+                            <th className="w-[180px] px-4 py-3 text-left text-xs font-medium text-primary uppercase">IGNORE EXPIRATION</th>
+                            <th className="w-[80px] px-4 py-3 text-left text-xs font-medium text-primary uppercase"></th>
                           </tr>
                         </thead>
                         <tbody>
                           {/* Input Row */}
-                          <tr className="bg-white border-b border-gray-200">
+                          <tr className="bg-card border-b border-theme">
                             <td className="px-4 py-3">
                               <input
                                 type="date"
@@ -2115,7 +2115,7 @@ const EmployeesPage = () => {
                                     };
                                     input.click();
                                   }}
-                                  className="w-full px-3 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors flex items-center justify-center gap-2 text-sm"
+                                  className="w-full px-3 py-2 border border-gray-300 rounded-lg hover:bg-[rgba(255,255,255,0.03)] transition-colors flex items-center justify-center gap-2 text-sm"
                                 >
                                   <Upload className="w-4 h-4" />
                                   Select File
@@ -2123,7 +2123,7 @@ const EmployeesPage = () => {
 
                                 {/* Show selected file name */}
                                 {newDocument?.file && (
-                                  <span className="text-xs text-gray-600 truncate" title={newDocument.file.name}>
+                                  <span className="text-xs text-secondary truncate" title={newDocument.file.name}>
                                     {newDocument.file.name}
                                   </span>
                                 )}
@@ -2138,7 +2138,7 @@ const EmployeesPage = () => {
                                   onChange={(e) => setNewDocument({ ...newDocument, ignoreExpiration: e.target.checked })}
                                   className="w-4 h-4 text-[#42aeec] border-gray-300 rounded focus:ring-[#42aeec]"
                                 />
-                                <span className="text-sm text-gray-700">Ignore Expiration</span>
+                                <span className="text-sm text-primary">Ignore Expiration</span>
                               </label>
                             </td>
                             <td className="px-4 py-3">
@@ -2170,20 +2170,20 @@ const EmployeesPage = () => {
 
                     {/* Documents Table */}
                     {documents.length > 0 && (
-                      <div className="border border-gray-200 rounded-lg overflow-x-auto">
+                      <div className="border border-theme rounded-lg overflow-x-auto">
                         <table className="w-full table-fixed">
-                          <thead className="bg-gray-50 border-b border-gray-200">
+                          <thead className="bg-card border-b border-theme">
                             <tr>
-                              <th className="w-[200px] px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase">EXPIRY DATE</th>
-                              <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase">DESCRIPTION</th>
-                              <th className="w-[200px] px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase">FILE</th>
-                              <th className="w-[180px] px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase">IGNORE EXPIRATION</th>
-                              <th className="w-[120px] px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase">ACTIONS</th>
+                              <th className="w-[200px] px-4 py-3 text-left text-xs font-medium text-primary uppercase">EXPIRY DATE</th>
+                              <th className="px-4 py-3 text-left text-xs font-medium text-primary uppercase">DESCRIPTION</th>
+                              <th className="w-[200px] px-4 py-3 text-left text-xs font-medium text-primary uppercase">FILE</th>
+                              <th className="w-[180px] px-4 py-3 text-left text-xs font-medium text-primary uppercase">IGNORE EXPIRATION</th>
+                              <th className="w-[120px] px-4 py-3 text-left text-xs font-medium text-primary uppercase">ACTIONS</th>
                             </tr>
                           </thead>
-                          <tbody className="bg-white divide-y divide-gray-200">
+                          <tbody className="bg-card divide-y divide-gray-200">
                             {documents.map((doc) => (
-                              <tr key={doc.id} className="hover:bg-gray-50">
+                              <tr key={doc.id} className="hover:bg-[rgba(255,255,255,0.03)]">
                                 <td className="px-4 py-3">
                                   {editingDocumentId === doc.id && editingDocument ? (
                                     <input
@@ -2193,7 +2193,7 @@ const EmployeesPage = () => {
                                       className="w-full px-2 py-1 text-sm border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-[#42aeec]"
                                     />
                                   ) : (
-                                    <span className="text-sm text-gray-900">{doc.expiryDate || '-'}</span>
+                                    <span className="text-sm text-primary">{doc.expiryDate || '-'}</span>
                                   )}
                                 </td>
                                 <td className="px-4 py-3">
@@ -2206,7 +2206,7 @@ const EmployeesPage = () => {
                                       className="w-full px-2 py-1 text-sm border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-[#42aeec]"
                                     />
                                   ) : (
-                                    <span className="text-sm text-gray-900">{doc.description || doc.documentType || '-'}</span>
+                                    <span className="text-sm text-primary">{doc.description || doc.documentType || '-'}</span>
                                   )}
                                 </td>
                                 <td className="px-4 py-3">
@@ -2217,7 +2217,7 @@ const EmployeesPage = () => {
                                           href={doc.fileUrl}
                                           target="_blank"
                                           rel="noopener noreferrer"
-                                          className="text-blue-600 hover:underline text-xs"
+                                          className="text-[#00D1FF] hover:underline text-xs"
                                         >
                                           Current: {doc.fileName || 'View File'}
                                         </a>
@@ -2233,7 +2233,7 @@ const EmployeesPage = () => {
                                           };
                                           input.click();
                                         }}
-                                        className="px-2 py-1 text-xs border border-gray-300 rounded hover:bg-gray-50 transition-colors flex items-center gap-1 w-fit"
+                                        className="px-2 py-1 text-xs border border-gray-300 rounded hover:bg-[rgba(255,255,255,0.03)] transition-colors flex items-center gap-1 w-fit"
                                       >
                                         <Upload className="w-3 h-3" />
                                         {editingDocument.file ? editingDocument.file.name : 'Change File'}
@@ -2246,14 +2246,14 @@ const EmployeesPage = () => {
                                           href={doc.fileUrl}
                                           target="_blank"
                                           rel="noopener noreferrer"
-                                          className="text-blue-600 hover:underline text-sm"
+                                          className="text-[#00D1FF] hover:underline text-sm"
                                         >
                                           {doc.fileName || 'View File'}
                                         </a>
                                       ) : doc.file ? (
-                                        <span className="text-sm text-gray-600">{doc.file.name}</span>
+                                        <span className="text-sm text-secondary">{doc.file.name}</span>
                                       ) : (
-                                        <span className="text-sm text-gray-500">-</span>
+                                        <span className="text-sm text-secondary">-</span>
                                       )}
                                     </>
                                   )}
@@ -2267,10 +2267,10 @@ const EmployeesPage = () => {
                                         onChange={(e) => setEditingDocument({ ...editingDocument, ignoreExpiration: e.target.checked })}
                                         className="w-4 h-4 text-[#42aeec] border-gray-300 rounded focus:ring-[#42aeec]"
                                       />
-                                      <span className="text-xs text-gray-700">Ignore</span>
+                                      <span className="text-xs text-primary">Ignore</span>
                                     </label>
                                   ) : (
-                                    <span className="text-sm text-gray-900">{doc.ignoreExpiration ? 'Yes' : 'No'}</span>
+                                    <span className="text-sm text-primary">{doc.ignoreExpiration ? 'Yes' : 'No'}</span>
                                   )}
                                 </td>
                                 <td className="px-4 py-3">
@@ -2328,7 +2328,7 @@ const EmployeesPage = () => {
                                           setEditingDocumentId(null);
                                           setEditingDocument(null);
                                         }}
-                                        className="p-1.5 text-gray-600 hover:bg-gray-50 rounded transition-colors"
+                                        className="p-1.5 text-secondary hover:bg-[rgba(255,255,255,0.03)] rounded transition-colors"
                                         title="Cancel"
                                       >
                                         <X className="w-4 h-4" />
@@ -2348,7 +2348,7 @@ const EmployeesPage = () => {
                                               file: null
                                             });
                                           }}
-                                          className="p-1.5 text-blue-600 hover:bg-blue-50 rounded transition-colors"
+                                          className="p-1.5 text-[#00D1FF] hover:bg-blue-50 rounded transition-colors"
                                           title="Edit Document"
                                         >
                                           <Edit className="w-4 h-4" />
@@ -2379,7 +2379,7 @@ const EmployeesPage = () => {
                                             }
                                           }
                                         }}
-                                        className="p-1.5 text-red-600 hover:bg-red-50 rounded transition-colors"
+                                        className="p-1.5 text-[#A855F7] hover:bg-red-50 rounded transition-colors"
                                         title="Delete Document"
                                       >
                                         <Trash2 className="w-4 h-4" />
@@ -2395,10 +2395,10 @@ const EmployeesPage = () => {
                     )}
 
                     {documents.length === 0 && (
-                      <div className="border border-gray-200 rounded-lg p-12 text-center bg-gray-50">
-                        <FileText className="w-12 h-12 text-gray-400 mx-auto mb-3" />
-                        <p className="text-gray-500 font-medium">No Documents Added</p>
-                        <p className="text-sm text-gray-400 mt-1">Add documents using the form above</p>
+                      <div className="border border-theme rounded-lg p-12 text-center bg-card">
+                        <FileText className="w-12 h-12 text-secondary mx-auto mb-3" />
+                        <p className="text-secondary font-medium">No Documents Added</p>
+                        <p className="text-sm text-secondary mt-1">Add documents using the form above</p>
                       </div>
                     )}
 
@@ -2408,7 +2408,7 @@ const EmployeesPage = () => {
                 {activeFormTab === 'notes' && (
                   <div className="space-y-6 max-w-full">
                     <div className="flex items-center justify-between mb-4">
-                      <h3 className="text-lg font-bold text-gray-900">Notes / Benefits</h3>
+                      <h3 className="text-lg font-bold text-primary">Notes / Benefits</h3>
                     </div>
 
                     <textarea
@@ -2424,14 +2424,14 @@ const EmployeesPage = () => {
 
                 {activeFormTab === 'deductions' && (
                   <div className="space-y-6">
-                    <h3 className="text-lg font-bold text-gray-900 mb-4">Payroll Deductions</h3>
+                    <h3 className="text-lg font-bold text-primary mb-4">Payroll Deductions</h3>
 
                     {/* Deductions Input Row */}
-                    <div className="flex items-center gap-3 p-4 bg-gray-50 rounded-lg">
+                    <div className="flex items-center gap-3 p-4 bg-card rounded-lg">
                       <div className="flex-1">
-                        <label className="block text-sm font-medium text-gray-700 mb-1">Start Date</label>
+                        <label className="block text-sm font-medium text-primary mb-1">Start Date</label>
                         <div className="relative">
-                          <Calendar className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
+                          <Calendar className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-secondary" />
                           <input
                             type="date"
                             value={newDeduction.startDate}
@@ -2441,7 +2441,7 @@ const EmployeesPage = () => {
                         </div>
                       </div>
                       <div className="flex-1">
-                        <label className="block text-sm font-medium text-gray-700 mb-1">Description</label>
+                        <label className="block text-sm font-medium text-primary mb-1">Description</label>
                         <input
                           type="text"
                           placeholder="Description"
@@ -2451,7 +2451,7 @@ const EmployeesPage = () => {
                         />
                       </div>
                       <div className="flex-1">
-                        <label className="block text-sm font-medium text-gray-700 mb-1">Amount</label>
+                        <label className="block text-sm font-medium text-primary mb-1">Amount</label>
                         <input
                           type="text"
                           placeholder="0"
@@ -2461,7 +2461,7 @@ const EmployeesPage = () => {
                         />
                       </div>
                       <div className="flex-1">
-                        <label className="block text-sm font-medium text-gray-700 mb-1">Interval</label>
+                        <label className="block text-sm font-medium text-primary mb-1">Interval</label>
                         <select
                           value={newDeduction.interval}
                           onChange={(e) => setNewDeduction({ ...newDeduction, interval: e.target.value })}
@@ -2475,7 +2475,7 @@ const EmployeesPage = () => {
                         </select>
                       </div>
                       <div className="flex-1">
-                        <label className="block text-sm font-medium text-gray-700 mb-1">Currency</label>
+                        <label className="block text-sm font-medium text-primary mb-1">Currency</label>
                         <select
                           value={newDeduction.currency}
                           onChange={(e) => setNewDeduction({ ...newDeduction, currency: e.target.value })}
@@ -2532,32 +2532,32 @@ const EmployeesPage = () => {
                     </div>
 
                     {/* Deductions Table */}
-                    <div className="border border-gray-200 rounded-lg overflow-hidden">
+                    <div className="border border-theme rounded-lg overflow-hidden">
                       <table className="w-full">
-                        <thead className="bg-gray-50">
+                        <thead className="bg-card">
                           <tr>
-                            <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase">Start Date</th>
-                            <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase">Description</th>
-                            <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase">Amount</th>
-                            <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase">Interval</th>
-                            <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase">ACTIONS</th>
+                            <th className="px-4 py-3 text-left text-xs font-medium text-primary uppercase">Start Date</th>
+                            <th className="px-4 py-3 text-left text-xs font-medium text-primary uppercase">Description</th>
+                            <th className="px-4 py-3 text-left text-xs font-medium text-primary uppercase">Amount</th>
+                            <th className="px-4 py-3 text-left text-xs font-medium text-primary uppercase">Interval</th>
+                            <th className="px-4 py-3 text-left text-xs font-medium text-primary uppercase">ACTIONS</th>
                           </tr>
                         </thead>
-                        <tbody className="bg-white divide-y divide-gray-200">
+                        <tbody className="bg-card divide-y divide-gray-200">
                           {deductions.length === 0 ? (
                             <tr>
-                              <td colSpan={5} className="px-4 py-8 text-center text-gray-500">
+                              <td colSpan={5} className="px-4 py-8 text-center text-secondary">
                                 No Data
                               </td>
                             </tr>
                           ) : (
                             deductions.map((deduction) => (
-                              <tr key={deduction.id} className="hover:bg-gray-50">
-                                <td className="px-4 py-3 text-sm text-gray-900">{deduction.startDate || '-'}</td>
-                                <td className="px-4 py-3 text-sm text-gray-900">{deduction.description || '-'}</td>
-                                <td className="px-4 py-3 text-sm text-gray-900">{deduction.amount || '0'} {deduction.currency}</td>
-                                <td className="px-4 py-3 text-sm text-gray-900">{deduction.interval || '-'}</td>
-                                <td className="px-4 py-3 text-sm text-gray-900">
+                              <tr key={deduction.id} className="hover:bg-[rgba(255,255,255,0.03)]">
+                                <td className="px-4 py-3 text-sm text-primary">{deduction.startDate || '-'}</td>
+                                <td className="px-4 py-3 text-sm text-primary">{deduction.description || '-'}</td>
+                                <td className="px-4 py-3 text-sm text-primary">{deduction.amount || '0'} {deduction.currency}</td>
+                                <td className="px-4 py-3 text-sm text-primary">{deduction.interval || '-'}</td>
+                                <td className="px-4 py-3 text-sm text-primary">
                                   <div className="flex items-center gap-2">
                                     <button
                                       onClick={(e) => {
@@ -2571,7 +2571,7 @@ const EmployeesPage = () => {
                                         });
                                         setEditingDeductionId(deduction.id);
                                       }}
-                                      className="p-1.5 text-blue-600 hover:bg-blue-50 rounded transition-colors"
+                                      className="p-1.5 text-[#00D1FF] hover:bg-blue-50 rounded transition-colors"
                                       title="Edit deduction"
                                     >
                                       <Edit className="w-4 h-4" />
@@ -2607,7 +2607,7 @@ const EmployeesPage = () => {
                                           }
                                         }
                                       }}
-                                      className="p-1.5 text-red-600 hover:bg-red-50 rounded transition-colors"
+                                      className="p-1.5 text-[#A855F7] hover:bg-red-50 rounded transition-colors"
                                       title="Delete deduction"
                                     >
                                       <Trash2 className="w-4 h-4" />
@@ -2626,14 +2626,14 @@ const EmployeesPage = () => {
 
                 {activeFormTab === 'additions' && (
                   <div className="space-y-6">
-                    <h3 className="text-lg font-bold text-gray-900 mb-4">Payroll Additions</h3>
+                    <h3 className="text-lg font-bold text-primary mb-4">Payroll Additions</h3>
 
                     {/* Additions Input Row */}
-                    <div className="flex items-center gap-3 p-4 bg-gray-50 rounded-lg">
+                    <div className="flex items-center gap-3 p-4 bg-card rounded-lg">
                       <div className="flex-1">
-                        <label className="block text-sm font-medium text-gray-700 mb-1">Start Date</label>
+                        <label className="block text-sm font-medium text-primary mb-1">Start Date</label>
                         <div className="relative">
-                          <Calendar className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
+                          <Calendar className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-secondary" />
                           <input
                             type="date"
                             value={newAddition.startDate}
@@ -2643,7 +2643,7 @@ const EmployeesPage = () => {
                         </div>
                       </div>
                       <div className="flex-1">
-                        <label className="block text-sm font-medium text-gray-700 mb-1">Description</label>
+                        <label className="block text-sm font-medium text-primary mb-1">Description</label>
                         <input
                           type="text"
                           placeholder="Description"
@@ -2653,7 +2653,7 @@ const EmployeesPage = () => {
                         />
                       </div>
                       <div className="flex-1">
-                        <label className="block text-sm font-medium text-gray-700 mb-1">Amount</label>
+                        <label className="block text-sm font-medium text-primary mb-1">Amount</label>
                         <input
                           type="text"
                           placeholder="0"
@@ -2663,7 +2663,7 @@ const EmployeesPage = () => {
                         />
                       </div>
                       <div className="flex-1">
-                        <label className="block text-sm font-medium text-gray-700 mb-1">Interval</label>
+                        <label className="block text-sm font-medium text-primary mb-1">Interval</label>
                         <select
                           value={newAddition.interval}
                           onChange={(e) => setNewAddition({ ...newAddition, interval: e.target.value })}
@@ -2677,7 +2677,7 @@ const EmployeesPage = () => {
                         </select>
                       </div>
                       <div className="flex-1">
-                        <label className="block text-sm font-medium text-gray-700 mb-1">Currency</label>
+                        <label className="block text-sm font-medium text-primary mb-1">Currency</label>
                         <select
                           value={newAddition.currency}
                           onChange={(e) => setNewAddition({ ...newAddition, currency: e.target.value })}
@@ -2734,32 +2734,32 @@ const EmployeesPage = () => {
                     </div>
 
                     {/* Additions Table */}
-                    <div className="border border-gray-200 rounded-lg overflow-hidden">
+                    <div className="border border-theme rounded-lg overflow-hidden">
                       <table className="w-full">
-                        <thead className="bg-gray-50">
+                        <thead className="bg-card">
                           <tr>
-                            <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase">Start Date</th>
-                            <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase">Description</th>
-                            <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase">Amount</th>
-                            <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase">Interval</th>
-                            <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase">ACTIONS</th>
+                            <th className="px-4 py-3 text-left text-xs font-medium text-primary uppercase">Start Date</th>
+                            <th className="px-4 py-3 text-left text-xs font-medium text-primary uppercase">Description</th>
+                            <th className="px-4 py-3 text-left text-xs font-medium text-primary uppercase">Amount</th>
+                            <th className="px-4 py-3 text-left text-xs font-medium text-primary uppercase">Interval</th>
+                            <th className="px-4 py-3 text-left text-xs font-medium text-primary uppercase">ACTIONS</th>
                           </tr>
                         </thead>
-                        <tbody className="bg-white divide-y divide-gray-200">
+                        <tbody className="bg-card divide-y divide-gray-200">
                           {additions.length === 0 ? (
                             <tr>
-                              <td colSpan={5} className="px-4 py-8 text-center text-gray-500">
+                              <td colSpan={5} className="px-4 py-8 text-center text-secondary">
                                 No Data
                               </td>
                             </tr>
                           ) : (
                             additions.map((addition) => (
-                              <tr key={addition.id} className="hover:bg-gray-50">
-                                <td className="px-4 py-3 text-sm text-gray-900">{addition.startDate || '-'}</td>
-                                <td className="px-4 py-3 text-sm text-gray-900">{addition.description || '-'}</td>
-                                <td className="px-4 py-3 text-sm text-gray-900">{addition.amount || '0'} {addition.currency}</td>
-                                <td className="px-4 py-3 text-sm text-gray-900">{addition.interval || '-'}</td>
-                                <td className="px-4 py-3 text-sm text-gray-900">
+                              <tr key={addition.id} className="hover:bg-[rgba(255,255,255,0.03)]">
+                                <td className="px-4 py-3 text-sm text-primary">{addition.startDate || '-'}</td>
+                                <td className="px-4 py-3 text-sm text-primary">{addition.description || '-'}</td>
+                                <td className="px-4 py-3 text-sm text-primary">{addition.amount || '0'} {addition.currency}</td>
+                                <td className="px-4 py-3 text-sm text-primary">{addition.interval || '-'}</td>
+                                <td className="px-4 py-3 text-sm text-primary">
                                   <div className="flex items-center gap-2">
                                     <button
                                       onClick={(e) => {
@@ -2773,7 +2773,7 @@ const EmployeesPage = () => {
                                         });
                                         setEditingAdditionId(addition.id);
                                       }}
-                                      className="p-1.5 text-blue-600 hover:bg-blue-50 rounded transition-colors"
+                                      className="p-1.5 text-[#00D1FF] hover:bg-blue-50 rounded transition-colors"
                                       title="Edit addition"
                                     >
                                       <Edit className="w-4 h-4" />
@@ -2809,7 +2809,7 @@ const EmployeesPage = () => {
                                           }
                                         }
                                       }}
-                                      className="p-1.5 text-red-600 hover:bg-red-50 rounded transition-colors"
+                                      className="p-1.5 text-[#A855F7] hover:bg-red-50 rounded transition-colors"
                                       title="Delete addition"
                                     >
                                       <Trash2 className="w-4 h-4" />
@@ -2842,12 +2842,12 @@ const EmployeesPage = () => {
                 const prevTab = tabIndex > 0 ? FORM_TABS[tabIndex - 1] : null;
                 const nextTab = tabIndex >= 0 && tabIndex < FORM_TABS.length - 1 ? FORM_TABS[tabIndex + 1] : null;
                 return (
-                  <div className="flex-shrink-0 border-t border-gray-200 bg-gray-50 px-4 py-3 flex justify-between items-center">
+                  <div className="flex-shrink-0 border-t border-theme bg-card px-4 py-3 flex justify-between items-center">
                     {prevTab ? (
                       <button
                         type="button"
                         onClick={() => setActiveFormTab(prevTab.id as any)}
-                        className="inline-flex items-center gap-2 px-4 py-2.5 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg shadow-sm hover:bg-gray-50 transition-colors"
+                        className="inline-flex items-center gap-2 px-4 py-2.5 text-sm font-medium text-primary bg-card border border-gray-300 rounded-lg shadow-sm hover:bg-[rgba(255,255,255,0.03)] transition-colors"
                       >
                         <span aria-hidden>←</span> {prevTab.label}
                       </button>
@@ -2856,7 +2856,7 @@ const EmployeesPage = () => {
                       <button
                         type="button"
                         onClick={() => setActiveFormTab(nextTab.id as any)}
-                        className="inline-flex items-center gap-2 px-4 py-2.5 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg shadow-sm hover:bg-gray-50 transition-colors"
+                        className="inline-flex items-center gap-2 px-4 py-2.5 text-sm font-medium text-primary bg-card border border-gray-300 rounded-lg shadow-sm hover:bg-[rgba(255,255,255,0.03)] transition-colors"
                       >
                         {nextTab.label} <span aria-hidden>→</span>
                       </button>

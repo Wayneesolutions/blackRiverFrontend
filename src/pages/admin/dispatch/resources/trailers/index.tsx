@@ -76,7 +76,7 @@ const ToastNotification = ({ notification, onClose }: { notification: ToastNotif
 
   const bgColors = {
     success: 'bg-green-50 border-green-200',
-    error: 'bg-red-50 border-red-200',
+    error: 'bg-card border-red-200',
   };
 
   useEffect(() => {
@@ -91,10 +91,10 @@ const ToastNotification = ({ notification, onClose }: { notification: ToastNotif
       <div className="flex-shrink-0 mt-0.5">
         {icons[notification.type]}
       </div>
-      <p className="flex-1 text-sm font-medium text-gray-800">{notification.message}</p>
+      <p className="flex-1 text-sm font-medium text-primary">{notification.message}</p>
       <button
         onClick={() => onClose(notification.id)}
-        className="flex-shrink-0 text-gray-400 hover:text-gray-600 transition-colors"
+        className="flex-shrink-0 text-secondary hover:text-secondary transition-colors"
       >
         <FaTimes size={16} />
       </button>
@@ -319,11 +319,11 @@ const TrailersTable = () => {
             case 'idle':
                 return 'bg-yellow-100 text-yellow-800';
             case 'stopped':
-                return 'bg-gray-100 text-gray-800';
+                return 'bg-gray-100 text-primary';
             case 'maintenance':
                 return 'bg-red-100 text-red-800';
             default:
-                return 'bg-gray-100 text-gray-800';
+                return 'bg-gray-100 text-primary';
         }
     };
 
@@ -336,25 +336,25 @@ const TrailersTable = () => {
             case 'loading':
                 return 'bg-yellow-100 text-yellow-800';
             case 'idle':
-                return 'bg-gray-100 text-gray-800';
+                return 'bg-gray-100 text-primary';
             case 'maintenance':
                 return 'bg-red-100 text-red-800';
             default:
-                return 'bg-gray-100 text-gray-800';
+                return 'bg-gray-100 text-primary';
         }
     };
 
     return (
-        <div className="min-h-screen bg-gray-50">
+        <div className="min-h-screen bg-card">
             {/* Main Content */}
             <div className="flex-1">
                 {/* Header */}
-                <div className="bg-white border-b border-gray-200 px-6 py-4">
+                <div className="bg-card border-b border-theme px-6 py-4">
                     <div className="flex items-center justify-between">
                         <div className="flex items-center space-x-4">
-                            <h1 className="text-2xl font-semibold text-gray-900">Trailers</h1>
+                            <h1 className="text-2xl font-semibold text-primary">Trailers</h1>
                             <div className="relative">
-                                <Search className="w-4 h-4 absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
+                                <Search className="w-4 h-4 absolute left-3 top-1/2 transform -translate-y-1/2 text-secondary" />
                                 <input
                                     type="text"
                                     placeholder="Search trailers..."
@@ -381,45 +381,45 @@ const TrailersTable = () => {
                 {stats && (
                     <div className="px-6 py-4">
                         <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-                            <div className="bg-white rounded-lg shadow p-4">
+                            <div className="bg-card rounded-lg shadow p-4">
                                 <div className="flex items-center">
-                                    <Truck className="w-8 h-8 text-blue-600" />
+                                    <Truck className="w-8 h-8 text-[#00D1FF]" />
                                     <div className="ml-3">
-                                        <p className="text-sm font-medium text-gray-500">Total Trailers</p>
-                                        <p className="text-2xl font-semibold text-gray-900">{stats.total || 0}</p>
+                                        <p className="text-sm font-medium text-secondary">Total Trailers</p>
+                                        <p className="text-2xl font-semibold text-primary">{stats.total || 0}</p>
                                     </div>
                                 </div>
                             </div>
-                            <div className="bg-white rounded-lg shadow p-4">
+                            <div className="bg-card rounded-lg shadow p-4">
                                 <div className="flex items-center">
                                     <div className="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center">
                                         <div className="w-3 h-3 bg-green-600 rounded-full"></div>
                                     </div>
                                     <div className="ml-3">
-                                        <p className="text-sm font-medium text-gray-500">Available</p>
-                                        <p className="text-2xl font-semibold text-gray-900">{stats.available || 0}</p>
+                                        <p className="text-sm font-medium text-secondary">Available</p>
+                                        <p className="text-2xl font-semibold text-primary">{stats.available || 0}</p>
                                     </div>
                                 </div>
                             </div>
-                            <div className="bg-white rounded-lg shadow p-4">
+                            <div className="bg-card rounded-lg shadow p-4">
                                 <div className="flex items-center">
                                     <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
                                         <div className="w-3 h-3 bg-blue-600 rounded-full"></div>
                                     </div>
                                     <div className="ml-3">
-                                        <p className="text-sm font-medium text-gray-500">In Use</p>
-                                        <p className="text-2xl font-semibold text-gray-900">{stats.inTransit || 0}</p>
+                                        <p className="text-sm font-medium text-secondary">In Use</p>
+                                        <p className="text-2xl font-semibold text-primary">{stats.inTransit || 0}</p>
                                     </div>
                                 </div>
                             </div>
-                            <div className="bg-white rounded-lg shadow p-4">
+                            <div className="bg-card rounded-lg shadow p-4">
                                 <div className="flex items-center">
                                     <div className="w-8 h-8 bg-yellow-100 rounded-full flex items-center justify-center">
                                         <div className="w-3 h-3 bg-yellow-600 rounded-full"></div>
                                     </div>
                                     <div className="ml-3">
-                                        <p className="text-sm font-medium text-gray-500">Maintenance</p>
-                                        <p className="text-2xl font-semibold text-gray-900">{stats.maintenance || 0}</p>
+                                        <p className="text-sm font-medium text-secondary">Maintenance</p>
+                                        <p className="text-2xl font-semibold text-primary">{stats.maintenance || 0}</p>
                                     </div>
                                 </div>
                             </div>
@@ -429,7 +429,7 @@ const TrailersTable = () => {
 
                 {/* Table */}
                 <div className="px-6">
-                    <div className="bg-white rounded-lg shadow overflow-hidden">
+                    <div className="bg-card rounded-lg shadow overflow-hidden">
                         {loading ? (
                             <div className="flex items-center justify-center py-12">
                                 <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
@@ -437,32 +437,32 @@ const TrailersTable = () => {
                         ) : (
                             <div className="overflow-x-auto">
                                 <table className="min-w-full divide-y divide-gray-200">
-                                    <thead className="bg-gray-50">
+                                    <thead className="bg-card">
                                         <tr>
-                                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                            <th className="px-6 py-3 text-left text-xs font-medium text-secondary uppercase tracking-wider">
                                                 Trailer
                                             </th>
-                                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                            <th className="px-6 py-3 text-left text-xs font-medium text-secondary uppercase tracking-wider">
                                                 Details
                                             </th>
-                                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                            <th className="px-6 py-3 text-left text-xs font-medium text-secondary uppercase tracking-wider">
                                                 Status
                                             </th>
-                                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                            <th className="px-6 py-3 text-left text-xs font-medium text-secondary uppercase tracking-wider">
                                                 Operation
                                             </th>
-                                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                            <th className="px-6 py-3 text-left text-xs font-medium text-secondary uppercase tracking-wider">
                                                 Location
                                             </th>
-                                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                            <th className="px-6 py-3 text-left text-xs font-medium text-secondary uppercase tracking-wider">
                                                 Actions
                                             </th>
                                         </tr>
                                     </thead>
-                                    <tbody className="bg-white divide-y divide-gray-200">
+                                    <tbody className="bg-card divide-y divide-gray-200">
                                         {trailers.length === 0 ? (
                                             <tr>
-                                                <td colSpan={6} className="px-6 py-12 text-center text-gray-500">
+                                                <td colSpan={6} className="px-6 py-12 text-center text-secondary">
                                                     <div className="flex flex-col items-center space-y-2">
                                                         <div className="text-5xl text-gray-300">🚛</div>
                                                         <p>No trailers found.</p>
@@ -471,29 +471,29 @@ const TrailersTable = () => {
                                             </tr>
                                         ) : (
                                             trailers.map((trailer) => (
-                                                <tr key={trailer._id} className="hover:bg-gray-50">
+                                                <tr key={trailer._id} className="hover:bg-[rgba(255,255,255,0.03)]">
                                                     <td className="px-6 py-4 whitespace-nowrap">
                                                         <div className="flex items-center">
                                                             <div className="flex-shrink-0 h-10 w-10">
                                                                 <div className="h-10 w-10 rounded-lg bg-blue-100 flex items-center justify-center">
-                                                                    <Truck className="h-5 w-5 text-blue-600" />
+                                                                    <Truck className="h-5 w-5 text-[#00D1FF]" />
                                                                 </div>
                                                             </div>
                                                             <div className="ml-4">
-                                                                <div className="text-sm font-medium text-gray-900">
+                                                                <div className="text-sm font-medium text-primary">
                                                                     {trailer.trailer}
                                                                 </div>
-                                                                <div className="text-sm text-gray-500">
+                                                                <div className="text-sm text-secondary">
                                                                     {trailer.internalId}
                                                                 </div>
                                                             </div>
                                                         </div>
                                                     </td>
                                                     <td className="px-6 py-4 whitespace-nowrap">
-                                                        <div className="text-sm text-gray-900">
+                                                        <div className="text-sm text-primary">
                                                             {trailer.type} • {trailer.plateNumber}
                                                         </div>
-                                                        <div className="text-sm text-gray-500">
+                                                        <div className="text-sm text-secondary">
                                                             {trailer.capacity}
                                                         </div>
                                                     </td>
@@ -507,20 +507,20 @@ const TrailersTable = () => {
                                                             {trailer.operationStatus}
                                                         </span>
                                                     </td>
-                                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-secondary">
                                                         {trailer.currentLocation?.address || 'No location'}
                                                     </td>
                                                     <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
                                                         <div className="flex items-center gap-2">
                                                             <button
                                                               onClick={() => handleEditTrailer(trailer)}
-                                                              className="flex items-center gap-1 px-3 py-1.5 rounded-md border border-blue-200 text-blue-600 hover:bg-blue-50 transition-colors"
+                                                              className="flex items-center gap-1 px-3 py-1.5 rounded-md border border-blue-200 text-[#00D1FF] hover:bg-blue-50 transition-colors"
                                                             >
                                                               <Pencil className="w-4 h-4" /> Update
                                                             </button>
                                                             <button
                                                               onClick={() => openDeleteModal(trailer)}
-                                                              className="flex items-center gap-1 px-3 py-1.5 rounded-md border border-red-200 text-red-600 hover:bg-red-50 transition-colors"
+                                                              className="flex items-center gap-1 px-3 py-1.5 rounded-md border border-red-200 text-[#A855F7] hover:bg-red-50 transition-colors"
                                                             >
                                                               <Trash2 className="w-4 h-4" /> Delete
                                                             </button>
@@ -548,35 +548,35 @@ const TrailersTable = () => {
 
             {deleteModalOpen && (
               <div className="fixed inset-0 z-[10001] flex items-center justify-center bg-black/40 px-4">
-                <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md overflow-hidden">
-                  <div className="flex items-center gap-3 px-6 py-4 bg-red-50 border-b border-red-100">
+                <div className="bg-card rounded-2xl shadow-2xl w-full max-w-md overflow-hidden">
+                  <div className="flex items-center gap-3 px-6 py-4 bg-card border-b border-red-100">
                     <div className="p-2 bg-red-100 rounded-full">
-                      <Trash2 className="w-6 h-6 text-red-600" />
+                      <Trash2 className="w-6 h-6 text-[#A855F7]" />
                     </div>
                     <div>
                       <h3 className="text-lg font-semibold text-red-800">Delete Trailer</h3>
-                      <p className="text-sm text-red-600">
+                      <p className="text-sm text-[#A855F7]">
                         This action cannot be undone. Please confirm to delete this trailer.
                       </p>
                     </div>
                   </div>
                   <div className="px-6 py-5 space-y-3">
-                    <p className="text-gray-700">
+                    <p className="text-primary">
                       Are you sure you want to delete{' '}
-                      <span className="font-semibold text-gray-900">
+                      <span className="font-semibold text-primary">
                         {deleteTarget?.trailer || deleteTarget?.internalId || 'this trailer'}
                       </span>
                       ?
                     </p>
-                    <p className="text-sm text-gray-500">
+                    <p className="text-sm text-secondary">
                       The trailer record will be permanently removed and cannot be recovered.
                     </p>
                   </div>
-                  <div className="px-6 py-4 bg-gray-50 border-t border-gray-200 flex justify-end gap-3">
+                  <div className="px-6 py-4 bg-card border-t border-theme flex justify-end gap-3">
                     <button
                       onClick={closeDeleteModal}
                       disabled={deleteLoading}
-                      className="px-5 py-2.5 text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-100 transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
+                      className="px-5 py-2.5 text-primary bg-card border border-gray-300 rounded-md hover:bg-gray-100 transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
                     >
                       Cancel
                     </button>

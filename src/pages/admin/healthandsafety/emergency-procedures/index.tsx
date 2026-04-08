@@ -103,9 +103,9 @@ const ToastNotificationComponent = ({ notification, onClose }: { notification: T
 
   const bgColors = {
     success: 'bg-green-50 border-green-200',
-    error: 'bg-red-50 border-red-200',
-    info: 'bg-blue-50 border-blue-200',
-    warning: 'bg-yellow-50 border-yellow-200'
+    error: 'bg-card border-red-200',
+    info: 'bg-card border-blue-200',
+    warning: 'bg-card border-yellow-200'
   };
 
   useEffect(() => {
@@ -120,10 +120,10 @@ const ToastNotificationComponent = ({ notification, onClose }: { notification: T
       <div className="flex-shrink-0 mt-0.5">
         {icons[notification.type]}
       </div>
-      <p className="flex-1 text-sm font-medium text-gray-800">{notification.message}</p>
+      <p className="flex-1 text-sm font-medium text-primary">{notification.message}</p>
       <button
         onClick={() => onClose(notification.id)}
-        className="flex-shrink-0 text-gray-400 hover:text-gray-600 transition-colors"
+        className="flex-shrink-0 text-secondary hover:text-secondary transition-colors"
       >
         <FaTimes size={16} />
       </button>
@@ -275,28 +275,28 @@ const EmergencyProcedures: React.FC = () => {
   const getProcedureIcon = (type: EmergencyProcedure['type']) => {
     switch (type) {
       case 'medical':
-        return <FaAmbulance className="text-red-600" size={24} />;
+        return <FaAmbulance className="text-[#A855F7]" size={24} />;
       case 'fire':
-        return <FaFire className="text-orange-600" size={24} />;
+        return <FaFire className="text-[#F59E0B]" size={24} />;
       case 'spill':
-        return <FaFlask className="text-yellow-600" size={24} />;
+        return <FaFlask className="text-[#00FFA3]" size={24} />;
       case 'collision':
-        return <FaCar className="text-blue-600" size={24} />;
+        return <FaCar className="text-[#00D1FF]" size={24} />;
       case 'breakdown':
-        return <FaCar className="text-gray-600" size={24} />;
+        return <FaCar className="text-secondary" size={24} />;
       case 'violence':
-        return <FaExclamationTriangle className="text-red-600" size={24} />;
+        return <FaExclamationTriangle className="text-[#A855F7]" size={24} />;
       default:
-        return <FaFileAlt className="text-gray-600" size={24} />;
+        return <FaFileAlt className="text-secondary" size={24} />;
     }
   };
 
   const renderEmergencyContacts = () => (
     <div className="space-y-6">
-      <div className="bg-white rounded-2xl p-8 shadow-lg">
+      <div className="bg-card rounded-2xl p-8 shadow-lg">
         <div className="flex justify-between items-center mb-6">
-          <h2 className="text-2xl font-bold text-gray-900 flex items-center gap-3">
-            <FaPhone className="text-red-600" />
+          <h2 className="text-2xl font-bold text-primary flex items-center gap-3">
+            <FaPhone className="text-[#A855F7]" />
             Emergency Contacts
           </h2>
           <button
@@ -322,8 +322,8 @@ const EmergencyProcedures: React.FC = () => {
         </div>
 
         {showContactForm && (
-          <div className="mb-6 p-6 bg-gray-50 rounded-xl border-2 border-gray-200">
-            <h3 className="text-lg font-bold mb-4 text-gray-900">
+          <div className="mb-6 p-6 bg-card rounded-xl border-2 border-theme">
+            <h3 className="text-lg font-bold mb-4 text-primary">
               {editingContact ? 'Edit Emergency Contact' : 'Add New Emergency Contact'}
             </h3>
             <form
@@ -366,66 +366,66 @@ const EmergencyProcedures: React.FC = () => {
             >
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-sm font-semibold text-gray-700 mb-2">Name *</label>
+                  <label className="block text-sm font-semibold text-primary mb-2">Name *</label>
                   <input
                     type="text"
                     required
                     value={newContact.name}
                     onChange={(e) => setNewContact({ ...newContact, name: e.target.value })}
-                    className="w-full border-2 border-gray-200 p-3 rounded-xl focus:ring-2 focus:ring-red-500"
+                    className="w-full border-2 border-theme p-3 rounded-xl focus:ring-2 focus:ring-red-500"
                     placeholder="Contact Name"
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-semibold text-gray-700 mb-2">Role *</label>
+                  <label className="block text-sm font-semibold text-primary mb-2">Role *</label>
                   <input
                     type="text"
                     required
                     value={newContact.role}
                     onChange={(e) => setNewContact({ ...newContact, role: e.target.value })}
-                    className="w-full border-2 border-gray-200 p-3 rounded-xl focus:ring-2 focus:ring-red-500"
+                    className="w-full border-2 border-theme p-3 rounded-xl focus:ring-2 focus:ring-red-500"
                     placeholder="Safety Manager, Operations Manager, etc."
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-semibold text-gray-700 mb-2">Phone *</label>
+                  <label className="block text-sm font-semibold text-primary mb-2">Phone *</label>
                   <input
                     type="tel"
                     required
                     value={newContact.phone}
                     onChange={(e) => setNewContact({ ...newContact, phone: e.target.value })}
-                    className="w-full border-2 border-gray-200 p-3 rounded-xl focus:ring-2 focus:ring-red-500"
+                    className="w-full border-2 border-theme p-3 rounded-xl focus:ring-2 focus:ring-red-500"
                     placeholder="+1-555-0100"
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-semibold text-gray-700 mb-2">Alternate Phone</label>
+                  <label className="block text-sm font-semibold text-primary mb-2">Alternate Phone</label>
                   <input
                     type="tel"
                     value={newContact.alternatePhone}
                     onChange={(e) => setNewContact({ ...newContact, alternatePhone: e.target.value })}
-                    className="w-full border-2 border-gray-200 p-3 rounded-xl focus:ring-2 focus:ring-red-500"
+                    className="w-full border-2 border-theme p-3 rounded-xl focus:ring-2 focus:ring-red-500"
                     placeholder="+1-555-0101"
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-semibold text-gray-700 mb-2">Email</label>
+                  <label className="block text-sm font-semibold text-primary mb-2">Email</label>
                   <input
                     type="email"
                     value={newContact.email}
                     onChange={(e) => setNewContact({ ...newContact, email: e.target.value })}
-                    className="w-full border-2 border-gray-200 p-3 rounded-xl focus:ring-2 focus:ring-red-500"
+                    className="w-full border-2 border-theme p-3 rounded-xl focus:ring-2 focus:ring-red-500"
                     placeholder="contact@company.com"
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-semibold text-gray-700 mb-2">Department *</label>
+                  <label className="block text-sm font-semibold text-primary mb-2">Department *</label>
                   <input
                     type="text"
                     required
                     value={newContact.department}
                     onChange={(e) => setNewContact({ ...newContact, department: e.target.value })}
-                    className="w-full border-2 border-gray-200 p-3 rounded-xl focus:ring-2 focus:ring-red-500"
+                    className="w-full border-2 border-theme p-3 rounded-xl focus:ring-2 focus:ring-red-500"
                     placeholder="Safety, Operations, External, etc."
                   />
                 </div>
@@ -436,28 +436,28 @@ const EmergencyProcedures: React.FC = () => {
                     type="checkbox"
                     checked={newContact.isPrimary}
                     onChange={(e) => setNewContact({ ...newContact, isPrimary: e.target.checked })}
-                    className="w-5 h-5 text-red-600 focus:ring-red-500 rounded"
+                    className="w-5 h-5 text-[#A855F7] focus:ring-red-500 rounded"
                   />
-                  <span className="font-medium text-gray-700">Primary Contact</span>
+                  <span className="font-medium text-primary">Primary Contact</span>
                 </label>
                 <label className="flex items-center space-x-3 cursor-pointer">
                   <input
                     type="checkbox"
                     checked={newContact.available24_7}
                     onChange={(e) => setNewContact({ ...newContact, available24_7: e.target.checked })}
-                    className="w-5 h-5 text-red-600 focus:ring-red-500 rounded"
+                    className="w-5 h-5 text-[#A855F7] focus:ring-red-500 rounded"
                   />
-                  <span className="font-medium text-gray-700">Available 24/7</span>
+                  <span className="font-medium text-primary">Available 24/7</span>
                 </label>
               </div>
-              <div className="flex justify-end gap-3 pt-4 border-t-2 border-gray-200">
+              <div className="flex justify-end gap-3 pt-4 border-t-2 border-theme">
                 <button
                   type="button"
                   onClick={() => {
                     setShowContactForm(false);
                     setEditingContact(null);
                   }}
-                  className="px-4 py-2 bg-gray-200 text-gray-700 rounded-xl font-semibold hover:bg-gray-300"
+                  className="px-4 py-2 bg-gray-200 text-primary rounded-xl font-semibold hover:bg-gray-300"
                 >
                   Cancel
                 </button>
@@ -479,13 +479,13 @@ const EmergencyProcedures: React.FC = () => {
             <div
               key={contact._id}
               className={`p-5 rounded-xl border-2 ${contact.isPrimary
-                ? 'border-red-500 bg-red-50'
-                : 'border-gray-200 bg-gray-50'
+                ? 'border-red-500 bg-card'
+                : 'border-theme bg-card'
                 }`}
             >
               <div className="flex justify-between items-start mb-2">
                 <div>
-                  <h3 className="font-bold text-gray-900">{contact.name}</h3>
+                  <h3 className="font-bold text-primary">{contact.name}</h3>
                   {contact.isPrimary && (
                     <span className="text-xs bg-red-500 text-white px-2 py-1 rounded-full mt-1 inline-block">
                       PRIMARY
@@ -508,7 +508,7 @@ const EmergencyProcedures: React.FC = () => {
                       });
                       setShowContactForm(true);
                     }}
-                    className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition"
+                    className="p-2 text-[#00D1FF] hover:bg-blue-50 rounded-lg transition"
                     title="Edit Contact"
                   >
                     <FaEdit size={14} />
@@ -519,31 +519,31 @@ const EmergencyProcedures: React.FC = () => {
                       setDeleteItemType('contact');
                       setShowDeleteModal(true);
                     }}
-                    className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition"
+                    className="p-2 text-[#A855F7] hover:bg-red-50 rounded-lg transition"
                     title="Delete Contact"
                   >
                     <FaTrash size={14} />
                   </button>
                 </div>
               </div>
-              <p className="text-sm text-gray-600 mb-2">{contact.role}</p>
-              <p className="text-sm text-gray-500 mb-2">{contact.department}</p>
+              <p className="text-sm text-secondary mb-2">{contact.role}</p>
+              <p className="text-sm text-secondary mb-2">{contact.department}</p>
               <div className="flex items-center gap-2 mb-1">
-                <FaPhone className="text-blue-600" size={14} />
-                <a href={`tel:${contact.phone}`} className="text-lg font-semibold text-blue-600 hover:underline">
+                <FaPhone className="text-[#00D1FF]" size={14} />
+                <a href={`tel:${contact.phone}`} className="text-lg font-semibold text-[#00D1FF] hover:underline">
                   {contact.phone}
                 </a>
               </div>
               {contact.alternatePhone && (
                 <div className="flex items-center gap-2 mb-1">
-                  <FaPhone className="text-gray-400" size={12} />
-                  <span className="text-sm text-gray-500">Alt: {contact.alternatePhone}</span>
+                  <FaPhone className="text-secondary" size={12} />
+                  <span className="text-sm text-secondary">Alt: {contact.alternatePhone}</span>
                 </div>
               )}
               {contact.email && (
                 <div className="flex items-center gap-2">
-                  <FaEnvelope className="text-gray-400" size={12} />
-                  <a href={`mailto:${contact.email}`} className="text-sm text-gray-600 hover:underline">
+                  <FaEnvelope className="text-secondary" size={12} />
+                  <a href={`mailto:${contact.email}`} className="text-sm text-secondary hover:underline">
                     {contact.email}
                   </a>
                 </div>
@@ -568,10 +568,10 @@ const EmergencyProcedures: React.FC = () => {
 
   const renderEmergencyProcedures = () => (
     <div className="space-y-6">
-      <div className="bg-white rounded-2xl p-8 shadow-lg">
+      <div className="bg-card rounded-2xl p-8 shadow-lg">
         <div className="flex justify-between items-center mb-6">
-          <h2 className="text-2xl font-bold text-gray-900 flex items-center gap-3">
-            <FaClipboardList className="text-orange-600" />
+          <h2 className="text-2xl font-bold text-primary flex items-center gap-3">
+            <FaClipboardList className="text-[#F59E0B]" />
             Emergency Response Procedures
           </h2>
           <button
@@ -596,7 +596,7 @@ const EmergencyProcedures: React.FC = () => {
           {procedures.map((proc) => (
             <div
               key={proc._id}
-              className="border-2 border-gray-200 rounded-xl overflow-hidden"
+              className="border-2 border-theme rounded-xl overflow-hidden"
             >
               <button
                 onClick={() =>
@@ -607,8 +607,8 @@ const EmergencyProcedures: React.FC = () => {
                 <div className="flex items-center gap-4">
                   {getProcedureIcon(proc.type)}
                   <div className="text-left">
-                    <h3 className="font-bold text-gray-900 text-lg">{proc.title}</h3>
-                    <p className="text-xs text-gray-500">
+                    <h3 className="font-bold text-primary text-lg">{proc.title}</h3>
+                    <p className="text-xs text-secondary">
                       Last Updated: {new Date(proc.lastUpdated).toLocaleDateString()}
                     </p>
                   </div>
@@ -626,24 +626,24 @@ const EmergencyProcedures: React.FC = () => {
                       });
                       setShowProcedureForm(true);
                     }}
-                    className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition"
+                    className="p-2 text-[#00D1FF] hover:bg-blue-50 rounded-lg transition"
                     title="Edit Procedure"
                   >
                     <FaEdit size={14} />
                   </button>
                   {expandedProcedure === proc._id ? (
-                    <FaChevronDown className="text-gray-600" />
+                    <FaChevronDown className="text-secondary" />
                   ) : (
-                    <FaChevronRight className="text-gray-600" />
+                    <FaChevronRight className="text-secondary" />
                   )}
                 </div>
               </button>
 
               {expandedProcedure === proc._id && (
-                <div className="p-6 bg-white border-t-2 border-gray-200">
+                <div className="p-6 bg-card border-t-2 border-theme">
                   {proc.quickReferenceSteps && proc.quickReferenceSteps.length > 0 && (
                     <div className="mb-4">
-                      <h4 className="font-bold text-gray-900 mb-2">Quick Reference Steps:</h4>
+                      <h4 className="font-bold text-primary mb-2">Quick Reference Steps:</h4>
                       <div className="flex flex-wrap gap-2">
                         {proc.quickReferenceSteps.map((step, idx) => (
                           <span
@@ -657,8 +657,8 @@ const EmergencyProcedures: React.FC = () => {
                     </div>
                   )}
                   <div>
-                    <h4 className="font-bold text-gray-900 mb-2">Detailed Procedure:</h4>
-                    <div className="whitespace-pre-line text-gray-700 bg-gray-50 p-4 rounded-lg">
+                    <h4 className="font-bold text-primary mb-2">Detailed Procedure:</h4>
+                    <div className="whitespace-pre-line text-primary bg-card p-4 rounded-lg">
                       {proc.procedure}
                     </div>
                   </div>
@@ -685,14 +685,14 @@ const EmergencyProcedures: React.FC = () => {
       {/* Procedure Form Modal */}
       {showProcedureForm && (
         <div className="fixed inset-0 flex justify-center items-center z-[10000] p-4 bg-black/40 bg-opacity-50" onClick={() => setShowProcedureForm(false)}>
-          <div className="bg-white rounded-xl shadow-2xl w-full max-w-3xl max-h-[90vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
-            <div className="sticky top-0 bg-white border-b p-6 flex justify-between items-center">
+          <div className="bg-card rounded-xl shadow-2xl w-full max-w-3xl max-h-[90vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
+            <div className="sticky top-0 bg-card border-b p-6 flex justify-between items-center">
               <h2 className="text-2xl font-bold">
                 {editingProcedure ? 'Edit Emergency Procedure' : 'Add New Emergency Procedure'}
               </h2>
               <button
                 onClick={() => setShowProcedureForm(false)}
-                className="text-gray-500 hover:text-gray-800 transition-colors"
+                className="text-secondary hover:text-primary transition-colors"
               >
                 <FaTimes size={24} />
               </button>
@@ -739,24 +739,24 @@ const EmergencyProcedures: React.FC = () => {
               className="p-6 space-y-6"
             >
               <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-2">Title *</label>
+                <label className="block text-sm font-semibold text-primary mb-2">Title *</label>
                 <input
                   type="text"
                   required
                   value={newProcedure.title}
                   onChange={(e) => setNewProcedure({ ...newProcedure, title: e.target.value })}
-                  className="w-full border-2 border-gray-200 p-3 rounded-xl focus:ring-2 focus:ring-orange-500"
+                  className="w-full border-2 border-theme p-3 rounded-xl focus:ring-2 focus:ring-orange-500"
                   placeholder="Procedure Title"
                 />
               </div>
 
               <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-2">Type *</label>
+                <label className="block text-sm font-semibold text-primary mb-2">Type *</label>
                 <select
                   required
                   value={newProcedure.type}
                   onChange={(e) => setNewProcedure({ ...newProcedure, type: e.target.value as any })}
-                  className="w-full border-2 border-gray-200 p-3 rounded-xl focus:ring-2 focus:ring-orange-500"
+                  className="w-full border-2 border-theme p-3 rounded-xl focus:ring-2 focus:ring-orange-500"
                 >
                   <option value="medical">Medical</option>
                   <option value="fire">Fire</option>
@@ -769,19 +769,19 @@ const EmergencyProcedures: React.FC = () => {
               </div>
 
               <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-2">Procedure Details *</label>
+                <label className="block text-sm font-semibold text-primary mb-2">Procedure Details *</label>
                 <textarea
                   required
                   rows={8}
                   value={newProcedure.procedure}
                   onChange={(e) => setNewProcedure({ ...newProcedure, procedure: e.target.value })}
-                  className="w-full border-2 border-gray-200 p-3 rounded-xl focus:ring-2 focus:ring-orange-500"
+                  className="w-full border-2 border-theme p-3 rounded-xl focus:ring-2 focus:ring-orange-500"
                   placeholder="Enter detailed procedure steps..."
                 />
               </div>
 
               <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-2">Quick Reference Steps</label>
+                <label className="block text-sm font-semibold text-primary mb-2">Quick Reference Steps</label>
                 {newProcedure.quickReferenceSteps.map((step, idx) => (
                   <div key={idx} className="flex gap-2 mb-2">
                     <input
@@ -792,7 +792,7 @@ const EmergencyProcedures: React.FC = () => {
                         newSteps[idx] = e.target.value;
                         setNewProcedure({ ...newProcedure, quickReferenceSteps: newSteps });
                       }}
-                      className="flex-1 border-2 border-gray-200 p-2 rounded-lg focus:ring-2 focus:ring-orange-500"
+                      className="flex-1 border-2 border-theme p-2 rounded-lg focus:ring-2 focus:ring-orange-500"
                       placeholder={`Step ${idx + 1}`}
                     />
                     {newProcedure.quickReferenceSteps.length > 1 && (
@@ -812,20 +812,20 @@ const EmergencyProcedures: React.FC = () => {
                 <button
                   type="button"
                   onClick={() => setNewProcedure({ ...newProcedure, quickReferenceSteps: [...newProcedure.quickReferenceSteps, ''] })}
-                  className="mt-2 px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 flex items-center gap-2"
+                  className="mt-2 px-4 py-2 bg-gray-200 text-primary rounded-lg hover:bg-gray-300 flex items-center gap-2"
                 >
                   <FaPlus /> Add Step
                 </button>
               </div>
 
-              <div className="flex justify-end gap-3 pt-4 border-t-2 border-gray-200">
+              <div className="flex justify-end gap-3 pt-4 border-t-2 border-theme">
                 <button
                   type="button"
                   onClick={() => {
                     setShowProcedureForm(false);
                     setEditingProcedure(null);
                   }}
-                  className="px-4 py-2 bg-gray-200 text-gray-700 rounded-xl font-semibold hover:bg-gray-300"
+                  className="px-4 py-2 bg-gray-200 text-primary rounded-xl font-semibold hover:bg-gray-300"
                   disabled={submitting}
                 >
                   Cancel
@@ -850,10 +850,10 @@ const EmergencyProcedures: React.FC = () => {
 
   const renderFirstAidLogs = () => (
     <div className="space-y-6">
-      <div className="bg-white rounded-2xl p-8 shadow-lg">
+      <div className="bg-card rounded-2xl p-8 shadow-lg">
         <div className="flex justify-between items-center mb-6">
-          <h2 className="text-2xl font-bold text-gray-900 flex items-center gap-3">
-            <FaAmbulance className="text-red-600" />
+          <h2 className="text-2xl font-bold text-primary flex items-center gap-3">
+            <FaAmbulance className="text-[#A855F7]" />
             First Aid Logs
           </h2>
           <button
@@ -866,16 +866,16 @@ const EmergencyProcedures: React.FC = () => {
 
         <div className="overflow-x-auto">
           <table className="w-full">
-            <thead className="bg-gray-50">
+            <thead className="bg-card">
               <tr>
-                <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase">Date / Time</th>
-                <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase">Location</th>
-                <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase">Injured Person</th>
-                <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase">Injury Description</th>
-                <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase">First Aid Provided</th>
-                <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase">Treated By</th>
-                <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase">Follow-up</th>
-                <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase">Actions</th>
+                <th className="px-6 py-4 text-left text-xs font-medium text-secondary uppercase">Date / Time</th>
+                <th className="px-6 py-4 text-left text-xs font-medium text-secondary uppercase">Location</th>
+                <th className="px-6 py-4 text-left text-xs font-medium text-secondary uppercase">Injured Person</th>
+                <th className="px-6 py-4 text-left text-xs font-medium text-secondary uppercase">Injury Description</th>
+                <th className="px-6 py-4 text-left text-xs font-medium text-secondary uppercase">First Aid Provided</th>
+                <th className="px-6 py-4 text-left text-xs font-medium text-secondary uppercase">Treated By</th>
+                <th className="px-6 py-4 text-left text-xs font-medium text-secondary uppercase">Follow-up</th>
+                <th className="px-6 py-4 text-left text-xs font-medium text-secondary uppercase">Actions</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-200">
@@ -886,22 +886,22 @@ const EmergencyProcedures: React.FC = () => {
                     setSelectedFirstAidLog(log);
                     setShowDetailModal(true);
                   }}
-                  className="hover:bg-gray-50 transition cursor-pointer"
+                  className="hover:bg-[rgba(255,255,255,0.03)] transition cursor-pointer"
                 >
                   <td className="px-6 py-4 text-sm">
-                    <div className="font-medium text-gray-900">{new Date(log.date).toLocaleDateString()}</div>
-                    <div className="text-gray-500 text-xs">{log.time}</div>
+                    <div className="font-medium text-primary">{new Date(log.date).toLocaleDateString()}</div>
+                    <div className="text-secondary text-xs">{log.time}</div>
                   </td>
-                  <td className="px-6 py-4 text-sm text-gray-700">
+                  <td className="px-6 py-4 text-sm text-primary">
                     <div className="flex items-center gap-2">
-                      <FaMapMarkerAlt className="text-gray-400" size={12} />
+                      <FaMapMarkerAlt className="text-secondary" size={12} />
                       {log.location}
                     </div>
                   </td>
-                  <td className="px-6 py-4 text-sm font-medium text-gray-900">{log.injuredPerson}</td>
-                  <td className="px-6 py-4 text-sm text-gray-700">{log.injuryDescription}</td>
-                  <td className="px-6 py-4 text-sm text-gray-700">{log.firstAidProvided}</td>
-                  <td className="px-6 py-4 text-sm text-gray-700">{log.treatedBy}</td>
+                  <td className="px-6 py-4 text-sm font-medium text-primary">{log.injuredPerson}</td>
+                  <td className="px-6 py-4 text-sm text-primary">{log.injuryDescription}</td>
+                  <td className="px-6 py-4 text-sm text-primary">{log.firstAidProvided}</td>
+                  <td className="px-6 py-4 text-sm text-primary">{log.treatedBy}</td>
                   <td className="px-6 py-4">
                     {log.followUpRequired ? (
                       <span className="px-2 py-1 bg-yellow-100 text-yellow-800 rounded text-xs font-semibold">
@@ -932,7 +932,7 @@ const EmergencyProcedures: React.FC = () => {
                           });
                           setShowFirstAidForm(true);
                         }}
-                        className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition" title="Edit"
+                        className="p-2 text-[#00D1FF] hover:bg-blue-50 rounded-lg transition" title="Edit"
                       >
                         <FaEdit />
                       </button>
@@ -943,7 +943,7 @@ const EmergencyProcedures: React.FC = () => {
                           setDeleteItemType('firstaid');
                           setShowDeleteModal(true);
                         }}
-                        className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition" title="Delete"
+                        className="p-2 text-[#A855F7] hover:bg-red-50 rounded-lg transition" title="Delete"
                       >
                         <FaTrash />
                       </button>
@@ -959,14 +959,14 @@ const EmergencyProcedures: React.FC = () => {
       {/* First Aid Log Form Modal */}
       {showFirstAidForm && (
         <div className="fixed inset-0 flex justify-center items-center z-[10000] p-4 bg-black/40 bg-opacity-50" onClick={() => setShowFirstAidForm(false)}>
-          <div className="bg-white rounded-xl shadow-2xl w-full max-w-3xl max-h-[90vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
-            <div className="sticky top-0 bg-white border-b p-6 flex justify-between items-center">
+          <div className="bg-card rounded-xl shadow-2xl w-full max-w-3xl max-h-[90vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
+            <div className="sticky top-0 bg-card border-b p-6 flex justify-between items-center">
               <h2 className="text-2xl font-bold">
                 {editingFirstAid ? 'Edit First Aid Log' : 'New First Aid Log'}
               </h2>
               <button
                 onClick={() => setShowFirstAidForm(false)}
-                className="text-gray-500 hover:text-gray-800 transition-colors"
+                className="text-secondary hover:text-primary transition-colors"
               >
                 <FaTimes size={24} />
               </button>
@@ -1028,94 +1028,94 @@ const EmergencyProcedures: React.FC = () => {
             >
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-sm font-semibold text-gray-700 mb-2">Date *</label>
+                  <label className="block text-sm font-semibold text-primary mb-2">Date *</label>
                   <input
                     type="date"
                     required
                     value={newFirstAidLog.date}
                     onChange={(e) => setNewFirstAidLog({ ...newFirstAidLog, date: e.target.value })}
-                    className="w-full border-2 border-gray-200 p-3 rounded-xl focus:ring-2 focus:ring-red-500"
+                    className="w-full border-2 border-theme p-3 rounded-xl focus:ring-2 focus:ring-red-500"
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-semibold text-gray-700 mb-2">Time *</label>
+                  <label className="block text-sm font-semibold text-primary mb-2">Time *</label>
                   <input
                     type="time"
                     required
                     value={newFirstAidLog.time}
                     onChange={(e) => setNewFirstAidLog({ ...newFirstAidLog, time: e.target.value })}
-                    className="w-full border-2 border-gray-200 p-3 rounded-xl focus:ring-2 focus:ring-red-500"
+                    className="w-full border-2 border-theme p-3 rounded-xl focus:ring-2 focus:ring-red-500"
                   />
                 </div>
               </div>
 
               <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-2">Location *</label>
+                <label className="block text-sm font-semibold text-primary mb-2">Location *</label>
                 <input
                   type="text"
                   required
                   value={newFirstAidLog.location}
                   onChange={(e) => setNewFirstAidLog({ ...newFirstAidLog, location: e.target.value })}
-                  className="w-full border-2 border-gray-200 p-3 rounded-xl focus:ring-2 focus:ring-red-500"
+                  className="w-full border-2 border-theme p-3 rounded-xl focus:ring-2 focus:ring-red-500"
                   placeholder="Location where incident occurred"
                 />
               </div>
 
               <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-2">Injured Person *</label>
+                <label className="block text-sm font-semibold text-primary mb-2">Injured Person *</label>
                 <input
                   type="text"
                   required
                   value={newFirstAidLog.injuredPerson}
                   onChange={(e) => setNewFirstAidLog({ ...newFirstAidLog, injuredPerson: e.target.value })}
-                  className="w-full border-2 border-gray-200 p-3 rounded-xl focus:ring-2 focus:ring-red-500"
+                  className="w-full border-2 border-theme p-3 rounded-xl focus:ring-2 focus:ring-red-500"
                   placeholder="Name of injured person"
                 />
               </div>
 
               <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-2">Injury Description *</label>
+                <label className="block text-sm font-semibold text-primary mb-2">Injury Description *</label>
                 <textarea
                   required
                   rows={3}
                   value={newFirstAidLog.injuryDescription}
                   onChange={(e) => setNewFirstAidLog({ ...newFirstAidLog, injuryDescription: e.target.value })}
-                  className="w-full border-2 border-gray-200 p-3 rounded-xl focus:ring-2 focus:ring-red-500"
+                  className="w-full border-2 border-theme p-3 rounded-xl focus:ring-2 focus:ring-red-500"
                   placeholder="Describe the injury..."
                 />
               </div>
 
               <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-2">First Aid Provided *</label>
+                <label className="block text-sm font-semibold text-primary mb-2">First Aid Provided *</label>
                 <textarea
                   required
                   rows={3}
                   value={newFirstAidLog.firstAidProvided}
                   onChange={(e) => setNewFirstAidLog({ ...newFirstAidLog, firstAidProvided: e.target.value })}
-                  className="w-full border-2 border-gray-200 p-3 rounded-xl focus:ring-2 focus:ring-red-500"
+                  className="w-full border-2 border-theme p-3 rounded-xl focus:ring-2 focus:ring-red-500"
                   placeholder="Describe the first aid treatment provided..."
                 />
               </div>
 
               <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-2">Treated By *</label>
+                <label className="block text-sm font-semibold text-primary mb-2">Treated By *</label>
                 <input
                   type="text"
                   required
                   value={newFirstAidLog.treatedBy}
                   onChange={(e) => setNewFirstAidLog({ ...newFirstAidLog, treatedBy: e.target.value })}
-                  className="w-full border-2 border-gray-200 p-3 rounded-xl focus:ring-2 focus:ring-red-500"
+                  className="w-full border-2 border-theme p-3 rounded-xl focus:ring-2 focus:ring-red-500"
                   placeholder="Name of person who provided first aid"
                 />
               </div>
 
               <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-2">Related Incident (Optional)</label>
+                <label className="block text-sm font-semibold text-primary mb-2">Related Incident (Optional)</label>
                 <input
                   type="text"
                   value={newFirstAidLog.relatedIncident}
                   onChange={(e) => setNewFirstAidLog({ ...newFirstAidLog, relatedIncident: e.target.value })}
-                  className="w-full border-2 border-gray-200 p-3 rounded-xl focus:ring-2 focus:ring-red-500"
+                  className="w-full border-2 border-theme p-3 rounded-xl focus:ring-2 focus:ring-red-500"
                   placeholder="Incident number or reference"
                 />
               </div>
@@ -1126,20 +1126,20 @@ const EmergencyProcedures: React.FC = () => {
                     type="checkbox"
                     checked={newFirstAidLog.followUpRequired}
                     onChange={(e) => setNewFirstAidLog({ ...newFirstAidLog, followUpRequired: e.target.checked })}
-                    className="w-5 h-5 text-red-600 focus:ring-red-500 rounded"
+                    className="w-5 h-5 text-[#A855F7] focus:ring-red-500 rounded"
                   />
-                  <span className="font-medium text-gray-700">Follow-up Required</span>
+                  <span className="font-medium text-primary">Follow-up Required</span>
                 </label>
               </div>
 
-              <div className="flex justify-end gap-3 pt-4 border-t-2 border-gray-200">
+              <div className="flex justify-end gap-3 pt-4 border-t-2 border-theme">
                 <button
                   type="button"
                   onClick={() => {
                     setShowFirstAidForm(false);
                     setEditingFirstAid(null);
                   }}
-                  className="px-4 py-2 bg-gray-200 text-gray-700 rounded-xl font-semibold hover:bg-gray-300"
+                  className="px-4 py-2 bg-gray-200 text-primary rounded-xl font-semibold hover:bg-gray-300"
                   disabled={submitting}
                 >
                   Cancel
@@ -1169,19 +1169,19 @@ const EmergencyProcedures: React.FC = () => {
             <FaAmbulance className="inline mr-3" style={{ color: CUSTOM_COLORS.primary }} />
             Emergency Procedures & Response
           </h1>
-          <p className="text-lg text-gray-600">
+          <p className="text-lg text-secondary">
             Manage emergency contacts, response procedures, and first aid logs for quick access during emergencies.
           </p>
         </div>
 
         {/* Tabs */}
-        <div className="bg-white rounded-xl shadow-lg mb-6">
-          <div className="flex border-b border-gray-200">
+        <div className="bg-card rounded-xl shadow-lg mb-6">
+          <div className="flex border-b border-theme">
             <button
               onClick={() => setActiveTab('contacts')}
               className={`flex-1 px-6 py-4 font-semibold transition ${activeTab === 'contacts'
-                ? 'border-b-2 text-red-600'
-                : 'text-gray-600 hover:text-gray-900'
+                ? 'border-b-2 text-[#A855F7]'
+                : 'text-secondary hover:text-primary'
                 }`}
               style={activeTab === 'contacts' ? { borderColor: CUSTOM_COLORS.primary } : {}}
             >
@@ -1191,8 +1191,8 @@ const EmergencyProcedures: React.FC = () => {
             <button
               onClick={() => setActiveTab('procedures')}
               className={`flex-1 px-6 py-4 font-semibold transition ${activeTab === 'procedures'
-                ? 'border-b-2 text-orange-600'
-                : 'text-gray-600 hover:text-gray-900'
+                ? 'border-b-2 text-[#F59E0B]'
+                : 'text-secondary hover:text-primary'
                 }`}
               style={activeTab === 'procedures' ? { borderColor: CUSTOM_COLORS.primary } : {}}
             >
@@ -1202,8 +1202,8 @@ const EmergencyProcedures: React.FC = () => {
             <button
               onClick={() => setActiveTab('firstaid')}
               className={`flex-1 px-6 py-4 font-semibold transition ${activeTab === 'firstaid'
-                ? 'border-b-2 text-red-600'
-                : 'text-gray-600 hover:text-gray-900'
+                ? 'border-b-2 text-[#A855F7]'
+                : 'text-secondary hover:text-primary'
                 }`}
               style={activeTab === 'firstaid' ? { borderColor: CUSTOM_COLORS.primary } : {}}
             >
@@ -1219,7 +1219,7 @@ const EmergencyProcedures: React.FC = () => {
         {activeTab === 'firstaid' && renderFirstAidLogs()}
 
         {/* Info Panel */}
-        <div className="mt-6 bg-red-50 border-2 border-red-200 rounded-xl p-6">
+        <div className="mt-6 bg-card border-2 border-red-200 rounded-xl p-6">
           <h3 className="text-lg font-bold text-red-900 mb-3 flex items-center gap-2">
             <FaExclamationTriangle /> Emergency Procedures Compliance
           </h3>
@@ -1236,18 +1236,18 @@ const EmergencyProcedures: React.FC = () => {
       {/* Delete Confirmation Modal */}
       {showDeleteModal && itemToDelete && (
         <div className="fixed inset-0 flex justify-center items-center z-[11000] p-4 bg-black/50 backdrop-blur-sm" onClick={() => setShowDeleteModal(false)}>
-          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md p-6" onClick={(e) => e.stopPropagation()}>
+          <div className="bg-card rounded-2xl shadow-2xl w-full max-w-md p-6" onClick={(e) => e.stopPropagation()}>
             <div className="text-center mb-6">
               <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
                 <FaExclamationTriangle className="text-red-500 text-3xl" />
               </div>
-              <h2 className="text-2xl font-bold text-gray-900 mb-2">
+              <h2 className="text-2xl font-bold text-primary mb-2">
                 {deleteItemType === 'contact' ? 'Delete Contact?' :
                   deleteItemType === 'procedure' ? 'Delete Procedure?' :
                     'Delete Log?'}
               </h2>
-              <p className="text-gray-600">
-                Are you sure you want to delete <span className="font-semibold text-gray-800">
+              <p className="text-secondary">
+                Are you sure you want to delete <span className="font-semibold text-primary">
                   "{deleteItemType === 'contact' ? itemToDelete.name :
                     deleteItemType === 'procedure' ? itemToDelete.title :
                       `Log from ${new Date(itemToDelete.date).toLocaleDateString()}`}"
@@ -1258,7 +1258,7 @@ const EmergencyProcedures: React.FC = () => {
             <div className="flex gap-4">
               <button
                 onClick={() => setShowDeleteModal(false)}
-                className="flex-1 px-4 py-3 bg-gray-100 text-gray-700 rounded-xl font-semibold hover:bg-gray-200 transition"
+                className="flex-1 px-4 py-3 bg-gray-100 text-primary rounded-xl font-semibold hover:bg-gray-200 transition"
               >
                 Cancel
               </button>
@@ -1276,12 +1276,12 @@ const EmergencyProcedures: React.FC = () => {
       {/* First Aid Log Detail Modal */}
       {showDetailModal && selectedFirstAidLog && (
         <div className="fixed inset-0 z-[10003] flex justify-center items-center p-4 bg-black/50 backdrop-blur-sm">
-          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-3xl max-h-[90vh] overflow-y-auto">
+          <div className="bg-card rounded-2xl shadow-2xl w-full max-w-3xl max-h-[90vh] overflow-y-auto">
             <div className="sticky top-0 z-10 px-6 py-4 border-b flex justify-between items-center" style={{ background: CUSTOM_COLORS.gradient }}>
               <h2 className="text-xl font-bold text-white">First Aid Log Details</h2>
               <button
                 onClick={() => setShowDetailModal(false)}
-                className="text-white hover:bg-white/20 p-2 rounded-lg transition"
+                className="text-white hover:bg-card/20 p-2 rounded-lg transition"
               >
                 <FaTimes size={20} />
               </button>
@@ -1289,52 +1289,52 @@ const EmergencyProcedures: React.FC = () => {
             <div className="p-6 space-y-6">
               <div className="grid grid-cols-2 gap-6">
                 <div>
-                  <label className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Date</label>
-                  <div className="mt-1 text-base text-gray-900 font-medium">
+                  <label className="text-xs font-semibold text-secondary uppercase tracking-wider">Date</label>
+                  <div className="mt-1 text-base text-primary font-medium">
                     {new Date(selectedFirstAidLog.date).toLocaleDateString()}
                   </div>
                 </div>
                 <div>
-                  <label className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Time</label>
-                  <div className="mt-1 text-base text-gray-900 font-medium">{selectedFirstAidLog.time}</div>
+                  <label className="text-xs font-semibold text-secondary uppercase tracking-wider">Time</label>
+                  <div className="mt-1 text-base text-primary font-medium">{selectedFirstAidLog.time}</div>
                 </div>
               </div>
 
               <div>
-                <label className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Location</label>
-                <div className="mt-1 text-base text-gray-900 flex items-center gap-2">
-                  <FaMapMarkerAlt className="text-gray-400" />
+                <label className="text-xs font-semibold text-secondary uppercase tracking-wider">Location</label>
+                <div className="mt-1 text-base text-primary flex items-center gap-2">
+                  <FaMapMarkerAlt className="text-secondary" />
                   {selectedFirstAidLog.location}
                 </div>
               </div>
 
               <div className="grid grid-cols-2 gap-6">
                 <div>
-                  <label className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Injured Person</label>
-                  <div className="mt-1 text-base text-gray-900 font-medium">{selectedFirstAidLog.injuredPerson}</div>
+                  <label className="text-xs font-semibold text-secondary uppercase tracking-wider">Injured Person</label>
+                  <div className="mt-1 text-base text-primary font-medium">{selectedFirstAidLog.injuredPerson}</div>
                 </div>
                 <div>
-                  <label className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Treated By</label>
-                  <div className="mt-1 text-base text-gray-900 font-medium">{selectedFirstAidLog.treatedBy}</div>
+                  <label className="text-xs font-semibold text-secondary uppercase tracking-wider">Treated By</label>
+                  <div className="mt-1 text-base text-primary font-medium">{selectedFirstAidLog.treatedBy}</div>
                 </div>
               </div>
 
               <div>
-                <label className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Injury Description</label>
-                <div className="mt-1 text-base text-gray-900 bg-gray-50 p-4 rounded-lg">
+                <label className="text-xs font-semibold text-secondary uppercase tracking-wider">Injury Description</label>
+                <div className="mt-1 text-base text-primary bg-card p-4 rounded-lg">
                   {selectedFirstAidLog.injuryDescription}
                 </div>
               </div>
 
               <div>
-                <label className="text-xs font-semibold text-gray-500 uppercase tracking-wider">First Aid Provided</label>
-                <div className="mt-1 text-base text-gray-900 bg-gray-50 p-4 rounded-lg">
+                <label className="text-xs font-semibold text-secondary uppercase tracking-wider">First Aid Provided</label>
+                <div className="mt-1 text-base text-primary bg-card p-4 rounded-lg">
                   {selectedFirstAidLog.firstAidProvided}
                 </div>
               </div>
 
               <div>
-                <label className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Follow-up Required</label>
+                <label className="text-xs font-semibold text-secondary uppercase tracking-wider">Follow-up Required</label>
                 <div className="mt-1">
                   {selectedFirstAidLog.followUpRequired ? (
                     <span className="px-3 py-1.5 bg-yellow-100 text-yellow-800 rounded-full text-sm font-semibold">
@@ -1350,15 +1350,15 @@ const EmergencyProcedures: React.FC = () => {
 
               {selectedFirstAidLog.relatedIncident && (
                 <div>
-                  <label className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Related Incident</label>
-                  <div className="mt-1 text-base text-gray-900 font-medium">{selectedFirstAidLog.relatedIncident}</div>
+                  <label className="text-xs font-semibold text-secondary uppercase tracking-wider">Related Incident</label>
+                  <div className="mt-1 text-base text-primary font-medium">{selectedFirstAidLog.relatedIncident}</div>
                 </div>
               )}
             </div>
-            <div className="px-6 py-4 border-t bg-gray-50 flex justify-end">
+            <div className="px-6 py-4 border-t bg-card flex justify-end">
               <button
                 onClick={() => setShowDetailModal(false)}
-                className="px-6 py-2 bg-gray-200 text-gray-800 rounded-lg hover:bg-gray-300 transition font-semibold"
+                className="px-6 py-2 bg-gray-200 text-primary rounded-lg hover:bg-gray-300 transition font-semibold"
               >
                 Close
               </button>

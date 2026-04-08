@@ -385,7 +385,7 @@ const Billing = () => {
         <div className="flex gap-2 mb-4 flex-wrap">
           {(['monthly', '6months', 'annual'] as const).map(t => (
             <button key={t} onClick={() => onTabChange(t)}
-              className={`px-4 py-2 rounded-full text-sm font-medium border transition-all ${tab === t ? 'bg-white border-gray-300 shadow-sm text-gray-900' : 'bg-transparent border-transparent text-gray-500 hover:text-gray-700'}`}>
+              className={`px-4 py-2 rounded-full text-sm font-medium border transition-all ${tab === t ? 'bg-card border-gray-300 shadow-sm text-primary' : 'bg-transparent border-transparent text-secondary hover:text-primary'}`}>
               {t === 'monthly' ? 'Monthly' : t === '6months' ? (
                 <span className="flex items-center gap-1.5">6 Months {bonusDays > 0 && <span className="bg-green-100 text-green-700 text-xs px-1.5 py-0.5 rounded-full font-semibold">+{bonusDays} days free</span>}</span>
               ) : (
@@ -402,13 +402,13 @@ const Billing = () => {
           </div>
         )}
         {tab === 'annual' && freeMonths > 0 && (
-          <div className="bg-blue-50 border border-blue-200 rounded-lg px-4 py-2.5 mb-3 text-sm text-blue-800">
+          <div className="bg-card border border-blue-200 rounded-lg px-4 py-2.5 mb-3 text-sm text-blue-800">
             <strong>Annual incentive:</strong> Pay for 12 months and get {freeMonths} full month{freeMonths > 1 ? 's' : ''} free — {12 + freeMonths} months of access for the price of 12.
           </div>
         )}
 
         {tiers.length === 0 ? (
-          <p className="text-center text-sm text-gray-400 py-4 italic">Add truck tiers above to see pricing preview</p>
+          <p className="text-center text-sm text-secondary py-4 italic">Add truck tiers above to see pricing preview</p>
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             {tiers.map((tier, i) => {
@@ -432,31 +432,31 @@ const Billing = () => {
                 saveLine = `${formatPrice(tier.monthlyPrice, tier.currency)}/month · save ${formatPrice(tier.monthlyPrice * freeMonths, tier.currency)} vs monthly`;
               }
               return (
-                <div key={i} className={`relative bg-white rounded-xl p-4 border-2 transition-shadow ${isPopular ? 'border-blue-500 shadow-md' : 'border-gray-200'}`}>
+                <div key={i} className={`relative bg-card rounded-xl p-4 border-2 transition-shadow ${isPopular ? 'border-blue-500 shadow-md' : 'border-theme'}`}>
                   {isPopular && (
                     <div className="absolute -top-3 left-1/2 -translate-x-1/2 bg-blue-100 text-blue-700 text-xs font-semibold px-3 py-1 rounded-full border border-blue-200">Most popular</div>
                   )}
-                  <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1">{tier.minTrucks} – {tier.maxTrucks} Trucks</p>
+                  <p className="text-xs font-semibold text-secondary uppercase tracking-wide mb-1">{tier.minTrucks} – {tier.maxTrucks} Trucks</p>
                   <div className="flex items-baseline gap-1 mb-1">
-                    {strikethrough !== null && <span className="text-sm text-gray-400 line-through mr-1">{formatPrice(strikethrough, tier.currency)}</span>}
-                    <span className="text-3xl font-bold text-gray-900">{formatPrice(price, tier.currency)}</span>
-                    <span className="text-sm text-gray-500">{priceLabel}</span>
+                    {strikethrough !== null && <span className="text-sm text-secondary line-through mr-1">{formatPrice(strikethrough, tier.currency)}</span>}
+                    <span className="text-3xl font-bold text-primary">{formatPrice(price, tier.currency)}</span>
+                    <span className="text-sm text-secondary">{priceLabel}</span>
                   </div>
-                  {saveLine && <p className="text-xs text-gray-500 mb-3">{saveLine}</p>}
-                  <hr className="border-gray-100 mb-3" />
+                  {saveLine && <p className="text-xs text-secondary mb-3">{saveLine}</p>}
+                  <hr className="border-theme mb-3" />
                   <ul className="space-y-1.5">
-                    <li className="flex items-center gap-2 text-sm text-gray-700">
+                    <li className="flex items-center gap-2 text-sm text-primary">
                       <CheckCircle className="w-4 h-4 text-green-500 flex-shrink-0" />
                       Up to {tier.maxTrucks} trucks included
                     </li>
                     {tab === '6months' && bonusDays > 0 && (
-                      <li className="flex items-center gap-2 text-sm text-gray-700">
+                      <li className="flex items-center gap-2 text-sm text-primary">
                         <CheckCircle className="w-4 h-4 text-green-500 flex-shrink-0" />
                         {bonusDays} bonus days at no extra cost
                       </li>
                     )}
                     {tab === 'annual' && freeMonths > 0 && (
-                      <li className="flex items-center gap-2 text-sm text-gray-700">
+                      <li className="flex items-center gap-2 text-sm text-primary">
                         <CheckCircle className="w-4 h-4 text-green-500 flex-shrink-0" />
                         {freeMonths} month{freeMonths > 1 ? 's' : ''} free — {12 + freeMonths} months total
                       </li>
@@ -480,17 +480,17 @@ const Billing = () => {
           const periodPrice = tab === 'monthly' ? extraPrice : tab === '6months' ? extraPrice * 6 : extraPrice * 12;
           const periodLabel = tab === 'monthly' ? '/truck / month' : tab === '6months' ? '/truck / 6 months' : '/truck / year';
           return (
-            <div className="mt-3 rounded-xl border-2 border-dashed border-orange-200 bg-orange-50 overflow-hidden">
+            <div className="mt-3 rounded-xl border-2 border-dashed border-orange-200 bg-card overflow-hidden">
               <div className="flex items-center gap-2 px-4 py-2 bg-orange-100 border-b border-orange-200">
                 <span className="text-xs font-bold text-orange-800 uppercase tracking-wide">Additional Trucks Beyond {lastTierMax}</span>
               </div>
               <div className="flex items-center justify-between px-4 py-3 flex-wrap gap-3">
-                <p className="text-sm text-gray-700">
+                <p className="text-sm text-primary">
                   Base rate: <strong>{formatPrice(extraPrice, extraCur)}/truck/month</strong>
-                  {tab !== 'monthly' && <span className="text-gray-500"> (applied per month within your billing period)</span>}
+                  {tab !== 'monthly' && <span className="text-secondary"> (applied per month within your billing period)</span>}
                 </p>
                 <div className="text-right">
-                  <span className="text-xl font-bold text-orange-600">{formatPrice(periodPrice, extraCur)}</span>
+                  <span className="text-xl font-bold text-[#F59E0B]">{formatPrice(periodPrice, extraCur)}</span>
                   <span className="text-xs text-orange-500 ml-1">{periodLabel}</span>
                 </div>
               </div>
@@ -511,7 +511,7 @@ const Billing = () => {
         {/* ── Identity ── */}
         <div className="grid grid-cols-2 gap-4">
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Plan Name <span className="text-red-500">*</span></label>
+            <label className="block text-sm font-medium text-primary mb-1">Plan Name <span className="text-red-500">*</span></label>
             <Input
               value={formData.planName}
               onChange={(e) => setFormData({ ...formData, planName: e.target.value })}
@@ -520,7 +520,7 @@ const Billing = () => {
             />
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Status</label>
+            <label className="block text-sm font-medium text-primary mb-1">Status</label>
             <Select value={formData.status} onChange={(value) => setFormData({ ...formData, status: value })} className="w-full" size="large">
               <Select.Option value="active">Active</Select.Option>
               <Select.Option value="inactive">Inactive</Select.Option>
@@ -529,7 +529,7 @@ const Billing = () => {
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">Description</label>
+          <label className="block text-sm font-medium text-primary mb-1">Description</label>
           <Input.TextArea
             value={formData.description}
             onChange={(e) => setFormData({ ...formData, description: e.target.value })}
@@ -538,35 +538,35 @@ const Billing = () => {
           />
         </div>
 
-        <div className="flex items-center gap-3 px-4 py-3 bg-blue-50 rounded-xl border border-blue-100">
+        <div className="flex items-center gap-3 px-4 py-3 bg-card rounded-xl border border-blue-100">
           <Switch checked={formData.isDefault} onChange={(checked) => setFormData({ ...formData, isDefault: checked })} />
           <div>
-            <p className="text-sm font-semibold text-gray-800">Set as Default Plan</p>
-            <p className="text-xs text-gray-500">New admins will be shown this plan first</p>
+            <p className="text-sm font-semibold text-primary">Set as Default Plan</p>
+            <p className="text-xs text-secondary">New admins will be shown this plan first</p>
           </div>
         </div>
 
         {/* ── Fleet Tier Pricing ── */}
-        <div className="border border-gray-200 rounded-xl overflow-hidden">
-          <div className="px-5 py-3 bg-gray-50 border-b border-gray-200 flex items-center gap-2">
+        <div className="border border-theme rounded-xl overflow-hidden">
+          <div className="px-5 py-3 bg-card border-b border-theme flex items-center gap-2">
             <Zap className="w-4 h-4 text-blue-500" />
-            <span className="text-sm font-bold text-gray-800">Fleet Tier Pricing</span>
-            <span className="ml-auto text-xs text-gray-400 bg-white border border-gray-200 px-2 py-0.5 rounded-full">Fixed: 2 tiers</span>
+            <span className="text-sm font-bold text-primary">Fleet Tier Pricing</span>
+            <span className="ml-auto text-xs text-secondary bg-card border border-theme px-2 py-0.5 rounded-full">Fixed: 2 tiers</span>
           </div>
 
           <div className="p-5 grid grid-cols-2 gap-4">
             {/* Tier 1: 1–10 Trucks */}
-            <div className="rounded-xl border-2 border-orange-200 bg-orange-50 p-4">
+            <div className="rounded-xl border-2 border-orange-200 bg-card p-4">
               <div className="flex items-center gap-2 mb-3">
                 <div className="w-8 h-8 bg-orange-500 rounded-lg flex items-center justify-center">
                   <Zap className="w-4 h-4 text-white" />
                 </div>
                 <div>
-                  <p className="text-xs text-orange-600 font-semibold uppercase tracking-wide">Tier 1</p>
-                  <p className="text-sm font-bold text-gray-900">1 – 10 Trucks</p>
+                  <p className="text-xs text-[#F59E0B] font-semibold uppercase tracking-wide">Tier 1</p>
+                  <p className="text-sm font-bold text-primary">1 – 10 Trucks</p>
                 </div>
               </div>
-              <label className="block text-xs text-gray-500 mb-1">Monthly Price (CAD)</label>
+              <label className="block text-xs text-secondary mb-1">Monthly Price (CAD)</label>
               <Input
                 type="number"
                 size="large"
@@ -579,17 +579,17 @@ const Billing = () => {
             </div>
 
             {/* Tier 2: 11–20 Trucks */}
-            <div className="rounded-xl border-2 border-blue-200 bg-blue-50 p-4">
+            <div className="rounded-xl border-2 border-blue-200 bg-card p-4">
               <div className="flex items-center gap-2 mb-3">
                 <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center">
                   <Star className="w-4 h-4 text-white" />
                 </div>
                 <div>
-                  <p className="text-xs text-blue-600 font-semibold uppercase tracking-wide">Tier 2</p>
-                  <p className="text-sm font-bold text-gray-900">11 – 20 Trucks</p>
+                  <p className="text-xs text-[#00D1FF] font-semibold uppercase tracking-wide">Tier 2</p>
+                  <p className="text-sm font-bold text-primary">11 – 20 Trucks</p>
                 </div>
               </div>
-              <label className="block text-xs text-gray-500 mb-1">Monthly Price (CAD)</label>
+              <label className="block text-xs text-secondary mb-1">Monthly Price (CAD)</label>
               <Input
                 type="number"
                 size="large"
@@ -608,8 +608,8 @@ const Billing = () => {
               <div className="flex items-start gap-3">
                 <TrendingUp className="w-4 h-4 text-orange-500 mt-0.5 flex-shrink-0" />
                 <div className="flex-1">
-                  <label className="block text-sm font-semibold text-gray-800 mb-0.5">Additional Truck Rate</label>
-                  <p className="text-xs text-gray-500 mb-2">Charged per truck beyond 20 (last tier max)</p>
+                  <label className="block text-sm font-semibold text-primary mb-0.5">Additional Truck Rate</label>
+                  <p className="text-xs text-secondary mb-2">Charged per truck beyond 20 (last tier max)</p>
                   <Input
                     type="number"
                     value={tp.extraTruckPrice}
@@ -625,15 +625,15 @@ const Billing = () => {
           </div>
 
           {/* Billing bonuses */}
-          <div className="px-5 pb-5 border-t border-gray-100 pt-4">
-            <p className="text-xs font-bold text-gray-500 uppercase tracking-widest mb-3">Billing Period Bonuses</p>
+          <div className="px-5 pb-5 border-t border-theme pt-4">
+            <p className="text-xs font-bold text-secondary uppercase tracking-widest mb-3">Billing Period Bonuses</p>
             <div className="grid grid-cols-2 gap-4">
               <div className="bg-amber-50 border border-amber-200 rounded-xl p-4">
                 <div className="flex items-center gap-2 mb-2">
                   <Zap className="w-3.5 h-3.5 text-amber-500" />
-                  <label className="text-sm font-semibold text-gray-800">6-Month Bonus</label>
+                  <label className="text-sm font-semibold text-primary">6-Month Bonus</label>
                 </div>
-                <p className="text-xs text-gray-500 mb-2">Free days added when paying 6 months upfront</p>
+                <p className="text-xs text-secondary mb-2">Free days added when paying 6 months upfront</p>
                 <Input
                   type="number"
                   value={tp.sixMonthBonusDays}
@@ -645,9 +645,9 @@ const Billing = () => {
               <div className="bg-green-50 border border-green-200 rounded-xl p-4">
                 <div className="flex items-center gap-2 mb-2">
                   <Star className="w-3.5 h-3.5 text-green-500" />
-                  <label className="text-sm font-semibold text-gray-800">Annual Free Months</label>
+                  <label className="text-sm font-semibold text-primary">Annual Free Months</label>
                 </div>
-                <p className="text-xs text-gray-500 mb-2">Free months added when paying annually</p>
+                <p className="text-xs text-secondary mb-2">Free months added when paying annually</p>
                 <Input
                   type="number"
                   value={tp.annualFreeMonths}
@@ -660,24 +660,24 @@ const Billing = () => {
           </div>
 
           {/* Live Preview */}
-          <div className="px-5 pb-5 border-t border-gray-100 pt-4">
-            <p className="text-xs font-bold text-gray-500 uppercase tracking-widest mb-3">Live Pricing Preview</p>
+          <div className="px-5 pb-5 border-t border-theme pt-4">
+            <p className="text-xs font-bold text-secondary uppercase tracking-widest mb-3">Live Pricing Preview</p>
             {renderPricingPreview(tiers, tp, previewTab, setPreviewTab)}
           </div>
         </div>
 
         {/* ── Features ── */}
-        <div className="border border-gray-200 rounded-xl overflow-hidden">
-          <div className="px-5 py-3 bg-gray-50 border-b border-gray-200 flex items-center justify-between">
+        <div className="border border-theme rounded-xl overflow-hidden">
+          <div className="px-5 py-3 bg-card border-b border-theme flex items-center justify-between">
             <div className="flex items-center gap-2">
               <CheckCircle className="w-4 h-4 text-green-500" />
-              <span className="text-sm font-bold text-gray-800">Plan Features</span>
+              <span className="text-sm font-bold text-primary">Plan Features</span>
             </div>
             <Button size="small" icon={<Plus className="w-3 h-3" />} onClick={addFeature}>Add Feature</Button>
           </div>
           <div className="p-5">
             {formData.features.length === 0 && (
-              <p className="text-xs text-gray-400 italic text-center py-3">No features yet — click "Add Feature" to start</p>
+              <p className="text-xs text-secondary italic text-center py-3">No features yet — click "Add Feature" to start</p>
             )}
             <div className="space-y-2">
               {formData.features.map((feature, idx) => (
@@ -704,18 +704,18 @@ const Billing = () => {
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 via-gray-50 to-purple-50">
       {/* Header */}
-      <div className="bg-white border-b border-gray-200 shadow-sm">
+      <div className="bg-card border-b border-theme shadow-sm">
         <div className="px-6 py-5">
           <div className="flex items-center justify-between mb-4">
           <div>
-              <h1 className="text-3xl font-bold text-gray-900 flex items-center">
+              <h1 className="text-3xl font-bold text-primary flex items-center">
                 <div className="relative">
               <CreditCard className="w-8 h-8 text-purple-600 mr-3" />
                   <Sparkles className="w-4 h-4 text-yellow-400 absolute -top-1 -right-1" />
                 </div>
               Plan Management
             </h1>
-              <p className="text-gray-600 mt-2">Create, manage, and optimize pricing plans for your customers</p>
+              <p className="text-secondary mt-2">Create, manage, and optimize pricing plans for your customers</p>
           </div>
             <div className="flex items-center gap-3">
               <Button
@@ -779,7 +779,7 @@ const Billing = () => {
           {/* Search, Filter, and View Controls */}
           <div className="flex flex-col md:flex-row gap-4 mt-4">
             <div className="flex-1 relative">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-secondary w-5 h-5" />
               <Input
                 placeholder="Search plans by name or description..."
                 value={searchTerm}
@@ -844,10 +844,10 @@ const Billing = () => {
             <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-600"></div>
           </div>
         ) : filteredAndSortedPlans.length === 0 ? (
-          <div className="text-center py-20 bg-white rounded-xl shadow-sm border border-gray-200">
-            <CreditCard className="w-20 h-20 text-gray-400 mx-auto mb-4" />
-            <h3 className="text-xl font-semibold text-gray-900 mb-2">No plans found</h3>
-            <p className="text-gray-500 mb-6">
+          <div className="text-center py-20 bg-card rounded-xl shadow-sm border border-theme">
+            <CreditCard className="w-20 h-20 text-secondary mx-auto mb-4" />
+            <h3 className="text-xl font-semibold text-primary mb-2">No plans found</h3>
+            <p className="text-secondary mb-6">
               {searchTerm || filterType !== 'all' 
                 ? 'Try adjusting your search or filters'
                 : 'Create your first pricing plan to get started'}
@@ -880,17 +880,17 @@ const Billing = () => {
               return (
                 <div
                   key={plan._id}
-                  className={`bg-white rounded-3xl shadow-xl overflow-hidden border-2 transition-all duration-300 hover:shadow-2xl ${
-                    plan.isDefault ? 'border-purple-300 ring-2 ring-purple-100' : 'border-gray-100 hover:border-gray-200'
+                  className={`bg-card rounded-3xl shadow-xl overflow-hidden border-2 transition-all duration-300 hover:shadow-2xl ${
+                    plan.isDefault ? 'border-purple-300 ring-2 ring-purple-100' : 'border-theme hover:border-theme'
                   }`}
                 >
                   {/* ── Plan Header ── */}
                   <div className={`px-8 py-6 bg-gradient-to-r ${getPlanGradient(plan)} relative overflow-hidden`}>
-                    <div className="absolute top-0 right-0 w-40 h-40 bg-white opacity-10 rounded-full -mr-20 -mt-20" />
+                    <div className="absolute top-0 right-0 w-40 h-40 bg-card opacity-10 rounded-full -mr-20 -mt-20" />
                     <div className="relative z-10 flex items-start justify-between gap-4 flex-wrap">
                       <div>
                         <div className="flex items-center gap-3 mb-1 flex-wrap">
-                          <div className="p-2 bg-white/20 rounded-xl">
+                          <div className="p-2 bg-card/20 rounded-xl">
                             <CreditCard className="w-5 h-5 text-white" />
                           </div>
                           <h3 className="text-2xl font-bold text-white">{plan.planName}</h3>
@@ -899,7 +899,7 @@ const Billing = () => {
                               <Star className="w-3 h-3 fill-yellow-900" /> Default
                             </span>
                           )}
-                          <span className={`text-xs font-bold px-2.5 py-1 rounded-full capitalize border ${plan.status === 'active' ? 'bg-white/20 border-white/30 text-white' : 'bg-black/20 border-black/30 text-white/80'}`}>
+                          <span className={`text-xs font-bold px-2.5 py-1 rounded-full capitalize border ${plan.status === 'active' ? 'bg-card/20 border-white/30 text-white' : 'bg-black/20 border-black/30 text-white/80'}`}>
                             {plan.status}
                           </span>
                         </div>
@@ -910,13 +910,13 @@ const Billing = () => {
                       {/* Action buttons in header */}
                       <div className="flex items-center gap-2 flex-shrink-0">
                         <Tooltip title="View Details">
-                          <Button size="small" icon={<Eye className="w-3.5 h-3.5" />} onClick={() => handleView(plan)} className="bg-white/20 border-white/30 text-white hover:bg-white/30">View</Button>
+                          <Button size="small" icon={<Eye className="w-3.5 h-3.5" />} onClick={() => handleView(plan)} className="bg-card/20 border-white/30 text-white hover:bg-card/30">View</Button>
                         </Tooltip>
                         <Tooltip title="Edit Description">
-                          <Button size="small" icon={<Edit className="w-3.5 h-3.5" />} onClick={() => handleEdit(plan)} className="bg-white/20 border-white/30 text-white hover:bg-white/30">Edit</Button>
+                          <Button size="small" icon={<Edit className="w-3.5 h-3.5" />} onClick={() => handleEdit(plan)} className="bg-card/20 border-white/30 text-white hover:bg-card/30">Edit</Button>
                         </Tooltip>
                         <Tooltip title="Duplicate Plan">
-                          <Button size="small" icon={<Copy className="w-3.5 h-3.5" />} onClick={() => handleDuplicate(plan)} className="bg-white/20 border-white/30 text-white hover:bg-white/30" />
+                          <Button size="small" icon={<Copy className="w-3.5 h-3.5" />} onClick={() => handleDuplicate(plan)} className="bg-card/20 border-white/30 text-white hover:bg-card/30" />
                         </Tooltip>
                         <Tooltip title="Delete Plan">
                           <Button size="small" danger icon={<Trash2 className="w-3.5 h-3.5" />} onClick={(e) => { e.preventDefault(); e.stopPropagation(); handleDelete(plan); }} className="bg-red-500/80 border-red-400/50 text-white hover:bg-red-600" />
@@ -937,15 +937,15 @@ const Billing = () => {
                                 onClick={() => setPreviewTab(tab)}
                                 className={`relative px-6 py-2.5 rounded-xl text-sm font-semibold transition-all duration-200 flex flex-col items-center min-w-[110px] ${
                                   planTab === tab
-                                    ? 'bg-white shadow-md text-purple-700 ring-1 ring-purple-100'
-                                    : 'text-gray-500 hover:text-gray-700'
+                                    ? 'bg-card shadow-md text-purple-700 ring-1 ring-purple-100'
+                                    : 'text-secondary hover:text-primary'
                                 }`}
                               >
                                 <span>{tab === 'monthly' ? 'Monthly' : tab === '6months' ? '6 Months' : 'Annual'}</span>
                                 <span className={`text-[10px] font-bold mt-0.5 ${
                                   planTab === tab
                                     ? tab === '6months' ? 'text-amber-500' : tab === 'annual' ? 'text-green-600' : 'text-transparent'
-                                    : 'text-gray-400'
+                                    : 'text-secondary'
                                 }`}>
                                   {tab === '6months' ? `+${bonusDays} days free` : tab === 'annual' ? `+${freeMonths} mo free` : '‎'}
                                 </span>
@@ -998,7 +998,7 @@ const Billing = () => {
                                 className={`relative rounded-2xl border-2 p-6 transition-all duration-200 flex flex-col ${
                                   isPopular
                                     ? 'border-purple-400 bg-gradient-to-b from-purple-50 to-indigo-50 shadow-xl ring-2 ring-purple-100'
-                                    : 'border-gray-200 bg-white hover:border-purple-200 hover:shadow-lg'
+                                    : 'border-theme bg-card hover:border-purple-200 hover:shadow-lg'
                                 }`}
                               >
                                 {isPopular && (
@@ -1009,28 +1009,28 @@ const Billing = () => {
 
                                 <div className="flex items-center gap-3 mb-5">
                                   <div className={`p-2.5 rounded-xl ${isPopular ? 'bg-purple-600' : 'bg-orange-100'}`}>
-                                    <BarChart3 className={`w-5 h-5 ${isPopular ? 'text-white' : 'text-orange-600'}`} />
+                                    <BarChart3 className={`w-5 h-5 ${isPopular ? 'text-white' : 'text-[#F59E0B]'}`} />
                                   </div>
                                   <div>
-                                    <p className="text-[11px] text-gray-400 font-semibold uppercase tracking-wider">Fleet Size</p>
-                                    <p className="text-xl font-bold text-gray-900">{tier.minTrucks}–{tier.maxTrucks} Trucks</p>
+                                    <p className="text-[11px] text-secondary font-semibold uppercase tracking-wider">Fleet Size</p>
+                                    <p className="text-xl font-bold text-primary">{tier.minTrucks}–{tier.maxTrucks} Trucks</p>
                                   </div>
                                 </div>
 
                                 <div className="mb-5 flex-1">
                                   {strikethroughPrice && (
-                                    <p className="text-sm text-gray-400 line-through mb-0.5">{formatPrice(strikethroughPrice, currency)}</p>
+                                    <p className="text-sm text-secondary line-through mb-0.5">{formatPrice(strikethroughPrice, currency)}</p>
                                   )}
                                   <div className="flex items-baseline gap-1.5">
-                                    <span className={`text-4xl font-extrabold ${isPopular ? 'text-purple-700' : 'text-gray-900'}`}>
+                                    <span className={`text-4xl font-extrabold ${isPopular ? 'text-purple-700' : 'text-primary'}`}>
                                       {formatPrice(displayPrice, currency)}
                                     </span>
-                                    <span className="text-sm text-gray-400 font-medium">
+                                    <span className="text-sm text-secondary font-medium">
                                       {planTab === 'monthly' ? '/mo' : planTab === '6months' ? '/6 mo' : '/yr'}
                                     </span>
                                   </div>
                                   {planTab !== 'monthly' && (
-                                    <p className="text-xs text-gray-400 mt-1.5">
+                                    <p className="text-xs text-secondary mt-1.5">
                                       {formatPrice(baseMonthly, currency)}/mo equivalent
                                     </p>
                                   )}
@@ -1042,14 +1042,14 @@ const Billing = () => {
                                   const billingFactor = planTab === 'monthly' ? 1 : planTab === '6months' ? 6 : 12;
                                   const billingLabel = planTab === 'monthly' ? '/mo' : planTab === '6months' ? '/6 mo' : '/yr';
                                   return (
-                                    <div className="mb-4 rounded-lg border border-orange-200 bg-orange-50 overflow-hidden">
+                                    <div className="mb-4 rounded-lg border border-orange-200 bg-card overflow-hidden">
                                       <div className="flex items-center gap-1.5 px-3 py-1.5 bg-orange-100 border-b border-orange-200">
                                         <TrendingUp className="w-3 h-3 text-orange-500" />
                                         <span className="text-[10px] font-bold text-orange-700 uppercase tracking-wide">Additional Trucks</span>
                                       </div>
                                       <div className="flex items-center justify-between px-3 py-2">
-                                        <span className="text-xs text-gray-600">Beyond {lastTierMax} trucks</span>
-                                        <span className="text-xs font-bold text-orange-600">+{formatPrice(extraPrice * billingFactor, tp?.extraTruckCurrency ?? 'CAD')}{billingLabel}/truck</span>
+                                        <span className="text-xs text-secondary">Beyond {lastTierMax} trucks</span>
+                                        <span className="text-xs font-bold text-[#F59E0B]">+{formatPrice(extraPrice * billingFactor, tp?.extraTruckCurrency ?? 'CAD')}{billingLabel}/truck</span>
                                       </div>
                                     </div>
                                   );
@@ -1058,18 +1058,18 @@ const Billing = () => {
                                 <div className={`h-px mb-5 ${isPopular ? 'bg-purple-200' : 'bg-gray-100'}`} />
 
                                 <div className="space-y-2">
-                                  <div className="flex items-center gap-2 text-sm text-gray-700">
+                                  <div className="flex items-center gap-2 text-sm text-primary">
                                     <CheckCircle className="w-4 h-4 text-green-500 flex-shrink-0" />
                                     Up to {tier.maxTrucks} trucks included
                                   </div>
                                   {planTab === '6months' && bonusDays > 0 && (
-                                    <div className="flex items-center gap-2 text-sm text-gray-700">
+                                    <div className="flex items-center gap-2 text-sm text-primary">
                                       <CheckCircle className="w-4 h-4 text-green-500 flex-shrink-0" />
                                       {bonusDays} bonus days free
                                     </div>
                                   )}
                                   {planTab === 'annual' && freeMonths > 0 && (
-                                    <div className="flex items-center gap-2 text-sm text-gray-700">
+                                    <div className="flex items-center gap-2 text-sm text-primary">
                                       <CheckCircle className="w-4 h-4 text-green-500 flex-shrink-0" />
                                       {freeMonths} month{freeMonths > 1 ? 's' : ''} free — {12 + freeMonths} months total
                                     </div>
@@ -1088,18 +1088,18 @@ const Billing = () => {
                           const lastTierMax = tiers[tiers.length - 1]?.maxTrucks ?? 0;
                           const extraCur = tp?.extraTruckCurrency ?? 'CAD';
                           return (
-                            <div className="mb-6 rounded-2xl border-2 border-dashed border-orange-200 bg-orange-50 overflow-hidden">
+                            <div className="mb-6 rounded-2xl border-2 border-dashed border-orange-200 bg-card overflow-hidden">
                               <div className="flex items-center gap-2 px-5 py-3 bg-orange-100 border-b border-orange-200">
-                                <TrendingUp className="w-4 h-4 text-orange-600" />
+                                <TrendingUp className="w-4 h-4 text-[#F59E0B]" />
                                 <span className="text-sm font-bold text-orange-800">Additional Trucks Beyond {lastTierMax}</span>
                               </div>
                               <div className="flex items-center gap-5 flex-wrap px-5 py-4">
                                 <div className="flex-1 min-w-0">
-                                  <p className="text-sm text-gray-700">Admins with more than <strong>{lastTierMax} trucks</strong> are charged a flat per-truck rate.</p>
-                                  <p className="text-xs text-gray-500 mt-1">Base rate: {formatPrice(extraPrice, extraCur)}/truck/month</p>
+                                  <p className="text-sm text-primary">Admins with more than <strong>{lastTierMax} trucks</strong> are charged a flat per-truck rate.</p>
+                                  <p className="text-xs text-secondary mt-1">Base rate: {formatPrice(extraPrice, extraCur)}/truck/month</p>
                                 </div>
                                 <div className="text-right flex-shrink-0">
-                                  <p className="text-2xl font-extrabold text-orange-600">{formatPrice(extraDisplayPrice, extraCur)}</p>
+                                  <p className="text-2xl font-extrabold text-[#F59E0B]">{formatPrice(extraDisplayPrice, extraCur)}</p>
                                   <p className="text-xs text-orange-500 font-medium">{billingLabel}</p>
                                 </div>
                               </div>
@@ -1111,15 +1111,15 @@ const Billing = () => {
 
                     {/* ── Features ── */}
                     {plan.features && plan.features.filter(f => f.included).length > 0 && (
-                      <div className={`${tiers.length > 0 ? 'border-t border-gray-100 pt-6' : ''}`}>
-                        <p className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-4">What's Included</p>
+                      <div className={`${tiers.length > 0 ? 'border-t border-theme pt-6' : ''}`}>
+                        <p className="text-xs font-bold text-secondary uppercase tracking-widest mb-4">What's Included</p>
                         <div className={`grid gap-2.5 ${plan.features.filter(f => f.included).length > 4 ? 'grid-cols-1 sm:grid-cols-2' : 'grid-cols-1'}`}>
                           {plan.features.filter(f => f.included).map((f, fIdx) => (
                             <div key={fIdx} className="flex items-center gap-2.5">
                               <div className="w-5 h-5 bg-green-100 rounded-full flex items-center justify-center flex-shrink-0">
                                 <CheckCircle className="w-3.5 h-3.5 text-green-600" />
                               </div>
-                              <span className="text-sm text-gray-700">{f.name}</span>
+                              <span className="text-sm text-primary">{f.name}</span>
                             </div>
                           ))}
                         </div>
@@ -1132,17 +1132,17 @@ const Billing = () => {
           </div>
         ) : (
           // List View
-          <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+          <div className="bg-card rounded-xl shadow-sm border border-theme overflow-hidden">
             <div className="divide-y divide-gray-200">
               {filteredAndSortedPlans.map((plan) => (
                 <div
                   key={plan._id}
-                  className="p-6 hover:bg-gray-50 transition-colors"
+                  className="p-6 hover:bg-[rgba(255,255,255,0.03)] transition-colors"
                 >
                   <div className="flex items-center justify-between">
                     <div className="flex-1">
                       <div className="flex items-center gap-3 mb-2">
-                        <h3 className="text-lg font-semibold text-gray-900">{plan.planName}</h3>
+                        <h3 className="text-lg font-semibold text-primary">{plan.planName}</h3>
                         {plan.isDefault && <Tag color="purple" icon={<Star className="w-3 h-3" />}>Default</Tag>}
                         <Tag color={plan.planType === 'lifetime' ? 'blue' : 'green'}>
                           {plan.planType === 'lifetime' ? 'Lifetime' : 'Monthly'}
@@ -1152,22 +1152,22 @@ const Billing = () => {
                         </Tag>
                   </div>
                       {plan.description && (
-                        <p className="text-sm text-gray-600 mb-3">{plan.description}</p>
+                        <p className="text-sm text-secondary mb-3">{plan.description}</p>
                       )}
                       
                       <div className="flex items-center gap-6 text-sm">
                         {plan.planType === 'lifetime' && plan.lifetime && (
                           <div>
-                            <span className="text-gray-600">One-time: </span>
-                            <span className="font-semibold text-gray-900">
+                            <span className="text-secondary">One-time: </span>
+                            <span className="font-semibold text-primary">
                               {formatPrice(plan.lifetime.oneTime.price, plan.lifetime.oneTime.currency)}
                             </span>
                           </div>
                         )}
                         {plan.planType === 'monthly' && plan.monthly?.fullApp && (
                           <div>
-                            <span className="text-gray-600">Monthly Price: </span>
-                            <span className="font-semibold text-gray-900">
+                            <span className="text-secondary">Monthly Price: </span>
+                            <span className="font-semibold text-primary">
                               {formatPrice(plan.monthly.fullApp.price, plan.monthly.fullApp.currency)}/mo
                             </span>
                           </div>
@@ -1229,11 +1229,11 @@ const Billing = () => {
         width={500}
       >
         <div className="py-4 space-y-4">
-          <div className="bg-yellow-50 border border-yellow-200 rounded-lg px-3 py-2 text-sm text-yellow-800">
+          <div className="bg-card border border-yellow-200 rounded-lg px-3 py-2 text-sm text-yellow-800">
             Only the plan description can be edited after creation.
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">Description</label>
+            <label className="block text-sm font-medium text-primary mb-2">Description</label>
             <Input.TextArea
               value={editDescription}
               onChange={(e) => setEditDescription(e.target.value)}
@@ -1282,24 +1282,24 @@ const Billing = () => {
         >
           <div className="space-y-6 py-4">
             {/* Header Info */}
-            <div className="bg-gradient-to-r from-gray-50 to-gray-100 rounded-lg p-4 border border-gray-200">
+            <div className="bg-gradient-to-r from-gray-50 to-gray-100 rounded-lg p-4 border border-theme">
               <div className="flex items-center justify-between">
             <div>
-                  <p className="text-sm text-gray-600 mb-1">Plan Type</p>
+                  <p className="text-sm text-secondary mb-1">Plan Type</p>
                   <Tag color={selectedPlan.planType === 'lifetime' ? 'blue' : 'green'} className="text-sm">
                     {selectedPlan.planType === 'lifetime' ? 'Lifetime Plan' : 'Monthly Plan'}
                   </Tag>
             </div>
             <div>
-                  <p className="text-sm text-gray-600 mb-1">Status</p>
+                  <p className="text-sm text-secondary mb-1">Status</p>
                   <Tag color={selectedPlan.status === 'active' ? 'success' : 'default'} className="text-sm">
                     {selectedPlan.status === 'active' ? 'Active' : 'Inactive'}
               </Tag>
             </div>
                 {selectedPlan.createdAt && (
                   <div>
-                    <p className="text-sm text-gray-600 mb-1">Created</p>
-                    <p className="text-sm font-medium text-gray-900">
+                    <p className="text-sm text-secondary mb-1">Created</p>
+                    <p className="text-sm font-medium text-primary">
                       {new Date(selectedPlan.createdAt).toLocaleDateString()}
                     </p>
                   </div>
@@ -1309,9 +1309,9 @@ const Billing = () => {
 
             {selectedPlan.description && (
               <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-2">Description</label>
-                <div className="bg-gray-50 rounded-lg p-4 border border-gray-200">
-                  <p className="text-gray-900 leading-relaxed">{selectedPlan.description}</p>
+                <label className="block text-sm font-semibold text-primary mb-2">Description</label>
+                <div className="bg-card rounded-lg p-4 border border-theme">
+                  <p className="text-primary leading-relaxed">{selectedPlan.description}</p>
                 </div>
               </div>
             )}
@@ -1319,7 +1319,7 @@ const Billing = () => {
             {/* Pricing Section */}
             {selectedPlan.planType === 'lifetime' && selectedPlan.lifetime && (
               <div className="border-t pt-6">
-                <h4 className="text-lg font-bold text-gray-900 mb-4 flex items-center gap-2">
+                <h4 className="text-lg font-bold text-primary mb-4 flex items-center gap-2">
                   <Zap className="w-5 h-5 text-blue-500" />
                   Lifetime Pricing Options
                 </h4>
@@ -1327,39 +1327,39 @@ const Billing = () => {
                   <div className="bg-gradient-to-r from-blue-50 to-cyan-50 p-5 rounded-xl border-2 border-blue-200">
                     <div className="flex items-center justify-between">
                   <div>
-                        <p className="text-sm text-gray-600 mb-1">One-time Payment</p>
-                        <p className="text-3xl font-bold text-gray-900">
+                        <p className="text-sm text-secondary mb-1">One-time Payment</p>
+                        <p className="text-3xl font-bold text-primary">
                           {formatPrice(selectedPlan.lifetime.oneTime.price, selectedPlan.lifetime.oneTime.currency)}
                         </p>
-                        <p className="text-xs text-gray-500 mt-1">Best value - Pay once, own forever</p>
+                        <p className="text-xs text-secondary mt-1">Best value - Pay once, own forever</p>
                       </div>
                       <CheckCircle className="w-8 h-8 text-blue-500" />
                     </div>
                   </div>
                   {selectedPlan.lifetime.installments.threeMonths.enabled && (
-                    <div className="bg-white p-4 rounded-lg border border-gray-200">
+                    <div className="bg-card p-4 rounded-lg border border-theme">
                       <div className="flex items-center justify-between">
                     <div>
-                          <p className="text-sm font-medium text-gray-700">3 Monthly Installments</p>
-                          <p className="text-xl font-bold text-gray-900 mt-1">
+                          <p className="text-sm font-medium text-primary">3 Monthly Installments</p>
+                          <p className="text-xl font-bold text-primary mt-1">
                             {formatPrice(selectedPlan.lifetime.installments.threeMonths.price, selectedPlan.lifetime.installments.threeMonths.currency)}
-                            <span className="text-sm font-normal text-gray-600">/month</span>
+                            <span className="text-sm font-normal text-secondary">/month</span>
                           </p>
-                          <p className="text-xs text-gray-500 mt-1">Total: {formatPrice(selectedPlan.lifetime.installments.threeMonths.price * 3, selectedPlan.lifetime.installments.threeMonths.currency)}</p>
+                          <p className="text-xs text-secondary mt-1">Total: {formatPrice(selectedPlan.lifetime.installments.threeMonths.price * 3, selectedPlan.lifetime.installments.threeMonths.currency)}</p>
                         </div>
                       </div>
                     </div>
                   )}
                   {selectedPlan.lifetime.installments.sixMonths.enabled && (
-                    <div className="bg-white p-4 rounded-lg border border-gray-200">
+                    <div className="bg-card p-4 rounded-lg border border-theme">
                       <div className="flex items-center justify-between">
                     <div>
-                          <p className="text-sm font-medium text-gray-700">6 Monthly Installments</p>
-                          <p className="text-xl font-bold text-gray-900 mt-1">
+                          <p className="text-sm font-medium text-primary">6 Monthly Installments</p>
+                          <p className="text-xl font-bold text-primary mt-1">
                             {formatPrice(selectedPlan.lifetime.installments.sixMonths.price, selectedPlan.lifetime.installments.sixMonths.currency)}
-                            <span className="text-sm font-normal text-gray-600">/month</span>
+                            <span className="text-sm font-normal text-secondary">/month</span>
                           </p>
-                          <p className="text-xs text-gray-500 mt-1">Total: {formatPrice(selectedPlan.lifetime.installments.sixMonths.price * 6, selectedPlan.lifetime.installments.sixMonths.currency)}</p>
+                          <p className="text-xs text-secondary mt-1">Total: {formatPrice(selectedPlan.lifetime.installments.sixMonths.price * 6, selectedPlan.lifetime.installments.sixMonths.currency)}</p>
                         </div>
                       </div>
                     </div>
@@ -1370,7 +1370,7 @@ const Billing = () => {
 
             {selectedPlan.planType === 'monthly' && selectedPlan.monthly && (selectedPlan.monthly.truckPricing?.tiers?.length ?? 0) > 0 && (
               <div className="border-t pt-4">
-                <h4 className="text-base font-bold text-gray-900 mb-2 flex items-center gap-2">
+                <h4 className="text-base font-bold text-primary mb-2 flex items-center gap-2">
                   <Calendar className="w-4 h-4 text-green-500" />
                   Pricing Plans
                 </h4>
@@ -1386,14 +1386,14 @@ const Billing = () => {
             {/* Features */}
             {(selectedPlan.features?.length ?? 0) > 0 && (
               <div className="border-t pt-6">
-                <h4 className="text-lg font-bold text-gray-900 mb-3">Features</h4>
+                <h4 className="text-lg font-bold text-primary mb-3">Features</h4>
                 <div className="grid grid-cols-2 gap-2">
                   {selectedPlan.features!.map((f, i) => (
                     <div key={i} className="flex items-center gap-2 text-sm">
                       {f.included
                         ? <CheckCircle className="w-4 h-4 text-green-500 flex-shrink-0" />
                         : <XCircle className="w-4 h-4 text-gray-300 flex-shrink-0" />}
-                      <span className={f.included ? 'text-gray-900' : 'text-gray-400 line-through'}>{f.name}</span>
+                      <span className={f.included ? 'text-primary' : 'text-secondary line-through'}>{f.name}</span>
                     </div>
                   ))}
                 </div>
@@ -1403,10 +1403,10 @@ const Billing = () => {
             {/* Roles */}
             {((selectedPlan.allowedRoles?.length ?? 0) > 0 || (selectedPlan.blockedRoles?.length ?? 0) > 0) && (
               <div className="border-t pt-6">
-                <h4 className="text-lg font-bold text-gray-900 mb-3">Role Access</h4>
+                <h4 className="text-lg font-bold text-primary mb-3">Role Access</h4>
                 {(selectedPlan.allowedRoles?.length ?? 0) > 0 && (
                   <div className="mb-3">
-                    <p className="text-sm font-medium text-gray-700 mb-2">Allowed Roles</p>
+                    <p className="text-sm font-medium text-primary mb-2">Allowed Roles</p>
                     <div className="flex flex-wrap gap-1">
                       {selectedPlan.allowedRoles!.map(r => <Tag key={r} color="blue">{r}</Tag>)}
                     </div>
@@ -1414,7 +1414,7 @@ const Billing = () => {
                 )}
                 {(selectedPlan.blockedRoles?.length ?? 0) > 0 && (
                   <div>
-                    <p className="text-sm font-medium text-gray-700 mb-2">Blocked Roles</p>
+                    <p className="text-sm font-medium text-primary mb-2">Blocked Roles</p>
                     <div className="flex flex-wrap gap-1">
                       {selectedPlan.blockedRoles!.map(r => <Tag key={r} color="red">{r}</Tag>)}
                     </div>
@@ -1451,7 +1451,7 @@ const Billing = () => {
       >
         <div className="py-4">
           <div className="mb-4">
-            <p className="text-sm text-gray-600 mb-3">Select plans to compare (select at least 2 plans):</p>
+            <p className="text-sm text-secondary mb-3">Select plans to compare (select at least 2 plans):</p>
             <div className="flex flex-wrap gap-2">
               {plans.map((plan) => (
                 <Button
@@ -1476,12 +1476,12 @@ const Billing = () => {
             <div className="overflow-x-auto">
               <table className="w-full border-collapse">
                 <thead>
-                  <tr className="border-b-2 border-gray-200">
-                    <th className="text-left p-3 font-semibold text-gray-700">Feature</th>
+                  <tr className="border-b-2 border-theme">
+                    <th className="text-left p-3 font-semibold text-primary">Feature</th>
                     {selectedPlans.map(planId => {
                       const plan = plans.find(p => p._id === planId);
                       return plan ? (
-                        <th key={planId} className="text-center p-3 font-semibold text-gray-700">
+                        <th key={planId} className="text-center p-3 font-semibold text-primary">
                           <div className="flex flex-col items-center gap-1">
                             <span>{plan.planName}</span>
                             <Tag color={plan.planType === 'lifetime' ? 'blue' : 'green'}>
@@ -1494,8 +1494,8 @@ const Billing = () => {
                   </tr>
                 </thead>
                 <tbody>
-                  <tr className="border-b border-gray-100">
-                    <td className="p-3 font-medium text-gray-700">Plan Type</td>
+                  <tr className="border-b border-theme">
+                    <td className="p-3 font-medium text-primary">Plan Type</td>
                     {selectedPlans.map(planId => {
                       const plan = plans.find(p => p._id === planId);
                       return plan ? (
@@ -1507,8 +1507,8 @@ const Billing = () => {
                       ) : null;
                     })}
                   </tr>
-                  <tr className="border-b border-gray-100">
-                    <td className="p-3 font-medium text-gray-700">Status</td>
+                  <tr className="border-b border-theme">
+                    <td className="p-3 font-medium text-primary">Status</td>
                     {selectedPlans.map(planId => {
                       const plan = plans.find(p => p._id === planId);
                       return plan ? (
@@ -1520,8 +1520,8 @@ const Billing = () => {
                       ) : null;
                     })}
                   </tr>
-                  <tr className="border-b border-gray-100">
-                    <td className="p-3 font-medium text-gray-700">Default Plan</td>
+                  <tr className="border-b border-theme">
+                    <td className="p-3 font-medium text-primary">Default Plan</td>
                     {selectedPlans.map(planId => {
                       const plan = plans.find(p => p._id === planId);
                       return plan ? (
@@ -1531,12 +1531,12 @@ const Billing = () => {
                       ) : null;
                     })}
                   </tr>
-                  <tr className="border-b border-gray-100">
-                    <td className="p-3 font-medium text-gray-700">One-time Price</td>
+                  <tr className="border-b border-theme">
+                    <td className="p-3 font-medium text-primary">One-time Price</td>
                     {selectedPlans.map(planId => {
                       const plan = plans.find(p => p._id === planId);
                       return plan ? (
-                        <td key={planId} className="text-center p-3 font-semibold text-gray-900">
+                        <td key={planId} className="text-center p-3 font-semibold text-primary">
                           {plan.planType === 'lifetime' && plan.lifetime
                             ? formatPrice(plan.lifetime.oneTime.price, plan.lifetime.oneTime.currency)
                             : 'N/A'}
@@ -1544,12 +1544,12 @@ const Billing = () => {
                       ) : null;
                     })}
                   </tr>
-                  <tr className="border-b border-gray-100">
-                    <td className="p-3 font-medium text-gray-700">Monthly Price</td>
+                  <tr className="border-b border-theme">
+                    <td className="p-3 font-medium text-primary">Monthly Price</td>
                     {selectedPlans.map(planId => {
                       const plan = plans.find(p => p._id === planId);
                       return plan ? (
-                        <td key={planId} className="text-center p-3 font-semibold text-gray-900">
+                        <td key={planId} className="text-center p-3 font-semibold text-primary">
                           {plan.planType === 'monthly' && plan.monthly?.fullApp.enabled
                             ? formatPrice(plan.monthly.fullApp.price, plan.monthly.fullApp.currency) + '/mo'
                             : plan.planType === 'lifetime'
@@ -1559,12 +1559,12 @@ const Billing = () => {
                       ) : null;
                     })}
                   </tr>
-                  <tr className="border-b border-gray-100">
-                    <td className="p-3 font-medium text-gray-700">Description</td>
+                  <tr className="border-b border-theme">
+                    <td className="p-3 font-medium text-primary">Description</td>
                     {selectedPlans.map(planId => {
                       const plan = plans.find(p => p._id === planId);
                       return plan ? (
-                        <td key={planId} className="text-center p-3 text-sm text-gray-600">
+                        <td key={planId} className="text-center p-3 text-sm text-secondary">
                           {plan.description || 'No description'}
                         </td>
                       ) : null;
@@ -1576,7 +1576,7 @@ const Billing = () => {
           )}
           
           {selectedPlans.length < 2 && (
-            <div className="text-center py-8 text-gray-500">
+            <div className="text-center py-8 text-secondary">
               Please select at least 2 plans to compare
             </div>
           )}
@@ -1587,7 +1587,7 @@ const Billing = () => {
       <Modal
         title={
           <div className="flex items-center gap-2">
-            <Trash2 className="w-5 h-5 text-red-600" />
+            <Trash2 className="w-5 h-5 text-[#A855F7]" />
             <span>Delete Plan</span>
           </div>
         }
@@ -1625,17 +1625,17 @@ const Billing = () => {
         <div className="py-4">
           <div className="flex items-start gap-4">
             <div className="flex-shrink-0 w-12 h-12 rounded-full bg-red-100 flex items-center justify-center">
-              <Trash2 className="w-6 h-6 text-red-600" />
+              <Trash2 className="w-6 h-6 text-[#A855F7]" />
             </div>
             <div className="flex-1">
-              <h3 className="text-lg font-semibold text-gray-900 mb-2">
+              <h3 className="text-lg font-semibold text-primary mb-2">
                 Are you sure you want to delete this plan?
               </h3>
-              <p className="text-gray-600 mb-4">
-                You are about to delete the plan <span className="font-semibold text-gray-900">"{deletePlanName}"</span>. 
+              <p className="text-secondary mb-4">
+                You are about to delete the plan <span className="font-semibold text-primary">"{deletePlanName}"</span>. 
                 This action cannot be undone.
               </p>
-              <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-3">
+              <div className="bg-card border border-yellow-200 rounded-lg p-3">
                 <p className="text-sm text-yellow-800">
                   <strong>Warning:</strong> If this plan is associated with any active subscriptions, 
                   you may need to update those subscriptions before deleting this plan.

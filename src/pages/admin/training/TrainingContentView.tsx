@@ -345,48 +345,48 @@ const TrainingContentView: React.FC = () => {
 
   if (loading) {
     return (
-      <div className="p-6 bg-[#EDF8FF] min-h-screen flex items-center justify-center">
+      <div className="p-6 bg-main min-h-screen flex items-center justify-center">
         <div className="text-center">
           <Loader2 className="w-8 h-8 animate-spin text-[#0ea3d8] mx-auto mb-4" />
-          <p className="text-gray-600">Loading training content...</p>
+          <p className="text-secondary">Loading training content...</p>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="p-6 bg-[#EDF8FF] min-h-screen">
+    <div className="p-6 bg-main min-h-screen">
       <div className="max-w-7xl mx-auto">
         <div className="mb-6">
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">Training Content</h1>
-          <p className="text-gray-600">
+          <h1 className="text-3xl font-bold text-primary mb-2">Training Content</h1>
+          <p className="text-secondary">
             Training materials and Q&A for {roleLabel}
           </p>
         </div>
 
         {/* Training Materials Section */}
-        <div className="bg-white rounded-lg shadow-sm mb-6">
-          <div className="p-6 border-b border-gray-200">
-            <h2 className="text-xl font-semibold text-gray-900">Training Materials</h2>
-            <p className="text-sm text-gray-600 mt-1">
+        <div className="bg-card rounded-lg shadow-sm mb-6">
+          <div className="p-6 border-b border-theme">
+            <h2 className="text-xl font-semibold text-primary">Training Materials</h2>
+            <p className="text-sm text-secondary mt-1">
               Videos, PDFs, and images for your role
             </p>
           </div>
           <div className="p-6">
             {trainingContent.length === 0 ? (
-              <div className="text-center py-12 text-gray-500">
-                <Upload className="w-12 h-12 mx-auto mb-4 text-gray-400" />
+              <div className="text-center py-12 text-secondary">
+                <Upload className="w-12 h-12 mx-auto mb-4 text-secondary" />
                 <p>No training materials available yet</p>
                 <p className="text-sm mt-2">Training materials will appear here when uploaded</p>
               </div>
             ) : (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                 {trainingContent.map((item) => (
-                  <div key={item._id} className="bg-gray-50 rounded-lg p-4 border border-gray-200">
+                  <div key={item._id} className="bg-card rounded-lg p-4 border border-theme">
                     <div className="flex items-start justify-between mb-2">
                       <div className="flex items-center gap-2 flex-1">
                         <div className="text-[#0ea3d8]">{getIcon(item.type)}</div>
-                        <h3 className="font-semibold text-gray-900">{item.name}</h3>
+                        <h3 className="font-semibold text-primary">{item.name}</h3>
                       </div>
                       <button
                         onClick={() => handleViewContent(item._id, item.type)}
@@ -397,9 +397,9 @@ const TrainingContentView: React.FC = () => {
                       </button>
                     </div>
                     {item.description && (
-                      <p className="text-sm text-gray-600 mt-2 mb-3">{item.description}</p>
+                      <p className="text-sm text-secondary mt-2 mb-3">{item.description}</p>
                     )}
-                    <div className="flex items-center justify-between text-sm text-gray-500 mt-3">
+                    <div className="flex items-center justify-between text-sm text-secondary mt-3">
                       <div className="flex items-center gap-2">
                         <span className="capitalize bg-gray-200 px-2 py-1 rounded">{getTypeLabel(item.type)}</span>
                         <span className="bg-blue-100 text-blue-700 px-2 py-1 rounded text-xs">{getTestTypeDisplayName(item.testType)}</span>
@@ -416,17 +416,17 @@ const TrainingContentView: React.FC = () => {
         </div>
 
         {/* Q&A Section */}
-        <div className="bg-white rounded-lg shadow-sm">
-          <div className="p-6 border-b border-gray-200">
-            <h2 className="text-xl font-semibold text-gray-900">Q&A Content</h2>
-            <p className="text-sm text-gray-600 mt-1">
+        <div className="bg-card rounded-lg shadow-sm">
+          <div className="p-6 border-b border-theme">
+            <h2 className="text-xl font-semibold text-primary">Q&A Content</h2>
+            <p className="text-sm text-secondary mt-1">
               Questions and answers for your role
             </p>
           </div>
           <div className="p-6">
             {qaContent.length === 0 ? (
-              <div className="text-center py-12 text-gray-500">
-                <MessageSquare className="w-12 h-12 mx-auto mb-4 text-gray-400" />
+              <div className="text-center py-12 text-secondary">
+                <MessageSquare className="w-12 h-12 mx-auto mb-4 text-secondary" />
                 <p>No Q&A content available yet</p>
                 <p className="text-sm mt-2">Q&A content will appear here when added</p>
               </div>
@@ -440,26 +440,26 @@ const TrainingContentView: React.FC = () => {
                   const isSubmitting = submitting[item._id];
 
                   return (
-                    <div key={item._id} className="bg-gray-50 rounded-lg p-4 border border-gray-200">
+                    <div key={item._id} className="bg-card rounded-lg p-4 border border-theme">
                       <div className="flex-1">
                         <div className="flex items-center justify-between mb-3">
                           <div>
                             <div className="flex items-center gap-3 mb-2">
-                              <h3 className="font-semibold text-gray-900">{item.testName}</h3>
+                              <h3 className="font-semibold text-primary">{item.testName}</h3>
                               <span className="bg-blue-100 text-blue-700 px-2 py-1 rounded text-xs">{getTestTypeDisplayName(item.testType)}</span>
-                              <span className="text-sm text-gray-600">Passing: {item.passingPercentage}%</span>
-                              <span className="text-sm text-gray-600">Questions: {item.questions.length}</span>
-                              {item.mandatory && <span className="text-xs text-red-600 font-medium">Mandatory</span>}
+                              <span className="text-sm text-secondary">Passing: {item.passingPercentage}%</span>
+                              <span className="text-sm text-secondary">Questions: {item.questions.length}</span>
+                              {item.mandatory && <span className="text-xs text-[#A855F7] font-medium">Mandatory</span>}
                             </div>
                          
                           </div>
                           {isSubmitted && score && (
-                            <div className="flex items-center gap-2 px-4 py-2 bg-white rounded-lg border border-gray-200">
-                              <span className="text-sm font-medium text-gray-700">Score:</span>
-                              <span className={`text-lg font-bold ${score.passed ? 'text-green-600' : score.correct / score.total >= 0.7 ? 'text-yellow-600' : 'text-red-600'}`}>
+                            <div className="flex items-center gap-2 px-4 py-2 bg-card rounded-lg border border-theme">
+                              <span className="text-sm font-medium text-primary">Score:</span>
+                              <span className={`text-lg font-bold ${score.passed ? 'text-green-600' : score.correct / score.total >= 0.7 ? 'text-[#00FFA3]' : 'text-[#A855F7]'}`}>
                                 {score.correct}/{score.total}
                               </span>
-                              <span className="text-sm text-gray-500">
+                              <span className="text-sm text-secondary">
                                 ({Math.round((score.correct / score.total) * 100)}%)
                               </span>
                               {score.passed && (
@@ -475,19 +475,19 @@ const TrainingContentView: React.FC = () => {
                             const showResults = isSubmitted;
 
                             return (
-                              <div key={idx} className="bg-white rounded p-3 border border-gray-200">
-                                <p className="font-medium text-gray-900 mb-2">Q{idx + 1}: {q.question}</p>
+                              <div key={idx} className="bg-card rounded p-3 border border-theme">
+                                <p className="font-medium text-primary mb-2">Q{idx + 1}: {q.question}</p>
                                 <div className="space-y-1">
                                   {q.options.map((option, optIdx) => {
                                     const isSelected = userAnswer === optIdx;
                                     const isCorrectOption = q.correctAnswer === optIdx;
-                                    let optionClass = 'text-gray-600';
+                                    let optionClass = 'text-secondary';
                                     
                                     if (showResults) {
                                       if (isCorrectOption) {
                                         optionClass = 'text-green-600 font-medium';
                                       } else if (isSelected && !isCorrectOption) {
-                                        optionClass = 'text-red-600 font-medium';
+                                        optionClass = 'text-[#A855F7] font-medium';
                                       }
                                     }
 
@@ -507,7 +507,7 @@ const TrainingContentView: React.FC = () => {
                                             <CheckCircle2 className="w-4 h-4 text-green-600" />
                                           )}
                                           {showResults && isSelected && !isCorrectOption && (
-                                            <XCircle className="w-4 h-4 text-red-600" />
+                                            <XCircle className="w-4 h-4 text-[#A855F7]" />
                                           )}
                                         </span>
                                       </div>
@@ -515,7 +515,7 @@ const TrainingContentView: React.FC = () => {
                                   })}
                                 </div>
                                 {showResults && (
-                                  <div className={`mt-2 text-xs font-medium ${isCorrect ? 'text-green-600' : 'text-red-600'}`}>
+                                  <div className={`mt-2 text-xs font-medium ${isCorrect ? 'text-green-600' : 'text-[#A855F7]'}`}>
                                     {isCorrect ? '✓ Correct!' : '✗ Incorrect. The correct answer is marked in green.'}
                                   </div>
                                 )}
@@ -542,7 +542,7 @@ const TrainingContentView: React.FC = () => {
                           ) : (
                             <button
                               onClick={() => handleResetQA(item._id)}
-                              className="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition-colors"
+                              className="px-4 py-2 bg-gray-200 text-primary rounded-lg hover:bg-gray-300 transition-colors"
                             >
                               Retake Quiz
                             </button>

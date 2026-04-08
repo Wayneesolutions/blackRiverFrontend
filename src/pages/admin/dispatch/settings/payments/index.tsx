@@ -109,11 +109,11 @@ const ScrollableTable = () => {
     };
 
     return (
-        <div className="min-h-screen bg-gray-50 p-6">
+        <div className="min-h-screen bg-card p-6">
             {/* Header */}
-            <div className="bg-white shadow-sm border-b border-gray-200 px-6 py-4 mb-6">
+            <div className="bg-card shadow-sm border-b border-theme px-6 py-4 mb-6">
                 <div className="flex items-center justify-between">
-                    <h1 className="text-xl font-semibold text-gray-800">Invoices</h1>
+                    <h1 className="text-xl font-semibold text-primary">Invoices</h1>
                     <div className="flex items-center space-x-2">
                         <button
                             onClick={handleExportPDF}
@@ -128,110 +128,110 @@ const ScrollableTable = () => {
 
 
             {/* Table Container with Horizontal Scroll */}
-            <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
+            <div className="bg-card rounded-lg shadow-sm border border-theme overflow-hidden">
                 <div className="overflow-x-auto">
                     <table className="min-w-max w-full table-auto">
                         <thead>
-                            <tr className="bg-gray-50 border-b border-gray-200">
-                                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider min-w-32">
+                            <tr className="bg-card border-b border-theme">
+                                <th className="px-4 py-3 text-left text-xs font-medium text-secondary uppercase tracking-wider min-w-32">
                                     INVOICES
                                 </th>
-                                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider min-w-28">
+                                <th className="px-4 py-3 text-left text-xs font-medium text-secondary uppercase tracking-wider min-w-28">
                                     ORDER
                                 </th>
-                                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider min-w-28">
+                                <th className="px-4 py-3 text-left text-xs font-medium text-secondary uppercase tracking-wider min-w-28">
                                     PARS/PAPS
                                 </th>
-                                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider min-w-28">
+                                <th className="px-4 py-3 text-left text-xs font-medium text-secondary uppercase tracking-wider min-w-28">
                                     RATE
                                 </th>
-                                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider min-w-40">
+                                <th className="px-4 py-3 text-left text-xs font-medium text-secondary uppercase tracking-wider min-w-40">
                                     CUSTOMER
                                 </th>
-                                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider min-w-32">
+                                <th className="px-4 py-3 text-left text-xs font-medium text-secondary uppercase tracking-wider min-w-32">
                                     SHIPPER CITY
                                 </th>
-                                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider min-w-32">
+                                <th className="px-4 py-3 text-left text-xs font-medium text-secondary uppercase tracking-wider min-w-32">
                                     SHIPPER STATE
                                 </th>
-                                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider min-w-32">
+                                <th className="px-4 py-3 text-left text-xs font-medium text-secondary uppercase tracking-wider min-w-32">
                                     RECEIVER CITY
                                 </th>
-                                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider min-w-36">
+                                <th className="px-4 py-3 text-left text-xs font-medium text-secondary uppercase tracking-wider min-w-36">
                                     RECEIVER STATE
                                 </th>
-                                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider min-w-36">
+                                <th className="px-4 py-3 text-left text-xs font-medium text-secondary uppercase tracking-wider min-w-36">
                                     TIME
                                 </th>
-                                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider min-w-24">
+                                <th className="px-4 py-3 text-left text-xs font-medium text-secondary uppercase tracking-wider min-w-24">
                                     TRUCK
                                 </th>
-                                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider min-w-28">
+                                <th className="px-4 py-3 text-left text-xs font-medium text-secondary uppercase tracking-wider min-w-28">
                                     TRAILER
                                 </th>
-                                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider min-w-48">
+                                <th className="px-4 py-3 text-left text-xs font-medium text-secondary uppercase tracking-wider min-w-48">
                                     DRIVER/CARRIER
                                 </th>
-                                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider min-w-32">
+                                <th className="px-4 py-3 text-left text-xs font-medium text-secondary uppercase tracking-wider min-w-32">
                                     MERGED LOAD
                                 </th>
-                                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider min-w-28">
+                                <th className="px-4 py-3 text-left text-xs font-medium text-secondary uppercase tracking-wider min-w-28">
                                     NET
                                 </th>
-                                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider min-w-20">
+                                <th className="px-4 py-3 text-left text-xs font-medium text-secondary uppercase tracking-wider min-w-20">
                                     COUNT
                                 </th>
                             </tr>
                         </thead>
-                        <tbody className="bg-white divide-y divide-gray-200">
+                        <tbody className="bg-card divide-y divide-gray-200">
                             {tableData.map((row) => (
-                                <tr key={row.id} className="hover:bg-gray-50 transition-colors">
-                                    <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-900 min-w-32">
+                                <tr key={row.id} className="hover:bg-[rgba(255,255,255,0.03)] transition-colors">
+                                    <td className="px-4 py-3 whitespace-nowrap text-sm text-primary min-w-32">
                                         {row.invoices}
                                     </td>
-                                    <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-900 min-w-28">
+                                    <td className="px-4 py-3 whitespace-nowrap text-sm text-primary min-w-28">
                                         {row.order}
                                     </td>
-                                    <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-900 min-w-28">
+                                    <td className="px-4 py-3 whitespace-nowrap text-sm text-primary min-w-28">
                                         {row.pars_paps}
                                     </td>
                                     <td className="px-4 py-3 whitespace-nowrap text-sm font-medium text-green-600 min-w-28">
                                         {row.rate}
                                     </td>
-                                    <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-900 min-w-40">
+                                    <td className="px-4 py-3 whitespace-nowrap text-sm text-primary min-w-40">
                                         {row.customer}
                                     </td>
-                                    <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-900 min-w-32">
+                                    <td className="px-4 py-3 whitespace-nowrap text-sm text-primary min-w-32">
                                         {row.shipper_city}
                                     </td>
-                                    <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-900 min-w-32">
+                                    <td className="px-4 py-3 whitespace-nowrap text-sm text-primary min-w-32">
                                         {row.shipper_state}
                                     </td>
-                                    <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-900 min-w-32">
+                                    <td className="px-4 py-3 whitespace-nowrap text-sm text-primary min-w-32">
                                         {row.receiver_city}
                                     </td>
-                                    <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-900 min-w-36">
+                                    <td className="px-4 py-3 whitespace-nowrap text-sm text-primary min-w-36">
                                         {row.receiver_state}
                                     </td>
-                                    <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-900 min-w-36">
+                                    <td className="px-4 py-3 whitespace-nowrap text-sm text-primary min-w-36">
                                         {row.time}
                                     </td>
-                                    <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-900 min-w-24">
+                                    <td className="px-4 py-3 whitespace-nowrap text-sm text-primary min-w-24">
                                         {row.truck}
                                     </td>
-                                    <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-900 min-w-28">
+                                    <td className="px-4 py-3 whitespace-nowrap text-sm text-primary min-w-28">
                                         {row.trailer}
                                     </td>
-                                    <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-900 min-w-48">
+                                    <td className="px-4 py-3 whitespace-nowrap text-sm text-primary min-w-48">
                                         {row.driver_carrier}
                                     </td>
-                                    <td className="px-4 py-3 whitespace-nowrap text-sm text-blue-600 min-w-32">
+                                    <td className="px-4 py-3 whitespace-nowrap text-sm text-[#00D1FF] min-w-32">
                                         {row.merged_load}
                                     </td>
-                                    <td className="px-4 py-3 whitespace-nowrap text-sm font-medium text-gray-900 min-w-28">
+                                    <td className="px-4 py-3 whitespace-nowrap text-sm font-medium text-primary min-w-28">
                                         {row.net}
                                     </td>
-                                    <td className="px-4 py-3 whitespace-nowrap text-sm text-center text-gray-900 min-w-20">
+                                    <td className="px-4 py-3 whitespace-nowrap text-sm text-center text-primary min-w-20">
                                         {row.count}
                                     </td>
                                 </tr>
@@ -241,15 +241,15 @@ const ScrollableTable = () => {
                 </div>
 
                 {/* Scroll Indicator */}
-                <div className="bg-gray-50 px-4 py-2 border-t border-gray-200">
-                    <p className="text-xs text-gray-500 text-center">
+                <div className="bg-card px-4 py-2 border-t border-theme">
+                    <p className="text-xs text-secondary text-center">
                         ← Scroll horizontally to view all columns →
                     </p>
                 </div>
             </div>
 
             {/* Additional Info */}
-            <div className="mt-4 text-sm text-gray-600">
+            <div className="mt-4 text-sm text-secondary">
                 <p>Showing {tableData.length} entries • Table scrolls horizontally on smaller screens</p>
             </div>
         </div>

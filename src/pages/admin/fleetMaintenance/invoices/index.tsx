@@ -1510,12 +1510,12 @@ const FleetInvoicesPage = () => {
   };
 
   return (
-    <div className="p-6 min-h-screen" style={{ backgroundColor: '#EDF8FF' }}>
+    <div className="p-6 min-h-screen" >
 
       {/* Professional Email Sent Toast */}
       {emailToast && (
         <div
-          className="fixed top-6 right-6 z-[9999] w-[360px] bg-white rounded-2xl shadow-2xl border border-gray-100 overflow-hidden"
+          className="fixed top-6 right-6 z-[9999] w-[360px] bg-card rounded-2xl shadow-2xl border border-theme overflow-hidden"
           style={{ animation: 'slideInToast .3s cubic-bezier(.21,1.02,.73,1) forwards' }}
         >
           <style>{`@keyframes slideInToast{from{opacity:0;transform:translateX(110%)}to{opacity:1;transform:translateX(0)}}`}</style>
@@ -1529,26 +1529,26 @@ const FleetInvoicesPage = () => {
               </div>
               <div className="flex-1 min-w-0">
                 <div className="flex items-center justify-between gap-2">
-                  <p className="text-sm font-semibold text-gray-900">Email Sent Successfully</p>
+                  <p className="text-sm font-semibold text-primary">Email Sent Successfully</p>
                   <button
                     onClick={() => setEmailToast(null)}
-                    className="flex-shrink-0 p-1 rounded-full hover:bg-gray-100 text-gray-400 transition-colors"
+                    className="flex-shrink-0 p-1 rounded-full hover:bg-gray-100 text-secondary transition-colors"
                   >
                     <FaTimes size={11} />
                   </button>
                 </div>
-                <p className="text-xs text-gray-500 mt-0.5">Invoice emailed to the customer</p>
-                <div className="mt-2.5 space-y-1.5 bg-gray-50 rounded-lg p-2.5">
+                <p className="text-xs text-secondary mt-0.5">Invoice emailed to the customer</p>
+                <div className="mt-2.5 space-y-1.5 bg-card rounded-lg p-2.5">
                   <div className="flex items-center gap-2">
-                    <span className="text-[10px] font-semibold text-gray-400 uppercase tracking-wider w-20 flex-shrink-0">Invoice</span>
-                    <span className="text-xs font-semibold text-gray-800 truncate">{emailToast.invoiceNumber}</span>
+                    <span className="text-[10px] font-semibold text-secondary uppercase tracking-wider w-20 flex-shrink-0">Invoice</span>
+                    <span className="text-xs font-semibold text-primary truncate">{emailToast.invoiceNumber}</span>
                   </div>
                   <div className="flex items-center gap-2">
-                    <span className="text-[10px] font-semibold text-gray-400 uppercase tracking-wider w-20 flex-shrink-0">Client</span>
-                    <span className="text-xs text-gray-700 truncate">{emailToast.customerName}</span>
+                    <span className="text-[10px] font-semibold text-secondary uppercase tracking-wider w-20 flex-shrink-0">Client</span>
+                    <span className="text-xs text-primary truncate">{emailToast.customerName}</span>
                   </div>
                   <div className="flex items-center gap-2">
-                    <span className="text-[10px] font-semibold text-gray-400 uppercase tracking-wider w-20 flex-shrink-0">Sent To</span>
+                    <span className="text-[10px] font-semibold text-secondary uppercase tracking-wider w-20 flex-shrink-0">Sent To</span>
                     <span className="text-xs text-emerald-700 font-medium truncate">{emailToast.customerEmail}</span>
                   </div>
                 </div>
@@ -1568,17 +1568,17 @@ const FleetInvoicesPage = () => {
       <div className="mx-auto">
         <div className="flex items-center justify-between mb-6">
           <div>
-            <h1 className="text-2xl font-bold text-gray-900 flex items-center gap-2">
-              <FaFileInvoice className="text-blue-600" size={28} />
+            <h1 className="text-2xl font-bold text-primary flex items-center gap-2">
+              <FaFileInvoice className="text-[#00D1FF]" size={28} />
               Fleet Invoices
             </h1>
-            <p className="text-gray-600 mt-1">Create and manage fleet invoices</p>
+            <p className="text-secondary mt-1">Create and manage fleet invoices</p>
           </div>
           <div className="flex items-center gap-2">
             <button
               type="button"
               onClick={() => { setUploadFile(null); setUploadError(null); setUploadModalOpen(true); }}
-              className="flex items-center gap-2 px-4 py-2.5 bg-white border border-gray-300 text-gray-700 rounded-lg hover:border-blue-400 hover:text-blue-600 font-medium shadow-sm transition-colors"
+              className="flex items-center gap-2 px-4 py-2.5 bg-card border border-gray-300 text-primary rounded-lg hover:border-blue-400 hover:text-[#00D1FF] font-medium shadow-sm transition-colors"
             >
               <FaUpload size={13} /> Upload Invoice
             </button>
@@ -1597,19 +1597,19 @@ const FleetInvoicesPage = () => {
 
         {/* Summary Cards */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-          <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-5">
+          <div className="bg-card rounded-xl shadow-sm border border-theme p-5">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-gray-500 uppercase tracking-wide">Paid</p>
+                <p className="text-sm font-medium text-secondary uppercase tracking-wide">Paid</p>
                 {summaryLoading ? (
-                  <p className="mt-1 text-xl font-bold text-gray-400">—</p>
+                  <p className="mt-1 text-xl font-bold text-secondary">—</p>
                 ) : (
                   <p className="mt-1 text-2xl font-bold text-green-600">
                     ${(summary?.paidAmount ?? 0).toLocaleString('en-US', { minimumFractionDigits: 2 })}
                   </p>
                 )}
                 {!summaryLoading && summary && (
-                  <p className="mt-0.5 text-xs text-gray-500">{summary.paidCount} invoice{summary.paidCount !== 1 ? 's' : ''}</p>
+                  <p className="mt-0.5 text-xs text-secondary">{summary.paidCount} invoice{summary.paidCount !== 1 ? 's' : ''}</p>
                 )}
               </div>
               <div className="w-12 h-12 rounded-lg bg-green-100 flex items-center justify-center">
@@ -1618,19 +1618,19 @@ const FleetInvoicesPage = () => {
             </div>
           </div>
 
-          <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-5">
+          <div className="bg-card rounded-xl shadow-sm border border-theme p-5">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-gray-500 uppercase tracking-wide">Unpaid</p>
+                <p className="text-sm font-medium text-secondary uppercase tracking-wide">Unpaid</p>
                 {summaryLoading ? (
-                  <p className="mt-1 text-xl font-bold text-gray-400">—</p>
+                  <p className="mt-1 text-xl font-bold text-secondary">—</p>
                 ) : (
                   <p className="mt-1 text-2xl font-bold text-amber-600">
                     ${(summary?.unpaidAmount ?? 0).toLocaleString('en-US', { minimumFractionDigits: 2 })}
                   </p>
                 )}
                 {!summaryLoading && summary && (
-                  <p className="mt-0.5 text-xs text-gray-500">{summary.unpaidCount} invoice{summary.unpaidCount !== 1 ? 's' : ''}</p>
+                  <p className="mt-0.5 text-xs text-secondary">{summary.unpaidCount} invoice{summary.unpaidCount !== 1 ? 's' : ''}</p>
                 )}
               </div>
               <div className="w-12 h-12 rounded-lg bg-amber-100 flex items-center justify-center">
@@ -1639,53 +1639,53 @@ const FleetInvoicesPage = () => {
             </div>
           </div>
 
-          <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-5">
+          <div className="bg-card rounded-xl shadow-sm border border-theme p-5">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-gray-500 uppercase tracking-wide">Overdue</p>
+                <p className="text-sm font-medium text-secondary uppercase tracking-wide">Overdue</p>
                 {summaryLoading ? (
-                  <p className="mt-1 text-xl font-bold text-gray-400">—</p>
+                  <p className="mt-1 text-xl font-bold text-secondary">—</p>
                 ) : (
-                  <p className="mt-1 text-2xl font-bold text-orange-600">
+                  <p className="mt-1 text-2xl font-bold text-[#F59E0B]">
                     ${(summary?.overdueAmount ?? 0).toLocaleString('en-US', { minimumFractionDigits: 2 })}
                   </p>
                 )}
                 {!summaryLoading && summary && (
-                  <p className="mt-0.5 text-xs text-gray-500">{summary.overdueCount} invoice{summary.overdueCount !== 1 ? 's' : ''}</p>
+                  <p className="mt-0.5 text-xs text-secondary">{summary.overdueCount} invoice{summary.overdueCount !== 1 ? 's' : ''}</p>
                 )}
               </div>
               <div className="w-12 h-12 rounded-lg bg-orange-100 flex items-center justify-center">
-                <FaClock className="text-orange-600" size={24} />
+                <FaClock className="text-[#F59E0B]" size={24} />
               </div>
             </div>
           </div>
 
-          <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-5">
+          <div className="bg-card rounded-xl shadow-sm border border-theme p-5">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-gray-500 uppercase tracking-wide">Total</p>
+                <p className="text-sm font-medium text-secondary uppercase tracking-wide">Total</p>
                 {summaryLoading ? (
-                  <p className="mt-1 text-xl font-bold text-gray-400">—</p>
+                  <p className="mt-1 text-xl font-bold text-secondary">—</p>
                 ) : (
-                  <p className="mt-1 text-2xl font-bold text-blue-600">
+                  <p className="mt-1 text-2xl font-bold text-[#00D1FF]">
                     ${(summary?.totalAmount ?? 0).toLocaleString('en-US', { minimumFractionDigits: 2 })}
                   </p>
                 )}
                 {!summaryLoading && summary && (
-                  <p className="mt-0.5 text-xs text-gray-500">{summary.totalCount} invoice{summary.totalCount !== 1 ? 's' : ''}</p>
+                  <p className="mt-0.5 text-xs text-secondary">{summary.totalCount} invoice{summary.totalCount !== 1 ? 's' : ''}</p>
                 )}
               </div>
               <div className="w-12 h-12 rounded-lg bg-blue-100 flex items-center justify-center">
-                <FaFileInvoice className="text-blue-600" size={24} />
+                <FaFileInvoice className="text-[#00D1FF]" size={24} />
               </div>
             </div>
           </div>
         </div>
 
-        <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+        <div className="bg-card rounded-xl shadow-sm border border-theme overflow-hidden">
           <div className="overflow-x-auto">
             <table className="w-full text-sm text-left">
-              <thead className="bg-gray-50 text-gray-600 uppercase text-xs font-semibold tracking-wide">
+              <thead className="bg-card text-secondary uppercase text-xs font-semibold tracking-wide">
                 <tr>
                   <th className="px-6 py-4">Date</th>
                   <th className="px-6 py-4">No.</th>
@@ -1699,19 +1699,19 @@ const FleetInvoicesPage = () => {
               <tbody className="divide-y divide-gray-100">
                 {invoicesLoading ? (
                   <tr>
-                    <td colSpan={7} className="px-6 py-12 text-center text-gray-500">
+                    <td colSpan={7} className="px-6 py-12 text-center text-secondary">
                       Loading invoices...
                     </td>
                   </tr>
                 ) : invoicesError ? (
                   <tr>
-                    <td colSpan={7} className="px-6 py-12 text-center text-red-600">
+                    <td colSpan={7} className="px-6 py-12 text-center text-[#A855F7]">
                       {invoicesError}
                     </td>
                   </tr>
                 ) : invoices.length === 0 ? (
                   <tr>
-                    <td colSpan={7} className="px-6 py-12 text-center text-gray-500">
+                    <td colSpan={7} className="px-6 py-12 text-center text-secondary">
                       No invoices yet. Create one using &quot;New Invoice&quot;.
                     </td>
                   </tr>
@@ -1726,27 +1726,27 @@ const FleetInvoicesPage = () => {
                         key={row._id}
                         className={`hover:bg-blue-50/30 ${displayStatus === 'overdue' ? 'border-t-4 border-t-orange-500 bg-orange-50/20' : ''}`}
                       >
-                        <td className="px-6 py-4 text-gray-900">
+                        <td className="px-6 py-4 text-primary">
                           {row.invoiceDate 
                             ? formatDisplayDate(typeof row.invoiceDate === 'string' ? row.invoiceDate.split('T')[0] : new Date(row.invoiceDate).toISOString().split('T')[0])
                             : '—'}
                         </td>
-                        <td className="px-6 py-4 font-medium text-gray-900">{row.invoiceNumber || '—'}</td>
-                        <td className="px-6 py-4 text-gray-700">{row.customerName || '—'}</td>
-                        <td className="px-6 py-4 text-gray-700">
+                        <td className="px-6 py-4 font-medium text-primary">{row.invoiceNumber || '—'}</td>
+                        <td className="px-6 py-4 text-primary">{row.customerName || '—'}</td>
+                        <td className="px-6 py-4 text-primary">
                           {row.vehicleInfo && row.vehicleInfo.length > 0 ? (
                             <div className="space-y-1">
                               {row.vehicleInfo.map((vehicle, idx) => (
                                 <div key={idx} className="text-xs">
-                                  <div className="font-semibold text-gray-900">
+                                  <div className="font-semibold text-primary">
                                     {vehicle.unitNumber || '—'}
-                                    {vehicle.unitType && <span className="text-gray-500 ml-1">({vehicle.unitType})</span>}
+                                    {vehicle.unitType && <span className="text-secondary ml-1">({vehicle.unitType})</span>}
                                   </div>
                                   {vehicle.makeModel && (
-                                    <div className="text-gray-600">{vehicle.makeModel}</div>
+                                    <div className="text-secondary">{vehicle.makeModel}</div>
                                   )}
                                   {(vehicle.plateNumber || vehicle.vinNumber) && (
-                                    <div className="text-gray-500">
+                                    <div className="text-secondary">
                                       {vehicle.plateNumber && <span>Plate: {vehicle.plateNumber}</span>}
                                       {vehicle.plateNumber && vehicle.vinNumber && <span> • </span>}
                                       {vehicle.vinNumber && <span>VIN: {vehicle.vinNumber}</span>}
@@ -1756,10 +1756,10 @@ const FleetInvoicesPage = () => {
                               ))}
                             </div>
                           ) : (
-                            <span className="text-gray-400">—</span>
+                            <span className="text-secondary">—</span>
                           )}
                         </td>
-                        <td className="px-6 py-4 text-gray-700 font-medium">${(row.total || 0).toFixed(2)}</td>
+                        <td className="px-6 py-4 text-primary font-medium">${(row.total || 0).toFixed(2)}</td>
                         <td className="px-6 py-4">
                           <select
                             value={INVOICE_STATUS_OPTIONS.some((o) => o.value === row.status) ? row.status : 'draft'}
@@ -1769,12 +1769,12 @@ const FleetInvoicesPage = () => {
                               row.status === 'paid'
                                 ? 'border-green-200 bg-green-50 text-green-700'
                                 : row.status === 'sent'
-                                ? 'border-blue-200 bg-blue-50 text-blue-700'
+                                ? 'border-blue-200 bg-card text-blue-700'
                                 : row.status === 'cancelled'
-                                ? 'border-gray-200 bg-gray-50 text-gray-600'
+                                ? 'border-theme bg-card text-secondary'
                                 : displayStatus === 'overdue'
-                                ? 'border-orange-200 bg-orange-50 text-orange-600'
-                                : 'border-gray-200 bg-gray-50 text-gray-600'
+                                ? 'border-orange-200 bg-card text-[#F59E0B]'
+                                : 'border-theme bg-card text-secondary'
                             }`}
                           >
                             {INVOICE_STATUS_OPTIONS.map((opt) => (
@@ -1784,7 +1784,7 @@ const FleetInvoicesPage = () => {
                             ))}
                           </select>
                           {updatingStatusId === row._id && (
-                            <span className="ml-2 text-xs text-gray-500">Updating…</span>
+                            <span className="ml-2 text-xs text-secondary">Updating…</span>
                           )}
                         </td>
                         <td className="px-6 py-4">
@@ -1792,7 +1792,7 @@ const FleetInvoicesPage = () => {
                             <button 
                               type="button" 
                               onClick={() => handleEditInvoice(row._id)}
-                              className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors" 
+                              className="p-2 text-[#00D1FF] hover:bg-blue-50 rounded-lg transition-colors" 
                               title="View/Edit"
                             >
                               <FaEdit size={14} />
@@ -1812,7 +1812,7 @@ const FleetInvoicesPage = () => {
                               type="button" 
                               onClick={() => handleDeleteInvoice(row._id)}
                               disabled={deleting === row._id}
-                              className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors disabled:opacity-50" 
+                              className="p-2 text-[#A855F7] hover:bg-red-50 rounded-lg transition-colors disabled:opacity-50" 
                               title="Delete"
                             >
                               <FaTrash size={14} />
@@ -1821,7 +1821,7 @@ const FleetInvoicesPage = () => {
                               type="button"
                               onClick={() => handleDownloadInvoicePDF(row._id)}
                               disabled={printingPdfId === row._id}
-                              className="p-2 text-gray-600 hover:bg-gray-100 rounded-lg transition-colors disabled:opacity-50"
+                              className="p-2 text-secondary hover:bg-gray-100 rounded-lg transition-colors disabled:opacity-50"
                               title={printingPdfId === row._id ? 'Generating PDF…' : 'Download PDF'}
                             >
                               <FaPrint size={14} />
@@ -1842,10 +1842,10 @@ const FleetInvoicesPage = () => {
       {sidebarOpen && (
         <>
           <div className="fixed inset-0 bg-black/40 z-40" onClick={() => setSidebarOpen(false)} aria-hidden="true" />
-          <div className="fixed top-0 right-0 h-full w-full max-w-4xl bg-white shadow-xl z-50 flex flex-col">
-            <div className="flex-shrink-0 px-8 py-5 border-b border-gray-200 flex items-center justify-between bg-white">
-              <h2 className="text-xl font-semibold text-gray-900">{editingInvoiceId ? 'Edit Invoice' : 'New Invoice'}</h2>
-              <button type="button" onClick={() => setSidebarOpen(false)} className="p-2 text-gray-500 hover:bg-gray-100 rounded-lg transition-colors" aria-label="Close">
+          <div className="fixed top-0 right-0 h-full w-full max-w-4xl bg-card shadow-xl z-50 flex flex-col">
+            <div className="flex-shrink-0 px-8 py-5 border-b border-theme flex items-center justify-between bg-card">
+              <h2 className="text-xl font-semibold text-primary">{editingInvoiceId ? 'Edit Invoice' : 'New Invoice'}</h2>
+              <button type="button" onClick={() => setSidebarOpen(false)} className="p-2 text-secondary hover:bg-gray-100 rounded-lg transition-colors" aria-label="Close">
                 <FaTimes size={20} />
               </button>
             </div>
@@ -1854,7 +1854,7 @@ const FleetInvoicesPage = () => {
                 <div className={`rounded-lg border px-4 py-3 ${
                   notification.type === 'success'
                     ? 'border-green-200 bg-green-50 text-green-800'
-                    : 'border-red-200 bg-red-50 text-red-800'
+                    : 'border-red-200 bg-card text-red-800'
                 }`}>
                   {notification.message}
                 </div>
@@ -1862,31 +1862,31 @@ const FleetInvoicesPage = () => {
               {/* Vehicle Information */}
               {vehicleInfo.length > 0 && (
                 <section>
-                  <h3 className="text-sm font-semibold text-gray-500 uppercase tracking-wide mb-4">Vehicle Information</h3>
+                  <h3 className="text-sm font-semibold text-secondary uppercase tracking-wide mb-4">Vehicle Information</h3>
                   <div className="space-y-3">
                     {vehicleInfo.map((vehicle, idx) => (
                       <div key={idx} className="rounded-lg border border-blue-200 bg-blue-50/50 p-4">
                         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
                           <div>
-                            <p className="text-xs text-gray-500 mb-1">Unit Number</p>
-                            <p className="text-sm font-semibold text-gray-900">{vehicle.unitNumber || '—'}</p>
+                            <p className="text-xs text-secondary mb-1">Unit Number</p>
+                            <p className="text-sm font-semibold text-primary">{vehicle.unitNumber || '—'}</p>
                           </div>
                           <div>
-                            <p className="text-xs text-gray-500 mb-1">Unit Type</p>
-                            <p className="text-sm font-semibold text-gray-900">{vehicle.unitType || '—'}</p>
+                            <p className="text-xs text-secondary mb-1">Unit Type</p>
+                            <p className="text-sm font-semibold text-primary">{vehicle.unitType || '—'}</p>
                           </div>
                           <div>
-                            <p className="text-xs text-gray-500 mb-1">Make / Model</p>
-                            <p className="text-sm font-semibold text-gray-900">{vehicle.makeModel || '—'}</p>
+                            <p className="text-xs text-secondary mb-1">Make / Model</p>
+                            <p className="text-sm font-semibold text-primary">{vehicle.makeModel || '—'}</p>
                           </div>
                           <div>
-                            <p className="text-xs text-gray-500 mb-1">Plate Number</p>
-                            <p className="text-sm font-semibold text-gray-900">{vehicle.plateNumber || '—'}</p>
+                            <p className="text-xs text-secondary mb-1">Plate Number</p>
+                            <p className="text-sm font-semibold text-primary">{vehicle.plateNumber || '—'}</p>
                           </div>
                           {vehicle.vinNumber && (
                             <div>
-                              <p className="text-xs text-gray-500 mb-1">VIN Number</p>
-                              <p className="text-sm font-semibold text-gray-900">{vehicle.vinNumber}</p>
+                              <p className="text-xs text-secondary mb-1">VIN Number</p>
+                              <p className="text-sm font-semibold text-primary">{vehicle.vinNumber}</p>
                             </div>
                           )}
                         </div>
@@ -1898,15 +1898,15 @@ const FleetInvoicesPage = () => {
 
               {/* Header Information */}
               <section>
-                <h3 className="text-sm font-semibold text-gray-500 uppercase tracking-wide mb-4">Bill To &amp; Dates</h3>
+                <h3 className="text-sm font-semibold text-secondary uppercase tracking-wide mb-4">Bill To &amp; Dates</h3>
                 <div className="space-y-4">
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">Customer</label>
+                      <label className="block text-sm font-medium text-primary mb-1">Customer</label>
                       <select
                         value={customerId}
                         onChange={(e) => handleCustomerChange(e.target.value)}
-                        className={`w-full px-3 py-2.5 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-gray-900 ${extractedVendorName && !customerId ? 'border-amber-400 bg-amber-50' : 'border-gray-300'}`}
+                        className={`w-full px-3 py-2.5 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-primary ${extractedVendorName && !customerId ? 'border-amber-400 bg-amber-50' : 'border-gray-300'}`}
                       >
                         <option value="">{extractedVendorName ? `— Using: ${extractedVendorName} —` : 'Select client...'}</option>
                         {customers.map((c) => (
@@ -1920,28 +1920,28 @@ const FleetInvoicesPage = () => {
                         </p>
                       )}
                       {customersLoading && (
-                        <p className="mt-1 text-xs text-gray-500">Loading customers...</p>
+                        <p className="mt-1 text-xs text-secondary">Loading customers...</p>
                       )}
                       {customersError && !customersLoading && (
-                        <p className="mt-1 text-xs text-red-600">{customersError}</p>
+                        <p className="mt-1 text-xs text-[#A855F7]">{customersError}</p>
                       )}
                       {!showAddCustomer ? (
                         <button
                           type="button"
                           onClick={() => { setShowAddCustomer(true); setAddCustomerError(null); }}
-                          className="mt-2 inline-flex items-center gap-1 text-xs font-medium text-blue-600 hover:text-blue-700 transition-colors"
+                          className="mt-2 inline-flex items-center gap-1 text-xs font-medium text-[#00D1FF] hover:text-blue-700 transition-colors"
                         >
                           <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" strokeWidth="2"/><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8v8M8 12h8"/></svg>
                           Add New Customer
                         </button>
                       ) : (
-                        <div className="mt-2 rounded-xl border border-gray-200 bg-white shadow-sm overflow-hidden">
-                          <div className="flex items-center justify-between px-4 py-2.5 bg-gray-50 border-b border-gray-200">
-                            <span className="text-xs font-semibold text-gray-700 tracking-wide uppercase">New Customer</span>
+                        <div className="mt-2 rounded-xl border border-theme bg-card shadow-sm overflow-hidden">
+                          <div className="flex items-center justify-between px-4 py-2.5 bg-card border-b border-theme">
+                            <span className="text-xs font-semibold text-primary tracking-wide uppercase">New Customer</span>
                             <button
                               type="button"
                               onClick={() => { setShowAddCustomer(false); setAddCustomerError(null); setNewCustomerName(''); setNewCustomerEmail(''); setNewCustomerPhone(''); }}
-                              className="text-gray-400 hover:text-gray-600 transition-colors"
+                              className="text-secondary hover:text-secondary transition-colors"
                               aria-label="Close"
                             >
                               <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M6 18L18 6M6 6l12 12"/></svg>
@@ -1949,7 +1949,7 @@ const FleetInvoicesPage = () => {
                           </div>
                           <div className="px-4 py-3 space-y-2.5">
                             <div>
-                              <label className="block text-xs font-medium text-gray-600 mb-1">Name <span className="text-red-500">*</span></label>
+                              <label className="block text-xs font-medium text-secondary mb-1">Name <span className="text-red-500">*</span></label>
                               <input
                                 type="text"
                                 placeholder="e.g. Acme Corp"
@@ -1960,7 +1960,7 @@ const FleetInvoicesPage = () => {
                             </div>
                             <div className="grid grid-cols-2 gap-2">
                               <div>
-                                <label className="block text-xs font-medium text-gray-600 mb-1">Email</label>
+                                <label className="block text-xs font-medium text-secondary mb-1">Email</label>
                                 <input
                                   type="email"
                                   placeholder="email@example.com"
@@ -1970,7 +1970,7 @@ const FleetInvoicesPage = () => {
                                 />
                               </div>
                               <div>
-                                <label className="block text-xs font-medium text-gray-600 mb-1">Phone</label>
+                                <label className="block text-xs font-medium text-secondary mb-1">Phone</label>
                                 <input
                                   type="text"
                                   placeholder="+1 (555) 000-0000"
@@ -1981,17 +1981,17 @@ const FleetInvoicesPage = () => {
                               </div>
                             </div>
                             {addCustomerError && (
-                              <p className="text-xs text-red-600 flex items-center gap-1">
+                              <p className="text-xs text-[#A855F7] flex items-center gap-1">
                                 <svg className="w-3.5 h-3.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd"/></svg>
                                 {addCustomerError}
                               </p>
                             )}
                           </div>
-                          <div className="px-4 py-3 bg-gray-50 border-t border-gray-200 flex items-center justify-end gap-2">
+                          <div className="px-4 py-3 bg-card border-t border-theme flex items-center justify-end gap-2">
                             <button
                               type="button"
                               onClick={() => { setShowAddCustomer(false); setAddCustomerError(null); setNewCustomerName(''); setNewCustomerEmail(''); setNewCustomerPhone(''); }}
-                              className="px-3 py-1.5 text-xs font-medium text-gray-600 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
+                              className="px-3 py-1.5 text-xs font-medium text-secondary bg-card border border-gray-300 rounded-lg hover:bg-[rgba(255,255,255,0.03)] transition-colors"
                             >
                               Cancel
                             </button>
@@ -2013,7 +2013,7 @@ const FleetInvoicesPage = () => {
                       )}
                     </div>
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">Customer Email</label>
+                      <label className="block text-sm font-medium text-primary mb-1">Customer Email</label>
                       <input
                         type="email"
                         value={customerEmail}
@@ -2024,7 +2024,7 @@ const FleetInvoicesPage = () => {
                     </div>
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Billing Address</label>
+                    <label className="block text-sm font-medium text-primary mb-1">Billing Address</label>
                     <textarea
                       value={billingAddress}
                       onChange={(e) => setBillingAddress(e.target.value)}
@@ -2035,7 +2035,7 @@ const FleetInvoicesPage = () => {
                   </div>
                   <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">Terms</label>
+                      <label className="block text-sm font-medium text-primary mb-1">Terms</label>
                       <select
                         value={terms}
                         onChange={(e) => handleTermsChange(e.target.value)}
@@ -2048,7 +2048,7 @@ const FleetInvoicesPage = () => {
                       </select>
                     </div>
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">Invoice Date</label>
+                      <label className="block text-sm font-medium text-primary mb-1">Invoice Date</label>
                       <input
                         type="date"
                         value={invoiceDate}
@@ -2057,17 +2057,17 @@ const FleetInvoicesPage = () => {
                       />
                     </div>
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">Due Date</label>
+                      <label className="block text-sm font-medium text-primary mb-1">Due Date</label>
                       <input
                         type="text"
                         readOnly
                         value={dueDate ? formatDisplayDate(dueDate) : '—'}
-                        className="w-full px-3 py-2.5 border border-gray-200 rounded-lg bg-gray-50 text-gray-700"
+                        className="w-full px-3 py-2.5 border border-theme rounded-lg bg-card text-primary"
                       />
-                      <p className="text-xs text-gray-500 mt-0.5">Calculated from Terms</p>
+                      <p className="text-xs text-secondary mt-0.5">Calculated from Terms</p>
                     </div>
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">Invoice No.</label>
+                      <label className="block text-sm font-medium text-primary mb-1">Invoice No.</label>
                       <input
                         type="text"
                         value={invoiceNo}
@@ -2082,13 +2082,13 @@ const FleetInvoicesPage = () => {
 
               {/* Line Item Details */}
               <section>
-                <h3 className="text-sm font-semibold text-gray-500 uppercase tracking-wide mb-4">Line Items</h3>
+                <h3 className="text-sm font-semibold text-secondary uppercase tracking-wide mb-4">Line Items</h3>
                 <div className="space-y-4">
                   {lineItems.map((item) => (
-                    <div key={item.id} className="rounded-lg border border-gray-200 bg-gray-50/50 p-4 space-y-4">
+                    <div key={item.id} className="rounded-lg border border-theme bg-card p-4 space-y-4">
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div>
-                          <label className="block text-sm font-medium text-gray-700 mb-1">Service Date</label>
+                          <label className="block text-sm font-medium text-primary mb-1">Service Date</label>
                           <input
                             type="date"
                             value={item.serviceDate}
@@ -2097,7 +2097,7 @@ const FleetInvoicesPage = () => {
                           />
                         </div>
                       <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">Product / Service</label>
+                        <label className="block text-sm font-medium text-primary mb-1">Product / Service</label>
                         <select
                           value={item.productService}
                           onChange={async (e) => {
@@ -2168,12 +2168,12 @@ const FleetInvoicesPage = () => {
                           ))}
                         </select>
                         {productOptionsLoading && (
-                          <p className="mt-1 text-xs text-gray-500">Loading services and maintenance orders...</p>
+                          <p className="mt-1 text-xs text-secondary">Loading services and maintenance orders...</p>
                         )}
                       </div>
                       </div>
                       <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">Description</label>
+                        <label className="block text-sm font-medium text-primary mb-1">Description</label>
                         <textarea
                           value={item.description}
                           onChange={(e) => updateLineItem(item.id, { description: e.target.value })}
@@ -2184,7 +2184,7 @@ const FleetInvoicesPage = () => {
                       </div>
                       <div className="grid grid-cols-4 gap-4 items-end">
                         <div>
-                          <label className="block text-sm font-medium text-gray-700 mb-1">QTY</label>
+                          <label className="block text-sm font-medium text-primary mb-1">QTY</label>
                           <input
                             type="number"
                             min={1}
@@ -2194,7 +2194,7 @@ const FleetInvoicesPage = () => {
                           />
                         </div>
                         <div>
-                          <label className="block text-sm font-medium text-gray-700 mb-1">Rate</label>
+                          <label className="block text-sm font-medium text-primary mb-1">Rate</label>
                           <input
                             type="number"
                             min={0}
@@ -2206,11 +2206,11 @@ const FleetInvoicesPage = () => {
                           />
                         </div>
                         <div>
-                          <label className="block text-sm font-medium text-gray-700 mb-1">Amount</label>
-                          <div className="px-3 py-2 bg-white border border-gray-200 rounded-lg text-sm font-medium text-gray-700">${item.amount.toFixed(2)}</div>
+                          <label className="block text-sm font-medium text-primary mb-1">Amount</label>
+                          <div className="px-3 py-2 bg-card border border-theme rounded-lg text-sm font-medium text-primary">${item.amount.toFixed(2)}</div>
                         </div>
                         <div>
-                          <label className="block text-sm font-medium text-gray-700 mb-1">Tax</label>
+                          <label className="block text-sm font-medium text-primary mb-1">Tax</label>
                           <select
                             value={item.salesTax}
                             onChange={(e) => {
@@ -2228,13 +2228,13 @@ const FleetInvoicesPage = () => {
                         </div>
                       </div>
                       {lineItems.length > 1 && (
-                        <button type="button" onClick={() => removeLineItem(item.id)} className="text-sm text-red-600 hover:text-red-700 font-medium">
+                        <button type="button" onClick={() => removeLineItem(item.id)} className="text-sm text-[#A855F7] hover:text-red-700 font-medium">
                           Remove line
                         </button>
                       )}
                     </div>
                   ))}
-                  <button type="button" onClick={addLineItem} className="text-sm font-medium text-blue-600 hover:text-blue-700">
+                  <button type="button" onClick={addLineItem} className="text-sm font-medium text-[#00D1FF] hover:text-blue-700">
                     + Add line item
                   </button>
                 </div>
@@ -2242,13 +2242,13 @@ const FleetInvoicesPage = () => {
 
               {/* Custom taxes: add form + list with delete */}
               <section>
-                <h3 className="text-sm font-semibold text-gray-500 uppercase tracking-wide mb-3">Custom taxes</h3>
+                <h3 className="text-sm font-semibold text-secondary uppercase tracking-wide mb-3">Custom taxes</h3>
                 {addingTaxForLineId && (
                   <div className="mb-4 p-4 rounded-lg border border-blue-200 bg-blue-50/50">
-                    <p className="text-xs font-medium text-gray-700 mb-3">Add custom tax (percentage) — will apply to current line</p>
+                    <p className="text-xs font-medium text-primary mb-3">Add custom tax (percentage) — will apply to current line</p>
                     <div className="flex flex-wrap gap-3 items-end">
                       <div className="w-40">
-                        <label className="block text-xs text-gray-600 mb-1">Tax name</label>
+                        <label className="block text-xs text-secondary mb-1">Tax name</label>
                         <input
                           type="text"
                           value={newTaxName}
@@ -2258,7 +2258,7 @@ const FleetInvoicesPage = () => {
                         />
                       </div>
                       <div className="w-24">
-                        <label className="block text-xs text-gray-600 mb-1">%</label>
+                        <label className="block text-xs text-secondary mb-1">%</label>
                         <input
                           type="number"
                           min={0}
@@ -2279,7 +2279,7 @@ const FleetInvoicesPage = () => {
                       <button
                         type="button"
                         onClick={() => { setAddingTaxForLineId(null); setNewTaxName(''); setNewTaxPercent(5); }}
-                        className="px-4 py-2 border border-gray-300 text-sm font-medium rounded-lg hover:bg-gray-50"
+                        className="px-4 py-2 border border-gray-300 text-sm font-medium rounded-lg hover:bg-[rgba(255,255,255,0.03)]"
                       >
                         Cancel
                       </button>
@@ -2289,12 +2289,12 @@ const FleetInvoicesPage = () => {
                 {customTaxes.length > 0 && (
                   <ul className="space-y-2">
                     {customTaxes.map((t) => (
-                      <li key={t.id} className="flex items-center justify-between py-2 px-3 rounded-lg border border-gray-200 bg-white">
-                        <span className="text-sm font-medium text-gray-800">{t.name} ({t.percent}%)</span>
+                      <li key={t.id} className="flex items-center justify-between py-2 px-3 rounded-lg border border-theme bg-card">
+                        <span className="text-sm font-medium text-primary">{t.name} ({t.percent}%)</span>
                         <button
                           type="button"
                           onClick={() => removeCustomTax(t.id)}
-                          className="p-1.5 text-red-600 hover:bg-red-50 rounded"
+                          className="p-1.5 text-[#A855F7] hover:bg-red-50 rounded"
                           title="Delete this tax"
                         >
                           <FaTrash size={14} />
@@ -2304,16 +2304,16 @@ const FleetInvoicesPage = () => {
                   </ul>
                 )}
                 {customTaxes.length === 0 && !addingTaxForLineId && (
-                  <p className="text-sm text-gray-500">No custom taxes. Use “+ Add custom tax...” in a line item above.</p>
+                  <p className="text-sm text-secondary">No custom taxes. Use “+ Add custom tax...” in a line item above.</p>
                 )}
               </section>
 
               {/* Labour Charges */}
               <section>
-                <h3 className="text-sm font-semibold text-gray-500 uppercase tracking-wide mb-4">Labour Charges</h3>
+                <h3 className="text-sm font-semibold text-secondary uppercase tracking-wide mb-4">Labour Charges</h3>
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                    <label className="block text-sm font-medium text-primary mb-1">
                       Hours <span className="text-red-500">*</span>
                     </label>
                     <input
@@ -2327,7 +2327,7 @@ const FleetInvoicesPage = () => {
                     />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                    <label className="block text-sm font-medium text-primary mb-1">
                       Hourly Rate ($) <span className="text-red-500">*</span>
                     </label>
                     <input
@@ -2341,7 +2341,7 @@ const FleetInvoicesPage = () => {
                     />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Tax</label>
+                    <label className="block text-sm font-medium text-primary mb-1">Tax</label>
                     <select
                       value={labourTax}
                       onChange={(e) => setLabourTax(e.target.value)}
@@ -2356,17 +2356,17 @@ const FleetInvoicesPage = () => {
                   </div>
                 </div>
                 {labourAmount > 0 && (
-                  <div className="mt-3 p-3 bg-blue-50 rounded-lg border border-blue-200">
+                  <div className="mt-3 p-3 bg-card rounded-lg border border-blue-200">
                     <div className="flex justify-between items-center">
-                      <span className="text-sm font-medium text-gray-700">Labour Amount:</span>
-                      <span className="text-lg font-semibold text-blue-600">
+                      <span className="text-sm font-medium text-primary">Labour Amount:</span>
+                      <span className="text-lg font-semibold text-[#00D1FF]">
                         ${labourAmount.toFixed(2)}
                       </span>
                     </div>
                     {labourTaxAmount > 0 && (
                       <div className="flex justify-between items-center mt-1">
-                        <span className="text-sm text-gray-600">Labour Tax:</span>
-                        <span className="text-sm font-medium text-gray-700">
+                        <span className="text-sm text-secondary">Labour Tax:</span>
+                        <span className="text-sm font-medium text-primary">
                           ${labourTaxAmount.toFixed(2)}
                         </span>
                       </div>
@@ -2377,10 +2377,10 @@ const FleetInvoicesPage = () => {
 
               {/* Message & Totals */}
               <section>
-                <h3 className="text-sm font-semibold text-gray-500 uppercase tracking-wide mb-4">Message &amp; Totals</h3>
+                <h3 className="text-sm font-semibold text-secondary uppercase tracking-wide mb-4">Message &amp; Totals</h3>
                 <div className="space-y-4">
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Message on Invoice</label>
+                    <label className="block text-sm font-medium text-primary mb-1">Message on Invoice</label>
                     <textarea
                       value={messageOnInvoice}
                       onChange={(e) => setMessageOnInvoice(e.target.value)}
@@ -2389,40 +2389,40 @@ const FleetInvoicesPage = () => {
                       placeholder="e.g. UNIT, VIN NO, CURRENT KM/HOURS"
                     />
                   </div>
-                  <div className="max-w-xs ml-auto rounded-lg border border-gray-200 bg-gray-50 p-4 space-y-2">
+                  <div className="max-w-xs ml-auto rounded-lg border border-theme bg-card p-4 space-y-2">
                     {itemsSubtotal > 0 && (
-                      <div className="flex justify-between text-sm text-gray-600">
+                      <div className="flex justify-between text-sm text-secondary">
                         <span>Items Subtotal</span>
-                        <span className="font-medium text-gray-900">${itemsSubtotal.toFixed(2)}</span>
+                        <span className="font-medium text-primary">${itemsSubtotal.toFixed(2)}</span>
                       </div>
                     )}
                     {labourAmount > 0 && (
-                      <div className="flex justify-between text-sm text-gray-600">
+                      <div className="flex justify-between text-sm text-secondary">
                         <span>Labour Charges</span>
-                        <span className="font-medium text-gray-900">${labourAmount.toFixed(2)}</span>
+                        <span className="font-medium text-primary">${labourAmount.toFixed(2)}</span>
                       </div>
                     )}
-                    <div className="flex justify-between text-sm text-gray-600">
+                    <div className="flex justify-between text-sm text-secondary">
                       <span>Subtotal</span>
-                      <span className="font-medium text-gray-900">${subtotal.toFixed(2)}</span>
+                      <span className="font-medium text-primary">${subtotal.toFixed(2)}</span>
                     </div>
                     {itemsTax > 0 && labourTaxAmount > 0 && (
                       <>
-                        <div className="flex justify-between text-xs text-gray-500 pl-2">
+                        <div className="flex justify-between text-xs text-secondary pl-2">
                           <span>Items Tax</span>
                           <span>${itemsTax.toFixed(2)}</span>
                         </div>
-                        <div className="flex justify-between text-xs text-gray-500 pl-2">
+                        <div className="flex justify-between text-xs text-secondary pl-2">
                           <span>Labour Tax</span>
                           <span>${labourTaxAmount.toFixed(2)}</span>
                         </div>
                       </>
                     )}
-                    <div className="flex justify-between text-sm text-gray-600">
+                    <div className="flex justify-between text-sm text-secondary">
                       <span>Tax</span>
-                      <span className="font-medium text-gray-900">${totalTax.toFixed(2)}</span>
+                      <span className="font-medium text-primary">${totalTax.toFixed(2)}</span>
                     </div>
-                    <div className="flex justify-between text-base font-semibold text-gray-900 border-t border-gray-200 pt-2 mt-2">
+                    <div className="flex justify-between text-base font-semibold text-primary border-t border-theme pt-2 mt-2">
                       <span>Total Balance Due</span>
                       <span>${totalBalance.toFixed(2)}</span>
                     </div>
@@ -2430,14 +2430,14 @@ const FleetInvoicesPage = () => {
                 </div>
               </section>
             </div>
-            <div className="flex-shrink-0 px-8 py-4 border-t border-gray-200 bg-gray-50 flex items-center justify-end gap-3">
+            <div className="flex-shrink-0 px-8 py-4 border-t border-theme bg-card flex items-center justify-end gap-3">
               <button 
                 type="button" 
                 onClick={() => {
                   setSidebarOpen(false);
                   resetForm();
                 }} 
-                className="px-5 py-2.5 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
+                className="px-5 py-2.5 text-sm font-medium text-primary bg-card border border-gray-300 rounded-lg hover:bg-[rgba(255,255,255,0.03)] transition-colors"
               >
                 Cancel
               </button>
@@ -2457,23 +2457,23 @@ const FleetInvoicesPage = () => {
       {/* Upload & Extract Invoice Modal */}
       {uploadModalOpen && (
         <div className="fixed inset-0 z-[200] flex items-center justify-center bg-black/40 backdrop-blur-sm p-4">
-          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md">
+          <div className="bg-card rounded-2xl shadow-2xl w-full max-w-md">
             {/* Header */}
-            <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100">
+            <div className="flex items-center justify-between px-6 py-4 border-b border-theme">
               <div className="flex items-center gap-2">
-                <FaUpload className="text-blue-600" size={18} />
-                <h3 className="text-base font-semibold text-gray-900">Upload Invoice</h3>
+                <FaUpload className="text-[#00D1FF]" size={18} />
+                <h3 className="text-base font-semibold text-primary">Upload Invoice</h3>
               </div>
               <button
                 onClick={() => { setUploadModalOpen(false); setUploadFile(null); setUploadError(null); }}
-                className="p-1.5 hover:bg-gray-100 rounded-lg text-gray-400"
+                className="p-1.5 hover:bg-gray-100 rounded-lg text-secondary"
               >
                 <FaTimes size={16} />
               </button>
             </div>
 
             <div className="p-6 space-y-4">
-              <p className="text-sm text-gray-500">
+              <p className="text-sm text-secondary">
                 Upload a PDF or image of an invoice. The system will automatically extract the data and pre-fill the invoice form.
               </p>
 
@@ -2489,7 +2489,7 @@ const FleetInvoicesPage = () => {
                 }}
                 onClick={() => fileInputRef.current?.click()}
                 className={`border-2 border-dashed rounded-xl p-8 text-center cursor-pointer transition-colors ${
-                  uploadDragging ? 'border-blue-400 bg-blue-50' : 'border-gray-200 hover:border-blue-300 hover:bg-gray-50'
+                  uploadDragging ? 'border-blue-400 bg-card' : 'border-theme hover:border-blue-300 hover:bg-[rgba(255,255,255,0.03)]'
                 }`}
               >
                 <input
@@ -2506,8 +2506,8 @@ const FleetInvoicesPage = () => {
                 {uploadFile ? (
                   <div className="flex flex-col items-center gap-2">
                     <FaFilePdf className="text-red-500" size={32} />
-                    <p className="text-sm font-medium text-gray-800">{uploadFile.name}</p>
-                    <p className="text-xs text-gray-400">{(uploadFile.size / 1024).toFixed(1)} KB</p>
+                    <p className="text-sm font-medium text-primary">{uploadFile.name}</p>
+                    <p className="text-xs text-secondary">{(uploadFile.size / 1024).toFixed(1)} KB</p>
                     <button
                       type="button"
                       onClick={(e) => { e.stopPropagation(); setUploadFile(null); }}
@@ -2517,26 +2517,26 @@ const FleetInvoicesPage = () => {
                     </button>
                   </div>
                 ) : (
-                  <div className="flex flex-col items-center gap-2 text-gray-400">
+                  <div className="flex flex-col items-center gap-2 text-secondary">
                     <FaUpload size={28} />
-                    <p className="text-sm font-medium text-gray-600">Drag & drop or click to select</p>
+                    <p className="text-sm font-medium text-secondary">Drag & drop or click to select</p>
                     <p className="text-xs">PDF, JPEG, PNG, WebP · Max 10 MB</p>
                   </div>
                 )}
               </div>
 
               {uploadError && (
-                <div className="p-3 bg-red-50 border border-red-200 rounded-lg text-sm text-red-700">
+                <div className="p-3 bg-card border border-red-200 rounded-lg text-sm text-red-700">
                   {uploadError}
                 </div>
               )}
             </div>
 
-            <div className="flex justify-end gap-2 px-6 py-4 border-t border-gray-100">
+            <div className="flex justify-end gap-2 px-6 py-4 border-t border-theme">
               <button
                 type="button"
                 onClick={() => { setUploadModalOpen(false); setUploadFile(null); setUploadError(null); }}
-                className="px-4 py-2 text-sm text-gray-600 bg-gray-100 rounded-lg hover:bg-gray-200"
+                className="px-4 py-2 text-sm text-secondary bg-gray-100 rounded-lg hover:bg-gray-200"
               >
                 Cancel
               </button>

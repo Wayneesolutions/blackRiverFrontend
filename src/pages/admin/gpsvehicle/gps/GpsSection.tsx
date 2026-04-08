@@ -364,16 +364,16 @@ const GpsSection = () => {
   const MAINTENANCE_ALERTS: any[] = [];
 
   return (
-      <div className="min-h-screen bg-[#EDF8FF] font-sans pb-12">
+      <div className="min-h-screen bg-main font-sans pb-12">
           {/* Header */}
-          <div className="top-0 z-30 bg-white shadow-sm">
+          <div className="top-0 z-30 bg-card shadow-sm">
               <div className="px-8 py-5 flex justify-between items-center">
                   <div>
-                      <h1 className="text-2xl font-bold text-gray-900 flex items-center gap-3">
-                          <Navigation size={28} className="text-blue-600" />
+                      <h1 className="text-2xl font-bold text-primary flex items-center gap-3">
+                          <Navigation size={28} className="text-[#00D1FF]" />
                           GPS Tracking & Monitoring
                       </h1>
-                      <p className="text-sm text-gray-500 mt-1 ml-10">Real-time vehicle location and operational data</p>
+                      <p className="text-sm text-secondary mt-1 ml-10">Real-time vehicle location and operational data</p>
                   </div>
               </div>
 
@@ -384,7 +384,7 @@ const GpsSection = () => {
                           key={tab}
                           onClick={() => setActiveTab(tab as any)}
                           className={`pb-3 px-2 text-sm font-bold capitalize transition-colors border-b-2 ${
-                              activeTab === tab ? 'border-blue-500 text-blue-600' : 'border-transparent text-gray-400'
+                              activeTab === tab ? 'border-blue-500 text-[#00D1FF]' : 'border-transparent text-secondary'
                           }`}
                       >
                           {tab === 'overview' ? 'Overview' : tab === 'gps' ? 'GPS Map' : 'Maintenance'}
@@ -399,27 +399,27 @@ const GpsSection = () => {
                     <div className="space-y-6">
                         {/* Stats Cards */}
                         <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-                            <div className="bg-white p-5 rounded-xl shadow-sm border border-gray-200">
+                            <div className="bg-card p-5 rounded-xl shadow-sm border border-theme">
                                 <div className="flex justify-between items-start">
                                     <div>
-                                        <p className="text-xs text-gray-500 uppercase tracking-wide font-medium">Total Vehicles</p>
-                                        <h3 className="text-2xl font-bold text-gray-900 mt-1">{summary.totalVehicles || vehicles.length}</h3>
+                                        <p className="text-xs text-secondary uppercase tracking-wide font-medium">Total Vehicles</p>
+                                        <h3 className="text-2xl font-bold text-primary mt-1">{summary.totalVehicles || vehicles.length}</h3>
                                     </div>
-                                    <div className="p-2 bg-blue-50 text-blue-600 rounded-lg">
+                                    <div className="p-2 bg-card text-[#00D1FF] rounded-lg">
                                         <Truck size={20} />
                                     </div>
                                 </div>
                                 <div className="mt-4 flex gap-2">
                                     <span className="text-xs font-medium text-green-600 bg-green-50 px-2 py-0.5 rounded">{summary.activeVehicles || 0} Active</span>
-                                    <span className="text-xs font-medium text-gray-500 bg-gray-100 px-2 py-0.5 rounded">{statusDistribution.offline || 0} Offline</span>
+                                    <span className="text-xs font-medium text-secondary bg-gray-100 px-2 py-0.5 rounded">{statusDistribution.offline || 0} Offline</span>
                                 </div>
                             </div>
 
-                            <div className="bg-white p-5 rounded-xl shadow-sm border border-gray-200">
+                            <div className="bg-card p-5 rounded-xl shadow-sm border border-theme">
                                 <div className="flex justify-between items-start">
                                     <div>
-                                        <p className="text-xs text-gray-500 uppercase tracking-wide font-medium">Avg Idle Time</p>
-                                        <h3 className="text-2xl font-bold text-gray-900 mt-1">
+                                        <p className="text-xs text-secondary uppercase tracking-wide font-medium">Avg Idle Time</p>
+                                        <h3 className="text-2xl font-bold text-primary mt-1">
                                           {vehicles.length > 0 ? 'Calculating...' : 'N/A'}
                                         </h3>
                                     </div>
@@ -428,17 +428,17 @@ const GpsSection = () => {
                                     </div>
                                 </div>
                                 <div className="mt-4">
-                                    <span className="text-xs text-gray-400">
+                                    <span className="text-xs text-secondary">
                                       {vehicles.length > 0 ? 'Data will appear when available' : 'No vehicles to track'}
                                     </span>
                                 </div>
                             </div>
 
-                            <div className="bg-white p-5 rounded-xl shadow-sm border border-gray-200">
+                            <div className="bg-card p-5 rounded-xl shadow-sm border border-theme">
                                 <div className="flex justify-between items-start">
                                     <div>
-                                        <p className="text-xs text-gray-500 uppercase tracking-wide font-medium">Total Distance</p>
-                                        <h3 className="text-2xl font-bold text-gray-900 mt-1">
+                                        <p className="text-xs text-secondary uppercase tracking-wide font-medium">Total Distance</p>
+                                        <h3 className="text-2xl font-bold text-primary mt-1">
                                           {vehicles.length > 0 ? 'Calculating...' : '0 mi'}
                                         </h3>
                                     </div>
@@ -447,17 +447,17 @@ const GpsSection = () => {
                                     </div>
                                 </div>
                                 <div className="mt-4">
-                                    <span className="text-xs text-gray-400">
+                                    <span className="text-xs text-secondary">
                                       {vehicles.length > 0 ? 'This week (Fleet)' : 'No data available'}
                                     </span>
                                 </div>
                             </div>
 
-                            <div className="bg-white p-5 rounded-xl shadow-sm border border-gray-200">
+                            <div className="bg-card p-5 rounded-xl shadow-sm border border-theme">
                                 <div className="flex justify-between items-start">
                                     <div>
-                                        <p className="text-xs text-gray-500 uppercase tracking-wide font-medium">Fuel Efficiency</p>
-                                        <h3 className="text-2xl font-bold text-gray-900 mt-1">
+                                        <p className="text-xs text-secondary uppercase tracking-wide font-medium">Fuel Efficiency</p>
+                                        <h3 className="text-2xl font-bold text-primary mt-1">
                                           {vehicles.length > 0 ? 'Calculating...' : 'N/A'}
                                         </h3>
                                     </div>
@@ -466,7 +466,7 @@ const GpsSection = () => {
                                     </div>
                                 </div>
                                 <div className="mt-4">
-                                    <span className="text-xs text-gray-400">
+                                    <span className="text-xs text-secondary">
                                       {vehicles.length > 0 ? 'Data will appear when available' : 'No vehicles to track'}
                                     </span>
                                 </div>
@@ -474,13 +474,13 @@ const GpsSection = () => {
                         </div>
 
                         {/* Vehicle List */}
-                        {/* <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
-                            <div className="px-6 py-4 border-b border-gray-100 flex justify-between items-center gap-4">
-                                <h3 className="font-bold text-gray-800">Vehicle Status List</h3>
+                        {/* <div className="bg-card rounded-xl shadow-sm border border-theme overflow-hidden">
+                            <div className="px-6 py-4 border-b border-theme flex justify-between items-center gap-4">
+                                <h3 className="font-bold text-primary">Vehicle Status List</h3>
 
                                 <div className="flex items-center gap-3">
                                     <div className="relative">
-                                        <Search size={16} className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
+                                        <Search size={16} className="absolute left-3 top-1/2 transform -translate-y-1/2 text-secondary" />
                                         <input
                                             type="text"
                                             placeholder="Search vehicle..."
@@ -489,14 +489,14 @@ const GpsSection = () => {
                                             className="pl-9 pr-4 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
                                         />
                                     </div>
-                                    <button className="p-2 text-gray-500 hover:bg-gray-100 rounded-lg">
+                                    <button className="p-2 text-secondary hover:bg-gray-100 rounded-lg">
                                         <RefreshCw size={18} />
                                     </button>
                                 </div>
                             </div>
 
                             <table className="w-full text-sm text-left">
-                                <thead className="bg-gray-50 text-gray-500 font-medium">
+                                <thead className="bg-card text-secondary font-medium">
                                     <tr>
                                         <th className="px-6 py-3">Vehicle ID</th>
                                         <th className="px-6 py-3">Assigned Driver</th>
@@ -510,29 +510,29 @@ const GpsSection = () => {
                                 <tbody className="divide-y divide-gray-100">
                                     {filteredVehicles.map((v) => (
                                         <tr key={v.id} className="hover:bg-blue-50/20 transition-colors group">
-                                            <td className="px-6 py-4 font-bold text-gray-900 flex items-center gap-2">
-                                                <Truck size={16} className="text-gray-400 group-hover:text-blue-500" />
+                                            <td className="px-6 py-4 font-bold text-primary flex items-center gap-2">
+                                                <Truck size={16} className="text-secondary group-hover:text-blue-500" />
                                                 {v.id}
                                             </td>
                                             <td className="px-6 py-4">
                                                 {v.driver === 'Unassigned' ? (
-                                                    <span className="text-gray-400 italic">Unassigned</span>
+                                                    <span className="text-secondary italic">Unassigned</span>
                                                 ) : (
                                                     <div className="flex flex-col">
-                                                        <span className="text-gray-900 font-medium group-hover:text-blue-600 transition-colors">
+                                                        <span className="text-primary font-medium group-hover:text-[#00D1FF] transition-colors">
                                                             {v.driver}
                                                             {v.isCoDriver && (
-                                                                <span className="ml-2 text-xs text-blue-600 bg-blue-50 px-1.5 py-0.5 rounded">Co-Driver</span>
+                                                                <span className="ml-2 text-xs text-[#00D1FF] bg-card px-1.5 py-0.5 rounded">Co-Driver</span>
                                                             )}
                                                         </span>
                                                         {v.driverEmail && (
-                                                            <span className="text-xs text-gray-500 mt-0.5">{v.driverEmail}</span>
+                                                            <span className="text-xs text-secondary mt-0.5">{v.driverEmail}</span>
                                                         )}
                                                         {v.driverPhone && (
-                                                            <span className="text-xs text-gray-500">{v.driverPhone}</span>
+                                                            <span className="text-xs text-secondary">{v.driverPhone}</span>
                                                         )}
                                                         {(v.orderNumber || v.tripNumber || v.customerOrderNo) && (
-                                                            <span className="text-xs text-gray-400 mt-1">
+                                                            <span className="text-xs text-secondary mt-1">
                                                                 Order: {v.orderNumber || v.customerOrderNo || v.tripNumber || 'N/A'}
                                                             </span>
                                                         )}
@@ -542,22 +542,22 @@ const GpsSection = () => {
                                             <td className="px-6 py-4">
                                                 <span className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-medium uppercase tracking-wide
                              ${v.status === 'active' || v.status === 'moving' ? 'bg-green-100 text-green-700' :
-                                                        v.status === 'idle' ? 'bg-amber-100 text-amber-700' : 'bg-gray-100 text-gray-500'}`}>
+                                                        v.status === 'idle' ? 'bg-amber-100 text-amber-700' : 'bg-gray-100 text-secondary'}`}>
                                                     {v.status === 'moving' && <Activity size={12} className="animate-pulse" />}
                                                     {v.status}
                                                 </span>
                                             </td>
-                                            <td className="px-6 py-4 text-gray-500">{v.lastPing}</td>
-                                            <td className="px-6 py-4 flex items-center gap-1.5 text-gray-700">
-                                                <MapPin size={14} className="text-gray-400" />
+                                            <td className="px-6 py-4 text-secondary">{v.lastPing}</td>
+                                            <td className="px-6 py-4 flex items-center gap-1.5 text-primary">
+                                                <MapPin size={14} className="text-secondary" />
                                                 {v.location}
                                             </td>
                                             <td className="px-6 py-4">
-                                                <span className={`${v.idleTime && v.idleTime !== '-' && parseInt(v.idleTime) > 3 ? 'text-red-600 font-bold' : 'text-gray-600'}`}>
+                                                <span className={`${v.idleTime && v.idleTime !== '-' && parseInt(v.idleTime) > 3 ? 'text-[#A855F7] font-bold' : 'text-secondary'}`}>
                                                     {v.idleTime || '-'}
                                                 </span>
                                             </td>
-                                            <td className="px-6 py-4 font-mono text-gray-600">
+                                            <td className="px-6 py-4 font-mono text-secondary">
                                                 {v.engineHours ? v.engineHours.toLocaleString() : '0'} h
                                             </td>
                                         </tr>
@@ -571,16 +571,16 @@ const GpsSection = () => {
                 {/* --- LIVE GPS TAB --- */}
                 {activeTab === 'gps' && (
                     <div className="space-y-6">
-                        <div className="bg-white rounded-xl shadow-sm border border-gray-200 h-[600px] relative overflow-hidden">
+                        <div className="bg-card rounded-xl shadow-sm border border-theme h-[600px] relative overflow-hidden">
                             {vehicleLocations.length === 0 && vehicles.length === 0 ? (
-                                <div className="absolute inset-0 flex items-center justify-center bg-gray-50 z-10">
+                                <div className="absolute inset-0 flex items-center justify-center bg-card z-10">
                                     <div className="text-center p-8">
                                         <Navigation className="w-16 h-16 text-gray-300 mx-auto mb-4" />
-                                        <h3 className="text-lg font-semibold text-gray-700 mb-2">No Vehicles Available</h3>
-                                        <p className="text-sm text-gray-500 max-w-md">
+                                        <h3 className="text-lg font-semibold text-primary mb-2">No Vehicles Available</h3>
+                                        <p className="text-sm text-secondary max-w-md">
                                             No vehicles are currently available for tracking. This may be because no company is assigned to your account.
                                         </p>
-                                        <p className="text-xs text-gray-400 mt-2">
+                                        <p className="text-xs text-secondary mt-2">
                                             Please contact your administrator to assign a company.
                                         </p>
                                     </div>
@@ -617,15 +617,15 @@ const GpsSection = () => {
                                             <Popup>
                                                 <div className="p-2">
                                                     <p className="font-semibold text-sm">{vehicle.unitNo || vehicle.internalId || vehicle.licensePlate}</p>
-                                                    <p className="text-xs text-gray-600">{vehicle.licensePlate || vehicle.makeModel || 'Vehicle'}</p>
-                                                    <p className="text-xs text-gray-500 mt-1">
+                                                    <p className="text-xs text-secondary">{vehicle.licensePlate || vehicle.makeModel || 'Vehicle'}</p>
+                                                    <p className="text-xs text-secondary mt-1">
                                                         {vehicleLocation.address}
                                                         {vehicleLocation.isYardLocation && (
                                                             <span className="ml-1 text-xs text-amber-600 font-medium">(Yard Location)</span>
                                                         )}
                                                     </p>
                                                     {vehicle.driver && (
-                                                        <p className="text-xs text-blue-600 mt-1">Driver: {vehicle.driver}</p>
+                                                        <p className="text-xs text-[#00D1FF] mt-1">Driver: {vehicle.driver}</p>
                                                     )}
                                                     {(vehicle.orderNumber || vehicle.tripNumber) && (
                                                         <p className="text-xs text-purple-600 mt-1">
@@ -642,15 +642,15 @@ const GpsSection = () => {
                             
                             {/* Info Card */}
                             {vehicleLocations.length > 0 && (
-                                <div className="absolute top-4 left-4 bg-white/90 backdrop-blur-sm p-4 rounded-lg shadow-lg border border-gray-200 z-[1000]">
+                                <div className="absolute top-4 left-4 bg-card/90 backdrop-blur-sm p-4 rounded-lg shadow-lg border border-theme z-[1000]">
                                     <div className="flex items-center gap-2 mb-2">
                                         <Wifi size={18} className="text-green-500 animate-pulse" />
-                                        <h3 className="text-sm font-bold text-gray-800">Live ELD Location Feed</h3>
+                                        <h3 className="text-sm font-bold text-primary">Live ELD Location Feed</h3>
                                     </div>
-                                    <p className="text-xs text-gray-600 mb-2">
+                                    <p className="text-xs text-secondary mb-2">
                                         {vehicleLocations.length} vehicle{vehicleLocations.length !== 1 ? 's' : ''} tracked
                                     </p>
-                                    <p className="text-xs text-gray-500">
+                                    <p className="text-xs text-secondary">
                                         Updating every 5 seconds from Samsara
                                     </p>
                                 </div>
@@ -658,11 +658,11 @@ const GpsSection = () => {
 
                             {/* Vehicle List Sidebar */}
                             {vehicleLocations.length > 0 && (
-                                <div className="absolute top-4 right-4 bg-white/90 backdrop-blur-sm p-4 rounded-lg shadow-lg border border-gray-200 z-[1000] max-w-xs max-h-[400px] overflow-y-auto">
-                                    <h4 className="text-sm font-bold text-gray-800 mb-3">Active Vehicles</h4>
+                                <div className="absolute top-4 right-4 bg-card/90 backdrop-blur-sm p-4 rounded-lg shadow-lg border border-theme z-[1000] max-w-xs max-h-[400px] overflow-y-auto">
+                                    <h4 className="text-sm font-bold text-primary mb-3">Active Vehicles</h4>
                                     <div className="space-y-2">
                                         {vehicleLocations.map((vehicle) => (
-                                            <div key={vehicle._id} className="flex items-center gap-2 p-2 hover:bg-gray-50 rounded cursor-pointer">
+                                            <div key={vehicle._id} className="flex items-center gap-2 p-2 hover:bg-[rgba(255,255,255,0.03)] rounded cursor-pointer">
                                                 <div 
                                                     className="w-3 h-3 rounded-full"
                                                     style={{
@@ -672,22 +672,22 @@ const GpsSection = () => {
                                                     }}
                                                 />
                                                 <div className="flex-1 min-w-0">
-                                                    <p className="text-xs font-semibold text-gray-900 truncate">{vehicle.unitNo || vehicle.internalId || vehicle.licensePlate}</p>
+                                                    <p className="text-xs font-semibold text-primary truncate">{vehicle.unitNo || vehicle.internalId || vehicle.licensePlate}</p>
                                                     {(() => {
                                                         const vehicleLocation = getVehicleLocation(vehicle);
                                                         return vehicleLocation ? (
-                                                            <p className="text-xs text-gray-500 truncate">
+                                                            <p className="text-xs text-secondary truncate">
                                                                 {vehicleLocation.address}
                                                                 {vehicleLocation.isYardLocation && (
                                                                     <span className="ml-1 text-amber-600 font-medium">(Yard)</span>
                                                                 )}
                                                             </p>
                                                         ) : (
-                                                            <p className="text-xs text-gray-400 truncate">Location unknown</p>
+                                                            <p className="text-xs text-secondary truncate">Location unknown</p>
                                                         );
                                                     })()}
                                                     {vehicle.driver && (
-                                                        <p className="text-xs text-blue-600 truncate">Driver: {vehicle.driver}</p>
+                                                        <p className="text-xs text-[#00D1FF] truncate">Driver: {vehicle.driver}</p>
                                                     )}
                                                     {(vehicle.orderNumber || vehicle.tripNumber) && (
                                                         <p className="text-xs text-purple-600 truncate">
@@ -709,24 +709,24 @@ const GpsSection = () => {
                     <div className="space-y-6">
                         {/* Alerts */}
                         {MAINTENANCE_ALERTS.length > 0 && (
-                            <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-200">
-                                <h3 className="font-bold text-gray-800 mb-4 flex items-center gap-2">
+                            <div className="bg-card p-6 rounded-xl shadow-sm border border-theme">
+                                <h3 className="font-bold text-primary mb-4 flex items-center gap-2">
                                     <AlertTriangle size={20} className="text-amber-500" />
                                     Active Maintenance Indicators
                                 </h3>
                                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                                     {MAINTENANCE_ALERTS.map((alert: any) => (
                                         <div key={alert.id} className={`p-4 rounded-lg border-l-4 shadow-sm
-                     ${alert.severity === 'high' ? 'bg-red-50 border-red-500' :
-                                                alert.severity === 'medium' ? 'bg-amber-50 border-amber-500' : 'bg-blue-50 border-blue-500'}`}>
+                     ${alert.severity === 'high' ? 'bg-card border-red-500' :
+                                                alert.severity === 'medium' ? 'bg-amber-50 border-amber-500' : 'bg-card border-blue-500'}`}>
                                             <div className="flex justify-between items-start">
                                                 <h4 className={`font-bold text-sm ${alert.severity === 'high' ? 'text-red-700' :
                                                     alert.severity === 'medium' ? 'text-amber-700' : 'text-blue-700'
                                                     }`}>{alert.type}</h4>
-                                                <span className="text-xs text-gray-400">{alert.time}</span>
+                                                <span className="text-xs text-secondary">{alert.time}</span>
                                             </div>
-                                            <p className="text-sm font-medium text-gray-900 mt-1">{alert.vehicle}</p>
-                                            <p className="text-xs text-gray-600 mt-1">{alert.description}</p>
+                                            <p className="text-sm font-medium text-primary mt-1">{alert.vehicle}</p>
+                                            <p className="text-xs text-secondary mt-1">{alert.description}</p>
 
                                         </div>
                                     ))}
@@ -736,9 +736,9 @@ const GpsSection = () => {
 
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                             {/* Engine Hours Chart */}
-                            <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-200">
-                                <h3 className="font-bold text-gray-800 mb-6 flex items-center gap-2">
-                                    <Wrench size={18} className="text-gray-400" />
+                            <div className="bg-card p-6 rounded-xl shadow-sm border border-theme">
+                                <h3 className="font-bold text-primary mb-6 flex items-center gap-2">
+                                    <Wrench size={18} className="text-secondary" />
                                     Engine Hours vs Thresholds
                                 </h3>
                                 {engineHoursData.length > 0 ? (
@@ -754,7 +754,7 @@ const GpsSection = () => {
                                                 </BarChart>
                                             </ResponsiveContainer>
                                         </div>
-                                        <div className="mt-4 text-xs text-center text-gray-500">
+                                        <div className="mt-4 text-xs text-center text-secondary">
                                             Vehicles approaching 15,000 engine hours require major service.
                                         </div>
                                     </>
@@ -762,17 +762,17 @@ const GpsSection = () => {
                                     <div className="h-64 flex items-center justify-center">
                                         <div className="text-center">
                                             <Wrench className="w-12 h-12 text-gray-300 mx-auto mb-2" />
-                                            <p className="text-gray-500 text-sm">No engine hours data available</p>
-                                            <p className="text-gray-400 text-xs mt-1">Engine hours will appear here once vehicles are tracked</p>
+                                            <p className="text-secondary text-sm">No engine hours data available</p>
+                                            <p className="text-secondary text-xs mt-1">Engine hours will appear here once vehicles are tracked</p>
                                         </div>
                                     </div>
                                 )}
                             </div>
 
                             {/* Vehicle Status Distribution */}
-                            <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-200">
-                                <h3 className="font-bold text-gray-800 mb-6 flex items-center gap-2">
-                                    <Activity size={18} className="text-gray-400" />
+                            <div className="bg-card p-6 rounded-xl shadow-sm border border-theme">
+                                <h3 className="font-bold text-primary mb-6 flex items-center gap-2">
+                                    <Activity size={18} className="text-secondary" />
                                     Real-time Vehicle Status
                                 </h3>
                                 {vehicles.length > 0 ? (
@@ -801,8 +801,8 @@ const GpsSection = () => {
                                             {STATUS_DATA.map((item: any) => (
                                                 <div key={item.name} className="flex items-center gap-2">
                                                     <div className="w-3 h-3 rounded-full" style={{ backgroundColor: item.color }}></div>
-                                                    <span className="text-sm text-gray-600">{item.name}</span>
-                                                    <span className="text-sm font-bold text-gray-900">{item.value}</span>
+                                                    <span className="text-sm text-secondary">{item.name}</span>
+                                                    <span className="text-sm font-bold text-primary">{item.value}</span>
                                                 </div>
                                             ))}
                                         </div>
@@ -811,8 +811,8 @@ const GpsSection = () => {
                                     <div className="h-64 flex items-center justify-center">
                                         <div className="text-center">
                                             <Activity className="w-12 h-12 text-gray-300 mx-auto mb-2" />
-                                            <p className="text-gray-500 text-sm">No vehicle data available</p>
-                                            <p className="text-gray-400 text-xs mt-1">Vehicle status will appear here once vehicles are tracked</p>
+                                            <p className="text-secondary text-sm">No vehicle data available</p>
+                                            <p className="text-secondary text-xs mt-1">Vehicle status will appear here once vehicles are tracked</p>
                                         </div>
                                     </div>
                                 )}

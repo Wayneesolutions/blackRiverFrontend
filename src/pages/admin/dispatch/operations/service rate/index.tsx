@@ -273,17 +273,17 @@ const ServicePage = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50">
-        <div className="text-gray-500">Loading...</div>
+      <div className="min-h-screen flex items-center justify-center bg-card">
+        <div className="text-secondary">Loading...</div>
       </div>
     );
   }
 
   if (emptyStateMessage) {
     return (
-      <div className="min-h-screen flex flex-col items-center justify-center bg-gray-50 text-center space-y-4 px-4">
-        <h2 className="text-xl font-semibold text-gray-800">No service rates available</h2>
-        <p className="text-gray-500 max-w-md">{emptyStateMessage}</p>
+      <div className="min-h-screen flex flex-col items-center justify-center bg-card text-center space-y-4 px-4">
+        <h2 className="text-xl font-semibold text-primary">No service rates available</h2>
+        <p className="text-secondary max-w-md">{emptyStateMessage}</p>
         <button
           onClick={() => setSidebarOpen(true)}
           className="bg-blue-500 hover:bg-blue-600 !text-white font-semibold px-6 py-3 rounded-lg shadow-lg"
@@ -295,7 +295,7 @@ const ServicePage = () => {
   }
 
   return (
-    <div className="min-h-screen flex flex-col relative bg-gray-50 px-4">
+    <div className="min-h-screen flex flex-col relative bg-card px-4">
       {/* Background */}
       <div className="absolute inset-0 bg-opacity-40 backdrop-blur-sm pointer-events-none"></div>
       <div
@@ -309,7 +309,7 @@ const ServicePage = () => {
       <div className="relative z-10 flex-1 p-4">
         {/* Header */}
         <div className="flex items-center justify-between mb-4">
-          <h2 className="text-xl font-bold text-gray-800 bg-white bg-opacity-70 backdrop-blur-sm px-4 py-2 rounded-lg shadow-sm">
+          <h2 className="text-xl font-bold text-primary bg-card bg-opacity-70 backdrop-blur-sm px-4 py-2 rounded-lg shadow-sm">
             Service Rate
           </h2>
           <div className="flex items-center gap-3">
@@ -324,19 +324,19 @@ const ServicePage = () => {
         </div>
 
         {/* Table */}
-        <div className="bg-white bg-opacity-95 backdrop-blur-lg rounded-xl border border-white border-opacity-50 shadow-xl overflow-x-auto">
+        <div className="bg-card bg-opacity-95 backdrop-blur-lg rounded-xl border border-white border-opacity-50 shadow-xl overflow-x-auto">
           <table className="w-full border-collapse text-sm">
             <thead>
-              <tr className="bg-gray-50 bg-opacity-80 backdrop-blur-sm text-left font-semibold text-gray-700">
-                <th className="px-6 py-4 border-r border-gray-200 border-opacity-50">Service Name</th>
-                <th className="px-6 py-4 border-r border-gray-200 border-opacity-50">Price</th>
-                <th className="px-6 py-4 border-r border-gray-200 border-opacity-50">Duration</th>
-                <th className="px-6 py-4 border-r border-gray-200 border-opacity-50">Order Type</th>
-                <th className="px-6 py-4 border-r border-gray-200 border-opacity-50">Rate Method</th>
-                <th className="px-6 py-4 border-r border-gray-200 border-opacity-50">COD</th>
-                <th className="px-6 py-4 border-r border-gray-200 border-opacity-50">Peak Hours</th>
-                <th className="px-6 py-4 border-r border-gray-200 border-opacity-50">Restriction</th>
-                <th className="px-6 py-4 border-r border-gray-200 border-opacity-50">Tags</th>
+              <tr className="bg-card bg-opacity-80 backdrop-blur-sm text-left font-semibold text-primary">
+                <th className="px-6 py-4 border-r border-theme border-opacity-50">Service Name</th>
+                <th className="px-6 py-4 border-r border-theme border-opacity-50">Price</th>
+                <th className="px-6 py-4 border-r border-theme border-opacity-50">Duration</th>
+                <th className="px-6 py-4 border-r border-theme border-opacity-50">Order Type</th>
+                <th className="px-6 py-4 border-r border-theme border-opacity-50">Rate Method</th>
+                <th className="px-6 py-4 border-r border-theme border-opacity-50">COD</th>
+                <th className="px-6 py-4 border-r border-theme border-opacity-50">Peak Hours</th>
+                <th className="px-6 py-4 border-r border-theme border-opacity-50">Restriction</th>
+                <th className="px-6 py-4 border-r border-theme border-opacity-50">Tags</th>
                 <th className="px-6 py-4">Actions</th>
               </tr>
             </thead>
@@ -359,17 +359,17 @@ const ServicePage = () => {
                     key={service._id}
                     className="hover:bg-blue-50 hover:bg-opacity-50 transition-colors duration-200"
                   >
-                    <td className="px-6 py-4 border-r border-gray-100">{service.serviceName}</td>
-                    <td className="px-6 py-4 border-r border-gray-100 font-mono text-green-600 font-semibold">{service.price}</td>
-                    <td className="px-6 py-4 border-r border-gray-100">{service.duration}</td>
-                    <td className="px-6 py-4 border-r border-gray-100">{service.orderType}</td>
-                    <td className="px-6 py-4 border-r border-gray-100">{service.rateCalculationMethod}</td>
-                    <td className="px-6 py-4 border-r border-gray-100">{service.cashOnDeliver ? "Yes" : "No"}</td>
-                    <td className="px-6 py-4 border-r border-gray-100">
+                    <td className="px-6 py-4 border-r border-theme">{service.serviceName}</td>
+                    <td className="px-6 py-4 border-r border-theme font-mono text-green-600 font-semibold">{service.price}</td>
+                    <td className="px-6 py-4 border-r border-theme">{service.duration}</td>
+                    <td className="px-6 py-4 border-r border-theme">{service.orderType}</td>
+                    <td className="px-6 py-4 border-r border-theme">{service.rateCalculationMethod}</td>
+                    <td className="px-6 py-4 border-r border-theme">{service.cashOnDeliver ? "Yes" : "No"}</td>
+                    <td className="px-6 py-4 border-r border-theme">
                       {service.peekHoursPricing?.peakHoursStart} - {service.peekHoursPricing?.peakHoursEnd} ({service.peekHoursPricing?.peakHoursMethod})
                     </td>
-                    <td className="px-6 py-4 border-r border-gray-100">{service.serviceRestriction}</td>
-                    <td className="px-6 py-4 border-r border-gray-100 italic">
+                    <td className="px-6 py-4 border-r border-theme">{service.serviceRestriction}</td>
+                    <td className="px-6 py-4 border-r border-theme italic">
                       {Array.isArray(service.tags) ? service.tags.join(", ") : service.tags || "No tags"}
                     </td>
                     <td className="px-6 py-4 flex gap-2">
@@ -396,7 +396,7 @@ const ServicePage = () => {
 
       {/* New Service Sidebar */}
       <div
-        className={`fixed top-0 right-0 h-full max-w-lg w-full sm:w-[42rem] bg-white bg-opacity-95 backdrop-blur-xl shadow-2xl transform transition-transform duration-500 ease-out z-[9999] border-l border-gray-200 border-opacity-50 ${
+        className={`fixed top-0 right-0 h-full max-w-lg w-full sm:w-[42rem] bg-card bg-opacity-95 backdrop-blur-xl shadow-2xl transform transition-transform duration-500 ease-out z-[9999] border-l border-theme border-opacity-50 ${
           sidebarOpen ? "translate-x-0" : "translate-x-full"
         }`}
       >
@@ -414,12 +414,12 @@ const ServicePage = () => {
       {/* Update Modal */}
       {updateModalOpen && (
         <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/40 px-4">
-          <div className="bg-white rounded-2xl w-full max-w-3xl shadow-2xl overflow-hidden">
-            <div className="flex items-center justify-between px-6 py-4 border-b border-gray-200 bg-gray-50">
-              <h2 className="text-xl font-bold text-gray-900">Update Service</h2>
+          <div className="bg-card rounded-2xl w-full max-w-3xl shadow-2xl overflow-hidden">
+            <div className="flex items-center justify-between px-6 py-4 border-b border-theme bg-card">
+              <h2 className="text-xl font-bold text-primary">Update Service</h2>
               <button
                 onClick={closeUpdateModal}
-                className="w-8 h-8 flex items-center justify-center text-gray-400 hover:text-gray-600 hover:bg-gray-200 rounded-full transition-all duration-200"
+                className="w-8 h-8 flex items-center justify-center text-secondary hover:text-secondary hover:bg-gray-200 rounded-full transition-all duration-200"
               >
                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -428,13 +428,13 @@ const ServicePage = () => {
             </div>
 
             <div className="max-h-[75vh] overflow-y-auto p-6 space-y-6">
-              <div className="bg-white border border-gray-200 rounded-xl p-5 space-y-4">
-                <h3 className="text-lg font-semibold text-gray-900 border-b border-gray-100 pb-3">
+              <div className="bg-card border border-theme rounded-xl p-5 space-y-4">
+                <h3 className="text-lg font-semibold text-primary border-b border-theme pb-3">
                   Basic Information
                 </h3>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                    <label className="block text-sm font-medium text-primary mb-2">
                       Service Name <span className="text-red-500">*</span>
                     </label>
                     <input
@@ -442,19 +442,19 @@ const ServicePage = () => {
                       name="serviceName"
                       value={updateForm.serviceName}
                       onChange={handleUpdateChange}
-                      className="w-full border border-gray-300 rounded-lg px-4 py-3 text-gray-900 focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all duration-200"
+                      className="w-full border border-gray-300 rounded-lg px-4 py-3 text-primary focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all duration-200"
                       placeholder="Enter service name"
                     />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                    <label className="block text-sm font-medium text-primary mb-2">
                       Service Order Type <span className="text-red-500">*</span>
                     </label>
                     <select
                       name="orderType"
                       value={updateForm.orderType}
                       onChange={handleUpdateChange}
-                      className="w-full border border-gray-300 rounded-lg px-4 py-3 text-gray-900 focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all duration-200 bg-white"
+                      className="w-full border border-gray-300 rounded-lg px-4 py-3 text-primary focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all duration-200 bg-card"
                     >
                       <option value="">Select order type</option>
                       <option value="transport">Transport</option>
@@ -463,31 +463,31 @@ const ServicePage = () => {
                   </div>
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Tags <span className="text-gray-400 text-xs">(comma separated)</span>
+                  <label className="block text-sm font-medium text-primary mb-2">
+                    Tags <span className="text-secondary text-xs">(comma separated)</span>
                   </label>
                   <input
                     type="text"
                     name="tags"
                     value={updateForm.tags}
                     onChange={handleUpdateChange}
-                    className="w-full border border-gray-300 rounded-lg px-4 py-3 text-gray-900 focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all duration-200"
+                    className="w-full border border-gray-300 rounded-lg px-4 py-3 text-primary focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all duration-200"
                     placeholder="e.g. priority, fragile"
                   />
                 </div>
               </div>
 
-              <div className="bg-white border border-gray-200 rounded-xl p-5 space-y-4">
-                <h3 className="text-lg font-semibold text-gray-900 border-b border-gray-100 pb-3">
+              <div className="bg-card border border-theme rounded-xl p-5 space-y-4">
+                <h3 className="text-lg font-semibold text-primary border-b border-theme pb-3">
                   Pricing Configuration
                 </h3>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                    <label className="block text-sm font-medium text-primary mb-2">
                       Base Fee / Price <span className="text-red-500">*</span>
                     </label>
                     <div className="relative">
-                      <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500 text-sm">
+                      <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-secondary text-sm">
                         S$
                       </span>
                       <input
@@ -495,20 +495,20 @@ const ServicePage = () => {
                         name="price"
                         value={updateForm.price}
                         onChange={handleUpdateChange}
-                        className="w-full border border-gray-300 rounded-lg pl-10 pr-4 py-3 text-gray-900 focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all duration-200"
+                        className="w-full border border-gray-300 rounded-lg pl-10 pr-4 py-3 text-primary focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all duration-200"
                         placeholder="0.00"
                       />
                     </div>
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                    <label className="block text-sm font-medium text-primary mb-2">
                       Rate Calculation Method <span className="text-red-500">*</span>
                     </label>
                     <select
                       name="rateCalculationMethod"
                       value={updateForm.rateCalculationMethod}
                       onChange={handleUpdateChange}
-                      className="w-full border border-gray-300 rounded-lg px-4 py-3 text-gray-900 focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all duration-200 bg-white"
+                      className="w-full border border-gray-300 rounded-lg px-4 py-3 text-primary focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all duration-200 bg-card"
                     >
                       <option value="">Select calculation method</option>
                       <option value="fixed-meter">Fixed Meter</option>
@@ -520,25 +520,25 @@ const ServicePage = () => {
                 </div>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">Duration Terms</label>
+                    <label className="block text-sm font-medium text-primary mb-2">Duration Terms</label>
                     <input
                       type="text"
                       name="duration"
                       value={updateForm.duration}
                       onChange={handleUpdateChange}
-                      className="w-full border border-gray-300 rounded-lg px-4 py-3 text-gray-900 focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all duration-200"
+                      className="w-full border border-gray-300 rounded-lg px-4 py-3 text-primary focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all duration-200"
                       placeholder="Enter duration terms if applicable"
                     />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                    <label className="block text-sm font-medium text-primary mb-2">
                       Service Restriction
                     </label>
                     <select
                       name="serviceRestriction"
                       value={updateForm.serviceRestriction}
                       onChange={handleUpdateChange}
-                      className="w-full border border-gray-300 rounded-lg px-4 py-3 text-gray-900 focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all duration-200 bg-white"
+                      className="w-full border border-gray-300 rounded-lg px-4 py-3 text-primary focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all duration-200 bg-card"
                     >
                       <option value="">Select restriction</option>
                       <option value="service-area">Restrict to service area</option>
@@ -549,11 +549,11 @@ const ServicePage = () => {
                 </div>
               </div>
 
-              <div className="bg-white border border-gray-200 rounded-xl p-5 space-y-4">
+              <div className="bg-card border border-theme rounded-xl p-5 space-y-4">
                 <div className="flex items-center justify-between">
                   <div>
-                    <h3 className="text-lg font-semibold text-gray-900">Cash on Delivery</h3>
-                    <p className="text-sm text-gray-500 mt-1">
+                    <h3 className="text-lg font-semibold text-primary">Cash on Delivery</h3>
+                    <p className="text-sm text-secondary mt-1">
                       Allow customers to pay upon delivery and define the fee.
                     </p>
                   </div>
@@ -565,20 +565,20 @@ const ServicePage = () => {
                       onChange={handleUpdateChange}
                       className="sr-only peer"
                     />
-                    <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
+                    <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-card after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
                   </label>
                 </div>
                 {updateForm.cashOnDeliver && (
                   <div className="mt-4 grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                      <label className="block text-sm font-medium text-primary mb-2">
                         COD Fee Calculation Method <span className="text-red-500">*</span>
                       </label>
                       <select
                         name="cashOnDeliverMethod"
                         value={updateForm.cashOnDeliverMethod}
                         onChange={handleUpdateChange}
-                        className="w-full border border-gray-300 rounded-lg px-4 py-3 text-gray-900 focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all duration-200 bg-white"
+                        className="w-full border border-gray-300 rounded-lg px-4 py-3 text-primary focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all duration-200 bg-card"
                       >
                         <option value="">Select COD calculation method</option>
                         <option value="flat">Flat Fee</option>
@@ -589,11 +589,11 @@ const ServicePage = () => {
                 )}
               </div>
 
-              <div className="bg-white border border-gray-200 rounded-xl p-5 space-y-4">
+              <div className="bg-card border border-theme rounded-xl p-5 space-y-4">
                 <div className="flex items-center justify-between">
                   <div>
-                    <h3 className="text-lg font-semibold text-gray-900">Peak Hours Pricing</h3>
-                    <p className="text-sm text-gray-500 mt-1">
+                    <h3 className="text-lg font-semibold text-primary">Peak Hours Pricing</h3>
+                    <p className="text-sm text-secondary mt-1">
                       Apply additional charges during peak hours for this service.
                     </p>
                   </div>
@@ -605,14 +605,14 @@ const ServicePage = () => {
                       onChange={handleUpdateChange}
                       className="sr-only peer"
                     />
-                    <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
+                    <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-card after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
                   </label>
                 </div>
                 {updateForm.peakHours && (
                   <div className="space-y-4">
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                        <label className="block text-sm font-medium text-primary mb-2">
                           Peak Hours Start <span className="text-red-500">*</span>
                         </label>
                         <input
@@ -620,11 +620,11 @@ const ServicePage = () => {
                           name="peakHoursStart"
                           value={updateForm.peakHoursStart}
                           onChange={handleUpdateChange}
-                          className="w-full border border-gray-300 rounded-lg px-4 py-3 text-gray-900 focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all duration-200"
+                          className="w-full border border-gray-300 rounded-lg px-4 py-3 text-primary focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all duration-200"
                         />
                       </div>
                       <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                        <label className="block text-sm font-medium text-primary mb-2">
                           Peak Hours End <span className="text-red-500">*</span>
                         </label>
                         <input
@@ -632,19 +632,19 @@ const ServicePage = () => {
                           name="peakHoursEnd"
                           value={updateForm.peakHoursEnd}
                           onChange={handleUpdateChange}
-                          className="w-full border border-gray-300 rounded-lg px-4 py-3 text-gray-900 focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all duration-200"
+                          className="w-full border border-gray-300 rounded-lg px-4 py-3 text-primary focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all duration-200"
                         />
                       </div>
                     </div>
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                      <label className="block text-sm font-medium text-primary mb-2">
                         Peak Hours Fee Calculation Method <span className="text-red-500">*</span>
                       </label>
                       <select
                         name="peakHoursMethod"
                         value={updateForm.peakHoursMethod}
                         onChange={handleUpdateChange}
-                        className="w-full border border-gray-300 rounded-lg px-4 py-3 text-gray-900 focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all duration-200 bg-white"
+                        className="w-full border border-gray-300 rounded-lg px-4 py-3 text-primary focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all duration-200 bg-card"
                       >
                         <option value="">Select peak hours method</option>
                         <option value="flat">Flat Additional Fee</option>
@@ -656,10 +656,10 @@ const ServicePage = () => {
               </div>
             </div>
 
-            <div className="px-6 py-4 border-t border-gray-200 bg-gray-50 flex justify-end gap-3">
+            <div className="px-6 py-4 border-t border-theme bg-card flex justify-end gap-3">
               <button
                 onClick={closeUpdateModal}
-                className="px-6 py-2.5 text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 hover:border-gray-400 focus:outline-none focus:ring-2 focus:ring-gray-200 transition-all duration-200 font-medium"
+                className="px-6 py-2.5 text-primary bg-card border border-gray-300 rounded-lg hover:bg-[rgba(255,255,255,0.03)] hover:border-gray-400 focus:outline-none focus:ring-2 focus:ring-gray-200 transition-all duration-200 font-medium"
               >
                 Cancel
               </button>
@@ -678,37 +678,37 @@ const ServicePage = () => {
       {/* Delete Confirmation Modal */}
       {deleteModalOpen && (
         <div className="fixed inset-0 z-[10000] flex items-center justify-center bg-black/50 px-4">
-          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md overflow-hidden">
-            <div className="flex items-center gap-3 px-6 py-4 bg-red-50 border-b border-red-100">
+          <div className="bg-card rounded-2xl shadow-2xl w-full max-w-md overflow-hidden">
+            <div className="flex items-center gap-3 px-6 py-4 bg-card border-b border-red-100">
               <div className="p-2 bg-red-100 rounded-full">
-                <svg className="w-6 h-6 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg className="w-6 h-6 text-[#A855F7]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v4m0 4h.01M9.38 4.59l-6.6 11.41A1 1 0 003.62 18h16.76a1 1 0 00.86-1.5l-6.6-11.41a1 1 0 00-1.72 0z" />
                 </svg>
               </div>
               <div>
                 <h3 className="text-lg font-semibold text-red-800">Delete Service</h3>
-                <p className="text-sm text-red-600">
+                <p className="text-sm text-[#A855F7]">
                   This action cannot be undone. Please confirm to proceed.
                 </p>
               </div>
             </div>
             <div className="px-6 py-5 space-y-3">
-              <p className="text-gray-700">
+              <p className="text-primary">
                 Are you sure you want to delete{" "}
-                <span className="font-semibold text-gray-900">
+                <span className="font-semibold text-primary">
                   {serviceToDelete?.serviceName || "this service"}
                 </span>
                 ?
               </p>
-              <p className="text-sm text-gray-500">
+              <p className="text-sm text-secondary">
                 The service rate will be permanently removed and will no longer be available for selection.
               </p>
             </div>
-            <div className="px-6 py-4 bg-gray-50 border-t border-gray-200 flex justify-end gap-3">
+            <div className="px-6 py-4 bg-card border-t border-theme flex justify-end gap-3">
               <button
                 onClick={closeDeleteModal}
                 disabled={deleteSubmitting}
-                className="px-5 py-2.5 text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-gray-200 transition-all duration-200 disabled:opacity-60 disabled:cursor-not-allowed"
+                className="px-5 py-2.5 text-primary bg-card border border-gray-300 rounded-lg hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-gray-200 transition-all duration-200 disabled:opacity-60 disabled:cursor-not-allowed"
               >
                 Cancel
               </button>

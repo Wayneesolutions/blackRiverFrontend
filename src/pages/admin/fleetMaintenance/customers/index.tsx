@@ -67,8 +67,8 @@ const NotificationToast = ({ notification, onClose }: { notification: Notificati
   };
   const bgColors = {
     success: 'bg-green-50 border-green-200',
-    error: 'bg-red-50 border-red-200',
-    info: 'bg-blue-50 border-blue-200',
+    error: 'bg-card border-red-200',
+    info: 'bg-card border-blue-200',
   };
   useEffect(() => {
     const t = setTimeout(() => onClose(notification.id), 5000);
@@ -77,8 +77,8 @@ const NotificationToast = ({ notification, onClose }: { notification: Notificati
   return (
     <div className={`flex items-start gap-3 p-4 rounded-lg border-2 shadow-lg ${bgColors[notification.type]}`}>
       <div className="flex-shrink-0 mt-0.5">{icons[notification.type]}</div>
-      <p className="flex-1 text-sm font-medium text-gray-800">{notification.message}</p>
-      <button type="button" onClick={() => onClose(notification.id)} className="flex-shrink-0 text-gray-400 hover:text-gray-600">
+      <p className="flex-1 text-sm font-medium text-primary">{notification.message}</p>
+      <button type="button" onClick={() => onClose(notification.id)} className="flex-shrink-0 text-secondary hover:text-secondary">
         <FaTimes size={16} />
       </button>
     </div>
@@ -485,7 +485,7 @@ const FleetMaintenanceCustomers = () => {
     return (
     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
       <div className="md:col-span-2">
-        <label className="block text-sm font-medium text-gray-700 mb-1">Street Address 1</label>
+        <label className="block text-sm font-medium text-primary mb-1">Street Address 1</label>
         <input
           type="text"
           value={fields.streetAddress1}
@@ -496,7 +496,7 @@ const FleetMaintenanceCustomers = () => {
         {err.streetAddress1 && <p className="text-red-500 text-xs mt-1">{err.streetAddress1}</p>}
       </div>
       <div className="md:col-span-2">
-        <label className="block text-sm font-medium text-gray-700 mb-1">Street Address 2</label>
+        <label className="block text-sm font-medium text-primary mb-1">Street Address 2</label>
         <input
           type="text"
           value={fields.streetAddress2}
@@ -506,7 +506,7 @@ const FleetMaintenanceCustomers = () => {
         />
       </div>
       <div>
-        <label className="block text-sm font-medium text-gray-700 mb-1">City</label>
+        <label className="block text-sm font-medium text-primary mb-1">City</label>
         <input
           type="text"
           value={fields.city}
@@ -517,7 +517,7 @@ const FleetMaintenanceCustomers = () => {
         {err.city && <p className="text-red-500 text-xs mt-1">{err.city}</p>}
       </div>
       <div>
-        <label className="block text-sm font-medium text-gray-700 mb-1">Province / State</label>
+        <label className="block text-sm font-medium text-primary mb-1">Province / State</label>
         <input
           type="text"
           value={fields.provinceState}
@@ -528,7 +528,7 @@ const FleetMaintenanceCustomers = () => {
         {err.provinceState && <p className="text-red-500 text-xs mt-1">{err.provinceState}</p>}
       </div>
       <div>
-        <label className="block text-sm font-medium text-gray-700 mb-1">Postal / ZIP Code</label>
+        <label className="block text-sm font-medium text-primary mb-1">Postal / ZIP Code</label>
         <input
           type="text"
           value={fields.postalZip}
@@ -539,7 +539,7 @@ const FleetMaintenanceCustomers = () => {
         {err.postalZip && <p className="text-red-500 text-xs mt-1">{err.postalZip}</p>}
       </div>
       <div>
-        <label className="block text-sm font-medium text-gray-700 mb-1">Country</label>
+        <label className="block text-sm font-medium text-primary mb-1">Country</label>
         <input
           type="text"
           value={fields.country}
@@ -554,7 +554,7 @@ const FleetMaintenanceCustomers = () => {
   };
 
   return (
-    <div className="min-h-screen pb-10" style={{ backgroundColor: '#EDF8FF' }}>
+    <div className="min-h-screen pb-10" >
       <div className="relative w-full mx-auto p-6">
       {/* Notifications */}
       <div className="fixed top-4 right-4 z-[200] space-y-3 max-w-md">
@@ -563,15 +563,15 @@ const FleetMaintenanceCustomers = () => {
         ))}
       </div>
 
-      <h1 className="text-2xl font-bold text-gray-900 mb-6">Customers</h1>
-      <p className="text-gray-600 mb-8">Manage customer addresses, notes, payments, and additional info.</p>
+      <h1 className="text-2xl font-bold text-primary mb-6">Customers</h1>
+      <p className="text-secondary mb-8">Manage customer addresses, notes, payments, and additional info.</p>
 
       {/* All Customers Table (static) */}
-      <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden mb-8">
-        <div className="px-6 py-4 border-b border-gray-200 bg-gray-50 flex flex-wrap items-center justify-between gap-3">
+      <div className="bg-card rounded-xl shadow-sm border border-theme overflow-hidden mb-8">
+        <div className="px-6 py-4 border-b border-theme bg-card flex flex-wrap items-center justify-between gap-3">
           <div>
-            <h2 className="text-lg font-semibold text-gray-900">All Customers</h2>
-            <p className="text-sm text-gray-500 mt-0.5">Add new customers via the sidebar.</p>
+            <h2 className="text-lg font-semibold text-primary">All Customers</h2>
+            <p className="text-sm text-secondary mt-0.5">Add new customers via the sidebar.</p>
           </div>
           <div className="flex items-center gap-2">
             <button
@@ -593,7 +593,7 @@ const FleetMaintenanceCustomers = () => {
         </div>
         <div className="overflow-x-auto">
           <table className="w-full text-sm text-left">
-            <thead className="bg-gray-100 text-gray-600 uppercase text-xs font-semibold">
+            <thead className="bg-gray-100 text-secondary uppercase text-xs font-semibold">
               <tr>
                 <th className="px-6 py-4">Name</th>
                 <th className="px-6 py-4">Email</th>
@@ -610,19 +610,19 @@ const FleetMaintenanceCustomers = () => {
             <tbody className="divide-y divide-gray-100">
               {customersLoading ? (
                 <tr>
-                  <td colSpan={10} className="px-6 py-8 text-center text-gray-500">
+                  <td colSpan={10} className="px-6 py-8 text-center text-secondary">
                     Loading customers...
                   </td>
                 </tr>
               ) : customersError ? (
                 <tr>
-                  <td colSpan={10} className="px-6 py-8 text-center text-red-600">
+                  <td colSpan={10} className="px-6 py-8 text-center text-[#A855F7]">
                     {customersError}
                   </td>
                 </tr>
               ) : customers.length === 0 ? (
                 <tr>
-                  <td colSpan={10} className="px-6 py-8 text-center text-gray-500">
+                  <td colSpan={10} className="px-6 py-8 text-center text-secondary">
                     No customers yet. Add one using the button above.
                   </td>
                 </tr>
@@ -630,24 +630,24 @@ const FleetMaintenanceCustomers = () => {
                 customers.map((row) => (
                 <tr
                   key={row.id}
-                  className="hover:bg-gray-50 cursor-pointer"
+                  className="hover:bg-[rgba(255,255,255,0.03)] cursor-pointer"
                   onClick={() => openEdit(row.id)}
                 >
-                  <td className="px-6 py-4 font-medium text-gray-900">{row.name}</td>
-                  <td className="px-6 py-4 text-gray-600">{row.email || '—'}</td>
-                  <td className="px-6 py-4 text-gray-600">{row.phone || '—'}</td>
-                  <td className="px-6 py-4 text-gray-600">{row.billingCity || '—'}</td>
-                  <td className="px-6 py-4 text-gray-600">{row.billingProvinceState || '—'}</td>
-                  <td className="px-6 py-4 text-gray-600">{row.country || '—'}</td>
-                  <td className="px-6 py-4 text-gray-600">{row.customerType || '—'}</td>
-                  <td className="px-6 py-4 text-gray-600">{row.terms || '—'}</td>
-                  <td className="px-6 py-4 text-gray-600">{row.paymentMethod || '—'}</td>
+                  <td className="px-6 py-4 font-medium text-primary">{row.name}</td>
+                  <td className="px-6 py-4 text-secondary">{row.email || '—'}</td>
+                  <td className="px-6 py-4 text-secondary">{row.phone || '—'}</td>
+                  <td className="px-6 py-4 text-secondary">{row.billingCity || '—'}</td>
+                  <td className="px-6 py-4 text-secondary">{row.billingProvinceState || '—'}</td>
+                  <td className="px-6 py-4 text-secondary">{row.country || '—'}</td>
+                  <td className="px-6 py-4 text-secondary">{row.customerType || '—'}</td>
+                  <td className="px-6 py-4 text-secondary">{row.terms || '—'}</td>
+                  <td className="px-6 py-4 text-secondary">{row.paymentMethod || '—'}</td>
                   <td className="px-6 py-4" onClick={(e) => e.stopPropagation()}>
                     <div className="flex items-center gap-2">
                       <button
                         type="button"
                         onClick={() => openDetail(row.id)}
-                        className="text-blue-600 hover:text-blue-800 p-1"
+                        className="text-[#00D1FF] hover:text-blue-800 p-1"
                         title="View"
                       >
                         <FaEye size={14} />
@@ -655,7 +655,7 @@ const FleetMaintenanceCustomers = () => {
                       <button
                         type="button"
                         onClick={() => openEdit(row.id)}
-                        className="text-gray-600 hover:text-gray-800 p-1"
+                        className="text-secondary hover:text-primary p-1"
                         title="Edit"
                       >
                         <FaEdit size={14} />
@@ -664,7 +664,7 @@ const FleetMaintenanceCustomers = () => {
                         type="button"
                         onClick={() => handleDeleteClick(row.id, row.name)}
                         disabled={deletingId === row.id}
-                        className="text-red-600 hover:text-red-800 p-1 disabled:opacity-50"
+                        className="text-[#A855F7] hover:text-red-800 p-1 disabled:opacity-50"
                         title="Delete"
                       >
                         <FaTrash size={14} />
@@ -686,13 +686,13 @@ const FleetMaintenanceCustomers = () => {
               onClick={handleCloseSidebar}
               aria-hidden="true"
             />
-          <div className="fixed top-0 right-0 h-full w-full max-w-xl bg-white shadow-xl z-50 flex flex-col">
-            <div className="flex-shrink-0 px-6 py-4 border-b border-gray-200 flex items-center justify-between">
-              <h2 className="text-lg font-semibold text-gray-900">{editingId ? 'Edit customer' : 'Add new customer'}</h2>
+          <div className="fixed top-0 right-0 h-full w-full max-w-xl bg-card shadow-xl z-50 flex flex-col">
+            <div className="flex-shrink-0 px-6 py-4 border-b border-theme flex items-center justify-between">
+              <h2 className="text-lg font-semibold text-primary">{editingId ? 'Edit customer' : 'Add new customer'}</h2>
               <button
                 type="button"
                 onClick={handleCloseSidebar}
-                className="p-2 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded"
+                className="p-2 text-secondary hover:text-primary hover:bg-gray-100 rounded"
                 aria-label="Close"
               >
                 <FaTimes size={20} />
@@ -700,8 +700,8 @@ const FleetMaintenanceCustomers = () => {
             </div>
             <div className="flex-1 overflow-y-auto px-6 py-4 space-y-6">
               {/* Customer Name (required) */}
-              <div className="bg-gray-50 rounded-lg border border-gray-200 p-4">
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+              <div className="bg-card rounded-lg border border-theme p-4">
+                <label className="block text-sm font-medium text-primary mb-1">
                   Customer Name <span className="text-red-500">*</span>
                 </label>
                 <input
@@ -714,11 +714,11 @@ const FleetMaintenanceCustomers = () => {
                 {errors.customerName && <p className="text-red-500 text-xs mt-1">{errors.customerName}</p>}
               </div>
               {/* Contact info: Email, Phone, Contact Person */}
-              <div className="bg-gray-50 rounded-lg border border-gray-200 p-4">
-                <h3 className="text-base font-semibold text-gray-900 mb-3">Contact & main info</h3>
+              <div className="bg-card rounded-lg border border-theme p-4">
+                <h3 className="text-base font-semibold text-primary mb-3">Contact & main info</h3>
                 <div className="space-y-3">
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Email <span className="text-red-500">*</span></label>
+                    <label className="block text-sm font-medium text-primary mb-1">Email <span className="text-red-500">*</span></label>
                     <input
                       type="email"
                       value={email}
@@ -729,7 +729,7 @@ const FleetMaintenanceCustomers = () => {
                     {errors.email && <p className="text-red-500 text-xs mt-1">{errors.email}</p>}
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Phone</label>
+                    <label className="block text-sm font-medium text-primary mb-1">Phone</label>
                     <input
                       type="tel"
                       value={phone}
@@ -739,7 +739,7 @@ const FleetMaintenanceCustomers = () => {
                     />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Contact Person</label>
+                    <label className="block text-sm font-medium text-primary mb-1">Contact Person</label>
                     <input
                       type="text"
                       value={contactPerson}
@@ -751,17 +751,17 @@ const FleetMaintenanceCustomers = () => {
                 </div>
               </div>
               {/* 1. Addresses */}
-              <div className="bg-gray-50 rounded-lg border border-gray-200 p-4">
-                <h3 className="text-base font-semibold text-gray-900 mb-3 flex items-center gap-2">
-                  <FaMapMarkerAlt className="text-blue-600" />
+              <div className="bg-card rounded-lg border border-theme p-4">
+                <h3 className="text-base font-semibold text-primary mb-3 flex items-center gap-2">
+                  <FaMapMarkerAlt className="text-[#00D1FF]" />
                   Addresses
                 </h3>
-        <p className="text-sm text-gray-600 mb-4">
+        <p className="text-sm text-secondary mb-4">
           Billing and shipping addresses for where the customer lives or works and where they receive goods.
         </p>
         <div className="space-y-6">
           <div>
-            <h3 className="text-sm font-medium text-gray-800 mb-3">Billing Address</h3>
+            <h3 className="text-sm font-medium text-primary mb-3">Billing Address</h3>
             <div className="mb-4">
               <AddressSearch
                 label="Search billing address"
@@ -798,14 +798,14 @@ const FleetMaintenanceCustomers = () => {
                 type="checkbox"
                 checked={sameAsBilling}
                 onChange={(e) => setSameAsBilling(e.target.checked)}
-                className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                className="rounded border-gray-300 text-[#00D1FF] focus:ring-blue-500"
               />
-              <span className="text-sm font-medium text-gray-700">Same as billing address</span>
+              <span className="text-sm font-medium text-primary">Same as billing address</span>
             </label>
           </div>
           {!sameAsBilling && (
             <div>
-              <h3 className="text-sm font-medium text-gray-800 mb-3">Shipping Address</h3>
+              <h3 className="text-sm font-medium text-primary mb-3">Shipping Address</h3>
               <div className="mb-4">
                 <AddressSearch
                   label="Search shipping address"
@@ -830,14 +830,14 @@ const FleetMaintenanceCustomers = () => {
       </div>
 
               {/* 2. Notes and Attachments */}
-      <div className="bg-gray-50 rounded-lg border border-gray-200 p-4">
-        <h3 className="text-base font-semibold text-gray-900 mb-3 flex items-center gap-2">
-          <FaStickyNote className="text-blue-600" />
+      <div className="bg-card rounded-lg border border-theme p-4">
+        <h3 className="text-base font-semibold text-primary mb-3 flex items-center gap-2">
+          <FaStickyNote className="text-[#00D1FF]" />
           Notes and Attachments
         </h3>
         <div className="space-y-4">
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">Notes</label>
+            <label className="block text-sm font-medium text-primary mb-2">Notes</label>
             <textarea
               value={notes}
               onChange={(e) => setNotes(e.target.value)}
@@ -847,15 +847,15 @@ const FleetMaintenanceCustomers = () => {
             />
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">Attachments</label>
-            <p className="text-xs text-gray-500 mb-2">Contracts, tax-exempt certificates, or photos. Max {MAX_FILE_SIZE_MB} MB per file.</p>
+            <label className="block text-sm font-medium text-primary mb-2">Attachments</label>
+            <p className="text-xs text-secondary mb-2">Contracts, tax-exempt certificates, or photos. Max {MAX_FILE_SIZE_MB} MB per file.</p>
             <div
               onDragEnter={handleDrag}
               onDragLeave={handleDrag}
               onDragOver={handleDrag}
               onDrop={handleDrop}
               className={`border-2 border-dashed rounded-lg p-8 text-center transition-colors ${
-                dragActive ? 'border-blue-500 bg-blue-50' : 'border-gray-300 bg-gray-50 hover:border-gray-400'
+                dragActive ? 'border-blue-500 bg-card' : 'border-gray-300 bg-card hover:border-gray-400'
               }`}
             >
               <input
@@ -866,19 +866,19 @@ const FleetMaintenanceCustomers = () => {
                 className="hidden"
               />
               <label htmlFor="attachments" className="cursor-pointer">
-                <p className="text-gray-600 mb-1">Click to select files or drag and drop</p>
-                <p className="text-sm text-gray-500">PDF, images, documents (max {MAX_FILE_SIZE_MB} MB)</p>
+                <p className="text-secondary mb-1">Click to select files or drag and drop</p>
+                <p className="text-sm text-secondary">PDF, images, documents (max {MAX_FILE_SIZE_MB} MB)</p>
               </label>
             </div>
             {attachments.length > 0 && (
               <ul className="mt-3 space-y-1">
                 {attachments.map((file, i) => (
-                  <li key={i} className="flex items-center justify-between text-sm text-gray-700 bg-gray-50 px-3 py-2 rounded">
+                  <li key={i} className="flex items-center justify-between text-sm text-primary bg-card px-3 py-2 rounded">
                     <span className="truncate">{file.name}</span>
                     <button
                       type="button"
                       onClick={() => removeAttachment(i)}
-                      className="text-red-600 hover:text-red-800 ml-2"
+                      className="text-[#A855F7] hover:text-red-800 ml-2"
                     >
                       <FaTimes size={14} />
                     </button>
@@ -891,18 +891,18 @@ const FleetMaintenanceCustomers = () => {
       </div>
 
               {/* 3. Payments */}
-      <div className="bg-gray-50 rounded-lg border border-gray-200 p-4">
-        <h3 className="text-base font-semibold text-gray-900 mb-3 flex items-center gap-2">
-          <FaCreditCard className="text-blue-600" />
+      <div className="bg-card rounded-lg border border-theme p-4">
+        <h3 className="text-base font-semibold text-primary mb-3 flex items-center gap-2">
+          <FaCreditCard className="text-[#00D1FF]" />
           Payments
         </h3>
-        <p className="text-sm text-gray-600 mb-3">
+        <p className="text-sm text-secondary mb-3">
           How you get paid and how the customer receives invoices.
         </p>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Primary Payment Method <span className="text-red-500">*</span></label>
-            <p className="text-xs text-gray-500 mb-1">How this customer usually pays (e.g. Credit Card, Check).</p>
+            <label className="block text-sm font-medium text-primary mb-1">Primary Payment Method <span className="text-red-500">*</span></label>
+            <p className="text-xs text-secondary mb-1">How this customer usually pays (e.g. Credit Card, Check).</p>
             <select
               value={primaryPaymentMethod}
               onChange={(e) => setPrimaryPaymentMethod(e.target.value)}
@@ -916,8 +916,8 @@ const FleetMaintenanceCustomers = () => {
             {errors.primaryPaymentMethod && <p className="text-red-500 text-xs mt-1">{errors.primaryPaymentMethod}</p>}
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Terms <span className="text-red-500">*</span></label>
-            <p className="text-xs text-gray-500 mb-1">When payment is due (e.g. Net 30 = due in 30 days).</p>
+            <label className="block text-sm font-medium text-primary mb-1">Terms <span className="text-red-500">*</span></label>
+            <p className="text-xs text-secondary mb-1">When payment is due (e.g. Net 30 = due in 30 days).</p>
             <select
               value={terms}
               onChange={(e) => setTerms(e.target.value)}
@@ -934,15 +934,15 @@ const FleetMaintenanceCustomers = () => {
       </div>
 
               {/* 4. Additional Info */}
-      <div className="bg-gray-50 rounded-lg border border-gray-200 p-4">
-        <h3 className="text-base font-semibold text-gray-900 mb-3 flex items-center gap-2">
-          <FaInfoCircle className="text-blue-600" />
+      <div className="bg-card rounded-lg border border-theme p-4">
+        <h3 className="text-base font-semibold text-primary mb-3 flex items-center gap-2">
+          <FaInfoCircle className="text-[#00D1FF]" />
           Additional Info
         </h3>
-        <p className="text-sm text-gray-600 mb-3">Tax and accounting data.</p>
+        <p className="text-sm text-secondary mb-3">Tax and accounting data.</p>
         <div className="space-y-4">
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Customer Type <span className="text-red-500">*</span></label>
+            <label className="block text-sm font-medium text-primary mb-1">Customer Type <span className="text-red-500">*</span></label>
             <select
               value={customerType}
               onChange={(e) => setCustomerType(e.target.value)}
@@ -956,7 +956,7 @@ const FleetMaintenanceCustomers = () => {
             {errors.customerType && <p className="text-red-500 text-xs mt-1">{errors.customerType}</p>}
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Taxes – Business Number</label>
+            <label className="block text-sm font-medium text-primary mb-1">Taxes – Business Number</label>
             <input
               type="text"
               value={businessNumber}
@@ -970,14 +970,14 @@ const FleetMaintenanceCustomers = () => {
               type="checkbox"
               checked={assignDefaultTaxCode}
               onChange={(e) => setAssignDefaultTaxCode(e.target.checked)}
-              className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+              className="rounded border-gray-300 text-[#00D1FF] focus:ring-blue-500"
             />
-            <span className="text-sm font-medium text-gray-700">Assign default tax code</span>
+            <span className="text-sm font-medium text-primary">Assign default tax code</span>
           </label>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Opening Balance – Amount</label>
-              <p className="text-xs text-gray-500 mb-1">Optional – use when customer has an existing balance at onboarding.</p>
+              <label className="block text-sm font-medium text-primary mb-1">Opening Balance – Amount</label>
+              <p className="text-xs text-secondary mb-1">Optional – use when customer has an existing balance at onboarding.</p>
               <input
                 type="text"
                 value={openingBalanceAmount}
@@ -988,8 +988,8 @@ const FleetMaintenanceCustomers = () => {
               {errors.openingBalanceAmount && <p className="text-red-500 text-xs mt-1">{errors.openingBalanceAmount}</p>}
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Opening Balance – As of Date</label>
-              <p className="text-xs text-gray-500 mb-1">Date of the opening balance (if used).</p>
+              <label className="block text-sm font-medium text-primary mb-1">Opening Balance – As of Date</label>
+              <p className="text-xs text-secondary mb-1">Date of the opening balance (if used).</p>
               <input
                 type="date"
                 value={openingBalanceAsOf}
@@ -1002,11 +1002,11 @@ const FleetMaintenanceCustomers = () => {
       </div>
 
             </div>
-            <div className="flex-shrink-0 px-6 py-4 border-t border-gray-200 bg-gray-50 flex items-center justify-end gap-3">
+            <div className="flex-shrink-0 px-6 py-4 border-t border-theme bg-card flex items-center justify-end gap-3">
               <button
                 type="button"
                 onClick={handleCloseSidebar}
-                className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50"
+                className="px-4 py-2 text-sm font-medium text-primary bg-card border border-gray-300 rounded-lg hover:bg-[rgba(255,255,255,0.03)]"
               >
                 Cancel
               </button>
@@ -1031,13 +1031,13 @@ const FleetMaintenanceCustomers = () => {
             onClick={() => { setDetailCustomerId(null); setDetailCustomer(null); }}
             aria-hidden="true"
           />
-          <div className="fixed top-0 right-0 h-full w-full max-w-xl bg-white shadow-xl z-50 flex flex-col">
-            <div className="flex-shrink-0 px-6 py-4 border-b border-gray-200 flex items-center justify-between">
-              <h2 className="text-lg font-semibold text-gray-900">Customer details</h2>
+          <div className="fixed top-0 right-0 h-full w-full max-w-xl bg-card shadow-xl z-50 flex flex-col">
+            <div className="flex-shrink-0 px-6 py-4 border-b border-theme flex items-center justify-between">
+              <h2 className="text-lg font-semibold text-primary">Customer details</h2>
               <button
                 type="button"
                 onClick={() => { setDetailCustomerId(null); setDetailCustomer(null); }}
-                className="p-2 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded"
+                className="p-2 text-secondary hover:text-primary hover:bg-gray-100 rounded"
                 aria-label="Close"
               >
                 <FaTimes size={20} />
@@ -1045,44 +1045,44 @@ const FleetMaintenanceCustomers = () => {
             </div>
             <div className="flex-1 overflow-y-auto px-6 py-4">
               {detailLoading ? (
-                <p className="text-gray-500">Loading...</p>
+                <p className="text-secondary">Loading...</p>
               ) : detailCustomer ? (
                 <div className="space-y-4">
-                  <div className="bg-gray-50 rounded-lg border border-gray-200 p-4">
-                    <h3 className="text-sm font-semibold text-gray-800 mb-2">Contact</h3>
-                    <p><span className="text-gray-600">Name:</span> {detailCustomer.name ?? '—'}</p>
-                    <p><span className="text-gray-600">Email:</span> {detailCustomer.email ?? '—'}</p>
-                    <p><span className="text-gray-600">Phone:</span> {detailCustomer.phone ?? '—'}</p>
-                    <p><span className="text-gray-600">Contact person:</span> {detailCustomer.contactPerson ?? '—'}</p>
+                  <div className="bg-card rounded-lg border border-theme p-4">
+                    <h3 className="text-sm font-semibold text-primary mb-2">Contact</h3>
+                    <p><span className="text-secondary">Name:</span> {detailCustomer.name ?? '—'}</p>
+                    <p><span className="text-secondary">Email:</span> {detailCustomer.email ?? '—'}</p>
+                    <p><span className="text-secondary">Phone:</span> {detailCustomer.phone ?? '—'}</p>
+                    <p><span className="text-secondary">Contact person:</span> {detailCustomer.contactPerson ?? '—'}</p>
                   </div>
                   {detailCustomer.billing && (
-                    <div className="bg-gray-50 rounded-lg border border-gray-200 p-4">
-                      <h3 className="text-sm font-semibold text-gray-800 mb-2">Billing address</h3>
+                    <div className="bg-card rounded-lg border border-theme p-4">
+                      <h3 className="text-sm font-semibold text-primary mb-2">Billing address</h3>
                       <p>{[detailCustomer.billing.streetAddress1, detailCustomer.billing.streetAddress2, detailCustomer.billing.city, detailCustomer.billing.provinceState, detailCustomer.billing.postalZip, detailCustomer.billing.country].filter(Boolean).join(', ') || '—'}</p>
                     </div>
                   )}
                   {detailCustomer.shipping && !detailCustomer.sameAsBilling && (
-                    <div className="bg-gray-50 rounded-lg border border-gray-200 p-4">
-                      <h3 className="text-sm font-semibold text-gray-800 mb-2">Shipping address</h3>
+                    <div className="bg-card rounded-lg border border-theme p-4">
+                      <h3 className="text-sm font-semibold text-primary mb-2">Shipping address</h3>
                       <p>{[detailCustomer.shipping.streetAddress1, detailCustomer.shipping.streetAddress2, detailCustomer.shipping.city, detailCustomer.shipping.provinceState, detailCustomer.shipping.postalZip, detailCustomer.shipping.country].filter(Boolean).join(', ') || '—'}</p>
                     </div>
                   )}
-                  <div className="bg-gray-50 rounded-lg border border-gray-200 p-4">
-                    <h3 className="text-sm font-semibold text-gray-800 mb-2">Payment & terms</h3>
-                    <p><span className="text-gray-600">Payment method:</span> {detailCustomer.primaryPaymentMethod ?? '—'}</p>
-                    <p><span className="text-gray-600">Terms:</span> {detailCustomer.terms ?? '—'}</p>
-                    <p><span className="text-gray-600">Customer type:</span> {detailCustomer.customerType ?? '—'}</p>
-                    {detailCustomer.businessNumber && <p><span className="text-gray-600">Business number:</span> {detailCustomer.businessNumber}</p>}
+                  <div className="bg-card rounded-lg border border-theme p-4">
+                    <h3 className="text-sm font-semibold text-primary mb-2">Payment & terms</h3>
+                    <p><span className="text-secondary">Payment method:</span> {detailCustomer.primaryPaymentMethod ?? '—'}</p>
+                    <p><span className="text-secondary">Terms:</span> {detailCustomer.terms ?? '—'}</p>
+                    <p><span className="text-secondary">Customer type:</span> {detailCustomer.customerType ?? '—'}</p>
+                    {detailCustomer.businessNumber && <p><span className="text-secondary">Business number:</span> {detailCustomer.businessNumber}</p>}
                   </div>
                   {detailCustomer.notes && (
-                    <div className="bg-gray-50 rounded-lg border border-gray-200 p-4">
-                      <h3 className="text-sm font-semibold text-gray-800 mb-2">Notes</h3>
-                      <p className="text-gray-700 whitespace-pre-wrap">{detailCustomer.notes}</p>
+                    <div className="bg-card rounded-lg border border-theme p-4">
+                      <h3 className="text-sm font-semibold text-primary mb-2">Notes</h3>
+                      <p className="text-primary whitespace-pre-wrap">{detailCustomer.notes}</p>
                     </div>
                   )}
                 </div>
               ) : (
-                <p className="text-gray-500">Could not load customer.</p>
+                <p className="text-secondary">Could not load customer.</p>
               )}
             </div>
           </div>

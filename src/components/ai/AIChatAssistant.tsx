@@ -127,7 +127,7 @@ const AIChatAssistant: React.FC<AIChatAssistantProps> = ({ className = '' }) => 
       {/* Chat Window */}
       {isOpen && (
         <div
-          className={`bg-white rounded-t-xl shadow-2xl border border-gray-200 flex flex-col transition-all duration-300 ${
+          className={`bg-card rounded-t-xl shadow-2xl border border-theme flex flex-col transition-all duration-300 ${
             isMinimized ? 'w-80 h-14' : 'w-96 h-[600px]'
           }`}
           style={{ marginBottom: '0', marginRight: '16px' }}
@@ -137,7 +137,7 @@ const AIChatAssistant: React.FC<AIChatAssistantProps> = ({ className = '' }) => 
           style={{ background: '#00C2A6' }}
           >
             <div className="flex items-center gap-2">
-              <div className="p-2 bg-white/20 rounded-lg backdrop-blur-sm">
+              <div className="p-2 bg-card/20 rounded-lg backdrop-blur-sm">
                 <Bot className="w-5 h-5" />
               </div>
               <div>
@@ -148,7 +148,7 @@ const AIChatAssistant: React.FC<AIChatAssistantProps> = ({ className = '' }) => 
             <div className="flex items-center gap-2">
               <button
                 onClick={() => setIsMinimized(!isMinimized)}
-                className="p-1.5 hover:bg-white/20 rounded-lg transition-colors"
+                className="p-1.5 hover:bg-card/20 rounded-lg transition-colors"
                 title={isMinimized ? 'Maximize' : 'Minimize'}
               >
                 {isMinimized ? (
@@ -159,7 +159,7 @@ const AIChatAssistant: React.FC<AIChatAssistantProps> = ({ className = '' }) => 
               </button>
               <button
                 onClick={() => setIsOpen(false)}
-                className="p-1.5 hover:bg-white/20 rounded-lg transition-colors"
+                className="p-1.5 hover:bg-card/20 rounded-lg transition-colors"
                 title="Close"
               >
                 <X className="w-4 h-4" />
@@ -170,7 +170,7 @@ const AIChatAssistant: React.FC<AIChatAssistantProps> = ({ className = '' }) => 
           {/* Messages Area */}
           {!isMinimized && (
             <>
-              <div className="flex-1 overflow-y-auto p-4 space-y-4 bg-gray-50 min-h-0">
+              <div className="flex-1 overflow-y-auto p-4 space-y-4 bg-card min-h-0">
                 {messages.map((message, index) => (
                   <div
                     key={index}
@@ -180,7 +180,7 @@ const AIChatAssistant: React.FC<AIChatAssistantProps> = ({ className = '' }) => 
                       className={`max-w-[85%] rounded-2xl px-4 py-2.5 shadow-sm ${
                         message.role === 'user'
                           ? 'bg-gradient-to-br from-blue-500 to-blue-600 text-white rounded-tr-sm'
-                          : 'bg-white text-gray-800 border border-gray-200 rounded-tl-sm'
+                          : 'bg-card text-primary border border-theme rounded-tl-sm'
                       }`}
                     >
                       <p className="text-sm leading-relaxed whitespace-pre-wrap">
@@ -189,7 +189,7 @@ const AIChatAssistant: React.FC<AIChatAssistantProps> = ({ className = '' }) => 
                       {message.timestamp && (
                         <p
                           className={`text-xs mt-1 ${
-                            message.role === 'user' ? 'text-blue-100' : 'text-gray-500'
+                            message.role === 'user' ? 'text-blue-100' : 'text-secondary'
                           }`}
                         >
                           {formatTime(message.timestamp)}
@@ -202,10 +202,10 @@ const AIChatAssistant: React.FC<AIChatAssistantProps> = ({ className = '' }) => 
                 {/* Loading Indicator */}
                 {isLoading && (
                   <div className="flex justify-start">
-                    <div className="bg-white rounded-2xl rounded-tl-sm px-4 py-2.5 shadow-sm border border-gray-200">
+                    <div className="bg-card rounded-2xl rounded-tl-sm px-4 py-2.5 shadow-sm border border-theme">
                       <div className="flex items-center gap-2">
-                        <Loader2 className="w-4 h-4 animate-spin text-blue-600" />
-                        <span className="text-sm text-gray-600">Thinking...</span>
+                        <Loader2 className="w-4 h-4 animate-spin text-[#00D1FF]" />
+                        <span className="text-sm text-secondary">Thinking...</span>
                       </div>
                     </div>
                   </div>
@@ -215,7 +215,7 @@ const AIChatAssistant: React.FC<AIChatAssistantProps> = ({ className = '' }) => 
               </div>
 
               {/* Input Area */}
-              <div className="flex-shrink-0 p-4 bg-white border-t border-gray-200">
+              <div className="flex-shrink-0 p-4 bg-card border-t border-theme">
                 <div className="flex items-end gap-2">
                   <textarea
                     ref={inputRef}
@@ -223,7 +223,7 @@ const AIChatAssistant: React.FC<AIChatAssistantProps> = ({ className = '' }) => 
                     onChange={(e) => setInputMessage(e.target.value)}
                     onKeyDown={handleKeyDown}
                     placeholder="Ask a question..."
-                    className="flex-1 px-4 py-2.5 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none bg-gray-50 text-gray-800 placeholder-gray-400 text-sm"
+                    className="flex-1 px-4 py-2.5 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none bg-card text-primary placeholder-gray-400 text-sm"
                     rows={1}
                     style={{ maxHeight: '120px' }}
                     disabled={isLoading}

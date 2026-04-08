@@ -229,7 +229,7 @@ const VehicleServiceManagement = () => {
       case 'high': return 'bg-orange-100 text-orange-800';
       case 'medium': return 'bg-yellow-100 text-yellow-800';
       case 'low': return 'bg-green-100 text-green-800';
-      default: return 'bg-gray-100 text-gray-800';
+      default: return 'bg-gray-100 text-primary';
     }
   };
 
@@ -238,7 +238,7 @@ const VehicleServiceManagement = () => {
       case 'completed': return 'bg-green-100 text-green-800';
       case 'in-progress': return 'bg-blue-100 text-blue-800';
       case 'pending': return 'bg-yellow-100 text-yellow-800';
-      default: return 'bg-gray-100 text-gray-800';
+      default: return 'bg-gray-100 text-primary';
     }
   };
 
@@ -250,20 +250,20 @@ const VehicleServiceManagement = () => {
   );
 
   return (
-    <div className="p-6 bg-gray-50 min-h-screen">
+    <div className="p-6 bg-card min-h-screen">
       <div className="max-w-7xl mx-auto">
         {/* Header */}
         <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">Vehicle Service Management</h1>
-          <p className="text-gray-600">Manage vehicle maintenance services and schedules</p>
+          <h1 className="text-3xl font-bold text-primary mb-2">Vehicle Service Management</h1>
+          <p className="text-secondary">Manage vehicle maintenance services and schedules</p>
         </div>
 
         {/* Filters and Search */}
-        <div className="bg-white rounded-lg shadow-sm p-6 mb-6">
+        <div className="bg-card rounded-lg shadow-sm p-6 mb-6">
           <div className="flex flex-col md:flex-row gap-4 items-center justify-between">
             <div className="flex flex-col md:flex-row gap-4 items-center">
               <div className="relative">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-secondary h-4 w-4" />
                 <input
                   type="text"
                   placeholder="Search services..."
@@ -308,52 +308,52 @@ const VehicleServiceManagement = () => {
         </div>
 
         {/* Services Table */}
-        <div className="bg-white rounded-lg shadow-sm overflow-hidden">
+        <div className="bg-card rounded-lg shadow-sm overflow-hidden">
           {loading ? (
             <div className="p-8 text-center">
               <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto"></div>
-              <p className="mt-2 text-gray-600">Loading services...</p>
+              <p className="mt-2 text-secondary">Loading services...</p>
             </div>
           ) : (
             <div className="overflow-x-auto">
               <table className="min-w-full divide-y divide-gray-200">
-                <thead className="bg-gray-50">
+                <thead className="bg-card">
                   <tr>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    <th className="px-6 py-3 text-left text-xs font-medium text-secondary uppercase tracking-wider">
                       Vehicle
                     </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    <th className="px-6 py-3 text-left text-xs font-medium text-secondary uppercase tracking-wider">
                       Service Type
                     </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    <th className="px-6 py-3 text-left text-xs font-medium text-secondary uppercase tracking-wider">
                       Priority
                     </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    <th className="px-6 py-3 text-left text-xs font-medium text-secondary uppercase tracking-wider">
                       Status
                     </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    <th className="px-6 py-3 text-left text-xs font-medium text-secondary uppercase tracking-wider">
                       Due Date
                     </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    <th className="px-6 py-3 text-left text-xs font-medium text-secondary uppercase tracking-wider">
                       Assigned Mechanic
                     </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    <th className="px-6 py-3 text-left text-xs font-medium text-secondary uppercase tracking-wider">
                       Actions
                     </th>
                   </tr>
                 </thead>
-                <tbody className="bg-white divide-y divide-gray-200">
+                <tbody className="bg-card divide-y divide-gray-200">
                   {filteredServices.map((service) => (
-                    <tr key={service._id} className="hover:bg-gray-50">
+                    <tr key={service._id} className="hover:bg-[rgba(255,255,255,0.03)]">
                       <td className="px-6 py-4 whitespace-nowrap">
                         <div>
-                          <div className="text-sm font-medium text-gray-900">
+                          <div className="text-sm font-medium text-primary">
                             {service.vehicleId?.plateNumber || service.vehicleId?.internalId || 'N/A'}
                           </div>
-                          <div className="text-sm text-gray-500">{service.vehicleId?.make || ''} {service.vehicleId?.model || ''}</div>
+                          <div className="text-sm text-secondary">{service.vehicleId?.make || ''} {service.vehicleId?.model || ''}</div>
                         </div>
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-primary">
                         {service.serviceType.replace('-', ' ').toUpperCase()}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
@@ -379,10 +379,10 @@ const VehicleServiceManagement = () => {
                           )}
                         </div>
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-primary">
                         {service.dueDate ? new Date(service.dueDate).toLocaleDateString() : 'N/A'}
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-primary">
                         {typeof service.assignedMechanic === 'object' && service.assignedMechanic 
                           ? `${service.assignedMechanic.first_name || ''} ${service.assignedMechanic.last_name || ''}`.trim() || 'N/A'
                           : 'N/A'}
@@ -391,13 +391,13 @@ const VehicleServiceManagement = () => {
                         <div className="flex items-center gap-2">
                           <button
                             onClick={() => openEditModal(service)}
-                            className="text-blue-600 hover:text-blue-900"
+                            className="text-[#00D1FF] hover:text-blue-900"
                           >
                             <Edit className="h-4 w-4" />
                           </button>
                           <button
                             onClick={() => openDeleteModal(service)}
-                            className="text-red-600 hover:text-red-900"
+                            className="text-[#A855F7] hover:text-red-900"
                           >
                             <Trash2 className="h-4 w-4" />
                           </button>
@@ -414,7 +414,7 @@ const VehicleServiceManagement = () => {
         {/* Create Service Modal */}
         {showCreateModal && (
           <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-            <div className="bg-white rounded-lg p-6 w-full max-w-md">
+            <div className="bg-card rounded-lg p-6 w-full max-w-md">
               <div className="flex items-center justify-between mb-4">
                 <h3 className="text-lg font-semibold">Create Service</h3>
                 <button onClick={() => setShowCreateModal(false)}>
@@ -424,7 +424,7 @@ const VehicleServiceManagement = () => {
 
               <div className="space-y-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Vehicle</label>
+                  <label className="block text-sm font-medium text-primary mb-1">Vehicle</label>
                   <select
                     value={formData.vehicleId}
                     onChange={(e) => setFormData({ ...formData, vehicleId: e.target.value })}
@@ -440,7 +440,7 @@ const VehicleServiceManagement = () => {
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Service Type</label>
+                  <label className="block text-sm font-medium text-primary mb-1">Service Type</label>
                   <select
                     value={formData.serviceType}
                     onChange={(e) => setFormData({ ...formData, serviceType: e.target.value as any })}
@@ -455,7 +455,7 @@ const VehicleServiceManagement = () => {
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Priority</label>
+                  <label className="block text-sm font-medium text-primary mb-1">Priority</label>
                   <select
                     value={formData.priority}
                     onChange={(e) => setFormData({ ...formData, priority: e.target.value as any })}
@@ -469,7 +469,7 @@ const VehicleServiceManagement = () => {
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Due Date</label>
+                  <label className="block text-sm font-medium text-primary mb-1">Due Date</label>
                   <input
                     type="date"
                     value={formData.dueDate}
@@ -479,7 +479,7 @@ const VehicleServiceManagement = () => {
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Due Mileage</label>
+                  <label className="block text-sm font-medium text-primary mb-1">Due Mileage</label>
                   <input
                     type="number"
                     value={formData.dueMileage}
@@ -489,7 +489,7 @@ const VehicleServiceManagement = () => {
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Assigned Mechanic</label>
+                  <label className="block text-sm font-medium text-primary mb-1">Assigned Mechanic</label>
                   <select
                     value={formData.assignedMechanic}
                     onChange={(e) => setFormData({ ...formData, assignedMechanic: e.target.value })}
@@ -505,7 +505,7 @@ const VehicleServiceManagement = () => {
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Description</label>
+                  <label className="block text-sm font-medium text-primary mb-1">Description</label>
                   <textarea
                     value={formData.description}
                     onChange={(e) => setFormData({ ...formData, description: e.target.value })}
@@ -517,7 +517,7 @@ const VehicleServiceManagement = () => {
                 <div className="flex justify-end gap-3 pt-4">
                   <button
                     onClick={() => setShowCreateModal(false)}
-                    className="px-4 py-2 text-gray-600 border border-gray-300 rounded-md hover:bg-gray-50"
+                    className="px-4 py-2 text-secondary border border-gray-300 rounded-md hover:bg-[rgba(255,255,255,0.03)]"
                   >
                     Cancel
                   </button>
@@ -537,7 +537,7 @@ const VehicleServiceManagement = () => {
         {/* Edit Service Modal */}
         {showEditModal && (
           <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-            <div className="bg-white rounded-lg p-6 w-full max-w-md">
+            <div className="bg-card rounded-lg p-6 w-full max-w-md">
               <div className="flex items-center justify-between mb-4">
                 <h3 className="text-lg font-semibold">Edit Service</h3>
                 <button onClick={() => setShowEditModal(false)}>
@@ -548,7 +548,7 @@ const VehicleServiceManagement = () => {
               <div className="space-y-4">
                 {/* Same form fields as create modal */}
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Vehicle</label>
+                  <label className="block text-sm font-medium text-primary mb-1">Vehicle</label>
                   <select
                     value={formData.vehicleId}
                     onChange={(e) => setFormData({ ...formData, vehicleId: e.target.value })}
@@ -565,7 +565,7 @@ const VehicleServiceManagement = () => {
 
                 {/* Add other form fields here - same as create modal */}
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Service Type</label>
+                  <label className="block text-sm font-medium text-primary mb-1">Service Type</label>
                   <select
                     value={formData.serviceType}
                     onChange={(e) => setFormData({ ...formData, serviceType: e.target.value as any })}
@@ -580,7 +580,7 @@ const VehicleServiceManagement = () => {
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Priority</label>
+                  <label className="block text-sm font-medium text-primary mb-1">Priority</label>
                   <select
                     value={formData.priority}
                     onChange={(e) => setFormData({ ...formData, priority: e.target.value as any })}
@@ -594,7 +594,7 @@ const VehicleServiceManagement = () => {
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Due Date</label>
+                  <label className="block text-sm font-medium text-primary mb-1">Due Date</label>
                   <input
                     type="date"
                     value={formData.dueDate}
@@ -604,7 +604,7 @@ const VehicleServiceManagement = () => {
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Due Mileage</label>
+                  <label className="block text-sm font-medium text-primary mb-1">Due Mileage</label>
                   <input
                     type="number"
                     value={formData.dueMileage}
@@ -614,7 +614,7 @@ const VehicleServiceManagement = () => {
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Assigned Mechanic</label>
+                  <label className="block text-sm font-medium text-primary mb-1">Assigned Mechanic</label>
                   <select
                     value={formData.assignedMechanic}
                     onChange={(e) => setFormData({ ...formData, assignedMechanic: e.target.value })}
@@ -630,7 +630,7 @@ const VehicleServiceManagement = () => {
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Description</label>
+                  <label className="block text-sm font-medium text-primary mb-1">Description</label>
                   <textarea
                     value={formData.description}
                     onChange={(e) => setFormData({ ...formData, description: e.target.value })}
@@ -642,7 +642,7 @@ const VehicleServiceManagement = () => {
                 <div className="flex justify-end gap-3 pt-4">
                   <button
                     onClick={() => setShowEditModal(false)}
-                    className="px-4 py-2 text-gray-600 border border-gray-300 rounded-md hover:bg-gray-50"
+                    className="px-4 py-2 text-secondary border border-gray-300 rounded-md hover:bg-[rgba(255,255,255,0.03)]"
                   >
                     Cancel
                   </button>
@@ -662,7 +662,7 @@ const VehicleServiceManagement = () => {
         {/* Delete Confirmation Modal */}
         {showDeleteModal && selectedService && (
           <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-            <div className="bg-white rounded-lg p-6 w-full max-w-md">
+            <div className="bg-card rounded-lg p-6 w-full max-w-md">
               <div className="flex items-center justify-between mb-4">
                 <h3 className="text-lg font-semibold">Delete Service</h3>
                 <button onClick={() => setShowDeleteModal(false)}>
@@ -670,14 +670,14 @@ const VehicleServiceManagement = () => {
                 </button>
               </div>
 
-              <p className="text-gray-600 mb-6">
+              <p className="text-secondary mb-6">
                 Are you sure you want to delete this service? This action cannot be undone.
               </p>
 
               <div className="flex justify-end gap-3">
                 <button
                   onClick={() => setShowDeleteModal(false)}
-                  className="px-4 py-2 text-gray-600 border border-gray-300 rounded-md hover:bg-gray-50"
+                  className="px-4 py-2 text-secondary border border-gray-300 rounded-md hover:bg-[rgba(255,255,255,0.03)]"
                 >
                   Cancel
                 </button>

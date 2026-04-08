@@ -136,7 +136,7 @@ const PickupsPage = () => {
   };
 
   return (
-    <div className="min-h-screen" style={{ backgroundColor: '#EDF8FF' }}>
+    <div className="min-h-screen" >
       <div className="relative w-full mx-auto">
        
 
@@ -156,10 +156,10 @@ const PickupsPage = () => {
           </div>
 
           {/* Filters and Search */}
-          <div className="bg-white rounded-lg shadow-sm border border-gray-100 mb-4 p-4">
+          <div className="bg-card rounded-lg shadow-sm border border-theme mb-4 p-4">
             <div className="flex flex-col md:flex-row gap-4">
               <div className="flex-1 relative">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-secondary w-5 h-5" />
                 <input
                   type="text"
                   placeholder="Search pickups..."
@@ -179,7 +179,7 @@ const PickupsPage = () => {
                   <option value="in progress">In Progress</option>
                   <option value="completed">Completed</option>
                 </select>
-                <div className="text-xs text-gray-500 mt-1">
+                <div className="text-xs text-secondary mt-1">
                   Showing pickups for today
                 </div>
               </div>
@@ -187,117 +187,117 @@ const PickupsPage = () => {
           </div>
 
           {/* Pickups Table */}
-          <div className="bg-white rounded-lg shadow-sm border border-gray-100">
+          <div className="bg-card rounded-lg shadow-sm border border-theme">
             <div className="overflow-x-auto">
               <table className="w-full">
-                <thead className="bg-gray-50 border-b border-gray-200">
+                <thead className="bg-card border-b border-theme">
                   <tr>
-                    <th className="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                    <th className="px-6 py-3 text-left text-xs font-semibold text-primary uppercase tracking-wider">
                       Order Number
                     </th>
-                    <th className="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                    <th className="px-6 py-3 text-left text-xs font-semibold text-primary uppercase tracking-wider">
                       Customer
                     </th>
-                    <th className="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                    <th className="px-6 py-3 text-left text-xs font-semibold text-primary uppercase tracking-wider">
                       Pickup Location
                     </th>
-                    <th className="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                    <th className="px-6 py-3 text-left text-xs font-semibold text-primary uppercase tracking-wider">
                       Pickup Date & Time
                     </th>
-                    <th className="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                    <th className="px-6 py-3 text-left text-xs font-semibold text-primary uppercase tracking-wider">
                       Driver
                     </th>
-                    <th className="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                    <th className="px-6 py-3 text-left text-xs font-semibold text-primary uppercase tracking-wider">
                       Truck
                     </th>
-                    <th className="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                    <th className="px-6 py-3 text-left text-xs font-semibold text-primary uppercase tracking-wider">
                       Items
                     </th>
-                    <th className="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                    <th className="px-6 py-3 text-left text-xs font-semibold text-primary uppercase tracking-wider">
                       Status
                     </th>
                   </tr>
                 </thead>
-                <tbody className="bg-white divide-y divide-gray-200">
+                <tbody className="bg-card divide-y divide-gray-200">
                   {loading ? (
                     <tr>
                       <td colSpan={8} className="px-6 py-8 text-center">
                         <div className="flex items-center justify-center">
                           <Loader2 className="w-6 h-6 animate-spin text-blue-500" />
-                          <span className="ml-2 text-gray-500">Loading pickups...</span>
+                          <span className="ml-2 text-secondary">Loading pickups...</span>
                         </div>
                       </td>
                     </tr>
                   ) : filteredPickups.length === 0 ? (
                     <tr>
-                      <td colSpan={8} className="px-6 py-8 text-center text-gray-500">
+                      <td colSpan={8} className="px-6 py-8 text-center text-secondary">
                         No pickups found for today
                       </td>
                     </tr>
                   ) : (
                     filteredPickups.map((pickup) => (
-                      <tr key={pickup.id} className="hover:bg-gray-50 transition-colors">
+                      <tr key={pickup.id} className="hover:bg-[rgba(255,255,255,0.03)] transition-colors">
                         <td className="px-6 py-4">
-                          <div className="text-sm font-medium text-gray-900">{pickup.orderNumber || 'N/A'}</div>
+                          <div className="text-sm font-medium text-primary">{pickup.orderNumber || 'N/A'}</div>
                           {pickup.customerOrderNo && (
-                            <div className="text-xs text-gray-500">Cust: {pickup.customerOrderNo}</div>
+                            <div className="text-xs text-secondary">Cust: {pickup.customerOrderNo}</div>
                           )}
                           {pickup.tripNo && (
-                            <div className="text-xs text-blue-600">Trip: {pickup.tripNo}</div>
+                            <div className="text-xs text-[#00D1FF]">Trip: {pickup.tripNo}</div>
                           )}
                         </td>
                         <td className="px-6 py-4">
-                          <div className="text-sm text-gray-900">{pickup.customerName || 'N/A'}</div>
+                          <div className="text-sm text-primary">{pickup.customerName || 'N/A'}</div>
                           {pickup.shipper?.name && pickup.shipper.name !== pickup.customerName && (
-                            <div className="text-xs text-gray-500">Shipper: {pickup.shipper.name}</div>
+                            <div className="text-xs text-secondary">Shipper: {pickup.shipper.name}</div>
                           )}
                         </td>
                         <td className="px-6 py-4">
-                          <div className="flex items-center text-sm text-gray-900">
-                            <MapPin className="w-4 h-4 mr-1 text-gray-400 flex-shrink-0" />
+                          <div className="flex items-center text-sm text-primary">
+                            <MapPin className="w-4 h-4 mr-1 text-secondary flex-shrink-0" />
                             <span className="truncate max-w-xs">{pickup.pickupLocation || 'Location not specified'}</span>
                           </div>
                           {pickup.deliveryLocation && (
-                            <div className="text-xs text-gray-500 mt-1">
+                            <div className="text-xs text-secondary mt-1">
                               To: {pickup.deliveryLocation.length > 30 ? `${pickup.deliveryLocation.substring(0, 30)}...` : pickup.deliveryLocation}
                             </div>
                           )}
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap">
-                          <div className="flex items-center text-sm text-gray-900">
-                            <Calendar className="w-4 h-4 mr-1 text-gray-400" />
+                          <div className="flex items-center text-sm text-primary">
+                            <Calendar className="w-4 h-4 mr-1 text-secondary" />
                             <div>
                               <div>{formatDate(pickup.pickupDate)}</div>
-                              <div className="text-xs text-gray-500">{pickup.pickupTime || 'Not specified'}</div>
+                              <div className="text-xs text-secondary">{pickup.pickupTime || 'Not specified'}</div>
                             </div>
                           </div>
                         </td>
                         <td className="px-6 py-4">
-                          <div className="flex items-center text-sm text-gray-900">
-                            <User className="w-4 h-4 mr-1 text-gray-400 flex-shrink-0" />
+                          <div className="flex items-center text-sm text-primary">
+                            <User className="w-4 h-4 mr-1 text-secondary flex-shrink-0" />
                             <div>
                               <div>{pickup.driverName || 'Not assigned'}</div>
                               {pickup.coDriver?.name && (
-                                <div className="text-xs text-gray-500">Co: {pickup.coDriver.name}</div>
+                                <div className="text-xs text-secondary">Co: {pickup.coDriver.name}</div>
                               )}
                             </div>
                           </div>
                         </td>
                         <td className="px-6 py-4">
-                          <div className="flex items-center text-sm text-gray-900">
-                            <Truck className="w-4 h-4 mr-1 text-gray-400 flex-shrink-0" />
+                          <div className="flex items-center text-sm text-primary">
+                            <Truck className="w-4 h-4 mr-1 text-secondary flex-shrink-0" />
                             <div>
                               <div>{pickup.truckPlate || 'Not assigned'}</div>
                               {pickup.trailer?.licensePlate && (
-                                <div className="text-xs text-gray-500">Trailer: {pickup.trailer.licensePlate}</div>
+                                <div className="text-xs text-secondary">Trailer: {pickup.trailer.licensePlate}</div>
                               )}
                             </div>
                           </div>
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap">
-                          <div className="text-sm text-gray-900">{pickup.items || 0}</div>
+                          <div className="text-sm text-primary">{pickup.items || 0}</div>
                           {(pickup.pickupSkids || pickup.pickupCases) && (
-                            <div className="text-xs text-gray-500">
+                            <div className="text-xs text-secondary">
                               {pickup.pickupSkids && `Skids: ${pickup.pickupSkids}`}
                               {pickup.pickupSkids && pickup.pickupCases && ' • '}
                               {pickup.pickupCases && `Cases: ${pickup.pickupCases}`}
@@ -307,7 +307,7 @@ const PickupsPage = () => {
                         <td className="px-6 py-4 whitespace-nowrap">
                           {getStatusBadge(pickup.status)}
                           {pickup.commodity && (
-                            <div className="text-xs text-gray-500 mt-1 truncate max-w-xs" title={pickup.commodity}>
+                            <div className="text-xs text-secondary mt-1 truncate max-w-xs" title={pickup.commodity}>
                               {pickup.commodity.length > 20 ? `${pickup.commodity.substring(0, 20)}...` : pickup.commodity}
                             </div>
                           )}

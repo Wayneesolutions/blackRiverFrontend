@@ -36,20 +36,20 @@ const ViewIssueModal: React.FC<ViewIssueModalProps> = ({ issue, onClose }) => {
   // Get priority color
   const getPriorityColor = (priority: string) => {
     switch (priority) {
-      case 'high': return 'text-red-600 bg-red-100';
-      case 'medium': return 'text-yellow-600 bg-yellow-100';
+      case 'high': return 'text-[#A855F7] bg-red-100';
+      case 'medium': return 'text-[#00FFA3] bg-yellow-100';
       case 'low': return 'text-green-600 bg-green-100';
-      default: return 'text-gray-600 bg-gray-100';
+      default: return 'text-secondary bg-gray-100';
     }
   };
 
   // Get status color
   const getStatusColor = (status: string) => {
     switch (status) {
-      case 'open': return 'text-red-600 bg-red-100';
-      case 'in-progress': return 'text-blue-600 bg-blue-100';
+      case 'open': return 'text-[#A855F7] bg-red-100';
+      case 'in-progress': return 'text-[#00D1FF] bg-blue-100';
       case 'closed': return 'text-green-600 bg-green-100';
-      default: return 'text-gray-600 bg-gray-100';
+      default: return 'text-secondary bg-gray-100';
     }
   };
 
@@ -58,32 +58,32 @@ const ViewIssueModal: React.FC<ViewIssueModalProps> = ({ issue, onClose }) => {
     switch (type) {
       case 'maintanance': return <MdWarning className="text-orange-500" />;
       case 'operational': return <MdError className="text-red-500" />;
-      case 'accident': return <MdError className="text-red-600" />;
+      case 'accident': return <MdError className="text-[#A855F7]" />;
       case 'compilance': return <MdInfo className="text-blue-500" />;
-      default: return <MdWarning className="text-gray-500" />;
+      default: return <MdWarning className="text-secondary" />;
     }
   };
 
   return (
     <div className="fixed inset-0 bg-transparent z-[9999] flex items-center justify-center p-4" onClick={onClose}>
-      <div className="bg-white rounded-lg shadow-2xl border border-gray-200 max-w-2xl w-full max-h-[90vh] overflow-y-auto relative z-[10000]" onClick={(e) => e.stopPropagation()}>
+      <div className="bg-card rounded-lg shadow-2xl border border-theme max-w-2xl w-full max-h-[90vh] overflow-y-auto relative z-[10000]" onClick={(e) => e.stopPropagation()}>
         {/* Header */}
-        <div className="p-6 border-b border-gray-200">
+        <div className="p-6 border-b border-theme">
           <div className="flex justify-between items-start">
             <div className="flex items-center gap-3">
               {getIssueTypeIcon(issue.issueType)}
               <div>
-                <h2 className="text-xl font-semibold text-gray-900">
+                <h2 className="text-xl font-semibold text-primary">
                   Issue Details
                 </h2>
-                <p className="text-sm text-gray-500">
+                <p className="text-sm text-secondary">
                   Created: {new Date(issue.createdAt).toLocaleDateString()}
                 </p>
               </div>
             </div>
             <button
               onClick={onClose}
-              className="text-gray-400 hover:text-gray-600"
+              className="text-secondary hover:text-secondary"
             >
               <MdClose className="text-xl" />
             </button>
@@ -95,19 +95,19 @@ const ViewIssueModal: React.FC<ViewIssueModalProps> = ({ issue, onClose }) => {
           {/* Basic Information */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div>
-              <h3 className="text-sm font-medium text-gray-500 mb-2">Reported By</h3>
-              <p className="text-sm text-gray-900">{issue.reportedBy || 'Not specified'}</p>
+              <h3 className="text-sm font-medium text-secondary mb-2">Reported By</h3>
+              <p className="text-sm text-primary">{issue.reportedBy || 'Not specified'}</p>
             </div>
             <div>
-              <h3 className="text-sm font-medium text-gray-500 mb-2">Assigned To</h3>
-              <p className="text-sm text-gray-900">{issue.assignedTo || 'Not assigned'}</p>
+              <h3 className="text-sm font-medium text-secondary mb-2">Assigned To</h3>
+              <p className="text-sm text-primary">{issue.assignedTo || 'Not assigned'}</p>
             </div>
           </div>
 
           {/* Vehicle */}
           <div>
-            <h3 className="text-sm font-medium text-gray-500 mb-2">Vehicle</h3>
-            <p className="text-sm text-gray-900">
+            <h3 className="text-sm font-medium text-secondary mb-2">Vehicle</h3>
+            <p className="text-sm text-primary">
               {issue.vehicle && typeof issue.vehicle === 'object' ? (
                 (() => {
                   const make = issue.vehicle.make || '';
@@ -125,14 +125,14 @@ const ViewIssueModal: React.FC<ViewIssueModalProps> = ({ issue, onClose }) => {
           {/* Issue Type and Category */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div>
-              <h3 className="text-sm font-medium text-gray-500 mb-2">Issue Type</h3>
-              <p className="text-sm text-gray-900 capitalize">
+              <h3 className="text-sm font-medium text-secondary mb-2">Issue Type</h3>
+              <p className="text-sm text-primary capitalize">
                 {issue.issueType.replace('-', ' ')}
               </p>
             </div>
             <div>
-              <h3 className="text-sm font-medium text-gray-500 mb-2">Category</h3>
-              <p className="text-sm text-gray-900 capitalize">
+              <h3 className="text-sm font-medium text-secondary mb-2">Category</h3>
+              <p className="text-sm text-primary capitalize">
                 {issue.issueCategory.replace('-', ' ')}
               </p>
             </div>
@@ -141,13 +141,13 @@ const ViewIssueModal: React.FC<ViewIssueModalProps> = ({ issue, onClose }) => {
           {/* Priority and Status */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div>
-              <h3 className="text-sm font-medium text-gray-500 mb-2">Priority</h3>
+              <h3 className="text-sm font-medium text-secondary mb-2">Priority</h3>
               <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getPriorityColor(issue.priority)}`}>
                 {issue.priority.charAt(0).toUpperCase() + issue.priority.slice(1)}
               </span>
             </div>
             <div>
-              <h3 className="text-sm font-medium text-gray-500 mb-2">Status</h3>
+              <h3 className="text-sm font-medium text-secondary mb-2">Status</h3>
               <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getStatusColor(issue.status)}`}>
                 {issue.status.replace('-', ' ').charAt(0).toUpperCase() +
                   issue.status.replace('-', ' ').slice(1)}
@@ -157,9 +157,9 @@ const ViewIssueModal: React.FC<ViewIssueModalProps> = ({ issue, onClose }) => {
 
           {/* Issue Report */}
           <div>
-            <h3 className="text-sm font-medium text-gray-500 mb-2">Issue Report</h3>
-            <div className="bg-gray-50 rounded-lg p-4">
-              <p className="text-sm text-gray-900 whitespace-pre-wrap">
+            <h3 className="text-sm font-medium text-secondary mb-2">Issue Report</h3>
+            <div className="bg-card rounded-lg p-4">
+              <p className="text-sm text-primary whitespace-pre-wrap">
                 {issue.issueReport}
               </p>
             </div>
@@ -168,7 +168,7 @@ const ViewIssueModal: React.FC<ViewIssueModalProps> = ({ issue, onClose }) => {
           {/* Issue Tags */}
           {issue.issueTags && issue.issueTags.length > 0 && (
             <div>
-              <h3 className="text-sm font-medium text-gray-500 mb-2">Tags</h3>
+              <h3 className="text-sm font-medium text-secondary mb-2">Tags</h3>
               <div className="flex flex-wrap gap-2">
                 {issue.issueTags.map((tag, index) => (
                   <span
@@ -185,9 +185,9 @@ const ViewIssueModal: React.FC<ViewIssueModalProps> = ({ issue, onClose }) => {
           {/* Location Address */}
           {issue.address && (
             <div>
-              <h3 className="text-sm font-medium text-gray-500 mb-2">Location</h3>
-              <div className="flex items-center gap-2 text-sm text-gray-900">
-                <MdLocationOn className="text-gray-400" />
+              <h3 className="text-sm font-medium text-secondary mb-2">Location</h3>
+              <div className="flex items-center gap-2 text-sm text-primary">
+                <MdLocationOn className="text-secondary" />
                 <span>{issue.address}</span>
               </div>
             </div>
@@ -196,8 +196,8 @@ const ViewIssueModal: React.FC<ViewIssueModalProps> = ({ issue, onClose }) => {
           {/* Location Coordinates (if available) */}
           {issue.cordinates && (issue.cordinates.longitude || issue.cordinates.latitude) && (
             <div>
-              <h3 className="text-sm font-medium text-gray-500 mb-2">Coordinates</h3>
-              <div className="text-sm text-gray-600">
+              <h3 className="text-sm font-medium text-secondary mb-2">Coordinates</h3>
+              <div className="text-sm text-secondary">
                 <span>
                   {issue.cordinates.latitude}, {issue.cordinates.longitude}
                 </span>
@@ -206,16 +206,16 @@ const ViewIssueModal: React.FC<ViewIssueModalProps> = ({ issue, onClose }) => {
           )}
 
           {/* Timestamps */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-4 border-t border-gray-200">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-4 border-t border-theme">
             <div>
-              <h3 className="text-sm font-medium text-gray-500 mb-2">Created At</h3>
-              <p className="text-sm text-gray-900">
+              <h3 className="text-sm font-medium text-secondary mb-2">Created At</h3>
+              <p className="text-sm text-primary">
                 {new Date(issue.createdAt).toLocaleString()}
               </p>
             </div>
             <div>
-              <h3 className="text-sm font-medium text-gray-500 mb-2">Last Updated</h3>
-              <p className="text-sm text-gray-900">
+              <h3 className="text-sm font-medium text-secondary mb-2">Last Updated</h3>
+              <p className="text-sm text-primary">
                 {new Date(issue.updatedAt).toLocaleString()}
               </p>
             </div>
@@ -223,7 +223,7 @@ const ViewIssueModal: React.FC<ViewIssueModalProps> = ({ issue, onClose }) => {
         </div>
 
         {/* Footer */}
-        <div className="p-6 border-t border-gray-200 flex justify-end">
+        <div className="p-6 border-t border-theme flex justify-end">
           <button
             onClick={onClose}
             className="px-4 py-2 bg-gray-600 !text-white rounded-lg hover:bg-gray-700 transition-colors"

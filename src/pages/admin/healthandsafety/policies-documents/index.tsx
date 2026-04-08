@@ -66,9 +66,9 @@ const ToastNotificationComponent = ({ notification, onClose }: { notification: T
 
   const bgColors = {
     success: 'bg-green-50 border-green-200',
-    error: 'bg-red-50 border-red-200',
-    info: 'bg-blue-50 border-blue-200',
-    warning: 'bg-yellow-50 border-yellow-200'
+    error: 'bg-card border-red-200',
+    info: 'bg-card border-blue-200',
+    warning: 'bg-card border-yellow-200'
   };
 
   useEffect(() => {
@@ -83,10 +83,10 @@ const ToastNotificationComponent = ({ notification, onClose }: { notification: T
       <div className="flex-shrink-0 mt-0.5">
         {icons[notification.type]}
       </div>
-      <p className="flex-1 text-sm font-medium text-gray-800">{notification.message}</p>
+      <p className="flex-1 text-sm font-medium text-primary">{notification.message}</p>
       <button
         onClick={() => onClose(notification.id)}
-        className="flex-shrink-0 text-gray-400 hover:text-gray-600 transition-colors"
+        className="flex-shrink-0 text-secondary hover:text-secondary transition-colors"
       >
         <FaTimes size={16} />
       </button>
@@ -234,9 +234,9 @@ const PolicyManagementModule = () => {
       case 'active': return 'bg-green-100 text-green-800';
       case 'draft': return 'bg-yellow-100 text-yellow-800';
       case 'under-review': return 'bg-blue-100 text-blue-800';
-      case 'archived': return 'bg-gray-100 text-gray-800';
+      case 'archived': return 'bg-gray-100 text-primary';
       case 'expired': return 'bg-red-100 text-red-800';
-      default: return 'bg-gray-100 text-gray-800';
+      default: return 'bg-gray-100 text-primary';
     }
   };
 
@@ -244,8 +244,8 @@ const PolicyManagementModule = () => {
     switch (fileType) {
       case 'PDF': return <FaFilePdf className="text-red-500" />;
       case 'DOCX': return <FaFileWord className="text-blue-500" />;
-      case 'TXT': return <FaFileAlt className="text-gray-500" />;
-      default: return <FaFile className="text-gray-500" />;
+      case 'TXT': return <FaFileAlt className="text-secondary" />;
+      default: return <FaFile className="text-secondary" />;
     }
   };
 
@@ -336,59 +336,59 @@ const PolicyManagementModule = () => {
       <div className="space-y-6">
         <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
 
-          <div className="bg-white p-5 rounded-xl shadow-md border-l-4 border-purple-500">
-            <p className="text-sm font-medium text-gray-500">Total Active Policies</p>
+          <div className="bg-card p-5 rounded-xl shadow-md border-l-4 border-purple-500">
+            <p className="text-sm font-medium text-secondary">Total Active Policies</p>
             <p className="text-3xl font-bold text-purple-700">{activePolicies.length}</p>
-            <span className='text-xs text-gray-500'>Ensures all mandatory policies are covered.</span>
+            <span className='text-xs text-secondary'>Ensures all mandatory policies are covered.</span>
           </div>
 
 
-          <div className="bg-white p-5 rounded-xl shadow-md border-l-4 border-yellow-500">
-            <p className="text-sm font-medium text-gray-500">Upcoming Reviews (90 days)</p>
+          <div className="bg-card p-5 rounded-xl shadow-md border-l-4 border-yellow-500">
+            <p className="text-sm font-medium text-secondary">Upcoming Reviews (90 days)</p>
             <p className="text-3xl font-bold text-yellow-700">{upcomingReviewPolicies.length}</p>
-            <span className='text-xs text-gray-500'>Notifications sent to H&S Manager.</span>
+            <span className='text-xs text-secondary'>Notifications sent to H&S Manager.</span>
           </div>
 
 
-          <div className="bg-white p-5 rounded-xl shadow-md border-l-4 border-red-500">
-            <p className="text-sm font-medium text-gray-500">Acknowledgment Risk</p>
+          <div className="bg-card p-5 rounded-xl shadow-md border-l-4 border-red-500">
+            <p className="text-sm font-medium text-secondary">Acknowledgment Risk</p>
             <p className="text-3xl font-bold text-red-700">
               {nonCompliantAcknowledgment.length}
             </p>
-            <span className='text-xs text-gray-500'>Policies &lt; 95% **Read Receipts** tracked.</span>
+            <span className='text-xs text-secondary'>Policies &lt; 95% **Read Receipts** tracked.</span>
           </div>
 
 
-          <div className="bg-white p-5 rounded-xl shadow-md border-l-4 border-blue-500">
-            <p className="text-sm font-medium text-gray-500">Policy Categories Tracked</p>
+          <div className="bg-card p-5 rounded-xl shadow-md border-l-4 border-blue-500">
+            <p className="text-sm font-medium text-secondary">Policy Categories Tracked</p>
             <p className="text-3xl font-bold text-blue-700">
               {policyCategoriesCount}
             </p>
-            <span className='text-xs text-gray-500'>Includes Safety, HR, Driver, Wellness, Shop/Yard.</span>
+            <span className='text-xs text-secondary'>Includes Safety, HR, Driver, Wellness, Shop/Yard.</span>
           </div>
         </div>
 
 
-        <div className="bg-white rounded-xl shadow-lg overflow-hidden p-6">
+        <div className="bg-card rounded-xl shadow-lg overflow-hidden p-6">
           <h3 className="text-xl font-bold mb-4 text-red-700 flex items-center gap-2"><FaUserTimes /> Acknowledgment Audit Report</h3>
-          <p className='text-sm text-gray-600 mb-4'>Audit-ready list showing policies where mandatory acknowledgment (Read Receipts) is missing for the **current version**.</p>
+          <p className='text-sm text-secondary mb-4'>Audit-ready list showing policies where mandatory acknowledgment (Read Receipts) is missing for the **current version**.</p>
           <div className="overflow-x-auto">
             <table className="min-w-full divide-y divide-gray-200">
-              <thead className="bg-gray-50">
+              <thead className="bg-card">
                 <tr>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Policy Title (Version)</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Assigned Roles</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Unacknowledged</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Compliance %</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Action</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-secondary uppercase">Policy Title (Version)</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-secondary uppercase">Assigned Roles</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-secondary uppercase">Unacknowledged</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-secondary uppercase">Compliance %</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-secondary uppercase">Action</th>
                 </tr>
               </thead>
-              <tbody className="bg-white divide-y divide-gray-200">
+              <tbody className="bg-card divide-y divide-gray-200">
                 {nonCompliantAcknowledgment.map(p => (
                   <tr key={p._id}>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{p.title} <span className='text-gray-500 font-normal'>v.**{p.version}**</span></td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{p.assignedRoles}</td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm font-bold text-red-600">{p.totalEmployees - p.acknowledged} employees</td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-primary">{p.title} <span className='text-secondary font-normal'>v.**{p.version}**</span></td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-secondary">{p.assignedRoles}</td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm font-bold text-[#A855F7]">{p.totalEmployees - p.acknowledged} employees</td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm">
                       {p.totalEmployees && p.totalEmployees > 0
                         ? ((p.acknowledged / p.totalEmployees) * 100).toFixed(1)
@@ -404,7 +404,7 @@ const PolicyManagementModule = () => {
                       >
                         View Acknowledgment Details
                       </button>
-                      <button className='text-xs text-blue-600 hover:underline'>
+                      <button className='text-xs text-[#00D1FF] hover:underline'>
                         Send Mandatory Reminder
                       </button>
                     </td>
@@ -453,10 +453,10 @@ const PolicyManagementModule = () => {
 
     return (
       <div className="fixed inset-0 bg-gray-900/20 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-        <div className="bg-white rounded-2xl max-w-4xl w-full max-h-[90vh] overflow-y-auto">
-          <div className="p-6 border-b flex justify-between items-center sticky top-0 bg-white">
+        <div className="bg-card rounded-2xl max-w-4xl w-full max-h-[90vh] overflow-y-auto">
+          <div className="p-6 border-b flex justify-between items-center sticky top-0 bg-card">
             <h2 className="text-2xl font-bold">Upload New Policy/SOP</h2>
-            <button onClick={onClose} className="text-gray-500 hover:text-gray-700">
+            <button onClick={onClose} className="text-secondary hover:text-primary">
               <FaTimes size={24} />
             </button>
           </div>
@@ -468,7 +468,7 @@ const PolicyManagementModule = () => {
                 <input
                   type="text"
                   placeholder="e.g., Fueling Operations SOP"
-                  className="w-full px-4 py-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-purple-500"
+                  className="w-full px-4 py-3 border border-theme rounded-lg focus:ring-2 focus:ring-purple-500"
                   value={formData.title}
                   onChange={(e) => setFormData({ ...formData, title: e.target.value })}
                 />
@@ -479,7 +479,7 @@ const PolicyManagementModule = () => {
                 <input
                   type="text"
                   placeholder="e.g., SOP-D-001"
-                  className="w-full px-4 py-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-purple-500"
+                  className="w-full px-4 py-3 border border-theme rounded-lg focus:ring-2 focus:ring-purple-500"
                   value={formData.policyNumber}
                   onChange={(e) => setFormData({ ...formData, policyNumber: e.target.value })}
                 />
@@ -488,7 +488,7 @@ const PolicyManagementModule = () => {
               <div>
                 <label className="block text-sm font-semibold mb-2">Category *</label>
                 <select
-                  className="w-full px-4 py-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-purple-500"
+                  className="w-full px-4 py-3 border border-theme rounded-lg focus:ring-2 focus:ring-purple-500"
                   value={formData.category}
                   onChange={(e) => setFormData({ ...formData, category: e.target.value })}
                 >
@@ -499,7 +499,7 @@ const PolicyManagementModule = () => {
               <div>
                 <label className="block text-sm font-semibold mb-2">Document Type *</label>
                 <select
-                  className="w-full px-4 py-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-purple-500"
+                  className="w-full px-4 py-3 border border-theme rounded-lg focus:ring-2 focus:ring-purple-500"
                   value={formData.documentType}
                   onChange={(e) => setFormData({ ...formData, documentType: e.target.value })}
                 >
@@ -514,7 +514,7 @@ const PolicyManagementModule = () => {
                 <label className="block text-sm font-semibold mb-2">Effective Date *</label>
                 <input
                   type="date"
-                  className="w-full px-4 py-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-purple-500"
+                  className="w-full px-4 py-3 border border-theme rounded-lg focus:ring-2 focus:ring-purple-500"
                   value={formData.effectiveDate}
                   onChange={(e) => setFormData({ ...formData, effectiveDate: e.target.value })}
                 />
@@ -524,7 +524,7 @@ const PolicyManagementModule = () => {
                 <label className="block text-sm font-semibold mb-2">Review Date *</label>
                 <input
                   type="date"
-                  className="w-full px-4 py-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-purple-500"
+                  className="w-full px-4 py-3 border border-theme rounded-lg focus:ring-2 focus:ring-purple-500"
                   value={formData.reviewDate}
                   onChange={(e) => setFormData({ ...formData, reviewDate: e.target.value })}
                 />
@@ -533,7 +533,7 @@ const PolicyManagementModule = () => {
               <div>
                 <label className="block text-sm font-semibold mb-2">Renewal Cycle (months) *</label>
                 <select
-                  className="w-full px-4 py-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-purple-500"
+                  className="w-full px-4 py-3 border border-theme rounded-lg focus:ring-2 focus:ring-purple-500"
                   value={formData.renewalCycle}
                   onChange={(e) => setFormData({ ...formData, renewalCycle: Number(e.target.value) })}
                 >
@@ -546,7 +546,7 @@ const PolicyManagementModule = () => {
               <div>
                 <label className="block text-sm font-semibold mb-2">Policy Owner *</label>
                 <select
-                  className="w-full px-4 py-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-purple-500"
+                  className="w-full px-4 py-3 border border-theme rounded-lg focus:ring-2 focus:ring-purple-500"
                   value={formData.owner}
                   onChange={(e) => setFormData({ ...formData, owner: e.target.value })}
                 >
@@ -564,7 +564,7 @@ const PolicyManagementModule = () => {
                 <input
                   type="text"
                   placeholder="1.0"
-                  className="w-full px-4 py-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-purple-500"
+                  className="w-full px-4 py-3 border border-theme rounded-lg focus:ring-2 focus:ring-purple-500"
                   value={formData.version}
                   onChange={(e) => setFormData({ ...formData, version: e.target.value })}
                 />
@@ -575,7 +575,7 @@ const PolicyManagementModule = () => {
                 <input
                   type="text"
                   placeholder="Training ID"
-                  className="w-full px-4 py-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-purple-500"
+                  className="w-full px-4 py-3 border border-theme rounded-lg focus:ring-2 focus:ring-purple-500"
                   value={formData.linkedTraining}
                   onChange={(e) => setFormData({ ...formData, linkedTraining: e.target.value })}
                 />
@@ -607,12 +607,12 @@ const PolicyManagementModule = () => {
               <div className="md:col-span-2">
                 <label className="block text-sm font-semibold mb-2">Upload Policy Document *</label>
                 <div
-                  className="border-2 border-dashed border-gray-200 rounded-lg p-8 text-center hover:border-purple-500 transition cursor-pointer"
+                  className="border-2 border-dashed border-theme rounded-lg p-8 text-center hover:border-purple-500 transition cursor-pointer"
                   onClick={() => document.getElementById('file-upload')?.click()}
                 >
-                  <FaUpload size={32} className="mx-auto mb-3 text-gray-400" />
-                  <p className="text-sm text-gray-600 mb-2">Click to upload or drag and drop</p>
-                  <p className="text-xs text-gray-500">PDF, DOCX, TXT up to 50MB</p>
+                  <FaUpload size={32} className="mx-auto mb-3 text-secondary" />
+                  <p className="text-sm text-secondary mb-2">Click to upload or drag and drop</p>
+                  <p className="text-xs text-secondary">PDF, DOCX, TXT up to 50MB</p>
                   {formData.file && (
                     <p className="text-sm text-green-600 mt-2">✓ {formData.file.name}</p>
                   )}
@@ -646,7 +646,7 @@ const PolicyManagementModule = () => {
               >
                 Upload Policy & Assign to Employees
               </button>
-              <button onClick={onClose} className="px-6 py-3 bg-gray-200 text-gray-700 rounded-lg font-semibold hover:bg-gray-300 transition">
+              <button onClick={onClose} className="px-6 py-3 bg-gray-200 text-primary rounded-lg font-semibold hover:bg-gray-300 transition">
                 Cancel
               </button>
             </div>
@@ -678,18 +678,18 @@ const PolicyManagementModule = () => {
 
     return (
       <div className="fixed inset-0 bg-gray-900/20 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-        <div className="bg-white rounded-2xl max-w-4xl w-full max-h-[90vh] overflow-y-auto">
-          <div className="p-6 border-b sticky top-0 bg-white">
+        <div className="bg-card rounded-2xl max-w-4xl w-full max-h-[90vh] overflow-y-auto">
+          <div className="p-6 border-b sticky top-0 bg-card">
             <h2 className="text-2xl font-bold text-red-700">Policy Acknowledgment Required</h2>
-            <p className="text-gray-600">{policy.title} (Version {policy.version})</p>
+            <p className="text-secondary">{policy.title} (Version {policy.version})</p>
           </div>
 
           <div className="p-6 space-y-6">
             {/* Policy Document Display */}
-            <div className="bg-gray-50 border-2 border-gray-200 rounded-lg p-6 max-h-96 overflow-y-auto">
+            <div className="bg-card border-2 border-theme rounded-lg p-6 max-h-96 overflow-y-auto">
               <h3 className="font-bold mb-4">Policy Document</h3>
-              <div className="aspect-[8.5/11] bg-white rounded shadow-inner flex items-center justify-center">
-                <div className="text-center text-gray-500">
+              <div className="aspect-[8.5/11] bg-card rounded shadow-inner flex items-center justify-center">
+                <div className="text-center text-secondary">
                   <FaFilePdf size={64} className="mx-auto mb-4" />
                   <p>Policy PDF would display here</p>
                   <button className="mt-4 px-4 py-2 !text-white rounded hover:opacity-90" style={{ background: CUSTOM_COLORS.primary }}>
@@ -700,7 +700,7 @@ const PolicyManagementModule = () => {
             </div>
 
             {/* Acknowledgment Agreement */}
-            <div className="bg-yellow-50 border-2 border-yellow-400 rounded-lg p-4">
+            <div className="bg-card border-2 border-yellow-400 rounded-lg p-4">
               <label className="flex items-start gap-3 cursor-pointer">
                 <input
                   type="checkbox"
@@ -722,17 +722,17 @@ const PolicyManagementModule = () => {
               <input
                 type="text"
                 placeholder="Type your full name to sign"
-                className="w-full px-4 py-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-purple-500"
+                className="w-full px-4 py-3 border border-theme rounded-lg focus:ring-2 focus:ring-purple-500"
                 value={signature}
                 onChange={(e) => setSignature(e.target.value)}
               />
-              <p className="text-xs text-gray-500 mt-2">
+              <p className="text-xs text-secondary mt-2">
                 By typing your name, you are providing a legally binding electronic signature
               </p>
             </div>
 
             {/* Timestamp Info */}
-            <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 text-sm">
+            <div className="bg-card border border-blue-200 rounded-lg p-4 text-sm">
               <p><strong>Acknowledgment Details (for audit trail):</strong></p>
               <p>Date/Time: {new Date().toLocaleString()}</p>
               <p>IP Address: Will be recorded</p>
@@ -747,7 +747,7 @@ const PolicyManagementModule = () => {
               >
                 <FaCheckCircle className="inline mr-2" /> Submit Acknowledgment
               </button>
-              <button onClick={onClose} className="px-6 py-3 bg-gray-200 text-gray-700 rounded-lg font-semibold hover:bg-gray-300 transition">
+              <button onClick={onClose} className="px-6 py-3 bg-gray-200 text-primary rounded-lg font-semibold hover:bg-gray-300 transition">
                 Cancel
               </button>
             </div>
@@ -767,13 +767,13 @@ const PolicyManagementModule = () => {
 
     return (
       <div className="fixed inset-0 bg-gray-900/20 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-        <div className="bg-white rounded-2xl max-w-4xl w-full max-h-[90vh] overflow-y-auto">
-          <div className="p-6 border-b sticky top-0 bg-white flex justify-between items-center">
+        <div className="bg-card rounded-2xl max-w-4xl w-full max-h-[90vh] overflow-y-auto">
+          <div className="p-6 border-b sticky top-0 bg-card flex justify-between items-center">
             <div>
               <h2 className="text-2xl font-bold">Version History</h2>
-              <p className="text-gray-600">{policy.title}</p>
+              <p className="text-secondary">{policy.title}</p>
             </div>
-            <button onClick={onClose} className="text-gray-500 hover:text-gray-700">
+            <button onClick={onClose} className="text-secondary hover:text-primary">
               <FaTimes size={24} />
             </button>
           </div>
@@ -781,14 +781,14 @@ const PolicyManagementModule = () => {
           <div className="p-6">
             <div className="space-y-4">
               {versions.map((v, idx) => (
-                <div key={idx} className={`border-2 rounded-lg p-4 ${v.status === 'Current' ? 'border-green-500 bg-green-50' : 'border-gray-200'}`}>
+                <div key={idx} className={`border-2 rounded-lg p-4 ${v.status === 'Current' ? 'border-green-500 bg-green-50' : 'border-theme'}`}>
                   <div className="flex justify-between items-start mb-3">
                     <div>
                       <h3 className="text-lg font-bold">Version {v.version}</h3>
-                      <p className="text-sm text-gray-600">Published: {new Date(v.date).toLocaleDateString()}</p>
-                      <p className="text-sm text-gray-600">By: {v.publishedBy}</p>
+                      <p className="text-sm text-secondary">Published: {new Date(v.date).toLocaleDateString()}</p>
+                      <p className="text-sm text-secondary">By: {v.publishedBy}</p>
                     </div>
-                    <span className={`px-3 py-1 rounded-full text-xs font-semibold ${v.status === 'Current' ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800'
+                    <span className={`px-3 py-1 rounded-full text-xs font-semibold ${v.status === 'Current' ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-primary'
                       }`}>
                       {v.status}
                     </span>
@@ -816,10 +816,10 @@ const PolicyManagementModule = () => {
   const renderPolicyLibrary = () => (
     <>
       {/* Filters and Search */}
-      <div className="bg-white rounded-xl p-4 shadow-lg mb-6">
+      <div className="bg-card rounded-xl p-4 shadow-lg mb-6">
         <div className="flex flex-col md:flex-row gap-4">
           <div className="flex-1 relative">
-            <FaSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
+            <FaSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-secondary" />
             <input
               type="text"
               placeholder="Search policies by title, number, or category..."
@@ -829,7 +829,7 @@ const PolicyManagementModule = () => {
             />
           </div>
           <div className="flex items-center gap-2">
-            <FaFilter className="text-gray-400" />
+            <FaFilter className="text-secondary" />
             {/* Filter by Status */}
             <select
               value={filterStatus}
@@ -856,7 +856,7 @@ const PolicyManagementModule = () => {
       </div>
 
       {/* Policies Table - Version Control & Renewal Tracking */}
-      <div className="bg-white rounded-xl shadow-lg overflow-hidden">
+      <div className="bg-card rounded-xl shadow-lg overflow-hidden">
         {/* Top Scrollbar */}
         <div 
           ref={topScrollRef}
@@ -902,7 +902,7 @@ const PolicyManagementModule = () => {
             <tbody>
               {loading || filteredPolicies.length === 0 ? (
                 <tr>
-                  <td colSpan={10} className="px-6 py-8 text-center text-gray-500">
+                  <td colSpan={10} className="px-6 py-8 text-center text-secondary">
                     {loading ? 'Loading policy data...' : 'No policies match your filters.'}
                   </td>
                 </tr>
@@ -914,7 +914,7 @@ const PolicyManagementModule = () => {
                       setSelectedPolicy(policy);
                       setShowVersionHistoryModal(true);
                     }}
-                    className="border-b border-gray-200 hover:bg-gray-50 cursor-pointer"
+                    className="border-b border-theme hover:bg-[rgba(255,255,255,0.03)] cursor-pointer"
                   >
                     <td className="px-6 py-4 font-medium">{policy.policyNumber || 'N/A'}</td>
                     <td className="px-6 py-4">
@@ -927,7 +927,7 @@ const PolicyManagementModule = () => {
                           {policy.documentType || 'N/A'}
                         </span>
                         {policy.fileType && (
-                          <span className="ml-2 px-2 py-1 bg-gray-100 text-gray-700 rounded-full text-xs">
+                          <span className="ml-2 px-2 py-1 bg-gray-100 text-primary rounded-full text-xs">
                             {policy.fileType}
                           </span>
                         )}
@@ -938,24 +938,24 @@ const PolicyManagementModule = () => {
                     <td className="px-6 py-4 text-sm">
                       {policy.assignedRoles ? (
                         <div className="max-w-xs">
-                          <span className="inline-block px-2 py-1 bg-blue-50 text-blue-700 rounded text-xs break-words">
+                          <span className="inline-block px-2 py-1 bg-card text-blue-700 rounded text-xs break-words">
                             {policy.assignedRoles}
                           </span>
                         </div>
                       ) : (
-                        <span className="text-gray-400 text-xs">Not assigned</span>
+                        <span className="text-secondary text-xs">Not assigned</span>
                       )}
                     </td>
                     <td className="px-6 py-4 text-sm">
                       {policy.fileUrl ? (
                         <div className="flex flex-col gap-1">
                           {policy.fileType && (
-                            <span className="text-xs text-gray-600">
+                            <span className="text-xs text-secondary">
                               {policy.fileType}
                             </span>
                           )}
                           {policy.fileName ? (
-                            <span className="text-xs text-gray-700 truncate max-w-xs" title={policy.fileName}>
+                            <span className="text-xs text-primary truncate max-w-xs" title={policy.fileName}>
                               {policy.fileName}
                             </span>
                           ) : (
@@ -963,29 +963,29 @@ const PolicyManagementModule = () => {
                           )}
                         </div>
                       ) : (
-                        <span className="text-xs text-gray-400">No document</span>
+                        <span className="text-xs text-secondary">No document</span>
                       )}
                     </td>
                     <td className="px-6 py-4 text-sm">
 
-                      <FaSyncAlt className='inline mr-1 text-gray-400 text-xs' /> v.**{policy.version}**
-                      <p className='text-xs text-gray-500'>Effective: {new Date(policy.effectiveDate).toLocaleDateString()}</p>
+                      <FaSyncAlt className='inline mr-1 text-secondary text-xs' /> v.**{policy.version}**
+                      <p className='text-xs text-secondary'>Effective: {new Date(policy.effectiveDate).toLocaleDateString()}</p>
                     </td>
                     <td className="px-6 py-4 text-sm font-semibold">
 
                       <FaCalendarAlt className="inline mr-1 text-yellow-500" />
                       {new Date(policy.reviewDate).toLocaleDateString()}
-                      <p className='text-xs text-gray-500'>Cycle: **{policy.renewalCycle} months**</p>
+                      <p className='text-xs text-secondary'>Cycle: **{policy.renewalCycle} months**</p>
                     </td>
                     <td className="px-6 py-4 text-sm">
 
                       <div className='flex items-center'>
                         <FaClipboardCheck className='text-green-500 mr-2' />
-                        <span className='font-bold text-gray-800'>
+                        <span className='font-bold text-primary'>
                           {policy.acknowledged}/{policy.totalEmployees} Signed
                         </span>
                       </div>
-                      <span className='text-xs text-gray-500'>Read Receipts for Audit</span>
+                      <span className='text-xs text-secondary'>Read Receipts for Audit</span>
                     </td>
                     <td className="px-6 py-4">
                       <span className={`px-2 py-1 rounded-full text-xs font-semibold ${getStatusColor(policy.status)}`}>
@@ -1000,7 +1000,7 @@ const PolicyManagementModule = () => {
                             setSelectedPolicy(policy);
                             setShowVersionHistoryModal(true);
                           }}
-                          className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition"
+                          className="p-2 text-[#00D1FF] hover:bg-blue-50 rounded-lg transition"
                           title="View Version History"
                         >
                           <FaSyncAlt />
@@ -1021,7 +1021,7 @@ const PolicyManagementModule = () => {
                             e.stopPropagation();
                             handleDownloadPolicy(policy, 'inline');
                           }}
-                          className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition"
+                          className="p-2 text-[#00D1FF] hover:bg-blue-50 rounded-lg transition"
                           title="View Policy"
                           disabled={!policy.fileUrl}
                         >
@@ -1068,7 +1068,7 @@ const PolicyManagementModule = () => {
             <h1 className="text-3xl font-bold mb-2" style={{ color: CUSTOM_COLORS.dark }}>
               Company Policy Management & Renewal Tracking 📑
             </h1>
-            <p className="text-gray-600">Centralized policy library, version control, and **mandatory acknowledgment tracking** for CLC compliance.</p>
+            <p className="text-secondary">Centralized policy library, version control, and **mandatory acknowledgment tracking** for CLC compliance.</p>
           </div>
           <div className="flex items-center gap-2">
             <button
@@ -1091,12 +1091,12 @@ const PolicyManagementModule = () => {
         </div>
 
         {/* Tabs for Dashboard and Library (Serving as Sub-Menus) */}
-        <div className="bg-white rounded-xl shadow-lg mb-6">
-          <div className="flex border-b border-gray-200">
+        <div className="bg-card rounded-xl shadow-lg mb-6">
+          <div className="flex border-b border-theme">
             {/* Sub-Menu 1: Compliance Dashboard (Audit View) */}
             <button
               onClick={() => setActiveTab('dashboard')}
-              className={`flex-1 px-6 py-4 font-semibold transition ${activeTab === 'dashboard' ? 'border-b-2 text-purple-600' : 'text-gray-600 hover:text-gray-900'
+              className={`flex-1 px-6 py-4 font-semibold transition ${activeTab === 'dashboard' ? 'border-b-2 text-purple-600' : 'text-secondary hover:text-primary'
                 }`}
               style={activeTab === 'dashboard' ? { borderColor: CUSTOM_COLORS.primary } : {}}
             >
@@ -1105,7 +1105,7 @@ const PolicyManagementModule = () => {
             {/* Sub-Menu 2: Policy Library (Management View) */}
             <button
               onClick={() => setActiveTab('library')}
-              className={`flex-1 px-6 py-4 font-semibold transition ${activeTab === 'library' ? 'border-b-2 text-purple-600' : 'text-gray-600 hover:text-gray-900'
+              className={`flex-1 px-6 py-4 font-semibold transition ${activeTab === 'library' ? 'border-b-2 text-purple-600' : 'text-secondary hover:text-primary'
                 }`}
               style={activeTab === 'library' ? { borderColor: CUSTOM_COLORS.primary } : {}}
             >

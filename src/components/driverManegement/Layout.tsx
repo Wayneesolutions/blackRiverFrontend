@@ -36,7 +36,7 @@ function Layout() {
                     <Header onToggleSidebar={toggleSidebar} />
                 </div>
 
-                <main className="flex-1 overflow-y-auto bg-[#EDF8FF]">
+                <main className="flex-1 overflow-y-auto bg-main">
                     <Outlet />
                 </main>
             </div>

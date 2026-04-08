@@ -211,22 +211,22 @@ export default function RegistrationPage() {
               }}>
                 Start Your Free Trial
               </h1>
-              <p className="text-base text-gray-600 leading-relaxed" style={{ fontSize: 'calc(1rem * 0.98)' }}>
+              <p className="text-base text-secondary leading-relaxed" style={{ fontSize: 'calc(1rem * 0.98)' }}>
                 Join thousands of companies managing their fleet operations efficiently with Logistiq Platform.
               </p>
             </div>
 
             {/* Key Benefits */}
-            <div className="space-y-4 bg-white/60 backdrop-blur-sm rounded-2xl p-6 border border-gray-200/50" style={{ padding: 'calc(1.5rem * 0.98)' }}>
-              <h3 className="text-sm font-semibold text-gray-900 uppercase tracking-wide mb-4" style={{ fontSize: 'calc(0.875rem * 0.98)' }}>What's Included</h3>
+            <div className="space-y-4 bg-card/60 backdrop-blur-sm rounded-2xl p-6 border border-theme/50" style={{ padding: 'calc(1.5rem * 0.98)' }}>
+              <h3 className="text-sm font-semibold text-primary uppercase tracking-wide mb-4" style={{ fontSize: 'calc(0.875rem * 0.98)' }}>What's Included</h3>
               
               <div className="flex items-start gap-3">
                 <div className="w-10 h-10 rounded-lg flex items-center justify-center flex-shrink-0" style={{ backgroundColor: '#42aeec', width: 'calc(2.5rem * 0.98)', height: 'calc(2.5rem * 0.98)' }}>
                   <Truck className="w-5 h-5 text-white" style={{ width: 'calc(1.25rem * 0.98)', height: 'calc(1.25rem * 0.98)' }} />
                 </div>
                 <div>
-                  <h4 className="text-sm font-semibold text-gray-900 mb-1" style={{ fontSize: 'calc(0.875rem * 0.98)' }}>Fleet Management</h4>
-                  <p className="text-xs text-gray-600 leading-relaxed" style={{ fontSize: 'calc(0.75rem * 0.98)' }}>Real-time vehicle tracking and comprehensive fleet oversight</p>
+                  <h4 className="text-sm font-semibold text-primary mb-1" style={{ fontSize: 'calc(0.875rem * 0.98)' }}>Fleet Management</h4>
+                  <p className="text-xs text-secondary leading-relaxed" style={{ fontSize: 'calc(0.75rem * 0.98)' }}>Real-time vehicle tracking and comprehensive fleet oversight</p>
                 </div>
               </div>
 
@@ -235,8 +235,8 @@ export default function RegistrationPage() {
                   <MapPin className="w-5 h-5 text-white" style={{ width: 'calc(1.25rem * 0.98)', height: 'calc(1.25rem * 0.98)' }} />
                 </div>
                 <div>
-                  <h4 className="text-sm font-semibold text-gray-900 mb-1" style={{ fontSize: 'calc(0.875rem * 0.98)' }}>Route Optimization</h4>
-                  <p className="text-xs text-gray-600 leading-relaxed" style={{ fontSize: 'calc(0.75rem * 0.98)' }}>AI-powered route planning to reduce costs and improve efficiency</p>
+                  <h4 className="text-sm font-semibold text-primary mb-1" style={{ fontSize: 'calc(0.875rem * 0.98)' }}>Route Optimization</h4>
+                  <p className="text-xs text-secondary leading-relaxed" style={{ fontSize: 'calc(0.75rem * 0.98)' }}>AI-powered route planning to reduce costs and improve efficiency</p>
                 </div>
               </div>
 
@@ -245,8 +245,8 @@ export default function RegistrationPage() {
                   <Users className="w-5 h-5 text-white" style={{ width: 'calc(1.25rem * 0.98)', height: 'calc(1.25rem * 0.98)' }} />
                 </div>
                 <div>
-                  <h4 className="text-sm font-semibold text-gray-900 mb-1" style={{ fontSize: 'calc(0.875rem * 0.98)' }}>Team Collaboration</h4>
-                  <p className="text-xs text-gray-600 leading-relaxed" style={{ fontSize: 'calc(0.75rem * 0.98)' }}>Seamless communication and coordination across your organization</p>
+                  <h4 className="text-sm font-semibold text-primary mb-1" style={{ fontSize: 'calc(0.875rem * 0.98)' }}>Team Collaboration</h4>
+                  <p className="text-xs text-secondary leading-relaxed" style={{ fontSize: 'calc(0.75rem * 0.98)' }}>Seamless communication and coordination across your organization</p>
                 </div>
               </div>
 
@@ -258,8 +258,8 @@ export default function RegistrationPage() {
                       <FileCheck className="w-5 h-5 text-white" style={{ width: 'calc(1.25rem * 0.98)', height: 'calc(1.25rem * 0.98)' }} />
                     </div>
                     <div>
-                      <h4 className="text-sm font-semibold text-gray-900 mb-1" style={{ fontSize: 'calc(0.875rem * 0.98)' }}>Compliance Management</h4>
-                      <p className="text-xs text-gray-600 leading-relaxed" style={{ fontSize: 'calc(0.75rem * 0.98)' }}>Track regulatory compliance, certifications, and audit requirements</p>
+                      <h4 className="text-sm font-semibold text-primary mb-1" style={{ fontSize: 'calc(0.875rem * 0.98)' }}>Compliance Management</h4>
+                      <p className="text-xs text-secondary leading-relaxed" style={{ fontSize: 'calc(0.75rem * 0.98)' }}>Track regulatory compliance, certifications, and audit requirements</p>
                     </div>
                   </div>
 
@@ -268,8 +268,8 @@ export default function RegistrationPage() {
                       <HeartPulse className="w-5 h-5 text-white" style={{ width: 'calc(1.25rem * 0.98)', height: 'calc(1.25rem * 0.98)' }} />
                     </div>
                     <div>
-                      <h4 className="text-sm font-semibold text-gray-900 mb-1" style={{ fontSize: 'calc(0.875rem * 0.98)' }}>Health & Safety Management</h4>
-                      <p className="text-xs text-gray-600 leading-relaxed" style={{ fontSize: 'calc(0.75rem * 0.98)' }}>Manage safety protocols, incident reporting, and health compliance</p>
+                      <h4 className="text-sm font-semibold text-primary mb-1" style={{ fontSize: 'calc(0.875rem * 0.98)' }}>Health & Safety Management</h4>
+                      <p className="text-xs text-secondary leading-relaxed" style={{ fontSize: 'calc(0.75rem * 0.98)' }}>Manage safety protocols, incident reporting, and health compliance</p>
                     </div>
                   </div>
 
@@ -278,8 +278,8 @@ export default function RegistrationPage() {
                       <Shield className="w-5 h-5 text-white" style={{ width: 'calc(1.25rem * 0.98)', height: 'calc(1.25rem * 0.98)' }} />
                     </div>
                     <div>
-                      <h4 className="text-sm font-semibold text-gray-900 mb-1" style={{ fontSize: 'calc(0.875rem * 0.98)' }}>Security & Access Control</h4>
-                      <p className="text-xs text-gray-600 leading-relaxed" style={{ fontSize: 'calc(0.75rem * 0.98)' }}>Enterprise-grade security with role-based access control</p>
+                      <h4 className="text-sm font-semibold text-primary mb-1" style={{ fontSize: 'calc(0.875rem * 0.98)' }}>Security & Access Control</h4>
+                      <p className="text-xs text-secondary leading-relaxed" style={{ fontSize: 'calc(0.75rem * 0.98)' }}>Enterprise-grade security with role-based access control</p>
                     </div>
                   </div>
                 </>
@@ -289,7 +289,7 @@ export default function RegistrationPage() {
               <button
                 type="button"
                 onClick={() => setShowMoreFeatures(!showMoreFeatures)}
-                className="w-full flex items-center justify-center gap-2 text-sm font-medium text-gray-700 hover:text-gray-900 transition-colors pt-2 border-t border-gray-200"
+                className="w-full flex items-center justify-center gap-2 text-sm font-medium text-primary hover:text-primary transition-colors pt-2 border-t border-theme"
                 style={{ fontSize: 'calc(0.875rem * 0.98)', color: '#42aeec' }}
                 onMouseEnter={(e) => e.currentTarget.style.color = '#2e9cd9'}
                 onMouseLeave={(e) => e.currentTarget.style.color = '#42aeec'}
@@ -310,23 +310,23 @@ export default function RegistrationPage() {
 
             {/* Trial Info */}
             <div className="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-xl p-4 border border-blue-100" style={{ padding: 'calc(1rem * 0.98)' }}>
-              <p className="text-xs text-gray-700 leading-relaxed flex items-center gap-2" style={{ fontSize: 'calc(0.75rem * 0.98)' }}>
+              <p className="text-xs text-primary leading-relaxed flex items-center gap-2" style={{ fontSize: 'calc(0.75rem * 0.98)' }}>
                 <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg font-bold text-white" style={{ backgroundColor: '#42aeec', fontSize: 'calc(0.75rem * 0.98)' }}>
                 
                   <span>7-Day Free Trial</span>
                 </span>
-                <span className="text-gray-600">No credit card required</span>
+                <span className="text-secondary">No credit card required</span>
               </p>
             </div>
           </div>
 
           {/* Right Side - Registration Form (3 columns) */}
           <div className="lg:col-span-3">
-            <div className="bg-white rounded-2xl shadow-xl border border-gray-200/50 overflow-hidden">
+            <div className="bg-card rounded-2xl shadow-xl border border-theme/50 overflow-hidden">
               {/* Form Header */}
-              <div className="px-8 pt-6 border-b border-gray-100" style={{ paddingLeft: 'calc(2rem * 0.98)', paddingRight: 'calc(2rem * 0.98)', paddingTop: 'calc(1.5rem * 0.98)' }}>
-                <h2 className="text-2xl font-bold text-gray-900 mb-1" style={{ fontFamily: 'sans-serif', fontSize: 'calc(1.5rem * 0.98)' }}>Create Account</h2>
-                <p className="text-sm text-gray-600" style={{ fontSize: 'calc(0.875rem * 0.98)' }}>Set up your admin profile to get started</p>
+              <div className="px-8 pt-6 border-b border-theme" style={{ paddingLeft: 'calc(2rem * 0.98)', paddingRight: 'calc(2rem * 0.98)', paddingTop: 'calc(1.5rem * 0.98)' }}>
+                <h2 className="text-2xl font-bold text-primary mb-1" style={{ fontFamily: 'sans-serif', fontSize: 'calc(1.5rem * 0.98)' }}>Create Account</h2>
+                <p className="text-sm text-secondary" style={{ fontSize: 'calc(0.875rem * 0.98)' }}>Set up your admin profile to get started</p>
               </div>
 
               {/* Registration Form */}
@@ -334,48 +334,48 @@ export default function RegistrationPage() {
                 <div className="space-y-6" style={{ gap: 'calc(1.5rem * 0.98)' }}>
                   {/* Personal Information Section */}
                   <div>
-                    <h3 className="text-xs font-semibold text-gray-700 uppercase tracking-wide mb-4" style={{ fontSize: 'calc(0.75rem * 0.98)', marginBottom: 'calc(1rem * 0.98)' }}>Personal Information</h3>
+                    <h3 className="text-xs font-semibold text-primary uppercase tracking-wide mb-4" style={{ fontSize: 'calc(0.75rem * 0.98)', marginBottom: 'calc(1rem * 0.98)' }}>Personal Information</h3>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       <div className="space-y-2">
-                        <label className="block text-sm font-medium text-gray-700" style={{ fontSize: 'calc(0.875rem * 1.005)' }}>Full Name *</label>
+                        <label className="block text-sm font-medium text-primary" style={{ fontSize: 'calc(0.875rem * 1.005)' }}>Full Name *</label>
                         <div className="relative">
-                          <Users className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" style={{ width: 'calc(1rem * 1.005)', height: 'calc(1rem * 1.005)' }} />
+                          <Users className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-secondary" style={{ width: 'calc(1rem * 1.005)', height: 'calc(1rem * 1.005)' }} />
                           <input
                             value={name}
                             onChange={(e) => setName(e.target.value)}
                             className={`block w-full rounded-lg border pl-10 pr-4 py-2.5 text-sm transition-all duration-200 focus:outline-none focus:ring-2 focus:border-transparent ${
-                              errors.name ? "border-red-400 bg-red-50 focus:ring-red-200" : "border-gray-300 hover:border-gray-400 focus:ring-blue-200"
+                              errors.name ? "border-red-400 bg-card focus:ring-red-200" : "border-gray-300 hover:border-gray-400 focus:ring-blue-200"
                             }`}
                             style={{ '--tw-ring-color': 'rgba(66, 174, 236, 0.3)', fontSize: 'calc(0.875rem * 1.005)', paddingTop: 'calc(0.625rem * 1.005)', paddingBottom: 'calc(0.625rem * 1.005)' } as React.CSSProperties}
                             placeholder="John Doe"
                           />
                         </div>
-                        {errors.name && <p className="text-xs text-red-600 mt-1" style={{ fontSize: 'calc(0.75rem * 1.005)' }}>{errors.name}</p>}
+                        {errors.name && <p className="text-xs text-[#A855F7] mt-1" style={{ fontSize: 'calc(0.75rem * 1.005)' }}>{errors.name}</p>}
                       </div>
 
                       <div className="space-y-2">
-                        <label className="block text-sm font-medium text-gray-700" style={{ fontSize: 'calc(0.875rem * 1.005)' }}>Email Address *</label>
+                        <label className="block text-sm font-medium text-primary" style={{ fontSize: 'calc(0.875rem * 1.005)' }}>Email Address *</label>
                         <div className="relative">
-                          <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" style={{ width: 'calc(1rem * 1.005)', height: 'calc(1rem * 1.005)' }} />
+                          <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-secondary" style={{ width: 'calc(1rem * 1.005)', height: 'calc(1rem * 1.005)' }} />
                           <input
                             type="email"
                             value={email}
                             onChange={(e) => setEmail(e.target.value)}
                             className={`block w-full rounded-lg border pl-10 pr-4 py-2.5 text-sm transition-all duration-200 focus:outline-none focus:ring-2 focus:border-transparent ${
-                              errors.email ? "border-red-400 bg-red-50 focus:ring-red-200" : "border-gray-300 hover:border-gray-400 focus:ring-blue-200"
+                              errors.email ? "border-red-400 bg-card focus:ring-red-200" : "border-gray-300 hover:border-gray-400 focus:ring-blue-200"
                             }`}
                             style={{ '--tw-ring-color': 'rgba(66, 174, 236, 0.3)', fontSize: 'calc(0.875rem * 1.005)', paddingTop: 'calc(0.625rem * 1.005)', paddingBottom: 'calc(0.625rem * 1.005)' } as React.CSSProperties}
                             placeholder="john@company.com"
                           />
                         </div>
-                        {errors.email && <p className="text-xs text-red-600 mt-1" style={{ fontSize: 'calc(0.75rem * 1.005)' }}>{errors.email}</p>}
+                        {errors.email && <p className="text-xs text-[#A855F7] mt-1" style={{ fontSize: 'calc(0.75rem * 1.005)' }}>{errors.email}</p>}
                       </div>
                     </div>
 
                     <div className="mt-4 space-y-2">
-                      <label className="block text-sm font-medium text-gray-700" style={{ fontSize: 'calc(0.875rem * 1.005)' }}>Phone Number (Optional)</label>
+                      <label className="block text-sm font-medium text-primary" style={{ fontSize: 'calc(0.875rem * 1.005)' }}>Phone Number (Optional)</label>
                       <div className="relative">
-                        <Phone className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" style={{ width: 'calc(1rem * 1.005)', height: 'calc(1rem * 1.005)' }} />
+                        <Phone className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-secondary" style={{ width: 'calc(1rem * 1.005)', height: 'calc(1rem * 1.005)' }} />
                         <input
                           type="tel"
                           value={phone}
@@ -390,10 +390,10 @@ export default function RegistrationPage() {
 
                   {/* Location Information Section */}
                   <div>
-                    <h3 className="text-xs font-semibold text-gray-700 uppercase tracking-wide mb-4" style={{ fontSize: 'calc(0.75rem * 0.98)', marginBottom: 'calc(1rem * 0.98)' }}>Location (Optional)</h3>
+                    <h3 className="text-xs font-semibold text-primary uppercase tracking-wide mb-4" style={{ fontSize: 'calc(0.75rem * 0.98)', marginBottom: 'calc(1rem * 0.98)' }}>Location (Optional)</h3>
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                       <div className="space-y-2">
-                        <label className="block text-sm font-medium text-gray-700" style={{ fontSize: 'calc(0.875rem * 1.005)' }}>Country</label>
+                        <label className="block text-sm font-medium text-primary" style={{ fontSize: 'calc(0.875rem * 1.005)' }}>Country</label>
                         <input
                           value={country}
                           onChange={(e) => setCountry(e.target.value)}
@@ -404,7 +404,7 @@ export default function RegistrationPage() {
                       </div>
 
                       <div className="space-y-2">
-                        <label className="block text-sm font-medium text-gray-700" style={{ fontSize: 'calc(0.875rem * 1.005)' }}>State</label>
+                        <label className="block text-sm font-medium text-primary" style={{ fontSize: 'calc(0.875rem * 1.005)' }}>State</label>
                         <input
                           value={state}
                           onChange={(e) => setState(e.target.value)}
@@ -415,7 +415,7 @@ export default function RegistrationPage() {
                       </div>
 
                       <div className="space-y-2">
-                        <label className="block text-sm font-medium text-gray-700" style={{ fontSize: 'calc(0.875rem * 1.005)' }}>City</label>
+                        <label className="block text-sm font-medium text-primary" style={{ fontSize: 'calc(0.875rem * 1.005)' }}>City</label>
                         <input
                           value={city}
                           onChange={(e) => setCity(e.target.value)}
@@ -427,9 +427,9 @@ export default function RegistrationPage() {
                     </div>
 
                     <div className="mt-4 space-y-2">
-                      <label className="block text-sm font-medium text-gray-700" style={{ fontSize: 'calc(0.875rem * 1.005)' }}>Street Address</label>
+                      <label className="block text-sm font-medium text-primary" style={{ fontSize: 'calc(0.875rem * 1.005)' }}>Street Address</label>
                       <div className="relative">
-                        <Building2 className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" style={{ width: 'calc(1rem * 1.005)', height: 'calc(1rem * 1.005)' }} />
+                        <Building2 className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-secondary" style={{ width: 'calc(1rem * 1.005)', height: 'calc(1rem * 1.005)' }} />
                         <input
                           value={address}
                           onChange={(e) => setAddress(e.target.value)}
@@ -443,18 +443,18 @@ export default function RegistrationPage() {
 
                   {/* Security Section */}
                   <div>
-                    <h3 className="text-xs font-semibold text-gray-700 uppercase tracking-wide mb-4" style={{ fontSize: 'calc(0.75rem * 0.98)', marginBottom: 'calc(1rem * 0.98)' }}>Security</h3>
+                    <h3 className="text-xs font-semibold text-primary uppercase tracking-wide mb-4" style={{ fontSize: 'calc(0.75rem * 0.98)', marginBottom: 'calc(1rem * 0.98)' }}>Security</h3>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       <div className="space-y-2">
-                        <label className="block text-sm font-medium text-gray-700" style={{ fontSize: 'calc(0.875rem * 1.005)' }}>Password *</label>
+                        <label className="block text-sm font-medium text-primary" style={{ fontSize: 'calc(0.875rem * 1.005)' }}>Password *</label>
                         <div className="relative">
-                          <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" style={{ width: 'calc(1rem * 1.005)', height: 'calc(1rem * 1.005)' }} />
+                          <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-secondary" style={{ width: 'calc(1rem * 1.005)', height: 'calc(1rem * 1.005)' }} />
                           <input
                             type={showPassword ? "text" : "password"}
                             value={password}
                             onChange={(e) => setPassword(e.target.value)}
                             className={`block w-full rounded-lg border pl-10 pr-10 py-2.5 text-sm transition-all duration-200 focus:outline-none focus:ring-2 focus:border-transparent ${
-                              errors.password ? "border-red-400 bg-red-50 focus:ring-red-200" : "border-gray-300 hover:border-gray-400 focus:ring-blue-200"
+                              errors.password ? "border-red-400 bg-card focus:ring-red-200" : "border-gray-300 hover:border-gray-400 focus:ring-blue-200"
                             }`}
                             style={{ '--tw-ring-color': 'rgba(66, 174, 236, 0.3)', fontSize: 'calc(0.875rem * 1.005)', paddingTop: 'calc(0.625rem * 1.005)', paddingBottom: 'calc(0.625rem * 1.005)' } as React.CSSProperties}
                             placeholder="Create strong password"
@@ -462,7 +462,7 @@ export default function RegistrationPage() {
                           <button
                             type="button"
                             onClick={() => setShowPassword(!showPassword)}
-                            className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                            className="absolute right-3 top-1/2 transform -translate-y-1/2 text-secondary hover:text-secondary"
                           >
                             {showPassword ? <EyeOff className="w-4 h-4" style={{ width: 'calc(1rem * 1.005)', height: 'calc(1rem * 1.005)' }} /> : <Eye className="w-4 h-4" style={{ width: 'calc(1rem * 1.005)', height: 'calc(1rem * 1.005)' }} />}
                           </button>
@@ -475,24 +475,24 @@ export default function RegistrationPage() {
                               <div className="flex-1 bg-gray-200 rounded-full h-1.5">
                                 <div className={`h-1.5 rounded-full transition-all duration-300 ${passwordStrength().color} ${passwordStrength().width}`}></div>
                               </div>
-                              <span className="text-xs font-medium text-gray-600 min-w-[60px] text-right" style={{ fontSize: 'calc(0.75rem * 1.005)' }}>{passwordStrength().label}</span>
+                              <span className="text-xs font-medium text-secondary min-w-[60px] text-right" style={{ fontSize: 'calc(0.75rem * 1.005)' }}>{passwordStrength().label}</span>
                             </div>
-                            <p className="text-xs text-gray-500" style={{ fontSize: 'calc(0.75rem * 1.005)' }}>Use 12+ characters with uppercase, numbers, and symbols</p>
+                            <p className="text-xs text-secondary" style={{ fontSize: 'calc(0.75rem * 1.005)' }}>Use 12+ characters with uppercase, numbers, and symbols</p>
                           </div>
                         )}
-                        {errors.password && <p className="text-xs text-red-600 mt-1" style={{ fontSize: 'calc(0.75rem * 1.005)' }}>{errors.password}</p>}
+                        {errors.password && <p className="text-xs text-[#A855F7] mt-1" style={{ fontSize: 'calc(0.75rem * 1.005)' }}>{errors.password}</p>}
                       </div>
 
                       <div className="space-y-2">
-                        <label className="block text-sm font-medium text-gray-700" style={{ fontSize: 'calc(0.875rem * 1.005)' }}>Confirm Password *</label>
+                        <label className="block text-sm font-medium text-primary" style={{ fontSize: 'calc(0.875rem * 1.005)' }}>Confirm Password *</label>
                         <div className="relative">
-                          <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" style={{ width: 'calc(1rem * 1.005)', height: 'calc(1rem * 1.005)' }} />
+                          <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-secondary" style={{ width: 'calc(1rem * 1.005)', height: 'calc(1rem * 1.005)' }} />
                           <input
                             type={showConfirm ? "text" : "password"}
                             value={confirm}
                             onChange={(e) => setConfirm(e.target.value)}
                             className={`block w-full rounded-lg border pl-10 pr-10 py-2.5 text-sm transition-all duration-200 focus:outline-none focus:ring-2 focus:border-transparent ${
-                              errors.confirm ? "border-red-400 bg-red-50 focus:ring-red-200" : "border-gray-300 hover:border-gray-400 focus:ring-blue-200"
+                              errors.confirm ? "border-red-400 bg-card focus:ring-red-200" : "border-gray-300 hover:border-gray-400 focus:ring-blue-200"
                             }`}
                             style={{ '--tw-ring-color': 'rgba(66, 174, 236, 0.3)', fontSize: 'calc(0.875rem * 1.005)', paddingTop: 'calc(0.625rem * 1.005)', paddingBottom: 'calc(0.625rem * 1.005)' } as React.CSSProperties}
                             placeholder="Re-enter password"
@@ -500,18 +500,18 @@ export default function RegistrationPage() {
                           <button
                             type="button"
                             onClick={() => setShowConfirm(!showConfirm)}
-                            className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                            className="absolute right-3 top-1/2 transform -translate-y-1/2 text-secondary hover:text-secondary"
                           >
                             {showConfirm ? <EyeOff className="w-4 h-4" style={{ width: 'calc(1rem * 1.005)', height: 'calc(1rem * 1.005)' }} /> : <Eye className="w-4 h-4" style={{ width: 'calc(1rem * 1.005)', height: 'calc(1rem * 1.005)' }} />}
                           </button>
                         </div>
-                        {errors.confirm && <p className="text-xs text-red-600 mt-1" style={{ fontSize: 'calc(0.75rem * 1.005)' }}>{errors.confirm}</p>}
+                        {errors.confirm && <p className="text-xs text-[#A855F7] mt-1" style={{ fontSize: 'calc(0.75rem * 1.005)' }}>{errors.confirm}</p>}
                       </div>
                     </div>
                   </div>
 
                   {/* Terms & Submit */}
-                  <div className="space-y-4 pt-4 border-t border-gray-200">
+                  <div className="space-y-4 pt-4 border-t border-theme">
                     <div className="flex items-start gap-3">
                       <input
                         id="terms"
@@ -523,7 +523,7 @@ export default function RegistrationPage() {
                         }`}
                         style={{ accentColor: '#42aeec' }}
                       />
-                      <label htmlFor="terms" className="text-sm text-gray-700 leading-relaxed" style={{ fontSize: 'calc(0.875rem * 1.005)' }}>
+                      <label htmlFor="terms" className="text-sm text-primary leading-relaxed" style={{ fontSize: 'calc(0.875rem * 1.005)' }}>
                         I agree to the{" "}
                         <a className="font-medium underline hover:no-underline" href="#" style={{ color: '#42aeec' }}>
                           Terms of Service
@@ -534,12 +534,12 @@ export default function RegistrationPage() {
                         </a>
                       </label>
                     </div>
-                    {errors.agree && <p className="text-xs text-red-600 ml-7" style={{ fontSize: 'calc(0.75rem * 1.005)' }}>{errors.agree}</p>}
+                    {errors.agree && <p className="text-xs text-[#A855F7] ml-7" style={{ fontSize: 'calc(0.75rem * 1.005)' }}>{errors.agree}</p>}
 
                     {errors.submit && (
-                      <div className="bg-red-50 border border-red-200 rounded-lg p-3 flex items-start gap-2" style={{ padding: 'calc(0.75rem * 0.98)' }}>
-                        <AlertCircle className="w-4 h-4 text-red-600 flex-shrink-0 mt-0.5" style={{ width: 'calc(1rem * 0.98)', height: 'calc(1rem * 0.98)' }} />
-                        <p className="text-sm text-red-600" style={{ fontSize: 'calc(0.875rem * 0.98)' }}>{errors.submit}</p>
+                      <div className="bg-card border border-red-200 rounded-lg p-3 flex items-start gap-2" style={{ padding: 'calc(0.75rem * 0.98)' }}>
+                        <AlertCircle className="w-4 h-4 text-[#A855F7] flex-shrink-0 mt-0.5" style={{ width: 'calc(1rem * 0.98)', height: 'calc(1rem * 0.98)' }} />
+                        <p className="text-sm text-[#A855F7]" style={{ fontSize: 'calc(0.875rem * 0.98)' }}>{errors.submit}</p>
                       </div>
                     )}
 
@@ -568,7 +568,7 @@ export default function RegistrationPage() {
                       )}
                     </button>
 
-                    <p className="text-center text-sm text-gray-600 !mt-2" style={{ fontSize: 'calc(0.875rem * 0.98)' }}>
+                    <p className="text-center text-sm text-secondary !mt-2" style={{ fontSize: 'calc(0.875rem * 0.98)' }}>
                       Already have an account?{" "}
                       <Link to="/" className="font-semibold underline hover:no-underline" style={{ color: '#42aeec' }}>
                         Sign in
@@ -584,7 +584,7 @@ export default function RegistrationPage() {
         </div>
 
         {/* Footer */}
-        <div className="mt-12 text-center text-sm text-gray-500" style={{ marginTop: 'calc(3rem * 0.98)', fontSize: 'calc(0.875rem * 0.98)' }}>
+        <div className="mt-12 text-center text-sm text-secondary" style={{ marginTop: 'calc(3rem * 0.98)', fontSize: 'calc(0.875rem * 0.98)' }}>
           <p>© {new Date().getFullYear()} Logistiq Innovation Platform. All rights reserved.</p>
         </div>
       </div>

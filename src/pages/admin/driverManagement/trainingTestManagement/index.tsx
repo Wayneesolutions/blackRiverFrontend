@@ -43,8 +43,8 @@ const Notification = ({ notification, onClose }: { notification: Notification; o
 
   const bgColors = {
     success: 'bg-green-50 border-green-200',
-    error: 'bg-red-50 border-red-200',
-    info: 'bg-blue-50 border-blue-200'
+    error: 'bg-card border-red-200',
+    info: 'bg-card border-blue-200'
   };
 
   React.useEffect(() => {
@@ -59,10 +59,10 @@ const Notification = ({ notification, onClose }: { notification: Notification; o
       <div className="flex-shrink-0 mt-0.5">
         {icons[notification.type]}
       </div>
-      <p className="flex-1 text-sm font-medium text-gray-900">{notification.message}</p>
+      <p className="flex-1 text-sm font-medium text-primary">{notification.message}</p>
       <button
         onClick={() => onClose(notification.id)}
-        className="flex-shrink-0 text-gray-400 hover:text-gray-600 transition-colors"
+        className="flex-shrink-0 text-secondary hover:text-secondary transition-colors"
       >
         <FaTimes size={16} />
       </button>
@@ -576,25 +576,25 @@ const TrainingTestManagement = ({ showOnly }: { showOnly?: "training" | "questio
   };
 
   return (
-    <div className={showOnly ? "" : "p-6 bg-[#EDF8FF] min-h-screen"}>
+    <div className={showOnly ? "" : "p-6 bg-main min-h-screen"}>
       <div className={showOnly ? "" : "max-w-7xl mx-auto"}>
         {/* Header - Only show if not used as child component */}
         {!showOnly && (
           <>
             <div className="mb-6">
-              <h1 className="text-3xl font-bold text-gray-900 mb-2">Training & Test Management</h1>
-              <p className="text-gray-600">Manage training content and create question banks for driver tests</p>
+              <h1 className="text-3xl font-bold text-primary mb-2">Training & Test Management</h1>
+              <p className="text-secondary">Manage training content and create question banks for driver tests</p>
             </div>
 
             {/* Tabs - Only show if not used as child component */}
-            <div className="bg-white rounded-lg shadow-sm mb-6">
-              <div className="flex border-b border-gray-200">
+            <div className="bg-card rounded-lg shadow-sm mb-6">
+              <div className="flex border-b border-theme">
                 <button
                   onClick={() => setActiveTab('training')}
                   className={`px-6 py-3 font-medium text-sm transition-colors ${
                     activeTab === 'training'
                       ? 'text-[#0ea3d8] border-b-2 border-[#0ea3d8]'
-                      : 'text-gray-600 hover:text-gray-900'
+                      : 'text-secondary hover:text-primary'
                   }`}
                 >
                   Training Content
@@ -604,7 +604,7 @@ const TrainingTestManagement = ({ showOnly }: { showOnly?: "training" | "questio
                   className={`px-6 py-3 font-medium text-sm transition-colors ${
                     activeTab === 'questionBanks'
                       ? 'text-[#0ea3d8] border-b-2 border-[#0ea3d8]'
-                      : 'text-gray-600 hover:text-gray-900'
+                      : 'text-secondary hover:text-primary'
                   }`}
                 >
                   Question Banks
@@ -616,9 +616,9 @@ const TrainingTestManagement = ({ showOnly }: { showOnly?: "training" | "questio
 
         {/* Training Content Tab */}
         {activeTab === 'training' && (
-          <div className="bg-white rounded-lg shadow-sm p-6">
+          <div className="bg-card rounded-lg shadow-sm p-6">
             <div className="flex justify-between items-center mb-6">
-              <h2 className="text-xl font-bold text-gray-900">Training Content</h2>
+              <h2 className="text-xl font-bold text-primary">Training Content</h2>
               <button
                 onClick={() => setShowUploadModal(true)}
                 className="flex items-center gap-2 px-4 py-2 bg-[#0ea3d8] !text-white rounded-lg hover:bg-[#0d8fc7] transition-colors"
@@ -632,24 +632,24 @@ const TrainingTestManagement = ({ showOnly }: { showOnly?: "training" | "questio
             {loading ? (
               <div className="text-center py-12">
                 <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-[#0ea3d8]"></div>
-                <p className="mt-4 text-gray-600">Loading training content...</p>
+                <p className="mt-4 text-secondary">Loading training content...</p>
               </div>
             ) : trainingContent.length === 0 ? (
               <div className="text-center py-12">
-                <FileText className="w-16 h-16 text-gray-400 mx-auto mb-4" />
-                <p className="text-gray-500 text-lg">No training content uploaded yet</p>
-                <p className="text-gray-400 text-sm mt-2">Click "Upload Content" to get started</p>
+                <FileText className="w-16 h-16 text-secondary mx-auto mb-4" />
+                <p className="text-secondary text-lg">No training content uploaded yet</p>
+                <p className="text-secondary text-sm mt-2">Click "Upload Content" to get started</p>
               </div>
             ) : (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                 {trainingContent.map((content) => (
-                  <div key={content.id} className="border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow">
+                  <div key={content.id} className="border border-theme rounded-lg p-4 hover:shadow-md transition-shadow">
                     <div className="flex items-start justify-between mb-3">
                       <div className="flex items-center gap-3 flex-1">
                         {getFileIcon(content.type)}
                         <div className="flex-1 min-w-0">
-                          <h3 className="font-medium text-gray-900 truncate">{content.name}</h3>
-                          <p className="text-xs text-gray-500">{content.type}</p>
+                          <h3 className="font-medium text-primary truncate">{content.name}</h3>
+                          <p className="text-xs text-secondary">{content.type}</p>
                         </div>
                       </div>
                       <div className="flex items-center gap-2">
@@ -679,7 +679,7 @@ const TrainingTestManagement = ({ showOnly }: { showOnly?: "training" | "questio
                       </span>
                     </div>
                     {content.uploadedAt && (
-                      <p className="text-xs text-gray-400">
+                      <p className="text-xs text-secondary">
                         Uploaded: {new Date(content.uploadedAt).toLocaleDateString()}
                       </p>
                     )}
@@ -692,9 +692,9 @@ const TrainingTestManagement = ({ showOnly }: { showOnly?: "training" | "questio
 
         {/* Question Banks Tab */}
         {activeTab === 'questionBanks' && (
-          <div className="bg-white rounded-lg shadow-sm p-6">
+          <div className="bg-card rounded-lg shadow-sm p-6">
             <div className="flex justify-between items-center mb-6">
-              <h2 className="text-xl font-bold text-gray-900">Question Banks</h2>
+              <h2 className="text-xl font-bold text-primary">Question Banks</h2>
               <button
                 onClick={handleCreateQuestionBank}
                 className="flex items-center gap-2 px-4 py-2 bg-[#0ea3d8] !text-white rounded-lg hover:bg-[#0d8fc7] transition-colors"
@@ -708,22 +708,22 @@ const TrainingTestManagement = ({ showOnly }: { showOnly?: "training" | "questio
             {loading ? (
               <div className="text-center py-12">
                 <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-[#0ea3d8]"></div>
-                <p className="mt-4 text-gray-600">Loading question banks...</p>
+                <p className="mt-4 text-secondary">Loading question banks...</p>
               </div>
             ) : questionBanks.length === 0 ? (
               <div className="text-center py-12">
-                <FileText className="w-16 h-16 text-gray-400 mx-auto mb-4" />
-                <p className="text-gray-500 text-lg">No question banks created yet</p>
-                <p className="text-gray-400 text-sm mt-2">Click "Create Question Bank" to get started</p>
+                <FileText className="w-16 h-16 text-secondary mx-auto mb-4" />
+                <p className="text-secondary text-lg">No question banks created yet</p>
+                <p className="text-secondary text-sm mt-2">Click "Create Question Bank" to get started</p>
               </div>
             ) : (
               <div className="space-y-4">
                 {questionBanks.map((bank) => (
-                  <div key={bank.id} className="border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow">
+                  <div key={bank.id} className="border border-theme rounded-lg p-4 hover:shadow-md transition-shadow">
                     <div className="flex items-start justify-between mb-3">
                       <div className="flex-1">
                         <div className="flex items-center gap-3 mb-2">
-                          <h3 className="text-lg font-bold text-gray-900">{bank.testName}</h3>
+                          <h3 className="text-lg font-bold text-primary">{bank.testName}</h3>
                           <span className={`px-2 py-1 rounded text-xs font-medium ${getTestTypeColor(bank.testType)}`}>
                             {bank.testType}
                           </span>
@@ -733,7 +733,7 @@ const TrainingTestManagement = ({ showOnly }: { showOnly?: "training" | "questio
                             </span>
                           )}
                         </div>
-                        <div className="flex items-center gap-4 text-sm text-gray-600">
+                        <div className="flex items-center gap-4 text-sm text-secondary">
                           <span>Passing: {bank.passingPercentage}%</span>
                           <span>Questions: {bank.questions.length}</span>
                         </div>
@@ -763,16 +763,16 @@ const TrainingTestManagement = ({ showOnly }: { showOnly?: "training" | "questio
         {/* Upload Content Modal */}
         {showUploadModal && (
           <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-            <div className="bg-white rounded-xl shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+            <div className="bg-card rounded-xl shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
               <div className="p-6">
                 <div className="flex items-center justify-between mb-6">
-                  <h2 className="text-xl font-bold text-gray-900">Upload Training Content</h2>
+                  <h2 className="text-xl font-bold text-primary">Upload Training Content</h2>
                   <button
                     onClick={() => {
                       setShowUploadModal(false);
                       setUploadForm({ name: '', type: 'PDF', testType: 'TDG', file: null });
                     }}
-                    className="text-gray-400 hover:text-gray-600 transition-colors"
+                    className="text-secondary hover:text-secondary transition-colors"
                   >
                     <X className="w-5 h-5" />
                   </button>
@@ -780,7 +780,7 @@ const TrainingTestManagement = ({ showOnly }: { showOnly?: "training" | "questio
 
                 <div className="space-y-4">
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">Content Name</label>
+                    <label className="block text-sm font-medium text-primary mb-2">Content Name</label>
                     <input
                       type="text"
                       value={uploadForm.name}
@@ -791,7 +791,7 @@ const TrainingTestManagement = ({ showOnly }: { showOnly?: "training" | "questio
                   </div>
 
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">Content Type</label>
+                    <label className="block text-sm font-medium text-primary mb-2">Content Type</label>
                     <div className="grid grid-cols-3 gap-3">
                       {contentTypeOptions.map((option) => (
                         <button
@@ -811,7 +811,7 @@ const TrainingTestManagement = ({ showOnly }: { showOnly?: "training" | "questio
                   </div>
 
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">Test Type</label>
+                    <label className="block text-sm font-medium text-primary mb-2">Test Type</label>
                     <select
                       value={uploadForm.testType}
                       onChange={(e) => setUploadForm(prev => ({ ...prev, testType: e.target.value as TestType }))}
@@ -826,7 +826,7 @@ const TrainingTestManagement = ({ showOnly }: { showOnly?: "training" | "questio
                   </div>
 
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">File</label>
+                    <label className="block text-sm font-medium text-primary mb-2">File</label>
                     <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center">
                       <input
                         type="file"
@@ -839,8 +839,8 @@ const TrainingTestManagement = ({ showOnly }: { showOnly?: "training" | "questio
                         htmlFor="file-upload"
                         className="cursor-pointer flex flex-col items-center gap-2"
                       >
-                        <Upload className="w-8 h-8 text-gray-400" />
-                        <span className="text-sm text-gray-600">
+                        <Upload className="w-8 h-8 text-secondary" />
+                        <span className="text-sm text-secondary">
                           {uploadForm.file ? uploadForm.file.name : 'Click to upload or drag and drop'}
                         </span>
                       </label>
@@ -854,7 +854,7 @@ const TrainingTestManagement = ({ showOnly }: { showOnly?: "training" | "questio
                       setShowUploadModal(false);
                       setUploadForm({ name: '', type: 'PDF', testType: 'TDG', file: null });
                     }}
-                    className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
+                    className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-[rgba(255,255,255,0.03)] transition-colors"
                   >
                     Cancel
                   </button>
@@ -873,10 +873,10 @@ const TrainingTestManagement = ({ showOnly }: { showOnly?: "training" | "questio
         {/* Question Bank Modal */}
         {showQuestionBankModal && (
           <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-            <div className="bg-white rounded-xl shadow-xl max-w-4xl w-full max-h-[90vh] overflow-y-auto">
+            <div className="bg-card rounded-xl shadow-xl max-w-4xl w-full max-h-[90vh] overflow-y-auto">
               <div className="p-6">
                 <div className="flex items-center justify-between mb-6">
-                  <h2 className="text-xl font-bold text-gray-900">
+                  <h2 className="text-xl font-bold text-primary">
                     {editingQuestionBank ? 'Edit Question Bank' : 'Create Question Bank'}
                   </h2>
                   <button
@@ -885,7 +885,7 @@ const TrainingTestManagement = ({ showOnly }: { showOnly?: "training" | "questio
                       setEditingQuestionBank(null);
                       setEditingQuestionIndex(null);
                     }}
-                    className="text-gray-400 hover:text-gray-600 transition-colors"
+                    className="text-secondary hover:text-secondary transition-colors"
                   >
                     <X className="w-5 h-5" />
                   </button>
@@ -895,7 +895,7 @@ const TrainingTestManagement = ({ showOnly }: { showOnly?: "training" | "questio
                   {/* Test Configuration */}
                   <div className="grid grid-cols-2 gap-4">
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">Test Name</label>
+                      <label className="block text-sm font-medium text-primary mb-2">Test Name</label>
                       <input
                         type="text"
                         value={questionBankForm.testName}
@@ -905,7 +905,7 @@ const TrainingTestManagement = ({ showOnly }: { showOnly?: "training" | "questio
                       />
                     </div>
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">Test Type</label>
+                      <label className="block text-sm font-medium text-primary mb-2">Test Type</label>
                       <select
                         value={questionBankForm.testType}
                         onChange={(e) => setQuestionBankForm(prev => ({ ...prev, testType: e.target.value as TestType }))}
@@ -919,7 +919,7 @@ const TrainingTestManagement = ({ showOnly }: { showOnly?: "training" | "questio
                       </select>
                     </div>
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">Passing Percentage</label>
+                      <label className="block text-sm font-medium text-primary mb-2">Passing Percentage</label>
                       <input
                         type="number"
                         min="0"
@@ -937,20 +937,20 @@ const TrainingTestManagement = ({ showOnly }: { showOnly?: "training" | "questio
                         onChange={(e) => setQuestionBankForm(prev => ({ ...prev, mandatory: e.target.checked }))}
                         className="w-4 h-4 text-[#0ea3d8] border-gray-300 rounded focus:ring-[#0ea3d8]"
                       />
-                      <label htmlFor="mandatory" className="ml-2 text-sm font-medium text-gray-700">
+                      <label htmlFor="mandatory" className="ml-2 text-sm font-medium text-primary">
                         Mandatory Test
                       </label>
                     </div>
                   </div>
 
                   {/* Add Question Form */}
-                  <div className="border-t border-gray-200 pt-6">
-                    <h3 className="text-lg font-bold text-gray-900 mb-4">
+                  <div className="border-t border-theme pt-6">
+                    <h3 className="text-lg font-bold text-primary mb-4">
                       {editingQuestionIndex !== null ? 'Edit Question' : 'Add Question'}
                     </h3>
                     <div className="space-y-4">
                       <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">Question</label>
+                        <label className="block text-sm font-medium text-primary mb-2">Question</label>
                         <textarea
                           value={questionForm.question}
                           onChange={(e) => setQuestionForm(prev => ({ ...prev, question: e.target.value }))}
@@ -960,7 +960,7 @@ const TrainingTestManagement = ({ showOnly }: { showOnly?: "training" | "questio
                         />
                       </div>
                       <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">Options</label>
+                        <label className="block text-sm font-medium text-primary mb-2">Options</label>
                         {questionForm.options.map((option, index) => (
                           <div key={index} className="flex items-center gap-2 mb-2">
                             <input
@@ -992,7 +992,7 @@ const TrainingTestManagement = ({ showOnly }: { showOnly?: "training" | "questio
                                 setEditingQuestionIndex(null);
                                 setQuestionForm({ question: '', options: ['', '', '', ''], correctAnswer: 0 });
                               }}
-                              className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
+                              className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-[rgba(255,255,255,0.03)] transition-colors"
                             >
                               Cancel
                             </button>
@@ -1016,19 +1016,19 @@ const TrainingTestManagement = ({ showOnly }: { showOnly?: "training" | "questio
                   </div>
 
                   {/* Questions List */}
-                  <div className="border-t border-gray-200 pt-6">
-                    <h3 className="text-lg font-bold text-gray-900 mb-4">
+                  <div className="border-t border-theme pt-6">
+                    <h3 className="text-lg font-bold text-primary mb-4">
                       Questions ({questionBankForm.questions.length})
                     </h3>
                     {questionBankForm.questions.length === 0 ? (
-                      <p className="text-gray-500 text-center py-8">No questions added yet</p>
+                      <p className="text-secondary text-center py-8">No questions added yet</p>
                     ) : (
                       <div className="space-y-4">
                         {questionBankForm.questions.map((question, index) => (
-                          <div key={question.id} className="border border-gray-200 rounded-lg p-4">
+                          <div key={question.id} className="border border-theme rounded-lg p-4">
                             <div className="flex items-start justify-between mb-3">
                               <div className="flex-1">
-                                <p className="font-medium text-gray-900 mb-2">
+                                <p className="font-medium text-primary mb-2">
                                   {index + 1}. {question.question}
                                 </p>
                                 <div className="space-y-1">
@@ -1038,7 +1038,7 @@ const TrainingTestManagement = ({ showOnly }: { showOnly?: "training" | "questio
                                       className={`flex items-center gap-2 text-sm ${
                                         optIndex === question.correctAnswer
                                           ? 'text-green-600 font-medium'
-                                          : 'text-gray-600'
+                                          : 'text-secondary'
                                       }`}
                                     >
                                       {optIndex === question.correctAnswer ? (
@@ -1073,7 +1073,7 @@ const TrainingTestManagement = ({ showOnly }: { showOnly?: "training" | "questio
                   </div>
                 </div>
 
-                <div className="flex justify-end gap-3 mt-6 border-t border-gray-200 pt-6">
+                <div className="flex justify-end gap-3 mt-6 border-t border-theme pt-6">
                   <button
                     onClick={() => {
                       setShowQuestionBankModal(false);
@@ -1092,7 +1092,7 @@ const TrainingTestManagement = ({ showOnly }: { showOnly?: "training" | "questio
                         correctAnswer: 0
                       });
                     }}
-                    className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
+                    className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-[rgba(255,255,255,0.03)] transition-colors"
                     disabled={loading}
                   >
                     Cancel

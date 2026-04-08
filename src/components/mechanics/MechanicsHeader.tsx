@@ -115,21 +115,21 @@ const MechanicsHeader: React.FC<MechanicsHeaderProps> = ({
         <div className="flex items-center gap-4">
           <button
             onClick={onToggleSidebar}
-            className="p-2 rounded-lg hover:bg-white/20 transition-colors !text-white"
+            className="p-2 rounded-lg hover:bg-card/20 transition-colors !text-white"
             title={isSidebarCollapsed ? "Expand Sidebar" : "Collapse Sidebar"}
           >
             <FaBars size={20} />
           </button>
           <button
             onClick={() => navigate(-1)}
-            className="p-2 rounded-lg hover:bg-white/20 transition-colors !text-white"
+            className="p-2 rounded-lg hover:bg-card/20 transition-colors !text-white"
             title="Previous"
           >
             <ArrowLeft size={22} />
           </button>
           <button
             onClick={() => navigate(1)}
-            className="p-2 rounded-lg hover:bg-white/20 transition-colors !text-white"
+            className="p-2 rounded-lg hover:bg-card/20 transition-colors !text-white"
             title="Next"
           >
             <ArrowRight size={22} />
@@ -145,7 +145,7 @@ const MechanicsHeader: React.FC<MechanicsHeaderProps> = ({
         <div className="flex items-center gap-4">
           <button
             onClick={() => setIsSearchOpen(true)}
-            className="p-2 rounded-lg hover:bg-white/20 transition-colors !text-white"
+            className="p-2 rounded-lg hover:bg-card/20 transition-colors !text-white"
             title="Quick Search"
           >
             <Search size={20} />
@@ -153,7 +153,7 @@ const MechanicsHeader: React.FC<MechanicsHeaderProps> = ({
 
           <button
             onClick={handleProfileClick}
-            className="flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-white/20 transition-colors !text-white"
+            className="flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-card/20 transition-colors !text-white"
             title="Profile"
           >
             <FaUser size={16} />
@@ -164,7 +164,7 @@ const MechanicsHeader: React.FC<MechanicsHeaderProps> = ({
 
           <button
             onClick={() => setShowLogoutModal(true)}
-            className="p-2 rounded-lg hover:bg-white/20 transition-colors !text-white"
+            className="p-2 rounded-lg hover:bg-card/20 transition-colors !text-white"
             title="Logout"
           >
             <FaSignOutAlt size={18} />
@@ -175,11 +175,11 @@ const MechanicsHeader: React.FC<MechanicsHeaderProps> = ({
       {/* Quick Search Overlay */}
       {isSearchOpen && (
         <div className="fixed inset-0 z-[100] flex items-start justify-center pt-20 bg-black/30 backdrop-blur-sm">
-          <div ref={searchRef} className="bg-white rounded-lg shadow-2xl w-full max-w-2xl mx-4">
-            <form onSubmit={handleSearchSubmit} className="p-4 border-b border-gray-200">
+          <div ref={searchRef} className="bg-card rounded-lg shadow-2xl w-full max-w-2xl mx-4">
+            <form onSubmit={handleSearchSubmit} className="p-4 border-b border-theme">
               <div className="relative">
                 <div className="absolute left-4 top-1/2 transform -translate-y-1/2">
-                  <Search className="text-gray-400" size={20} />
+                  <Search className="text-secondary" size={20} />
                 </div>
                 <input
                   ref={inputRef}
@@ -199,7 +199,7 @@ const MechanicsHeader: React.FC<MechanicsHeaderProps> = ({
                   }}
                   className="absolute right-4 top-1/2 transform -translate-y-1/2 p-1 hover:bg-gray-100 rounded-full transition-colors"
                 >
-                  <X className="text-gray-400" size={20} />
+                  <X className="text-secondary" size={20} />
                 </button>
               </div>
             </form>
@@ -212,25 +212,25 @@ const MechanicsHeader: React.FC<MechanicsHeaderProps> = ({
                       key={action.id}
                       onClick={() => handleActionSelect(action)}
                       className={`w-full flex items-center gap-3 px-4 py-3 hover:bg-blue-50 transition-all duration-150 border-l-2 ${
-                        index === selectedIndex ? "bg-blue-50 border-blue-500" : "border-transparent hover:border-blue-300"
+                        index === selectedIndex ? "bg-card border-blue-500" : "border-transparent hover:border-blue-300"
                       }`}
                     >
                       <div className={`flex-shrink-0 p-2 rounded-lg bg-blue-100 text-blue-700`}>{action.icon}</div>
                       <div className="flex-1 text-left min-w-0">
-                        <div className="font-semibold text-gray-900 truncate">{action.title}</div>
-                        <p className="text-sm text-gray-500 mt-0.5 truncate">{action.description}</p>
+                        <div className="font-semibold text-primary truncate">{action.title}</div>
+                        <p className="text-sm text-secondary mt-0.5 truncate">{action.description}</p>
                       </div>
                       <ArrowRight
                         className={`flex-shrink-0 transition-all ${
-                          index === selectedIndex ? "text-blue-600 opacity-100" : "text-gray-400 opacity-0"
+                          index === selectedIndex ? "text-[#00D1FF] opacity-100" : "text-secondary opacity-0"
                         }`}
                         size={18}
                       />
                     </button>
                   ))}
                 </div>
-                <div className="border-t border-gray-200 px-4 py-2 bg-gray-50">
-                  <p className="text-xs text-gray-500 text-center">
+                <div className="border-t border-theme px-4 py-2 bg-card">
+                  <p className="text-xs text-secondary text-center">
                     {filteredActions.length} result{filteredActions.length !== 1 ? "s" : ""} • Use ↑↓ to navigate, Enter to select
                   </p>
                 </div>
@@ -239,13 +239,13 @@ const MechanicsHeader: React.FC<MechanicsHeaderProps> = ({
 
             {searchQuery.trim() !== "" && filteredActions.length === 0 && (
               <div className="p-8">
-                <p className="text-sm text-gray-500 text-center">No results for "{searchQuery}"</p>
+                <p className="text-sm text-secondary text-center">No results for "{searchQuery}"</p>
               </div>
             )}
 
             {searchQuery.trim() === "" && (
               <div className="p-8">
-                <p className="text-sm text-gray-500 text-center">Type to search Dashboard, Orders, or Profile</p>
+                <p className="text-sm text-secondary text-center">Type to search Dashboard, Orders, or Profile</p>
               </div>
             )}
           </div>
@@ -255,15 +255,15 @@ const MechanicsHeader: React.FC<MechanicsHeaderProps> = ({
       {/* Logout Modal */}
       {showLogoutModal && (
         <div className="fixed inset-0 z-[10000] flex items-center justify-center bg-black/50 backdrop-blur-sm" onClick={() => setShowLogoutModal(false)}>
-          <div className="bg-white rounded-2xl shadow-2xl max-w-md w-full mx-4" onClick={(e) => e.stopPropagation()}>
-            <div className="p-6 border-b border-gray-200">
+          <div className="bg-card rounded-2xl shadow-2xl max-w-md w-full mx-4" onClick={(e) => e.stopPropagation()}>
+            <div className="p-6 border-b border-theme">
               <div className="flex items-center gap-4">
                 <div className="flex-shrink-0 w-12 h-12 rounded-full bg-red-100 flex items-center justify-center">
-                  <LogOut className="text-red-600" size={24} />
+                  <LogOut className="text-[#A855F7]" size={24} />
                 </div>
                 <div>
-                  <h3 className="text-xl font-bold text-gray-900">Confirm Logout</h3>
-                  <p className="text-sm text-gray-500 mt-1">Are you sure you want to logout?</p>
+                  <h3 className="text-xl font-bold text-primary">Confirm Logout</h3>
+                  <p className="text-sm text-secondary mt-1">Are you sure you want to logout?</p>
                 </div>
               </div>
             </div>
@@ -273,8 +273,8 @@ const MechanicsHeader: React.FC<MechanicsHeaderProps> = ({
                 <p className="text-sm text-amber-800">You'll need to sign in again to access your account after logging out.</p>
               </div>
             </div>
-            <div className="p-6 border-t border-gray-200 flex justify-end gap-3">
-              <button onClick={() => setShowLogoutModal(false)} className="px-6 py-2.5 text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors font-medium">
+            <div className="p-6 border-t border-theme flex justify-end gap-3">
+              <button onClick={() => setShowLogoutModal(false)} className="px-6 py-2.5 text-primary bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors font-medium">
                 Cancel
               </button>
               <button

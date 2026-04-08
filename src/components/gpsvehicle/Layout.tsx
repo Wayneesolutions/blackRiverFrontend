@@ -37,7 +37,7 @@ const Layout = () => {
         </div>
 
         {/* Main content with scroll */}
-        <main className="flex-1 overflow-y-auto bg-[#EDF8FF]">
+        <main className="flex-1 overflow-y-auto bg-main">
           <Outlet />
         </main>
       </div>

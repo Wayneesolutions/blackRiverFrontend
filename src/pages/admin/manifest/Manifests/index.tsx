@@ -51,18 +51,18 @@ interface Manifest {
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 
 const STATUS_CFG: Record<string, { label: string; color: string; bg: string; icon: React.ReactNode }> = {
-  planned:          { label: "Planned",          color: "text-blue-700",   bg: "bg-blue-50",   icon: <Clock size={10} /> },
+  planned:          { label: "Planned",          color: "text-blue-700",   bg: "bg-card",   icon: <Clock size={10} /> },
   manifest_pending: { label: "Manifest Pending", color: "text-amber-700",  bg: "bg-amber-50",  icon: <AlertCircle size={10} /> },
   "in-progress":    { label: "In Progress",      color: "text-indigo-700", bg: "bg-indigo-50", icon: <Play size={10} /> },
   completed:        { label: "Completed",         color: "text-green-700",  bg: "bg-green-50",  icon: <CheckCircle size={10} /> },
-  cancelled:        { label: "Cancelled",         color: "text-red-700",    bg: "bg-red-50",    icon: <XCircle size={10} /> },
+  cancelled:        { label: "Cancelled",         color: "text-red-700",    bg: "bg-card",    icon: <XCircle size={10} /> },
 };
 
 const fmt = (d: string | null | undefined) =>
   d ? new Date(d).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "2-digit" }) : "—";
 
 const StatusBadge = ({ status }: { status: string }) => {
-  const c = STATUS_CFG[status] || { label: status, color: "text-gray-700", bg: "bg-gray-100", icon: null };
+  const c = STATUS_CFG[status] || { label: status, color: "text-primary", bg: "bg-gray-100", icon: null };
   return (
     <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-semibold ${c.bg} ${c.color}`}>
       {c.icon}{c.label}
@@ -184,15 +184,15 @@ const exportToExcel = async (manifests: Manifest[]) => {
 
 const DR = ({ label, value }: { label: string; value: React.ReactNode }) => (
   <div className="flex flex-col gap-0.5">
-    <span className="text-[10px] font-semibold text-gray-400 uppercase tracking-wider">{label}</span>
-    <span className="text-sm text-gray-800">{value || <span className="text-gray-300">—</span>}</span>
+    <span className="text-[10px] font-semibold text-secondary uppercase tracking-wider">{label}</span>
+    <span className="text-sm text-primary">{value || <span className="text-gray-300">—</span>}</span>
   </div>
 );
 
 const SecTitle = ({ icon, title }: { icon: React.ReactNode; title: string }) => (
   <div className="flex items-center gap-2 mb-3">
     <div className="p-1.5 rounded-lg bg-[#42aeec]/10 text-[#42aeec]">{icon}</div>
-    <h3 className="text-sm font-bold text-gray-800">{title}</h3>
+    <h3 className="text-sm font-bold text-primary">{title}</h3>
   </div>
 );
 
@@ -211,7 +211,7 @@ const SlidePanel = ({ manifest: m, onClose }: { manifest: Manifest; onClose: () 
       <div className="fixed inset-0 bg-black/20 backdrop-blur-[1px] z-40" onClick={onClose} />
       <div
         ref={ref}
-        className="fixed right-0 top-0 h-full w-full max-w-[560px] bg-white z-50 shadow-2xl flex flex-col overflow-hidden"
+        className="fixed right-0 top-0 h-full w-full max-w-[560px] bg-card z-50 shadow-2xl flex flex-col overflow-hidden"
         style={{ animation: "slideInRight .22s ease-out" }}
       >
         {/* Header */}
@@ -232,11 +232,11 @@ const SlidePanel = ({ manifest: m, onClose }: { manifest: Manifest; onClose: () 
           <div className="flex items-center gap-2">
             <button
               onClick={() => exportToExcel([m])}
-              className="flex items-center gap-1.5 px-3 py-1.5 bg-white/15 hover:bg-white/25 text-white text-xs font-medium rounded-lg transition-colors"
+              className="flex items-center gap-1.5 px-3 py-1.5 bg-card/15 hover:bg-card/25 text-white text-xs font-medium rounded-lg transition-colors"
             >
               <Download size={13} /> Export
             </button>
-            <button onClick={onClose} className="p-1.5 hover:bg-white/20 rounded-lg text-white transition-colors">
+            <button onClick={onClose} className="p-1.5 hover:bg-card/20 rounded-lg text-white transition-colors">
               <X size={18} />
             </button>
           </div>
@@ -246,7 +246,7 @@ const SlidePanel = ({ manifest: m, onClose }: { manifest: Manifest; onClose: () 
         <div className="flex-1 overflow-y-auto p-5 space-y-4">
 
           {/* Truck */}
-          <div className="rounded-xl border border-gray-100 p-4">
+          <div className="rounded-xl border border-theme p-4">
             <SecTitle icon={<Truck size={14} />} title="Truck" />
             {m.truck ? (
               <div className="grid grid-cols-2 gap-3">
@@ -261,11 +261,11 @@ const SlidePanel = ({ manifest: m, onClose }: { manifest: Manifest; onClose: () 
                 <DR label="Registration" value={[m.truck.registrationProvince, m.truck.registrationCountry].filter(Boolean).join(", ")} />
                 <DR label="Internal ID"  value={m.truck.internalId} />
               </div>
-            ) : <p className="text-sm text-gray-400">No truck assigned</p>}
+            ) : <p className="text-sm text-secondary">No truck assigned</p>}
           </div>
 
           {/* Trailer */}
-          <div className="rounded-xl border border-gray-100 p-4">
+          <div className="rounded-xl border border-theme p-4">
             <SecTitle icon={<Package size={14} />} title="Trailer" />
             {m.trailer ? (
               <div className="grid grid-cols-2 gap-3">
@@ -280,11 +280,11 @@ const SlidePanel = ({ manifest: m, onClose }: { manifest: Manifest; onClose: () 
                 <DR label="Registration" value={[m.trailer.registrationProvince, m.trailer.registrationCountry].filter(Boolean).join(", ")} />
                 <DR label="Internal ID"  value={m.trailer.internalId} />
               </div>
-            ) : <p className="text-sm text-gray-400">No trailer assigned</p>}
+            ) : <p className="text-sm text-secondary">No trailer assigned</p>}
           </div>
 
           {/* Driver */}
-          <div className="rounded-xl border border-gray-100 p-4">
+          <div className="rounded-xl border border-theme p-4">
             <SecTitle icon={<Users size={14} />} title="Driver" />
             {m.driver ? (
               <div className="grid grid-cols-2 gap-3">
@@ -295,10 +295,10 @@ const SlidePanel = ({ manifest: m, onClose }: { manifest: Manifest; onClose: () 
                 <DR label="Licence #"      value={m.driver.licenceNumber} />
                 <DR label="Licence Expiry" value={fmt(m.driver.licenceExpiry)} />
               </div>
-            ) : <p className="text-sm text-gray-400">No driver assigned</p>}
+            ) : <p className="text-sm text-secondary">No driver assigned</p>}
             {m.coDriver && (
-              <div className="mt-3 pt-3 border-t border-gray-100">
-                <p className="text-[10px] font-semibold text-gray-400 uppercase tracking-wider mb-2">Co-Driver</p>
+              <div className="mt-3 pt-3 border-t border-theme">
+                <p className="text-[10px] font-semibold text-secondary uppercase tracking-wider mb-2">Co-Driver</p>
                 <div className="grid grid-cols-2 gap-3">
                   <DR label="Name"        value={m.coDriver.name} />
                   <DR label="Phone"       value={m.coDriver.phone} />
@@ -310,7 +310,7 @@ const SlidePanel = ({ manifest: m, onClose }: { manifest: Manifest; onClose: () 
           </div>
 
           {/* Trip details */}
-          <div className="rounded-xl border border-gray-100 p-4">
+          <div className="rounded-xl border border-theme p-4">
             <SecTitle icon={<MapPin size={14} />} title="Trip Details" />
             <div className="grid grid-cols-2 gap-3">
               <DR label="Origin"        value={m.startLocation?.place} />
@@ -328,7 +328,7 @@ const SlidePanel = ({ manifest: m, onClose }: { manifest: Manifest; onClose: () 
 
           {/* Border Compliance */}
           {m.borderCompliance && (
-            <div className="rounded-xl border border-gray-100 p-4">
+            <div className="rounded-xl border border-theme p-4">
               <SecTitle icon={<Shield size={14} />} title="Border Compliance" />
               <div className="grid grid-cols-2 gap-3">
                 <DR label="Status" value={m.borderCompliance.status} />
@@ -340,13 +340,13 @@ const SlidePanel = ({ manifest: m, onClose }: { manifest: Manifest; onClose: () 
 
           {/* Orders */}
           {m.orders.length > 0 && (
-            <div className="rounded-xl border border-gray-100 p-4">
+            <div className="rounded-xl border border-theme p-4">
               <SecTitle icon={<FileText size={14} />} title={`Orders (${m.orders.length})`} />
               <div className="space-y-3">
                 {m.orders.map((o) => (
-                  <div key={o.id} className="rounded-lg bg-gray-50 p-3 border border-gray-100">
+                  <div key={o.id} className="rounded-lg bg-card p-3 border border-theme">
                     <div className="flex items-center justify-between mb-2">
-                      <span className="text-sm font-semibold text-gray-800">{o.orderNumber}</span>
+                      <span className="text-sm font-semibold text-primary">{o.orderNumber}</span>
                       <StatusBadge status={o.status} />
                     </div>
                     <div className="grid grid-cols-2 gap-2">
@@ -415,14 +415,14 @@ const ManifestListPage = () => {
   };
 
   return (
-    <div className="p-6 min-h-screen bg-[#EDF8FF]">
+    <div className="p-6 min-h-screen bg-main">
       {/* Page header */}
       <div className="flex items-center justify-between mb-5">
         <div>
-          <h1 className="text-xl font-bold text-gray-900 flex items-center gap-2">
+          <h1 className="text-xl font-bold text-primary flex items-center gap-2">
             <FileText size={20} className="text-[#42aeec]" /> Manifests
           </h1>
-          <p className="text-sm text-gray-500 mt-0.5">{total} total records</p>
+          <p className="text-sm text-secondary mt-0.5">{total} total records</p>
         </div>
         <button
           onClick={handleExportAll}
@@ -435,35 +435,35 @@ const ManifestListPage = () => {
       </div>
 
       {/* Toolbar */}
-      <div className="bg-white rounded-xl shadow-sm border border-gray-100 px-4 py-3 flex items-center gap-3 flex-wrap mb-5">
+      <div className="bg-card rounded-xl shadow-sm border border-theme px-4 py-3 flex items-center gap-3 flex-wrap mb-5">
         <div className="relative flex-1 min-w-[200px]">
-          <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+          <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-secondary" />
           <input
             type="text" placeholder="Search trip number…" value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className="w-full pl-8 pr-3 py-2 text-sm border border-gray-200 rounded-lg outline-none focus:border-[#42aeec] focus:ring-1 focus:ring-[#42aeec]/20"
+            className="w-full pl-8 pr-3 py-2 text-sm border border-theme rounded-lg outline-none focus:border-[#42aeec] focus:ring-1 focus:ring-[#42aeec]/20"
           />
         </div>
         <div className="flex items-center gap-2">
-          <Filter size={14} className="text-gray-400" />
+          <Filter size={14} className="text-secondary" />
           <select
             value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)}
-            className="text-sm border border-gray-200 rounded-lg px-3 py-2 outline-none focus:border-[#42aeec] bg-white"
+            className="text-sm border border-theme rounded-lg px-3 py-2 outline-none focus:border-[#42aeec] bg-card"
           >
             {STATUS_OPTS.map((o) => <option key={o.value} value={o.value}>{o.label}</option>)}
           </select>
         </div>
         <button
           onClick={fetch}
-          className="p-2 rounded-lg hover:bg-gray-50 text-gray-500 hover:text-[#42aeec] transition-colors border border-gray-200"
+          className="p-2 rounded-lg hover:bg-[rgba(255,255,255,0.03)] text-secondary hover:text-[#42aeec] transition-colors border border-theme"
         >
           <RefreshCw size={14} className={loading ? "animate-spin" : ""} />
         </button>
-        <span className="text-xs text-gray-400 ml-auto">{manifests.length} record{manifests.length !== 1 ? "s" : ""}</span>
+        <span className="text-xs text-secondary ml-auto">{manifests.length} record{manifests.length !== 1 ? "s" : ""}</span>
       </div>
 
       {error && (
-        <div className="flex items-center gap-2 p-4 bg-red-50 border border-red-100 rounded-xl text-red-700 text-sm mb-4">
+        <div className="flex items-center gap-2 p-4 bg-card border border-red-100 rounded-xl text-red-700 text-sm mb-4">
           <AlertCircle size={16} />{error}
         </div>
       )}
@@ -471,21 +471,21 @@ const ManifestListPage = () => {
       {loading ? (
         <div className="flex flex-col items-center justify-center py-24 gap-3">
           <div className="w-10 h-10 border-2 border-[#42aeec] border-t-transparent rounded-full animate-spin" />
-          <p className="text-sm text-gray-400">Loading manifests…</p>
+          <p className="text-sm text-secondary">Loading manifests…</p>
         </div>
       ) : manifests.length === 0 ? (
-        <div className="flex flex-col items-center justify-center py-24 gap-3 text-gray-400">
+        <div className="flex flex-col items-center justify-center py-24 gap-3 text-secondary">
           <FileText size={40} strokeWidth={1} />
           <p className="text-sm">No manifests found</p>
         </div>
       ) : (
-        <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+        <div className="bg-card rounded-xl shadow-sm border border-theme overflow-hidden">
           <div className="overflow-x-auto">
             <table className="w-full" style={{ minWidth: "960px" }}>
-              <thead className="bg-gray-50 border-b border-gray-100">
+              <thead className="bg-card border-b border-theme">
                 <tr>
                   {["Trip #", "Status", "Truck", "Trailer", "Driver", "Route", "Orders", "Planned Start", "Docs", ""].map((h) => (
-                    <th key={h} className="px-4 py-3 text-left text-[11px] font-semibold text-gray-500 uppercase tracking-wider whitespace-nowrap">
+                    <th key={h} className="px-4 py-3 text-left text-[11px] font-semibold text-secondary uppercase tracking-wider whitespace-nowrap">
                       {h}
                     </th>
                   ))}
@@ -505,16 +505,16 @@ const ManifestListPage = () => {
                     <td className="px-4 py-3 whitespace-nowrap">
                       {m.truck ? (
                         <div>
-                          <p className="text-sm font-medium text-gray-800">{m.truck.unitNumber || m.truck.plateNumber}</p>
-                          <p className="text-[11px] text-gray-400">{[m.truck.make, m.truck.model].filter(Boolean).join(" ")}</p>
+                          <p className="text-sm font-medium text-primary">{m.truck.unitNumber || m.truck.plateNumber}</p>
+                          <p className="text-[11px] text-secondary">{[m.truck.make, m.truck.model].filter(Boolean).join(" ")}</p>
                         </div>
                       ) : <span className="text-gray-300 text-sm">—</span>}
                     </td>
                     <td className="px-4 py-3 whitespace-nowrap">
                       {m.trailer ? (
                         <div>
-                          <p className="text-sm font-medium text-gray-800">{m.trailer.unitNumber || m.trailer.plateNumber}</p>
-                          <p className="text-[11px] text-gray-400">{m.trailer.type}</p>
+                          <p className="text-sm font-medium text-primary">{m.trailer.unitNumber || m.trailer.plateNumber}</p>
+                          <p className="text-[11px] text-secondary">{m.trailer.type}</p>
                         </div>
                       ) : <span className="text-gray-300 text-sm">—</span>}
                     </td>
@@ -525,27 +525,27 @@ const ManifestListPage = () => {
                             {m.driver.name.charAt(0).toUpperCase()}
                           </div>
                           <div>
-                            <p className="text-sm font-medium text-gray-800">{m.driver.name}</p>
-                            <p className="text-[11px] text-gray-400">{m.driver.internalId}</p>
+                            <p className="text-sm font-medium text-primary">{m.driver.name}</p>
+                            <p className="text-[11px] text-secondary">{m.driver.internalId}</p>
                           </div>
                         </div>
                       ) : <span className="text-gray-300 text-sm">—</span>}
                     </td>
                     <td className="px-4 py-3">
                       <div className="flex items-center gap-1.5 max-w-[200px]">
-                        <span className="text-sm text-gray-700 truncate" style={{ maxWidth: 80 }}>{m.startLocation?.place || "—"}</span>
+                        <span className="text-sm text-primary truncate" style={{ maxWidth: 80 }}>{m.startLocation?.place || "—"}</span>
                         <ChevronRight size={11} className="text-gray-300 flex-shrink-0" />
-                        <span className="text-sm text-gray-700 truncate" style={{ maxWidth: 80 }}>{m.endLocation?.place || "—"}</span>
+                        <span className="text-sm text-primary truncate" style={{ maxWidth: 80 }}>{m.endLocation?.place || "—"}</span>
                       </div>
                     </td>
                     <td className="px-4 py-3 whitespace-nowrap text-center">
-                      <span className={`inline-flex items-center justify-center w-6 h-6 rounded-full text-xs font-bold ${m.orderCount > 0 ? "bg-[#42aeec]/10 text-[#42aeec]" : "bg-gray-100 text-gray-400"}`}>
+                      <span className={`inline-flex items-center justify-center w-6 h-6 rounded-full text-xs font-bold ${m.orderCount > 0 ? "bg-[#42aeec]/10 text-[#42aeec]" : "bg-gray-100 text-secondary"}`}>
                         {m.orderCount}
                       </span>
                     </td>
                     <td className="px-4 py-3 whitespace-nowrap">
-                      <div className="flex items-center gap-1.5 text-sm text-gray-600">
-                        <Calendar size={11} className="text-gray-400" />{fmt(m.plannedStartDate)}
+                      <div className="flex items-center gap-1.5 text-sm text-secondary">
+                        <Calendar size={11} className="text-secondary" />{fmt(m.plannedStartDate)}
                       </div>
                     </td>
                     <td className="px-4 py-3 whitespace-nowrap">

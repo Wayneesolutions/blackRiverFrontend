@@ -123,8 +123,8 @@ const ToastNotification: React.FC<{ notification: { id: number; type: 'success' 
 
   const bgColors = {
     success: 'bg-green-50 border-green-200',
-    error: 'bg-red-50 border-red-200',
-    info: 'bg-blue-50 border-blue-200'
+    error: 'bg-card border-red-200',
+    info: 'bg-card border-blue-200'
   };
 
   useEffect(() => {
@@ -139,10 +139,10 @@ const ToastNotification: React.FC<{ notification: { id: number; type: 'success' 
       <div className="flex-shrink-0 mt-0.5">
         {icons[notification.type]}
       </div>
-      <p className="flex-1 text-sm font-medium text-gray-800">{notification.message}</p>
+      <p className="flex-1 text-sm font-medium text-primary">{notification.message}</p>
       <button
         onClick={onRemove}
-        className="flex-shrink-0 text-gray-400 hover:text-gray-600 transition-colors"
+        className="flex-shrink-0 text-secondary hover:text-secondary transition-colors"
       >
         <FaTimes size={16} />
       </button>
@@ -477,9 +477,9 @@ const InsuranceClaims: React.FC = () => {
       case 'submitted':
         return 'bg-blue-100 text-blue-800';
       case 'closed':
-        return 'bg-gray-100 text-gray-800';
+        return 'bg-gray-100 text-primary';
       default:
-        return 'bg-gray-100 text-gray-800';
+        return 'bg-gray-100 text-primary';
     }
   };
 
@@ -494,12 +494,12 @@ const InsuranceClaims: React.FC = () => {
       case 'liability':
         return 'bg-blue-100 text-blue-800';
       default:
-        return 'bg-gray-100 text-gray-800';
+        return 'bg-gray-100 text-primary';
     }
   };
 
   const getSortIcon = (field: string) => {
-    if (sortField !== field) return <FaSort className="text-gray-400" size={12} />;
+    if (sortField !== field) return <FaSort className="text-secondary" size={12} />;
     return sortDirection === 'asc' ? <FaSortUp className="text-[#42aeec]" size={12} /> : <FaSortDown className="text-[#42aeec]" size={12} />;
   };
 
@@ -528,7 +528,7 @@ const InsuranceClaims: React.FC = () => {
   }, [filteredClaims]);
 
   return (
-    <div className="min-h-screen bg-gray-50" style={ACCENT_VARS}>
+    <div className="min-h-screen bg-card" style={ACCENT_VARS}>
       {/* Notifications */}
       <div className="fixed top-4 right-4 z-50 space-y-2">
         {notifications.map(notification => (
@@ -544,11 +544,11 @@ const InsuranceClaims: React.FC = () => {
         {/* Header */}
         <div className="mb-6 flex items-center justify-between">
           <div>
-            <h1 className="text-3xl font-bold text-gray-900 flex items-center gap-3">
+            <h1 className="text-3xl font-bold text-primary flex items-center gap-3">
               <FaShieldAlt className="text-[#42aeec]" size={32} />
               Insurance Claims
             </h1>
-            <p className="text-gray-600 mt-2">Manage and track all insurance claims</p>
+            <p className="text-secondary mt-2">Manage and track all insurance claims</p>
           </div>
           <button
             onClick={handleAdd}
@@ -561,42 +561,42 @@ const InsuranceClaims: React.FC = () => {
 
         {/* Stats Cards */}
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
-          <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4">
+          <div className="bg-card rounded-lg shadow-sm border border-theme p-4">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-gray-600">Total Claims</p>
-                <p className="text-2xl font-bold text-gray-900">{claims.length}</p>
+                <p className="text-sm text-secondary">Total Claims</p>
+                <p className="text-2xl font-bold text-primary">{claims.length}</p>
               </div>
               <FaShieldAlt className="text-[#42aeec]" size={24} />
             </div>
           </div>
-          <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4">
+          <div className="bg-card rounded-lg shadow-sm border border-theme p-4">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-gray-600">Pending</p>
-                <p className="text-2xl font-bold text-gray-900">
+                <p className="text-sm text-secondary">Pending</p>
+                <p className="text-2xl font-bold text-primary">
                   {claims.filter(c => c.status === 'pending').length}
                 </p>
               </div>
               <FaExclamationCircle className="text-yellow-500" size={24} />
             </div>
           </div>
-          <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4">
+          <div className="bg-card rounded-lg shadow-sm border border-theme p-4">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-gray-600">Approved</p>
-                <p className="text-2xl font-bold text-gray-900">
+                <p className="text-sm text-secondary">Approved</p>
+                <p className="text-2xl font-bold text-primary">
                   {claims.filter(c => c.status === 'approved').length}
                 </p>
               </div>
               <FaCheckCircle className="text-green-500" size={24} />
             </div>
           </div>
-          <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4">
+          <div className="bg-card rounded-lg shadow-sm border border-theme p-4">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-gray-600">Total Amount</p>
-                <p className="text-2xl font-bold text-gray-900">
+                <p className="text-sm text-secondary">Total Amount</p>
+                <p className="text-2xl font-bold text-primary">
                   ${claims.reduce((sum, c) => sum + (c.amount || 0), 0).toLocaleString()}
                 </p>
               </div>
@@ -606,11 +606,11 @@ const InsuranceClaims: React.FC = () => {
         </div>
 
         {/* Filters */}
-        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4 mb-6">
+        <div className="bg-card rounded-lg shadow-sm border border-theme p-4 mb-6">
           <div className="flex flex-wrap items-center gap-4">
             <div className="flex-1 min-w-[250px]">
               <div className="relative">
-                <FaSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={16} />
+                <FaSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-secondary" size={16} />
                 <input
                   type="text"
                   placeholder="Search by claim number, driver, vehicle, policy..."
@@ -649,14 +649,14 @@ const InsuranceClaims: React.FC = () => {
         </div>
 
         {/* Claims Table */}
-        <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
+        <div className="bg-card rounded-lg shadow-sm border border-theme overflow-hidden">
           {loading ? (
             <div className="flex justify-center items-center py-12">
               <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#42aeec]"></div>
             </div>
           ) : filteredClaims.length === 0 ? (
-            <div className="text-center py-12 text-gray-500">
-              <FaShieldAlt className="mx-auto mb-4 text-gray-400" size={48} />
+            <div className="text-center py-12 text-secondary">
+              <FaShieldAlt className="mx-auto mb-4 text-secondary" size={48} />
               <p className="text-lg font-medium">No insurance claims found</p>
               <p className="text-sm">Click "Add Claim" to create a new insurance claim</p>
             </div>
@@ -665,10 +665,10 @@ const InsuranceClaims: React.FC = () => {
               {/* Scrollable Header */}
               <div ref={topScrollRef} className="overflow-x-auto scrollbar-thin scrollbar-thumb-gray-300">
                 <table className="w-full min-w-[1200px]">
-                  <thead className="bg-gray-50 border-b border-gray-200">
+                  <thead className="bg-card border-b border-theme">
                     <tr>
                       <th
-                        className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100"
+                        className="px-6 py-3 text-left text-xs font-medium text-secondary uppercase tracking-wider cursor-pointer hover:bg-gray-100"
                         onClick={() => handleSort('claimNumber')}
                       >
                         <div className="flex items-center gap-2">
@@ -676,11 +676,11 @@ const InsuranceClaims: React.FC = () => {
                           {getSortIcon('claimNumber')}
                         </div>
                       </th>
-                      <th className="px-6 py-3 pl-8 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      <th className="px-6 py-3 pl-8 text-left text-xs font-medium text-secondary uppercase tracking-wider">
                         Accident Number
                       </th>
                       <th
-                        className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100"
+                        className="px-6 py-3 text-left text-xs font-medium text-secondary uppercase tracking-wider cursor-pointer hover:bg-gray-100"
                         onClick={() => handleSort('incidentDate')}
                       >
                         <div className="flex items-center gap-2">
@@ -688,20 +688,20 @@ const InsuranceClaims: React.FC = () => {
                           {getSortIcon('incidentDate')}
                         </div>
                       </th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      <th className="px-6 py-3 text-left text-xs font-medium text-secondary uppercase tracking-wider">
                         Type
                       </th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      <th className="px-6 py-3 text-left text-xs font-medium text-secondary uppercase tracking-wider">
                         Driver
                       </th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      <th className="px-6 py-3 text-left text-xs font-medium text-secondary uppercase tracking-wider">
                         Vehicle
                       </th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      <th className="px-6 py-3 text-left text-xs font-medium text-secondary uppercase tracking-wider">
                         Insurance Company
                       </th>
                       <th
-                        className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100"
+                        className="px-6 py-3 text-left text-xs font-medium text-secondary uppercase tracking-wider cursor-pointer hover:bg-gray-100"
                         onClick={() => handleSort('amount')}
                       >
                         <div className="flex items-center gap-2">
@@ -709,10 +709,10 @@ const InsuranceClaims: React.FC = () => {
                           {getSortIcon('amount')}
                         </div>
                       </th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      <th className="px-6 py-3 text-left text-xs font-medium text-secondary uppercase tracking-wider">
                         Status
                       </th>
-                      <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      <th className="px-6 py-3 text-right text-xs font-medium text-secondary uppercase tracking-wider">
                         Actions
                       </th>
                     </tr>
@@ -723,27 +723,27 @@ const InsuranceClaims: React.FC = () => {
               {/* Scrollable Body */}
               <div ref={bottomScrollRef} className="overflow-x-auto max-h-[600px] scrollbar-thin scrollbar-thumb-gray-300">
                 <table className="w-full min-w-[1200px]">
-                  <tbody className="bg-white divide-y divide-gray-200">
+                  <tbody className="bg-card divide-y divide-gray-200">
                     {filteredClaims.map((claim) => (
-                      <tr key={claim._id} className="hover:bg-gray-50 transition-colors">
+                      <tr key={claim._id} className="hover:bg-[rgba(255,255,255,0.03)] transition-colors">
                         <td className="px-6 py-4">
                           <div className="flex flex-col h-[3.5rem] justify-center">
-                            <div className="text-sm font-medium text-gray-900 leading-5">{claim.claimNumber || 'N/A'}</div>
-                            <div className="text-xs text-gray-500 leading-4">{claim.policyNumber || 'No Policy #'}</div>
+                            <div className="text-sm font-medium text-primary leading-5">{claim.claimNumber || 'N/A'}</div>
+                            <div className="text-xs text-secondary leading-4">{claim.policyNumber || 'No Policy #'}</div>
                           </div>
                         </td>
                         <td className="px-6 py-4 pl-8">
                           <div className="flex flex-col h-[3.5rem] justify-center">
-                            <div className="text-sm text-gray-900 leading-5">{claim.accidentNumber || '—'}</div>
-                            <div className="text-xs text-gray-500 leading-4">&nbsp;</div>
+                            <div className="text-sm text-primary leading-5">{claim.accidentNumber || '—'}</div>
+                            <div className="text-xs text-secondary leading-4">&nbsp;</div>
                           </div>
                         </td>
                         <td className="px-6 py-4">
                           <div className="flex flex-col h-[3.5rem] justify-center">
-                            <div className="text-sm text-gray-900 leading-5">
+                            <div className="text-sm text-primary leading-5">
                               {claim.incidentDate ? new Date(claim.incidentDate).toLocaleDateString() : 'N/A'}
                             </div>
-                            <div className="text-xs text-gray-500 leading-4">
+                            <div className="text-xs text-secondary leading-4">
                               Claim: {claim.claimDate ? new Date(claim.claimDate).toLocaleDateString() : 'N/A'}
                             </div>
                           </div>
@@ -755,41 +755,41 @@ const InsuranceClaims: React.FC = () => {
                                 {claim.claimType.charAt(0).toUpperCase() + claim.claimType.slice(1)}
                               </span>
                             </div>
-                            <div className="text-xs text-gray-500 leading-4">&nbsp;</div>
+                            <div className="text-xs text-secondary leading-4">&nbsp;</div>
                           </div>
                         </td>
                         <td className="px-6 py-4">
                           <div className="flex flex-col h-[3.5rem] justify-center">
-                            <div className="text-sm text-gray-900 leading-5">
+                            <div className="text-sm text-primary leading-5">
                               {typeof claim.driver === 'object' ? claim.driver?.name || 'N/A' : 'N/A'}
                             </div>
-                            <div className="text-xs text-gray-500 leading-4">&nbsp;</div>
+                            <div className="text-xs text-secondary leading-4">&nbsp;</div>
                           </div>
                         </td>
                         <td className="px-6 py-4">
                           <div className="flex flex-col h-[3.5rem] justify-center">
-                            <div className="text-sm text-gray-900 leading-5">
+                            <div className="text-sm text-primary leading-5">
                               {typeof claim.vehicle === 'object' 
                                 ? claim.vehicle?.internalId || claim.vehicle?.plateNumber || 'N/A'
                                 : 'N/A'}
                             </div>
-                            <div className="text-xs text-gray-500 leading-4">&nbsp;</div>
+                            <div className="text-xs text-secondary leading-4">&nbsp;</div>
                           </div>
                         </td>
                         <td className="px-6 py-4">
                           <div className="flex flex-col h-[3.5rem] justify-center">
-                            <div className="text-sm text-gray-900 leading-5">{claim.insuranceCompany || 'N/A'}</div>
-                            <div className="text-xs text-gray-500 leading-4">
+                            <div className="text-sm text-primary leading-5">{claim.insuranceCompany || 'N/A'}</div>
+                            <div className="text-xs text-secondary leading-4">
                               {claim.adjusterName ? `Adjuster: ${claim.adjusterName}` : '\u00A0'}
                             </div>
                           </div>
                         </td>
                         <td className="px-6 py-4">
                           <div className="flex flex-col h-[3.5rem] justify-center">
-                            <div className="text-sm font-semibold text-gray-900 leading-5">
+                            <div className="text-sm font-semibold text-primary leading-5">
                               ${(claim.amount || 0).toLocaleString()}
                             </div>
-                            <div className="text-xs text-gray-500 leading-4">
+                            <div className="text-xs text-secondary leading-4">
                               {claim.deductible ? `Deductible: $${claim.deductible.toLocaleString()}` : '\u00A0'}
                             </div>
                           </div>
@@ -801,7 +801,7 @@ const InsuranceClaims: React.FC = () => {
                                 {claim.status.charAt(0).toUpperCase() + claim.status.slice(1).replace('-', ' ')}
                               </span>
                             </div>
-                            <div className="text-xs text-gray-500 leading-4">&nbsp;</div>
+                            <div className="text-xs text-secondary leading-4">&nbsp;</div>
                           </div>
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap text-right">
@@ -809,7 +809,7 @@ const InsuranceClaims: React.FC = () => {
                             <div className="flex items-center justify-end gap-2">
                               <button
                                 onClick={() => handleView(claim)}
-                                className="text-blue-600 hover:text-blue-900 p-2 hover:bg-blue-50 rounded transition-colors"
+                                className="text-[#00D1FF] hover:text-blue-900 p-2 hover:bg-blue-50 rounded transition-colors"
                                 title="View Details"
                               >
                                 <FaEye size={16} />
@@ -823,13 +823,13 @@ const InsuranceClaims: React.FC = () => {
                               </button>
                               <button
                                 onClick={() => handleDelete(claim)}
-                                className="text-red-600 hover:text-red-900 p-2 hover:bg-red-50 rounded transition-colors"
+                                className="text-[#A855F7] hover:text-red-900 p-2 hover:bg-red-50 rounded transition-colors"
                                 title="Delete"
                               >
                                 <FaTrash size={16} />
                               </button>
                             </div>
-                            <div className="text-xs text-gray-500 leading-4">&nbsp;</div>
+                            <div className="text-xs text-secondary leading-4">&nbsp;</div>
                           </div>
                         </td>
                       </tr>
@@ -840,8 +840,8 @@ const InsuranceClaims: React.FC = () => {
 
               {/* Pagination */}
               {totalPages > 1 && (
-                <div className="bg-gray-50 px-6 py-4 border-t border-gray-200 flex items-center justify-between">
-                  <div className="text-sm text-gray-700">
+                <div className="bg-card px-6 py-4 border-t border-theme flex items-center justify-between">
+                  <div className="text-sm text-primary">
                     Showing {((currentPage - 1) * pageSize) + 1} to {Math.min(currentPage * pageSize, total)} of {total} claims
                   </div>
                   <div className="flex items-center gap-2">
@@ -852,7 +852,7 @@ const InsuranceClaims: React.FC = () => {
                     >
                       <FaChevronLeft size={16} />
                     </button>
-                    <span className="px-4 py-2 text-sm text-gray-700">
+                    <span className="px-4 py-2 text-sm text-primary">
                       Page {currentPage} of {totalPages}
                     </span>
                     <button
@@ -873,9 +873,9 @@ const InsuranceClaims: React.FC = () => {
       {/* Add/Edit Modal */}
       {(showAddModal || showEditModal) && (
         <div className="fixed inset-0 bg-gray-900/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-lg shadow-xl max-w-4xl w-full max-h-[90vh] overflow-y-auto">
-            <div className="sticky top-0 bg-white border-b border-gray-200 px-6 py-4 flex items-center justify-between">
-              <h2 className="text-xl font-bold text-gray-900">
+          <div className="bg-card rounded-lg shadow-xl max-w-4xl w-full max-h-[90vh] overflow-y-auto">
+            <div className="sticky top-0 bg-card border-b border-theme px-6 py-4 flex items-center justify-between">
+              <h2 className="text-xl font-bold text-primary">
                 {showEditModal ? 'Edit Insurance Claim' : 'Add New Insurance Claim'}
               </h2>
               <button
@@ -884,7 +884,7 @@ const InsuranceClaims: React.FC = () => {
                   setShowEditModal(false);
                   setSelectedClaim(null);
                 }}
-                className="text-gray-400 hover:text-gray-600"
+                className="text-secondary hover:text-secondary"
               >
                 <FaTimes size={20} />
               </button>
@@ -892,7 +892,7 @@ const InsuranceClaims: React.FC = () => {
             <form onSubmit={handleSubmit} className="p-6 space-y-6">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                  <label className="block text-sm font-medium text-primary mb-2">
                     Claim Number *
                   </label>
                   <input
@@ -904,7 +904,7 @@ const InsuranceClaims: React.FC = () => {
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                  <label className="block text-sm font-medium text-primary mb-2">
                     Accident Number
                   </label>
                   <input
@@ -916,7 +916,7 @@ const InsuranceClaims: React.FC = () => {
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                  <label className="block text-sm font-medium text-primary mb-2">
                     Claim Type *
                   </label>
                   <select
@@ -932,7 +932,7 @@ const InsuranceClaims: React.FC = () => {
                   </select>
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                  <label className="block text-sm font-medium text-primary mb-2">
                     Incident Date *
                   </label>
                   <input
@@ -944,7 +944,7 @@ const InsuranceClaims: React.FC = () => {
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                  <label className="block text-sm font-medium text-primary mb-2">
                     Claim Date *
                   </label>
                   <input
@@ -956,7 +956,7 @@ const InsuranceClaims: React.FC = () => {
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                  <label className="block text-sm font-medium text-primary mb-2">
                     Status *
                   </label>
                   <select
@@ -973,7 +973,7 @@ const InsuranceClaims: React.FC = () => {
                   </select>
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                  <label className="block text-sm font-medium text-primary mb-2">
                     Driver *
                   </label>
                   <select
@@ -991,7 +991,7 @@ const InsuranceClaims: React.FC = () => {
                   </select>
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                  <label className="block text-sm font-medium text-primary mb-2">
                     Vehicle *
                   </label>
                   <select
@@ -1009,7 +1009,7 @@ const InsuranceClaims: React.FC = () => {
                   </select>
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                  <label className="block text-sm font-medium text-primary mb-2">
                     Insurance Company *
                   </label>
                   <input
@@ -1022,7 +1022,7 @@ const InsuranceClaims: React.FC = () => {
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                  <label className="block text-sm font-medium text-primary mb-2">
                     Policy Number *
                   </label>
                   <input
@@ -1035,7 +1035,7 @@ const InsuranceClaims: React.FC = () => {
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                  <label className="block text-sm font-medium text-primary mb-2">
                     Claim Amount ($) *
                   </label>
                   <input
@@ -1050,7 +1050,7 @@ const InsuranceClaims: React.FC = () => {
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                  <label className="block text-sm font-medium text-primary mb-2">
                     Deductible ($)
                   </label>
                   <input
@@ -1064,7 +1064,7 @@ const InsuranceClaims: React.FC = () => {
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                  <label className="block text-sm font-medium text-primary mb-2">
                     Adjuster Name
                   </label>
                   <input
@@ -1076,7 +1076,7 @@ const InsuranceClaims: React.FC = () => {
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                  <label className="block text-sm font-medium text-primary mb-2">
                     Adjuster Contact
                   </label>
                   <input
@@ -1088,7 +1088,7 @@ const InsuranceClaims: React.FC = () => {
                   />
                 </div>
                 <div className="md:col-span-2">
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                  <label className="block text-sm font-medium text-primary mb-2">
                     Location
                   </label>
                   <input
@@ -1100,7 +1100,7 @@ const InsuranceClaims: React.FC = () => {
                   />
                 </div>
                 <div className="md:col-span-2">
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                  <label className="block text-sm font-medium text-primary mb-2">
                     Description *
                   </label>
                   <textarea
@@ -1113,7 +1113,7 @@ const InsuranceClaims: React.FC = () => {
                   />
                 </div>
                 <div className="md:col-span-2">
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                  <label className="block text-sm font-medium text-primary mb-2">
                     Notes
                   </label>
                   <textarea
@@ -1125,7 +1125,7 @@ const InsuranceClaims: React.FC = () => {
                   />
                 </div>
               </div>
-              <div className="flex items-center justify-end gap-4 pt-4 border-t border-gray-200">
+              <div className="flex items-center justify-end gap-4 pt-4 border-t border-theme">
                 <button
                   type="button"
                   onClick={() => {
@@ -1133,7 +1133,7 @@ const InsuranceClaims: React.FC = () => {
                     setShowEditModal(false);
                     setSelectedClaim(null);
                   }}
-                  className="px-6 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
+                  className="px-6 py-2 border border-gray-300 rounded-lg hover:bg-[rgba(255,255,255,0.03)] transition-colors"
                 >
                   Cancel
                 </button>
@@ -1153,15 +1153,15 @@ const InsuranceClaims: React.FC = () => {
       {/* View Modal */}
       {showViewModal && selectedClaim && (
         <div className="fixed inset-0 bg-gray-900/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-lg shadow-xl max-w-4xl w-full max-h-[90vh] overflow-y-auto">
-            <div className="sticky top-0 bg-white border-b border-gray-200 px-6 py-4 flex items-center justify-between">
-              <h2 className="text-xl font-bold text-gray-900">Insurance Claim Details</h2>
+          <div className="bg-card rounded-lg shadow-xl max-w-4xl w-full max-h-[90vh] overflow-y-auto">
+            <div className="sticky top-0 bg-card border-b border-theme px-6 py-4 flex items-center justify-between">
+              <h2 className="text-xl font-bold text-primary">Insurance Claim Details</h2>
               <button
                 onClick={() => {
                   setShowViewModal(false);
                   setSelectedClaim(null);
                 }}
-                className="text-gray-400 hover:text-gray-600"
+                className="text-secondary hover:text-secondary"
               >
                 <FaTimes size={20} />
               </button>
@@ -1169,104 +1169,104 @@ const InsuranceClaims: React.FC = () => {
             <div className="p-6 space-y-6">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div>
-                  <label className="block text-sm font-medium text-gray-500 mb-1">Claim Number</label>
-                  <p className="text-lg font-semibold text-gray-900">{selectedClaim.claimNumber || 'N/A'}</p>
+                  <label className="block text-sm font-medium text-secondary mb-1">Claim Number</label>
+                  <p className="text-lg font-semibold text-primary">{selectedClaim.claimNumber || 'N/A'}</p>
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-500 mb-1">Accident Number</label>
-                  <p className="text-gray-900">{selectedClaim.accidentNumber || '—'}</p>
+                  <label className="block text-sm font-medium text-secondary mb-1">Accident Number</label>
+                  <p className="text-primary">{selectedClaim.accidentNumber || '—'}</p>
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-500 mb-1">Status</label>
+                  <label className="block text-sm font-medium text-secondary mb-1">Status</label>
                   <span className={`inline-block px-3 py-1 text-sm font-medium rounded-full ${getStatusColor(selectedClaim.status)}`}>
                     {selectedClaim.status.charAt(0).toUpperCase() + selectedClaim.status.slice(1).replace('-', ' ')}
                   </span>
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-500 mb-1">Claim Type</label>
+                  <label className="block text-sm font-medium text-secondary mb-1">Claim Type</label>
                   <span className={`inline-block px-3 py-1 text-sm font-medium rounded-full ${getTypeColor(selectedClaim.claimType)}`}>
                     {selectedClaim.claimType.charAt(0).toUpperCase() + selectedClaim.claimType.slice(1)}
                   </span>
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-500 mb-1">Incident Date</label>
-                  <p className="text-gray-900">
+                  <label className="block text-sm font-medium text-secondary mb-1">Incident Date</label>
+                  <p className="text-primary">
                     {selectedClaim.incidentDate ? new Date(selectedClaim.incidentDate).toLocaleDateString() : 'N/A'}
                   </p>
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-500 mb-1">Claim Date</label>
-                  <p className="text-gray-900">
+                  <label className="block text-sm font-medium text-secondary mb-1">Claim Date</label>
+                  <p className="text-primary">
                     {selectedClaim.claimDate ? new Date(selectedClaim.claimDate).toLocaleDateString() : 'N/A'}
                   </p>
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-500 mb-1">Driver</label>
-                  <p className="text-gray-900">
+                  <label className="block text-sm font-medium text-secondary mb-1">Driver</label>
+                  <p className="text-primary">
                     {typeof selectedClaim.driver === 'object' ? selectedClaim.driver?.name : 'N/A'}
                   </p>
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-500 mb-1">Vehicle</label>
-                  <p className="text-gray-900">
+                  <label className="block text-sm font-medium text-secondary mb-1">Vehicle</label>
+                  <p className="text-primary">
                     {typeof selectedClaim.vehicle === 'object' 
                       ? `${selectedClaim.vehicle?.internalId || selectedClaim.vehicle?.plateNumber || 'N/A'} - ${selectedClaim.vehicle?.make || ''} ${selectedClaim.vehicle?.model || ''}`
                       : 'N/A'}
                   </p>
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-500 mb-1">Insurance Company</label>
-                  <p className="text-gray-900">{selectedClaim.insuranceCompany || 'N/A'}</p>
+                  <label className="block text-sm font-medium text-secondary mb-1">Insurance Company</label>
+                  <p className="text-primary">{selectedClaim.insuranceCompany || 'N/A'}</p>
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-500 mb-1">Policy Number</label>
-                  <p className="text-gray-900">{selectedClaim.policyNumber || 'N/A'}</p>
+                  <label className="block text-sm font-medium text-secondary mb-1">Policy Number</label>
+                  <p className="text-primary">{selectedClaim.policyNumber || 'N/A'}</p>
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-500 mb-1">Claim Amount</label>
-                  <p className="text-lg font-semibold text-gray-900">
+                  <label className="block text-sm font-medium text-secondary mb-1">Claim Amount</label>
+                  <p className="text-lg font-semibold text-primary">
                     ${(selectedClaim.amount || 0).toLocaleString()}
                   </p>
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-500 mb-1">Deductible</label>
-                  <p className="text-gray-900">
+                  <label className="block text-sm font-medium text-secondary mb-1">Deductible</label>
+                  <p className="text-primary">
                     ${(selectedClaim.deductible || 0).toLocaleString()}
                   </p>
                 </div>
                 {selectedClaim.adjusterName && (
                   <div>
-                    <label className="block text-sm font-medium text-gray-500 mb-1">Adjuster</label>
-                    <p className="text-gray-900">{selectedClaim.adjusterName}</p>
+                    <label className="block text-sm font-medium text-secondary mb-1">Adjuster</label>
+                    <p className="text-primary">{selectedClaim.adjusterName}</p>
                     {selectedClaim.adjusterContact && (
-                      <p className="text-sm text-gray-500">{selectedClaim.adjusterContact}</p>
+                      <p className="text-sm text-secondary">{selectedClaim.adjusterContact}</p>
                     )}
                   </div>
                 )}
                 {selectedClaim.location && (
                   <div className="md:col-span-2">
-                    <label className="block text-sm font-medium text-gray-500 mb-1">Location</label>
-                    <p className="text-gray-900">{selectedClaim.location}</p>
+                    <label className="block text-sm font-medium text-secondary mb-1">Location</label>
+                    <p className="text-primary">{selectedClaim.location}</p>
                   </div>
                 )}
                 <div className="md:col-span-2">
-                  <label className="block text-sm font-medium text-gray-500 mb-1">Description</label>
-                  <p className="text-gray-900 whitespace-pre-wrap">{selectedClaim.description || 'N/A'}</p>
+                  <label className="block text-sm font-medium text-secondary mb-1">Description</label>
+                  <p className="text-primary whitespace-pre-wrap">{selectedClaim.description || 'N/A'}</p>
                 </div>
                 {selectedClaim.notes && (
                   <div className="md:col-span-2">
-                    <label className="block text-sm font-medium text-gray-500 mb-1">Notes</label>
-                    <p className="text-gray-900 whitespace-pre-wrap">{selectedClaim.notes}</p>
+                    <label className="block text-sm font-medium text-secondary mb-1">Notes</label>
+                    <p className="text-primary whitespace-pre-wrap">{selectedClaim.notes}</p>
                   </div>
                 )}
               </div>
-              <div className="flex items-center justify-end gap-4 pt-4 border-t border-gray-200">
+              <div className="flex items-center justify-end gap-4 pt-4 border-t border-theme">
                 <button
                   onClick={() => {
                     setShowViewModal(false);
                     setSelectedClaim(null);
                   }}
-                  className="px-6 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
+                  className="px-6 py-2 border border-gray-300 rounded-lg hover:bg-[rgba(255,255,255,0.03)] transition-colors"
                 >
                   Close
                 </button>
@@ -1288,18 +1288,18 @@ const InsuranceClaims: React.FC = () => {
       {/* Delete Confirmation Modal */}
       {showDeleteModal && claimToDelete && (
         <div className="fixed inset-0 bg-gray-900/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-lg shadow-xl max-w-md w-full">
+          <div className="bg-card rounded-lg shadow-xl max-w-md w-full">
             <div className="p-6">
               <div className="flex items-center gap-4 mb-4">
                 <div className="flex-shrink-0 w-12 h-12 bg-red-100 rounded-full flex items-center justify-center">
-                  <FaExclamationTriangle className="text-red-600" size={24} />
+                  <FaExclamationTriangle className="text-[#A855F7]" size={24} />
                 </div>
                 <div>
-                  <h3 className="text-lg font-semibold text-gray-900">Delete Insurance Claim</h3>
-                  <p className="text-sm text-gray-500">This action cannot be undone</p>
+                  <h3 className="text-lg font-semibold text-primary">Delete Insurance Claim</h3>
+                  <p className="text-sm text-secondary">This action cannot be undone</p>
                 </div>
               </div>
-              <p className="text-gray-700 mb-6">
+              <p className="text-primary mb-6">
                 Are you sure you want to delete the insurance claim <strong>{claimToDelete.claimNumber || 'N/A'}</strong>?
               </p>
               <div className="flex items-center justify-end gap-3">
@@ -1308,7 +1308,7 @@ const InsuranceClaims: React.FC = () => {
                     setShowDeleteModal(false);
                     setClaimToDelete(null);
                   }}
-                  className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
+                  className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-[rgba(255,255,255,0.03)] transition-colors"
                 >
                   Cancel
                 </button>

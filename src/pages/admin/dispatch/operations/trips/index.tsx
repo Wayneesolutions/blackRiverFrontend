@@ -164,7 +164,7 @@ const ToastNotification = ({ notification, onClose, onChatClick }: {
     return (
       <div
         onClick={handleClick}
-        className="fixed top-4 right-4 w-[400px] bg-white rounded-2xl shadow-2xl z-[10000] animate-slide-in cursor-pointer hover:shadow-3xl transition-all duration-300 hover:scale-[1.02] border border-gray-100 overflow-hidden"
+        className="fixed top-4 right-4 w-[400px] bg-card rounded-2xl shadow-2xl z-[10000] animate-slide-in cursor-pointer hover:shadow-3xl transition-all duration-300 hover:scale-[1.02] border border-theme overflow-hidden"
         style={{
           animation: 'slideInRight 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55)'
         }}
@@ -187,7 +187,7 @@ const ToastNotification = ({ notification, onClose, onChatClick }: {
             <div className="flex-1 min-w-0">
               {/* Driver Name & Trip */}
               <div className="flex items-center gap-2 mb-1">
-                <h4 className="font-bold text-gray-900 text-base">
+                <h4 className="font-bold text-primary text-base">
                   {notification.driverName || 'Driver'}
                 </h4>
                 <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-blue-100 text-blue-700 text-xs font-semibold rounded-full">
@@ -197,18 +197,18 @@ const ToastNotification = ({ notification, onClose, onChatClick }: {
               </div>
 
               {/* Message */}
-              <p className="text-gray-700 text-sm leading-relaxed line-clamp-2 mb-3">
+              <p className="text-primary text-sm leading-relaxed line-clamp-2 mb-3">
                 {notification.message}
               </p>
 
               {/* Action buttons */}
               <div className="flex items-center gap-3">
-                <div className="flex items-center gap-2 text-blue-600 text-xs font-semibold">
+                <div className="flex items-center gap-2 text-[#00D1FF] text-xs font-semibold">
                   <MessageCircle className="w-4 h-4" />
                   <span>Click to reply</span>
                 </div>
                 <div className="flex-1"></div>
-                <span className="text-gray-400 text-xs">Just now</span>
+                <span className="text-secondary text-xs">Just now</span>
               </div>
             </div>
 
@@ -218,7 +218,7 @@ const ToastNotification = ({ notification, onClose, onChatClick }: {
                 e.stopPropagation();
                 onClose(notification.id);
               }}
-              className="flex-shrink-0 w-8 h-8 rounded-full hover:bg-gray-100 flex items-center justify-center text-gray-400 hover:text-gray-600 transition-all"
+              className="flex-shrink-0 w-8 h-8 rounded-full hover:bg-gray-100 flex items-center justify-center text-secondary hover:text-secondary transition-all"
             >
               <X size={18} />
             </button>
@@ -236,7 +236,7 @@ const ToastNotification = ({ notification, onClose, onChatClick }: {
     return (
       <div
         onClick={handleClick}
-        className="fixed top-4 right-4 w-[400px] bg-white rounded-2xl shadow-2xl z-[10000] animate-slide-in cursor-pointer hover:shadow-3xl transition-all duration-300 hover:scale-[1.02] border border-gray-100 overflow-hidden"
+        className="fixed top-4 right-4 w-[400px] bg-card rounded-2xl shadow-2xl z-[10000] animate-slide-in cursor-pointer hover:shadow-3xl transition-all duration-300 hover:scale-[1.02] border border-theme overflow-hidden"
       >
         <div className="h-1 bg-gradient-to-r from-green-500 to-emerald-500 transition-all duration-100" style={{ width: `${progress}%` }}></div>
         <div className="p-5">
@@ -249,11 +249,11 @@ const ToastNotification = ({ notification, onClose, onChatClick }: {
             </div>
             <div className="flex-1 min-w-0">
               <div className="flex items-center gap-2 mb-1">
-                <h4 className="font-bold text-gray-900 text-base">
+                <h4 className="font-bold text-primary text-base">
                   📄 Documents Uploaded
                 </h4>
               </div>
-              <p className="text-gray-700 text-sm leading-relaxed mb-2">
+              <p className="text-primary text-sm leading-relaxed mb-2">
                 <strong>{notification.driverName || 'Driver'}</strong> has uploaded POD and Manifest documents
               </p>
               <div className="flex items-center gap-2 mb-3">
@@ -268,7 +268,7 @@ const ToastNotification = ({ notification, onClose, onChatClick }: {
                   <span>Click to view documents</span>
                 </div>
                 <div className="flex-1"></div>
-                <span className="text-gray-400 text-xs">Just now</span>
+                <span className="text-secondary text-xs">Just now</span>
               </div>
             </div>
             <button
@@ -276,7 +276,7 @@ const ToastNotification = ({ notification, onClose, onChatClick }: {
                 e.stopPropagation();
                 onClose(notification.id);
               }}
-              className="flex-shrink-0 w-8 h-8 rounded-full hover:bg-gray-100 flex items-center justify-center text-gray-400 hover:text-gray-600 transition-all"
+              className="flex-shrink-0 w-8 h-8 rounded-full hover:bg-gray-100 flex items-center justify-center text-secondary hover:text-secondary transition-all"
             >
               <X size={18} />
             </button>
@@ -298,10 +298,10 @@ const ToastNotification = ({ notification, onClose, onChatClick }: {
 
   const bgColors: Record<NotificationType, string> = {
     success: 'bg-green-50 border-green-200',
-    error: 'bg-red-50 border-red-200',
-    warning: 'bg-yellow-50 border-yellow-200',
+    error: 'bg-card border-red-200',
+    warning: 'bg-card border-yellow-200',
     document_upload: 'bg-green-50 border-green-200', // Not used, but needed for type safety
-    chat: 'bg-blue-50 border-blue-200', // Not used, but needed for type safety
+    chat: 'bg-card border-blue-200', // Not used, but needed for type safety
   };
 
   const progressColors: Record<NotificationType, string> = {
@@ -325,14 +325,14 @@ const ToastNotification = ({ notification, onClose, onChatClick }: {
           {icons[standardType]}
         </div>
         <div className="flex-1 min-w-0">
-          <p className="text-sm font-medium text-gray-800">{notification.message}</p>
+          <p className="text-sm font-medium text-primary">{notification.message}</p>
         </div>
         <button
           onClick={(e) => {
             e.stopPropagation();
             onClose(notification.id);
           }}
-          className="flex-shrink-0 text-gray-400 hover:text-gray-600 transition-colors"
+          className="flex-shrink-0 text-secondary hover:text-secondary transition-colors"
         >
           <FaTimes size={16} />
         </button>
@@ -1083,7 +1083,7 @@ const Trips = () => {
       'completed': 'bg-green-100 text-green-800',
       'cancelled': 'bg-red-100 text-red-800'
     };
-    return badges[status] || 'bg-gray-100 text-gray-800';
+    return badges[status] || 'bg-gray-100 text-primary';
   };
 
   const formatDate = (dateString?: string | null) => {
@@ -1204,12 +1204,12 @@ const Trips = () => {
   };
 
   return (
-    <div className="p-4 bg-[#EDF8FF] min-h-screen">
+    <div className="p-4 bg-main min-h-screen">
       {/* Header */}
       <div className="mb-4 flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-gray-800">Trip Management</h1>
-          <p className="text-gray-600 mt-1">Plan trips by assigning truck, driver, and trailer with orders/loads</p>
+          <h1 className="text-2xl font-bold text-primary">Trip Management</h1>
+          <p className="text-secondary mt-1">Plan trips by assigning truck, driver, and trailer with orders/loads</p>
         </div>
         <button
           onClick={handleAddTrip}
@@ -1222,10 +1222,10 @@ const Trips = () => {
       </div>
 
       {/* Search and Filters */}
-      <div className="bg-white rounded-lg shadow-md p-4 mb-4">
+      <div className="bg-card rounded-lg shadow-md p-4 mb-4">
         <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
           <div className="relative">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-secondary" />
             <input
               type="text"
               value={searchTerm}
@@ -1300,7 +1300,7 @@ const Trips = () => {
                 setSearchTerm("");
                 setCurrentPage(1);
               }}
-              className="flex items-center justify-center gap-2 px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 text-sm"
+              className="flex items-center justify-center gap-2 px-4 py-2 border border-gray-300 rounded-lg hover:bg-[rgba(255,255,255,0.03)] text-sm"
             >
               <X className="w-4 h-4" />
               Clear
@@ -1315,13 +1315,13 @@ const Trips = () => {
           <div className="animate-spin rounded-full h-12 w-12 border-b-4" style={{ borderColor: FLEET_COLORS.primary }}></div>
         </div>
       ) : trips.length === 0 ? (
-        <div className="bg-white rounded-lg shadow-md p-8 text-center">
-          <FaTruck className="mx-auto text-gray-400 mb-4" size={48} />
-          <p className="text-gray-600">No trips found. Click "New Trip" to create your first trip.</p>
+        <div className="bg-card rounded-lg shadow-md p-8 text-center">
+          <FaTruck className="mx-auto text-secondary mb-4" size={48} />
+          <p className="text-secondary">No trips found. Click "New Trip" to create your first trip.</p>
         </div>
       ) : (
         <>
-          <div className="bg-white rounded-lg shadow-md overflow-hidden">
+          <div className="bg-card rounded-lg shadow-md overflow-hidden">
             {/* Top Scrollbar - Only visible horizontal scrollbar */}
             <style>{`
               .top-scrollbar-container::-webkit-scrollbar {
@@ -1365,24 +1365,25 @@ const Trips = () => {
               className="overflow-x-auto table-container-hidden-scrollbar"
             >
               <table className="w-full text-sm">
-                <thead className="bg-gray-50 border-b border-gray-200">
+                <thead className="bg-card border-b border-theme">
                   <tr>
-                    <th className="px-4 py-3 text-left text-xs font-semibold text-gray-700 uppercase">Trip #</th>
-                    <th className="px-4 py-3 text-left text-xs font-semibold text-gray-700 uppercase">Driver</th>
-                    <th className="px-4 py-3 text-left text-xs font-semibold text-gray-700 uppercase">Co-Driver</th>
-                    <th className="px-4 py-3 text-left text-xs font-semibold text-gray-700 uppercase">Truck</th>
-                    <th className="px-4 py-3 text-left text-xs font-semibold text-gray-700 uppercase">Trailer</th>
-                    <th className="px-4 py-3 text-left text-xs font-semibold text-gray-700 uppercase">Orders</th>
-                    <th className="px-4 py-3 text-left text-xs font-semibold text-gray-700 uppercase">Documents</th>
-                    <th className="px-4 py-3 text-left text-xs font-semibold text-gray-700 uppercase">Start Date</th>
-                    <th className="px-4 py-3 text-left text-xs font-semibold text-gray-700 uppercase">Driver Response</th>
-                    <th className="px-4 py-3 text-left text-xs font-semibold text-gray-700 uppercase">Status</th>
-                    <th className="px-4 py-3 text-left text-xs font-semibold text-gray-700 uppercase">Actions</th>
+                    <th className="px-4 py-3 text-left text-xs font-semibold text-primary uppercase">Trip #</th>
+                    <th className="px-4 py-3 text-left text-xs font-semibold text-primary uppercase">Driver</th>
+                    <th className="px-4 py-3 text-left text-xs font-semibold text-primary uppercase">Co-Driver</th>
+                    <th className="px-4 py-3 text-left text-xs font-semibold text-primary uppercase">Truck</th>
+                    <th className="px-4 py-3 text-left text-xs font-semibold text-primary uppercase">Trailer</th>
+                    <th className="px-4 py-3 text-left text-xs font-semibold text-primary uppercase">Orders</th>
+                    <th className="px-4 py-3 text-left text-xs font-semibold text-primary uppercase">Documents</th>
+                    <th className="px-4 py-3 text-left text-xs font-semibold text-primary uppercase">Start Date</th>
+                    <th className="px-4 py-3 text-left text-xs font-semibold text-primary uppercase">Driver Response</th>
+                    <th className="px-4 py-3 text-left text-xs font-semibold text-primary uppercase">Status</th>
+                    <th className="px-4 py-3 text-left text-xs font-semibold text-primary uppercase">Actions</th>
+
                   </tr>
                 </thead>
-                <tbody className="bg-white divide-y divide-gray-200">
+                <tbody className="bg-card divide-y divide-gray-200">
                   {trips.map((trip) => (
-                    <tr key={trip._id} className="hover:bg-gray-50">
+                    <tr key={trip._id} className="hover:bg-[rgba(255,255,255,0.03)]">
                       <td className="px-4 py-3 whitespace-nowrap">
                         <button
                           type="button"
@@ -1396,30 +1397,30 @@ const Trips = () => {
                       </td>
                       <td className="px-4 py-3 whitespace-nowrap">
                         <div className="flex items-center gap-2">
-                          <FaUser className="text-gray-400" size={14} />
+                          <FaUser className="text-secondary" size={14} />
                           <div>{trip.driver?.name || '-'}</div>
                         </div>
                       </td>
                       <td className="px-4 py-3 whitespace-nowrap">
                         <div className="flex items-center gap-2">
-                          <FaUser className="text-gray-400" size={14} />
+                          <FaUser className="text-secondary" size={14} />
                           <div>{trip.coDriver?.name || '-'}</div>
                         </div>
                       </td>
                       <td className="px-4 py-3 whitespace-nowrap">
                         <div className="flex items-center gap-2">
-                          <FaTruck className="text-gray-400" size={14} />
+                          <FaTruck className="text-secondary" size={14} />
                           <span>{trip.truck?.licensePlate || trip.truck?.unitNo || trip.truck?.internalId || trip.truck?.makeModel || '-'}</span>
                         </div>
                       </td>
                       <td className="px-4 py-3 whitespace-nowrap">
                         {trip.trailer ? (
                           <div className="flex items-center gap-2">
-                            <FaTrailer className="text-gray-400" size={14} />
+                            <FaTrailer className="text-secondary" size={14} />
                             <span>{trip.trailer?.licensePlate || trip.trailer?.unitNo || trip.trailer?.makeModel || '-'}</span>
                           </div>
                         ) : (
-                          <span className="text-gray-400">-</span>
+                          <span className="text-secondary">-</span>
                         )}
                       </td>
                       <td className="px-4 py-3 whitespace-nowrap">
@@ -1461,7 +1462,7 @@ const Trips = () => {
                                   addNotification('error', 'Error loading documents');
                                 }
                               }}
-                              className="flex items-center gap-2 px-2 py-1.5 bg-white hover:bg-blue-50 border border-gray-300 rounded transition-colors w-full min-w-[140px] cursor-pointer"
+                              className="flex items-center gap-2 px-2 py-1.5 bg-card hover:bg-blue-50 border border-gray-300 rounded transition-colors w-full min-w-[140px] cursor-pointer"
                               title="Click to view documents"
                             >
                               <div className="flex items-center gap-2 flex-1">
@@ -1474,7 +1475,7 @@ const Trips = () => {
                                     </>
                                   ) : (
                                     <>
-                                      <FaTimes className="text-red-600" size={14} />
+                                      <FaTimes className="text-[#A855F7]" size={14} />
                                       <span className="text-xs font-semibold text-red-700">POD</span>
                                     </>
                                   )}
@@ -1490,7 +1491,7 @@ const Trips = () => {
                                       </>
                                     ) : (
                                       <>
-                                        <FaTimes className="text-red-600" size={14} />
+                                        <FaTimes className="text-[#A855F7]" size={14} />
                                         <span className="text-xs font-semibold text-red-700">M</span>
                                       </>
                                     )}
@@ -1500,21 +1501,21 @@ const Trips = () => {
                                 {/* Document count badge */}
                                 {demoStatus.documentCount > 0 && (
                                   <div className="flex items-center gap-1 ml-auto">
-                                    <File className="text-blue-600" size={12} />
+                                    <File className="text-[#00D1FF]" size={12} />
                                     <span className="text-xs font-semibold text-blue-800">{demoStatus.documentCount}</span>
                                   </div>
                                 )}
                                 
                                 {/* Show dash if no documents */}
                                 {demoStatus.documentCount === 0 && (
-                                  <span className="text-xs text-gray-400 ml-auto">-</span>
+                                  <span className="text-xs text-secondary ml-auto">-</span>
                                 )}
                               </div>
                             </button>
                           );
                         })()}
                       </td>
-                      <td className="px-4 py-3 whitespace-nowrap text-gray-600">
+                      <td className="px-4 py-3 whitespace-nowrap text-secondary">
                         {formatDate(trip.plannedStartDate)}
                       </td>
                       <td className="px-4 py-3 whitespace-nowrap">
@@ -1650,7 +1651,7 @@ const Trips = () => {
                               </button>
                               <button
                                 onClick={() => handleDeleteTrip(trip)}
-                                className="p-1.5 text-red-600 hover:bg-red-50 rounded transition-colors"
+                                className="p-1.5 text-[#A855F7] hover:bg-red-50 rounded transition-colors"
                                 title="Delete"
                               >
                                 <Trash2 className="w-4 h-4" />
@@ -1668,25 +1669,25 @@ const Trips = () => {
 
           {/* Pagination */}
           {totalItems > 0 && (
-            <div className="mt-4 px-6 py-4 border-t border-gray-200 flex items-center justify-between">
-              <div className="text-sm text-gray-700">
+            <div className="mt-4 px-6 py-4 border-t border-theme flex items-center justify-between">
+              <div className="text-sm text-primary">
                 Showing {(currentPage - 1) * itemsPerPage + 1} to {Math.min(currentPage * itemsPerPage, totalItems)} of {totalItems} trips
               </div>
               <div className="flex items-center gap-2">
                 <button
                   onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
                   disabled={currentPage === 1}
-                  className="px-3 py-1 border border-gray-300 rounded text-sm disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50"
+                  className="px-3 py-1 border border-gray-300 rounded text-sm disabled:opacity-50 disabled:cursor-not-allowed hover:bg-[rgba(255,255,255,0.03)]"
                 >
                   Previous
                 </button>
                 <span className="px-3 py-1 !text-white rounded text-sm" style={primaryButtonStyle}>{currentPage}</span>
-                <span className="text-sm text-gray-600">of</span>
-                <span className="px-3 py-1 bg-gray-100 rounded text-sm text-gray-700">{totalPages}</span>
+                <span className="text-sm text-secondary">of</span>
+                <span className="px-3 py-1 bg-gray-100 rounded text-sm text-primary">{totalPages}</span>
                 <button
                   onClick={() => setCurrentPage(Math.min(totalPages, currentPage + 1))}
                   disabled={currentPage === totalPages}
-                  className="px-3 py-1 border border-gray-300 rounded text-sm disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50"
+                  className="px-3 py-1 border border-gray-300 rounded text-sm disabled:opacity-50 disabled:cursor-not-allowed hover:bg-[rgba(255,255,255,0.03)]"
                 >
                   Next
                 </button>
@@ -1714,7 +1715,7 @@ const Trips = () => {
         <div className="fixed inset-0 z-[9998] bg-gray-900/50 backdrop-blur-sm" onClick={() => setSidebarOpen(false)} />
       )}
       <div
-        className={`fixed top-0 right-0 h-full max-w-4xl w-full bg-white shadow-2xl transform transition-transform duration-500 ease-out z-[9999] border-l border-gray-200 ${sidebarOpen ? "translate-x-0" : "translate-x-full"
+        className={`fixed top-0 right-0 h-full max-w-4xl w-full bg-card shadow-2xl transform transition-transform duration-500 ease-out z-[9999] border-l border-theme ${sidebarOpen ? "translate-x-0" : "translate-x-full"
           }`}
       >
         <NewTripSidebar
@@ -1730,9 +1731,9 @@ const Trips = () => {
       {/* View Trip Modal */}
       {viewingTrip && (
         <div className="fixed inset-0 z-[10001] bg-gray-900/50 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="bg-white rounded-xl shadow-2xl w-full max-w-3xl max-h-[90vh] h-[90vh] overflow-hidden flex flex-col">
-            <div className="flex-shrink-0 bg-white border-b px-6 py-4 flex items-center justify-between rounded-t-xl">
-              <h3 className="text-xl font-bold text-gray-800">Trip Details: {viewingTrip.tripNumber}</h3>
+          <div className="bg-card rounded-xl shadow-2xl w-full max-w-3xl max-h-[90vh] h-[90vh] overflow-hidden flex flex-col">
+            <div className="flex-shrink-0 bg-card border-b px-6 py-4 flex items-center justify-between rounded-t-xl">
+              <h3 className="text-xl font-bold text-primary">Trip Details: {viewingTrip.tripNumber}</h3>
               <div className="flex items-center gap-2">
                 <button
                   onClick={() => {
@@ -1741,7 +1742,7 @@ const Trips = () => {
                   }}
                   className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
                 >
-                  <X className="w-5 h-5 text-gray-500" />
+                  <X className="w-5 h-5 text-secondary" />
                 </button>
               </div>
             </div>
@@ -1750,33 +1751,33 @@ const Trips = () => {
                 {/* Trip Info */}
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <label className="text-sm font-medium text-gray-600">Driver</label>
+                    <label className="text-sm font-medium text-secondary">Driver</label>
                     <p className="text-lg font-semibold">{viewingTrip.driver?.name || '-'}</p>
                   </div>
                   <div>
-                    <label className="text-sm font-medium text-gray-600">Co-driver</label>
+                    <label className="text-sm font-medium text-secondary">Co-driver</label>
                     <p className="text-lg font-semibold">{viewingTrip.coDriver?.name || '-'}</p>
                   </div>
                   <div>
-                    <label className="text-sm font-medium text-gray-600">Truck</label>
+                    <label className="text-sm font-medium text-secondary">Truck</label>
                     <p className="text-lg font-semibold">{viewingTrip.truck?.licensePlate || viewingTrip.truck?.unitNo || viewingTrip.truck?.internalId || viewingTrip.truck?.makeModel || '-'}</p>
                   </div>
                   <div>
-                    <label className="text-sm font-medium text-gray-600">Trailer</label>
+                    <label className="text-sm font-medium text-secondary">Trailer</label>
                     <p className="text-lg font-semibold">{viewingTrip.trailer?.licensePlate || viewingTrip.trailer?.unitNo || viewingTrip.trailer?.makeModel || '-'}</p>
                   </div>
                   <div>
-                    <label className="text-sm font-medium text-gray-600">Status</label>
+                    <label className="text-sm font-medium text-secondary">Status</label>
                     <p className={`text-lg font-semibold inline-block px-3 py-1 rounded-full ${getStatusBadge(viewingTrip.status)}`}>
                       {viewingTrip.status.charAt(0).toUpperCase() + viewingTrip.status.slice(1).replace('-', ' ')}
                     </p>
                   </div>
                   <div>
-                    <label className="text-sm font-medium text-gray-600">Planned Start</label>
+                    <label className="text-sm font-medium text-secondary">Planned Start</label>
                     <p className="text-lg font-semibold">{formatDate(viewingTrip.plannedStartDate)}</p>
                   </div>
                   <div>
-                    <label className="text-sm font-medium text-gray-600">Planned End</label>
+                    <label className="text-sm font-medium text-secondary">Planned End</label>
                     <p className="text-lg font-semibold">{formatDate(viewingTrip.plannedEndDate)}</p>
                   </div>
                 </div>
@@ -1784,7 +1785,7 @@ const Trips = () => {
                 {/* Orders */}
                 {viewingTrip.orders && viewingTrip.orders.length > 0 && (
                   <div>
-                    <h4 className="font-semibold text-gray-800 mb-3">Orders ({viewingTrip.orders.length})</h4>
+                    <h4 className="font-semibold text-primary mb-3">Orders ({viewingTrip.orders.length})</h4>
                     <div className="space-y-3">
                       {viewingTrip.orders.map((order) => {
                         const extractLocationString = (location: any): string => {
@@ -1799,7 +1800,7 @@ const Trips = () => {
                         const pickupLocation = extractLocationString(order.pickupLocation);
                         const deliveryLocation = extractLocationString(order.deliveryLocation);
                         return (
-                          <div key={order._id} className="p-4 bg-gray-50 rounded-lg border border-gray-200">
+                          <div key={order._id} className="p-4 bg-card rounded-lg border border-theme">
                             <div className="flex items-start justify-between mb-2">
                               <div className="font-semibold" style={{ color: FLEET_COLORS.primary }}>{order.orderNumber}</div>
                               {order.status && (
@@ -1817,7 +1818,7 @@ const Trips = () => {
                                 </span>
                               )}
                             </div>
-                            <div className="text-sm text-gray-700 space-y-1 mt-2">
+                            <div className="text-sm text-primary space-y-1 mt-2">
                               {order.customerOrderNo && (
                                 <div><span className="font-medium">Customer Order:</span> {order.customerOrderNo}</div>
                               )}
@@ -1836,8 +1837,8 @@ const Trips = () => {
                 {/* Notes */}
                 {viewingTrip.notes && (
                   <div>
-                    <h4 className="font-semibold text-gray-800 mb-2">Notes</h4>
-                    <p className="text-gray-700">{viewingTrip.notes}</p>
+                    <h4 className="font-semibold text-primary mb-2">Notes</h4>
+                    <p className="text-primary">{viewingTrip.notes}</p>
                   </div>
                 )}
 
@@ -1858,25 +1859,25 @@ const Trips = () => {
                         {(() => {
                           const docStatus = getDocumentStatus(viewingTrip);
                           return (
-                            <div className="mt-3 p-3 bg-white rounded-lg border border-amber-200">
+                            <div className="mt-3 p-3 bg-card rounded-lg border border-amber-200">
                               <div className="text-xs font-semibold text-amber-900 mb-2">Document Requirements Status:</div>
                               <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
-                                <div className={`flex items-center gap-2 p-2 rounded ${docStatus.hasPOD ? 'bg-green-50' : 'bg-red-50'}`}>
+                                <div className={`flex items-center gap-2 p-2 rounded ${docStatus.hasPOD ? 'bg-green-50' : 'bg-card'}`}>
                                   {docStatus.hasPOD ? (
                                     <FaCheckCircle className="text-green-600" size={16} />
                                   ) : (
-                                    <FaTimes className="text-red-600" size={16} />
+                                    <FaTimes className="text-[#A855F7]" size={16} />
                                   )}
                                   <span className={`text-sm font-medium ${docStatus.hasPOD ? 'text-green-800' : 'text-red-800'}`}>
                                     POD (Proof of Delivery) {docStatus.hasPOD ? '✓ Uploaded' : '✗ Missing'}
                                   </span>
                                 </div>
                                 {docStatus.isCanada && (
-                                  <div className={`flex items-center gap-2 p-2 rounded ${docStatus.hasBorderManifest ? 'bg-green-50' : 'bg-red-50'}`}>
+                                  <div className={`flex items-center gap-2 p-2 rounded ${docStatus.hasBorderManifest ? 'bg-green-50' : 'bg-card'}`}>
                                     {docStatus.hasBorderManifest ? (
                                       <FaCheckCircle className="text-green-600" size={16} />
                                     ) : (
-                                      <FaTimes className="text-red-600" size={16} />
+                                      <FaTimes className="text-[#A855F7]" size={16} />
                                     )}
                                     <span className={`text-sm font-medium ${docStatus.hasBorderManifest ? 'text-green-800' : 'text-red-800'}`}>
                                       Border Manifest {docStatus.hasBorderManifest ? '✓ Uploaded' : '✗ Missing'}
@@ -1885,7 +1886,7 @@ const Trips = () => {
                                 )}
                               </div>
                               {!docStatus.isComplete && (
-                                <div className="mt-2 p-2 bg-yellow-50 border border-yellow-200 rounded text-xs text-yellow-800">
+                                <div className="mt-2 p-2 bg-card border border-yellow-200 rounded text-xs text-yellow-800">
                                   <strong>⚠️ Warning:</strong> Required documents are missing. Please ensure all documents are uploaded before approving.
                                 </div>
                               )}
@@ -1893,7 +1894,7 @@ const Trips = () => {
                           );
                         })()}
                         {viewingTrip.completionRejectionReason && (
-                          <div className="mt-3 p-3 bg-red-50 border border-red-200 rounded-lg">
+                          <div className="mt-3 p-3 bg-card border border-red-200 rounded-lg">
                             <div className="text-xs font-semibold text-red-900 mb-1">Previous Rejection Reason:</div>
                             <div className="text-sm text-red-800">{viewingTrip.completionRejectionReason}</div>
                           </div>
@@ -1933,20 +1934,20 @@ const Trips = () => {
                 )}
 
                 {/* Documents Section - Static Display */}
-                <div className="mb-4 border-t border-gray-200 pt-4">
-                  <h4 className="font-semibold text-gray-800 text-lg mb-4 flex items-center gap-2">
-                    <File className="text-gray-600" size={20} />
+                <div className="mb-4 border-t border-theme pt-4">
+                  <h4 className="font-semibold text-primary text-lg mb-4 flex items-center gap-2">
+                    <File className="text-secondary" size={20} />
                     Trip Documents
                     {viewingTrip.documents && viewingTrip.documents.length > 0 && (
-                      <span className="text-sm font-normal text-gray-500">
+                      <span className="text-sm font-normal text-secondary">
                         ({viewingTrip.documents.length})
                       </span>
                     )}
                   </h4>
                   
                   {/* Document Requirements Status - Static */}
-                  <div className="mb-4 p-3 bg-gray-50 rounded-lg border border-gray-200">
-                    <div className="text-xs font-semibold text-gray-700 mb-2">Required Documents:</div>
+                  <div className="mb-4 p-3 bg-card rounded-lg border border-theme">
+                    <div className="text-xs font-semibold text-primary mb-2">Required Documents:</div>
                     {(() => {
                       const docStatus = getDocumentStatus(viewingTrip);
                       return (
@@ -1955,7 +1956,7 @@ const Trips = () => {
                             {docStatus.hasPOD ? (
                               <FaCheckCircle className="text-green-600" size={14} />
                             ) : (
-                              <FaTimes className="text-red-600" size={14} />
+                              <FaTimes className="text-[#A855F7]" size={14} />
                             )}
                             <span className={docStatus.hasPOD ? 'text-green-800' : 'text-red-800'}>
                               POD (Proof of Delivery) - {docStatus.hasPOD ? 'Uploaded' : 'Missing'}
@@ -1966,7 +1967,7 @@ const Trips = () => {
                               {docStatus.hasBorderManifest ? (
                                 <FaCheckCircle className="text-green-600" size={14} />
                               ) : (
-                                <FaTimes className="text-red-600" size={14} />
+                                <FaTimes className="text-[#A855F7]" size={14} />
                               )}
                               <span className={docStatus.hasBorderManifest ? 'text-green-800' : 'text-red-800'}>
                                 Border Manifest - {docStatus.hasBorderManifest ? 'Uploaded' : 'Missing'}
@@ -1980,7 +1981,7 @@ const Trips = () => {
 
                   {/* Documents List - Static */}
                   <div>
-                    <div className="text-xs font-semibold text-gray-700 mb-2">Uploaded Documents:</div>
+                    <div className="text-xs font-semibold text-primary mb-2">Uploaded Documents:</div>
                     {viewingTrip.documents && viewingTrip.documents.length > 0 ? (
                       <div className="space-y-2">
                         {viewingTrip.documents.map((doc: any, index: number) => {
@@ -2001,23 +2002,23 @@ const Trips = () => {
                           return (
                             <div
                               key={doc._id || doc.fileUrl || `doc-${index}`}
-                              className="p-3 bg-white border border-gray-200 rounded-lg"
+                              className="p-3 bg-card border border-theme rounded-lg"
                             >
                               <div className="flex items-start justify-between gap-3">
                                 <div className="flex items-start gap-3 flex-1 min-w-0">
-                                  <File className="w-4 h-4 text-gray-400 mt-0.5 flex-shrink-0" />
+                                  <File className="w-4 h-4 text-secondary mt-0.5 flex-shrink-0" />
                                   <div className="flex-1 min-w-0">
                                     <div className="flex items-center gap-2 mb-1">
-                                      <span className="font-medium text-sm text-gray-900 truncate">
+                                      <span className="font-medium text-sm text-primary truncate">
                                         {doc.fileName || 'Untitled Document'}
                                       </span>
                                       {doc.type && (
-                                        <span className="px-2 py-0.5 bg-gray-100 text-gray-700 rounded text-xs font-medium flex-shrink-0">
+                                        <span className="px-2 py-0.5 bg-gray-100 text-primary rounded text-xs font-medium flex-shrink-0">
                                           {getDocumentTypeLabel(doc.type)}
                                         </span>
                                       )}
                                     </div>
-                                    <div className="flex items-center gap-3 text-xs text-gray-500 mt-1">
+                                    <div className="flex items-center gap-3 text-xs text-secondary mt-1">
                                       <span>{formatFileSize(doc.fileSize)}</span>
                                       {doc.uploadedAt && (
                                         <span>{new Date(doc.uploadedAt).toLocaleDateString()}</span>
@@ -2027,7 +2028,7 @@ const Trips = () => {
                                       )}
                                     </div>
                                     {doc.description && (
-                                      <div className="text-xs text-gray-600 mt-1">{doc.description}</div>
+                                      <div className="text-xs text-secondary mt-1">{doc.description}</div>
                                     )}
                                   </div>
                                 </div>
@@ -2053,7 +2054,7 @@ const Trips = () => {
                                       }
                                     }
                                   }}
-                                  className="px-3 py-1.5 text-xs font-medium text-blue-600 hover:text-blue-700 hover:bg-blue-50 rounded border border-blue-200 transition-colors flex items-center gap-1 flex-shrink-0"
+                                  className="px-3 py-1.5 text-xs font-medium text-[#00D1FF] hover:text-blue-700 hover:bg-blue-50 rounded border border-blue-200 transition-colors flex items-center gap-1 flex-shrink-0"
                                   title="View Document"
                                 >
                                   <Download className="w-3 h-3" />
@@ -2065,8 +2066,8 @@ const Trips = () => {
                           })}
                         </div>
                       ) : (
-                        <div className="p-4 bg-gray-50 border border-gray-200 rounded-lg text-center text-gray-500">
-                          <File className="w-6 h-6 mx-auto mb-2 text-gray-400" />
+                        <div className="p-4 bg-card border border-theme rounded-lg text-center text-secondary">
+                          <File className="w-6 h-6 mx-auto mb-2 text-secondary" />
                           <p className="text-sm">No documents uploaded</p>
                         </div>
                       )}
@@ -2105,8 +2106,8 @@ const Trips = () => {
                     console.log('✅ Showing approval section:', { hasDocuments, docStatus });
                     
                     return (
-                      <div className="mt-4 p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
-                        <div className="text-sm font-semibold text-gray-700 mb-3">Document Approval</div>
+                      <div className="mt-4 p-4 bg-card border border-yellow-200 rounded-lg">
+                        <div className="text-sm font-semibold text-primary mb-3">Document Approval</div>
                         <div className="flex flex-col gap-2">
                           {hasDocuments && (
                             <button
@@ -2188,7 +2189,7 @@ const Trips = () => {
                 </div>
               </div>
               {!showChat && (
-                <div className="sticky bottom-0 bg-gray-50 px-6 py-4 flex justify-between items-center border-t rounded-b-xl">
+                <div className="sticky bottom-0 bg-card px-6 py-4 flex justify-between items-center border-t rounded-b-xl">
                   <div>
                     {viewingTrip.status !== 'completed' && (
                       <button

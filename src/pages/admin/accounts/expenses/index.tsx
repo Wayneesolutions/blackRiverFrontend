@@ -79,7 +79,7 @@ const Notification = ({ notification, onClose }: { notification: Notification; o
 
   const bgColors = {
     success: 'bg-green-50 border-green-200',
-    error: 'bg-red-50 border-red-200',
+    error: 'bg-card border-red-200',
     info: 'bg-[#9793E4]/10 border-[#9793E4]/30'
   };
 
@@ -95,10 +95,10 @@ const Notification = ({ notification, onClose }: { notification: Notification; o
       <div className="flex-shrink-0 mt-0.5">
         {icons[notification.type]}
       </div>
-      <p className="flex-1 text-sm font-medium text-gray-800">{notification.message}</p>
+      <p className="flex-1 text-sm font-medium text-primary">{notification.message}</p>
       <button
         onClick={() => onClose(notification.id)}
-        className="flex-shrink-0 text-gray-400 hover:text-gray-600 transition-colors"
+        className="flex-shrink-0 text-secondary hover:text-secondary transition-colors"
       >
         <FaTimes size={16} />
       </button>
@@ -865,7 +865,7 @@ const ExpensesPage = () => {
       'Cash': 'bg-purple-100 text-purple-800',
       'Cash Advance': 'bg-purple-100 text-purple-800',
     };
-    return typeMap[typeName] || 'bg-gray-100 text-gray-800';
+    return typeMap[typeName] || 'bg-gray-100 text-primary';
   };
 
   const getTypeIcon = (typeName: string) => {
@@ -967,7 +967,7 @@ const ExpensesPage = () => {
 
   if (loading && !emptyStateMessage) {
     return (
-      <div className="min-h-screen bg-[#EDF8FF] flex flex-col items-center justify-center text-center space-y-4">
+      <div className="min-h-screen bg-main flex flex-col items-center justify-center text-center space-y-4">
         <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-[#42aeec]"></div>
         <p className="text-[#063f6f]">Loading expenses...</p>
       </div>
@@ -975,7 +975,7 @@ const ExpensesPage = () => {
   }
 
   return (
-    <div className="min-h-screen p-6 bg-[#EDF8FF]">
+    <div className="min-h-screen p-6 bg-main">
       <style>{`
         .scrollbar-hide::-webkit-scrollbar {
           display: none;
@@ -988,7 +988,7 @@ const ExpensesPage = () => {
       <div className="w-full mx-auto p-2">
         {emptyStateMessage && (
           <div className="mb-6">
-            <div className="flex items-start gap-3 rounded-xl border border-blue-200 bg-blue-50 px-4 py-3 text-sm text-blue-700 shadow-sm">
+            <div className="flex items-start gap-3 rounded-xl border border-blue-200 bg-card px-4 py-3 text-sm text-blue-700 shadow-sm">
               <Building2 className="h-5 w-5 mt-0.5 text-blue-500" />
               <div className="flex-1">
                 <p className="font-semibold text-blue-900">No expense data available</p>
@@ -1048,7 +1048,7 @@ const ExpensesPage = () => {
                 <p className="text-[#063f6f] text-sm">Total Expenses</p>
                 <p className="text-2xl font-bold" style={{ color: '#016ab2' }}>${totalAmount.toLocaleString()}</p>
               </div>
-              <div className="bg-white p-2.5 rounded-full shadow-sm flex-shrink-0">
+              <div className="bg-card p-2.5 rounded-full shadow-sm flex-shrink-0">
                 <DollarSign className="text-[#42aeec]" size={20} />
               </div>
             </div>
@@ -1092,7 +1092,7 @@ const ExpensesPage = () => {
                       ${categoryTotal.toLocaleString()}
                     </p>
                   </div>
-                  <div className="bg-white p-2.5 rounded-full shadow-sm flex-shrink-0">
+                  <div className="bg-card p-2.5 rounded-full shadow-sm flex-shrink-0">
                     <span className="text-xl">{colors.icon}</span>
                   </div>
                 </div>
@@ -1108,7 +1108,7 @@ const ExpensesPage = () => {
                   ${totalPayroll.toLocaleString()}
                 </p>
               </div>
-              <div className="bg-white p-2.5 rounded-full shadow-sm flex-shrink-0">
+              <div className="bg-card p-2.5 rounded-full shadow-sm flex-shrink-0">
                 <Users className="text-[#42aeec]" size={20} />
               </div>
             </div>
@@ -1116,7 +1116,7 @@ const ExpensesPage = () => {
         </div>
 
         {/* Category Tabs */}
-        <div className="bg-white rounded-xl border border-gray-200 shadow-sm mb-6 overflow-hidden">
+        <div className="bg-card rounded-xl border border-theme shadow-sm mb-6 overflow-hidden">
           <div className="px-6 py-4 flex items-center justify-between gap-4">
             {/* Scrollable Category Tabs */}
             <div className="flex-1 overflow-x-auto scrollbar-hide">
@@ -1125,8 +1125,8 @@ const ExpensesPage = () => {
                   onClick={() => setSelectedCategoryTab('all')}
                   className={`px-4 py-2.5 rounded-lg text-sm font-semibold whitespace-nowrap transition-all duration-200 ${
                     selectedCategoryTab === 'all'
-                      ? 'bg-blue-50 text-blue-700 border-2 border-blue-400 shadow-sm'
-                      : 'bg-gray-50 text-gray-600 hover:bg-gray-100 border-2 border-transparent hover:border-gray-200'
+                      ? 'bg-card text-blue-700 border-2 border-blue-400 shadow-sm'
+                      : 'bg-card text-secondary hover:bg-gray-100 border-2 border-transparent hover:border-theme'
                   }`}
                 >
                   All Expenses <span className="font-normal">({expenses.length})</span>
@@ -1165,8 +1165,8 @@ const ExpensesPage = () => {
                       onClick={() => setSelectedCategoryTab(category._id)}
                       className={`px-4 py-2.5 rounded-lg text-sm font-semibold whitespace-nowrap transition-all duration-200 ${
                         selectedCategoryTab === category._id
-                          ? 'bg-blue-50 text-blue-700 border-2 border-blue-400 shadow-sm'
-                          : 'bg-gray-50 text-gray-600 hover:bg-gray-100 border-2 border-transparent hover:border-gray-200'
+                          ? 'bg-card text-blue-700 border-2 border-blue-400 shadow-sm'
+                          : 'bg-card text-secondary hover:bg-gray-100 border-2 border-transparent hover:border-theme'
                       }`}
                     >
                       {category.name} <span className="font-normal">({categoryExpenseCount})</span>
@@ -1180,7 +1180,7 @@ const ExpensesPage = () => {
             <div className="flex items-center gap-2 flex-shrink-0">
               <button
                 onClick={() => handleOpenTypeModal()}
-                className="px-4 py-2.5 text-sm font-medium text-gray-700 bg-white border border-gray-300 hover:bg-gray-50 hover:border-gray-400 rounded-lg transition-all duration-200 flex items-center gap-2 shadow-sm"
+                className="px-4 py-2.5 text-sm font-medium text-primary bg-card border border-gray-300 hover:bg-[rgba(255,255,255,0.03)] hover:border-gray-400 rounded-lg transition-all duration-200 flex items-center gap-2 shadow-sm"
                 title="Add Expense Type"
               >
                 <Plus size={16} />
@@ -1200,15 +1200,15 @@ const ExpensesPage = () => {
         </div>
 
         {/* Tabs */}
-        <div className="bg-white rounded-xl border border-gray-200 shadow-sm">
-          <div className="border-b border-gray-200">
+        <div className="bg-card rounded-xl border border-theme shadow-sm">
+          <div className="border-b border-theme">
             <div className="flex">
               <button
                 onClick={() => setActiveTab('list')}
                 className={`px-6 py-4 text-sm font-semibold transition-all duration-200 relative ${
                   activeTab === 'list'
-                    ? 'text-blue-600'
-                    : 'text-gray-500 hover:text-gray-700'
+                    ? 'text-[#00D1FF]'
+                    : 'text-secondary hover:text-primary'
                 }`}
               >
                 Expense List
@@ -1220,8 +1220,8 @@ const ExpensesPage = () => {
                 onClick={() => setActiveTab('create')}
                 className={`px-6 py-4 text-sm font-semibold transition-all duration-200 relative ${
                   activeTab === 'create'
-                    ? 'text-blue-600'
-                    : 'text-gray-500 hover:text-gray-700'
+                    ? 'text-[#00D1FF]'
+                    : 'text-secondary hover:text-primary'
                 }`}
               >
                 {editingExpense ? 'Edit Expense' : 'Add Expense'}
@@ -1239,7 +1239,7 @@ const ExpensesPage = () => {
                 <div className="flex items-center justify-between mb-6">
                   <div className="flex items-center gap-4">
                     <div className="flex items-center gap-2">
-                      <Filter size={20} className="text-gray-500" />
+                      <Filter size={20} className="text-secondary" />
                       <select
                         value={filterType}
                         onChange={(e) => setFilterType(e.target.value)}
@@ -1257,14 +1257,14 @@ const ExpensesPage = () => {
                 {/* Expense List */}
                 {loading ? (
                   <div className="text-center py-8">
-                    <p className="text-gray-500">Loading expenses...</p>
+                    <p className="text-secondary">Loading expenses...</p>
                   </div>
                 ) : (
                   <div className="space-y-4">
                     {filteredExpenses.map((expense) => (
                       <div 
                         key={expense._id} 
-                        className="border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow cursor-pointer"
+                        className="border border-theme rounded-lg p-4 hover:shadow-md transition-shadow cursor-pointer"
                         onClick={() => handleView(expense)}
                       >
                         <div className="flex items-center justify-between">
@@ -1278,12 +1278,12 @@ const ExpensesPage = () => {
                                 <span className={`px-2 py-1 rounded-full text-xs font-medium ${getTypeColor(getTypeName(expense))}`}>
                                   {getTypeName(expense)}
                                 </span>
-                                <span className="text-lg font-semibold text-gray-900">
+                                <span className="text-lg font-semibold text-primary">
                                   ${(expense.amount || 0).toLocaleString()}
                                 </span>
                               </div>
-                              <p className="text-gray-600 text-sm mb-1">{expense.description || 'No description'}</p>
-                              <div className="flex items-center gap-4 text-xs text-gray-500 flex-wrap">
+                              <p className="text-secondary text-sm mb-1">{expense.description || 'No description'}</p>
+                              <div className="flex items-center gap-4 text-xs text-secondary flex-wrap">
                                 <span className="flex items-center gap-1">
                                   <User size={12} />
                                   {getEmployeeName(expense.userId)}
@@ -1317,21 +1317,21 @@ const ExpensesPage = () => {
                           <div className="flex items-center gap-2" onClick={(e) => e.stopPropagation()}>
                             <button
                               onClick={() => handleView(expense)}
-                              className="p-2 text-gray-500 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
+                              className="p-2 text-secondary hover:text-[#00D1FF] hover:bg-blue-50 rounded-lg transition-colors"
                               title="View Details"
                             >
                               <Eye size={16} />
                             </button>
                             <button
                               onClick={() => handleEdit(expense)}
-                              className="p-2 text-gray-500 hover:text-green-600 hover:bg-green-50 rounded-lg transition-colors"
+                              className="p-2 text-secondary hover:text-green-600 hover:bg-green-50 rounded-lg transition-colors"
                               title="Edit Expense"
                             >
                               <Edit size={16} />
                             </button>
                             <button
                               onClick={() => handleDelete(expense._id)}
-                              className="p-2 text-gray-500 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                              className="p-2 text-secondary hover:text-[#A855F7] hover:bg-red-50 rounded-lg transition-colors"
                               title="Delete Expense"
                             >
                               <Trash2 size={16} />
@@ -1342,7 +1342,7 @@ const ExpensesPage = () => {
                     ))}
 
                     {filteredExpenses.length === 0 && (
-                      <div className="text-center py-8 text-gray-500">
+                      <div className="text-center py-8 text-secondary">
                         <FileText size={48} className="mx-auto mb-4 text-gray-300" />
                         <p>No expenses found for the selected filter.</p>
                       </div>
@@ -1361,7 +1361,7 @@ const ExpensesPage = () => {
                 <form onSubmit={handleSubmit} className="space-y-6">
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                      <label className="block text-sm font-medium text-primary mb-2">
                         Employee
                       </label>
                       <select
@@ -1380,7 +1380,7 @@ const ExpensesPage = () => {
                     </div>
 
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                      <label className="block text-sm font-medium text-primary mb-2">
                         Expense Category *
                       </label>
                       <select
@@ -1401,7 +1401,7 @@ const ExpensesPage = () => {
                   </div>
 
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                    <label className="block text-sm font-medium text-primary mb-2">
                       Expense Type *
                     </label>
                     <select
@@ -1434,7 +1434,7 @@ const ExpensesPage = () => {
                       ))}
                     </select>
                     {!formData.categoryId && (
-                      <p className="mt-1 text-xs text-gray-500">
+                      <p className="mt-1 text-xs text-secondary">
                         Please select an expense category first to see available types
                       </p>
                     )}
@@ -1442,7 +1442,7 @@ const ExpensesPage = () => {
 
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                      <label className="block text-sm font-medium text-primary mb-2">
                         Amount ($) *
                       </label>
                       <input
@@ -1459,7 +1459,7 @@ const ExpensesPage = () => {
                     </div>
 
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                      <label className="block text-sm font-medium text-primary mb-2">
                         Date *
                       </label>
                       <input
@@ -1474,7 +1474,7 @@ const ExpensesPage = () => {
                   </div>
 
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                    <label className="block text-sm font-medium text-primary mb-2">
                       Description
                     </label>
                     <textarea
@@ -1489,7 +1489,7 @@ const ExpensesPage = () => {
 
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                      <label className="block text-sm font-medium text-primary mb-2">
                         Select Truck
                       </label>
                       <select
@@ -1510,7 +1510,7 @@ const ExpensesPage = () => {
                     </div>
 
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                      <label className="block text-sm font-medium text-primary mb-2">
                         Select Trailer
                       </label>
                       <select
@@ -1532,11 +1532,11 @@ const ExpensesPage = () => {
                   </div>
 
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                    <label className="block text-sm font-medium text-primary mb-2">
                       Receipt Upload
                     </label>
                     <div className="border-2 border-dashed border-gray-300 rounded-lg p-4 text-center hover:border-blue-400 transition-colors">
-                      <Receipt className="mx-auto mb-2 text-gray-400" size={32} />
+                      <Receipt className="mx-auto mb-2 text-secondary" size={32} />
                       <input
                         type="file"
                         name="receiptFile"
@@ -1546,10 +1546,10 @@ const ExpensesPage = () => {
                         id="receipt-upload"
                       />
                       <label htmlFor="receipt-upload" className="cursor-pointer">
-                        <span className="text-blue-600 hover:text-blue-700">Click to upload</span>
-                        <span className="text-gray-500"> or drag and drop</span>
+                        <span className="text-[#00D1FF] hover:text-blue-700">Click to upload</span>
+                        <span className="text-secondary"> or drag and drop</span>
                       </label>
-                      <p className="text-xs text-gray-500 mt-1">PNG, JPG up to 10MB</p>
+                      <p className="text-xs text-secondary mt-1">PNG, JPG up to 10MB</p>
                       {formData.receiptFile && (
                         <div className="mt-3 space-y-2">
                           <p className="text-sm text-green-600">
@@ -1592,7 +1592,7 @@ const ExpensesPage = () => {
                       type="button"
                       onClick={handleCancel}
                       disabled={loading}
-                      className="text-gray-600 hover:text-gray-900 px-6 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors disabled:cursor-not-allowed"
+                      className="text-secondary hover:text-primary px-6 py-2 border border-gray-300 rounded-lg hover:bg-[rgba(255,255,255,0.03)] transition-colors disabled:cursor-not-allowed"
                     >
                       Cancel
                     </button>
@@ -1607,16 +1607,16 @@ const ExpensesPage = () => {
       {/* View Expense Modal */}
       {showViewModal && viewingExpense && (
         <div className="fixed inset-0 bg-gray-900/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-          <div className="bg-white rounded-xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
-            <div className="sticky top-0 bg-white border-b border-gray-200 px-6 py-4 flex items-center justify-between">
-              <h2 className="text-2xl font-bold text-gray-900">Expense Details</h2>
+          <div className="bg-card rounded-xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+            <div className="sticky top-0 bg-card border-b border-theme px-6 py-4 flex items-center justify-between">
+              <h2 className="text-2xl font-bold text-primary">Expense Details</h2>
               <button
                 onClick={() => {
                   setShowViewModal(false);
                   setViewingExpense(null);
                   setReceiptSignedUrl(null);
                 }}
-                className="text-gray-500 hover:text-gray-700 transition-colors"
+                className="text-secondary hover:text-primary transition-colors"
               >
                 <span className="text-2xl">&times;</span>
               </button>
@@ -1624,7 +1624,7 @@ const ExpensesPage = () => {
 
             <div className="p-6 space-y-6">
               {/* Expense Type and Amount */}
-              <div className="flex items-center justify-between pb-4 border-b border-gray-200">
+              <div className="flex items-center justify-between pb-4 border-b border-theme">
                 <div className="flex items-center gap-3 flex-wrap">
                   <div className="text-4xl">{getTypeIcon(getTypeName(viewingExpense))}</div>
                   <div className="flex items-center gap-2 flex-wrap">
@@ -1637,8 +1637,8 @@ const ExpensesPage = () => {
                   </div>
                 </div>
                 <div className="text-right">
-                  <p className="text-sm text-gray-600">Amount</p>
-                  <p className="text-3xl font-bold text-gray-900">
+                  <p className="text-sm text-secondary">Amount</p>
+                  <p className="text-3xl font-bold text-primary">
                     ${(viewingExpense.amount || 0).toLocaleString()}
                   </p>
                 </div>
@@ -1646,25 +1646,25 @@ const ExpensesPage = () => {
 
               {/* Employee Information */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="bg-gray-50 p-4 rounded-lg">
+                <div className="bg-card p-4 rounded-lg">
                   <div className="flex items-center gap-2 mb-2">
-                    <User size={18} className="text-gray-500" />
-                    <p className="text-sm font-medium text-gray-600">Employee</p>
+                    <User size={18} className="text-secondary" />
+                    <p className="text-sm font-medium text-secondary">Employee</p>
                   </div>
-                  <p className="text-lg font-semibold text-gray-900">
+                  <p className="text-lg font-semibold text-primary">
                     {getEmployeeName(viewingExpense.userId)}
                   </p>
                   {getEmployeeRole(viewingExpense.userId) && (
-                    <p className="text-sm text-gray-500 mt-1">{getEmployeeRole(viewingExpense.userId)}</p>
+                    <p className="text-sm text-secondary mt-1">{getEmployeeRole(viewingExpense.userId)}</p>
                   )}
                 </div>
 
-                <div className="bg-gray-50 p-4 rounded-lg">
+                <div className="bg-card p-4 rounded-lg">
                   <div className="flex items-center gap-2 mb-2">
-                    <Calendar size={18} className="text-gray-500" />
-                    <p className="text-sm font-medium text-gray-600">Date</p>
+                    <Calendar size={18} className="text-secondary" />
+                    <p className="text-sm font-medium text-secondary">Date</p>
                   </div>
-                  <p className="text-lg font-semibold text-gray-900">
+                  <p className="text-lg font-semibold text-primary">
                     {viewingExpense.date
                       ? new Date(viewingExpense.date).toLocaleDateString('en-US', {
                         year: 'numeric',
@@ -1680,36 +1680,36 @@ const ExpensesPage = () => {
               {(viewingExpense.vehicle || viewingExpense.trailer || (viewingExpense as any).truckId || (viewingExpense as any).trailerId) && (
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   {viewingExpense.vehicle && (
-                    <div className="bg-gray-50 p-4 rounded-lg">
+                    <div className="bg-card p-4 rounded-lg">
                       <div className="flex items-center gap-2 mb-2">
-                        <Truck size={18} className="text-gray-500" />
-                        <p className="text-sm font-medium text-gray-600">Vehicle</p>
+                        <Truck size={18} className="text-secondary" />
+                        <p className="text-sm font-medium text-secondary">Vehicle</p>
                       </div>
-                      <p className="text-lg font-semibold text-gray-900">
+                      <p className="text-lg font-semibold text-primary">
                         {typeof viewingExpense.vehicle === 'object' && viewingExpense.vehicle !== null
                           ? (viewingExpense.vehicle as any).unitNo || (viewingExpense.vehicle as any).unitNumber || (viewingExpense.vehicle as any).internalId || (viewingExpense.vehicle as any).licensePlate || (viewingExpense.vehicle as any).plateNumber || 'Vehicle'
                           : 'Vehicle'}
                       </p>
                       {typeof viewingExpense.vehicle === 'object' && viewingExpense.vehicle !== null && (
-                        <p className="text-sm text-gray-500 mt-1">
+                        <p className="text-sm text-secondary mt-1">
                           {[(viewingExpense.vehicle as any).make, (viewingExpense.vehicle as any).model].filter(Boolean).join(' ') || 'No details'}
                         </p>
                       )}
                     </div>
                   )}
                   {viewingExpense.trailer && (
-                    <div className="bg-gray-50 p-4 rounded-lg">
+                    <div className="bg-card p-4 rounded-lg">
                       <div className="flex items-center gap-2 mb-2">
-                        <Package size={18} className="text-gray-500" />
-                        <p className="text-sm font-medium text-gray-600">Trailer</p>
+                        <Package size={18} className="text-secondary" />
+                        <p className="text-sm font-medium text-secondary">Trailer</p>
                       </div>
-                      <p className="text-lg font-semibold text-gray-900">
+                      <p className="text-lg font-semibold text-primary">
                         {typeof viewingExpense.trailer === 'object' && viewingExpense.trailer !== null
                           ? (viewingExpense.trailer as any).unitNo || (viewingExpense.trailer as any).unitNumber || (viewingExpense.trailer as any).internalId || (viewingExpense.trailer as any).licensePlate || (viewingExpense.trailer as any).plateNumber || 'Trailer'
                           : 'Trailer'}
                       </p>
                       {typeof viewingExpense.trailer === 'object' && viewingExpense.trailer !== null && (
-                        <p className="text-sm text-gray-500 mt-1">
+                        <p className="text-sm text-secondary mt-1">
                           {[(viewingExpense.trailer as any).make, (viewingExpense.trailer as any).model].filter(Boolean).join(' ') || 'No details'}
                         </p>
                       )}
@@ -1722,10 +1722,10 @@ const ExpensesPage = () => {
               {viewingExpense.description && (
                 <div>
                   <div className="flex items-center gap-2 mb-2">
-                    <FileText size={18} className="text-gray-500" />
-                    <p className="text-sm font-medium text-gray-600">Description</p>
+                    <FileText size={18} className="text-secondary" />
+                    <p className="text-sm font-medium text-secondary">Description</p>
                   </div>
-                  <p className="text-gray-900 bg-gray-50 p-4 rounded-lg">
+                  <p className="text-primary bg-card p-4 rounded-lg">
                     {viewingExpense.description}
                   </p>
                 </div>
@@ -1735,24 +1735,24 @@ const ExpensesPage = () => {
               {viewingExpense.receiptUrl && (
                 <div>
                   <div className="flex items-center gap-2 mb-3">
-                    <Receipt size={18} className="text-gray-500" />
-                    <p className="text-sm font-medium text-gray-600">Receipt</p>
+                    <Receipt size={18} className="text-secondary" />
+                    <p className="text-sm font-medium text-secondary">Receipt</p>
                   </div>
-                  <div className="bg-gray-50 p-4 rounded-lg">
+                  <div className="bg-card p-4 rounded-lg">
                     {loadingReceiptUrl ? (
                       <div className="text-center py-4">
-                        <p className="text-gray-600">Loading receipt...</p>
+                        <p className="text-secondary">Loading receipt...</p>
                       </div>
                     ) : receiptSignedUrl ? (
                       <>
                         <div className="flex items-center gap-4">
                           <div className="flex-1">
-                            <p className="text-sm text-gray-600 mb-1">Receipt Available</p>
+                            <p className="text-sm text-secondary mb-1">Receipt Available</p>
                             <a
                               href={receiptSignedUrl}
                               target="_blank"
                               rel="noopener noreferrer"
-                              className="text-blue-600 hover:text-blue-800 underline text-sm"
+                              className="text-[#00D1FF] hover:text-blue-800 underline text-sm"
                             >
                               View Receipt
                             </a>
@@ -1773,7 +1773,7 @@ const ExpensesPage = () => {
                             <img
                               src={receiptSignedUrl}
                               alt="Receipt"
-                              className="max-w-full h-auto rounded-lg border border-gray-200"
+                              className="max-w-full h-auto rounded-lg border border-theme"
                               onError={(e) => {
                                 e.currentTarget.style.display = 'none';
                               }}
@@ -1783,7 +1783,7 @@ const ExpensesPage = () => {
                       </>
                     ) : (
                       <div className="text-center py-4">
-                        <p className="text-gray-600">Failed to load receipt URL</p>
+                        <p className="text-secondary">Failed to load receipt URL</p>
                       </div>
                     )}
                   </div>
@@ -1791,10 +1791,10 @@ const ExpensesPage = () => {
               )}
 
               {/* Timestamps */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-4 border-t border-gray-200">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-4 border-t border-theme">
                 <div>
-                  <p className="text-xs text-gray-500 mb-1">Created At</p>
-                  <p className="text-sm text-gray-900">
+                  <p className="text-xs text-secondary mb-1">Created At</p>
+                  <p className="text-sm text-primary">
                     {(() => {
                       const createdAt = viewingExpense.createdAt || (viewingExpense as any).createdAt;
                       if (!createdAt) return 'N/A';
@@ -1813,8 +1813,8 @@ const ExpensesPage = () => {
                   </p>
                 </div>
                 <div>
-                  <p className="text-xs text-gray-500 mb-1">Last Updated</p>
-                  <p className="text-sm text-gray-900">
+                  <p className="text-xs text-secondary mb-1">Last Updated</p>
+                  <p className="text-sm text-primary">
                     {(() => {
                       const updatedAt = viewingExpense.updatedAt || (viewingExpense as any).updatedAt;
                       const createdAt = viewingExpense.createdAt || (viewingExpense as any).createdAt;
@@ -1839,7 +1839,7 @@ const ExpensesPage = () => {
             </div>
 
             {/* Modal Footer */}
-            <div className="sticky bottom-0 bg-gray-50 border-t border-gray-200 px-6 py-4 flex items-center justify-end gap-3">
+            <div className="sticky bottom-0 bg-card border-t border-theme px-6 py-4 flex items-center justify-end gap-3">
               <button
                 onClick={() => {
                   handleEdit(viewingExpense);
@@ -1861,7 +1861,7 @@ const ExpensesPage = () => {
                   setViewingExpense(null);
                   setReceiptSignedUrl(null);
                 }}
-                className="text-gray-600 hover:text-gray-900 px-6 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
+                className="text-secondary hover:text-primary px-6 py-2 border border-gray-300 rounded-lg hover:bg-[rgba(255,255,255,0.03)] transition-colors"
               >
                 Close
               </button>
@@ -1896,14 +1896,14 @@ const ExpensesPage = () => {
       {/* Category Management Modal */}
       {showCategoryModal && (
         <div className="fixed inset-0 bg-gray-900/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-          <div className="bg-white rounded-2xl shadow-2xl max-w-2xl w-full max-h-[90vh] flex flex-col">
+          <div className="bg-card rounded-2xl shadow-2xl max-w-2xl w-full max-h-[90vh] flex flex-col">
             {/* Header */}
-            <div className="sticky top-0 bg-white border-b border-gray-200 px-6 py-5 rounded-t-2xl flex items-center justify-between z-10">
+            <div className="sticky top-0 bg-card border-b border-theme px-6 py-5 rounded-t-2xl flex items-center justify-between z-10">
               <div>
-                <h2 className="text-2xl font-bold text-gray-900">
+                <h2 className="text-2xl font-bold text-primary">
                   {editingCategory ? 'Edit Category' : 'Add New Category'}
                 </h2>
-                <p className="text-sm text-gray-500 mt-1">
+                <p className="text-sm text-secondary mt-1">
                   {editingCategory ? 'Update category details' : 'Create a new expense category'}
                 </p>
               </div>
@@ -1913,7 +1913,7 @@ const ExpensesPage = () => {
                   setEditingCategory(null);
                   setCategoryFormData({ name: '', status: 'active' });
                 }}
-                className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg transition-colors"
+                className="p-2 text-secondary hover:text-secondary hover:bg-gray-100 rounded-lg transition-colors"
               >
                 <X size={20} />
               </button>
@@ -1923,9 +1923,9 @@ const ExpensesPage = () => {
             <div className="flex-1 overflow-y-auto p-6">
               <div className="space-y-6">
                 {/* Form Section */}
-                <div className="bg-gray-50 rounded-xl p-5 space-y-4">
+                <div className="bg-card rounded-xl p-5 space-y-4">
                   <div>
-                    <label className="block text-sm font-semibold text-gray-700 mb-2">
+                    <label className="block text-sm font-semibold text-primary mb-2">
                       Category Name <span className="text-red-500">*</span>
                     </label>
                     <input
@@ -1944,20 +1944,20 @@ const ExpensesPage = () => {
                 {/* Categories List */}
                 <div>
                   <div className="flex items-center justify-between mb-4">
-                    <h3 className="text-lg font-semibold text-gray-900">Existing Categories</h3>
-                    <span className="text-sm text-gray-500">{categories.length} {categories.length === 1 ? 'category' : 'categories'}</span>
+                    <h3 className="text-lg font-semibold text-primary">Existing Categories</h3>
+                    <span className="text-sm text-secondary">{categories.length} {categories.length === 1 ? 'category' : 'categories'}</span>
                   </div>
                   <div className="space-y-2 max-h-64 overflow-y-auto pr-2">
                     {categories.map((category) => (
                       <div
                         key={category._id}
-                        className="flex items-center justify-between p-4 bg-white border border-gray-200 rounded-lg hover:border-gray-300 hover:shadow-sm transition-all"
+                        className="flex items-center justify-between p-4 bg-card border border-theme rounded-lg hover:border-gray-300 hover:shadow-sm transition-all"
                       >
                         <div className="flex-1">
-                          <p className="text-sm font-semibold text-gray-900">{category.name}</p>
+                          <p className="text-sm font-semibold text-primary">{category.name}</p>
                           <div className="flex items-center gap-2 mt-1">
                            
-                            <span className="text-xs text-gray-500">
+                            <span className="text-xs text-secondary">
                               {expenses.filter(e => e.categoryId === category._id || e.category?._id === category._id).length} expenses
                             </span>
                           </div>
@@ -1965,14 +1965,14 @@ const ExpensesPage = () => {
                         <div className="flex items-center gap-2">
                           <button
                             onClick={() => handleOpenCategoryModal(category)}
-                            className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
+                            className="p-2 text-[#00D1FF] hover:bg-blue-50 rounded-lg transition-colors"
                             title="Edit Category"
                           >
                             <Edit size={18} />
                           </button>
                           <button
                             onClick={() => setDeleteCategoryConfirm({ show: true, category })}
-                            className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                            className="p-2 text-[#A855F7] hover:bg-red-50 rounded-lg transition-colors"
                             title="Delete Category"
                           >
                             <Trash2 size={18} />
@@ -1981,10 +1981,10 @@ const ExpensesPage = () => {
                       </div>
                     ))}
                     {categories.length === 0 && (
-                      <div className="text-center py-8 bg-gray-50 rounded-lg border-2 border-dashed border-gray-300">
-                        <FileText className="mx-auto mb-2 text-gray-400" size={32} />
-                        <p className="text-sm text-gray-500">No categories yet</p>
-                        <p className="text-xs text-gray-400 mt-1">Create your first category above</p>
+                      <div className="text-center py-8 bg-card rounded-lg border-2 border-dashed border-gray-300">
+                        <FileText className="mx-auto mb-2 text-secondary" size={32} />
+                        <p className="text-sm text-secondary">No categories yet</p>
+                        <p className="text-xs text-secondary mt-1">Create your first category above</p>
                       </div>
                     )}
                   </div>
@@ -1993,14 +1993,14 @@ const ExpensesPage = () => {
             </div>
 
             {/* Footer */}
-            <div className="sticky bottom-0 bg-gray-50 border-t border-gray-200 px-6 py-4 rounded-b-2xl flex items-center justify-end gap-3">
+            <div className="sticky bottom-0 bg-card border-t border-theme px-6 py-4 rounded-b-2xl flex items-center justify-end gap-3">
               <button
                 onClick={() => {
                   setShowCategoryModal(false);
                   setEditingCategory(null);
                   setCategoryFormData({ name: '', status: 'active' });
                 }}
-                className="px-5 py-2.5 text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors font-medium"
+                className="px-5 py-2.5 text-primary bg-card border border-gray-300 rounded-lg hover:bg-[rgba(255,255,255,0.03)] transition-colors font-medium"
                 disabled={savingCategory}
               >
                 Cancel
@@ -2021,14 +2021,14 @@ const ExpensesPage = () => {
       {/* Expense Type Management Modal */}
       {showTypeModal && (
         <div className="fixed inset-0 bg-gray-900/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-          <div className="bg-white rounded-2xl shadow-2xl max-w-2xl w-full max-h-[90vh] flex flex-col">
+          <div className="bg-card rounded-2xl shadow-2xl max-w-2xl w-full max-h-[90vh] flex flex-col">
             {/* Header */}
-            <div className="sticky top-0 bg-white border-b border-gray-200 px-6 py-5 rounded-t-2xl flex items-center justify-between z-10">
+            <div className="sticky top-0 bg-card border-b border-theme px-6 py-5 rounded-t-2xl flex items-center justify-between z-10">
               <div>
-                <h2 className="text-2xl font-bold text-gray-900">
+                <h2 className="text-2xl font-bold text-primary">
                   {editingType ? 'Edit Expense Type' : 'Add New Expense Type'}
                 </h2>
-                <p className="text-sm text-gray-500 mt-1">
+                <p className="text-sm text-secondary mt-1">
                   {editingType ? 'Update expense type details' : 'Create a new expense type under a category'}
                 </p>
               </div>
@@ -2038,7 +2038,7 @@ const ExpensesPage = () => {
                   setEditingType(null);
                   setTypeFormData({ name: '', categoryId: '', status: 'active' });
                 }}
-                className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg transition-colors"
+                className="p-2 text-secondary hover:text-secondary hover:bg-gray-100 rounded-lg transition-colors"
               >
                 <X size={20} />
               </button>
@@ -2048,9 +2048,9 @@ const ExpensesPage = () => {
             <div className="flex-1 overflow-y-auto p-6">
               <div className="space-y-6">
                 {/* Form Section */}
-                <div className="bg-gray-50 rounded-xl p-5 space-y-4">
+                <div className="bg-card rounded-xl p-5 space-y-4">
                   <div>
-                    <label className="block text-sm font-semibold text-gray-700 mb-2">
+                    <label className="block text-sm font-semibold text-primary mb-2">
                       Category <span className="text-red-500">*</span>
                     </label>
                     <select
@@ -2076,12 +2076,12 @@ const ExpensesPage = () => {
                       ))}
                     </select>
                     {!typeFormData.categoryId && (
-                      <p className="text-xs text-gray-500 mt-1.5">Please select a category first to see existing types</p>
+                      <p className="text-xs text-secondary mt-1.5">Please select a category first to see existing types</p>
                     )}
                   </div>
 
                   <div>
-                    <label className="block text-sm font-semibold text-gray-700 mb-2">
+                    <label className="block text-sm font-semibold text-primary mb-2">
                       Expense Type Name <span className="text-red-500">*</span>
                     </label>
                     <input
@@ -2095,7 +2095,7 @@ const ExpensesPage = () => {
                   </div>
 
                   <div>
-                    <label className="block text-sm font-semibold text-gray-700 mb-2">
+                    <label className="block text-sm font-semibold text-primary mb-2">
                       Status
                     </label>
                     <select
@@ -2113,14 +2113,14 @@ const ExpensesPage = () => {
                 {typeFormData.categoryId && (
                   <div>
                     <div className="flex items-center justify-between mb-4">
-                      <h3 className="text-lg font-semibold text-gray-900">
+                      <h3 className="text-lg font-semibold text-primary">
                         Types in {categories.find(c => {
                           const catId = c._id?.toString() || c._id || '';
                           const formCatId = typeFormData.categoryId?.toString() || typeFormData.categoryId || '';
                           return catId === formCatId;
                         })?.name || 'Selected Category'}
                       </h3>
-                      <span className="text-sm text-gray-500">
+                      <span className="text-sm text-secondary">
                         {expenseTypes.filter(type => {
                           const typeCategoryId = type.categoryId?.toString() || type.categoryId || '';
                           const formCategoryId = typeFormData.categoryId?.toString() || typeFormData.categoryId || '';
@@ -2142,15 +2142,15 @@ const ExpensesPage = () => {
                         .map((type) => (
                           <div
                             key={type._id}
-                            className="flex items-center justify-between p-4 bg-white border border-gray-200 rounded-lg hover:border-gray-300 hover:shadow-sm transition-all"
+                            className="flex items-center justify-between p-4 bg-card border border-theme rounded-lg hover:border-gray-300 hover:shadow-sm transition-all"
                           >
                             <div className="flex-1">
                               <div className="flex items-center gap-2">
-                                <p className="text-sm font-semibold text-gray-900">{type.name}</p>
+                                <p className="text-sm font-semibold text-primary">{type.name}</p>
                                 <span className={`px-2 py-0.5 text-xs rounded-full ${
                                   type.status === 'active' 
                                     ? 'bg-green-100 text-green-700' 
-                                    : 'bg-gray-100 text-gray-600'
+                                    : 'bg-gray-100 text-secondary'
                                 }`}>
                                   {type.status === 'active' ? 'Active' : 'Inactive'}
                                 </span>
@@ -2159,14 +2159,14 @@ const ExpensesPage = () => {
                             <div className="flex items-center gap-2">
                               <button
                                 onClick={() => handleOpenTypeModal(type)}
-                                className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
+                                className="p-2 text-[#00D1FF] hover:bg-blue-50 rounded-lg transition-colors"
                                 title="Edit Type"
                               >
                                 <Edit size={18} />
                               </button>
                               <button
                                 onClick={() => setDeleteTypeConfirm({ show: true, type })}
-                                className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                                className="p-2 text-[#A855F7] hover:bg-red-50 rounded-lg transition-colors"
                                 title="Delete Type"
                               >
                                 <Trash2 size={18} />
@@ -2179,10 +2179,10 @@ const ExpensesPage = () => {
                         const formCategoryId = typeFormData.categoryId?.toString() || typeFormData.categoryId || '';
                         return typeCategoryId === formCategoryId;
                       }).length === 0 && (
-                        <div className="text-center py-8 bg-gray-50 rounded-lg border-2 border-dashed border-gray-300">
-                          <FileText className="mx-auto mb-2 text-gray-400" size={32} />
-                          <p className="text-sm text-gray-500">No types in this category yet</p>
-                          <p className="text-xs text-gray-400 mt-1">Create your first type above</p>
+                        <div className="text-center py-8 bg-card rounded-lg border-2 border-dashed border-gray-300">
+                          <FileText className="mx-auto mb-2 text-secondary" size={32} />
+                          <p className="text-sm text-secondary">No types in this category yet</p>
+                          <p className="text-xs text-secondary mt-1">Create your first type above</p>
                         </div>
                       )}
                     </div>
@@ -2192,14 +2192,14 @@ const ExpensesPage = () => {
             </div>
 
             {/* Footer */}
-            <div className="sticky bottom-0 bg-gray-50 border-t border-gray-200 px-6 py-4 rounded-b-2xl flex items-center justify-end gap-3">
+            <div className="sticky bottom-0 bg-card border-t border-theme px-6 py-4 rounded-b-2xl flex items-center justify-end gap-3">
               <button
                 onClick={() => {
                   setShowTypeModal(false);
                   setEditingType(null);
                   setTypeFormData({ name: '', categoryId: '', status: 'active' });
                 }}
-                className="px-5 py-2.5 text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors font-medium"
+                className="px-5 py-2.5 text-primary bg-card border border-gray-300 rounded-lg hover:bg-[rgba(255,255,255,0.03)] transition-colors font-medium"
                 disabled={savingType}
               >
                 Cancel

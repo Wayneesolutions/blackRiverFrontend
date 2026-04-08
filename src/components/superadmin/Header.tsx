@@ -127,7 +127,7 @@ const Header = () => {
     };
 
     return (
-        <header className="flex items-center justify-between px-6 py-4 bg-white shadow-sm border-b border-gray-200 relative">
+        <header className="flex items-center justify-between px-6 py-4 bg-card shadow-sm border-b border-theme relative">
             {/* Left side */}
             <div className="flex items-center gap-2">
                 <button
@@ -135,20 +135,20 @@ const Header = () => {
                     className="p-2 rounded-full hover:bg-gray-100 transition-colors"
                     title="Previous"
                 >
-                    <ArrowLeft className="w-4 h-4 text-gray-600" />
+                    <ArrowLeft className="w-4 h-4 text-secondary" />
                 </button>
                 <button
                     onClick={() => navigate(1)}
                     className="p-2 rounded-full hover:bg-gray-100 transition-colors"
                     title="Next"
                 >
-                    <ArrowRight className="w-4 h-4 text-gray-600" />
+                    <ArrowRight className="w-4 h-4 text-secondary" />
                 </button>
             </div>
 
             {pageTitle && (
                 <div className="absolute left-1/2 -translate-x-1/2 pointer-events-none">
-                    <span className="text-gray-800 font-semibold text-lg tracking-wide">{pageTitle}</span>
+                    <span className="text-primary font-semibold text-lg tracking-wide">{pageTitle}</span>
                 </div>
             )}
 
@@ -160,7 +160,7 @@ const Header = () => {
                     onClick={() => setIsSearchOpen(true)}
                     className="p-2 rounded-full hover:bg-gray-100 transition-colors"
                 >
-                    <Search className="w-5 h-5 text-gray-600" />
+                    <Search className="w-5 h-5 text-secondary" />
                 </button>
 
                 <div className="relative" ref={dropdownRef}>
@@ -169,7 +169,7 @@ const Header = () => {
                         className="p-2 rounded-full hover:bg-gray-100 transition-colors"
                         aria-label="User menu"
                     >
-                        <FaUserCircle className="w-6 h-6 text-gray-600 cursor-pointer" />
+                        <FaUserCircle className="w-6 h-6 text-secondary cursor-pointer" />
                     </button>
 
                     {/* User Dropdown */}
@@ -181,15 +181,15 @@ const Header = () => {
                                 onClick={() => setIsUserDropdownOpen(false)}
                             />
                             <div
-                                className="absolute right-0 mt-2 w-56 bg-white rounded-lg shadow-xl border border-gray-200 z-[9999]"
+                                className="absolute right-0 mt-2 w-56 bg-card rounded-lg shadow-xl border border-theme z-[9999]"
                                 onClick={(e) => e.stopPropagation()}
                             >
                                 {/* User Info */}
-                                <div className="px-4 py-3 border-b border-gray-200 bg-gradient-to-r from-purple-50 to-blue-50">
-                                    <p className="text-sm font-semibold text-gray-900 capitalize">
+                                <div className="px-4 py-3 border-b border-theme bg-gradient-to-r from-purple-50 to-blue-50">
+                                    <p className="text-sm font-semibold text-primary capitalize">
                                         {superAdminInfo?.userData?.name || 'SuperAdmin'}
                                     </p>
-                                    <p className="text-xs text-gray-500 truncate mt-0.5">
+                                    <p className="text-xs text-secondary truncate mt-0.5">
                                         {superAdminInfo?.userData?.email || 'superadmin@test.com'}
                                     </p>
                                 </div>
@@ -198,22 +198,22 @@ const Header = () => {
                                 <div className="py-1">
                                     <button
                                         onClick={handleProfileClick}
-                                        className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 transition-colors text-left"
+                                        className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-primary hover:bg-[rgba(255,255,255,0.03)] transition-colors text-left"
                                     >
                                         <FaUser className="w-4 h-4" />
                                         Profile
                                     </button>
                                     <button
                                         onClick={handleSettingsClick}
-                                        className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 transition-colors text-left"
+                                        className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-primary hover:bg-[rgba(255,255,255,0.03)] transition-colors text-left"
                                     >
                                         <FaCog className="w-4 h-4" />
                                         Settings
                                     </button>
-                                    <div className="border-t border-gray-200 my-1"></div>
+                                    <div className="border-t border-theme my-1"></div>
                                     <button
                                         onClick={handleLogout}
-                                        className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-red-600 hover:bg-red-50 transition-colors text-left"
+                                        className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-[#A855F7] hover:bg-red-50 transition-colors text-left"
                                     >
                                         <FaSignOutAlt className="w-4 h-4" />
                                         Logout
@@ -230,12 +230,12 @@ const Header = () => {
                 <div className="fixed inset-0 z-[100] flex items-start justify-center pt-20 bg-black/30 backdrop-blur-sm">
                     <div
                         ref={searchRef}
-                        className="bg-white rounded-lg shadow-2xl w-full max-w-2xl mx-4"
+                        className="bg-card rounded-lg shadow-2xl w-full max-w-2xl mx-4"
                     >
-                        <form onSubmit={handleSearchSubmit} className="p-4 border-b border-gray-200">
+                        <form onSubmit={handleSearchSubmit} className="p-4 border-b border-theme">
                             <div className="relative">
                                 <div className="absolute left-4 top-1/2 transform -translate-y-1/2">
-                                    <Search className="text-gray-400" size={20} />
+                                    <Search className="text-secondary" size={20} />
                                 </div>
                                 <input
                                     ref={inputRef}
@@ -255,7 +255,7 @@ const Header = () => {
                                     }}
                                     className="absolute right-4 top-1/2 transform -translate-y-1/2 p-1 hover:bg-gray-100 rounded-full transition-colors"
                                 >
-                                    <X className="text-gray-400" size={20} />
+                                    <X className="text-secondary" size={20} />
                                 </button>
                             </div>
                         </form>
@@ -268,21 +268,21 @@ const Header = () => {
                                             key={action.id}
                                             onClick={() => handleActionSelect(action)}
                                             className={`w-full flex items-center gap-3 px-4 py-3 hover:bg-blue-50 transition-all duration-150 border-l-2 ${index === selectedIndex
-                                                ? 'bg-blue-50 border-blue-500'
+                                                ? 'bg-card border-blue-500'
                                                 : 'border-transparent hover:border-blue-300'
                                                 }`}
                                         >
                                             <div className={`flex-shrink-0 ${index === selectedIndex ? 'scale-110' : ''} transition-transform`}>
                                                 <div className={`p-2 rounded-lg ${action.type === 'create' ? 'bg-green-100 text-green-700' :
                                                     action.type === 'navigation' ? 'bg-blue-100 text-blue-700' :
-                                                        'bg-gray-100 text-gray-700'
+                                                        'bg-gray-100 text-primary'
                                                     }`}>
                                                     {action.icon}
                                                 </div>
                                             </div>
                                             <div className="flex-1 text-left min-w-0">
                                                 <div className="flex items-center gap-2">
-                                                    <span className="font-semibold text-gray-900 truncate">{action.title}</span>
+                                                    <span className="font-semibold text-primary truncate">{action.title}</span>
                                                     {action.type === 'create' && (
                                                         <span className="text-xs bg-green-100 text-green-700 px-2 py-0.5 rounded-full font-medium flex-shrink-0">
                                                             New
@@ -294,22 +294,22 @@ const Header = () => {
                                                         </span>
                                                     )}
                                                 </div>
-                                                <p className="text-sm text-gray-500 mt-0.5 truncate">
+                                                <p className="text-sm text-secondary mt-0.5 truncate">
                                                     {action.description}
                                                 </p>
                                             </div>
                                             <ArrowRight
                                                 className={`flex-shrink-0 transition-all ${index === selectedIndex
-                                                    ? 'text-blue-600 opacity-100 translate-x-0'
-                                                    : 'text-gray-400 opacity-0 -translate-x-1'
+                                                    ? 'text-[#00D1FF] opacity-100 translate-x-0'
+                                                    : 'text-secondary opacity-0 -translate-x-1'
                                                     }`}
                                                 size={18}
                                             />
                                         </button>
                                     ))}
                                 </div>
-                                <div className="border-t border-gray-200 px-4 py-2 bg-gray-50">
-                                    <p className="text-xs text-gray-500 text-center">
+                                <div className="border-t border-theme px-4 py-2 bg-card">
+                                    <p className="text-xs text-secondary text-center">
                                         {filteredActions.length} result{filteredActions.length !== 1 ? 's' : ''} • Use ↑↓ to navigate, Enter to select
                                     </p>
                                 </div>
@@ -318,7 +318,7 @@ const Header = () => {
 
                         {searchQuery.trim() !== "" && filteredActions.length === 0 && (
                             <div className="p-8">
-                                <p className="text-sm text-gray-500 text-center">
+                                <p className="text-sm text-secondary text-center">
                                     No actions found for "{searchQuery}"
                                 </p>
                             </div>
@@ -326,7 +326,7 @@ const Header = () => {
 
                         {searchQuery.trim() === "" && (
                             <div className="p-8">
-                                <p className="text-sm text-gray-500 text-center">
+                                <p className="text-sm text-secondary text-center">
                                     Type to search for actions, pages, or create new items
                                 </p>
                             </div>

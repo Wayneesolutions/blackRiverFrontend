@@ -523,21 +523,21 @@ const AdminHRTrainingView: React.FC = () => {
 
   if (loading) {
     return (
-      <div className="p-6 bg-[#EDF8FF] min-h-screen flex items-center justify-center">
+      <div className="p-6 bg-main min-h-screen flex items-center justify-center">
         <div className="text-center">
           <Loader2 className="w-8 h-8 animate-spin text-[#0ea3d8] mx-auto mb-4" />
-          <p className="text-gray-600">Loading training content...</p>
+          <p className="text-secondary">Loading training content...</p>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="p-6 bg-[#EDF8FF] min-h-screen">
+    <div className="p-6 bg-main min-h-screen">
       <div className="max-w-7xl mx-auto">
         <div className="mb-6">
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">HR Training Content</h1>
-          <p className="text-gray-600">
+          <h1 className="text-3xl font-bold text-primary mb-2">HR Training Content</h1>
+          <p className="text-secondary">
             View all training materials and Q&A content managed by HR
           </p>
         </div>
@@ -545,10 +545,10 @@ const AdminHRTrainingView: React.FC = () => {
         <div className="flex gap-6">
           {/* Quiz Results Sidebar - HR Users Only */}
           <div className="w-64 flex-shrink-0">
-            <div className="bg-white rounded-lg shadow-sm">
-              <div className="p-4 border-b border-gray-200">
-                <h2 className="font-semibold text-gray-900">Quiz Results</h2>
-                <p className="text-xs text-gray-500 mt-1">HR Users Only</p>
+            <div className="bg-card rounded-lg shadow-sm">
+              <div className="p-4 border-b border-theme">
+                <h2 className="font-semibold text-primary">Quiz Results</h2>
+                <p className="text-xs text-secondary mt-1">HR Users Only</p>
               </div>
               <div className="p-4 space-y-3">
                 {(() => {
@@ -584,10 +584,10 @@ const AdminHRTrainingView: React.FC = () => {
                   ).size;
 
                   return (
-                    <div className="rounded-lg border-2 transition-all border-gray-200 bg-gray-50 hover:border-gray-300">
+                    <div className="rounded-lg border-2 transition-all border-theme bg-card hover:border-gray-300">
                       <div className="p-3">
                         <div className="flex items-center justify-between mb-2">
-                          <span className="text-sm font-semibold text-gray-900">HR</span>
+                          <span className="text-sm font-semibold text-primary">HR</span>
                           {avgScore > 0 && (
                             <div className={`px-2 py-0.5 rounded-full text-xs font-bold ${
                               avgScore >= 0.9 ? 'bg-green-100 text-green-700' : 
@@ -599,16 +599,16 @@ const AdminHRTrainingView: React.FC = () => {
                           )}
                         </div>
                         <div className="space-y-1.5">
-                          <div className="flex items-center gap-2 text-xs text-gray-600">
+                          <div className="flex items-center gap-2 text-xs text-secondary">
                             <User className="w-3.5 h-3.5" />
                             <span>{roleUsers.length} user{roleUsers.length !== 1 ? 's' : ''}</span>
                           </div>
-                          <div className="flex items-center gap-2 text-xs text-gray-600">
+                          <div className="flex items-center gap-2 text-xs text-secondary">
                             <Award className="w-3.5 h-3.5" />
                             <span>{totalCompletions} total completion{totalCompletions !== 1 ? 's' : ''}</span>
                           </div>
                           {uniqueUsersCompleted > 0 && (
-                            <div className="flex items-center gap-2 text-xs text-gray-600">
+                            <div className="flex items-center gap-2 text-xs text-secondary">
                               <CheckCircle className="w-3.5 h-3.5" />
                               <span>{uniqueUsersCompleted} user{uniqueUsersCompleted !== 1 ? 's' : ''} completed</span>
                             </div>
@@ -628,7 +628,7 @@ const AdminHRTrainingView: React.FC = () => {
                         {/* Dropdown Toggle Button */}
                         <button
                           onClick={() => setOpenDropdown(isDropdownOpen ? null : 'hr')}
-                          className="w-full mt-3 flex items-center justify-between px-2 py-1.5 text-xs font-medium text-gray-700 bg-white rounded border border-gray-300 hover:bg-gray-50 transition-colors"
+                          className="w-full mt-3 flex items-center justify-between px-2 py-1.5 text-xs font-medium text-primary bg-card rounded border border-gray-300 hover:bg-[rgba(255,255,255,0.03)] transition-colors"
                         >
                           <span>View Users ({roleUsers.length})</span>
                           <ChevronDown className={`w-3.5 h-3.5 transition-transform ${isDropdownOpen ? 'rotate-180' : ''}`} />
@@ -637,7 +637,7 @@ const AdminHRTrainingView: React.FC = () => {
                       
                       {/* Dropdown Content */}
                       {isDropdownOpen && (
-                        <div className="border-t border-gray-200 bg-white rounded-b-lg">
+                        <div className="border-t border-theme bg-card rounded-b-lg">
                           <div className="p-2 space-y-1 max-h-64 overflow-y-auto">
                             {roleUsers.map((user) => {
                               const getStatusBadge = () => {
@@ -653,7 +653,7 @@ const AdminHRTrainingView: React.FC = () => {
                                   );
                                 } else if (user.status === 'failed') {
                                   return (
-                                    <div className="flex items-center gap-1.5 px-2 py-0.5 bg-red-50 text-red-700 rounded text-xs font-medium">
+                                    <div className="flex items-center gap-1.5 px-2 py-0.5 bg-card text-red-700 rounded text-xs font-medium">
                                       <XCircle className="w-3 h-3" />
                                       <span>Failed</span>
                                       {user.score !== undefined && (
@@ -663,7 +663,7 @@ const AdminHRTrainingView: React.FC = () => {
                                   );
                                 } else {
                                   return (
-                                    <div className="flex items-center gap-1.5 px-2 py-0.5 bg-gray-100 text-gray-600 rounded text-xs font-medium">
+                                    <div className="flex items-center gap-1.5 px-2 py-0.5 bg-gray-100 text-secondary rounded text-xs font-medium">
                                       <Clock className="w-3 h-3" />
                                       <span>Not Attempted</span>
                                     </div>
@@ -674,7 +674,7 @@ const AdminHRTrainingView: React.FC = () => {
                               return (
                                 <div
                                   key={user.id}
-                                  className="flex items-center justify-between p-2 rounded hover:bg-gray-50 transition-colors"
+                                  className="flex items-center justify-between p-2 rounded hover:bg-[rgba(255,255,255,0.03)] transition-colors"
                                 >
                                   <div className="flex items-center gap-2 flex-1">
                                     <div className="w-8 h-8 rounded-full flex items-center justify-center text-white text-xs font-bold"
@@ -682,7 +682,7 @@ const AdminHRTrainingView: React.FC = () => {
                                     >
                                       {user.name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2)}
                                     </div>
-                                    <span className="text-sm text-gray-900 font-medium">{user.name}</span>
+                                    <span className="text-sm text-primary font-medium">{user.name}</span>
                                   </div>
                                   {getStatusBadge()}
                                 </div>
@@ -691,19 +691,19 @@ const AdminHRTrainingView: React.FC = () => {
                           </div>
                           
                           {/* Summary Footer */}
-                          <div className="border-t border-gray-200 p-2 bg-gray-50 rounded-b-lg">
+                          <div className="border-t border-theme p-2 bg-card rounded-b-lg">
                             <div className="grid grid-cols-3 gap-2 text-xs">
                               <div className="text-center">
                                 <div className="font-semibold text-green-700">{passedCount}</div>
-                                <div className="text-gray-600">Passed</div>
+                                <div className="text-secondary">Passed</div>
                               </div>
                               <div className="text-center">
                                 <div className="font-semibold text-red-700">{failedCount}</div>
-                                <div className="text-gray-600">Failed</div>
+                                <div className="text-secondary">Failed</div>
                               </div>
                               <div className="text-center">
-                                <div className="font-semibold text-gray-600">{notAttemptedCount}</div>
-                                <div className="text-gray-600">Pending</div>
+                                <div className="font-semibold text-secondary">{notAttemptedCount}</div>
+                                <div className="text-secondary">Pending</div>
                               </div>
                             </div>
                           </div>
@@ -720,12 +720,12 @@ const AdminHRTrainingView: React.FC = () => {
           <div className="flex-1">
 
         {/* Training Materials Section */}
-        <div className="bg-white rounded-lg shadow-sm mb-6">
-          <div className="p-6 border-b border-gray-200">
+        <div className="bg-card rounded-lg shadow-sm mb-6">
+          <div className="p-6 border-b border-theme">
             <div className="flex items-center justify-between">
               <div>
-                <h2 className="text-xl font-semibold text-gray-900">Training Materials</h2>
-                <p className="text-sm text-gray-600 mt-1">
+                <h2 className="text-xl font-semibold text-primary">Training Materials</h2>
+                <p className="text-sm text-secondary mt-1">
                   Training materials for HR role
                 </p>
               </div>
@@ -747,19 +747,19 @@ const AdminHRTrainingView: React.FC = () => {
           </div>
           <div className="p-6">
             {trainingContent.length === 0 ? (
-              <div className="text-center py-12 text-gray-500">
-                <Upload className="w-12 h-12 mx-auto mb-4 text-gray-400" />
+              <div className="text-center py-12 text-secondary">
+                <Upload className="w-12 h-12 mx-auto mb-4 text-secondary" />
                 <p>No training materials uploaded yet</p>
                 <p className="text-sm mt-2">Admin can upload training materials for HR role</p>
               </div>
             ) : (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                 {trainingContent.map((item) => (
-                  <div key={item._id} className="bg-gray-50 rounded-lg p-4 border border-gray-200">
+                  <div key={item._id} className="bg-card rounded-lg p-4 border border-theme">
                     <div className="flex items-start justify-between mb-2">
                       <div className="flex items-center gap-2 flex-1">
                         <div className="text-[#0ea3d8]">{getIcon(item.type)}</div>
-                        <h3 className="font-semibold text-gray-900">{item.name}</h3>
+                        <h3 className="font-semibold text-primary">{item.name}</h3>
                       </div>
                       <div className="flex items-center gap-1">
                         <button
@@ -771,7 +771,7 @@ const AdminHRTrainingView: React.FC = () => {
                         </button>
                         <button
                           onClick={() => handleDeleteContent(item._id)}
-                          className="text-red-600 hover:text-red-700 p-1"
+                          className="text-[#A855F7] hover:text-red-700 p-1"
                           title="Delete content"
                         >
                           <Trash2 className="w-4 h-4" />
@@ -779,9 +779,9 @@ const AdminHRTrainingView: React.FC = () => {
                       </div>
                     </div>
                     {item.description && (
-                      <p className="text-sm text-gray-600 mt-2 mb-3">{item.description}</p>
+                      <p className="text-sm text-secondary mt-2 mb-3">{item.description}</p>
                     )}
-                    <div className="flex items-center justify-between text-sm text-gray-500 mt-3">
+                    <div className="flex items-center justify-between text-sm text-secondary mt-3">
                       <div className="flex items-center gap-2">
                         <span className="capitalize bg-gray-200 px-2 py-1 rounded">{getTypeLabel(item.type)}</span>
                         <span className="bg-blue-100 text-blue-700 px-2 py-1 rounded text-xs">{getTestTypeDisplayName(item.testType)}</span>
@@ -798,12 +798,12 @@ const AdminHRTrainingView: React.FC = () => {
         </div>
 
         {/* Q&A Section */}
-        <div className="bg-white rounded-lg shadow-sm">
-          <div className="p-6 border-b border-gray-200">
+        <div className="bg-card rounded-lg shadow-sm">
+          <div className="p-6 border-b border-theme">
             <div className="flex items-center justify-between">
               <div>
-                <h2 className="text-xl font-semibold text-gray-900">Q&A Content</h2>
-                <p className="text-sm text-gray-600 mt-1">
+                <h2 className="text-xl font-semibold text-primary">Q&A Content</h2>
+                <p className="text-sm text-secondary mt-1">
                   Questions and answers for HR role
                 </p>
               </div>
@@ -827,8 +827,8 @@ const AdminHRTrainingView: React.FC = () => {
           </div>
           <div className="p-6">
             {qaContent.length === 0 ? (
-              <div className="text-center py-12 text-gray-500">
-                <MessageSquare className="w-12 h-12 mx-auto mb-4 text-gray-400" />
+              <div className="text-center py-12 text-secondary">
+                <MessageSquare className="w-12 h-12 mx-auto mb-4 text-secondary" />
                 <p>No Q&A content added yet</p>
                 <p className="text-sm mt-2">Admin can add Q&A content for HR role</p>
               </div>
@@ -858,28 +858,28 @@ const AdminHRTrainingView: React.FC = () => {
                     });
                           
                   return (
-                    <div key={item._id} className="bg-gray-50 rounded-lg p-4 border border-gray-200 relative">
+                    <div key={item._id} className="bg-card rounded-lg p-4 border border-theme relative">
                       <div className="flex items-start justify-between mb-3">
                         <div className="flex-1">
                           <div className="flex items-center justify-between mb-2">
                             <div className="flex items-center gap-3">
-                              <h3 className="font-semibold text-gray-900">{item.testName}</h3>
+                              <h3 className="font-semibold text-primary">{item.testName}</h3>
                               <span className="bg-blue-100 text-blue-700 px-2 py-1 rounded text-xs">{getTestTypeDisplayName(item.testType)}</span>
-                              <span className="text-sm text-gray-600">Passing: {item.passingPercentage}%</span>
-                              <span className="text-sm text-gray-600">Questions: {item.questions.length}</span>
-                              {item.mandatory && <span className="text-xs text-red-600 font-medium">Mandatory</span>}
+                              <span className="text-sm text-secondary">Passing: {item.passingPercentage}%</span>
+                              <span className="text-sm text-secondary">Questions: {item.questions.length}</span>
+                              {item.mandatory && <span className="text-xs text-[#A855F7] font-medium">Mandatory</span>}
                             </div>
                             {stats && (
                               <div className="flex items-center gap-3">
-                                <div className="flex items-center gap-2 px-3 py-1 bg-white rounded-lg border border-gray-200">
-                                  <span className="text-xs font-medium text-gray-600">Avg Score:</span>
-                                  <span className={`text-sm font-bold ${stats.avgScore >= 0.9 ? 'text-green-600' : stats.avgScore >= 0.7 ? 'text-yellow-600' : 'text-red-600'}`}>
+                                <div className="flex items-center gap-2 px-3 py-1 bg-card rounded-lg border border-theme">
+                                  <span className="text-xs font-medium text-secondary">Avg Score:</span>
+                                  <span className={`text-sm font-bold ${stats.avgScore >= 0.9 ? 'text-green-600' : stats.avgScore >= 0.7 ? 'text-[#00FFA3]' : 'text-[#A855F7]'}`}>
                                     {Math.round(stats.avgScore * 100)}%
                                   </span>
                                 </div>
-                                <div className="flex items-center gap-2 px-3 py-1 bg-white rounded-lg border border-gray-200">
-                                  <span className="text-xs font-medium text-gray-600">Completed:</span>
-                                  <span className="text-sm font-bold text-gray-700">{stats.totalUsers} user{stats.totalUsers !== 1 ? 's' : ''}</span>
+                                <div className="flex items-center gap-2 px-3 py-1 bg-card rounded-lg border border-theme">
+                                  <span className="text-xs font-medium text-secondary">Completed:</span>
+                                  <span className="text-sm font-bold text-primary">{stats.totalUsers} user{stats.totalUsers !== 1 ? 's' : ''}</span>
                                 </div>
                               </div>
                             )}
@@ -890,22 +890,22 @@ const AdminHRTrainingView: React.FC = () => {
                                     <div className="mt-4 mb-4">
                                       <div className="flex items-center gap-2 mb-3">
                                         <TrendingUp className="w-4 h-4 text-[#0ea3d8]" />
-                                        <h4 className="text-sm font-semibold text-gray-700">User Results</h4>
-                                        <span className="text-xs text-gray-500">({allUserResults.length} {allUserResults.length === 1 ? 'user' : 'users'})</span>
+                                        <h4 className="text-sm font-semibold text-primary">User Results</h4>
+                                        <span className="text-xs text-secondary">({allUserResults.length} {allUserResults.length === 1 ? 'user' : 'users'})</span>
                                       </div>
                                       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
                                         {allUserResults.map(({ userId, result, userName, passed }) => {
                                           const percentage = result.score.correct; // Score is already a percentage
                                           const getScoreColor = () => {
                                             if (percentage >= 90 || passed) return { bg: 'bg-green-50', border: 'border-green-200', text: 'text-green-700', badge: 'bg-green-100 text-green-700' };
-                                            if (percentage >= 70) return { bg: 'bg-yellow-50', border: 'border-yellow-200', text: 'text-yellow-700', badge: 'bg-yellow-100 text-yellow-700' };
-                                            return { bg: 'bg-red-50', border: 'border-red-200', text: 'text-red-700', badge: 'bg-red-100 text-red-700' };
+                                            if (percentage >= 70) return { bg: 'bg-card', border: 'border-yellow-200', text: 'text-yellow-700', badge: 'bg-yellow-100 text-yellow-700' };
+                                            return { bg: 'bg-card', border: 'border-red-200', text: 'text-red-700', badge: 'bg-red-100 text-red-700' };
                                           };
                                           const colors = getScoreColor();
                                           const initials = userName.split(' ').map((n: string) => n[0]).join('').toUpperCase().slice(0, 2);
                                           
                                           return (
-                                            <div key={userId} className={`bg-white rounded-lg border-2 ${colors.border} p-4 hover:shadow-md transition-shadow`}>
+                                            <div key={userId} className={`bg-card rounded-lg border-2 ${colors.border} p-4 hover:shadow-md transition-shadow`}>
                                               <div className="flex items-start justify-between mb-3">
                                                 <div className="flex items-center gap-3">
                                                   <div className={`w-12 h-12 rounded-full flex items-center justify-center text-white font-bold text-sm shadow-sm`}
@@ -914,8 +914,8 @@ const AdminHRTrainingView: React.FC = () => {
                                                     {initials}
                                                   </div>
                                                   <div>
-                                                    <h5 className="font-semibold text-gray-900 text-sm">{userName}</h5>
-                                                    <p className="text-xs text-gray-500 mt-0.5">HR</p>
+                                                    <h5 className="font-semibold text-primary text-sm">{userName}</h5>
+                                                    <p className="text-xs text-secondary mt-0.5">HR</p>
                                                   </div>
                                                 </div>
                                                 <div className={`px-2.5 py-1 rounded-full ${colors.badge} text-xs font-semibold`}>
@@ -925,7 +925,7 @@ const AdminHRTrainingView: React.FC = () => {
                                               
                                               <div className="space-y-2">
                                                 <div className="flex items-center justify-between">
-                                                  <span className="text-xs text-gray-600 flex items-center gap-1">
+                                                  <span className="text-xs text-secondary flex items-center gap-1">
                                                     <Award className="w-3.5 h-3.5" />
                                                     Score
                                                   </span>
@@ -944,7 +944,7 @@ const AdminHRTrainingView: React.FC = () => {
                                                   />
                                                 </div>
                                                 
-                                                <div className="flex items-center justify-between text-xs text-gray-500 pt-1">
+                                                <div className="flex items-center justify-between text-xs text-secondary pt-1">
                                                   <span className="flex items-center gap-1">
                                                     <Clock className="w-3.5 h-3.5" />
                                                     {new Date(result.completedAt).toLocaleDateString('en-US', { 
@@ -953,7 +953,7 @@ const AdminHRTrainingView: React.FC = () => {
                                                       year: 'numeric'
                                                     })}
                                                   </span>
-                                                  <span className="text-gray-400">
+                                                  <span className="text-secondary">
                                                     {new Date(result.completedAt).toLocaleTimeString('en-US', { 
                                                       hour: '2-digit', 
                                                       minute: '2-digit' 
@@ -971,8 +971,8 @@ const AdminHRTrainingView: React.FC = () => {
                           {/* Questions Display (showing correct answers) */}
                           <div className="space-y-3 mt-3">
                             {item.questions.map((q, idx) => (
-                              <div key={idx} className="bg-white rounded p-3 border border-gray-200">
-                                <p className="font-medium text-gray-900 mb-2">Q{idx + 1}: {q.question}</p>
+                              <div key={idx} className="bg-card rounded p-3 border border-theme">
+                                <p className="font-medium text-primary mb-2">Q{idx + 1}: {q.question}</p>
                                 <div className="space-y-1">
                                   {q.options.map((option, optIdx) => {
                                     const isCorrectOption = q.correctAnswer === optIdx;
@@ -984,7 +984,7 @@ const AdminHRTrainingView: React.FC = () => {
                                           readOnly
                                           className="w-4 h-4"
                                         />
-                                        <span className={`text-sm ${isCorrectOption ? 'text-green-600 font-medium' : 'text-gray-600'} flex items-center gap-2`}>
+                                        <span className={`text-sm ${isCorrectOption ? 'text-green-600 font-medium' : 'text-secondary'} flex items-center gap-2`}>
                                           {String.fromCharCode(65 + optIdx)}. {option}
                                           {isCorrectOption && ' ✓ (Correct Answer)'}
                                         </span>
@@ -998,7 +998,7 @@ const AdminHRTrainingView: React.FC = () => {
                         </div>
                         <button
                           onClick={() => handleDeleteQA(item._id)}
-                          className="text-red-600 hover:text-red-700 p-1 ml-4"
+                          className="text-[#A855F7] hover:text-red-700 p-1 ml-4"
                         >
                           <Trash2 className="w-4 h-4" />
                         </button>
@@ -1017,26 +1017,26 @@ const AdminHRTrainingView: React.FC = () => {
       {/* Upload Modal */}
       {showUploadModal && (
         <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50" onClick={() => setShowUploadModal(false)}>
-          <div className="bg-white rounded-lg shadow-lg w-full max-w-md mx-4" onClick={(e) => e.stopPropagation()}>
-            <div className="p-6 border-b border-gray-200">
+          <div className="bg-card rounded-lg shadow-lg w-full max-w-md mx-4" onClick={(e) => e.stopPropagation()}>
+            <div className="p-6 border-b border-theme">
               <div className="flex items-center justify-between">
-                <h3 className="text-lg font-semibold text-gray-900">Upload Training Content</h3>
+                <h3 className="text-lg font-semibold text-primary">Upload Training Content</h3>
                 <button
                   onClick={() => {
                     setShowUploadModal(false);
                     setUploadTitle('');
                     setUploadDescription('');
                   }}
-                  className="text-gray-400 hover:text-gray-600"
+                  className="text-secondary hover:text-secondary"
                 >
                   <X className="w-5 h-5" />
                 </button>
               </div>
-              <p className="text-sm text-gray-600 mt-1">Add a new training material</p>
+              <p className="text-sm text-secondary mt-1">Add a new training material</p>
             </div>
             <div className="p-6 space-y-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Test Type *</label>
+                <label className="block text-sm font-medium text-primary mb-2">Test Type *</label>
                 <div className="flex gap-2">
                   <select
                     value={uploadTestType}
@@ -1055,7 +1055,7 @@ const AdminHRTrainingView: React.FC = () => {
                     type="button"
                     onClick={() => setShowAddTestTypeModal(true)}
                     disabled={uploading}
-                    className="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors disabled:opacity-50 flex items-center gap-2"
+                    className="px-4 py-2 bg-gray-100 text-primary rounded-lg hover:bg-gray-200 transition-colors disabled:opacity-50 flex items-center gap-2"
                   >
                     <Plus className="w-4 h-4" />
                     Add Type
@@ -1063,7 +1063,7 @@ const AdminHRTrainingView: React.FC = () => {
                 </div>
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Content Type</label>
+                <label className="block text-sm font-medium text-primary mb-2">Content Type</label>
                 <div className="flex gap-2">
                   <button
                     type="button"
@@ -1072,7 +1072,7 @@ const AdminHRTrainingView: React.FC = () => {
                     className={`flex-1 px-4 py-2 rounded-lg border transition-colors ${
                       uploadType === 'VIDEO'
                         ? 'bg-[#0ea3d8] !text-white border-[#0ea3d8]'
-                        : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-50'
+                        : 'bg-card text-primary border-gray-300 hover:bg-[rgba(255,255,255,0.03)]'
                     } ${uploading ? 'opacity-50 cursor-not-allowed' : ''}`}
                   >
                     <Video className="w-4 h-4 inline mr-2" />
@@ -1085,7 +1085,7 @@ const AdminHRTrainingView: React.FC = () => {
                     className={`flex-1 px-4 py-2 rounded-lg border transition-colors ${
                       uploadType === 'PDF'
                         ? 'bg-[#0ea3d8] !text-white border-[#0ea3d8]'
-                        : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-50'
+                        : 'bg-card text-primary border-gray-300 hover:bg-[rgba(255,255,255,0.03)]'
                     } ${uploading ? 'opacity-50 cursor-not-allowed' : ''}`}
                   >
                     <FileText className="w-4 h-4 inline mr-2" />
@@ -1098,7 +1098,7 @@ const AdminHRTrainingView: React.FC = () => {
                     className={`flex-1 px-4 py-2 rounded-lg border transition-colors ${
                       uploadType === 'IMAGE'
                         ? 'bg-[#0ea3d8] !text-white border-[#0ea3d8]'
-                        : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-50'
+                        : 'bg-card text-primary border-gray-300 hover:bg-[rgba(255,255,255,0.03)]'
                     } ${uploading ? 'opacity-50 cursor-not-allowed' : ''}`}
                   >
                     <Image className="w-4 h-4 inline mr-2" />
@@ -1107,7 +1107,7 @@ const AdminHRTrainingView: React.FC = () => {
                 </div>
               </div>
               <div>
-                <label htmlFor="title" className="block text-sm font-medium text-gray-700 mb-2">
+                <label htmlFor="title" className="block text-sm font-medium text-primary mb-2">
                   Title *
                 </label>
                 <input
@@ -1121,7 +1121,7 @@ const AdminHRTrainingView: React.FC = () => {
                 />
               </div>
               <div>
-                <label htmlFor="description" className="block text-sm font-medium text-gray-700 mb-2">
+                <label htmlFor="description" className="block text-sm font-medium text-primary mb-2">
                   Description
                 </label>
                 <textarea
@@ -1135,7 +1135,7 @@ const AdminHRTrainingView: React.FC = () => {
                 />
               </div>
               <div>
-                <label htmlFor="file" className="block text-sm font-medium text-gray-700 mb-2">
+                <label htmlFor="file" className="block text-sm font-medium text-primary mb-2">
                   File *
                 </label>
                 <input
@@ -1151,7 +1151,7 @@ const AdminHRTrainingView: React.FC = () => {
                 <button
                   onClick={() => !uploading && setShowUploadModal(false)}
                   disabled={uploading}
-                  className="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors disabled:opacity-50"
+                  className="px-4 py-2 border border-gray-300 rounded-lg text-primary hover:bg-[rgba(255,255,255,0.03)] transition-colors disabled:opacity-50"
                 >
                   Cancel
                 </button>
@@ -1181,10 +1181,10 @@ const AdminHRTrainingView: React.FC = () => {
       {/* Q&A Modal */}
       {showQAModal && (
         <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50" onClick={() => setShowQAModal(false)}>
-          <div className="bg-white rounded-lg shadow-lg w-full max-w-2xl mx-4 max-h-[90vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
-            <div className="p-6 border-b border-gray-200 sticky top-0 bg-white">
+          <div className="bg-card rounded-lg shadow-lg w-full max-w-2xl mx-4 max-h-[90vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
+            <div className="p-6 border-b border-theme sticky top-0 bg-card">
               <div className="flex items-center justify-between">
-                <h3 className="text-lg font-semibold text-gray-900">Add Q&A</h3>
+                <h3 className="text-lg font-semibold text-primary">Add Q&A</h3>
                 <button
                   onClick={() => {
                     setShowQAModal(false);
@@ -1195,17 +1195,17 @@ const AdminHRTrainingView: React.FC = () => {
                     setCurrentQOptions(['', '', '', '']);
                     setCurrentQCorrectAnswer(0);
                   }}
-                  className="text-gray-400 hover:text-gray-600"
+                  className="text-secondary hover:text-secondary"
                 >
                   <X className="w-5 h-5" />
                 </button>
               </div>
-              <p className="text-sm text-gray-600 mt-1">Create questions with multiple choice answers</p>
+              <p className="text-sm text-secondary mt-1">Create questions with multiple choice answers</p>
             </div>
             <div className="p-6 space-y-6">
               {/* Title */}
               <div>
-                <label htmlFor="qa-title" className="block text-sm font-medium text-gray-700 mb-2">
+                <label htmlFor="qa-title" className="block text-sm font-medium text-primary mb-2">
                   Title *
                 </label>
                 <input
@@ -1221,7 +1221,7 @@ const AdminHRTrainingView: React.FC = () => {
 
               {/* Test Type */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Test Type *</label>
+                <label className="block text-sm font-medium text-primary mb-2">Test Type *</label>
                 <div className="flex gap-2">
                   <select
                     value={qaTestType}
@@ -1240,7 +1240,7 @@ const AdminHRTrainingView: React.FC = () => {
                     type="button"
                     onClick={() => setShowAddTestTypeModal(true)}
                     disabled={creatingQA}
-                    className="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors disabled:opacity-50 flex items-center gap-2"
+                    className="px-4 py-2 bg-gray-100 text-primary rounded-lg hover:bg-gray-200 transition-colors disabled:opacity-50 flex items-center gap-2"
                   >
                     <Plus className="w-4 h-4" />
                     Add Type
@@ -1250,7 +1250,7 @@ const AdminHRTrainingView: React.FC = () => {
 
               {/* Description */}
               <div>
-                <label htmlFor="qa-description" className="block text-sm font-medium text-gray-700 mb-2">
+                <label htmlFor="qa-description" className="block text-sm font-medium text-primary mb-2">
                   Description
                 </label>
                 <textarea
@@ -1266,20 +1266,20 @@ const AdminHRTrainingView: React.FC = () => {
 
               {/* Existing Questions */}
               {qaQuestions.length > 0 && (
-                <div className="border-t border-gray-200 pt-4">
-                  <label className="block text-sm font-medium text-gray-700 mb-3">
+                <div className="border-t border-theme pt-4">
+                  <label className="block text-sm font-medium text-primary mb-3">
                     Added Questions ({qaQuestions.length})
                   </label>
                   <div className="space-y-3 max-h-60 overflow-y-auto">
                     {qaQuestions.map((q, index) => (
-                      <div key={index} className="bg-gray-50 rounded-lg p-4 border border-gray-200">
+                      <div key={index} className="bg-card rounded-lg p-4 border border-theme">
                         <div className="flex items-start justify-between mb-2">
-                          <p className="font-medium text-gray-900 flex-1">Q{index + 1}: {q.question}</p>
+                          <p className="font-medium text-primary flex-1">Q{index + 1}: {q.question}</p>
                           <button
                             type="button"
                             onClick={() => handleRemoveQuestionFromQA(index)}
                             disabled={creatingQA}
-                            className="text-red-600 hover:text-red-700 ml-2 disabled:opacity-50"
+                            className="text-[#A855F7] hover:text-red-700 ml-2 disabled:opacity-50"
                           >
                             <Trash2 className="w-4 h-4" />
                           </button>
@@ -1293,7 +1293,7 @@ const AdminHRTrainingView: React.FC = () => {
                                 readOnly
                                 className="w-4 h-4"
                               />
-                              <span className={`text-sm ${q.correctAnswer === optIdx ? 'text-green-600 font-medium' : 'text-gray-600'}`}>
+                              <span className={`text-sm ${q.correctAnswer === optIdx ? 'text-green-600 font-medium' : 'text-secondary'}`}>
                                 {String.fromCharCode(65 + optIdx)}. {option}
                                 {q.correctAnswer === optIdx && ' ✓ (Correct)'}
                               </span>
@@ -1307,13 +1307,13 @@ const AdminHRTrainingView: React.FC = () => {
               )}
 
               {/* Add New Question */}
-              <div className="border-t border-gray-200 pt-4">
-                <label className="block text-sm font-medium text-gray-700 mb-3">
+              <div className="border-t border-theme pt-4">
+                <label className="block text-sm font-medium text-primary mb-3">
                   Add New Question
                 </label>
                 <div className="space-y-4">
                   <div>
-                    <label htmlFor="new-question" className="block text-sm font-medium text-gray-700 mb-2">
+                    <label htmlFor="new-question" className="block text-sm font-medium text-primary mb-2">
                       Question *
                     </label>
                     <textarea
@@ -1329,7 +1329,7 @@ const AdminHRTrainingView: React.FC = () => {
 
                   {/* Options */}
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                    <label className="block text-sm font-medium text-primary mb-2">
                       Options (at least 2 required) *
                     </label>
                     <div className="space-y-2">
@@ -1343,7 +1343,7 @@ const AdminHRTrainingView: React.FC = () => {
                             disabled={creatingQA}
                             className="w-4 h-4"
                           />
-                          <span className="text-sm font-medium text-gray-700 w-6">
+                          <span className="text-sm font-medium text-primary w-6">
                             {String.fromCharCode(65 + idx)}.
                           </span>
                           <input
@@ -1361,7 +1361,7 @@ const AdminHRTrainingView: React.FC = () => {
                         </div>
                       ))}
                     </div>
-                    <p className="text-xs text-gray-500 mt-2">
+                    <p className="text-xs text-secondary mt-2">
                       Select the radio button next to the correct answer
                     </p>
                   </div>
@@ -1370,7 +1370,7 @@ const AdminHRTrainingView: React.FC = () => {
                     type="button"
                     onClick={handleAddQuestionToQA}
                     disabled={creatingQA || !currentQQuestion.trim() || currentQOptions.filter(opt => opt.trim()).length < 2}
-                    className="w-full px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                    className="w-full px-4 py-2 bg-gray-100 text-primary rounded-lg hover:bg-gray-200 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
                   >
                     <Plus className="w-4 h-4" />
                     Add Question
@@ -1378,11 +1378,11 @@ const AdminHRTrainingView: React.FC = () => {
                 </div>
               </div>
 
-              <div className="flex gap-2 justify-end pt-4 border-t border-gray-200">
+              <div className="flex gap-2 justify-end pt-4 border-t border-theme">
                 <button
                   onClick={() => !creatingQA && setShowQAModal(false)}
                   disabled={creatingQA}
-                  className="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors disabled:opacity-50"
+                  className="px-4 py-2 border border-gray-300 rounded-lg text-primary hover:bg-[rgba(255,255,255,0.03)] transition-colors disabled:opacity-50"
                 >
                   Cancel
                 </button>
@@ -1409,23 +1409,23 @@ const AdminHRTrainingView: React.FC = () => {
       {/* Add Test Type Modal */}
       {showAddTestTypeModal && (
         <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50" onClick={() => !creatingTestType && setShowAddTestTypeModal(false)}>
-          <div className="bg-white rounded-lg shadow-lg w-full max-w-md mx-4" onClick={(e) => e.stopPropagation()}>
-            <div className="p-6 border-b border-gray-200">
+          <div className="bg-card rounded-lg shadow-lg w-full max-w-md mx-4" onClick={(e) => e.stopPropagation()}>
+            <div className="p-6 border-b border-theme">
               <div className="flex items-center justify-between">
-                <h3 className="text-lg font-semibold text-gray-900">Add Test Type</h3>
+                <h3 className="text-lg font-semibold text-primary">Add Test Type</h3>
                 <button
                   onClick={() => !creatingTestType && setShowAddTestTypeModal(false)}
                   disabled={creatingTestType}
-                  className="text-gray-400 hover:text-gray-600 disabled:opacity-50"
+                  className="text-secondary hover:text-secondary disabled:opacity-50"
                 >
                   <X className="w-5 h-5" />
                 </button>
               </div>
-              <p className="text-sm text-gray-600 mt-1">Create a new test type</p>
+              <p className="text-sm text-secondary mt-1">Create a new test type</p>
             </div>
             <div className="p-6 space-y-4">
               <div>
-                <label htmlFor="test-type-name" className="block text-sm font-medium text-gray-700 mb-2">
+                <label htmlFor="test-type-name" className="block text-sm font-medium text-primary mb-2">
                   Name * (e.g., TDG, VEHICLE)
                 </label>
                 <input
@@ -1437,10 +1437,10 @@ const AdminHRTrainingView: React.FC = () => {
                   disabled={creatingTestType}
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#0ea3d8] disabled:opacity-50"
                 />
-                <p className="text-xs text-gray-500 mt-1">This will be stored in uppercase</p>
+                <p className="text-xs text-secondary mt-1">This will be stored in uppercase</p>
               </div>
               <div>
-                <label htmlFor="test-type-display-name" className="block text-sm font-medium text-gray-700 mb-2">
+                <label htmlFor="test-type-display-name" className="block text-sm font-medium text-primary mb-2">
                   Display Name * (e.g., TDG, Vehicle Inspection)
                 </label>
                 <input
@@ -1452,13 +1452,13 @@ const AdminHRTrainingView: React.FC = () => {
                   disabled={creatingTestType}
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#0ea3d8] disabled:opacity-50"
                 />
-                <p className="text-xs text-gray-500 mt-1">This is how it will appear in dropdowns</p>
+                <p className="text-xs text-secondary mt-1">This is how it will appear in dropdowns</p>
               </div>
               <div className="flex gap-2 justify-end pt-4">
                 <button
                   onClick={() => !creatingTestType && setShowAddTestTypeModal(false)}
                   disabled={creatingTestType}
-                  className="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors disabled:opacity-50"
+                  className="px-4 py-2 border border-gray-300 rounded-lg text-primary hover:bg-[rgba(255,255,255,0.03)] transition-colors disabled:opacity-50"
                 >
                   Cancel
                 </button>

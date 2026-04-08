@@ -57,9 +57,9 @@ const formatStatusBadge = (status?: string) => {
     return "bg-green-50 text-green-700";
   }
   if (normalized === "inactive") {
-    return "bg-red-50 text-red-600";
+    return "bg-card text-[#A855F7]";
   }
-  return "bg-gray-100 text-gray-600";
+  return "bg-gray-100 text-secondary";
 };
 
 const normalizeAddress = (value: string) => value?.replace(/\s+/g, " ").trim() || "";
@@ -180,7 +180,7 @@ const buildUnitLoadStats = (orders: any[]) => {
   orders.forEach((order) => {
     const loadStatus = (order?.status || "").toUpperCase();
     const isCompleted = loadStatus === "COMPLETED";
-    
+
     // Get truck identifiers from order.truck object
     const truckObj = order?.truck;
     const truckKeys = [
@@ -194,7 +194,7 @@ const buildUnitLoadStats = (orders: any[]) => {
       normalizeKey("truck", order?.truckNumber),
       normalizeKey("truck", order?.truckId)
     ].filter(Boolean) as string[];
-    
+
     // Get trailer identifiers from order.trailer object
     const trailerObj = order?.trailer;
     const trailerKeys = [
@@ -248,7 +248,7 @@ const Index = () => {
   const [previewUnitId, setPreviewUnitId] = useState<string | null>(null);
   const [selectedUnit, setSelectedUnit] = useState<FleetUnit | null>(null);
   const [showUnitDetails, setShowUnitDetails] = useState(false);
-  
+
   // Refs for scrollbar synchronization
   const topScrollRef = useRef<HTMLDivElement>(null);
   const bottomScrollRef = useRef<HTMLDivElement>(null);
@@ -362,8 +362,8 @@ const Index = () => {
 
     const bottomTable = bottomScroll.querySelector('table');
     if (bottomTable) {
-      tableObserver.observe(bottomTable, { 
-        childList: true, 
+      tableObserver.observe(bottomTable, {
+        childList: true,
         subtree: true,
         attributes: true,
         attributeFilter: ['style', 'class']
@@ -457,13 +457,13 @@ const Index = () => {
   }, [visibleFleetUnits, fleetTab, unitAssignments]);
 
   return (
-    <div className="min-h-screen bg-[#EDF8FF] p-6">
+    <div className="min-h-screen bg-main p-6 border-2 border-red-700">
       <div className="w-full mx-auto space-y-6">
         <header className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
           <div>
-            <p className="text-xs font-semibold uppercase text-gray-500">Dispatch Fleet</p>
-            <h1 className="text-3xl font-bold text-gray-900">Fleet Units</h1>
-            <p className="text-sm text-gray-500">
+            <p className="text-xs font-semibold uppercase text-secondary">Dispatch Fleet</p>
+            <h1 className="text-3xl font-bold text-primary">Fleet Units</h1>
+            <p className="text-sm text-secondary">
               View the same truck and trailer roster configured inside Fleet Maintenance.
             </p>
           </div>
@@ -477,7 +477,7 @@ const Index = () => {
                   setSearchTerm("");
                   setStatusFilter("all");
                 }}
-                className={`px-4 py-2 text-sm font-semibold rounded-2xl transition-colors ${fleetTab === tab ? "bg-white text-blue-600 shadow" : "text-gray-500"
+                className={`px-4 py-2 text-sm font-semibold rounded-2xl transition-colors ${fleetTab === tab ? "bg-card text-[#00D1FF] shadow" : "text-secondary"
                   }`}
               >
                 {tab === "trucks" ? "Trucks" : "Trailers"}
@@ -488,8 +488,8 @@ const Index = () => {
 
         <section className="grid grid-cols-1 gap-2 md:grid-cols-3">
           {/* Total Units – Pastel Orange */}
-          <div className="rounded-lg p-3 shadow-sm bg-orange-50">
-            <p className="text-[10px] font-semibold uppercase text-orange-600">
+          <div className="rounded-lg p-3 shadow-sm bg-card">
+            <p className="text-[10px] font-semibold uppercase text-[#F59E0B]">
               Total Units
             </p>
             <p className="text-xl font-semibold mt-0.5 text-orange-700">
@@ -514,7 +514,7 @@ const Index = () => {
           </div>
 
           {/* Currently Dispatched – Pastel Purple */}
-          <div className="rounded-lg p-3 shadow-sm bg-purple-50">
+          <div className="rounded-lg p-3 shadow-sm bg-card">
             <p className="text-[10px] font-semibold uppercase text-purple-600">
               Currently Dispatched
             </p>
@@ -528,22 +528,22 @@ const Index = () => {
         </section>
 
 
-        <section className="bg-white rounded-2xl shadow-lg border border-gray-100 p-6 space-y-6">
+        <section className="bg-card rounded-2xl shadow-lg border border-theme p-6 space-y-6">
           <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
-            <div className="flex flex-1 items-center gap-3 rounded-2xl border border-gray-200 px-4 py-2 bg-gray-50">
-              <Search className="w-4 h-4 text-gray-400" />
+            <div className="flex flex-1 items-center gap-3 rounded-2xl border border-theme px-4 py-2 bg-card">
+              <Search className="w-4 h-4 text-secondary" />
               <input
                 type="text"
                 value={searchTerm}
                 onChange={(event) => setSearchTerm(event.target.value)}
                 placeholder={`Search ${fleetTab === "trucks" ? "trucks" : "trailers"} by unit #, VIN, plate…`}
-                className="flex-1 bg-transparent text-sm text-gray-700 outline-none"
+                className="flex-1 bg-transparent text-sm text-primary outline-none"
               />
             </div>
             <select
               value={statusFilter}
               onChange={(event) => setStatusFilter(event.target.value as "all" | "active" | "inactive")}
-              className="rounded-2xl border border-gray-200 px-4 py-2 text-sm"
+              className="rounded-2xl border border-theme px-4 py-2 text-sm"
             >
               <option value="all">All statuses</option>
               <option value="active">Active</option>
@@ -551,7 +551,7 @@ const Index = () => {
             </select>
           </div>
 
-          <div className="rounded-2xl bg-white shadow-sm ring-1 ring-gray-100">
+          <div className="rounded-2xl bg-card shadow-sm ring-1 ring-gray-100">
             {/* Top Scrollbar - Only visible horizontal scrollbar */}
             <style>{`
               .top-scrollbar-container::-webkit-scrollbar {
@@ -575,10 +575,10 @@ const Index = () => {
                 display: none; /* Chrome, Safari, Opera */
               }
             `}</style>
-            <div 
+            <div
               ref={topScrollRef}
               className="overflow-x-auto overflow-y-hidden top-scrollbar-container"
-              style={{ 
+              style={{
                 maxHeight: '20px',
                 marginBottom: '2px',
                 scrollbarWidth: 'thin',
@@ -588,27 +588,27 @@ const Index = () => {
               <div className="top-scroll-content" style={{ height: '1px' }}></div>
             </div>
             {/* Main Table - Scrollbar hidden, controlled by top scrollbar */}
-            <div 
+            <div
               ref={bottomScrollRef}
               className="overflow-x-auto overflow-y-visible table-container-hidden-scrollbar"
             >
               <table className="min-w-full text-sm" style={{ minWidth: '1200px' }}>
                 {/* Header */}
-                <thead className="bg-gray-50">
-                  <tr className="border-b border-gray-100">
-                    <th className="px-6 py-3 text-left font-semibold text-gray-500">Unit No.</th>
-                    <th className="px-6 py-3 text-left font-semibold text-gray-500">Type</th>
-                    <th className="px-6 py-3 text-left font-semibold text-gray-500">Make / Model</th>
-                    <th className="px-6 py-3 text-left font-semibold text-gray-500">VIN</th>
-                    <th className="px-6 py-3 text-left font-semibold text-gray-500">License Plate</th>
-                    <th className="px-6 py-3 text-left font-semibold text-gray-500">Year</th>
-                    <th className="px-6 py-3 text-left font-semibold text-gray-500">Odometer</th>
+                <thead className="bg-card">
+                  <tr className="border-b border-theme">
+                    <th className="px-6 py-3 text-left font-semibold text-secondary">Unit No.</th>
+                    <th className="px-6 py-3 text-left font-semibold text-secondary">Type</th>
+                    <th className="px-6 py-3 text-left font-semibold text-secondary">Make / Model</th>
+                    <th className="px-6 py-3 text-left font-semibold text-secondary">VIN</th>
+                    <th className="px-6 py-3 text-left font-semibold text-secondary">License Plate</th>
+                    <th className="px-6 py-3 text-left font-semibold text-secondary">Year</th>
+                    <th className="px-6 py-3 text-left font-semibold text-secondary">Odometer</th>
                     {fleetTab === "trailers" && (
-                      <th className="px-6 py-3 text-left font-semibold text-gray-500">Capacity</th>
+                      <th className="px-6 py-3 text-left font-semibold text-secondary">Capacity</th>
                     )}
-                    <th className="px-6 py-3 text-left font-semibold text-gray-500">Dispatch Snapshot</th>
-                    <th className="px-6 py-3 text-left font-semibold text-gray-500">Status</th>
-                    <th className="px-6 py-3 text-left font-semibold text-gray-500">Comment</th>
+                    <th className="px-6 py-3 text-left font-semibold text-secondary">Dispatch Snapshot</th>
+                    <th className="px-6 py-3 text-left font-semibold text-secondary">Status</th>
+                    <th className="px-6 py-3 text-left font-semibold text-secondary">Comment</th>
                   </tr>
                 </thead>
 
@@ -618,7 +618,7 @@ const Index = () => {
                     <tr>
                       <td
                         colSpan={fleetTab === "trailers" ? 11 : 10}
-                        className="px-6 py-8 text-center text-gray-500"
+                        className="px-6 py-8 text-center text-secondary"
                       >
                         Loading fleet units…
                       </td>
@@ -648,27 +648,27 @@ const Index = () => {
                         unit.makeModel ||
                         `unit-${index}`;
                       return (
-                        <tr 
-                          key={previewKey} 
+                        <tr
+                          key={previewKey}
                           className="hover:bg-blue-50 transition-colors cursor-pointer"
                           onClick={() => {
                             setSelectedUnit(unit);
                             setShowUnitDetails(true);
                           }}
                         >
-                          <td className="px-6 py-4 font-semibold text-gray-900">
+                          <td className="px-6 py-4 font-semibold text-primary">
                             {unit.unitNo || "—"}
                           </td>
-                          <td className="px-6 py-4 text-gray-600">{unit.unitType || unit.type || "—"}</td>
-                          <td className="px-6 py-4 text-gray-600">{makeModel || "—"}</td>
-                          <td className="px-6 py-4 text-gray-600">{unit.vinNo || "—"}</td>
-                          <td className="px-6 py-4 text-gray-600">{unit.licensePlate || "—"}</td>
-                          <td className="px-6 py-4 text-gray-600">{unit.year || "—"}</td>
-                          <td className="px-6 py-4 text-gray-600">{formatNumber(unit.currentOdometer)}</td>
+                          <td className="px-6 py-4 text-secondary">{unit.unitType || unit.type || "—"}</td>
+                          <td className="px-6 py-4 text-secondary">{makeModel || "—"}</td>
+                          <td className="px-6 py-4 text-secondary">{unit.vinNo || "—"}</td>
+                          <td className="px-6 py-4 text-secondary">{unit.licensePlate || "—"}</td>
+                          <td className="px-6 py-4 text-secondary">{unit.year || "—"}</td>
+                          <td className="px-6 py-4 text-secondary">{formatNumber(unit.currentOdometer)}</td>
                           {fleetTab === "trailers" && (
-                            <td className="px-6 py-4 text-gray-600">{unit.capacity || "—"}</td>
+                            <td className="px-6 py-4 text-secondary">{unit.capacity || "—"}</td>
                           )}
-                          <td className="px-6 py-4 text-sm text-gray-600 align-top">
+                          <td className="px-6 py-4 text-sm text-secondary align-top">
                             {(() => {
                               const assignment = getAssignmentForUnit(unit);
                               const loadStats = getLoadStatsForUnit(unit);
@@ -680,7 +680,7 @@ const Index = () => {
                                 >
                                   <button
                                     type="button"
-                                    className={`mt-1 rounded-full border p-2 text-xs font-semibold uppercase ${activeOrder ? "text-blue-600 border-blue-200" : "text-gray-400 border-gray-200"
+                                    className={`mt-1 rounded-full border p-2 text-xs font-semibold uppercase ${activeOrder ? "text-[#00D1FF] border-blue-200" : "text-secondary border-theme"
                                       }`}
                                     title={activeOrder ? "View assignment details" : "No active assignment"}
                                     onMouseEnter={() => setPreviewUnitId(previewKey)}
@@ -708,23 +708,23 @@ const Index = () => {
                                     </svg>
                                   </button>
                                   <div className="space-y-1">
-                                    <div className="font-semibold text-gray-900">
+                                    <div className="font-semibold text-primary">
                                       {activeOrder?.route ? truncateText(activeOrder.route, 32) : "Available"}
                                     </div>
                                     {activeOrder ? (
-                                      <div className="text-xs text-gray-500">
+                                      <div className="text-xs text-secondary">
                                         Order #{activeOrder.customerOrderNo || activeOrder.orderNumber || "—"} · Driver{" "}
                                         {activeOrder.driverName || "TBD"}
                                       </div>
                                     ) : (
-                                      <div className="text-xs text-gray-400">No active assignment</div>
+                                      <div className="text-xs text-secondary">No active assignment</div>
                                     )}
                                     {assignment?.pairedUnits?.length ? (
                                       <div className="flex flex-wrap gap-1 pt-1">
                                         {assignment.pairedUnits.map((label) => (
                                           <span
                                             key={`${unit._id}-pair-${label}`}
-                                            className="text-[11px] px-2 py-0.5 rounded-full border border-gray-200 text-gray-600 font-semibold uppercase"
+                                            className="text-[11px] px-2 py-0.5 rounded-full border border-theme text-secondary font-semibold uppercase"
                                           >
                                             {fleetTab === "trucks" ? "Trailer" : "Truck"} {label}
                                           </span>
@@ -732,35 +732,35 @@ const Index = () => {
                                       </div>
                                     ) : null}
                                     {loadStats && (
-                                      <div className="text-xs text-gray-500">
+                                      <div className="text-xs text-secondary">
                                         {loadStats.pendingLoads}/{loadStats.totalLoads} loads pending
                                       </div>
                                     )}
                                   </div>
                                   {previewUnitId === previewKey && (
-                                    <div className="absolute left-12 top-0 z-20 w-64 rounded-xl border border-gray-200 bg-white p-4 shadow-lg">
-                                      <p className="text-xs font-semibold text-gray-500">Dispatch preview</p>
-                                      <p className="mt-1 text-sm font-semibold text-gray-900">
+                                    <div className="absolute left-12 top-0 z-20 w-64 rounded-xl border border-theme bg-card p-4 shadow-lg">
+                                      <p className="text-xs font-semibold text-secondary">Dispatch preview</p>
+                                      <p className="mt-1 text-sm font-semibold text-primary">
                                         {activeOrder?.route || "No active assignment"}
                                       </p>
-                                      <p className="text-xs text-gray-500">
+                                      <p className="text-xs text-secondary">
                                         Order #{activeOrder?.customerOrderNo || activeOrder?.orderNumber || "—"}
                                       </p>
                                       {activeOrder?.tripNo && (
-                                        <p className="text-xs text-gray-500">
+                                        <p className="text-xs text-secondary">
                                           Trip #{activeOrder.tripNo}
                                         </p>
                                       )}
-                                      <p className="text-xs text-gray-500">
+                                      <p className="text-xs text-secondary">
                                         Driver {activeOrder?.driverName || "Not assigned"}
                                       </p>
                                       {assignment?.pairedUnits?.length ? (
-                                        <p className="text-xs text-gray-500 mt-1">
+                                        <p className="text-xs text-secondary mt-1">
                                           Paired: {assignment.pairedUnits.join(", ")}
                                         </p>
                                       ) : null}
                                       {loadStats && (
-                                        <p className="text-xs text-gray-500 mt-1">
+                                        <p className="text-xs text-secondary mt-1">
                                           {loadStats.pendingLoads}/{loadStats.totalLoads} loads pending
                                         </p>
                                       )}
@@ -779,7 +779,7 @@ const Index = () => {
                               {unit.status || "Unknown"}
                             </span>
                           </td>
-                          <td className="px-6 py-4 text-gray-500">{unit.reason || "—"}</td>
+                          <td className="px-6 py-4 text-secondary">{unit.reason || "—"}</td>
                         </tr>
                       );
                     })
@@ -787,7 +787,7 @@ const Index = () => {
                     <tr>
                       <td
                         colSpan={fleetTab === "trailers" ? 11 : 10}
-                        className="px-6 py-8 text-center text-gray-500"
+                        className="px-6 py-8 text-center text-secondary"
                       >
                         No {fleetTab === "trucks" ? "truck" : "trailer"} units match your filters.
                       </td>
@@ -813,18 +813,18 @@ const Index = () => {
 
             {/* Sidebar Panel */}
             <div
-              className="fixed right-0 top-0 h-full w-full md:w-2/3 lg:w-1/2 bg-white shadow-2xl z-50 overflow-y-auto transform transition-transform duration-300 translate-x-0"
+              className="fixed right-0 top-0 h-full w-full md:w-2/3 lg:w-1/2 bg-card shadow-2xl z-50 overflow-y-auto transform transition-transform duration-300 translate-x-0"
             >
               <div className="p-6">
                 {/* Header */}
-                <div className="flex justify-between items-center mb-6 pb-4 border-b-2 border-gray-200">
-                  <h2 className="text-2xl font-bold text-gray-900">Fleet Unit Details</h2>
+                <div className="flex justify-between items-center mb-6 pb-4 border-b-2 border-theme">
+                  <h2 className="text-2xl font-bold text-primary">Fleet Unit Details</h2>
                   <button
                     onClick={() => {
                       setShowUnitDetails(false);
                       setTimeout(() => setSelectedUnit(null), 300);
                     }}
-                    className="p-2 rounded-lg text-gray-400 hover:text-gray-600 hover:bg-gray-100 transition-all"
+                    className="p-2 rounded-lg text-secondary hover:text-secondary hover:bg-gray-100 transition-all"
                   >
                     <X size={24} />
                   </button>
@@ -868,46 +868,46 @@ const Index = () => {
                   </div>
 
                   {/* Unit Information */}
-                  <div className="bg-gray-50 p-6 rounded-lg border border-gray-200">
-                    <h4 className="font-semibold text-gray-900 mb-4 text-lg flex items-center gap-2">
-                      <Truck size={20} className="text-blue-600" />
+                  <div className="bg-card p-6 rounded-lg border border-theme">
+                    <h4 className="font-semibold text-primary mb-4 text-lg flex items-center gap-2">
+                      <Truck size={20} className="text-[#00D1FF]" />
                       Unit Information
                     </h4>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       <div>
-                        <p className="text-sm text-gray-500 mb-1">Unit Number</p>
-                        <p className="font-medium text-gray-900">{selectedUnit.unitNo || "—"}</p>
+                        <p className="text-sm text-secondary mb-1">Unit Number</p>
+                        <p className="font-medium text-primary">{selectedUnit.unitNo || "—"}</p>
                       </div>
                       <div>
-                        <p className="text-sm text-gray-500 mb-1">Type</p>
-                        <p className="font-medium text-gray-900">{selectedUnit.unitType || selectedUnit.type || "—"}</p>
+                        <p className="text-sm text-secondary mb-1">Type</p>
+                        <p className="font-medium text-primary">{selectedUnit.unitType || selectedUnit.type || "—"}</p>
                       </div>
                       <div>
-                        <p className="text-sm text-gray-500 mb-1">Make / Model</p>
-                        <p className="font-medium text-gray-900">
+                        <p className="text-sm text-secondary mb-1">Make / Model</p>
+                        <p className="font-medium text-primary">
                           {selectedUnit.makeModel || [selectedUnit.make, selectedUnit.model].filter(Boolean).join(" ") || "—"}
                         </p>
                       </div>
                       <div>
-                        <p className="text-sm text-gray-500 mb-1">VIN Number</p>
-                        <p className="font-medium text-gray-900">{selectedUnit.vinNo || "—"}</p>
+                        <p className="text-sm text-secondary mb-1">VIN Number</p>
+                        <p className="font-medium text-primary">{selectedUnit.vinNo || "—"}</p>
                       </div>
                       <div>
-                        <p className="text-sm text-gray-500 mb-1">License Plate</p>
-                        <p className="font-medium text-gray-900">{selectedUnit.licensePlate || "—"}</p>
+                        <p className="text-sm text-secondary mb-1">License Plate</p>
+                        <p className="font-medium text-primary">{selectedUnit.licensePlate || "—"}</p>
                       </div>
                       <div>
-                        <p className="text-sm text-gray-500 mb-1">Year</p>
-                        <p className="font-medium text-gray-900">{selectedUnit.year || "—"}</p>
+                        <p className="text-sm text-secondary mb-1">Year</p>
+                        <p className="font-medium text-primary">{selectedUnit.year || "—"}</p>
                       </div>
                       <div>
-                        <p className="text-sm text-gray-500 mb-1">Current Odometer</p>
-                        <p className="font-medium text-gray-900">{formatNumber(selectedUnit.currentOdometer)}</p>
+                        <p className="text-sm text-secondary mb-1">Current Odometer</p>
+                        <p className="font-medium text-primary">{formatNumber(selectedUnit.currentOdometer)}</p>
                       </div>
                       {fleetTab === "trailers" && selectedUnit.capacity && (
                         <div>
-                          <p className="text-sm text-gray-500 mb-1">Capacity</p>
-                          <p className="font-medium text-gray-900">{selectedUnit.capacity}</p>
+                          <p className="text-sm text-secondary mb-1">Capacity</p>
+                          <p className="font-medium text-primary">{selectedUnit.capacity}</p>
                         </div>
                       )}
                     </div>
@@ -918,45 +918,45 @@ const Index = () => {
                     const assignment = getAssignmentForUnit(selectedUnit);
                     const loadStats = getLoadStatsForUnit(selectedUnit);
                     const activeOrder = assignment?.activeOrders[0];
-                    
+
                     if (!assignment && !loadStats) return null;
-                    
+
                     return (
                       <div className="bg-gradient-to-br from-blue-50 to-indigo-50 p-6 rounded-lg border border-blue-200">
-                        <h4 className="font-semibold text-gray-900 mb-4 text-lg flex items-center gap-2">
-                          <MapPin size={20} className="text-blue-600" />
+                        <h4 className="font-semibold text-primary mb-4 text-lg flex items-center gap-2">
+                          <MapPin size={20} className="text-[#00D1FF]" />
                           Dispatch Snapshot
                         </h4>
                         <div className="space-y-4">
                           {activeOrder ? (
                             <>
                               <div>
-                                <p className="text-sm text-gray-600 mb-1">Current Assignment</p>
-                                <p className="font-medium text-gray-900">{activeOrder.route || "Available"}</p>
+                                <p className="text-sm text-secondary mb-1">Current Assignment</p>
+                                <p className="font-medium text-primary">{activeOrder.route || "Available"}</p>
                               </div>
                               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                 <div>
-                                  <p className="text-sm text-gray-600 mb-1">Order Number</p>
-                                  <p className="font-medium text-gray-900">#{activeOrder.customerOrderNo || activeOrder.orderNumber || "—"}</p>
+                                  <p className="text-sm text-secondary mb-1">Order Number</p>
+                                  <p className="font-medium text-primary">#{activeOrder.customerOrderNo || activeOrder.orderNumber || "—"}</p>
                                 </div>
                                 {activeOrder.tripNo && (
                                   <div>
-                                    <p className="text-sm text-gray-600 mb-1">Trip Number</p>
-                                    <p className="font-medium text-gray-900">#{activeOrder.tripNo}</p>
+                                    <p className="text-sm text-secondary mb-1">Trip Number</p>
+                                    <p className="font-medium text-primary">#{activeOrder.tripNo}</p>
                                   </div>
                                 )}
                                 <div>
-                                  <p className="text-sm text-gray-600 mb-1">Driver</p>
-                                  <p className="font-medium text-gray-900">{activeOrder.driverName || "TBD"}</p>
+                                  <p className="text-sm text-secondary mb-1">Driver</p>
+                                  <p className="font-medium text-primary">{activeOrder.driverName || "TBD"}</p>
                                 </div>
                                 <div>
-                                  <p className="text-sm text-gray-600 mb-1">Status</p>
-                                  <p className="font-medium text-gray-900">{activeOrder.status?.replace('_', ' ') || "—"}</p>
+                                  <p className="text-sm text-secondary mb-1">Status</p>
+                                  <p className="font-medium text-primary">{activeOrder.status?.replace('_', ' ') || "—"}</p>
                                 </div>
                                 {activeOrder.pickupDate && (
                                   <div>
-                                    <p className="text-sm text-gray-600 mb-1">Pickup Date</p>
-                                    <p className="font-medium text-gray-900">
+                                    <p className="text-sm text-secondary mb-1">Pickup Date</p>
+                                    <p className="font-medium text-primary">
                                       {new Date(activeOrder.pickupDate).toLocaleDateString('en-US', {
                                         year: 'numeric',
                                         month: 'long',
@@ -967,8 +967,8 @@ const Index = () => {
                                 )}
                                 {activeOrder.deliveryDate && (
                                   <div>
-                                    <p className="text-sm text-gray-600 mb-1">Delivery Date</p>
-                                    <p className="font-medium text-gray-900">
+                                    <p className="text-sm text-secondary mb-1">Delivery Date</p>
+                                    <p className="font-medium text-primary">
                                       {new Date(activeOrder.deliveryDate).toLocaleDateString('en-US', {
                                         year: 'numeric',
                                         month: 'long',
@@ -980,12 +980,12 @@ const Index = () => {
                               </div>
                               {assignment?.pairedUnits?.length > 0 && (
                                 <div>
-                                  <p className="text-sm text-gray-600 mb-2">Paired Units</p>
+                                  <p className="text-sm text-secondary mb-2">Paired Units</p>
                                   <div className="flex flex-wrap gap-2">
                                     {assignment.pairedUnits.map((label) => (
                                       <span
                                         key={`${selectedUnit._id}-pair-${label}`}
-                                        className="text-xs px-3 py-1 rounded-full border border-gray-200 text-gray-600 font-semibold uppercase bg-white"
+                                        className="text-xs px-3 py-1 rounded-full border border-theme text-secondary font-semibold uppercase bg-card"
                                       >
                                         {fleetTab === "trucks" ? "Trailer" : "Truck"} {label}
                                       </span>
@@ -996,20 +996,20 @@ const Index = () => {
                             </>
                           ) : (
                             <div>
-                              <p className="text-sm text-gray-600 mb-1">Current Assignment</p>
-                              <p className="font-medium text-gray-900">Available</p>
-                              <p className="text-xs text-gray-500 mt-1">No active assignment</p>
+                              <p className="text-sm text-secondary mb-1">Current Assignment</p>
+                              <p className="font-medium text-primary">Available</p>
+                              <p className="text-xs text-secondary mt-1">No active assignment</p>
                             </div>
                           )}
                           {loadStats && (
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-2 border-t border-blue-200">
                               <div>
-                                <p className="text-sm text-gray-600 mb-1">Total Loads</p>
-                                <p className="font-medium text-gray-900">{loadStats.totalLoads}</p>
+                                <p className="text-sm text-secondary mb-1">Total Loads</p>
+                                <p className="font-medium text-primary">{loadStats.totalLoads}</p>
                               </div>
                               <div>
-                                <p className="text-sm text-gray-600 mb-1">Pending Loads</p>
-                                <p className="font-medium text-gray-900">{loadStats.pendingLoads}</p>
+                                <p className="text-sm text-secondary mb-1">Pending Loads</p>
+                                <p className="font-medium text-primary">{loadStats.pendingLoads}</p>
                               </div>
                             </div>
                           )}
@@ -1019,11 +1019,11 @@ const Index = () => {
                   })()}
 
                   {/* Status & Comment */}
-                  <div className="bg-gray-50 p-6 rounded-lg border border-gray-200">
-                    <h4 className="font-semibold text-gray-900 mb-4 text-lg">Status & Comments</h4>
+                  <div className="bg-card p-6 rounded-lg border border-theme">
+                    <h4 className="font-semibold text-primary mb-4 text-lg">Status & Comments</h4>
                     <div className="space-y-4">
                       <div>
-                        <p className="text-sm text-gray-500 mb-1">Status</p>
+                        <p className="text-sm text-secondary mb-1">Status</p>
                         <span
                           className={`inline-flex rounded-full px-3 py-1 text-sm font-semibold ${formatStatusBadge(
                             selectedUnit.status
@@ -1034,21 +1034,21 @@ const Index = () => {
                       </div>
                       {selectedUnit.reason && (
                         <div>
-                          <p className="text-sm text-gray-500 mb-1">Comment / Reason</p>
-                          <p className="font-medium text-gray-900">{selectedUnit.reason}</p>
+                          <p className="text-sm text-secondary mb-1">Comment / Reason</p>
+                          <p className="font-medium text-primary">{selectedUnit.reason}</p>
                         </div>
                       )}
                     </div>
                   </div>
 
                   {/* Action Buttons */}
-                  <div className="flex justify-end gap-3 pt-4 border-t-2 border-gray-200">
+                  <div className="flex justify-end gap-3 pt-4 border-t-2 border-theme">
                     <button
                       onClick={() => {
                         setShowUnitDetails(false);
                         setTimeout(() => setSelectedUnit(null), 300);
                       }}
-                      className="px-6 py-2.5 bg-gray-200 text-gray-700 font-medium rounded-lg hover:bg-gray-300 transition-all"
+                      className="px-6 py-2.5 bg-gray-200 text-primary font-medium rounded-lg hover:bg-gray-300 transition-all"
                     >
                       Close
                     </button>

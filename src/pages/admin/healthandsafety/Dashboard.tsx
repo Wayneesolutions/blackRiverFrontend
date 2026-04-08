@@ -60,25 +60,25 @@ const StatCard: React.FC<StatCardProps> = ({
   return (
     <div
       onClick={onClick}
-      className="bg-white rounded-lg p-3 shadow-sm border border-gray-200
+      className="bg-card rounded-lg p-3 shadow-sm border border-theme
                  hover:shadow-md hover:border-[#42aeec]/20
                  transition-all cursor-pointer
                  hover:scale-[1.02] active:scale-[0.98]"
     >
       <div className="flex items-start justify-between mb-2">
         <div>
-          <h3 className="text-sm font-bold text-gray-900 mb-1">
+          <h3 className="text-sm font-bold text-primary mb-1">
             {title}
           </h3>
 
-          <span className="text-xl font-bold text-gray-900">
+          <span className="text-xl font-bold text-primary">
             {value}
           </span>
 
           {trend && (
             <p
               className={`text-xs mt-0.5 ${trend.direction === 'up'
-                ? 'text-red-600'
+                ? 'text-[#A855F7]'
                 : 'text-green-600'
                 }`}
             >
@@ -96,7 +96,7 @@ const StatCard: React.FC<StatCardProps> = ({
       </div>
 
       {urgent && (
-        <span className="text-xs font-semibold text-red-600">
+        <span className="text-xs font-semibold text-[#A855F7]">
           Requires attention
         </span>
       )}
@@ -240,10 +240,10 @@ const Dashboard: React.FC = () => {
           </defs>
         </svg>
         <div className="absolute inset-0 flex flex-col items-center justify-center">
-          <span className={`text-base mb-2 ${hasData ? 'text-gray-500' : 'text-gray-400'}`}>
+          <span className={`text-base mb-2 ${hasData ? 'text-secondary' : 'text-secondary'}`}>
             Safety Score
           </span>
-          <span className={`text-2xl font-bold ${hasData ? 'text-gray-800' : 'text-gray-400'}`}>
+          <span className={`text-2xl font-bold ${hasData ? 'text-primary' : 'text-secondary'}`}>
             {percentage}%
           </span>
         </div>
@@ -253,7 +253,7 @@ const Dashboard: React.FC = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-[#EDF8FF]">
+      <div className="min-h-screen flex items-center justify-center bg-main">
         <div className="animate-spin rounded-full h-12 w-12 border-b-4 border-blue-500"></div>
       </div>
     );
@@ -261,7 +261,7 @@ const Dashboard: React.FC = () => {
 
   return (
     <>
-    <div className="min-h-screen bg-[#EDF8FF]">
+    <div className="min-h-screen bg-main">
       <div className="relative w-full mx-auto p-2">
         {/* Gradient Header */}
         <div
@@ -345,8 +345,8 @@ const Dashboard: React.FC = () => {
           {/* Charts Section - Moved from GPS Dashboard */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 mb-6">
             {/* Watching Report */}
-            <div className="bg-white p-4 rounded-lg shadow-sm">
-              <h3 className="text-sm font-bold text-gray-900 mb-3">Watching Report</h3>
+            <div className="bg-card p-4 rounded-lg shadow-sm">
+              <h3 className="text-sm font-bold text-primary mb-3">Watching Report</h3>
               <div className="h-48">
                 <ResponsiveContainer width="100%" height="100%">
                   <BarChart data={watchingReportData} barCategoryGap="20%">
@@ -382,8 +382,8 @@ const Dashboard: React.FC = () => {
             </div>
 
             {/* Driver Utilization */}
-            <div className="bg-white p-4 rounded-lg shadow-sm">
-              <h3 className="text-sm font-bold text-gray-900 mb-3">Driver Utilization</h3>
+            <div className="bg-card p-4 rounded-lg shadow-sm">
+              <h3 className="text-sm font-bold text-primary mb-3">Driver Utilization</h3>
               <div className="h-48">
                 <ResponsiveContainer width="100%" height="100%">
                   <LineChart data={driverUtilizationData}>
@@ -416,8 +416,8 @@ const Dashboard: React.FC = () => {
             </div>
 
             {/* Driver Safety Scorecard */}
-            <div className="bg-white p-4 rounded-lg shadow-sm">
-              <h3 className="text-sm font-bold text-gray-900 mb-3">Driver Safety Scorecard</h3>
+            <div className="bg-card p-4 rounded-lg shadow-sm">
+              <h3 className="text-sm font-bold text-primary mb-3">Driver Safety Scorecard</h3>
               <div className="flex justify-center items-center h-48">
                 <CircularProgress percentage={safetyScore} />
               </div>
@@ -426,8 +426,8 @@ const Dashboard: React.FC = () => {
 
           {/* Speeding Violations */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-3 mb-6">
-            <div className="bg-white p-4 rounded-lg shadow-sm">
-              <h3 className="text-sm font-bold text-gray-900 mb-3">Speeding Violations</h3>
+            <div className="bg-card p-4 rounded-lg shadow-sm">
+              <h3 className="text-sm font-bold text-primary mb-3">Speeding Violations</h3>
               <div className="h-64">
                 <ResponsiveContainer width="100%" height="100%">
                   <AreaChart data={speedingData}>
@@ -481,7 +481,7 @@ const Dashboard: React.FC = () => {
                     className="w-3 h-3 rounded-full" 
                     style={{ backgroundColor: hasSpeedingData ? '#42aeec' : '#E0F2FE' }}
                   ></div>
-                  <span className={`text-sm ${hasSpeedingData ? 'text-gray-600' : 'text-gray-400'}`}>
+                  <span className={`text-sm ${hasSpeedingData ? 'text-secondary' : 'text-secondary'}`}>
                     Speeding %
                   </span>
                 </div>
@@ -490,7 +490,7 @@ const Dashboard: React.FC = () => {
                     className="w-3 h-3 rounded-full" 
                     style={{ backgroundColor: hasSpeedingData ? '#1db5f5' : '#BAE6FD' }}
                   ></div>
-                  <span className={`text-sm ${hasSpeedingData ? 'text-gray-600' : 'text-gray-400'}`}>
+                  <span className={`text-sm ${hasSpeedingData ? 'text-secondary' : 'text-secondary'}`}>
                     Speeding Events
                   </span>
                 </div>
@@ -501,14 +501,14 @@ const Dashboard: React.FC = () => {
           {/* Bottom Section */}
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
             {/* Recent Activity */}
-            <div className="lg:col-span-2 bg-white rounded-lg p-4 shadow-sm border border-gray-200">
-              <h2 className="text-sm font-bold text-gray-900 mb-3">
+            <div className="lg:col-span-2 bg-card rounded-lg p-4 shadow-sm border border-theme">
+              <h2 className="text-sm font-bold text-primary mb-3">
                 Recent Activity
               </h2>
 
               <div className="space-y-2">
                 {recentActivity.length === 0 ? (
-                  <p className="text-xs text-gray-500 text-center py-4">
+                  <p className="text-xs text-secondary text-center py-4">
                     No recent activity
                   </p>
                 ) : (
@@ -517,7 +517,7 @@ const Dashboard: React.FC = () => {
                     return (
                       <div
                         key={a.id}
-                        className="flex items-start gap-3 p-3 rounded-lg hover:bg-gray-50 border border-gray-200"
+                        className="flex items-start gap-3 p-3 rounded-lg hover:bg-[rgba(255,255,255,0.03)] border border-theme"
                       >
                         <div
                           className="p-2 rounded-lg"
@@ -529,10 +529,10 @@ const Dashboard: React.FC = () => {
                           <FaExclamationTriangle size={14} />
                         </div>
                         <div className="flex-1">
-                          <p className="text-sm font-medium text-gray-900">
+                          <p className="text-sm font-medium text-primary">
                             {a.title}
                           </p>
-                          <p className="text-xs text-gray-500">
+                          <p className="text-xs text-secondary">
                             {a.description}
                           </p>
                         </div>
@@ -544,29 +544,29 @@ const Dashboard: React.FC = () => {
             </div>
 
             {/* Upcoming Tasks */}
-            <div className="bg-white rounded-lg p-4 shadow-sm border border-gray-200">
-              <h2 className="text-sm font-bold text-gray-900 mb-3">
+            <div className="bg-card rounded-lg p-4 shadow-sm border border-theme">
+              <h2 className="text-sm font-bold text-primary mb-3">
                 Upcoming Tasks
               </h2>
 
               <div className="space-y-2">
                 {upcomingTasks.length === 0 ? (
-                  <p className="text-xs text-gray-500 text-center py-4">
+                  <p className="text-xs text-secondary text-center py-4">
                     No upcoming tasks
                   </p>
                 ) : (
                   upcomingTasks.map((t) => (
                     <div
                       key={t.id}
-                      className="flex items-center justify-between p-2 rounded-lg border border-gray-200 hover:bg-gray-50"
+                      className="flex items-center justify-between p-2 rounded-lg border border-theme hover:bg-[rgba(255,255,255,0.03)]"
                     >
                       <div>
-                        <p className="text-sm font-medium text-gray-900">
+                        <p className="text-sm font-medium text-primary">
                           {t.title}
                         </p>
-                        <p className="text-xs text-gray-500">{t.date}</p>
+                        <p className="text-xs text-secondary">{t.date}</p>
                       </div>
-                      <FaChevronRight size={14} className="text-gray-400" />
+                      <FaChevronRight size={14} className="text-secondary" />
                     </div>
                   ))
                 )}

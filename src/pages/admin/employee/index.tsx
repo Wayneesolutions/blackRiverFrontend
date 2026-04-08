@@ -126,7 +126,7 @@ const EmployeeDashboard = () => {
       change: '+8%',
       icon: Users,
       color: 'text-blue-500',
-      bgColor: 'bg-blue-50'
+      bgColor: 'bg-card'
     },
     {
       title: 'Active Employees',
@@ -142,7 +142,7 @@ const EmployeeDashboard = () => {
       change: '+12%',
       icon: FileText,
       color: 'text-yellow-500',
-      bgColor: 'bg-yellow-50'
+      bgColor: 'bg-card'
     },
     {
       title: 'Expiring Soon',
@@ -150,7 +150,7 @@ const EmployeeDashboard = () => {
       change: '-2',
       icon: AlertTriangle,
       color: 'text-red-500',
-      bgColor: 'bg-red-50'
+      bgColor: 'bg-card'
     }
   ];
 
@@ -201,14 +201,14 @@ const EmployeeDashboard = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen p-4 bg-[#EDF8FF] px-6 flex items-center justify-center">
+      <div className="min-h-screen p-4 bg-main px-6 flex items-center justify-center">
         <div className="text-slate-500">Loading dashboard...</div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen p-4 bg-[#EDF8FF] px-6">
+    <div className="min-h-screen p-4 bg-main px-6">
       <div className="max-w-7xl mx-auto">
         {/* Header */}
         <div className="mb-8">
@@ -230,7 +230,7 @@ const EmployeeDashboard = () => {
 
         {/* Error Message */}
         {error && (
-          <div className="mb-6 bg-red-50 border border-red-200 rounded-xl p-4 flex items-center">
+          <div className="mb-6 bg-card border border-red-200 rounded-xl p-4 flex items-center">
             <AlertCircle className="w-5 h-5 text-red-500 mr-3" />
             <span className="text-red-700">{error}</span>
           </div>
@@ -248,7 +248,7 @@ const EmployeeDashboard = () => {
               </div>
               <div className="mt-2 flex items-center justify-between">
                 <div className={`text-xs font-semibold ${stat.change.startsWith('+') ? 'text-green-600' :
-                    stat.change.startsWith('-') ? 'text-red-600' : 'text-slate-600'
+                    stat.change.startsWith('-') ? 'text-[#A855F7]' : 'text-slate-600'
                   }`}>
                   {stat.change} vs last month
                 </div>
@@ -260,7 +260,7 @@ const EmployeeDashboard = () => {
 
         {/* Role Distribution and Document Status */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-          <div className="col-span-1 md:col-span-2 bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
+          <div className="col-span-1 md:col-span-2 bg-card rounded-xl shadow-sm border border-slate-200 overflow-hidden">
             <div className="p-6 border-b border-slate-100">
               <h3 className="text-lg font-bold text-slate-800">Employee Role Distribution</h3>
             </div>
@@ -289,7 +289,7 @@ const EmployeeDashboard = () => {
             </div>
           </div>
 
-          <div className="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
+          <div className="bg-card rounded-xl shadow-sm border border-slate-200 overflow-hidden">
             <div className="p-6 border-b border-slate-100">
               <h3 className="text-lg font-bold text-slate-800">Document Status</h3>
             </div>
@@ -327,7 +327,7 @@ const EmployeeDashboard = () => {
         </div>
 
         {/* Recent Activity */}
-        <div className="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden mb-8">
+        <div className="bg-card rounded-xl shadow-sm border border-slate-200 overflow-hidden mb-8">
           <div className="p-6 border-b border-slate-100">
             <h3 className="text-lg font-bold text-slate-800">Recent Employee Activity</h3>
           </div>

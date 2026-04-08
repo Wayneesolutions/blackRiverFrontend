@@ -73,9 +73,9 @@ const DrugTestUploadModal: React.FC<{
 
     return (
         <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-[10000] flex items-center justify-center p-4">
-            <div className="bg-white rounded-xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
-                <div className="sticky top-0 bg-white border-b border-gray-200 px-6 py-4 flex items-center justify-between">
-                    <h2 className="text-xl font-bold text-gray-900">
+            <div className="bg-card rounded-xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+                <div className="sticky top-0 bg-card border-b border-theme px-6 py-4 flex items-center justify-between">
+                    <h2 className="text-xl font-bold text-primary">
                         {editingTest ? 'Edit Drug Test' : 'Upload Drug Test'}
                     </h2>
                     <button
@@ -87,18 +87,18 @@ const DrugTestUploadModal: React.FC<{
                 </div>
                 <form onSubmit={handleSubmit} className="p-6 space-y-6">
                     <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                        <label className="block text-sm font-medium text-primary mb-2">
                             Driver Name
                         </label>
                         <input
                             type="text"
                             value={driverName}
                             disabled
-                            className="w-full px-4 py-2 border border-gray-300 rounded-lg bg-gray-50 text-gray-600"
+                            className="w-full px-4 py-2 border border-gray-300 rounded-lg bg-card text-secondary"
                         />
                     </div>
                     <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                        <label className="block text-sm font-medium text-primary mb-2">
                             Test Date <span className="text-red-500">*</span>
                         </label>
                         <input
@@ -110,7 +110,7 @@ const DrugTestUploadModal: React.FC<{
                         />
                     </div>
                     <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                        <label className="block text-sm font-medium text-primary mb-2">
                             Expiry Date
                         </label>
                         <input
@@ -121,7 +121,7 @@ const DrugTestUploadModal: React.FC<{
                         />
                     </div>
                     <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                        <label className="block text-sm font-medium text-primary mb-2">
                             Consent Form
                         </label>
                         <input
@@ -132,7 +132,7 @@ const DrugTestUploadModal: React.FC<{
                         />
                     </div>
                     <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                        <label className="block text-sm font-medium text-primary mb-2">
                             Result Document
                         </label>
                         <input
@@ -143,15 +143,15 @@ const DrugTestUploadModal: React.FC<{
                         />
                     </div>
                     {error && (
-                        <div className="bg-red-50 border border-red-200 rounded-lg p-4">
-                            <p className="text-sm text-red-600">{error}</p>
+                        <div className="bg-card border border-red-200 rounded-lg p-4">
+                            <p className="text-sm text-[#A855F7]">{error}</p>
                         </div>
                     )}
-                    <div className="flex items-center justify-end gap-3 pt-4 border-t border-gray-200">
+                    <div className="flex items-center justify-end gap-3 pt-4 border-t border-theme">
                         <button
                             type="button"
                             onClick={onClose}
-                            className="px-4 py-2 text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors"
+                            className="px-4 py-2 text-primary bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors"
                         >
                             Cancel
                         </button>
@@ -693,12 +693,12 @@ const DriverPortfolio: React.FC = () => {
                                 >
                                     Driver Portfolio
                                 </h1>
-                                <p className="text-gray-600 mt-1 flex items-center gap-2">
+                                <p className="text-secondary mt-1 flex items-center gap-2">
                                     <TrendingUp className="w-4 h-4" />
                                     Comprehensive view of driver performance, earnings, miles, and trips
                                 </p>
                                 {fetchedRangeLabel && (
-                                    <p className="text-xs text-gray-500 mt-1">
+                                    <p className="text-xs text-secondary mt-1">
                                         Showing data from {fetchedRangeLabel}
                                     </p>
                                 )}
@@ -722,7 +722,7 @@ const DriverPortfolio: React.FC = () => {
                 )}
 
                 {error && (
-                    <div className="mb-6 rounded-lg border border-red-200 bg-red-50 p-4 text-red-700">
+                    <div className="mb-6 rounded-lg border border-red-200 bg-card p-4 text-red-700">
                         {error}
                     </div>
                 )}
@@ -730,7 +730,7 @@ const DriverPortfolio: React.FC = () => {
                 {/* Summary Cards */}
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-6">
                     {/* Total Drivers */}
-                    <div className="rounded-lg p-4 bg-purple-50 border border-purple-200">
+                    <div className="rounded-lg p-4 bg-card border border-purple-200">
                         <div className="flex items-center justify-between">
                             <div>
                                 <p className="text-xs text-purple-600 mb-0.5">
@@ -775,17 +775,17 @@ const DriverPortfolio: React.FC = () => {
                     </div>
 
                     {/* Total Miles */}
-                    <div className="rounded-lg p-4 bg-orange-50 border border-orange-200">
+                    <div className="rounded-lg p-4 bg-card border border-orange-200">
                         <div className="flex items-center justify-between">
                             <div>
-                                <p className="text-xs text-orange-600 mb-0.5">
+                                <p className="text-xs text-[#F59E0B] mb-0.5">
                                     Total Miles
                                 </p>
                                 <p className="text-2xl font-semibold text-orange-700">
                                     {formatNumber(summaryStats.totalMiles)}
                                 </p>
                             </div>
-                            <MapPin className="text-orange-600" size={20} />
+                            <MapPin className="text-[#F59E0B]" size={20} />
                         </div>
                     </div>
 
@@ -822,11 +822,11 @@ const DriverPortfolio: React.FC = () => {
 
 
                 {/* Filters */}
-                <div className="bg-white rounded-xl shadow-lg border border-gray-200 p-6 mb-6">
+                <div className="bg-card rounded-xl shadow-lg border border-theme p-6 mb-6">
                     <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
                         {/* Search */}
                         <div className="relative flex-1 max-w-md">
-                            <Search className="w-5 h-5 absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
+                            <Search className="w-5 h-5 absolute left-3 top-1/2 transform -translate-y-1/2 text-secondary" />
                             <input
                                 type="text"
                                 placeholder="Search by name or email..."
@@ -839,14 +839,14 @@ const DriverPortfolio: React.FC = () => {
 
                         {/* Time Period Filter */}
                         <div className="flex items-center gap-2">
-                            <Calendar className="w-5 h-5 text-gray-500" />
-                            <span className="text-sm font-medium text-gray-700">Period:</span>
+                            <Calendar className="w-5 h-5 text-secondary" />
+                            <span className="text-sm font-medium text-primary">Period:</span>
                             <div className="flex gap-2">
                                 {(['1week', '2weeks', '1month'] as TimePeriod[]).map((period) => (
                                     <button
                                         key={period}
                                         onClick={() => setTimePeriod(period)}
-                                        className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${timePeriod === period ? '!text-white shadow-md' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                                        className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${timePeriod === period ? '!text-white shadow-md' : 'bg-gray-100 text-primary hover:bg-gray-200'
                                             }`}
                                         style={timePeriod === period ? { background: ACCENT_GRADIENT } : undefined}
                                     >
@@ -865,7 +865,7 @@ const DriverPortfolio: React.FC = () => {
                 )}
 
                 {/* Driver Profiles Table */}
-                <div className="bg-white rounded-xl shadow-lg border border-gray-200 overflow-hidden">
+                <div className="bg-card rounded-xl shadow-lg border border-theme overflow-hidden">
                     {/* Top Scrollbar - Only visible horizontal scrollbar */}
                     <style>{`
                         .top-scrollbar-container::-webkit-scrollbar {
@@ -925,13 +925,13 @@ const DriverPortfolio: React.FC = () => {
                             <tbody className="divide-y divide-gray-200">
                                 {loading ? (
                                     <tr>
-                                        <td colSpan={11} className="px-6 py-12 text-center text-gray-500">
+                                        <td colSpan={11} className="px-6 py-12 text-center text-secondary">
                                             Loading driver profiles...
                                         </td>
                                     </tr>
                                 ) : filteredProfiles.length === 0 ? (
                                     <tr>
-                                        <td colSpan={11} className="px-6 py-12 text-center text-gray-500">
+                                        <td colSpan={11} className="px-6 py-12 text-center text-secondary">
                                             {emptyStateMessage}
                                         </td>
                                     </tr>
@@ -939,7 +939,7 @@ const DriverPortfolio: React.FC = () => {
                                     filteredProfiles.map((profile) => (
                                         <tr 
                                             key={profile._id} 
-                                            className="hover:bg-gray-50 transition-colors cursor-pointer"
+                                            className="hover:bg-[rgba(255,255,255,0.03)] transition-colors cursor-pointer"
                                             onClick={() => {
                                                 setSelectedProfile(profile);
                                                 setShowProfileSidebar(true);
@@ -954,8 +954,8 @@ const DriverPortfolio: React.FC = () => {
                                                         {profile.name.charAt(0)}
                                                     </div>
                                                     <div>
-                                                        <p className="font-medium text-gray-900">{profile.name}</p>
-                                                        <p className="text-sm text-gray-500">{profile.email}</p>
+                                                        <p className="font-medium text-primary">{profile.name}</p>
+                                                        <p className="text-sm text-secondary">{profile.email}</p>
                                                     </div>
                                                 </div>
                                             </td>
@@ -965,14 +965,14 @@ const DriverPortfolio: React.FC = () => {
                                                     if (loadingAllOrders) {
                                                         return (
                                                             <div className="flex items-center gap-2">
-                                                                <Loader2 className="w-4 h-4 animate-spin text-gray-400" />
-                                                                <span className="text-xs text-gray-400">Loading...</span>
+                                                                <Loader2 className="w-4 h-4 animate-spin text-secondary" />
+                                                                <span className="text-xs text-secondary">Loading...</span>
                                                             </div>
                                                         );
                                                     }
                                                     if (!order) {
                                                         return (
-                                                            <span className="text-xs text-gray-400 italic">No active order</span>
+                                                            <span className="text-xs text-secondary italic">No active order</span>
                                                         );
                                                     }
                                                     const status = (order.status || '').toLowerCase();
@@ -986,7 +986,7 @@ const DriverPortfolio: React.FC = () => {
                                                         'pending_review': { bg: 'bg-amber-100', text: 'text-amber-800', icon: AlertCircleIcon, label: 'Pending Review' },
                                                         'canceled': { bg: 'bg-red-100', text: 'text-red-800', icon: X, label: 'Canceled' }
                                                     };
-                                                    const config = statusConfig[status] || { bg: 'bg-gray-100', text: 'text-gray-800', icon: Package, label: status.replace(/_/g, ' ').replace(/-/g, ' ') };
+                                                    const config = statusConfig[status] || { bg: 'bg-gray-100', text: 'text-primary', icon: Package, label: status.replace(/_/g, ' ').replace(/-/g, ' ') };
                                                     const StatusIcon = config.icon;
                                                     return (
                                                         <div className="flex flex-col gap-1.5">
@@ -997,7 +997,7 @@ const DriverPortfolio: React.FC = () => {
                                                                 </span>
                                                             </div>
                                                             {order.orderNumber && (
-                                                                <span className="text-xs text-gray-500 font-mono">
+                                                                <span className="text-xs text-secondary font-mono">
                                                                     {order.orderNumber}
                                                                 </span>
                                                             )}
@@ -1007,11 +1007,11 @@ const DriverPortfolio: React.FC = () => {
                                             </td>
                                             <td className="px-6 py-4">
                                                 <div>
-                                                    <p className="font-semibold text-gray-900">{formatCurrency(profile.totalEarnings)}</p>
-                                                    <div className="text-xs text-gray-500 mt-1">
+                                                    <p className="font-semibold text-primary">{formatCurrency(profile.totalEarnings)}</p>
+                                                    <div className="text-xs text-secondary mt-1">
                                                         <span>Base: {formatCurrency(profile.baseSalary)}</span>
                                                         {profile.bonus > 0 && <span className="ml-2 text-green-600">+{formatCurrency(profile.bonus)}</span>}
-                                                        {profile.deductions > 0 && <span className="ml-2 text-red-600">-{formatCurrency(profile.deductions)}</span>}
+                                                        {profile.deductions > 0 && <span className="ml-2 text-[#A855F7]">-{formatCurrency(profile.deductions)}</span>}
                                                     </div>
                                                 </div>
                                             </td>
@@ -1019,44 +1019,44 @@ const DriverPortfolio: React.FC = () => {
                                                 {profile.milesDriven != null ? (
                                                     <div className="flex items-center gap-2">
                                                         <MapPin className="w-4 h-4 text-orange-500" />
-                                                        <span className="font-medium text-gray-900">{formatNumber(profile.milesDriven)}</span>
+                                                        <span className="font-medium text-primary">{formatNumber(profile.milesDriven)}</span>
                                                     </div>
                                                 ) : (
-                                                    <span className="text-gray-400">—</span>
+                                                    <span className="text-secondary">—</span>
                                                 )}
                                             </td>
                                             <td className="px-6 py-4">
                                                 {profile.tripsCompleted != null ? (
-                                                    <span className="font-medium text-gray-900">{formatNumber(profile.tripsCompleted)}</span>
+                                                    <span className="font-medium text-primary">{formatNumber(profile.tripsCompleted)}</span>
                                                 ) : (
-                                                    <span className="text-gray-400">—</span>
+                                                    <span className="text-secondary">—</span>
                                                 )}
                                             </td>
                                             <td className="px-6 py-4">
                                                 {profile.invoices != null ? (
                                                     <div className="flex items-center gap-2">
                                                         <FileText className="w-4 h-4 text-indigo-500" />
-                                                        <span className="font-medium text-gray-900">{profile.invoices}</span>
+                                                        <span className="font-medium text-primary">{profile.invoices}</span>
                                                     </div>
                                                 ) : (
-                                                    <span className="text-gray-400">—</span>
+                                                    <span className="text-secondary">—</span>
                                                 )}
                                             </td>
                                             <td className="px-6 py-4">
                                                 <div>
-                                                    <p className="font-medium text-gray-900">{profile.daysWorked} days</p>
-                                                    <div className="text-xs text-gray-500 mt-1 flex gap-2">
+                                                    <p className="font-medium text-primary">{profile.daysWorked} days</p>
+                                                    <div className="text-xs text-secondary mt-1 flex gap-2">
                                                         <span className="text-green-600">✓ {profile.presentDays}</span>
-                                                        {profile.absentDays > 0 && <span className="text-red-600">✗ {profile.absentDays}</span>}
-                                                        {profile.lateDays > 0 && <span className="text-yellow-600">⚠ {profile.lateDays}</span>}
-                                                        {profile.leaveDays > 0 && <span className="text-blue-600">L {profile.leaveDays}</span>}
+                                                        {profile.absentDays > 0 && <span className="text-[#A855F7]">✗ {profile.absentDays}</span>}
+                                                        {profile.lateDays > 0 && <span className="text-[#00FFA3]">⚠ {profile.lateDays}</span>}
+                                                        {profile.leaveDays > 0 && <span className="text-[#00D1FF]">L {profile.leaveDays}</span>}
                                                     </div>
                                                 </div>
                                             </td>
                                             <td className="px-6 py-4">
                                                 <div className="flex items-center gap-2">
                                                     <Clock className="w-4 h-4 text-blue-500" />
-                                                    <span className="font-medium text-gray-900">{formatNumber(profile.totalHours)} hrs</span>
+                                                    <span className="font-medium text-primary">{formatNumber(profile.totalHours)} hrs</span>
                                                 </div>
                                             </td>
                                             <td className="px-6 py-4">
@@ -1088,7 +1088,7 @@ const DriverPortfolio: React.FC = () => {
                                                         <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-semibold ${
                                                             crossBorderEligible 
                                                                 ? 'bg-green-100 text-green-800 border border-green-200' 
-                                                                : 'bg-gray-100 text-gray-600 border border-gray-200'
+                                                                : 'bg-gray-100 text-secondary border border-theme'
                                                         }`}>
                                                             {crossBorderEligible ? (
                                                                 <>
@@ -1137,7 +1137,7 @@ const DriverPortfolio: React.FC = () => {
                         />
 
                         {/* Sidebar */}
-                        <div className="fixed top-0 right-0 h-full w-full max-w-4xl bg-white shadow-2xl z-[9999] transform transition-transform duration-300 ease-out overflow-y-auto">
+                        <div className="fixed top-0 right-0 h-full w-full max-w-4xl bg-card shadow-2xl z-[9999] transform transition-transform duration-300 ease-out overflow-y-auto">
                             {/* Header */}
                             <div className="sticky top-0  text-white p-6 z-10"
                                 style={{
@@ -1145,7 +1145,7 @@ const DriverPortfolio: React.FC = () => {
                                 }}>
                                 <div className="flex items-center justify-between">
                                     <div className="flex items-center gap-4">
-                                        <div className="w-16 h-16 rounded-full bg-white/20 flex items-center justify-center text-white text-2xl font-bold">
+                                        <div className="w-16 h-16 rounded-full bg-card/20 flex items-center justify-center text-white text-2xl font-bold">
                                             {selectedProfile.name.charAt(0)}
                                         </div>
                                         <div>
@@ -1156,7 +1156,7 @@ const DriverPortfolio: React.FC = () => {
                                             </p>
                                             {/* Current Order Status */}
                                             {loadingOrder ? (
-                                                <div className="mt-3 bg-white/10 rounded-xl p-3 backdrop-blur-sm border border-white/20">
+                                                <div className="mt-3 bg-card/10 rounded-xl p-3 backdrop-blur-sm border border-white/20">
                                                     <div className="flex items-center gap-2 text-white/90">
                                                         <Clock className="w-4 h-4 animate-spin" />
                                                         <span className="text-sm font-medium">Loading order status...</span>
@@ -1274,7 +1274,7 @@ const DriverPortfolio: React.FC = () => {
                                                     );
                                                 })()
                                             ) : (
-                                                <div className="mt-3 bg-white/10 rounded-xl p-3 backdrop-blur-sm border border-white/20">
+                                                <div className="mt-3 bg-card/10 rounded-xl p-3 backdrop-blur-sm border border-white/20">
                                                     <div className="flex items-center gap-2 text-white/80">
                                                         <Package className="w-4 h-4" />
                                                         <span className="text-sm font-medium">No active order</span>
@@ -1285,7 +1285,7 @@ const DriverPortfolio: React.FC = () => {
                                     </div>
                                     <button
                                         onClick={() => setShowProfileSidebar(false)}
-                                        className="p-2 hover:bg-white/20 rounded-lg transition-colors"
+                                        className="p-2 hover:bg-card/20 rounded-lg transition-colors"
                                     >
                                         <X className="w-6 h-6" />
                                     </button>
@@ -1295,43 +1295,43 @@ const DriverPortfolio: React.FC = () => {
                             {/* Content */}
                             <div className="p-6 space-y-6">
                                 {/* Basic Information */}
-                                <div className="bg-white border border-gray-200 rounded-xl p-6">
-                                    <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
+                                <div className="bg-card border border-theme rounded-xl p-6">
+                                    <h3 className="text-lg font-semibold text-primary mb-4 flex items-center gap-2">
                                         <UserIcon className="w-5 h-5 text-purple-600" />
                                         Basic Information
                                     </h3>
                                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                         <div className="flex items-center gap-3">
-                                            <Mail className="w-5 h-5 text-gray-400" />
+                                            <Mail className="w-5 h-5 text-secondary" />
                                             <div>
-                                                <p className="text-sm text-gray-500">Email</p>
-                                                <p className="text-gray-900 font-medium">{selectedProfile.email}</p>
+                                                <p className="text-sm text-secondary">Email</p>
+                                                <p className="text-primary font-medium">{selectedProfile.email}</p>
                                             </div>
                                         </div>
                                         {selectedProfile.phone && (
                                             <div className="flex items-center gap-3">
-                                                <Clock className="w-5 h-5 text-gray-400" />
+                                                <Clock className="w-5 h-5 text-secondary" />
                                                 <div>
-                                                    <p className="text-sm text-gray-500">Phone</p>
-                                                    <p className="text-gray-900 font-medium">{selectedProfile.phone}</p>
+                                                    <p className="text-sm text-secondary">Phone</p>
+                                                    <p className="text-primary font-medium">{selectedProfile.phone}</p>
                                                 </div>
                                             </div>
                                         )}
                                         {selectedProfile.joinDate && (
                                             <div className="flex items-center gap-3">
-                                                <Calendar className="w-5 h-5 text-gray-400" />
+                                                <Calendar className="w-5 h-5 text-secondary" />
                                                 <div>
-                                                    <p className="text-sm text-gray-500">Join Date</p>
-                                                    <p className="text-gray-900 font-medium">{new Date(selectedProfile.joinDate).toLocaleDateString()}</p>
+                                                    <p className="text-sm text-secondary">Join Date</p>
+                                                    <p className="text-primary font-medium">{new Date(selectedProfile.joinDate).toLocaleDateString()}</p>
                                                 </div>
                                             </div>
                                         )}
                                         {selectedProfile.dateOfBirth && (
                                             <div className="flex items-center gap-3">
-                                                <Calendar className="w-5 h-5 text-gray-400" />
+                                                <Calendar className="w-5 h-5 text-secondary" />
                                                 <div>
-                                                    <p className="text-sm text-gray-500">Date of Birth</p>
-                                                    <p className="text-gray-900 font-medium">{new Date(selectedProfile.dateOfBirth).toLocaleDateString()}</p>
+                                                    <p className="text-sm text-secondary">Date of Birth</p>
+                                                    <p className="text-primary font-medium">{new Date(selectedProfile.dateOfBirth).toLocaleDateString()}</p>
                                                 </div>
                                             </div>
                                         )}
@@ -1339,40 +1339,40 @@ const DriverPortfolio: React.FC = () => {
 
                                     {/* Address Information */}
                                     {(selectedProfile.address || selectedProfile.city || selectedProfile.province || selectedProfile.postalCode) && (
-                                        <div className="mt-4 pt-4 border-t border-gray-200">
-                                            <h4 className="text-sm font-semibold text-gray-700 mb-3 flex items-center gap-2">
+                                        <div className="mt-4 pt-4 border-t border-theme">
+                                            <h4 className="text-sm font-semibold text-primary mb-3 flex items-center gap-2">
                                                 <MapPin className="w-4 h-4" />
                                                 Address
                                             </h4>
                                             <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                                                 {selectedProfile.address && (
                                                     <div>
-                                                        <p className="text-xs text-gray-500">Street Address</p>
-                                                        <p className="text-gray-900 font-medium">{selectedProfile.address}</p>
+                                                        <p className="text-xs text-secondary">Street Address</p>
+                                                        <p className="text-primary font-medium">{selectedProfile.address}</p>
                                                     </div>
                                                 )}
                                                 {selectedProfile.city && (
                                                     <div>
-                                                        <p className="text-xs text-gray-500">City</p>
-                                                        <p className="text-gray-900 font-medium">{selectedProfile.city}</p>
+                                                        <p className="text-xs text-secondary">City</p>
+                                                        <p className="text-primary font-medium">{selectedProfile.city}</p>
                                                     </div>
                                                 )}
                                                 {selectedProfile.province && (
                                                     <div>
-                                                        <p className="text-xs text-gray-500">Province</p>
-                                                        <p className="text-gray-900 font-medium">{selectedProfile.province}</p>
+                                                        <p className="text-xs text-secondary">Province</p>
+                                                        <p className="text-primary font-medium">{selectedProfile.province}</p>
                                                     </div>
                                                 )}
                                                 {selectedProfile.postalCode && (
                                                     <div>
-                                                        <p className="text-xs text-gray-500">Postal Code</p>
-                                                        <p className="text-gray-900 font-medium">{selectedProfile.postalCode}</p>
+                                                        <p className="text-xs text-secondary">Postal Code</p>
+                                                        <p className="text-primary font-medium">{selectedProfile.postalCode}</p>
                                                     </div>
                                                 )}
                                                 {selectedProfile.country && (
                                                     <div>
-                                                        <p className="text-xs text-gray-500">Country</p>
-                                                        <p className="text-gray-900 font-medium">{selectedProfile.country}</p>
+                                                        <p className="text-xs text-secondary">Country</p>
+                                                        <p className="text-primary font-medium">{selectedProfile.country}</p>
                                                     </div>
                                                 )}
                                             </div>
@@ -1381,15 +1381,15 @@ const DriverPortfolio: React.FC = () => {
 
                                     {/* Citizenship & Legal Information */}
                                     {(selectedProfile.citizenshipStatus || selectedProfile.sinNumber) && (
-                                        <div className="mt-4 pt-4 border-t border-gray-200">
-                                            <h4 className="text-sm font-semibold text-gray-700 mb-3 flex items-center gap-2">
+                                        <div className="mt-4 pt-4 border-t border-theme">
+                                            <h4 className="text-sm font-semibold text-primary mb-3 flex items-center gap-2">
                                                 <FileText className="w-4 h-4" />
                                                 Citizenship & Legal Information
                                             </h4>
                                             <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                                                 {selectedProfile.citizenshipStatus && (
                                                     <div>
-                                                        <p className="text-xs text-gray-500">Citizenship Status</p>
+                                                        <p className="text-xs text-secondary">Citizenship Status</p>
                                                         <span className={`inline-flex px-3 py-1 text-xs font-semibold rounded-full mt-1 ${selectedProfile.citizenshipStatus === 'Citizen' ? 'bg-green-100 text-green-800' :
                                                             selectedProfile.citizenshipStatus === 'Permanent Resident' ? 'bg-blue-100 text-blue-800' :
                                                                 'bg-yellow-100 text-yellow-800'
@@ -1400,8 +1400,8 @@ const DriverPortfolio: React.FC = () => {
                                                 )}
                                                 {selectedProfile.sinNumber && (
                                                     <div>
-                                                        <p className="text-xs text-gray-500">SIN Number</p>
-                                                        <p className="text-gray-900 font-medium">{selectedProfile.sinNumber}</p>
+                                                        <p className="text-xs text-secondary">SIN Number</p>
+                                                        <p className="text-primary font-medium">{selectedProfile.sinNumber}</p>
                                                     </div>
                                                 )}
                                             </div>
@@ -1410,8 +1410,8 @@ const DriverPortfolio: React.FC = () => {
                                 </div>
 
                                 {/* Payment Breakdown by Period */}
-                                <div className="bg-white border border-gray-200 rounded-xl p-6">
-                                    <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
+                                <div className="bg-card border border-theme rounded-xl p-6">
+                                    <h3 className="text-lg font-semibold text-primary mb-4 flex items-center gap-2">
                                         <DollarSign className="w-5 h-5 text-green-600" />
                                         Payment Breakdown - {profileTimePeriod === '1week' ? '1 Week' : profileTimePeriod === '2weeks' ? '2 Weeks' : profileTimePeriod === '1month' ? '1 Month' : profileTimePeriod === '6months' ? '6 Months' : profileTimePeriod === '1year' ? '1 Year' : '2 Years'}
                                     </h3>
@@ -1437,7 +1437,7 @@ const DriverPortfolio: React.FC = () => {
                                                     <p className="text-2xl font-bold text-green-700 mb-2">{formatCurrency(periodEarnings)}</p>
                                                 </div>
                                                 <div className="bg-gradient-to-br from-blue-50 to-blue-100 rounded-lg p-4 border border-blue-200">
-                                                    <p className="text-sm font-medium text-blue-600 mb-2">Base Salary</p>
+                                                    <p className="text-sm font-medium text-[#00D1FF] mb-2">Base Salary</p>
                                                     <p className="text-2xl font-bold text-blue-700 mb-2">{formatCurrency(periodBase)}</p>
                                                 </div>
                                                 <div className="bg-gradient-to-br from-purple-50 to-purple-100 rounded-lg p-4 border border-purple-200">
@@ -1445,7 +1445,7 @@ const DriverPortfolio: React.FC = () => {
                                                     <p className="text-2xl font-bold text-purple-700 mb-2">{formatCurrency(periodBonus)}</p>
                                                 </div>
                                                 <div className="bg-gradient-to-br from-red-50 to-red-100 rounded-lg p-4 border border-red-200">
-                                                    <p className="text-sm font-medium text-red-600 mb-2">Deductions</p>
+                                                    <p className="text-sm font-medium text-[#A855F7] mb-2">Deductions</p>
                                                     <p className="text-2xl font-bold text-red-700 mb-2">{formatCurrency(periodDeductions)}</p>
                                                 </div>
                                             </div>
@@ -1454,9 +1454,9 @@ const DriverPortfolio: React.FC = () => {
                                 </div>
 
                                 {/* Driver Performance */}
-                                <div className="bg-white border border-gray-200 rounded-xl p-6">
-                                    <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
-                                        <MapPin className="w-5 h-5 text-orange-600" />
+                                <div className="bg-card border border-theme rounded-xl p-6">
+                                    <h3 className="text-lg font-semibold text-primary mb-4 flex items-center gap-2">
+                                        <MapPin className="w-5 h-5 text-[#F59E0B]" />
                                         Driver Performance - {profileTimePeriod === '1week' ? '1 Week' : profileTimePeriod === '2weeks' ? '2 Weeks' : profileTimePeriod === '1month' ? '1 Month' : profileTimePeriod === '6months' ? '6 Months' : profileTimePeriod === '1year' ? '1 Year' : '2 Years'}
                                     </h3>
                                     {(() => {
@@ -1475,12 +1475,12 @@ const DriverPortfolio: React.FC = () => {
 
                                         return (
                                             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                                                <div className="bg-orange-50 rounded-lg p-4 border border-orange-200">
-                                                    <p className="text-sm text-orange-600 mb-1">Miles Driven</p>
+                                                <div className="bg-card rounded-lg p-4 border border-orange-200">
+                                                    <p className="text-sm text-[#F59E0B] mb-1">Miles Driven</p>
                                                     <p className="text-2xl font-bold text-orange-700">{formatNumber(periodMiles)}</p>
                                                 </div>
-                                                <div className="bg-blue-50 rounded-lg p-4 border border-blue-200">
-                                                    <p className="text-sm text-blue-600 mb-1">Trips Completed</p>
+                                                <div className="bg-card rounded-lg p-4 border border-blue-200">
+                                                    <p className="text-sm text-[#00D1FF] mb-1">Trips Completed</p>
                                                     <p className="text-2xl font-bold text-blue-700">{periodTrips}</p>
                                                 </div>
                                                 <div className="bg-indigo-50 rounded-lg p-4 border border-indigo-200">
@@ -1493,9 +1493,9 @@ const DriverPortfolio: React.FC = () => {
                                 </div>
 
                                 {/* Attendance Details */}
-                                <div className="bg-white border border-gray-200 rounded-xl p-6">
-                                    <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
-                                        <Clock className="w-5 h-5 text-blue-600" />
+                                <div className="bg-card border border-theme rounded-xl p-6">
+                                    <h3 className="text-lg font-semibold text-primary mb-4 flex items-center gap-2">
+                                        <Clock className="w-5 h-5 text-[#00D1FF]" />
                                         Attendance & Working Hours - {profileTimePeriod === '1week' ? '1 Week' : profileTimePeriod === '2weeks' ? '2 Weeks' : profileTimePeriod === '1month' ? '1 Month' : profileTimePeriod === '6months' ? '6 Months' : profileTimePeriod === '1year' ? '1 Year' : '2 Years'}
                                     </h3>
                                     {(() => {
@@ -1518,25 +1518,25 @@ const DriverPortfolio: React.FC = () => {
                                         return (
                                             <>
                                                 <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                                                    <div className="bg-blue-50 rounded-lg p-4 border border-blue-200">
-                                                        <p className="text-sm text-blue-600 mb-1">Working Days</p>
+                                                    <div className="bg-card rounded-lg p-4 border border-blue-200">
+                                                        <p className="text-sm text-[#00D1FF] mb-1">Working Days</p>
                                                         <p className="text-2xl font-bold text-blue-700">{periodDaysWorked}</p>
                                                     </div>
                                                     <div className="bg-green-50 rounded-lg p-4 border border-green-200">
                                                         <p className="text-sm text-green-600 mb-1">Present Days</p>
                                                         <p className="text-2xl font-bold text-green-700">{periodPresentDays}</p>
                                                     </div>
-                                                    <div className="bg-red-50 rounded-lg p-4 border border-red-200">
-                                                        <p className="text-sm text-red-600 mb-1">Absent Days</p>
+                                                    <div className="bg-card rounded-lg p-4 border border-red-200">
+                                                        <p className="text-sm text-[#A855F7] mb-1">Absent Days</p>
                                                         <p className="text-2xl font-bold text-red-700">{periodAbsentDays}</p>
                                                     </div>
-                                                    <div className="bg-yellow-50 rounded-lg p-4 border border-yellow-200">
-                                                        <p className="text-sm text-yellow-600 mb-1">Late Days</p>
+                                                    <div className="bg-card rounded-lg p-4 border border-yellow-200">
+                                                        <p className="text-sm text-[#00FFA3] mb-1">Late Days</p>
                                                         <p className="text-2xl font-bold text-yellow-700">{periodLateDays}</p>
                                                     </div>
                                                 </div>
                                                 <div className="mt-4 grid grid-cols-1 md:grid-cols-2 gap-4">
-                                                    <div className="bg-purple-50 rounded-lg p-4 border border-purple-200">
+                                                    <div className="bg-card rounded-lg p-4 border border-purple-200">
                                                         <p className="text-sm text-purple-600 mb-1">Total Hours</p>
                                                         <p className="text-2xl font-bold text-purple-700">{formatNumber(periodTotalHours)} hrs</p>
                                                     </div>
@@ -1552,13 +1552,13 @@ const DriverPortfolio: React.FC = () => {
 
                                 {/* Notes */}
                                 {selectedProfile.notes && (
-                                    <div className="bg-white border border-gray-200 rounded-xl p-6">
-                                        <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
+                                    <div className="bg-card border border-theme rounded-xl p-6">
+                                        <h3 className="text-lg font-semibold text-primary mb-4 flex items-center gap-2">
                                             <AlertCircle className="w-5 h-5 text-amber-600" />
                                             Notes
                                         </h3>
                                         <div className="bg-amber-50 border border-amber-200 rounded-lg p-4">
-                                            <p className="text-gray-700 leading-relaxed">{selectedProfile.notes}</p>
+                                            <p className="text-primary leading-relaxed">{selectedProfile.notes}</p>
                                         </div>
                                     </div>
                                 )}

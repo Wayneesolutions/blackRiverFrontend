@@ -148,12 +148,12 @@ export default function SuperAdminLogin() {
                     </div>
                 )}
 
-                <div className="bg-white/90 backdrop-blur-xl rounded-3xl shadow-2xl ring-1 ring-gray-200/50 overflow-hidden">
+                <div className="bg-card/90 backdrop-blur-xl rounded-3xl shadow-2xl ring-1 ring-gray-200/50 overflow-hidden">
                     {/* Header */}
                     <div className="relative bg-gradient-to-r from-purple-600 via-indigo-600 to-blue-600 p-8 text-center">
                         <div className="absolute inset-0 bg-black/10"></div>
                         <div className="relative">
-                            <div className="w-20 h-20 bg-white/20 backdrop-blur-sm rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-lg">
+                            <div className="w-20 h-20 bg-card/20 backdrop-blur-sm rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-lg">
                                 <Shield className="w-10 h-10 text-white" />
                             </div>
                             <h1 className="text-2xl font-bold text-white mb-2">Super Administrator</h1>
@@ -168,14 +168,14 @@ export default function SuperAdminLogin() {
                      
                         {/* Email Field */}
                         <div className="space-y-2">
-                            <label className="block text-sm font-semibold text-gray-700">Super Administrator Email</label>
+                            <label className="block text-sm font-semibold text-primary">Super Administrator Email</label>
                             <div className="relative">
-                                <Mail className="absolute left-4 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
+                                <Mail className="absolute left-4 top-1/2 transform -translate-y-1/2 w-5 h-5 text-secondary" />
                                 <input
                                     type="email"
                                     value={email}
                                     onChange={(e) => setEmail(e.target.value)}
-                                    className={`block w-full rounded-xl border pl-12 pr-4 py-4 text-sm transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent ${errors.email ? "border-red-400 bg-red-50" : "border-gray-200 hover:border-gray-300 bg-gray-50/50"
+                                    className={`block w-full rounded-xl border pl-12 pr-4 py-4 text-sm transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent ${errors.email ? "border-red-400 bg-card" : "border-theme hover:border-gray-300 bg-card"
                                         }`}
                                     placeholder="superadmin@logistics.com"
                                 />
@@ -185,21 +185,21 @@ export default function SuperAdminLogin() {
 
                         {/* Password Field */}
                         <div className="space-y-2">
-                            <label className="block text-sm font-semibold text-gray-700">Super Administrator Password</label>
+                            <label className="block text-sm font-semibold text-primary">Super Administrator Password</label>
                             <div className="relative">
-                                <Lock className="absolute left-4 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
+                                <Lock className="absolute left-4 top-1/2 transform -translate-y-1/2 w-5 h-5 text-secondary" />
                                 <input
                                     type={showPassword ? "text" : "password"}
                                     value={password}
                                     onChange={(e) => setPassword(e.target.value)}
-                                    className={`block w-full rounded-xl border pl-12 pr-12 py-4 text-sm transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent ${errors.password ? "border-red-400 bg-red-50" : "border-gray-200 hover:border-gray-300 bg-gray-50/50"
+                                    className={`block w-full rounded-xl border pl-12 pr-12 py-4 text-sm transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent ${errors.password ? "border-red-400 bg-card" : "border-theme hover:border-gray-300 bg-card"
                                         }`}
                                     placeholder="Enter your secure password"
                                 />
                                 <button
                                     type="button"
                                     onClick={() => setShowPassword(!showPassword)}
-                                    className="absolute right-4 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors"
+                                    className="absolute right-4 top-1/2 transform -translate-y-1/2 text-secondary hover:text-secondary transition-colors"
                                 >
                                     {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
                                 </button>
@@ -209,8 +209,8 @@ export default function SuperAdminLogin() {
 
                         {/* Error Message */}
                         {errors.submit && (
-                            <div className="bg-red-50 border border-red-200 rounded-xl p-4 flex items-center gap-3">
-                                <AlertTriangle className="w-5 h-5 text-red-600 flex-shrink-0" />
+                            <div className="bg-card border border-red-200 rounded-xl p-4 flex items-center gap-3">
+                                <AlertTriangle className="w-5 h-5 text-[#A855F7] flex-shrink-0" />
                                 <div className="text-sm text-red-700">{errors.submit}</div>
                             </div>
                         )}

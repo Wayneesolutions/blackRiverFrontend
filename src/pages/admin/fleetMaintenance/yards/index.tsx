@@ -205,17 +205,17 @@ const YardManagement = () => {
   );
 
   return (
-    <div className="min-h-screen bg-gray-50 p-6">
+    <div className="min-h-screen bg-card p-6">
       <div className="max-w-7xl mx-auto">
         {/* Header */}
         <div className="mb-6">
           <div className="flex items-center justify-between">
             <div>
-              <h1 className="text-3xl font-bold text-gray-900 flex items-center gap-3">
+              <h1 className="text-3xl font-bold text-primary flex items-center gap-3">
                 <FaWarehouse className="text-[#42aeec]" />
                 Yard Management
               </h1>
-              <p className="text-gray-600 mt-2">Manage fleet yards and locations</p>
+              <p className="text-secondary mt-2">Manage fleet yards and locations</p>
             </div>
             <button
               onClick={() => handleOpenModal()}
@@ -229,7 +229,7 @@ const YardManagement = () => {
         {/* Search Bar */}
         <div className="mb-6">
           <div className="relative">
-            <FaSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
+            <FaSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-secondary" />
             <input
               type="text"
               placeholder="Search by name, code, or type..."
@@ -249,8 +249,8 @@ const YardManagement = () => {
                 notification.type === 'success'
                   ? 'bg-green-50 border border-green-200 text-green-800'
                   : notification.type === 'error'
-                  ? 'bg-red-50 border border-red-200 text-red-800'
-                  : 'bg-blue-50 border border-blue-200 text-blue-800'
+                  ? 'bg-card border border-red-200 text-red-800'
+                  : 'bg-card border border-blue-200 text-blue-800'
               }`}
             >
               {notification.type === 'success' ? (
@@ -269,61 +269,61 @@ const YardManagement = () => {
         {loading ? (
           <div className="text-center py-12">
             <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-[#42aeec]"></div>
-            <p className="mt-2 text-gray-600">Loading yards...</p>
+            <p className="mt-2 text-secondary">Loading yards...</p>
           </div>
         ) : filteredYards.length === 0 ? (
-          <div className="text-center py-12 bg-white rounded-lg border border-gray-200">
-            <FaWarehouse className="mx-auto text-gray-400 text-4xl mb-4" />
-            <p className="text-gray-600">No yards found</p>
+          <div className="text-center py-12 bg-card rounded-lg border border-theme">
+            <FaWarehouse className="mx-auto text-secondary text-4xl mb-4" />
+            <p className="text-secondary">No yards found</p>
             {searchTerm && (
-              <p className="text-sm text-gray-500 mt-2">Try adjusting your search</p>
+              <p className="text-sm text-secondary mt-2">Try adjusting your search</p>
             )}
           </div>
         ) : (
-          <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
+          <div className="bg-card rounded-lg shadow-sm border border-theme overflow-hidden">
             <div className="overflow-x-auto">
               <table className="w-full">
-                <thead className="bg-gray-50">
+                <thead className="bg-card">
                   <tr>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    <th className="px-6 py-3 text-left text-xs font-medium text-secondary uppercase tracking-wider">
                       Yard ID
                     </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    <th className="px-6 py-3 text-left text-xs font-medium text-secondary uppercase tracking-wider">
                       Yard Name
                     </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    <th className="px-6 py-3 text-left text-xs font-medium text-secondary uppercase tracking-wider">
                       Yard Code
                     </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    <th className="px-6 py-3 text-left text-xs font-medium text-secondary uppercase tracking-wider">
                       Type
                     </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    <th className="px-6 py-3 text-left text-xs font-medium text-secondary uppercase tracking-wider">
                       Status
                     </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    <th className="px-6 py-3 text-left text-xs font-medium text-secondary uppercase tracking-wider">
                       Created At
                     </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    <th className="px-6 py-3 text-left text-xs font-medium text-secondary uppercase tracking-wider">
                       Updated At
                     </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    <th className="px-6 py-3 text-left text-xs font-medium text-secondary uppercase tracking-wider">
                       Actions
                     </th>
                   </tr>
                 </thead>
-                <tbody className="bg-white divide-y divide-gray-200">
+                <tbody className="bg-card divide-y divide-gray-200">
                   {filteredYards.map((yard) => (
-                    <tr key={yard._id} className="hover:bg-gray-50"    onClick={() => handleOpenModal(yard)}>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                    <tr key={yard._id} className="hover:bg-[rgba(255,255,255,0.03)]"    onClick={() => handleOpenModal(yard)}>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-primary">
                         {yard.yardId}
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                      <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-primary">
                         {yard.yardName}
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-secondary">
                         {yard.yardCode}
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 capitalize">
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-secondary capitalize">
                         {yard.yardType}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
@@ -337,7 +337,7 @@ const YardManagement = () => {
                           {yard.status}
                         </span>
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-secondary">
                         {yard.createdAt 
                           ? new Date(yard.createdAt).toLocaleString('en-US', {
                               year: 'numeric',
@@ -348,7 +348,7 @@ const YardManagement = () => {
                             })
                           : 'N/A'}
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-secondary">
                         {yard.updatedAt 
                           ? new Date(yard.updatedAt).toLocaleString('en-US', {
                               year: 'numeric',
@@ -373,7 +373,7 @@ const YardManagement = () => {
                               e.stopPropagation();
                               handleDeleteClick(yard._id!, yard.yardName);
                             }}
-                            className="text-red-600 hover:text-red-800"
+                            className="text-[#A855F7] hover:text-red-800"
                             title="Delete"
                           >
                             <FaTrash />
@@ -390,15 +390,15 @@ const YardManagement = () => {
 
         {/* Modal */}
         {showModal && (
-          <div className="fixed inset-0 bg-white/30 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-            <div className="bg-white rounded-lg shadow-xl max-w-md w-full max-h-[90vh] flex flex-col">
-              <div className="flex items-center justify-between p-6 border-b border-gray-200 flex-shrink-0">
-                <h2 className="text-xl font-bold text-gray-900">
+          <div className="fixed inset-0 bg-card/30 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+            <div className="bg-card rounded-lg shadow-xl max-w-md w-full max-h-[90vh] flex flex-col">
+              <div className="flex items-center justify-between p-6 border-b border-theme flex-shrink-0">
+                <h2 className="text-xl font-bold text-primary">
                   {editingYard ? 'Edit Yard' : 'Add New Yard'}
                 </h2>
                 <button
                   onClick={handleCloseModal}
-                  className="text-gray-400 hover:text-gray-600"
+                  className="text-secondary hover:text-secondary"
                 >
                   <FaTimes />
                 </button>
@@ -407,7 +407,7 @@ const YardManagement = () => {
               <form onSubmit={handleSubmit} className="flex flex-col flex-1 min-h-0">
                 <div className="p-6 space-y-4 overflow-y-auto flex-1">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                  <label className="block text-sm font-medium text-primary mb-1">
                     Yard Name <span className="text-red-500">*</span>
                   </label>
                   <input
@@ -421,7 +421,7 @@ const YardManagement = () => {
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                  <label className="block text-sm font-medium text-primary mb-1">
                     Yard Code / Short Code <span className="text-red-500">*</span>
                   </label>
                   <input
@@ -435,7 +435,7 @@ const YardManagement = () => {
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                  <label className="block text-sm font-medium text-primary mb-1">
                     Yard Type <span className="text-red-500">*</span>
                   </label>
                   <select
@@ -453,7 +453,7 @@ const YardManagement = () => {
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                  <label className="block text-sm font-medium text-primary mb-1">
                     Status <span className="text-red-500">*</span>
                   </label>
                   <select
@@ -471,8 +471,8 @@ const YardManagement = () => {
                 </div>
 
                 {/* Address Section */}
-                <div className="pt-4 border-t border-gray-200">
-                  <h3 className="text-sm font-semibold text-gray-900 mb-4">Address Information</h3>
+                <div className="pt-4 border-t border-theme">
+                  <h3 className="text-sm font-semibold text-primary mb-4">Address Information</h3>
                   
                   <div className="mb-4">
                     <AddressSearch
@@ -494,7 +494,7 @@ const YardManagement = () => {
                   </div>
 
                   <div className="mb-4">
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                    <label className="block text-sm font-medium text-primary mb-1">
                       Address <span className="text-red-500">*</span>
                     </label>
                     <input
@@ -508,7 +508,7 @@ const YardManagement = () => {
                   </div>
 
                   <div className="mb-4">
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                    <label className="block text-sm font-medium text-primary mb-1">
                       Unit / Lot
                     </label>
                     <input
@@ -522,7 +522,7 @@ const YardManagement = () => {
 
                   <div className="grid grid-cols-2 gap-4 mb-4">
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                      <label className="block text-sm font-medium text-primary mb-1">
                         City <span className="text-red-500">*</span>
                       </label>
                       <input
@@ -535,7 +535,7 @@ const YardManagement = () => {
                       />
                     </div>
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                      <label className="block text-sm font-medium text-primary mb-1">
                         State / Province <span className="text-red-500">*</span>
                       </label>
                       <input
@@ -551,7 +551,7 @@ const YardManagement = () => {
 
                   <div className="grid grid-cols-2 gap-4 mb-4">
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                      <label className="block text-sm font-medium text-primary mb-1">
                         Country <span className="text-red-500">*</span>
                       </label>
                       <input
@@ -564,7 +564,7 @@ const YardManagement = () => {
                       />
                     </div>
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                      <label className="block text-sm font-medium text-primary mb-1">
                         ZIP / Postal Code <span className="text-red-500">*</span>
                       </label>
                       <input
@@ -580,11 +580,11 @@ const YardManagement = () => {
                 </div>
                 </div>
 
-                <div className="flex items-center justify-end gap-3 p-6 pt-4 border-t border-gray-200 flex-shrink-0">
+                <div className="flex items-center justify-end gap-3 p-6 pt-4 border-t border-theme flex-shrink-0">
                   <button
                     type="button"
                     onClick={handleCloseModal}
-                    className="px-4 py-2 text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors"
+                    className="px-4 py-2 text-primary bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors"
                   >
                     Cancel
                   </button>

@@ -80,11 +80,11 @@ const Dashboard: React.FC = () => {
       completed: "bg-green-100 text-green-800",
       "in-progress": "bg-blue-100 text-blue-800",
       pending: "bg-amber-100 text-amber-800",
-      created: "bg-gray-100 text-gray-800",
+      created: "bg-gray-100 text-primary",
       assigned: "bg-amber-100 text-amber-800",
       shared: "bg-amber-100 text-amber-800",
     };
-    const style = styles[s] || "bg-gray-100 text-gray-800";
+    const style = styles[s] || "bg-gray-100 text-primary";
     return (
       <span className={`px-2 py-0.5 rounded text-xs font-medium ${style}`}>
         {status}
@@ -94,7 +94,7 @@ const Dashboard: React.FC = () => {
 
   if (loading) {
     return (
-      <div className="p-6 min-h-screen bg-[#EDF8FF]">
+      <div className="p-6 min-h-screen bg-main">
         <div className="flex items-center justify-center py-16">
           <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-[#42aeec]" />
         </div>
@@ -103,28 +103,28 @@ const Dashboard: React.FC = () => {
   }
 
   return (
-    <div className="p-6 min-h-screen bg-[#EDF8FF]">
+    <div className="p-6 min-h-screen bg-main">
       {error && (
-        <div className="mb-4 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-red-800">
+        <div className="mb-4 rounded-lg border border-red-200 bg-card px-4 py-3 text-red-800">
           {error}
         </div>
       )}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
         <div>
-          <h1 className="text-xl font-bold text-gray-900">Mechanics Dashboard</h1>
-          <p className="text-sm text-gray-500 mt-1">Overview of maintenance orders for the selected month</p>
+          <h1 className="text-xl font-bold text-primary">Mechanics Dashboard</h1>
+          <p className="text-sm text-secondary mt-1">Overview of maintenance orders for the selected month</p>
         </div>
 
         <div className="relative">
           <button
             onClick={() => setMonthDropdownOpen(!monthDropdownOpen)}
-            className="flex items-center gap-2 px-4 py-2.5 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 hover:border-gray-400 transition"
+            className="flex items-center gap-2 px-4 py-2.5 bg-card border border-gray-300 rounded-lg hover:bg-[rgba(255,255,255,0.03)] hover:border-gray-400 transition"
           >
-            <Calendar className="text-gray-500" size={18} />
-            <span className="text-sm font-medium text-gray-700">
+            <Calendar className="text-secondary" size={18} />
+            <span className="text-sm font-medium text-primary">
               {MONTHS[selectedMonth]} {selectedYear}
             </span>
-            <ChevronDown className={`text-gray-500 transition ${monthDropdownOpen ? "rotate-180" : ""}`} size={16} />
+            <ChevronDown className={`text-secondary transition ${monthDropdownOpen ? "rotate-180" : ""}`} size={16} />
           </button>
           {monthDropdownOpen && (
             <>
@@ -132,7 +132,7 @@ const Dashboard: React.FC = () => {
                 className="fixed inset-0 z-10"
                 onClick={() => setMonthDropdownOpen(false)}
               />
-              <div className="absolute right-0 mt-1 z-20 bg-white rounded-lg shadow-lg border border-gray-200 py-2 min-w-[200px] overflow-y-auto max-h-64">
+              <div className="absolute right-0 mt-1 z-20 bg-card rounded-lg shadow-lg border border-theme py-2 min-w-[200px] overflow-y-auto max-h-64">
                 {Array.from({ length: 12 }, (_, i) => (
                   <button
                     key={i}
@@ -140,8 +140,8 @@ const Dashboard: React.FC = () => {
                       setSelectedMonth(i);
                       setMonthDropdownOpen(false);
                     }}
-                    className={`w-full px-4 py-2 text-left text-sm hover:bg-gray-50 ${
-                      selectedMonth === i ? "bg-[#42aeec]/10 text-[#42aeec] font-medium" : "text-gray-700"
+                    className={`w-full px-4 py-2 text-left text-sm hover:bg-[rgba(255,255,255,0.03)] ${
+                      selectedMonth === i ? "bg-[#42aeec]/10 text-[#42aeec] font-medium" : "text-primary"
                     }`}
                   >
                     {MONTHS[i]} {selectedYear}
@@ -155,93 +155,93 @@ const Dashboard: React.FC = () => {
 
       {/* Summary Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-        <div className="p-4 rounded-lg border-2 border-gray-200 bg-white hover:border-[#42aeec]/40 transition">
+        <div className="p-4 rounded-lg border-2 border-theme bg-card hover:border-[#42aeec]/40 transition">
           <div className="flex items-center gap-2">
             <LayoutGrid className="text-[#42aeec]" size={20} />
-            <span className="text-sm font-medium text-gray-600">Total Orders</span>
+            <span className="text-sm font-medium text-secondary">Total Orders</span>
           </div>
-          <p className="text-2xl font-bold text-gray-900 mt-1">{stats.total}</p>
-          <p className="text-xs text-gray-500 mt-0.5">This month</p>
+          <p className="text-2xl font-bold text-primary mt-1">{stats.total}</p>
+          <p className="text-xs text-secondary mt-0.5">This month</p>
         </div>
 
-        <div className="p-4 rounded-lg border-2 border-gray-200 bg-white hover:border-green-500/40 transition">
+        <div className="p-4 rounded-lg border-2 border-theme bg-card hover:border-green-500/40 transition">
           <div className="flex items-center gap-2">
             <CheckCircle className="text-green-600" size={20} />
-            <span className="text-sm font-medium text-gray-600">Completed</span>
+            <span className="text-sm font-medium text-secondary">Completed</span>
           </div>
-          <p className="text-2xl font-bold text-gray-900 mt-1">{stats.completed}</p>
-          <p className="text-xs text-gray-500 mt-0.5">This month</p>
+          <p className="text-2xl font-bold text-primary mt-1">{stats.completed}</p>
+          <p className="text-xs text-secondary mt-0.5">This month</p>
         </div>
 
-        <div className="p-4 rounded-lg border-2 border-gray-200 bg-white hover:border-amber-500/40 transition">
+        <div className="p-4 rounded-lg border-2 border-theme bg-card hover:border-amber-500/40 transition">
           <div className="flex items-center gap-2">
             <Play className="text-amber-600" size={20} />
-            <span className="text-sm font-medium text-gray-600">Pending</span>
+            <span className="text-sm font-medium text-secondary">Pending</span>
           </div>
-          <p className="text-2xl font-bold text-gray-900 mt-1">{stats.pending}</p>
-          <p className="text-xs text-gray-500 mt-0.5">This month</p>
+          <p className="text-2xl font-bold text-primary mt-1">{stats.pending}</p>
+          <p className="text-xs text-secondary mt-0.5">This month</p>
         </div>
 
-        <div className="p-4 rounded-lg border-2 border-gray-200 bg-white hover:border-[#42aeec]/40 transition">
+        <div className="p-4 rounded-lg border-2 border-theme bg-card hover:border-[#42aeec]/40 transition">
           <div className="flex items-center gap-2">
             <TrendingUp className="text-[#42aeec]" size={20} />
-            <span className="text-sm font-medium text-gray-600">Completion Rate</span>
+            <span className="text-sm font-medium text-secondary">Completion Rate</span>
           </div>
-          <p className="text-2xl font-bold text-gray-900 mt-1">{stats.completionRate}%</p>
-          <p className="text-xs text-gray-500 mt-0.5">This month</p>
+          <p className="text-2xl font-bold text-primary mt-1">{stats.completionRate}%</p>
+          <p className="text-xs text-secondary mt-0.5">This month</p>
         </div>
       </div>
 
       {/* My Workload / Workload Overview & Financial */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
-        <div className="p-5 rounded-lg border border-gray-200 bg-white">
-          <h2 className="text-sm font-bold text-gray-900 mb-4 flex items-center gap-2">
+        <div className="p-5 rounded-lg border border-theme bg-card">
+          <h2 className="text-sm font-bold text-primary mb-4 flex items-center gap-2">
             <Wrench className="text-[#42aeec]" size={18} />
             {userRole === "Maintenance Crew (Mechanics)" ? "My Workload" : "Workload Overview"}
           </h2>
           <div className="grid grid-cols-3 gap-4">
-            <div className="p-3 rounded-lg bg-gray-50">
-              <p className="text-xs text-gray-500">Assigned</p>
-              <p className="text-lg font-bold text-gray-900">{stats.myAssigned}</p>
+            <div className="p-3 rounded-lg bg-card">
+              <p className="text-xs text-secondary">Assigned</p>
+              <p className="text-lg font-bold text-primary">{stats.myAssigned}</p>
             </div>
             <div className="p-3 rounded-lg bg-green-50">
-              <p className="text-xs text-gray-500">Completed</p>
+              <p className="text-xs text-secondary">Completed</p>
               <p className="text-lg font-bold text-green-700">{stats.myCompleted}</p>
             </div>
             <div className="p-3 rounded-lg bg-amber-50">
-              <p className="text-xs text-gray-500">Pending</p>
+              <p className="text-xs text-secondary">Pending</p>
               <p className="text-lg font-bold text-amber-700">{stats.myPending}</p>
             </div>
           </div>
         </div>
 
-        <div className="p-5 rounded-lg border border-gray-200 bg-white">
-          <h2 className="text-sm font-bold text-gray-900 mb-4 flex items-center gap-2">
+        <div className="p-5 rounded-lg border border-theme bg-card">
+          <h2 className="text-sm font-bold text-primary mb-4 flex items-center gap-2">
             <DollarSign className="text-[#42aeec]" size={18} />
             Repair Summary
           </h2>
           <div className="grid grid-cols-2 gap-4">
-            <div className="p-3 rounded-lg bg-gray-50">
-              <p className="text-xs text-gray-500">Total Repair Amount</p>
-              <p className="text-lg font-bold text-gray-900">{formatCurrency(stats.totalRepairAmount)}</p>
+            <div className="p-3 rounded-lg bg-card">
+              <p className="text-xs text-secondary">Total Repair Amount</p>
+              <p className="text-lg font-bold text-primary">{formatCurrency(stats.totalRepairAmount)}</p>
             </div>
-            <div className="p-3 rounded-lg bg-gray-50">
-              <p className="text-xs text-gray-500">Avg Repair Cost</p>
-              <p className="text-lg font-bold text-gray-900">{formatCurrency(stats.avgRepairCost)}</p>
+            <div className="p-3 rounded-lg bg-card">
+              <p className="text-xs text-secondary">Avg Repair Cost</p>
+              <p className="text-lg font-bold text-primary">{formatCurrency(stats.avgRepairCost)}</p>
             </div>
           </div>
         </div>
       </div>
 
       {/* Recent Orders */}
-      <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
-        <div className="px-4 py-3 border-b border-gray-100 bg-gradient-to-r from-[#42aeec]/5 to-transparent flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+      <div className="bg-card rounded-lg shadow-sm border border-theme overflow-hidden">
+        <div className="px-4 py-3 border-b border-theme bg-gradient-to-r from-[#42aeec]/5 to-transparent flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <div>
-            <h2 className="text-sm font-bold text-gray-900 flex items-center gap-2">
+            <h2 className="text-sm font-bold text-primary flex items-center gap-2">
               <Package className="text-[#42aeec]" size={18} />
               Recent Orders
             </h2>
-            <p className="text-xs text-gray-500 mt-0.5">Last 5 orders</p>
+            <p className="text-xs text-secondary mt-0.5">Last 5 orders</p>
           </div>
           <button
             onClick={() => navigate(`${basePath}/orders`)}
@@ -253,19 +253,19 @@ const Dashboard: React.FC = () => {
         </div>
         <div className="overflow-x-auto">
           <table className="w-full">
-            <thead className="bg-gray-50 border-b border-gray-200">
+            <thead className="bg-card border-b border-theme">
               <tr>
-                <th className="px-4 py-3 text-left text-xs font-medium text-gray-600 uppercase">Unit</th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-gray-600 uppercase">Description</th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-gray-600 uppercase">Status</th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-gray-600 uppercase">Date</th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-gray-600 uppercase">Action</th>
+                <th className="px-4 py-3 text-left text-xs font-medium text-secondary uppercase">Unit</th>
+                <th className="px-4 py-3 text-left text-xs font-medium text-secondary uppercase">Description</th>
+                <th className="px-4 py-3 text-left text-xs font-medium text-secondary uppercase">Status</th>
+                <th className="px-4 py-3 text-left text-xs font-medium text-secondary uppercase">Date</th>
+                <th className="px-4 py-3 text-left text-xs font-medium text-secondary uppercase">Action</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-200">
               {recentOrders.length === 0 ? (
                 <tr>
-                  <td colSpan={5} className="px-4 py-8 text-center text-gray-500">
+                  <td colSpan={5} className="px-4 py-8 text-center text-secondary">
                     No recent orders
                   </td>
                 </tr>
@@ -273,13 +273,13 @@ const Dashboard: React.FC = () => {
               recentOrders.map((order) => (
                 <tr
                   key={order.id}
-                  className="hover:bg-gray-50 cursor-pointer transition"
+                  className="hover:bg-[rgba(255,255,255,0.03)] cursor-pointer transition"
                   onClick={() => navigate(`${basePath}/orders`)}
                 >
-                  <td className="px-4 py-3 text-sm font-medium text-gray-900">{order.unit}</td>
-                  <td className="px-4 py-3 text-sm text-gray-600">{order.description}</td>
+                  <td className="px-4 py-3 text-sm font-medium text-primary">{order.unit}</td>
+                  <td className="px-4 py-3 text-sm text-secondary">{order.description}</td>
                   <td className="px-4 py-3">{statusBadge(order.status ?? '')}</td>
-                  <td className="px-4 py-3 text-sm text-gray-600">
+                  <td className="px-4 py-3 text-sm text-secondary">
                     {order.date
                       ? new Date(order.date).toLocaleDateString("en-US", {
                           month: "short",

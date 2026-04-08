@@ -44,7 +44,7 @@ const ChatMessagePopup = ({ navigate }: { navigate: (path: string) => void }) =>
 
     return (
         <div className="fixed bottom-6 right-6 z-[9999] animate-chat-popup">
-            <div className="bg-white rounded-2xl shadow-2xl border border-gray-100 w-80 overflow-hidden">
+            <div className="bg-card rounded-2xl shadow-2xl border border-theme w-80 overflow-hidden">
                 {/* Green header bar like WhatsApp */}
                 <div className="bg-[#25D366] px-4 py-2 flex items-center justify-between">
                     <div className="flex items-center gap-2">
@@ -64,8 +64,8 @@ const ChatMessagePopup = ({ navigate }: { navigate: (path: string) => void }) =>
                             </span>
                         </div>
                         <div className="flex-1 min-w-0">
-                            <p className="font-semibold text-gray-900 text-sm truncate">{chatNotification.driverName}</p>
-                            <p className="text-gray-500 text-sm mt-0.5 line-clamp-2">{chatNotification.message}</p>
+                            <p className="font-semibold text-primary text-sm truncate">{chatNotification.driverName}</p>
+                            <p className="text-secondary text-sm mt-0.5 line-clamp-2">{chatNotification.message}</p>
                         </div>
                     </div>
                     <button
@@ -356,7 +356,7 @@ const Layout = () => {
                 </div>
 
                 {/* Main content with scroll */}
-                <main className="flex-1 overflow-y-auto bg-[#EDF8FF]">
+                <main className="flex-1 overflow-y-auto bg-main">
                     <Outlet />
                 </main>
             </div>

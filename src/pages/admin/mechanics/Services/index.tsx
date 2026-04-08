@@ -35,7 +35,7 @@ const statusBadge = (status: string) => {
     "in-progress": "bg-blue-100 text-blue-800",
     pending: "bg-amber-100 text-amber-800",
   };
-  const style = styles[s] || "bg-gray-100 text-gray-800";
+  const style = styles[s] || "bg-gray-100 text-primary";
   return (
     <span className={`px-2 py-1 rounded-full text-xs font-medium ${style}`}>
       {status || "—"}
@@ -49,9 +49,9 @@ const priorityBadge = (priority: string) => {
     urgent: "bg-red-100 text-red-800",
     high: "bg-orange-100 text-orange-800",
     medium: "bg-yellow-100 text-yellow-800",
-    low: "bg-gray-100 text-gray-800",
+    low: "bg-gray-100 text-primary",
   };
-  const style = styles[p] || "bg-gray-100 text-gray-800";
+  const style = styles[p] || "bg-gray-100 text-primary";
   return (
     <span className={`px-2 py-1 rounded-full text-xs font-medium ${style}`}>
       {priority || "—"}
@@ -358,7 +358,7 @@ const Services: React.FC = () => {
 
   if (loading && services.length === 0) {
     return (
-      <div className="p-6 min-h-screen bg-[#EDF8FF]">
+      <div className="p-6 min-h-screen bg-main">
         <div className="flex items-center justify-center py-16">
           <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-[#42aeec]" />
         </div>
@@ -367,10 +367,10 @@ const Services: React.FC = () => {
   }
 
   return (
-    <div className="p-6 bg-[#EDF8FF] min-h-screen">
+    <div className="p-6 bg-main min-h-screen">
       <div className="mb-6">
-        <h1 className="text-xl font-bold text-gray-900">Assigned Services</h1>
-        <p className="text-sm text-gray-500 mt-1">Services assigned to you</p>
+        <h1 className="text-xl font-bold text-primary">Assigned Services</h1>
+        <p className="text-sm text-secondary mt-1">Services assigned to you</p>
       </div>
 
       {notification && (
@@ -378,7 +378,7 @@ const Services: React.FC = () => {
           className={`mb-4 rounded-lg border px-4 py-3 ${
             notification.type === "success"
               ? "border-green-200 bg-green-50 text-green-800"
-              : "border-red-200 bg-red-50 text-red-800"
+              : "border-red-200 bg-card text-red-800"
           }`}
         >
           {notification.message}
@@ -386,28 +386,28 @@ const Services: React.FC = () => {
       )}
 
       {error && (
-        <div className="mb-4 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-red-800">
+        <div className="mb-4 rounded-lg border border-red-200 bg-card px-4 py-3 text-red-800">
           {error}
         </div>
       )}
 
       {/* Stats Cards */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
-        <div className="bg-white rounded-lg shadow-sm border border-gray-100 p-4">
+        <div className="bg-card rounded-lg shadow-sm border border-theme p-4">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-xs font-medium text-gray-500 uppercase tracking-wide">Total</p>
-              <p className="text-2xl font-bold text-gray-900 mt-1">{stats.total}</p>
+              <p className="text-xs font-medium text-secondary uppercase tracking-wide">Total</p>
+              <p className="text-2xl font-bold text-primary mt-1">{stats.total}</p>
             </div>
             <div className="p-3 rounded-lg bg-blue-100">
-              <FileText className="text-blue-600" size={24} />
+              <FileText className="text-[#00D1FF]" size={24} />
             </div>
           </div>
         </div>
-        <div className="bg-white rounded-lg shadow-sm border border-gray-100 p-4">
+        <div className="bg-card rounded-lg shadow-sm border border-theme p-4">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-xs font-medium text-gray-500 uppercase tracking-wide">Pending</p>
+              <p className="text-xs font-medium text-secondary uppercase tracking-wide">Pending</p>
               <p className="text-2xl font-bold text-amber-600 mt-1">{stats.pending}</p>
             </div>
             <div className="p-3 rounded-lg bg-amber-100">
@@ -415,21 +415,21 @@ const Services: React.FC = () => {
             </div>
           </div>
         </div>
-        <div className="bg-white rounded-lg shadow-sm border border-gray-100 p-4">
+        <div className="bg-card rounded-lg shadow-sm border border-theme p-4">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-xs font-medium text-gray-500 uppercase tracking-wide">In Progress</p>
-              <p className="text-2xl font-bold text-blue-600 mt-1">{stats.inProgress}</p>
+              <p className="text-xs font-medium text-secondary uppercase tracking-wide">In Progress</p>
+              <p className="text-2xl font-bold text-[#00D1FF] mt-1">{stats.inProgress}</p>
             </div>
             <div className="p-3 rounded-lg bg-blue-100">
-              <Play className="text-blue-600" size={24} />
+              <Play className="text-[#00D1FF]" size={24} />
             </div>
           </div>
         </div>
-        <div className="bg-white rounded-lg shadow-sm border border-gray-100 p-4">
+        <div className="bg-card rounded-lg shadow-sm border border-theme p-4">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-xs font-medium text-gray-500 uppercase tracking-wide">Completed</p>
+              <p className="text-xs font-medium text-secondary uppercase tracking-wide">Completed</p>
               <p className="text-2xl font-bold text-green-600 mt-1">{stats.completed}</p>
             </div>
             <div className="p-3 rounded-lg bg-green-100">
@@ -440,18 +440,18 @@ const Services: React.FC = () => {
       </div>
 
       {/* Filters */}
-      <div className="bg-white rounded-lg shadow-sm border border-gray-100 overflow-hidden mb-6">
-        <div className="px-4 py-3 border-b border-gray-100 bg-gradient-to-r from-[#42aeec]/5 to-transparent flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+      <div className="bg-card rounded-lg shadow-sm border border-theme overflow-hidden mb-6">
+        <div className="px-4 py-3 border-b border-theme bg-gradient-to-r from-[#42aeec]/5 to-transparent flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <div>
-            <h2 className="text-sm font-bold text-gray-900">Services</h2>
-            <p className="text-xs text-gray-500 mt-0.5">
+            <h2 className="text-sm font-bold text-primary">Services</h2>
+            <p className="text-xs text-secondary mt-0.5">
               {pagination.totalCount} service{pagination.totalCount !== 1 ? "s" : ""} found
               {pagination.totalPages > 1 && ` • Page ${pagination.page} of ${pagination.totalPages}`}
             </p>
           </div>
           <div className="flex flex-wrap items-center gap-2">
             <div className="relative">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={16} />
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-secondary" size={16} />
               <input
                 type="text"
                 value={searchInput}
@@ -492,63 +492,63 @@ const Services: React.FC = () => {
 
         <div className="overflow-x-auto">
           <table className="min-w-full divide-y divide-gray-200">
-            <thead className="bg-gray-50">
+            <thead className="bg-card">
               <tr>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className="px-6 py-3 text-left text-xs font-medium text-secondary uppercase tracking-wider">
                   Service Date
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className="px-6 py-3 text-left text-xs font-medium text-secondary uppercase tracking-wider">
                   Unit Number
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className="px-6 py-3 text-left text-xs font-medium text-secondary uppercase tracking-wider">
                   Unit Type
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className="px-6 py-3 text-left text-xs font-medium text-secondary uppercase tracking-wider">
                   Make/Model
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className="px-6 py-3 text-left text-xs font-medium text-secondary uppercase tracking-wider">
                   Service Type
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className="px-6 py-3 text-left text-xs font-medium text-secondary uppercase tracking-wider">
                   Description
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className="px-6 py-3 text-left text-xs font-medium text-secondary uppercase tracking-wider">
                   Priority
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className="px-6 py-3 text-left text-xs font-medium text-secondary uppercase tracking-wider">
                   Status
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className="px-6 py-3 text-left text-xs font-medium text-secondary uppercase tracking-wider">
                   Actions
                 </th>
               </tr>
             </thead>
-            <tbody className="bg-white divide-y divide-gray-200">
+            <tbody className="bg-card divide-y divide-gray-200">
               {services.length === 0 ? (
                 <tr>
-                  <td colSpan={9} className="px-6 py-12 text-center text-gray-500">
+                  <td colSpan={9} className="px-6 py-12 text-center text-secondary">
                     No services assigned to you
                   </td>
                 </tr>
               ) : (
                 services.map((service) => (
-                  <tr key={service._id} className="hover:bg-gray-50">
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                  <tr key={service._id} className="hover:bg-[rgba(255,255,255,0.03)]">
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-primary">
                       {formatDate(service.serviceDate)}
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-primary">
                       {service.unitNumber || "—"}
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-secondary">
                       {service.unitType || "—"}
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-secondary">
                       {service.makeModel || "—"}
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-secondary">
                       {service.serviceType || "—"}
                     </td>
-                    <td className="px-6 py-4 text-sm text-gray-600 max-w-xs truncate" title={service.description || undefined}>
+                    <td className="px-6 py-4 text-sm text-secondary max-w-xs truncate" title={service.description || undefined}>
                       {service.description || "—"}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
@@ -566,7 +566,7 @@ const Services: React.FC = () => {
                               handleUpdateStatus(service._id, "in-progress");
                             }}
                             disabled={updatingStatus === service._id}
-                            className="inline-flex items-center gap-1 px-3 py-1.5 text-xs font-medium text-blue-700 bg-blue-50 border border-blue-200 rounded-lg hover:bg-blue-100 disabled:opacity-50 disabled:cursor-not-allowed"
+                            className="inline-flex items-center gap-1 px-3 py-1.5 text-xs font-medium text-blue-700 bg-card border border-blue-200 rounded-lg hover:bg-blue-100 disabled:opacity-50 disabled:cursor-not-allowed"
                           >
                             <Play size={14} />
                             Start
@@ -590,7 +590,7 @@ const Services: React.FC = () => {
                             e.stopPropagation();
                             setSelectedService(service);
                           }}
-                          className="inline-flex items-center gap-1 px-3 py-1.5 text-xs font-medium text-gray-700 bg-gray-50 border border-gray-200 rounded-lg hover:bg-gray-100"
+                          className="inline-flex items-center gap-1 px-3 py-1.5 text-xs font-medium text-primary bg-card border border-theme rounded-lg hover:bg-gray-100"
                         >
                           <FileText size={14} />
                           View
@@ -606,8 +606,8 @@ const Services: React.FC = () => {
 
         {/* Pagination */}
         {pagination.totalPages > 1 && (
-          <div className="px-4 py-3 border-t border-gray-100 flex items-center justify-between">
-            <p className="text-sm text-gray-600">
+          <div className="px-4 py-3 border-t border-theme flex items-center justify-between">
+            <p className="text-sm text-secondary">
               Showing {(pagination.page - 1) * limit + 1}–{Math.min(pagination.page * limit, pagination.totalCount)} of {pagination.totalCount}
             </p>
             <div className="flex items-center gap-2">
@@ -615,19 +615,19 @@ const Services: React.FC = () => {
                 type="button"
                 onClick={() => setPage((p) => Math.max(1, p - 1))}
                 disabled={pagination.page <= 1 || loading}
-                className="inline-flex items-center gap-1 px-3 py-1.5 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                className="inline-flex items-center gap-1 px-3 py-1.5 text-sm font-medium text-primary bg-card border border-gray-300 rounded-lg hover:bg-[rgba(255,255,255,0.03)] disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 <ChevronLeft size={16} />
                 Previous
               </button>
-              <span className="text-sm text-gray-600 px-2">
+              <span className="text-sm text-secondary px-2">
                 Page {pagination.page} of {pagination.totalPages}
               </span>
               <button
                 type="button"
                 onClick={() => setPage((p) => Math.min(pagination.totalPages, p + 1))}
                 disabled={pagination.page >= pagination.totalPages || loading}
-                className="inline-flex items-center gap-1 px-3 py-1.5 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                className="inline-flex items-center gap-1 px-3 py-1.5 text-sm font-medium text-primary bg-card border border-gray-300 rounded-lg hover:bg-[rgba(255,255,255,0.03)] disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 Next
                 <ChevronRight size={16} />
@@ -640,15 +640,15 @@ const Services: React.FC = () => {
       {/* Service Details Modal */}
       {selectedService && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4 overflow-y-auto">
-          <div className="bg-white rounded-xl shadow-2xl w-full max-w-2xl my-8 max-h-[90vh] overflow-hidden flex flex-col">
-            <div className="flex items-center justify-between px-6 py-4 border-b border-gray-200 bg-gradient-to-r from-[#42aeec]/5 to-transparent flex-shrink-0">
+          <div className="bg-card rounded-xl shadow-2xl w-full max-w-2xl my-8 max-h-[90vh] overflow-hidden flex flex-col">
+            <div className="flex items-center justify-between px-6 py-4 border-b border-theme bg-gradient-to-r from-[#42aeec]/5 to-transparent flex-shrink-0">
               <div className="flex items-center gap-3">
                 <div className="p-2 rounded-lg bg-[#42aeec]/10">
                   <Wrench className="text-[#42aeec]" size={24} />
                 </div>
                 <div>
-                  <h3 className="text-lg font-bold text-gray-900">Service Details</h3>
-                  <p className="text-xs text-gray-500 mt-0.5">
+                  <h3 className="text-lg font-bold text-primary">Service Details</h3>
+                  <p className="text-xs text-secondary mt-0.5">
                     Unit {selectedService.unitNumber || "—"} • {formatDate(selectedService.serviceDate)}
                   </p>
                 </div>
@@ -656,7 +656,7 @@ const Services: React.FC = () => {
               <button
                 type="button"
                 onClick={() => setSelectedService(null)}
-                className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg transition"
+                className="p-2 text-secondary hover:text-secondary hover:bg-gray-100 rounded-lg transition"
               >
                 ×
               </button>
@@ -670,65 +670,65 @@ const Services: React.FC = () => {
               </div>
 
               {/* Service Info */}
-              <div className="grid grid-cols-2 gap-4 p-4 rounded-lg bg-gray-50 border border-gray-100">
+              <div className="grid grid-cols-2 gap-4 p-4 rounded-lg bg-card border border-theme">
                 <div>
-                  <p className="text-xs font-medium text-gray-500 uppercase tracking-wide">Unit Number</p>
-                  <p className="text-sm font-semibold text-gray-900 mt-0.5">{selectedService.unitNumber || "—"}</p>
+                  <p className="text-xs font-medium text-secondary uppercase tracking-wide">Unit Number</p>
+                  <p className="text-sm font-semibold text-primary mt-0.5">{selectedService.unitNumber || "—"}</p>
                 </div>
                 <div>
-                  <p className="text-xs font-medium text-gray-500 uppercase tracking-wide">Unit Type</p>
-                  <p className="text-sm font-semibold text-gray-900 mt-0.5">{selectedService.unitType || "—"}</p>
+                  <p className="text-xs font-medium text-secondary uppercase tracking-wide">Unit Type</p>
+                  <p className="text-sm font-semibold text-primary mt-0.5">{selectedService.unitType || "—"}</p>
                 </div>
                 <div>
-                  <p className="text-xs font-medium text-gray-500 uppercase tracking-wide">Make/Model</p>
-                  <p className="text-sm font-semibold text-gray-900 mt-0.5">{selectedService.makeModel || "—"}</p>
+                  <p className="text-xs font-medium text-secondary uppercase tracking-wide">Make/Model</p>
+                  <p className="text-sm font-semibold text-primary mt-0.5">{selectedService.makeModel || "—"}</p>
                 </div>
                 <div>
-                  <p className="text-xs font-medium text-gray-500 uppercase tracking-wide">Service Type</p>
-                  <p className="text-sm font-semibold text-gray-900 mt-0.5">{selectedService.serviceType || "—"}</p>
+                  <p className="text-xs font-medium text-secondary uppercase tracking-wide">Service Type</p>
+                  <p className="text-sm font-semibold text-primary mt-0.5">{selectedService.serviceType || "—"}</p>
                 </div>
                 <div>
-                  <p className="text-xs font-medium text-gray-500 uppercase tracking-wide">Service Date</p>
-                  <p className="text-sm font-semibold text-gray-900 mt-0.5">{formatDate(selectedService.serviceDate)}</p>
+                  <p className="text-xs font-medium text-secondary uppercase tracking-wide">Service Date</p>
+                  <p className="text-sm font-semibold text-primary mt-0.5">{formatDate(selectedService.serviceDate)}</p>
                 </div>
                 <div>
-                  <p className="text-xs font-medium text-gray-500 uppercase tracking-wide">Due Date</p>
-                  <p className="text-sm font-semibold text-gray-900 mt-0.5">{formatDate(selectedService.dueDate)}</p>
+                  <p className="text-xs font-medium text-secondary uppercase tracking-wide">Due Date</p>
+                  <p className="text-sm font-semibold text-primary mt-0.5">{formatDate(selectedService.dueDate)}</p>
                 </div>
                 <div>
-                  <p className="text-xs font-medium text-gray-500 uppercase tracking-wide">Odometer</p>
-                  <p className="text-sm font-semibold text-gray-900 mt-0.5">
+                  <p className="text-xs font-medium text-secondary uppercase tracking-wide">Odometer</p>
+                  <p className="text-sm font-semibold text-primary mt-0.5">
                     {selectedService.odometer != null ? selectedService.odometer.toLocaleString() : "—"}
                   </p>
                 </div>
                 <div>
-                  <p className="text-xs font-medium text-gray-500 uppercase tracking-wide">Due Mileage</p>
-                  <p className="text-sm font-semibold text-gray-900 mt-0.5">
+                  <p className="text-xs font-medium text-secondary uppercase tracking-wide">Due Mileage</p>
+                  <p className="text-sm font-semibold text-primary mt-0.5">
                     {selectedService.dueMileage != null ? selectedService.dueMileage.toLocaleString() : "—"}
                   </p>
                 </div>
                 {selectedService.description && (
                   <div className="col-span-2">
-                    <p className="text-xs font-medium text-gray-500 uppercase tracking-wide">Description</p>
-                    <p className="text-sm text-gray-700 mt-0.5">{selectedService.description}</p>
+                    <p className="text-xs font-medium text-secondary uppercase tracking-wide">Description</p>
+                    <p className="text-sm text-primary mt-0.5">{selectedService.description}</p>
                   </div>
                 )}
                 {selectedService.notes && (
                   <div className="col-span-2">
-                    <p className="text-xs font-medium text-gray-500 uppercase tracking-wide">Notes</p>
-                    <p className="text-sm text-gray-700 mt-0.5">{selectedService.notes}</p>
+                    <p className="text-xs font-medium text-secondary uppercase tracking-wide">Notes</p>
+                    <p className="text-sm text-primary mt-0.5">{selectedService.notes}</p>
                   </div>
                 )}
                 {selectedService.invoiceNumber && (
                   <div>
-                    <p className="text-xs font-medium text-gray-500 uppercase tracking-wide">Invoice Number</p>
-                    <p className="text-sm font-semibold text-gray-900 mt-0.5">{selectedService.invoiceNumber}</p>
+                    <p className="text-xs font-medium text-secondary uppercase tracking-wide">Invoice Number</p>
+                    <p className="text-sm font-semibold text-primary mt-0.5">{selectedService.invoiceNumber}</p>
                   </div>
                 )}
                 {selectedService.amount != null && (
                   <div>
-                    <p className="text-xs font-medium text-gray-500 uppercase tracking-wide">Amount</p>
-                    <p className="text-sm font-semibold text-gray-900 mt-0.5">
+                    <p className="text-xs font-medium text-secondary uppercase tracking-wide">Amount</p>
+                    <p className="text-sm font-semibold text-primary mt-0.5">
                       ${selectedService.amount.toFixed(2)}
                     </p>
                   </div>
@@ -736,12 +736,12 @@ const Services: React.FC = () => {
               </div>
             </div>
 
-            <div className="px-6 py-4 border-t border-gray-200 bg-gray-50/30 flex-shrink-0">
+            <div className="px-6 py-4 border-t border-theme bg-gray-50/30 flex-shrink-0">
               <div className="flex justify-end">
                 <button
                   type="button"
                   onClick={() => setSelectedService(null)}
-                  className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 hover:bg-gray-50 rounded-lg"
+                  className="px-4 py-2 text-sm font-medium text-primary bg-card border border-gray-300 hover:bg-[rgba(255,255,255,0.03)] rounded-lg"
                 >
                   Close
                 </button>
@@ -754,15 +754,15 @@ const Services: React.FC = () => {
       {/* Complete Service Modal with Parts */}
       {completeModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4 overflow-y-auto">
-          <div className="bg-white rounded-xl shadow-2xl w-full max-w-3xl my-8 max-h-[90vh] overflow-hidden flex flex-col">
-            <div className="flex items-center justify-between px-6 py-4 border-b border-gray-200 bg-gradient-to-r from-[#42aeec]/5 to-transparent flex-shrink-0">
+          <div className="bg-card rounded-xl shadow-2xl w-full max-w-3xl my-8 max-h-[90vh] overflow-hidden flex flex-col">
+            <div className="flex items-center justify-between px-6 py-4 border-b border-theme bg-gradient-to-r from-[#42aeec]/5 to-transparent flex-shrink-0">
               <div className="flex items-center gap-3">
                 <div className="p-2 rounded-lg bg-green-100">
                   <CheckCircle className="text-green-600" size={24} />
                 </div>
                 <div>
-                  <h3 className="text-lg font-bold text-gray-900">Complete Service</h3>
-                  <p className="text-xs text-gray-500 mt-0.5">
+                  <h3 className="text-lg font-bold text-primary">Complete Service</h3>
+                  <p className="text-xs text-secondary mt-0.5">
                     Unit {completeModal.unitNumber || "—"} • {completeModal.serviceType || "—"}
                   </p>
                 </div>
@@ -773,7 +773,7 @@ const Services: React.FC = () => {
                   setCompleteModal(null);
                   setCompleteForm({ parts: [] });
                 }}
-                className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg transition"
+                className="p-2 text-secondary hover:text-secondary hover:bg-gray-100 rounded-lg transition"
               >
                 ×
               </button>
@@ -781,8 +781,8 @@ const Services: React.FC = () => {
 
             <div className="p-6 overflow-y-auto flex-1 space-y-5">
               {/* Add Parts Section */}
-              <div className="border border-gray-200 rounded-lg p-4">
-                <h4 className="text-sm font-semibold text-gray-900 mb-3 flex items-center gap-2">
+              <div className="border border-theme rounded-lg p-4">
+                <h4 className="text-sm font-semibold text-primary mb-3 flex items-center gap-2">
                   <Package size={18} />
                   Add Parts Used
                 </h4>
@@ -813,7 +813,7 @@ const Services: React.FC = () => {
                 {/* Parts List */}
                 {completeForm.parts.length > 0 && (
                   <div className="mt-4 space-y-2">
-                    <div className="grid grid-cols-12 gap-2 text-xs font-medium text-gray-500 uppercase tracking-wide pb-2 border-b">
+                    <div className="grid grid-cols-12 gap-2 text-xs font-medium text-secondary uppercase tracking-wide pb-2 border-b">
                       <div className="col-span-4">Part</div>
                       <div className="col-span-2">Part Number</div>
                       <div className="col-span-2">Quantity</div>
@@ -821,9 +821,9 @@ const Services: React.FC = () => {
                       <div className="col-span-2">Total</div>
                     </div>
                     {completeForm.parts.map((part) => (
-                      <div key={part.id} className="grid grid-cols-12 gap-2 items-center py-2 border-b border-gray-100">
-                        <div className="col-span-4 text-sm text-gray-900">{part.partName}</div>
-                        <div className="col-span-2 text-sm text-gray-600">{part.partNumber}</div>
+                      <div key={part.id} className="grid grid-cols-12 gap-2 items-center py-2 border-b border-theme">
+                        <div className="col-span-4 text-sm text-primary">{part.partName}</div>
+                        <div className="col-span-2 text-sm text-secondary">{part.partNumber}</div>
                         <div className="col-span-2">
                           <input
                             type="number"
@@ -843,14 +843,14 @@ const Services: React.FC = () => {
                             className="w-full px-2 py-1 text-sm border border-gray-300 rounded focus:border-[#42aeec] focus:ring-1 focus:ring-[#42aeec]/20"
                           />
                         </div>
-                        <div className="col-span-1 text-sm font-semibold text-gray-900">
+                        <div className="col-span-1 text-sm font-semibold text-primary">
                           ${((part.quantity || 0) * (part.cost || 0)).toFixed(2)}
                         </div>
                         <div className="col-span-1">
                           <button
                             type="button"
                             onClick={() => removePart(part.id)}
-                            className="p-1 text-red-600 hover:bg-red-50 rounded"
+                            className="p-1 text-[#A855F7] hover:bg-red-50 rounded"
                           >
                             <Trash2 size={16} />
                           </button>
@@ -858,7 +858,7 @@ const Services: React.FC = () => {
                       </div>
                     ))}
                     <div className="pt-2 flex justify-end">
-                      <div className="text-sm font-semibold text-gray-900">
+                      <div className="text-sm font-semibold text-primary">
                         Parts Total: <span className="text-lg">${partsTotal.toFixed(2)}</span>
                       </div>
                     </div>
@@ -867,7 +867,7 @@ const Services: React.FC = () => {
               </div>
             </div>
 
-            <div className="px-6 py-4 border-t border-gray-200 bg-gray-50/30 flex-shrink-0">
+            <div className="px-6 py-4 border-t border-theme bg-gray-50/30 flex-shrink-0">
               <div className="flex justify-end gap-3">
                 <button
                   type="button"
@@ -875,7 +875,7 @@ const Services: React.FC = () => {
                     setCompleteModal(null);
                     setCompleteForm({ parts: [] });
                   }}
-                  className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 hover:bg-gray-50 rounded-lg"
+                  className="px-4 py-2 text-sm font-medium text-primary bg-card border border-gray-300 hover:bg-[rgba(255,255,255,0.03)] rounded-lg"
                 >
                   Cancel
                 </button>

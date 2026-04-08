@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect } from 'react'
 import { FaUser, FaSignOutAlt, FaBars, FaChevronDown } from "react-icons/fa";
-import { Search, X, LogOut, AlertCircle, ArrowRight , ArrowLeft} from "lucide-react";
+import { Search, X, LogOut, AlertCircle, ArrowRight, ArrowLeft } from "lucide-react";
 import { useLogout } from "../../hooks/useLogout";
 import { useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
@@ -142,29 +142,27 @@ function Header({ onToggleSidebar }: { onToggleSidebar: () => void }) {
     return (
         <>
             <header
-                className="flex items-center justify-between px-6 py-3 shadow-sm relative z-20"
-                style={{
-                    background: "linear-gradient(135deg, #42aeec 0%, #31a2d4 100%)"
-                }}
+                className="flex items-center justify-between px-6 py-3 shadow-sm relative z-20 invoice-header 
+bg-gradient-to-r from-[#0B1220] via-[#121A2B] to-[#121A2B] border-b border-theme"
             >
                 {/* LEFT: Sidebar toggle */}
                 <div className="flex items-center gap-4">
                     <button
                         onClick={onToggleSidebar}
-                        className="p-2 rounded-lg hover:bg-white/20 transition-colors !text-white"
+                        className="p-2 rounded-lg hover:bg-card/20 transition-colors !text-white"
                     >
                         <FaBars size={20} />
                     </button>
                     <button
                         onClick={() => navigate(-1)}
-                        className="p-2 rounded-lg hover:bg-white/20 transition-colors !text-white"
+                        className="p-2 rounded-lg hover:bg-card/20 transition-colors !text-white"
                         title="Previous"
                     >
                         <ArrowLeft size={22} />
                     </button>
                     <button
                         onClick={() => navigate(1)}
-                        className="p-2 rounded-lg hover:bg-white/20 transition-colors !text-white"
+                        className="p-2 rounded-lg hover:bg-card/20 transition-colors !text-white"
                         title="Next"
                     >
                         <ArrowRight size={22} />
@@ -184,7 +182,7 @@ function Header({ onToggleSidebar }: { onToggleSidebar: () => void }) {
                     {/* Search Button */}
                     <button
                         onClick={() => setIsSearchOpen(true)}
-                        className="p-2 rounded-lg hover:bg-white/20 transition-colors !text-white"
+                        className="p-2 rounded-lg hover:bg-card/20 transition-colors !text-white"
                     >
                         <Search size={20} />
                     </button>
@@ -193,9 +191,9 @@ function Header({ onToggleSidebar }: { onToggleSidebar: () => void }) {
                     <div className="relative" ref={dropdownRef}>
                         <button
                             onClick={() => setIsDropdownOpen(!isDropdownOpen)}
-                            className="flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-white/20 transition-colors !text-white"
+                            className="flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-card/20 transition-colors !text-white"
                         >
-                            <div className="w-8 h-8 rounded-full bg-white/20 flex items-center justify-center">
+                            <div className="w-8 h-8 rounded-full bg-card/20 flex items-center justify-center">
                                 <FaUser size={14} />
                             </div>
                             <span className="hidden sm:block text-sm font-medium">
@@ -205,23 +203,23 @@ function Header({ onToggleSidebar }: { onToggleSidebar: () => void }) {
                         </button>
 
                         {isDropdownOpen && (
-                            <div className="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-xl border border-gray-100 overflow-hidden z-50">
-                                <div className="px-4 py-3 border-b border-gray-100 bg-gray-50">
-                                    <p className="text-sm font-medium text-gray-900 truncate">{userInfo?.userData?.name || "User"}</p>
-                                    <p className="text-xs text-gray-500 truncate">{userInfo?.userData?.email || "user@example.com"}</p>
+                            <div className="absolute right-0 mt-2 w-48 bg-card rounded-lg shadow-xl border border-theme overflow-hidden z-50">
+                                <div className="px-4 py-3 border-b border-theme bg-card">
+                                    <p className="text-sm font-medium text-primary truncate">{userInfo?.userData?.name || "User"}</p>
+                                    <p className="text-xs text-secondary truncate">{userInfo?.userData?.email || "user@example.com"}</p>
                                 </div>
                                 <div className="py-1">
                                     <button
                                         onClick={handleProfileClick}
-                                        className="flex items-center gap-3 w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
+                                        className="flex items-center gap-3 w-full px-4 py-2 text-sm text-primary hover:bg-[rgba(255,255,255,0.03)] transition-colors"
                                     >
-                                        <FaUser size={14} className="text-gray-400" />
+                                        <FaUser size={14} className="text-secondary" />
                                         Profile
                                     </button>
-                                    <div className="border-t border-gray-100 my-1"></div>
+                                    <div className="border-t border-theme my-1"></div>
                                     <button
                                         onClick={handleLogoutClick}
-                                        className="flex items-center gap-3 w-full px-4 py-2 text-sm text-red-600 hover:bg-red-50 transition-colors"
+                                        className="flex items-center gap-3 w-full px-4 py-2 text-sm text-[#A855F7] hover:bg-red-50 transition-colors"
                                     >
                                         <FaSignOutAlt size={14} />
                                         Logout
@@ -238,12 +236,12 @@ function Header({ onToggleSidebar }: { onToggleSidebar: () => void }) {
                 <div className="fixed inset-0 z-[100] flex items-start justify-center pt-20 bg-black/30 backdrop-blur-sm">
                     <div
                         ref={searchRef}
-                        className="bg-white rounded-lg shadow-2xl w-full max-w-2xl mx-4"
+                        className="bg-card rounded-lg shadow-2xl w-full max-w-2xl mx-4"
                     >
-                        <form onSubmit={handleSearchSubmit} className="p-4 border-b border-gray-200">
+                        <form onSubmit={handleSearchSubmit} className="p-4 border-b border-theme">
                             <div className="relative">
                                 <div className="absolute left-4 top-1/2 transform -translate-y-1/2">
-                                    <Search className="text-gray-400" size={20} />
+                                    <Search className="text-secondary" size={20} />
                                 </div>
                                 <input
                                     ref={inputRef}
@@ -263,7 +261,7 @@ function Header({ onToggleSidebar }: { onToggleSidebar: () => void }) {
                                     }}
                                     className="absolute right-4 top-1/2 transform -translate-y-1/2 p-1 hover:bg-gray-100 rounded-full transition-colors"
                                 >
-                                    <X className="text-gray-400" size={20} />
+                                    <X className="text-secondary" size={20} />
                                 </button>
                             </div>
                         </form>
@@ -276,21 +274,21 @@ function Header({ onToggleSidebar }: { onToggleSidebar: () => void }) {
                                             key={action.id}
                                             onClick={() => handleActionSelect(action)}
                                             className={`w-full flex items-center gap-3 px-4 py-3 hover:bg-blue-50 transition-all duration-150 border-l-2 ${index === selectedIndex
-                                                ? 'bg-blue-50 border-blue-500'
+                                                ? 'bg-card border-blue-500'
                                                 : 'border-transparent hover:border-blue-300'
                                                 }`}
                                         >
                                             <div className={`flex-shrink-0 ${index === selectedIndex ? 'scale-110' : ''} transition-transform`}>
                                                 <div className={`p-2 rounded-lg ${action.type === 'create' ? 'bg-green-100 text-green-700' :
                                                     action.type === 'navigation' ? 'bg-blue-100 text-blue-700' :
-                                                        'bg-gray-100 text-gray-700'
+                                                        'bg-gray-100 text-primary'
                                                     }`}>
                                                     {action.icon}
                                                 </div>
                                             </div>
                                             <div className="flex-1 text-left min-w-0">
                                                 <div className="flex items-center gap-2">
-                                                    <span className="font-semibold text-gray-900 truncate">{action.title}</span>
+                                                    <span className="font-semibold text-primary truncate">{action.title}</span>
                                                     {action.type === 'create' && (
                                                         <span className="text-xs bg-green-100 text-green-700 px-2 py-0.5 rounded-full font-medium flex-shrink-0">
                                                             New
@@ -302,22 +300,22 @@ function Header({ onToggleSidebar }: { onToggleSidebar: () => void }) {
                                                         </span>
                                                     )}
                                                 </div>
-                                                <p className="text-sm text-gray-500 mt-0.5 truncate">
+                                                <p className="text-sm text-secondary mt-0.5 truncate">
                                                     {action.description}
                                                 </p>
                                             </div>
                                             <ArrowRight
                                                 className={`flex-shrink-0 transition-all ${index === selectedIndex
-                                                    ? 'text-blue-600 opacity-100 translate-x-0'
-                                                    : 'text-gray-400 opacity-0 -translate-x-1'
+                                                    ? 'text-[#00D1FF] opacity-100 translate-x-0'
+                                                    : 'text-secondary opacity-0 -translate-x-1'
                                                     }`}
                                                 size={18}
                                             />
                                         </button>
                                     ))}
                                 </div>
-                                <div className="border-t border-gray-200 px-4 py-2 bg-gray-50">
-                                    <p className="text-xs text-gray-500 text-center">
+                                <div className="border-t border-theme px-4 py-2 bg-card">
+                                    <p className="text-xs text-secondary text-center">
                                         {filteredActions.length} result{filteredActions.length !== 1 ? 's' : ''} • Use ↑↓ to navigate, Enter to select
                                     </p>
                                 </div>
@@ -326,7 +324,7 @@ function Header({ onToggleSidebar }: { onToggleSidebar: () => void }) {
 
                         {searchQuery.trim() !== "" && filteredActions.length === 0 && (
                             <div className="p-8">
-                                <p className="text-sm text-gray-500 text-center">
+                                <p className="text-sm text-secondary text-center">
                                     No actions found for "{searchQuery}"
                                 </p>
                             </div>
@@ -334,7 +332,7 @@ function Header({ onToggleSidebar }: { onToggleSidebar: () => void }) {
 
                         {searchQuery.trim() === "" && (
                             <div className="p-8">
-                                <p className="text-sm text-gray-500 text-center">
+                                <p className="text-sm text-secondary text-center">
                                     Type to search for actions, pages, or create new items
                                 </p>
                             </div>
@@ -350,18 +348,18 @@ function Header({ onToggleSidebar }: { onToggleSidebar: () => void }) {
                     onClick={cancelLogout}
                 >
                     <div
-                        className="bg-white rounded-2xl shadow-2xl max-w-md w-full mx-4 transform transition-all"
+                        className="bg-card rounded-2xl shadow-2xl max-w-md w-full mx-4 transform transition-all"
                         onClick={(e) => e.stopPropagation()}
                     >
                         {/* Modal Header */}
-                        <div className="p-6 border-b border-gray-200">
+                        <div className="p-6 border-b border-theme">
                             <div className="flex items-center gap-4">
                                 <div className="flex-shrink-0 w-12 h-12 rounded-full bg-red-100 flex items-center justify-center">
-                                    <LogOut className="text-red-600" size={24} />
+                                    <LogOut className="text-[#A855F7]" size={24} />
                                 </div>
                                 <div>
-                                    <h3 className="text-xl font-bold text-gray-900">Confirm Logout</h3>
-                                    <p className="text-sm text-gray-500 mt-1">Are you sure you want to logout?</p>
+                                    <h3 className="text-xl font-bold text-primary">Confirm Logout</h3>
+                                    <p className="text-sm text-secondary mt-1">Are you sure you want to logout?</p>
                                 </div>
                             </div>
                         </div>
@@ -377,10 +375,10 @@ function Header({ onToggleSidebar }: { onToggleSidebar: () => void }) {
                         </div>
 
                         {/* Modal Footer */}
-                        <div className="p-6 border-t border-gray-200 flex justify-end gap-3">
+                        <div className="p-6 border-t border-theme flex justify-end gap-3">
                             <button
                                 onClick={cancelLogout}
-                                className="px-6 py-2.5 text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors font-medium"
+                                className="px-6 py-2.5 text-primary bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors font-medium"
                             >
                                 Cancel
                             </button>

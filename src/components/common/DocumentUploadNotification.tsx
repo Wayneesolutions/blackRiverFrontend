@@ -63,7 +63,7 @@ const DocumentUploadNotification = ({ notification, onClose, userRole = 'admin' 
     <div className="fixed top-4 right-4 z-[9999] max-w-md w-full">
       <div
         onClick={handleClick}
-        className="bg-white rounded-xl shadow-2xl border border-green-200 overflow-hidden transform transition-all duration-500 ease-in-out animate-slide-in cursor-pointer hover:shadow-3xl"
+        className="bg-card rounded-xl shadow-2xl border border-green-200 overflow-hidden transform transition-all duration-500 ease-in-out animate-slide-in cursor-pointer hover:shadow-3xl"
       >
         {/* Progress bar */}
         <div 
@@ -75,7 +75,7 @@ const DocumentUploadNotification = ({ notification, onClose, userRole = 'admin' 
         <div className="bg-gradient-to-r from-green-500 to-emerald-500 p-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
-              <div className="p-2 bg-white/20 rounded-lg backdrop-blur-sm">
+              <div className="p-2 bg-card/20 rounded-lg backdrop-blur-sm">
                 <File className="w-6 h-6 text-white" />
               </div>
               <div>
@@ -90,7 +90,7 @@ const DocumentUploadNotification = ({ notification, onClose, userRole = 'admin' 
                 e.stopPropagation();
                 onClose();
               }}
-              className="p-2 hover:bg-white/20 rounded-lg transition-all duration-200 group"
+              className="p-2 hover:bg-card/20 rounded-lg transition-all duration-200 group"
             >
               <X className="w-5 h-5 text-white group-hover:scale-110 transition-transform" />
             </button>
@@ -98,26 +98,26 @@ const DocumentUploadNotification = ({ notification, onClose, userRole = 'admin' 
         </div>
 
         {/* Content */}
-        <div className="p-4 bg-white">
+        <div className="p-4 bg-card">
           <div className="flex items-center gap-2 mb-3">
             <span className="inline-flex items-center gap-1 px-2 py-1 bg-blue-100 text-blue-700 text-xs font-semibold rounded-full">
               <FaTruck className="w-3 h-3" />
               Order #{notification.orderNumber}
             </span>
           </div>
-          <p className="text-gray-700 text-sm leading-relaxed">
+          <p className="text-primary text-sm leading-relaxed">
             <strong>{notification.driverName || 'Driver'}</strong> has uploaded POD and Manifest documents for order <strong>{notification.orderNumber}</strong>
           </p>
         </div>
 
         {/* Footer */}
-        <div className="bg-gray-50 px-4 py-3 border-t border-gray-200">
+        <div className="bg-card px-4 py-3 border-t border-theme">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
               <File className="w-4 h-4 text-green-600" />
-              <span className="text-xs text-gray-600">Click to view documents</span>
+              <span className="text-xs text-secondary">Click to view documents</span>
             </div>
-            <span className="text-gray-400 text-xs">Just now</span>
+            <span className="text-secondary text-xs">Just now</span>
           </div>
         </div>
       </div>

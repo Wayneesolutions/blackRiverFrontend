@@ -271,15 +271,15 @@ const AllDispatch = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 p-6">
+    <div className="min-h-screen bg-card p-6">
       {/* Header */}
       <div className="flex justify-between items-center mb-6">
         <div>
-          <h1 className="text-3xl font-bold text-gray-800">All Dispatch</h1>
-          <p className="text-gray-600 mt-1">Assign drivers and trucks to loads</p>
+          <h1 className="text-3xl font-bold text-primary">All Dispatch</h1>
+          <p className="text-secondary mt-1">Assign drivers and trucks to loads</p>
         </div>
         <div className="flex items-center gap-3">
-          <FaFilter className="text-gray-600" />
+          <FaFilter className="text-secondary" />
           <select
             value={statusFilter}
             onChange={(e) => setStatusFilter(e.target.value)}
@@ -296,57 +296,57 @@ const AllDispatch = () => {
       </div>
 
       {emptyStateMessage && filteredLoads.length === 0 && (
-        <div className="mb-4 bg-white border border-blue-100 text-blue-700 px-4 py-3 rounded-lg shadow-sm flex items-center gap-3">
+        <div className="mb-4 bg-card border border-blue-100 text-blue-700 px-4 py-3 rounded-lg shadow-sm flex items-center gap-3">
           <FaTruck className="text-blue-500" />
           <span className="text-sm">{emptyStateMessage}</span>
         </div>
       )}
 
       {/* Step Tracker */}
-      <div className="bg-white rounded-xl shadow-lg p-6 mb-6">
-        <h3 className="text-lg font-semibold text-gray-800 mb-4">Dispatch Workflow</h3>
+      <div className="bg-card rounded-xl shadow-lg p-6 mb-6">
+        <h3 className="text-lg font-semibold text-primary mb-4">Dispatch Workflow</h3>
         <StepTracker currentStep="assigned" />
       </div>
 
       {/* Loads Table */}
-      <div className="bg-white rounded-xl shadow-lg overflow-hidden">
+      <div className="bg-card rounded-xl shadow-lg overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full">
-            <thead className="bg-gray-50 border-b border-gray-200">
+            <thead className="bg-card border-b border-theme">
               <tr>
-                <th className="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                <th className="px-6 py-4 text-left text-xs font-semibold text-primary uppercase tracking-wider">
                   Load #
                 </th>
-                <th className="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                <th className="px-6 py-4 text-left text-xs font-semibold text-primary uppercase tracking-wider">
                   Order #
                 </th>
-                <th className="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                <th className="px-6 py-4 text-left text-xs font-semibold text-primary uppercase tracking-wider">
                   Customer
                 </th>
-                <th className="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                <th className="px-6 py-4 text-left text-xs font-semibold text-primary uppercase tracking-wider">
                   Amount
                 </th>
-                <th className="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                <th className="px-6 py-4 text-left text-xs font-semibold text-primary uppercase tracking-wider">
                   Status
                 </th>
-                <th className="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                <th className="px-6 py-4 text-left text-xs font-semibold text-primary uppercase tracking-wider">
                   Workflow Progress
                 </th>
-                <th className="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                <th className="px-6 py-4 text-left text-xs font-semibold text-primary uppercase tracking-wider">
                   Driver / Truck / Trailer
                 </th>
-                <th className="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                <th className="px-6 py-4 text-left text-xs font-semibold text-primary uppercase tracking-wider">
                   Route
                 </th>
-                <th className="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                <th className="px-6 py-4 text-left text-xs font-semibold text-primary uppercase tracking-wider">
                   Actions
                 </th>
               </tr>
             </thead>
-            <tbody className="bg-white divide-y divide-gray-200">
+            <tbody className="bg-card divide-y divide-gray-200">
               {filteredLoads.length === 0 ? (
                 <tr>
-                  <td colSpan={9} className="px-6 py-12 text-center text-gray-500">
+                  <td colSpan={9} className="px-6 py-12 text-center text-secondary">
                     <FaTruck className="mx-auto mb-3 text-gray-300" size={48} />
                     <p className="text-lg font-medium">No loads available</p>
                     <p className="text-sm">{emptyStateMessage || 'Create or import loads to see them listed here.'}</p>
@@ -360,14 +360,14 @@ const AllDispatch = () => {
                   >
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div className="flex items-center gap-2">
-                        <FaTruck className="text-blue-600" size={16} />
-                        <span className="font-semibold text-blue-600">{load.loadNumber || load._id}</span>
+                        <FaTruck className="text-[#00D1FF]" size={16} />
+                        <span className="font-semibold text-[#00D1FF]">{load.loadNumber || load._id}</span>
                       </div>
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-primary">
                       {load.orderNumber || 'N/A'}
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-800">
+                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-primary">
                       {load.customer || load.customerName || 'N/A'}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
@@ -386,24 +386,24 @@ const AllDispatch = () => {
                     <td className="px-6 py-4 whitespace-nowrap">
                       {load.assignedDriver ? (
                         <div className="flex flex-col gap-1 text-sm">
-                          <div className="flex items-center gap-1 text-gray-700">
+                          <div className="flex items-center gap-1 text-primary">
                             <FaUser size={12} />
                             <span>{load.assignedDriver}</span>
                           </div>
                           {load.assignedTruck && (
-                            <div className="flex items-center gap-1 text-gray-700">
+                            <div className="flex items-center gap-1 text-primary">
                               <FaTruck size={12} />
                               <span>{load.assignedTruck}</span>
-                              {load.assignedTrailer && <span className="text-gray-500">/ {load.assignedTrailer}</span>}
+                              {load.assignedTrailer && <span className="text-secondary">/ {load.assignedTrailer}</span>}
                             </div>
                           )}
                         </div>
                       ) : (
-                        <span className="text-gray-400 italic text-sm">Not assigned</span>
+                        <span className="text-secondary italic text-sm">Not assigned</span>
                       )}
                     </td>
                     <td className="px-6 py-4">
-                      <div className="text-sm text-gray-700">
+                      <div className="text-sm text-primary">
                         {load.route?.multipleDropOffs ? (
                           <div className="text-xs space-y-0.5">
                             {load.route.wayPoints && load.route.wayPoints.length > 0 ? (
@@ -414,13 +414,13 @@ const AllDispatch = () => {
                                 const addressParts = address.split(',');
                                 const cityName = addressParts[0]?.trim() || address;
                                 return (
-                                  <div key={idx} className="text-gray-600 flex items-center gap-1">
+                                  <div key={idx} className="text-secondary flex items-center gap-1">
                                     {wp.pickup ? '📦' : wp.dropOff ? '📬' : '📍'} {cityName}
                                   </div>
                                 );
                               })
                             ) : (
-                              <span className="text-gray-400 italic text-xs">No waypoints</span>
+                              <span className="text-secondary italic text-xs">No waypoints</span>
                             )}
                           </div>
                         ) : (

@@ -1761,35 +1761,35 @@ const PayrollManagement = () => {
 
     if (loading && !emptyStateMessage) {
         return (
-            <div className="min-h-screen bg-gray-50 flex flex-col items-center justify-center text-center space-y-4">
+            <div className="min-h-screen bg-card flex flex-col items-center justify-center text-center space-y-4">
                 <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
-                <p className="text-gray-600">Loading payroll data...</p>
+                <p className="text-secondary">Loading payroll data...</p>
             </div>
         );
     }
 
     if (emptyStateMessage) {
         return (
-            <div className="min-h-screen bg-gray-50 p-6 flex flex-col items-center justify-center text-center space-y-5">
+            <div className="min-h-screen bg-card p-6 flex flex-col items-center justify-center text-center space-y-5">
                 {notification && (
-                    <div className={`fixed top-4 right-4 z-[10000] flex items-center gap-2 px-4 py-3 rounded-lg shadow-lg ${notification.type === 'success' ? 'bg-green-50 border border-green-200' : 'bg-red-50 border border-red-200'}`}>
+                    <div className={`fixed top-4 right-4 z-[10000] flex items-center gap-2 px-4 py-3 rounded-lg shadow-lg ${notification.type === 'success' ? 'bg-green-50 border border-green-200' : 'bg-card border border-red-200'}`}>
                         {notification.type === 'success' ? (
                             <CheckCircle className="h-5 w-5 text-green-600" />
                         ) : (
-                            <AlertCircle className="h-5 w-5 text-red-600" />
+                            <AlertCircle className="h-5 w-5 text-[#A855F7]" />
                         )}
                         <span className={`text-sm font-medium ${notification.type === 'success' ? 'text-green-800' : 'text-red-800'}`}>
                             {notification.message}
                         </span>
                         <button onClick={() => setNotification(null)}>
-                            <X className={`h-4 w-4 ${notification.type === 'success' ? 'text-green-600' : 'text-red-600'}`} />
+                            <X className={`h-4 w-4 ${notification.type === 'success' ? 'text-green-600' : 'text-[#A855F7]'}`} />
                         </button>
                     </div>
                 )}
-                <Building2 className="h-16 w-16 text-gray-400" />
+                <Building2 className="h-16 w-16 text-secondary" />
                 <div className="space-y-3 max-w-md">
-                    <h2 className="text-2xl font-semibold text-gray-800">No payroll data available</h2>
-                    <p className="text-gray-500">{emptyStateMessage}</p>
+                    <h2 className="text-2xl font-semibold text-primary">No payroll data available</h2>
+                    <p className="text-secondary">{emptyStateMessage}</p>
                 </div>
                 <button
                     onClick={() => fetchPayrolls()}
@@ -1802,7 +1802,7 @@ const PayrollManagement = () => {
     }
 
     return (
-        <div className="min-h-screen bg-[#EDF8FF] px-6">
+        <div className="min-h-screen bg-main px-6">
             <div className="py-8 w-full mx-auto">
                 {notification && (
                     <div className={`fixed top-4 right-4 z-[10000] flex items-center gap-3 px-6 py-4 rounded-lg shadow-lg ${notification.type === 'success' ? 'bg-green-500' : 'bg-red-500'
@@ -1822,7 +1822,7 @@ const PayrollManagement = () => {
                 <div className="flex justify-between items-center mb-8">
                     <div>
                         <h1 className="text-3xl font-bold" style={{ background: 'linear-gradient(90deg, #42aeec 0%, #1db5f5 40%, #0ea3d8 100%)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>Payroll Management</h1>
-                        <p className="text-gray-600 mt-2">Manage employee salaries and payroll records</p>
+                        <p className="text-secondary mt-2">Manage employee salaries and payroll records</p>
                     </div>
                     <div className="flex gap-3">
                         <button
@@ -1860,7 +1860,7 @@ const PayrollManagement = () => {
                                 <p className="text-sm font-medium text-[#063f6f]">Total Payroll</p>
                                 <p className="text-2xl font-bold text-[#016ab2] mt-1">${totalPayroll.toLocaleString()}</p>
                             </div>
-                            <div className="p-3 rounded-full bg-white flex-shrink-0">
+                            <div className="p-3 rounded-full bg-card flex-shrink-0">
                                 <DollarSign className="text-[#42aeec]" size={24} />
                             </div>
                         </div>
@@ -1871,7 +1871,7 @@ const PayrollManagement = () => {
                                 <p className="text-sm font-medium text-[#063f6f]">Employees</p>
                                 <p className="text-2xl font-bold text-[#016ab2] mt-1">{payrollData.length}</p>
                             </div>
-                            <div className="p-3 rounded-full bg-white flex-shrink-0">
+                            <div className="p-3 rounded-full bg-card flex-shrink-0">
                                 <Users className="text-[#0ea3d8]" size={24} />
                             </div>
                         </div>
@@ -1882,7 +1882,7 @@ const PayrollManagement = () => {
                                 <p className="text-sm font-medium text-[#063f6f]">Average Salary</p>
                                 <p className="text-2xl font-bold text-[#016ab2] mt-1">${Math.round(avgSalary).toLocaleString()}</p>
                             </div>
-                            <div className="p-3 rounded-full bg-white flex-shrink-0">
+                            <div className="p-3 rounded-full bg-card flex-shrink-0">
                                 <TrendingUp className="text-[#1db5f5]" size={24} />
                             </div>
                         </div>
@@ -1895,18 +1895,18 @@ const PayrollManagement = () => {
                                     {new Date().toLocaleDateString('en-US', { month: 'short', year: 'numeric' })}
                                 </p>
                             </div>
-                            <div className="p-3 rounded-full bg-white flex-shrink-0">
-                                <Calendar className="text-yellow-600" size={24} />
+                            <div className="p-3 rounded-full bg-card flex-shrink-0">
+                                <Calendar className="text-[#00FFA3]" size={24} />
                             </div>
                         </div>
                     </div>
                 </div>
 
-                <div className="bg-white rounded-xl border-gray-200 shadow-sm border mb-6">
+                <div className="bg-card rounded-xl border-theme shadow-sm border mb-6">
                     <div className="p-6">
                         <div className="flex flex-col md:flex-row gap-4">
                             <div className="flex-1 relative">
-                                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={20} />
+                                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-secondary" size={20} />
                                 <input
                                     type="text"
                                     placeholder="Search by employee name or internal ID..."
@@ -1933,9 +1933,9 @@ const PayrollManagement = () => {
                     </div>
                 </div>
 
-                <div className="bg-white border-gray-200 rounded-xl shadow-sm border">
-                    <div className="p-6 border-b border-gray-200">
-                        <h2 className="text-xl font-bold text-gray-900">Payroll Records</h2>
+                <div className="bg-card border-theme rounded-xl shadow-sm border">
+                    <div className="p-6 border-b border-theme">
+                        <h2 className="text-xl font-bold text-primary">Payroll Records</h2>
                     </div>
                     
                     {loading ? (
@@ -1943,11 +1943,11 @@ const PayrollManagement = () => {
                             <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
                         </div>
                     ) : filteredPayrolls.length === 0 ? (
-                        <div className="text-center py-12 text-gray-500">
+                        <div className="text-center py-12 text-secondary">
                             No payroll records found
                         </div>
                     ) : (
-                        <div className="bg-white rounded-lg overflow-hidden">
+                        <div className="bg-card rounded-lg overflow-hidden">
                             {/* Top Scrollbar - Only visible horizontal scrollbar */}
                             <style>{`
                                 .top-scrollbar-container {
@@ -2006,40 +2006,40 @@ const PayrollManagement = () => {
                                 className="table-container-with-scrollbar"
                             >
                                 <table className="w-full">
-                                <thead className="bg-gray-50">
+                                <thead className="bg-card">
                                     <tr>
-                                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                        <th className="px-6 py-3 text-left text-xs font-medium text-secondary uppercase tracking-wider">
                                             Employee
                                         </th>
-                                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                        <th className="px-6 py-3 text-left text-xs font-medium text-secondary uppercase tracking-wider">
                                             Role
                                         </th>
-                                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                        <th className="px-6 py-3 text-left text-xs font-medium text-secondary uppercase tracking-wider">
                                             Base Salary
                                         </th>
-                                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                        <th className="px-6 py-3 text-left text-xs font-medium text-secondary uppercase tracking-wider">
                                             Bonus
                                         </th>
-                                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                        <th className="px-6 py-3 text-left text-xs font-medium text-secondary uppercase tracking-wider">
                                             Deductions
                                         </th>
-                                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                        <th className="px-6 py-3 text-left text-xs font-medium text-secondary uppercase tracking-wider">
                                             Total Pay
                                         </th>
-                                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                        <th className="px-6 py-3 text-left text-xs font-medium text-secondary uppercase tracking-wider">
                                             Pay Date
                                         </th>
-                                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                        <th className="px-6 py-3 text-left text-xs font-medium text-secondary uppercase tracking-wider">
                                             Actions
                                         </th>
                                     </tr>
                                 </thead>
-                                <tbody className="bg-white divide-y divide-gray-200">
+                                <tbody className="bg-card divide-y divide-gray-200">
                                     {filteredPayrolls.map((payroll) => {
                                         return (
                                             <tr 
                                                 key={payroll._id} 
-                                                className="hover:bg-gray-50 cursor-pointer transition-colors"
+                                                className="hover:bg-[rgba(255,255,255,0.03)] cursor-pointer transition-colors"
                                                 onClick={() => openViewModal(payroll)}
                                             >
                                                 <td className="px-6 py-4 whitespace-nowrap">
@@ -2048,35 +2048,35 @@ const PayrollManagement = () => {
                                                             {payroll.userId?.name?.charAt(0) || '?'}
                                                         </div>
                                                         <div className="ml-3">
-                                                            <div className="text-sm font-medium text-gray-900">
+                                                            <div className="text-sm font-medium text-primary">
                                                                 {payroll.userId?.name || 'Unknown'}
                                                             </div>
                                                         </div>
                                                     </div>
                                                 </td>
                                                 <td className="px-6 py-4 whitespace-nowrap">
-                                                    <span className="px-3 py-1 text-xs font-medium rounded-full bg-gray-100 text-gray-800">
+                                                    <span className="px-3 py-1 text-xs font-medium rounded-full bg-gray-100 text-primary">
                                                         {payroll.userId?.role || 'Unknown'}
                                                     </span>
                                                 </td>
                                                 {/* Base Salary */}
-                                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                                                <td className="px-6 py-4 whitespace-nowrap text-sm text-primary">
                                                     <span>${payroll.baseSalary.toLocaleString()}</span>
                                                 </td>
 
                                                 {/* Bonus */}
-                                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                                                <td className="px-6 py-4 whitespace-nowrap text-sm text-primary">
                                                     <span className="text-green-600">+${payroll.bonus.toLocaleString()}</span>
                                                 </td>
 
                                                 {/* Deductions */}
-                                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                                                    <span className="text-red-600">-${payroll.deductions.toLocaleString()}</span>
+                                                <td className="px-6 py-4 whitespace-nowrap text-sm text-primary">
+                                                    <span className="text-[#A855F7]">-${payroll.deductions.toLocaleString()}</span>
                                                 </td>
-                                                <td className="px-6 py-4 whitespace-nowrap text-sm font-semibold text-gray-900">
+                                                <td className="px-6 py-4 whitespace-nowrap text-sm font-semibold text-primary">
                                                     ${payroll.totalSalary.toLocaleString()}
                                                 </td>
-                                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                                                <td className="px-6 py-4 whitespace-nowrap text-sm text-primary">
                                                     {new Date(payroll.payDate).toLocaleDateString()}
                                                 </td>
                                                 <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium" onClick={(e) => e.stopPropagation()}>
@@ -2098,14 +2098,14 @@ const PayrollManagement = () => {
                                                         </button>
                                                         <button
                                                             onClick={() => openEditModal(payroll)}
-                                                            className="text-blue-600 hover:text-blue-900 p-2 hover:bg-blue-50 rounded-lg transition-colors"
+                                                            className="text-[#00D1FF] hover:text-blue-900 p-2 hover:bg-blue-50 rounded-lg transition-colors"
                                                             title="Edit Payroll"
                                                         >
                                                             <Edit2 size={18} />
                                                         </button>
                                                         <button
                                                             onClick={() => openDeleteModal(payroll)}
-                                                            className="text-red-600 hover:text-red-900 p-2 hover:bg-red-50 rounded-lg transition-colors"
+                                                            className="text-[#A855F7] hover:text-red-900 p-2 hover:bg-red-50 rounded-lg transition-colors"
                                                             title="Delete Payroll"
                                                         >
                                                             <Trash2 size={18} />
@@ -2124,17 +2124,17 @@ const PayrollManagement = () => {
 
                 {(showCreateModal || showEditModal) && (
                     <div className="fixed inset-0 bg-gray-900/50 backdrop-blur-sm z-[10001] flex items-center justify-center overflow-auto p-4">
-                        <div className="bg-white rounded-xl shadow-xl max-w-5xl w-full max-h-[90vh] overflow-y-auto">
-                            <div className="p-6 border-b border-gray-200 sticky top-0 bg-white z-10 flex justify-between items-center">
+                        <div className="bg-card rounded-xl shadow-xl max-w-5xl w-full max-h-[90vh] overflow-y-auto">
+                            <div className="p-6 border-b border-theme sticky top-0 bg-card z-10 flex justify-between items-center">
                                 <div className="flex items-center gap-3">
                                     <div className={`w-10 h-10 rounded-lg flex items-center justify-center ${showCreateModal ? 'bg-blue-100' : 'bg-green-100'}`}>
-                                        {showCreateModal ? <Plus className="text-blue-600" size={20} /> : <Edit2 className="text-green-600" size={20} />}
+                                        {showCreateModal ? <Plus className="text-[#00D1FF]" size={20} /> : <Edit2 className="text-green-600" size={20} />}
                                     </div>
                                     <div>
-                                        <h4 className="text-xl font-bold text-gray-900">
+                                        <h4 className="text-xl font-bold text-primary">
                                             {showCreateModal ? 'Create New Payroll' : 'Edit Payroll'}
                                         </h4>
-                                        <p className="text-sm text-gray-500">
+                                        <p className="text-sm text-secondary">
                                             {showCreateModal ? 'Add a new payroll record' : 'Update payroll information'}
                                         </p>
                                     </div>
@@ -2146,7 +2146,7 @@ const PayrollManagement = () => {
                                         resetForm();
                                         setSelectedPayroll(null);
                                     }}
-                                    className="text-gray-400 hover:text-gray-600 p-2 hover:bg-gray-100 rounded-lg transition-colors"
+                                    className="text-secondary hover:text-secondary p-2 hover:bg-gray-100 rounded-lg transition-colors"
                                 >
                                     <X size={24} />
                                 </button>
@@ -2154,7 +2154,7 @@ const PayrollManagement = () => {
 
                             <div className="p-6 space-y-5">
                                 <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                                    <label className="block text-sm font-medium text-primary mb-2">
                                         Employee <span className="text-red-500">*</span>
                                     </label>
                                     <select
@@ -2172,14 +2172,14 @@ const PayrollManagement = () => {
                                     </select>
                                 </div>
 
-                                <div className="bg-gray-50 p-4 rounded-lg border border-gray-200">
-                                    <h5 className="text-sm font-medium text-gray-700 mb-3 flex items-center gap-2">
+                                <div className="bg-card p-4 rounded-lg border border-theme">
+                                    <h5 className="text-sm font-medium text-primary mb-3 flex items-center gap-2">
                                         <Calendar size={16} />
                                         Pay Period
                                     </h5>
                                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                         <div>
-                                            <label className="block text-sm font-medium text-gray-700 mb-2">
+                                            <label className="block text-sm font-medium text-primary mb-2">
                                                 Start Date <span className="text-red-500">*</span>
                                             </label>
                                             <input
@@ -2191,7 +2191,7 @@ const PayrollManagement = () => {
                                             />
                                         </div>
                                         <div>
-                                            <label className="block text-sm font-medium text-gray-700 mb-2">
+                                            <label className="block text-sm font-medium text-primary mb-2">
                                                 End Date <span className="text-red-500">*</span>
                                             </label>
                                             <input
@@ -2209,8 +2209,8 @@ const PayrollManagement = () => {
                                 {formData.userId && formData.startDate && formData.endDate && (
                                     <div className="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-xl p-6 border border-blue-200">
                                         <div className="flex items-center gap-2 mb-4">
-                                            <CalendarCheck className="text-blue-600" size={20} />
-                                            <h5 className="font-semibold text-gray-800">Attendance Summary</h5>
+                                            <CalendarCheck className="text-[#00D1FF]" size={20} />
+                                            <h5 className="font-semibold text-primary">Attendance Summary</h5>
                                             {loadingAttendance && (
                                                 <div className="ml-auto animate-spin rounded-full h-5 w-5 border-b-2 border-blue-600"></div>
                                             )}
@@ -2219,33 +2219,33 @@ const PayrollManagement = () => {
                                         {attendanceSummary ? (
                                             <div className="space-y-4">
                                                 <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-                                                    <div className="bg-white p-3 rounded-lg border border-green-200">
-                                                        <p className="text-xs text-gray-600 mb-1">Present Days</p>
+                                                    <div className="bg-card p-3 rounded-lg border border-green-200">
+                                                        <p className="text-xs text-secondary mb-1">Present Days</p>
                                                         <p className="text-xl font-bold text-green-600">{attendanceSummary.presentDays}</p>
                                                     </div>
-                                                    <div className="bg-white p-3 rounded-lg border border-red-200">
-                                                        <p className="text-xs text-gray-600 mb-1">Absent Days</p>
-                                                        <p className="text-xl font-bold text-red-600">{attendanceSummary.absentDays}</p>
+                                                    <div className="bg-card p-3 rounded-lg border border-red-200">
+                                                        <p className="text-xs text-secondary mb-1">Absent Days</p>
+                                                        <p className="text-xl font-bold text-[#A855F7]">{attendanceSummary.absentDays}</p>
                                                     </div>
-                                                    <div className="bg-white p-3 rounded-lg border border-purple-200">
-                                                        <p className="text-xs text-gray-600 mb-1">Leave Days</p>
+                                                    <div className="bg-card p-3 rounded-lg border border-purple-200">
+                                                        <p className="text-xs text-secondary mb-1">Leave Days</p>
                                                         <p className="text-xl font-bold text-purple-600">{attendanceSummary.leaveDays}</p>
                                                     </div>
                                                 </div>
 
-                                                <div className="bg-white p-4 rounded-lg border border-gray-200">
+                                                <div className="bg-card p-4 rounded-lg border border-theme">
                                                     <div className="flex items-center gap-2 mb-3">
-                                                        <Clock className="text-blue-600" size={18} />
-                                                        <h6 className="font-semibold text-gray-800">Hours Breakdown</h6>
+                                                        <Clock className="text-[#00D1FF]" size={18} />
+                                                        <h6 className="font-semibold text-primary">Hours Breakdown</h6>
                                                     </div>
                                                     <div className="grid grid-cols-2 gap-4">
                                                         <div>
-                                                            <p className="text-xs text-gray-600 mb-1">Total Hours</p>
-                                                            <p className="text-lg font-bold text-gray-900">{attendanceSummary.totalHours.toFixed(2)}</p>
+                                                            <p className="text-xs text-secondary mb-1">Total Hours</p>
+                                                            <p className="text-lg font-bold text-primary">{attendanceSummary.totalHours.toFixed(2)}</p>
                                                         </div>
                                                         <div>
-                                                            <p className="text-xs text-gray-600 mb-1">Regular Hours</p>
-                                                            <p className="text-lg font-bold text-blue-600">{attendanceSummary.regularHours.toFixed(2)}</p>
+                                                            <p className="text-xs text-secondary mb-1">Regular Hours</p>
+                                                            <p className="text-lg font-bold text-[#00D1FF]">{attendanceSummary.regularHours.toFixed(2)}</p>
                                                         </div>
                                                     </div>
                                                 </div>
@@ -2260,16 +2260,16 @@ const PayrollManagement = () => {
 
                                                         return (
                                                             <div className="bg-gradient-to-r from-green-50 to-emerald-50 p-4 rounded-lg border border-green-300">
-                                                                <p className="text-sm font-medium text-gray-700 mb-2">
+                                                                <p className="text-sm font-medium text-primary mb-2">
                                                                     💡 Suggested Salary (based on attendance):
                                                                 </p>
                                                                 <div className="space-y-1 text-sm">
                                                                     <div className="flex justify-between">
-                                                                        <span className="text-gray-600">Total Hours ({attendanceSummary.regularHours.toFixed(2)}h × ${hourlyRate.toFixed(2)}):</span>
+                                                                        <span className="text-secondary">Total Hours ({attendanceSummary.regularHours.toFixed(2)}h × ${hourlyRate.toFixed(2)}):</span>
                                                                         <span className="font-medium">${suggestedSalary.toFixed(2)}</span>
                                                                     </div>
                                                                     <div className="flex justify-between pt-2 border-t border-green-200">
-                                                                        <span className="font-bold text-gray-900">Total Suggested:</span>
+                                                                        <span className="font-bold text-primary">Total Suggested:</span>
                                                                         <span className="font-bold text-lg text-green-700">${suggestedSalary.toFixed(2)}</span>
                                                                     </div>
                                                                 </div>
@@ -2299,20 +2299,20 @@ const PayrollManagement = () => {
 
                                                         return (
                                                             <div className="bg-gradient-to-r from-green-50 to-emerald-50 p-4 rounded-lg border border-green-300">
-                                                                <p className="text-sm font-medium text-gray-700 mb-2">
+                                                                <p className="text-sm font-medium text-primary mb-2">
                                                                     💡 Suggested Salary (based on present days):
                                                                 </p>
                                                                 <div className="space-y-1 text-sm">
                                                                     <div className="flex justify-between">
-                                                                        <span className="text-gray-600">Present Days:</span>
+                                                                        <span className="text-secondary">Present Days:</span>
                                                                         <span className="font-medium">{attendanceSummary.presentDays}</span>
                                                                     </div>
                                                                     <div className="flex justify-between">
-                                                                        <span className="text-gray-600">Daily Rate (${baseSalary.toFixed(2)} ÷ {workingDaysInMonth} days):</span>
+                                                                        <span className="text-secondary">Daily Rate (${baseSalary.toFixed(2)} ÷ {workingDaysInMonth} days):</span>
                                                                         <span className="font-medium">${dailyRate.toFixed(2)}/day</span>
                                                                     </div>
                                                                     <div className="flex justify-between pt-2 border-t border-green-200">
-                                                                        <span className="font-bold text-gray-900">Suggested Salary:</span>
+                                                                        <span className="font-bold text-primary">Suggested Salary:</span>
                                                                         <span className="font-bold text-lg text-green-700">${suggestedSalary.toFixed(2)}</span>
                                                                     </div>
                                                                 </div>
@@ -2336,18 +2336,18 @@ const PayrollManagement = () => {
                                                 })()}
                                             </div>
                                         ) : !loadingAttendance ? (
-                                            <p className="text-sm text-gray-600">No attendance records found for the selected date range.</p>
+                                            <p className="text-sm text-secondary">No attendance records found for the selected date range.</p>
                                         ) : null}
                                     </div>
                                 )}
 
                                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                                     <div>
-                                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                                        <label className="block text-sm font-medium text-primary mb-2">
                                             Base Salary ($) <span className="text-red-500">*</span>
                                         </label>
                                         <div className="relative">
-                                            <DollarSign className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={18} />
+                                            <DollarSign className="absolute left-3 top-1/2 transform -translate-y-1/2 text-secondary" size={18} />
                                             <input
                                                 type="number"
                                                 name="baseSalary"
@@ -2362,11 +2362,11 @@ const PayrollManagement = () => {
                                     </div>
 
                                     <div>
-                                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                                        <label className="block text-sm font-medium text-primary mb-2">
                                             Bonus ($)
                                         </label>
                                         <div className="relative">
-                                            <DollarSign className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={18} />
+                                            <DollarSign className="absolute left-3 top-1/2 transform -translate-y-1/2 text-secondary" size={18} />
                                             <input
                                                 type="number"
                                                 name="bonus"
@@ -2384,16 +2384,16 @@ const PayrollManagement = () => {
 
                                 {/* Employee Additions and Deductions */}
                                 {formData.userId && (
-                                    <div className="bg-white border border-gray-200 rounded-lg overflow-hidden">
-                                        <div className="bg-gray-50 px-4 py-3 border-b border-gray-200">
-                                            <h5 className="text-sm font-medium text-gray-700">Employee Additions & Deductions</h5>
-                                            <p className="text-xs text-gray-500 mt-1">These will be automatically included in the payroll calculation</p>
+                                    <div className="bg-card border border-theme rounded-lg overflow-hidden">
+                                        <div className="bg-card px-4 py-3 border-b border-theme">
+                                            <h5 className="text-sm font-medium text-primary">Employee Additions & Deductions</h5>
+                                            <p className="text-xs text-secondary mt-1">These will be automatically included in the payroll calculation</p>
                                         </div>
                                         <div className="p-4 space-y-4">
                                             {loadingAdditionsDeductions ? (
                                                 <div className="text-center py-4">
                                                     <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-600 mx-auto"></div>
-                                                    <p className="text-xs text-gray-500 mt-2">Loading additions and deductions...</p>
+                                                    <p className="text-xs text-secondary mt-2">Loading additions and deductions...</p>
                                                 </div>
                                             ) : (
                                                 <>
@@ -2436,8 +2436,8 @@ const PayrollManagement = () => {
                                                                 <div key={addition._id} className="bg-green-50 p-3 rounded-lg border border-green-200">
                                                                     <div className="flex justify-between items-start gap-4">
                                                                         <div className="flex-1">
-                                                                            <p className="text-sm font-medium text-gray-900">{addition.name || addition.description || 'Addition'}</p>
-                                                                            <p className="text-xs text-gray-600 mt-1">
+                                                                            <p className="text-sm font-medium text-primary">{addition.name || addition.description || 'Addition'}</p>
+                                                                            <p className="text-xs text-secondary mt-1">
                                                                                 {addition.recurrence} • Base: ${addition.amount?.toFixed(2) || '0.00'}
                                                                                 {addition.startDate && (
                                                                                     <span> • From {new Date(addition.startDate).toLocaleDateString()}</span>
@@ -2448,7 +2448,7 @@ const PayrollManagement = () => {
                                                                             </p>
                                                                         </div>
                                                                         <div className="flex items-center gap-2">
-                                                                            <span className="text-xs text-gray-500">Amount:</span>
+                                                                            <span className="text-xs text-secondary">Amount:</span>
                                                                             <input
                                                                                 type="number"
                                                                                 value={calculatedAmount}
@@ -2461,7 +2461,7 @@ const PayrollManagement = () => {
                                                                                 }}
                                                                                 step="0.01"
                                                                                 min="0"
-                                                                                className="w-24 px-2 py-1 text-sm border border-green-300 rounded focus:outline-none focus:ring-1 focus:ring-green-500 bg-white"
+                                                                                className="w-24 px-2 py-1 text-sm border border-green-300 rounded focus:outline-none focus:ring-1 focus:ring-green-500 bg-card"
                                                                             />
                                                                             <span className="text-sm font-semibold text-green-700">+${calculatedAmount.toFixed(2)}</span>
                                                                         </div>
@@ -2508,11 +2508,11 @@ const PayrollManagement = () => {
                                                                 })();
 
                                                             return (
-                                                                <div key={deduction._id} className="bg-red-50 p-3 rounded-lg border border-red-200">
+                                                                <div key={deduction._id} className="bg-card p-3 rounded-lg border border-red-200">
                                                                     <div className="flex justify-between items-start gap-4">
                                                                         <div className="flex-1">
-                                                                            <p className="text-sm font-medium text-gray-900">{deduction.name || deduction.description || 'Deduction'}</p>
-                                                                            <p className="text-xs text-gray-600 mt-1">
+                                                                            <p className="text-sm font-medium text-primary">{deduction.name || deduction.description || 'Deduction'}</p>
+                                                                            <p className="text-xs text-secondary mt-1">
                                                                                 {deduction.recurrence} • Base: ${deduction.amount?.toFixed(2) || '0.00'}
                                                                                 {deduction.startDate && (
                                                                                     <span> • From {new Date(deduction.startDate).toLocaleDateString()}</span>
@@ -2523,7 +2523,7 @@ const PayrollManagement = () => {
                                                                             </p>
                                                                         </div>
                                                                         <div className="flex items-center gap-2">
-                                                                            <span className="text-xs text-gray-500">Amount:</span>
+                                                                            <span className="text-xs text-secondary">Amount:</span>
                                                                             <input
                                                                                 type="number"
                                                                                 value={calculatedAmount}
@@ -2536,7 +2536,7 @@ const PayrollManagement = () => {
                                                                                 }}
                                                                                 step="0.01"
                                                                                 min="0"
-                                                                                className="w-24 px-2 py-1 text-sm border border-red-300 rounded focus:outline-none focus:ring-1 focus:ring-red-500 bg-white"
+                                                                                className="w-24 px-2 py-1 text-sm border border-red-300 rounded focus:outline-none focus:ring-1 focus:ring-red-500 bg-card"
                                                                             />
                                                                             <span className="text-sm font-semibold text-red-700">-${calculatedAmount.toFixed(2)}</span>
                                                                         </div>
@@ -2548,7 +2548,7 @@ const PayrollManagement = () => {
                                                 </div>
                                             )}
                                             {employeeAdditions.length === 0 && employeeDeductions.length === 0 && !loadingAdditionsDeductions && (
-                                                <div className="text-center py-4 text-sm text-gray-500">
+                                                <div className="text-center py-4 text-sm text-secondary">
                                                     No additions or deductions found for this employee.
                                                 </div>
                                             )}
@@ -2560,20 +2560,20 @@ const PayrollManagement = () => {
 
                                 {/* Tax Section */}
                                 <div className="bg-gradient-to-r from-purple-50 to-indigo-50 p-6 rounded-lg border border-purple-200">
-                                    <h5 className="text-lg font-semibold text-gray-800 mb-4 flex items-center gap-2">
+                                    <h5 className="text-lg font-semibold text-primary mb-4 flex items-center gap-2">
                                         <DollarSign size={20} className="text-purple-600" />
                                         Tax Information
                                     </h5>
 
                                     <div className="mb-4">
-                                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                                        <label className="block text-sm font-medium text-primary mb-2">
                                             Country <span className="text-red-500">*</span>
                                         </label>
                                         <select
                                             name="country"
                                             value={formData.country}
                                             onChange={handleInputChange}
-                                            className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all bg-white"
+                                            className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all bg-card"
                                         >
                                             <option value="USA">United States</option>
                                             <option value="Canada">Canada</option>
@@ -2582,14 +2582,14 @@ const PayrollManagement = () => {
 
                                     {formData.country === 'Canada' && (
                                         <div className="space-y-4">
-                                            <h6 className="text-sm font-semibold text-gray-700 mb-3">Canada Taxes</h6>
+                                            <h6 className="text-sm font-semibold text-primary mb-3">Canada Taxes</h6>
                                             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                                 <div>
-                                                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                                                    <label className="block text-sm font-medium text-primary mb-2">
                                                         Federal Income Tax ($)
                                                     </label>
                                                     <div className="relative">
-                                                        <DollarSign className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={16} />
+                                                        <DollarSign className="absolute left-3 top-1/2 transform -translate-y-1/2 text-secondary" size={16} />
                                                         <input
                                                             type="number"
                                                             name="federalIncomeTaxCA"
@@ -2598,16 +2598,16 @@ const PayrollManagement = () => {
                                                             min="0"
                                                             step="0.01"
                                                             placeholder="0.00"
-                                                            className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 bg-white"
+                                                            className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 bg-card"
                                                         />
                                                     </div>
                                                 </div>
                                                 <div>
-                                                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                                                    <label className="block text-sm font-medium text-primary mb-2">
                                                         Provincial Income Tax ($)
                                                     </label>
                                                     <div className="relative">
-                                                        <DollarSign className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={16} />
+                                                        <DollarSign className="absolute left-3 top-1/2 transform -translate-y-1/2 text-secondary" size={16} />
                                                         <input
                                                             type="number"
                                                             name="provincialIncomeTaxCA"
@@ -2616,16 +2616,16 @@ const PayrollManagement = () => {
                                                             min="0"
                                                             step="0.01"
                                                             placeholder="0.00"
-                                                            className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 bg-white"
+                                                            className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 bg-card"
                                                         />
                                                     </div>
                                                 </div>
                                                 <div>
-                                                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                                                    <label className="block text-sm font-medium text-primary mb-2">
                                                         Canada Pension Plan (CPP) ($)
                                                     </label>
                                                     <div className="relative">
-                                                        <DollarSign className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={16} />
+                                                        <DollarSign className="absolute left-3 top-1/2 transform -translate-y-1/2 text-secondary" size={16} />
                                                         <input
                                                             type="number"
                                                             name="cpp"
@@ -2634,16 +2634,16 @@ const PayrollManagement = () => {
                                                             min="0"
                                                             step="0.01"
                                                             placeholder="0.00"
-                                                            className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 bg-white"
+                                                            className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 bg-card"
                                                         />
                                                     </div>
                                                 </div>
                                                 <div>
-                                                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                                                    <label className="block text-sm font-medium text-primary mb-2">
                                                         Employment Insurance (EI) ($)
                                                     </label>
                                                     <div className="relative">
-                                                        <DollarSign className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={16} />
+                                                        <DollarSign className="absolute left-3 top-1/2 transform -translate-y-1/2 text-secondary" size={16} />
                                                         <input
                                                             type="number"
                                                             name="ei"
@@ -2652,16 +2652,16 @@ const PayrollManagement = () => {
                                                             min="0"
                                                             step="0.01"
                                                             placeholder="0.00"
-                                                            className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 bg-white"
+                                                            className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 bg-card"
                                                         />
                                                     </div>
                                                 </div>
                                                 <div>
-                                                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                                                    <label className="block text-sm font-medium text-primary mb-2">
                                                         Provincial Health Tax ($)
                                                     </label>
                                                     <div className="relative">
-                                                        <DollarSign className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={16} />
+                                                        <DollarSign className="absolute left-3 top-1/2 transform -translate-y-1/2 text-secondary" size={16} />
                                                         <input
                                                             type="number"
                                                             name="provincialHealthTaxCA"
@@ -2670,7 +2670,7 @@ const PayrollManagement = () => {
                                                             min="0"
                                                             step="0.01"
                                                             placeholder="0.00"
-                                                            className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 bg-white"
+                                                            className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 bg-card"
                                                         />
                                                     </div>
                                                 </div>
@@ -2680,14 +2680,14 @@ const PayrollManagement = () => {
 
                                     {formData.country === 'USA' && (
                                         <div className="space-y-4">
-                                            <h6 className="text-sm font-semibold text-gray-700 mb-3">United States Taxes</h6>
+                                            <h6 className="text-sm font-semibold text-primary mb-3">United States Taxes</h6>
                                             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                                 <div>
-                                                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                                                    <label className="block text-sm font-medium text-primary mb-2">
                                                         Federal Income Tax ($)
                                                     </label>
                                                     <div className="relative">
-                                                        <DollarSign className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={16} />
+                                                        <DollarSign className="absolute left-3 top-1/2 transform -translate-y-1/2 text-secondary" size={16} />
                                                         <input
                                                             type="number"
                                                             name="federalIncomeTaxUS"
@@ -2696,16 +2696,16 @@ const PayrollManagement = () => {
                                                             min="0"
                                                             step="0.01"
                                                             placeholder="0.00"
-                                                            className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 bg-white"
+                                                            className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 bg-card"
                                                         />
                                                     </div>
                                                 </div>
                                                 <div>
-                                                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                                                    <label className="block text-sm font-medium text-primary mb-2">
                                                         State Income Tax ($)
                                                     </label>
                                                     <div className="relative">
-                                                        <DollarSign className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={16} />
+                                                        <DollarSign className="absolute left-3 top-1/2 transform -translate-y-1/2 text-secondary" size={16} />
                                                         <input
                                                             type="number"
                                                             name="stateIncomeTaxUS"
@@ -2714,16 +2714,16 @@ const PayrollManagement = () => {
                                                             min="0"
                                                             step="0.01"
                                                             placeholder="0.00"
-                                                            className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 bg-white"
+                                                            className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 bg-card"
                                                         />
                                                     </div>
                                                 </div>
                                                 <div>
-                                                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                                                    <label className="block text-sm font-medium text-primary mb-2">
                                                         Social Security Tax (FICA) ($)
                                                     </label>
                                                     <div className="relative">
-                                                        <DollarSign className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={16} />
+                                                        <DollarSign className="absolute left-3 top-1/2 transform -translate-y-1/2 text-secondary" size={16} />
                                                         <input
                                                             type="number"
                                                             name="socialSecurityTax"
@@ -2732,16 +2732,16 @@ const PayrollManagement = () => {
                                                             min="0"
                                                             step="0.01"
                                                             placeholder="0.00"
-                                                            className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 bg-white"
+                                                            className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 bg-card"
                                                         />
                                                     </div>
                                                 </div>
                                                 <div>
-                                                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                                                    <label className="block text-sm font-medium text-primary mb-2">
                                                         Medicare Tax ($)
                                                     </label>
                                                     <div className="relative">
-                                                        <DollarSign className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={16} />
+                                                        <DollarSign className="absolute left-3 top-1/2 transform -translate-y-1/2 text-secondary" size={16} />
                                                         <input
                                                             type="number"
                                                             name="medicareTax"
@@ -2750,16 +2750,16 @@ const PayrollManagement = () => {
                                                             min="0"
                                                             step="0.01"
                                                             placeholder="0.00"
-                                                            className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 bg-white"
+                                                            className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 bg-card"
                                                         />
                                                     </div>
                                                 </div>
                                                 <div>
-                                                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                                                    <label className="block text-sm font-medium text-primary mb-2">
                                                         State Disability Insurance (SDI) ($)
                                                     </label>
                                                     <div className="relative">
-                                                        <DollarSign className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={16} />
+                                                        <DollarSign className="absolute left-3 top-1/2 transform -translate-y-1/2 text-secondary" size={16} />
                                                         <input
                                                             type="number"
                                                             name="stateDisabilityInsurance"
@@ -2768,16 +2768,16 @@ const PayrollManagement = () => {
                                                             min="0"
                                                             step="0.01"
                                                             placeholder="0.00"
-                                                            className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 bg-white"
+                                                            className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 bg-card"
                                                         />
                                                     </div>
                                                 </div>
                                                 <div>
-                                                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                                                    <label className="block text-sm font-medium text-primary mb-2">
                                                         Local Tax ($)
                                                     </label>
                                                     <div className="relative">
-                                                        <DollarSign className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={16} />
+                                                        <DollarSign className="absolute left-3 top-1/2 transform -translate-y-1/2 text-secondary" size={16} />
                                                         <input
                                                             type="number"
                                                             name="localTax"
@@ -2786,7 +2786,7 @@ const PayrollManagement = () => {
                                                             min="0"
                                                             step="0.01"
                                                             placeholder="0.00"
-                                                            className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 bg-white"
+                                                            className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 bg-card"
                                                         />
                                                     </div>
                                                 </div>
@@ -2796,8 +2796,8 @@ const PayrollManagement = () => {
 
                                     {/* Tax Summary */}
                                     {formData.baseSalary && (
-                                        <div className="mt-4 p-4 bg-white rounded-lg border border-purple-300">
-                                            <h6 className="text-sm font-semibold text-gray-700 mb-2">Total Taxes</h6>
+                                        <div className="mt-4 p-4 bg-card rounded-lg border border-purple-300">
+                                            <h6 className="text-sm font-semibold text-primary mb-2">Total Taxes</h6>
                                             <div className="text-2xl font-bold text-purple-600">
                                                 ${(() => {
                                                     let totalTax = 0;
@@ -2827,7 +2827,7 @@ const PayrollManagement = () => {
                                
 
                                 <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                                    <label className="block text-sm font-medium text-primary mb-2">
                                         Payment Date <span className="text-red-500">*</span>
                                     </label>
                                     <input
@@ -2835,7 +2835,7 @@ const PayrollManagement = () => {
                                         name="payDate"
                                         value={formData.payDate}
                                         onChange={handleInputChange}
-                                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white"
+                                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-card"
                                     />
                                 </div>
 
@@ -2935,7 +2935,7 @@ const PayrollManagement = () => {
                                     );
                                 })()}
 
-                                <div className="flex justify-end gap-3 pt-4 border-t border-gray-200">
+                                <div className="flex justify-end gap-3 pt-4 border-t border-theme">
                                     <button
                                         onClick={() => {
                                             setShowCreateModal(false);
@@ -2943,7 +2943,7 @@ const PayrollManagement = () => {
                                             resetForm();
                                             setSelectedPayroll(null);
                                         }}
-                                        className="px-4 py-2 text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors font-medium flex items-center gap-2 disabled:opacity-50"
+                                        className="px-4 py-2 text-primary bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors font-medium flex items-center gap-2 disabled:opacity-50"
                                         disabled={loading}
                                     >
                                         <X size={16} />
@@ -2977,20 +2977,20 @@ const PayrollManagement = () => {
 
                 {showViewModal && selectedPayroll && (
                     <div className="fixed inset-0 bg-gray-900/50 backdrop-blur-sm z-[100] flex items-center justify-center overflow-auto p-4">
-                        <div className="bg-white rounded-xl shadow-xl max-w-5xl w-full max-h-[90vh] overflow-y-auto">
-                            <div className="p-6 border-b border-gray-200 sticky top-0 bg-white z-10 flex justify-between items-center">
+                        <div className="bg-card rounded-xl shadow-xl max-w-5xl w-full max-h-[90vh] overflow-y-auto">
+                            <div className="p-6 border-b border-theme sticky top-0 bg-card z-10 flex justify-between items-center">
                                 <div className="flex items-center gap-3">
                                     <div className="w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center">
                                         <Eye className="text-green-600" size={20} />
                                     </div>
                                     <div>
-                                        <h4 className="text-xl font-bold text-gray-900">Payroll Details</h4>
-                                        <p className="text-sm text-gray-500">{selectedPayroll.userId?.name || 'Unknown'}</p>
+                                        <h4 className="text-xl font-bold text-primary">Payroll Details</h4>
+                                        <p className="text-sm text-secondary">{selectedPayroll.userId?.name || 'Unknown'}</p>
                                     </div>
                                 </div>
                                 <button
                                     onClick={() => setShowViewModal(false)}
-                                    className="text-gray-400 hover:text-gray-600 p-2 hover:bg-gray-100 rounded-lg transition-colors"
+                                    className="text-secondary hover:text-secondary p-2 hover:bg-gray-100 rounded-lg transition-colors"
                                 >
                                     <X size={24} />
                                 </button>
@@ -2998,21 +2998,21 @@ const PayrollManagement = () => {
 
                             <div className="p-6 space-y-6">
                                 {/* Employee Info */}
-                                <div className="bg-gray-50 p-6 rounded-xl border border-gray-200">
-                                    <h5 className="text-lg font-bold text-gray-900 mb-4 flex items-center gap-2">
-                                        <Users size={20} className="text-blue-600" />
+                                <div className="bg-card p-6 rounded-xl border border-theme">
+                                    <h5 className="text-lg font-bold text-primary mb-4 flex items-center gap-2">
+                                        <Users size={20} className="text-[#00D1FF]" />
                                         Employee Information
                                     </h5>
                                     <div className="grid grid-cols-2 gap-4">
                                         <div>
-                                            <label className="text-sm font-semibold text-gray-600">Name</label>
-                                            <div className="mt-1 px-4 py-3 bg-white rounded-lg text-gray-900">
+                                            <label className="text-sm font-semibold text-secondary">Name</label>
+                                            <div className="mt-1 px-4 py-3 bg-card rounded-lg text-primary">
                                                 {selectedPayroll.userId?.name || 'Unknown'}
                                             </div>
                                         </div>
                                         <div>
-                                            <label className="text-sm font-semibold text-gray-600">Role</label>
-                                            <div className="mt-1 px-4 py-3 bg-white rounded-lg">
+                                            <label className="text-sm font-semibold text-secondary">Role</label>
+                                            <div className="mt-1 px-4 py-3 bg-card rounded-lg">
                                                 <span className={`px-3 py-1 text-sm font-medium rounded-full ${selectedPayroll.userId.role.toLowerCase() === 'driver'
                                                     ? 'bg-green-100 text-green-800'
                                                     : 'bg-blue-100 text-blue-800'
@@ -3026,32 +3026,32 @@ const PayrollManagement = () => {
 
 
                                 {/* Payroll Summary */}
-                                <div className="bg-blue-50 p-6 rounded-xl border border-blue-200">
-                                    <h5 className="text-lg font-bold text-gray-900 mb-4 flex items-center gap-2">
-                                        <DollarSign size={20} className="text-blue-600" />
+                                <div className="bg-card p-6 rounded-xl border border-blue-200">
+                                    <h5 className="text-lg font-bold text-primary mb-4 flex items-center gap-2">
+                                        <DollarSign size={20} className="text-[#00D1FF]" />
                                         Payroll Summary
                                     </h5>
                                     <div className="grid grid-cols-2 gap-4">
                                         <div>
-                                            <label className="text-sm font-semibold text-gray-600">Base Salary / Earnings</label>
-                                            <div className="mt-1 px-4 py-3 bg-white rounded-lg text-gray-900 font-bold">
+                                            <label className="text-sm font-semibold text-secondary">Base Salary / Earnings</label>
+                                            <div className="mt-1 px-4 py-3 bg-card rounded-lg text-primary font-bold">
                                                 ${selectedPayroll.baseSalary.toLocaleString()}
                                             </div>
                                         </div>
                                         <div>
-                                            <label className="text-sm font-semibold text-gray-600">Bonus</label>
-                                            <div className="mt-1 px-4 py-3 bg-white rounded-lg text-green-600 font-bold">
+                                            <label className="text-sm font-semibold text-secondary">Bonus</label>
+                                            <div className="mt-1 px-4 py-3 bg-card rounded-lg text-green-600 font-bold">
                                                 +${selectedPayroll.bonus.toLocaleString()}
                                             </div>
                                         </div>
                                         <div>
-                                            <label className="text-sm font-semibold text-gray-600">Deductions</label>
-                                            <div className="mt-1 px-4 py-3 bg-white rounded-lg text-red-600 font-bold">
+                                            <label className="text-sm font-semibold text-secondary">Deductions</label>
+                                            <div className="mt-1 px-4 py-3 bg-card rounded-lg text-[#A855F7] font-bold">
                                                 -${selectedPayroll.deductions.toLocaleString()}
                                             </div>
                                         </div>
                                         <div>
-                                            <label className="text-sm font-semibold text-gray-600">Total Pay</label>
+                                            <label className="text-sm font-semibold text-secondary">Total Pay</label>
                                             <div style={{
                                                 background: 'linear-gradient(90deg, #42aeec 0%, #1db5f5 40%, #0ea3d8 100%)'
 
@@ -3064,27 +3064,27 @@ const PayrollManagement = () => {
                                 </div>
 
                                 {/* Pay Period */}
-                                <div className="bg-gray-50 p-6 rounded-xl border border-gray-200">
-                                    <h5 className="text-lg font-bold text-gray-900 mb-4 flex items-center gap-2">
-                                        <Calendar size={20} className="text-orange-600" />
+                                <div className="bg-card p-6 rounded-xl border border-theme">
+                                    <h5 className="text-lg font-bold text-primary mb-4 flex items-center gap-2">
+                                        <Calendar size={20} className="text-[#F59E0B]" />
                                         Pay Period
                                     </h5>
                                     <div className="grid grid-cols-3 gap-4">
                                         <div>
-                                            <label className="text-sm font-semibold text-gray-600">Start Date</label>
-                                            <div className="mt-1 px-4 py-3 bg-white rounded-lg text-gray-900">
+                                            <label className="text-sm font-semibold text-secondary">Start Date</label>
+                                            <div className="mt-1 px-4 py-3 bg-card rounded-lg text-primary">
                                                 {new Date(selectedPayroll.startDate).toLocaleDateString()}
                                             </div>
                                         </div>
                                         <div>
-                                            <label className="text-sm font-semibold text-gray-600">End Date</label>
-                                            <div className="mt-1 px-4 py-3 bg-white rounded-lg text-gray-900">
+                                            <label className="text-sm font-semibold text-secondary">End Date</label>
+                                            <div className="mt-1 px-4 py-3 bg-card rounded-lg text-primary">
                                                 {new Date(selectedPayroll.endDate).toLocaleDateString()}
                                             </div>
                                         </div>
                                         <div>
-                                            <label className="text-sm font-semibold text-gray-600">Pay Date</label>
-                                            <div className="mt-1 px-4 py-3 bg-white rounded-lg text-gray-900">
+                                            <label className="text-sm font-semibold text-secondary">Pay Date</label>
+                                            <div className="mt-1 px-4 py-3 bg-card rounded-lg text-primary">
                                                 {new Date(selectedPayroll.payDate).toLocaleDateString()}
                                             </div>
                                         </div>
@@ -3092,11 +3092,11 @@ const PayrollManagement = () => {
                                 </div>
                             </div>
 
-                            <div className="p-6 border-t border-gray-200">
+                            <div className="p-6 border-t border-theme">
                                 <div className="flex justify-end">
                                     <button
                                         onClick={() => setShowViewModal(false)}
-                                        className="px-6 py-3 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg font-medium transition-colors flex items-center gap-2"
+                                        className="px-6 py-3 bg-gray-100 hover:bg-gray-200 text-primary rounded-lg font-medium transition-colors flex items-center gap-2"
                                     >
                                         <X size={18} />
                                         Close
@@ -3110,16 +3110,16 @@ const PayrollManagement = () => {
                 {/* Professional Paystub Modal */}
                 {showPaystubModal && selectedPaystub && (
                     <div className="fixed inset-0 bg-gray-900/50 backdrop-blur-sm z-[100] flex items-center justify-center overflow-auto p-4">
-                        <div className="bg-white rounded-xl shadow-xl max-w-5xl w-full max-h-[95vh] overflow-y-auto">
+                        <div className="bg-card rounded-xl shadow-xl max-w-5xl w-full max-h-[95vh] overflow-y-auto">
                             {/* Header */}
-                            <div className="p-6 border-b-2 border-gray-300 sticky top-0 bg-white z-10">
+                            <div className="p-6 border-b-2 border-gray-300 sticky top-0 bg-card z-10">
                                 <div className="flex justify-between items-start mb-4">
                                     <button
                                         onClick={() => {
                                             setShowPaystubModal(false);
                                             setSelectedPaystub(null);
                                         }}
-                                        className="text-gray-400 hover:text-gray-600 p-2 hover:bg-gray-100 rounded-lg transition-colors"
+                                        className="text-secondary hover:text-secondary p-2 hover:bg-gray-100 rounded-lg transition-colors"
                                     >
                                         <X size={24} />
                                     </button>
@@ -3136,15 +3136,15 @@ const PayrollManagement = () => {
                                                     className="h-12 mb-3"
                                                 />
                                             )}
-                                            <h2 className="text-2xl font-bold text-gray-900 mb-1">
+                                            <h2 className="text-2xl font-bold text-primary mb-1">
                                                 {selectedPaystub.companyDetails?.companyName || 'Company Name'}
                                             </h2>
                                             {selectedPaystub.companyDetails?.companyAddress && (
-                                                <p className="text-sm text-gray-600 mb-1">
+                                                <p className="text-sm text-secondary mb-1">
                                                     {selectedPaystub.companyDetails.companyAddress}
                                                 </p>
                                             )}
-                                            <div className="flex gap-4 text-sm text-gray-600">
+                                            <div className="flex gap-4 text-sm text-secondary">
                                                 {selectedPaystub.companyDetails?.companyPhone && (
                                                     <span>Phone: {selectedPaystub.companyDetails.companyPhone}</span>
                                                 )}
@@ -3154,32 +3154,32 @@ const PayrollManagement = () => {
                                             </div>
                                         </div>
                                         <div className="text-right">
-                                            <h1 className="text-3xl font-bold text-gray-900 mb-2">PAY STUB</h1>
-                                            <p className="text-sm text-gray-600">EARNINGS STATEMENT</p>
+                                            <h1 className="text-3xl font-bold text-primary mb-2">PAY STUB</h1>
+                                            <p className="text-sm text-secondary">EARNINGS STATEMENT</p>
                                             {selectedPaystub.paystubId && (
-                                                <p className="text-xs text-gray-500 mt-2">ID: {selectedPaystub.paystubId}</p>
+                                                <p className="text-xs text-secondary mt-2">ID: {selectedPaystub.paystubId}</p>
                                             )}
                                         </div>
                                     </div>
                                 </div>
 
                                 {/* Pay Period Header */}
-                                <div className="grid grid-cols-3 gap-4 bg-blue-50 p-4 rounded-lg border border-blue-200">
+                                <div className="grid grid-cols-3 gap-4 bg-card p-4 rounded-lg border border-blue-200">
                                     <div>
-                                        <label className="text-xs font-semibold text-gray-600 uppercase">Pay Period Start</label>
-                                        <div className="text-sm font-bold text-gray-900 mt-1">
+                                        <label className="text-xs font-semibold text-secondary uppercase">Pay Period Start</label>
+                                        <div className="text-sm font-bold text-primary mt-1">
                                             {new Date(selectedPaystub.payPeriod.startDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
                                         </div>
                                     </div>
                                     <div>
-                                        <label className="text-xs font-semibold text-gray-600 uppercase">Pay Period End</label>
-                                        <div className="text-sm font-bold text-gray-900 mt-1">
+                                        <label className="text-xs font-semibold text-secondary uppercase">Pay Period End</label>
+                                        <div className="text-sm font-bold text-primary mt-1">
                                             {new Date(selectedPaystub.payPeriod.endDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
                                         </div>
                                     </div>
                                     <div>
-                                        <label className="text-xs font-semibold text-gray-600 uppercase">Pay Date</label>
-                                        <div className="text-sm font-bold text-gray-900 mt-1">
+                                        <label className="text-xs font-semibold text-secondary uppercase">Pay Date</label>
+                                        <div className="text-sm font-bold text-primary mt-1">
                                             {new Date(selectedPaystub.payPeriod.payDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
                                         </div>
                                     </div>
@@ -3188,23 +3188,23 @@ const PayrollManagement = () => {
 
                             <div className="p-6 space-y-6">
                                 {/* Employee Information Section */}
-                                <div className="bg-gray-50 p-5 rounded-lg border border-gray-200">
-                                    <h3 className="text-lg font-bold text-gray-900 mb-4 border-b border-gray-300 pb-2">Employee Information</h3>
+                                <div className="bg-card p-5 rounded-lg border border-theme">
+                                    <h3 className="text-lg font-bold text-primary mb-4 border-b border-gray-300 pb-2">Employee Information</h3>
                                     <div className="grid grid-cols-2 gap-4">
                                         <div>
-                                            <label className="text-xs font-semibold text-gray-600 uppercase">Employee / Driver Name</label>
-                                            <div className="mt-1 text-base font-semibold text-gray-900">
+                                            <label className="text-xs font-semibold text-secondary uppercase">Employee / Driver Name</label>
+                                            <div className="mt-1 text-base font-semibold text-primary">
                                                 {selectedPaystub.employeeName || 'Unknown'}
                                             </div>
                                         </div>
                                         <div>
-                                            <label className="text-xs font-semibold text-gray-600 uppercase">Employee ID / Driver ID</label>
-                                            <div className="mt-1 text-base font-semibold text-gray-900">
+                                            <label className="text-xs font-semibold text-secondary uppercase">Employee ID / Driver ID</label>
+                                            <div className="mt-1 text-base font-semibold text-primary">
                                                 {selectedPaystub.employeeId || 'N/A'}
                                             </div>
                                         </div>
                                         <div>
-                                            <label className="text-xs font-semibold text-gray-600 uppercase">Role / Position</label>
+                                            <label className="text-xs font-semibold text-secondary uppercase">Role / Position</label>
                                             <div className="mt-1">
                                                 <span className="px-3 py-1 text-sm font-medium rounded-full bg-blue-100 text-blue-800">
                                                     {selectedPaystub.employeeRole || 'N/A'}
@@ -3212,23 +3212,23 @@ const PayrollManagement = () => {
                                             </div>
                                         </div>
                                         <div>
-                                            <label className="text-xs font-semibold text-gray-600 uppercase">Work Type</label>
-                                            <div className="mt-1 text-base font-semibold text-gray-900">
+                                            <label className="text-xs font-semibold text-secondary uppercase">Work Type</label>
+                                            <div className="mt-1 text-base font-semibold text-primary">
                                                 {selectedPaystub.workType || 'Employee'}
                                             </div>
                                         </div>
                                         {selectedPaystub.employeeDepartment && (
                                             <div>
-                                                <label className="text-xs font-semibold text-gray-600 uppercase">Department</label>
-                                                <div className="mt-1 text-base text-gray-900">
+                                                <label className="text-xs font-semibold text-secondary uppercase">Department</label>
+                                                <div className="mt-1 text-base text-primary">
                                                     {selectedPaystub.employeeDepartment}
                                                 </div>
                                             </div>
                                         )}
                                         {selectedPaystub.employeeAddress && (
                                             <div>
-                                                <label className="text-xs font-semibold text-gray-600 uppercase">Address</label>
-                                                <div className="mt-1 text-sm text-gray-700">
+                                                <label className="text-xs font-semibold text-secondary uppercase">Address</label>
+                                                <div className="mt-1 text-sm text-primary">
                                                     {selectedPaystub.employeeAddress}
                                                 </div>
                                             </div>
@@ -3238,33 +3238,33 @@ const PayrollManagement = () => {
 
                                 {/* Earnings Section */}
                                 <div className="bg-green-50 p-5 rounded-lg border border-green-200">
-                                    <h3 className="text-lg font-bold text-gray-900 mb-4 border-b border-green-300 pb-2">Earnings</h3>
+                                    <h3 className="text-lg font-bold text-primary mb-4 border-b border-green-300 pb-2">Earnings</h3>
                                     {selectedPaystub.earnings.earningsBreakdown && selectedPaystub.earnings.earningsBreakdown.length > 0 ? (
                                         <div className="overflow-x-auto">
                                             <table className="w-full">
                                                 <thead>
                                                     <tr className="border-b border-green-300">
-                                                        <th className="text-left py-2 px-3 text-xs font-semibold text-gray-700 uppercase">Earning Type</th>
-                                                        <th className="text-center py-2 px-3 text-xs font-semibold text-gray-700 uppercase">Units</th>
-                                                        <th className="text-right py-2 px-3 text-xs font-semibold text-gray-700 uppercase">Rate</th>
-                                                        <th className="text-right py-2 px-3 text-xs font-semibold text-gray-700 uppercase">Amount</th>
+                                                        <th className="text-left py-2 px-3 text-xs font-semibold text-primary uppercase">Earning Type</th>
+                                                        <th className="text-center py-2 px-3 text-xs font-semibold text-primary uppercase">Units</th>
+                                                        <th className="text-right py-2 px-3 text-xs font-semibold text-primary uppercase">Rate</th>
+                                                        <th className="text-right py-2 px-3 text-xs font-semibold text-primary uppercase">Amount</th>
                                                     </tr>
                                                 </thead>
                                                 <tbody>
                                                     {selectedPaystub.earnings.earningsBreakdown.map((earning: any, index: number) => (
                                                         <tr key={index} className="border-b border-green-200">
-                                                            <td className="py-2 px-3 text-sm text-gray-900">{earning.type}</td>
-                                                            <td className="py-2 px-3 text-sm text-center text-gray-600">{earning.units || '-'}</td>
-                                                            <td className="py-2 px-3 text-sm text-right text-gray-600">
+                                                            <td className="py-2 px-3 text-sm text-primary">{earning.type}</td>
+                                                            <td className="py-2 px-3 text-sm text-center text-secondary">{earning.units || '-'}</td>
+                                                            <td className="py-2 px-3 text-sm text-right text-secondary">
                                                                 {earning.rate > 0 ? `$${earning.rate.toFixed(2)}` : '-'}
                                                             </td>
-                                                            <td className="py-2 px-3 text-sm text-right font-semibold text-gray-900">
+                                                            <td className="py-2 px-3 text-sm text-right font-semibold text-primary">
                                                                 ${earning.amount.toFixed(2)}
                                                             </td>
                                                         </tr>
                                                     ))}
                                                     <tr className="bg-green-100 font-bold">
-                                                        <td colSpan={3} className="py-3 px-3 text-sm text-gray-900">Total Earnings</td>
+                                                        <td colSpan={3} className="py-3 px-3 text-sm text-primary">Total Earnings</td>
                                                         <td className="py-3 px-3 text-sm text-right text-green-700">
                                                             ${selectedPaystub.earnings.totalEarnings.toFixed(2)}
                                                         </td>
@@ -3275,14 +3275,14 @@ const PayrollManagement = () => {
                                     ) : (
                                         <div className="space-y-2">
                                             <div className="flex justify-between items-center py-2 border-b border-green-200">
-                                                <span className="text-sm text-gray-700">Basic Pay</span>
-                                                <span className="text-sm font-semibold text-gray-900">
+                                                <span className="text-sm text-primary">Basic Pay</span>
+                                                <span className="text-sm font-semibold text-primary">
                                                     ${selectedPaystub.earnings.baseSalary.toFixed(2)}
                                                 </span>
                                             </div>
                                             {selectedPaystub.earnings.bonus > 0 && (
                                                 <div className="flex justify-between items-center py-2 border-b border-green-200">
-                                                    <span className="text-sm text-gray-700">Bonus</span>
+                                                    <span className="text-sm text-primary">Bonus</span>
                                                     <span className="text-sm font-semibold text-green-600">
                                                         ${selectedPaystub.earnings.bonus.toFixed(2)}
                                                     </span>
@@ -3290,14 +3290,14 @@ const PayrollManagement = () => {
                                             )}
                                             {selectedPaystub.earnings.mileageEarnings > 0 && (
                                                 <div className="flex justify-between items-center py-2 border-b border-green-200">
-                                                    <span className="text-sm text-gray-700">Trip Pay / Mileage</span>
+                                                    <span className="text-sm text-primary">Trip Pay / Mileage</span>
                                                     <span className="text-sm font-semibold text-green-600">
                                                         ${selectedPaystub.earnings.mileageEarnings.toFixed(2)}
                                                     </span>
                                                 </div>
                                             )}
                                             <div className="flex justify-between items-center py-3 bg-green-100 rounded mt-2 px-3 font-bold">
-                                                <span className="text-base text-gray-900">Total Earnings</span>
+                                                <span className="text-base text-primary">Total Earnings</span>
                                                 <span className="text-base text-green-700">
                                                     ${selectedPaystub.earnings.totalEarnings.toFixed(2)}
                                                 </span>
@@ -3307,28 +3307,28 @@ const PayrollManagement = () => {
                                 </div>
 
                                 {/* Deductions Section */}
-                                <div className="bg-red-50 p-5 rounded-lg border border-red-200">
-                                    <h3 className="text-lg font-bold text-gray-900 mb-4 border-b border-red-300 pb-2">Deductions</h3>
+                                <div className="bg-card p-5 rounded-lg border border-red-200">
+                                    <h3 className="text-lg font-bold text-primary mb-4 border-b border-red-300 pb-2">Deductions</h3>
                                     {selectedPaystub.deductions.deductionsBreakdown && selectedPaystub.deductions.deductionsBreakdown.length > 0 ? (
                                         <div className="overflow-x-auto">
                                             <table className="w-full">
                                                 <thead>
                                                     <tr className="border-b border-red-300">
-                                                        <th className="text-left py-2 px-3 text-xs font-semibold text-gray-700 uppercase">Deduction Type</th>
-                                                        <th className="text-right py-2 px-3 text-xs font-semibold text-gray-700 uppercase">Amount</th>
+                                                        <th className="text-left py-2 px-3 text-xs font-semibold text-primary uppercase">Deduction Type</th>
+                                                        <th className="text-right py-2 px-3 text-xs font-semibold text-primary uppercase">Amount</th>
                                                     </tr>
                                                 </thead>
                                                 <tbody>
                                                     {selectedPaystub.deductions.deductionsBreakdown.map((deduction: any, index: number) => (
                                                         <tr key={index} className="border-b border-red-200">
-                                                            <td className="py-2 px-3 text-sm text-gray-900">{deduction.type}</td>
-                                                            <td className="py-2 px-3 text-sm text-right font-semibold text-red-600">
+                                                            <td className="py-2 px-3 text-sm text-primary">{deduction.type}</td>
+                                                            <td className="py-2 px-3 text-sm text-right font-semibold text-[#A855F7]">
                                                                 ${deduction.amount.toFixed(2)}
                                                             </td>
                                                         </tr>
                                                     ))}
                                                     <tr className="bg-red-100 font-bold">
-                                                        <td className="py-3 px-3 text-sm text-gray-900">Total Deductions</td>
+                                                        <td className="py-3 px-3 text-sm text-primary">Total Deductions</td>
                                                         <td className="py-3 px-3 text-sm text-right text-red-700">
                                                             ${selectedPaystub.deductions.totalDeductions.toFixed(2)}
                                                         </td>
@@ -3340,20 +3340,20 @@ const PayrollManagement = () => {
                                         <div className="space-y-2">
                                             {selectedPaystub.deductions.otherDeductions > 0 && (
                                                 <div className="flex justify-between items-center py-2 border-b border-red-200">
-                                                    <span className="text-sm text-gray-700">Other Deductions</span>
-                                                    <span className="text-sm font-semibold text-red-600">
+                                                    <span className="text-sm text-primary">Other Deductions</span>
+                                                    <span className="text-sm font-semibold text-[#A855F7]">
                                                         ${selectedPaystub.deductions.otherDeductions.toFixed(2)}
                                                     </span>
                                                 </div>
                                             )}
                                             <div className="flex justify-between items-center py-2 border-b border-red-200">
-                                                <span className="text-sm text-gray-700">Taxes</span>
-                                                <span className="text-sm font-semibold text-red-600">
+                                                <span className="text-sm text-primary">Taxes</span>
+                                                <span className="text-sm font-semibold text-[#A855F7]">
                                                     ${selectedPaystub.summary.totalTaxes.toFixed(2)}
                                                 </span>
                                             </div>
                                             <div className="flex justify-between items-center py-3 bg-red-100 rounded mt-2 px-3 font-bold">
-                                                <span className="text-base text-gray-900">Total Deductions</span>
+                                                <span className="text-base text-primary">Total Deductions</span>
                                                 <span className="text-base text-red-700">
                                                     ${selectedPaystub.deductions.totalDeductions.toFixed(2)}
                                                 </span>
@@ -3364,12 +3364,12 @@ const PayrollManagement = () => {
 
                                 {/* Employer Contributions (if applicable) */}
                                 {selectedPaystub.employerContributions && selectedPaystub?.employerContributions?.total && selectedPaystub?.employerContributions?.total > 0 && (
-                                    <div className="bg-purple-50 p-5 rounded-lg border border-purple-200">
-                                        <h3 className="text-lg font-bold text-gray-900 mb-4 border-b border-purple-300 pb-2">Employer Contributions</h3>
+                                    <div className="bg-card p-5 rounded-lg border border-purple-200">
+                                        <h3 className="text-lg font-bold text-primary mb-4 border-b border-purple-300 pb-2">Employer Contributions</h3>
                                         <div className="space-y-2">
                                             {selectedPaystub?.employerContributions?.companyInsurance && selectedPaystub?.employerContributions?.companyInsurance > 0 && (
                                                 <div className="flex justify-between items-center py-2 border-b border-purple-200">
-                                                    <span className="text-sm text-gray-700">Company Insurance</span>
+                                                    <span className="text-sm text-primary">Company Insurance</span>
                                                     <span className="text-sm font-semibold text-purple-600">
                                                         ${selectedPaystub?.employerContributions?.companyInsurance?.toFixed(2)}
                                                     </span>
@@ -3377,7 +3377,7 @@ const PayrollManagement = () => {
                                             )}
                                             {selectedPaystub?.employerContributions?.pensionPF && selectedPaystub?.employerContributions?.pensionPF > 0 && (
                                                 <div className="flex justify-between items-center py-2 border-b border-purple-200">
-                                                    <span className="text-sm text-gray-700">Pension / PF</span>
+                                                    <span className="text-sm text-primary">Pension / PF</span>
                                                     <span className="text-sm font-semibold text-purple-600">
                                                         ${selectedPaystub?.employerContributions?.pensionPF?.toFixed(2)}
                                                     </span>
@@ -3385,14 +3385,14 @@ const PayrollManagement = () => {
                                             )}
                                             {selectedPaystub?.employerContributions?.benefitContributions && selectedPaystub?.employerContributions?.benefitContributions > 0 && (
                                                 <div className="flex justify-between items-center py-2 border-b border-purple-200">
-                                                    <span className="text-sm text-gray-700">Benefit Contributions</span>
+                                                    <span className="text-sm text-primary">Benefit Contributions</span>
                                                     <span className="text-sm font-semibold text-purple-600">
                                                         ${selectedPaystub?.employerContributions?.benefitContributions?.toFixed(2)}
                                                     </span>
                                                 </div>
                                             )}
                                             <div className="flex justify-between items-center py-3 bg-purple-100 rounded mt-2 px-3 font-bold">
-                                                <span className="text-base text-gray-900">Total Employer Contributions</span>
+                                                <span className="text-base text-primary">Total Employer Contributions</span>
                                                 <span className="text-base text-purple-700">
                                                     ${selectedPaystub?.employerContributions?.total?.toFixed(2)}
                                                 </span>
@@ -3430,22 +3430,22 @@ const PayrollManagement = () => {
                                 {/* YTD Summary */}
                                 {selectedPaystub.ytd && (
                                     <div className="bg-indigo-50 p-5 rounded-lg border border-indigo-200">
-                                        <h3 className="text-lg font-bold text-gray-900 mb-4 border-b border-indigo-300 pb-2">Year-to-Date (YTD) Summary</h3>
+                                        <h3 className="text-lg font-bold text-primary mb-4 border-b border-indigo-300 pb-2">Year-to-Date (YTD) Summary</h3>
                                         <div className="grid grid-cols-3 gap-4">
                                             <div>
-                                                <label className="text-xs font-semibold text-gray-600 uppercase">YTD Earnings</label>
+                                                <label className="text-xs font-semibold text-secondary uppercase">YTD Earnings</label>
                                                 <div className="mt-1 text-base font-bold text-indigo-700">
                                                     ${selectedPaystub?.ytd?.earnings?.toFixed(2)}
                                                 </div>
                                             </div>
                                             <div>
-                                                <label className="text-xs font-semibold text-gray-600 uppercase">YTD Deductions</label>
-                                                <div className="mt-1 text-base font-bold text-red-600">
+                                                <label className="text-xs font-semibold text-secondary uppercase">YTD Deductions</label>
+                                                <div className="mt-1 text-base font-bold text-[#A855F7]">
                                                     ${selectedPaystub?.ytd?.deductions?.toFixed(2)}
                                                 </div>
                                             </div>
                                             <div>
-                                                <label className="text-xs font-semibold text-gray-600 uppercase">YTD Net Pay</label>
+                                                <label className="text-xs font-semibold text-secondary uppercase">YTD Net Pay</label>
                                                 <div className="mt-1 text-base font-bold text-green-700">
                                                     ${selectedPaystub?.ytd?.netPay?.toFixed(2)}
                                                 </div>
@@ -3455,11 +3455,11 @@ const PayrollManagement = () => {
                                 )}
 
                                 {/* Footer Section */}
-                                <div className="bg-gray-50 p-5 rounded-lg border border-gray-200">
+                                <div className="bg-card p-5 rounded-lg border border-theme">
                                     {selectedPaystub.notes && (
                                         <div className="mb-4">
-                                            <label className="text-xs font-semibold text-gray-600 uppercase">Notes / Remarks</label>
-                                            <div className="mt-1 text-sm text-gray-700">
+                                            <label className="text-xs font-semibold text-secondary uppercase">Notes / Remarks</label>
+                                            <div className="mt-1 text-sm text-primary">
                                                 {selectedPaystub.notes}
                                             </div>
                                         </div>
@@ -3469,26 +3469,26 @@ const PayrollManagement = () => {
                                         <div>
                                             {selectedPaystub.hrName && (
                                                 <div>
-                                                    <label className="text-xs font-semibold text-gray-600 uppercase">HR Signature</label>
-                                                    <div className="mt-1 text-sm font-semibold text-gray-900">
+                                                    <label className="text-xs font-semibold text-secondary uppercase">HR Signature</label>
+                                                    <div className="mt-1 text-sm font-semibold text-primary">
                                                         {selectedPaystub.hrName}
                                                     </div>
                                                 </div>
                                             )}
                                         </div>
                                         <div className="text-right">
-                                            <div className="text-xs text-gray-500">
+                                            <div className="text-xs text-secondary">
                                                 Status: <span className={`font-semibold ${
                                                     selectedPaystub.status === 'issued' 
                                                         ? 'text-green-600' 
                                                         : selectedPaystub.status === 'void'
-                                                        ? 'text-red-600'
-                                                        : 'text-gray-600'
+                                                        ? 'text-[#A855F7]'
+                                                        : 'text-secondary'
                                                 }`}>
                                                     {selectedPaystub.status.charAt(0).toUpperCase() + selectedPaystub.status.slice(1)}
                                                 </span>
                                             </div>
-                                            <div className="text-xs text-gray-500 mt-1">
+                                            <div className="text-xs text-secondary mt-1">
                                                 Generated: {new Date(selectedPaystub.createdAt).toLocaleString()}
                                             </div>
                                         </div>
@@ -3497,7 +3497,7 @@ const PayrollManagement = () => {
                             </div>
 
                             {/* Footer with Download PDF and Close Button */}
-                            <div className="p-6 border-t-2 border-gray-300 bg-gray-50">
+                            <div className="p-6 border-t-2 border-gray-300 bg-card">
                                 <div className="flex justify-between items-center">
                                     <button
                                         onClick={() => handleDownloadPaystubPDF(selectedPaystub)}
@@ -3511,7 +3511,7 @@ const PayrollManagement = () => {
                                             setShowPaystubModal(false);
                                             setSelectedPaystub(null);
                                         }}
-                                        className="px-6 py-3 bg-gray-200 hover:bg-gray-300 text-gray-700 rounded-lg font-medium transition-colors flex items-center gap-2"
+                                        className="px-6 py-3 bg-gray-200 hover:bg-gray-300 text-primary rounded-lg font-medium transition-colors flex items-center gap-2"
                                     >
                                         <X size={18} />
                                         Close
@@ -3524,18 +3524,18 @@ const PayrollManagement = () => {
 
                 {showDeleteModal && selectedPayroll && (
                     <div className="fixed inset-0 bg-gray-900/50 backdrop-blur-sm z-[100] flex items-center justify-center p-4">
-                        <div className="bg-white rounded-xl shadow-xl max-w-md w-full p-6">
+                        <div className="bg-card rounded-xl shadow-xl max-w-md w-full p-6">
                             <div className="flex items-center gap-4 mb-4">
                                 <div className="w-12 h-12 bg-red-100 rounded-full flex items-center justify-center">
-                                    <AlertCircle className="text-red-600" size={24} />
+                                    <AlertCircle className="text-[#A855F7]" size={24} />
                                 </div>
                                 <div>
-                                    <h3 className="text-lg font-bold text-gray-900">Delete Payroll</h3>
-                                    <p className="text-sm text-gray-600">This action cannot be undone</p>
+                                    <h3 className="text-lg font-bold text-primary">Delete Payroll</h3>
+                                    <p className="text-sm text-secondary">This action cannot be undone</p>
                                 </div>
                             </div>
 
-                            <p className="text-gray-700 mb-6">
+                            <p className="text-primary mb-6">
                                 Are you sure you want to delete the payroll record for <strong>{selectedPayroll.userId?.name || 'Unknown'}</strong>?
                             </p>
 
@@ -3545,7 +3545,7 @@ const PayrollManagement = () => {
                                         setShowDeleteModal(false);
                                         setSelectedPayroll(null);
                                     }}
-                                    className="px-4 py-2 !mr-3 text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors font-medium flex items-center gap-2"
+                                    className="px-4 py-2 !mr-3 text-primary bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors font-medium flex items-center gap-2"
                                     disabled={loading}
                                 >
                                     <X size={16} />
@@ -3566,16 +3566,16 @@ const PayrollManagement = () => {
                 {/* Auto Generate Modal */}
                 {showAutoGenerateModal && (
                     <div className="fixed inset-0 bg-gray-900/50 backdrop-blur-sm z-[100] flex items-center justify-center p-4">
-                        <div className="bg-white rounded-xl shadow-xl max-w-3xl w-full max-h-[90vh] overflow-y-auto">
-                            <div className="p-6 border-b border-gray-200">
+                        <div className="bg-card rounded-xl shadow-xl max-w-3xl w-full max-h-[90vh] overflow-y-auto">
+                            <div className="p-6 border-b border-theme">
                                 <div className="flex items-center justify-between">
                                     <div className="flex items-center gap-3">
                                         <div className="w-10 h-10 rounded-lg bg-purple-100 flex items-center justify-center">
                                             <Sparkles className="text-purple-600" size={20} />
                                         </div>
                                         <div>
-                                            <h3 className="text-xl font-bold text-gray-900">AI-Powered Payroll Generation</h3>
-                                            <p className="text-sm text-gray-600">Automatically calculate payroll based on attendance</p>
+                                            <h3 className="text-xl font-bold text-primary">AI-Powered Payroll Generation</h3>
+                                            <p className="text-sm text-secondary">Automatically calculate payroll based on attendance</p>
                                         </div>
                                     </div>
                                     <button
@@ -3583,7 +3583,7 @@ const PayrollManagement = () => {
                                             setShowAutoGenerateModal(false);
                                             setAutoGenerateData(null);
                                         }}
-                                        className="text-gray-400 hover:text-gray-600"
+                                        className="text-secondary hover:text-secondary"
                                     >
                                         <X size={24} />
                                     </button>
@@ -3593,7 +3593,7 @@ const PayrollManagement = () => {
                             <div className="p-6 space-y-6">
                                 {/* Employee Selection */}
                                 <div>
-                                    <label className="block text-sm font-semibold text-gray-700 mb-2">Employee</label>
+                                    <label className="block text-sm font-semibold text-primary mb-2">Employee</label>
                                     <select
                                         value={formData.userId}
                                         onChange={(e) => {
@@ -3611,7 +3611,7 @@ const PayrollManagement = () => {
                                 {/* Date Range */}
                                 <div className="grid grid-cols-2 gap-4">
                                     <div>
-                                        <label className="block text-sm font-semibold text-gray-700 mb-2">Start Date</label>
+                                        <label className="block text-sm font-semibold text-primary mb-2">Start Date</label>
                                         <input
                                             type="date"
                                             value={formData.startDate}
@@ -3620,7 +3620,7 @@ const PayrollManagement = () => {
                                         />
                                     </div>
                                     <div>
-                                        <label className="block text-sm font-semibold text-gray-700 mb-2">End Date</label>
+                                        <label className="block text-sm font-semibold text-primary mb-2">End Date</label>
                                         <input
                                             type="date"
                                             value={formData.endDate}
@@ -3632,7 +3632,7 @@ const PayrollManagement = () => {
 
                                 {/* Base Salary (Optional) */}
                                 <div>
-                                    <label className="block text-sm font-semibold text-gray-700 mb-2">Base Salary (Optional - will use employee default if not provided)</label>
+                                    <label className="block text-sm font-semibold text-primary mb-2">Base Salary (Optional - will use employee default if not provided)</label>
                                     <input
                                         type="number"
                                         value={formData.baseSalary}
@@ -3668,39 +3668,39 @@ const PayrollManagement = () => {
                                 {autoGenerateData && (
                                     <div className="space-y-4">
                                         <div className="bg-gradient-to-r from-purple-50 to-blue-50 rounded-xl p-6 border border-purple-200">
-                                            <h4 className="text-lg font-bold text-gray-900 mb-4 flex items-center gap-2">
+                                            <h4 className="text-lg font-bold text-primary mb-4 flex items-center gap-2">
                                                 <Sparkles className="text-purple-600" size={20} />
                                                 AI Recommendations
                                             </h4>
 
                                             {/* Attendance Summary */}
                                             <div className="mb-4">
-                                                <h5 className="font-semibold text-gray-800 mb-2">Attendance Summary</h5>
+                                                <h5 className="font-semibold text-primary mb-2">Attendance Summary</h5>
                                                 <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-                                                    <div className="bg-white p-3 rounded-lg">
-                                                        <p className="text-xs text-gray-600">Present</p>
+                                                    <div className="bg-card p-3 rounded-lg">
+                                                        <p className="text-xs text-secondary">Present</p>
                                                         <p className="text-lg font-bold text-green-600">{autoGenerateData.attendance.presentDays}</p>
                                                     </div>
-                                                    <div className="bg-white p-3 rounded-lg">
-                                                        <p className="text-xs text-gray-600">Absent</p>
-                                                        <p className="text-lg font-bold text-red-600">{autoGenerateData.attendance.absentDays}</p>
+                                                    <div className="bg-card p-3 rounded-lg">
+                                                        <p className="text-xs text-secondary">Absent</p>
+                                                        <p className="text-lg font-bold text-[#A855F7]">{autoGenerateData.attendance.absentDays}</p>
                                                     </div>
-                                                    <div className="bg-white p-3 rounded-lg">
-                                                        <p className="text-xs text-gray-600">Leave</p>
+                                                    <div className="bg-card p-3 rounded-lg">
+                                                        <p className="text-xs text-secondary">Leave</p>
                                                         <p className="text-lg font-bold text-purple-600">{autoGenerateData.attendance.leaveDays}</p>
                                                     </div>
                                                 </div>
-                                                <p className="text-sm text-gray-600 mt-2">
+                                                <p className="text-sm text-secondary mt-2">
                                                     Total Hours: <strong>{autoGenerateData.attendance.totalHours.toFixed(2)}</strong>
                                                 </p>
                                             </div>
 
                                             {/* Employee Additions and Deductions */}
                                             {formData.userId && (employeeAdditions.length > 0 || employeeDeductions.length > 0) && (
-                                                <div className="bg-white border border-gray-200 rounded-lg overflow-hidden mb-4">
-                                                    <div className="bg-gray-50 px-4 py-3 border-b border-gray-200">
-                                                        <h5 className="text-sm font-medium text-gray-700">Employee Additions & Deductions</h5>
-                                                        <p className="text-xs text-gray-500 mt-1">These will be automatically included in the payroll calculation</p>
+                                                <div className="bg-card border border-theme rounded-lg overflow-hidden mb-4">
+                                                    <div className="bg-card px-4 py-3 border-b border-theme">
+                                                        <h5 className="text-sm font-medium text-primary">Employee Additions & Deductions</h5>
+                                                        <p className="text-xs text-secondary mt-1">These will be automatically included in the payroll calculation</p>
                                                     </div>
                                                     <div className="p-4 space-y-4">
                                                         {employeeAdditions.length > 0 && (
@@ -3740,8 +3740,8 @@ const PayrollManagement = () => {
                                                                             <div key={addition._id} className="bg-green-50 p-3 rounded-lg border border-green-200">
                                                                                 <div className="flex justify-between items-start gap-4">
                                                                                     <div className="flex-1">
-                                                                                        <p className="text-sm font-medium text-gray-900">{addition.name || addition.description || 'Addition'}</p>
-                                                                                        <p className="text-xs text-gray-600 mt-1">
+                                                                                        <p className="text-sm font-medium text-primary">{addition.name || addition.description || 'Addition'}</p>
+                                                                                        <p className="text-xs text-secondary mt-1">
                                                                                             {addition.recurrence} • Base: ${addition.amount?.toFixed(2) || '0.00'}
                                                                                             {addition.startDate && (
                                                                                                 <span> • From {new Date(addition.startDate).toLocaleDateString()}</span>
@@ -3752,7 +3752,7 @@ const PayrollManagement = () => {
                                                                                         </p>
                                                                                     </div>
                                                                                     <div className="flex items-center gap-2">
-                                                                                        <span className="text-xs text-gray-500">Amount:</span>
+                                                                                        <span className="text-xs text-secondary">Amount:</span>
                                                                                         <input
                                                                                             type="number"
                                                                                             value={calculatedAmount}
@@ -3765,7 +3765,7 @@ const PayrollManagement = () => {
                                                                                             }}
                                                                                             step="0.01"
                                                                                             min="0"
-                                                                                            className="w-24 px-2 py-1 text-sm border border-green-300 rounded focus:outline-none focus:ring-1 focus:ring-green-500 bg-white"
+                                                                                            className="w-24 px-2 py-1 text-sm border border-green-300 rounded focus:outline-none focus:ring-1 focus:ring-green-500 bg-card"
                                                                                         />
                                                                                         <span className="text-sm font-semibold text-green-700">+${calculatedAmount.toFixed(2)}</span>
                                                                                     </div>
@@ -3810,11 +3810,11 @@ const PayrollManagement = () => {
                                                                             })();
                                                                         
                                                                         return (
-                                                                            <div key={deduction._id} className="bg-red-50 p-3 rounded-lg border border-red-200">
+                                                                            <div key={deduction._id} className="bg-card p-3 rounded-lg border border-red-200">
                                                                                 <div className="flex justify-between items-start gap-4">
                                                                                     <div className="flex-1">
-                                                                                        <p className="text-sm font-medium text-gray-900">{deduction.name || deduction.description || 'Deduction'}</p>
-                                                                                        <p className="text-xs text-gray-600 mt-1">
+                                                                                        <p className="text-sm font-medium text-primary">{deduction.name || deduction.description || 'Deduction'}</p>
+                                                                                        <p className="text-xs text-secondary mt-1">
                                                                                             {deduction.recurrence} • Base: ${deduction.amount?.toFixed(2) || '0.00'}
                                                                                             {deduction.startDate && (
                                                                                                 <span> • From {new Date(deduction.startDate).toLocaleDateString()}</span>
@@ -3825,7 +3825,7 @@ const PayrollManagement = () => {
                                                                                         </p>
                                                                                     </div>
                                                                                     <div className="flex items-center gap-2">
-                                                                                        <span className="text-xs text-gray-500">Amount:</span>
+                                                                                        <span className="text-xs text-secondary">Amount:</span>
                                                                                         <input
                                                                                             type="number"
                                                                                             value={calculatedAmount}
@@ -3838,7 +3838,7 @@ const PayrollManagement = () => {
                                                                                             }}
                                                                                             step="0.01"
                                                                                             min="0"
-                                                                                            className="w-24 px-2 py-1 text-sm border border-red-300 rounded focus:outline-none focus:ring-1 focus:ring-red-500 bg-white"
+                                                                                            className="w-24 px-2 py-1 text-sm border border-red-300 rounded focus:outline-none focus:ring-1 focus:ring-red-500 bg-card"
                                                                                         />
                                                                                         <span className="text-sm font-semibold text-red-700">-${calculatedAmount.toFixed(2)}</span>
                                                                                     </div>
@@ -3854,15 +3854,15 @@ const PayrollManagement = () => {
                                             )}
 
                                             {/* Salary Breakdown */}
-                                            <div className="bg-white rounded-lg p-4 mb-4">
-                                                <h5 className="font-semibold text-gray-800 mb-3">Calculated Salary</h5>
+                                            <div className="bg-card rounded-lg p-4 mb-4">
+                                                <h5 className="font-semibold text-primary mb-3">Calculated Salary</h5>
                                                 <div className="space-y-2">
                                                     <div className="flex justify-between">
-                                                        <span className="text-gray-600">Base Salary:</span>
+                                                        <span className="text-secondary">Base Salary:</span>
                                                         <span className="font-medium">${autoGenerateData.payroll.baseSalary.toFixed(2)}</span>
                                                     </div>
                                                     <div className="flex justify-between">
-                                                        <span className="text-gray-600">Bonus:</span>
+                                                        <span className="text-secondary">Bonus:</span>
                                                         <span className="font-medium text-green-600">+${autoGenerateData.payroll.bonus.toFixed(2)}</span>
                                                     </div>
                                                     {(() => {
@@ -3871,22 +3871,22 @@ const PayrollManagement = () => {
                                                             <>
                                                                 {totalAdditions > 0 && (
                                                                     <div className="flex justify-between">
-                                                                        <span className="text-gray-600">Additions ({employeeAdditions.length}):</span>
+                                                                        <span className="text-secondary">Additions ({employeeAdditions.length}):</span>
                                                                         <span className="font-medium text-green-600">+${totalAdditions.toFixed(2)}</span>
                                                                     </div>
                                                                 )}
                                                                 {totalDeductions > 0 && (
                                                                     <div className="flex justify-between">
-                                                                        <span className="text-gray-600">Deductions ({employeeDeductions.length}):</span>
-                                                                        <span className="font-medium text-red-600">-${totalDeductions.toFixed(2)}</span>
+                                                                        <span className="text-secondary">Deductions ({employeeDeductions.length}):</span>
+                                                                        <span className="font-medium text-[#A855F7]">-${totalDeductions.toFixed(2)}</span>
                                                                     </div>
                                                                 )}
                                                             </>
                                                         );
                                                     })()}
-                                                    <div className="flex justify-between pt-2 border-t border-gray-200">
-                                                        <span className="font-bold text-gray-900">Total Salary:</span>
-                                                        <span className="font-bold text-lg text-gray-900">
+                                                    <div className="flex justify-between pt-2 border-t border-theme">
+                                                        <span className="font-bold text-primary">Total Salary:</span>
+                                                        <span className="font-bold text-lg text-primary">
                                                             ${(() => {
                                                                 const { totalAdditions, totalDeductions } = calculateAdditionsDeductions();
                                                                 const baseSalary = autoGenerateData.payroll.baseSalary || 0;
@@ -3900,11 +3900,11 @@ const PayrollManagement = () => {
 
                                             {/* AI Recommendations */}
                                             {autoGenerateData.aiRecommendations?.recommendations && (
-                                                <div className="bg-white rounded-lg p-4">
-                                                    <h5 className="font-semibold text-gray-800 mb-2">AI Insights</h5>
+                                                <div className="bg-card rounded-lg p-4">
+                                                    <h5 className="font-semibold text-primary mb-2">AI Insights</h5>
                                                     <ul className="space-y-1">
                                                         {autoGenerateData.aiRecommendations.recommendations.map((rec: string, idx: number) => (
-                                                            <li key={idx} className="text-sm text-gray-700 flex items-start gap-2">
+                                                            <li key={idx} className="text-sm text-primary flex items-start gap-2">
                                                                 <CheckCircle className="text-purple-600 mt-0.5 flex-shrink-0" size={16} />
                                                                 {rec}
                                                             </li>
@@ -3921,7 +3921,7 @@ const PayrollManagement = () => {
                                                     setShowAutoGenerateModal(false);
                                                     setShowCreateModal(true);
                                                 }}
-                                                className="flex-1 px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg transition-colors font-medium"
+                                                className="flex-1 px-4 py-2 bg-gray-100 hover:bg-gray-200 text-primary rounded-lg transition-colors font-medium"
                                             >
                                                 Edit Before Creating
                                             </button>
@@ -3953,17 +3953,17 @@ const PayrollManagement = () => {
                 {/* Bulk AI Generate All Payrolls Modal */}
                 {showBulkAIModal && (
                     <div className="fixed inset-0 bg-gray-900/50 backdrop-blur-sm z-[100] flex items-center justify-center overflow-auto p-4">
-                        <div className="bg-white rounded-xl shadow-xl max-w-4xl w-auto max-h-[90vh] overflow-y-auto">
-                            <div className="p-6 border-b border-gray-200 sticky top-0 bg-white z-10 flex justify-between items-center">
+                        <div className="bg-card rounded-xl shadow-xl max-w-4xl w-auto max-h-[90vh] overflow-y-auto">
+                            <div className="p-6 border-b border-theme sticky top-0 bg-card z-10 flex justify-between items-center">
                                 <div className="flex items-center gap-3">
                                     <div className="w-10 h-10 rounded-lg flex items-center justify-center bg-indigo-100">
                                         <Sparkles className="text-indigo-600" size={20} />
                                     </div>
                                     <div>
-                                        <h4 className="text-xl font-bold text-gray-900">
+                                        <h4 className="text-xl font-bold text-primary">
                                             Generate All Payrolls with AI
                                         </h4>
-                                        <p className="text-sm text-gray-500">
+                                        <p className="text-sm text-secondary">
                                             AI will analyze attendance for all employees and generate payroll suggestions
                                         </p>
                                     </div>
@@ -3978,7 +3978,7 @@ const PayrollManagement = () => {
                                             payDate: new Date().toISOString().split('T')[0]
                                         });
                                     }}
-                                    className="text-gray-400 hover:text-gray-600 p-2 hover:bg-gray-100 rounded-lg transition-colors"
+                                    className="text-secondary hover:text-secondary p-2 hover:bg-gray-100 rounded-lg transition-colors"
                                 >
                                     <X size={24} />
                                 </button>
@@ -3988,7 +3988,7 @@ const PayrollManagement = () => {
                                 {/* Date Range Selection */}
                                 {bulkAIPayrolls.length === 0 && (
                                     <div className="space-y-4">
-                                        <div className="bg-blue-50 border-l-4 border-blue-500 p-4 rounded-lg">
+                                        <div className="bg-card border-l-4 border-blue-500 p-4 rounded-lg">
                                             <p className="text-sm text-blue-800">
                                                 <strong>Note:</strong> This will generate payroll suggestions for all employees in your company based on their attendance records for the selected date range.
                                             </p>
@@ -3996,7 +3996,7 @@ const PayrollManagement = () => {
 
                                         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                                             <div>
-                                                <label className="block text-sm font-medium text-gray-700 mb-2">
+                                                <label className="block text-sm font-medium text-primary mb-2">
                                                     Start Date <span className="text-red-500">*</span>
                                                 </label>
                                                 <input
@@ -4007,7 +4007,7 @@ const PayrollManagement = () => {
                                                 />
                                             </div>
                                             <div>
-                                                <label className="block text-sm font-medium text-gray-700 mb-2">
+                                                <label className="block text-sm font-medium text-primary mb-2">
                                                     End Date <span className="text-red-500">*</span>
                                                 </label>
                                                 <input
@@ -4018,7 +4018,7 @@ const PayrollManagement = () => {
                                                 />
                                             </div>
                                             <div>
-                                                <label className="block text-sm font-medium text-gray-700 mb-2">
+                                                <label className="block text-sm font-medium text-primary mb-2">
                                                     Pay Date
                                                 </label>
                                                 <input
@@ -4055,47 +4055,47 @@ const PayrollManagement = () => {
                                     <div className="space-y-4">
                                         <div className="bg-gradient-to-r from-green-50 to-emerald-50 rounded-xl p-4 border border-green-200">
                                             <div className="flex items-center justify-between mb-2">
-                                                <h5 className="font-bold text-gray-900 flex items-center gap-2">
+                                                <h5 className="font-bold text-primary flex items-center gap-2">
                                                     <CheckCircle className="text-green-600" size={20} />
                                                     Generated {bulkAIPayrolls.length} Payroll Suggestions
                                                 </h5>
-                                                <div className="text-sm text-gray-600">
+                                                <div className="text-sm text-secondary">
                                                     Total: <span className="font-bold text-green-700">
                                                         ${bulkAIPayrolls.reduce((sum, p) => sum + (parseFloat(p.totalSalary) || 0), 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                                                     </span>
                                                 </div>
                                             </div>
-                                            <p className="text-sm text-gray-700">
+                                            <p className="text-sm text-primary">
                                                 Review and adjust amounts as needed. You can edit individual payrolls before creating them.
                                             </p>
                                         </div>
 
-                                        <div className="bg-white rounded-lg border border-gray-200 overflow-hidden">
+                                        <div className="bg-card rounded-lg border border-theme overflow-hidden">
                                             <div className="overflow-x-auto">
                                                 <table className="w-full">
-                                                    <thead className="bg-gray-50">
+                                                    <thead className="bg-card">
                                                         <tr>
-                                                            <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Employee</th>
-                                                            <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Role</th>
-                                                            <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Attendance</th>
-                                                            <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Base Salary</th>
-                                                            <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Bonus</th>
-                                                            <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Deductions</th>
-                                                            <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Taxes</th>
-                                                            <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Total</th>
-                                                            <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Actions</th>
+                                                            <th className="px-4 py-3 text-left text-xs font-medium text-secondary uppercase">Employee</th>
+                                                            <th className="px-4 py-3 text-left text-xs font-medium text-secondary uppercase">Role</th>
+                                                            <th className="px-4 py-3 text-left text-xs font-medium text-secondary uppercase">Attendance</th>
+                                                            <th className="px-4 py-3 text-left text-xs font-medium text-secondary uppercase">Base Salary</th>
+                                                            <th className="px-4 py-3 text-left text-xs font-medium text-secondary uppercase">Bonus</th>
+                                                            <th className="px-4 py-3 text-left text-xs font-medium text-secondary uppercase">Deductions</th>
+                                                            <th className="px-4 py-3 text-left text-xs font-medium text-secondary uppercase">Taxes</th>
+                                                            <th className="px-4 py-3 text-left text-xs font-medium text-secondary uppercase">Total</th>
+                                                            <th className="px-4 py-3 text-left text-xs font-medium text-secondary uppercase">Actions</th>
                                                         </tr>
                                                     </thead>
                                                     <tbody className="divide-y divide-gray-200">
                                                         {bulkAIPayrolls.map((payroll, index) => (
-                                                            <tr key={index} className="hover:bg-gray-50">
+                                                            <tr key={index} className="hover:bg-[rgba(255,255,255,0.03)]">
                                                                 <td className="px-4 py-3">
-                                                                    <div className="font-medium text-gray-900">
+                                                                    <div className="font-medium text-primary">
                                                                         {payroll.employee?.name || 'Unknown'}
                                                                     </div>
                                                                 </td>
                                                                 <td className="px-4 py-3">
-                                                                    <span className="px-2 py-1 text-xs font-medium rounded-full bg-gray-100 text-gray-800">
+                                                                    <span className="px-2 py-1 text-xs font-medium rounded-full bg-gray-100 text-primary">
                                                                         {payroll.employee?.role || 'Unknown'}
                                                                     </span>
                                                                 </td>
@@ -4105,10 +4105,10 @@ const PayrollManagement = () => {
                                                                             <span className="text-green-600 font-medium">
                                                                             W: {(payroll.attendance?.workedDays || payroll.attendance?.presentDays || 0)}
                                                                         </span>
-                                                                            <span className="text-red-600">A: {payroll.attendance?.absentDays || 0}</span>
+                                                                            <span className="text-[#A855F7]">A: {payroll.attendance?.absentDays || 0}</span>
                                                                         </div>
                                                                         {payroll.attendance?.totalHours > 0 && (
-                                                                            <div className="text-gray-600">
+                                                                            <div className="text-secondary">
                                                                                 Hours: {payroll.attendance.totalHours.toFixed(2)}
                                                                             </div>
                                                                         )}
@@ -4161,7 +4161,7 @@ const PayrollManagement = () => {
                                                                                 parseFloat(payroll.localTax || '0'));
                                                                         return (
                                                                             <div className="space-y-1">
-                                                                                <div className="text-xs font-semibold text-red-600">
+                                                                                <div className="text-xs font-semibold text-[#A855F7]">
                                                                                     ${totalTaxes.toFixed(2)}
                                                                                 </div>
                                                                                 <button
@@ -4208,7 +4208,7 @@ const PayrollManagement = () => {
                                                                                         // Use openEditModal to properly set up the form
                                                                                         openEditModal(payrollForEdit as any);
                                                                                     }}
-                                                                                    className="text-blue-600 hover:text-blue-800 text-xs underline cursor-pointer"
+                                                                                    className="text-[#00D1FF] hover:text-blue-800 text-xs underline cursor-pointer"
                                                                                 >
                                                                                     Edit
                                                                                 </button>
@@ -4217,7 +4217,7 @@ const PayrollManagement = () => {
                                                                     })()}
                                                                 </td>
                                                                 <td className="px-4 py-3">
-                                                                    <span className="font-semibold text-gray-900">
+                                                                    <span className="font-semibold text-primary">
                                                                         ${parseFloat(payroll.totalSalary || 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                                                                     </span>
                                                                 </td>
@@ -4279,7 +4279,7 @@ const PayrollManagement = () => {
                                         </div>
 
                                         {/* Action Buttons */}
-                                        <div className="flex gap-3 pt-4 border-t border-gray-200">
+                                        <div className="flex gap-3 pt-4 border-t border-theme">
                                             <button
                                                 onClick={() => {
                                                     setShowBulkAIModal(false);
@@ -4290,7 +4290,7 @@ const PayrollManagement = () => {
                                                         payDate: new Date().toISOString().split('T')[0]
                                                     });
                                                 }}
-                                                className="flex-1 px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg transition-colors font-medium"
+                                                className="flex-1 px-4 py-2 bg-gray-100 hover:bg-gray-200 text-primary rounded-lg transition-colors font-medium"
                                             >
                                                 Cancel
                                             </button>
@@ -4318,24 +4318,24 @@ const PayrollManagement = () => {
                             {/* Delete All Confirmation Modal */}
                             {showDeleteAllModal && (
                                 <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-[10001]">
-                                    <div className="bg-white rounded-lg p-6 max-w-md w-full mx-4">
+                                    <div className="bg-card rounded-lg p-6 max-w-md w-full mx-4">
                                         <div className="flex items-center gap-3 mb-4">
                                             <div className="p-3 bg-red-100 rounded-full">
-                                                <AlertCircle className="text-red-600" size={24} />
+                                                <AlertCircle className="text-[#A855F7]" size={24} />
                                             </div>
-                                            <h2 className="text-xl font-bold text-gray-900">Delete All Payrolls</h2>
+                                            <h2 className="text-xl font-bold text-primary">Delete All Payrolls</h2>
                                         </div>
-                                        <p className="text-gray-600 mb-2">
+                                        <p className="text-secondary mb-2">
                                             Are you sure you want to delete <strong>ALL {payrollData.length} payroll records</strong>?
                                         </p>
-                                        <p className="text-sm text-red-600 font-medium mb-6">
+                                        <p className="text-sm text-[#A855F7] font-medium mb-6">
                                             ⚠️ This action cannot be undone!
                                         </p>
                                         <div className="flex gap-3">
                                             <button
                                                 onClick={() => setShowDeleteAllModal(false)}
                                                 disabled={loading}
-                                                className="flex-1 px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg transition-colors font-medium disabled:opacity-50"
+                                                className="flex-1 px-4 py-2 bg-gray-100 hover:bg-gray-200 text-primary rounded-lg transition-colors font-medium disabled:opacity-50"
                                             >
                                                 Cancel
                                             </button>

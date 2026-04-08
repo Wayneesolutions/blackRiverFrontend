@@ -48,8 +48,8 @@ const ToastNotification = ({ notification, onClose }: { notification: ToastNotif
 
   const bgColors = {
     success: 'bg-green-50 border-green-200',
-    error: 'bg-red-50 border-red-200',
-    warning: 'bg-yellow-50 border-yellow-200',
+    error: 'bg-card border-red-200',
+    warning: 'bg-card border-yellow-200',
   };
 
   useEffect(() => {
@@ -64,10 +64,10 @@ const ToastNotification = ({ notification, onClose }: { notification: ToastNotif
       <div className="flex-shrink-0 mt-0.5">
         {icons[notification.type]}
       </div>
-      <p className="flex-1 text-sm font-medium text-gray-800">{notification.message}</p>
+      <p className="flex-1 text-sm font-medium text-primary">{notification.message}</p>
       <button
         onClick={() => onClose(notification.id)}
-        className="flex-shrink-0 text-gray-400 hover:text-gray-600 transition-colors"
+        className="flex-shrink-0 text-secondary hover:text-secondary transition-colors"
       >
         <FaTimes size={16} />
       </button>
@@ -228,7 +228,7 @@ const Index = () => {
   );
 
   return (
-    <div className="min-h-screen bg-[#EDF8FF]">
+    <div className="min-h-screen bg-main">
       {/* Toast Notifications */}
       <div className="fixed top-4 right-4 z-[10000] space-y-2">
         {notifications.map((notification) => (
@@ -246,9 +246,9 @@ const Index = () => {
         <div className="px-6 py-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-4">
-              <h1 className="text-2xl font-semibold text-gray-900">Places</h1>
+              <h1 className="text-2xl font-semibold text-primary">Places</h1>
               <div className="relative">
-                <Search className="w-4 h-4 absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
+                <Search className="w-4 h-4 absolute left-3 top-1/2 transform -translate-y-1/2 text-secondary" />
                 <input
                   type="text"
                   placeholder="Search Places"
@@ -278,21 +278,21 @@ const Index = () => {
 
         {/* Table */}
         <div className="p-6">
-          <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
+          <div className="bg-card rounded-lg shadow-sm border border-theme overflow-hidden">
             {loading ? (
-              <div className="p-6 text-center text-gray-500">Loading...</div>
+              <div className="p-6 text-center text-secondary">Loading...</div>
             ) : (
               <div className="overflow-x-auto">
                 <table className="w-full">
-                  <thead className="bg-gray-50 border-b border-gray-200">
+                  <thead className="bg-card border-b border-theme">
                     <tr>
-                      <th className="px-6 py-3 text-xs font-medium text-gray-500 uppercase text-left">Name</th>
-                      <th className="px-6 py-3 text-xs font-medium text-gray-500 uppercase text-left">Full Address</th>
-                      <th className="px-6 py-3 text-xs font-medium text-gray-500 uppercase text-left">Phone</th>
-                      <th className="px-6 py-3 text-xs font-medium text-gray-500 uppercase text-left">Country</th>
-                      <th className="px-6 py-3 text-xs font-medium text-gray-500 uppercase text-left">Status</th>
-                      <th className="px-6 py-3 text-xs font-medium text-gray-500 uppercase text-left">Created At</th>
-                      <th className="px-6 py-3 text-xs font-medium text-gray-500 uppercase text-left">Actions</th>
+                      <th className="px-6 py-3 text-xs font-medium text-secondary uppercase text-left">Name</th>
+                      <th className="px-6 py-3 text-xs font-medium text-secondary uppercase text-left">Full Address</th>
+                      <th className="px-6 py-3 text-xs font-medium text-secondary uppercase text-left">Phone</th>
+                      <th className="px-6 py-3 text-xs font-medium text-secondary uppercase text-left">Country</th>
+                      <th className="px-6 py-3 text-xs font-medium text-secondary uppercase text-left">Status</th>
+                      <th className="px-6 py-3 text-xs font-medium text-secondary uppercase text-left">Created At</th>
+                      <th className="px-6 py-3 text-xs font-medium text-secondary uppercase text-left">Actions</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-gray-200">
@@ -316,23 +316,23 @@ const Index = () => {
                         const postalCode = place.postalCode || place.securityAccessCodepostalCode || "N/A";
 
                         return (
-                          <tr key={place._id} className="hover:bg-gray-50">
-                            <td className="px-6 py-4 text-sm text-gray-900 font-medium">{place.name || "N/A"}</td>
-                            <td className="px-6 py-4 text-sm text-gray-500">
+                          <tr key={place._id} className="hover:bg-[rgba(255,255,255,0.03)]">
+                            <td className="px-6 py-4 text-sm text-primary font-medium">{place.name || "N/A"}</td>
+                            <td className="px-6 py-4 text-sm text-secondary">
                               <div className="max-w-xs">
-                                <div className="font-medium text-gray-700 mb-1">{fullAddress}</div>
+                                <div className="font-medium text-primary mb-1">{fullAddress}</div>
                                 {postalCode !== "N/A" && (
-                                  <div className="text-xs text-gray-400">Postal: {postalCode}</div>
+                                  <div className="text-xs text-secondary">Postal: {postalCode}</div>
                                 )}
                                 {!hasManualAddress && place.currentLocation?.address && (
-                                  <div className="text-xs text-gray-400 mt-1">
+                                  <div className="text-xs text-secondary mt-1">
                                     Coordinates: {place.currentLocation.address}
                                   </div>
                                 )}
                               </div>
                             </td>
-                            <td className="px-6 py-4 text-sm text-gray-500">{place.phone || "N/A"}</td>
-                            <td className="px-6 py-4 text-sm text-gray-500">{place.country || "N/A"}</td>
+                            <td className="px-6 py-4 text-sm text-secondary">{place.phone || "N/A"}</td>
+                            <td className="px-6 py-4 text-sm text-secondary">{place.country || "N/A"}</td>
                             <td className="px-6 py-4 text-sm">
                               <span
                                 onClick={() => handleStatusUpdate(place._id)}
@@ -344,19 +344,19 @@ const Index = () => {
                                 {place.status || "N/A"}
                               </span>
                             </td>
-                            <td className="px-6 py-4 text-sm text-gray-500">
+                            <td className="px-6 py-4 text-sm text-secondary">
                               {place.createdAt ? new Date(place.createdAt).toLocaleDateString() : "N/A"}
                             </td>
-                            <td className="px-6 py-4 text-sm text-gray-500">
+                            <td className="px-6 py-4 text-sm text-secondary">
                               <div className="flex flex-col sm:flex-row sm:flex-wrap sm:items-center gap-2">
                                 <button
-                                  className="inline-flex items-center justify-center rounded-md border border-blue-200 bg-blue-50 px-3 py-1.5 text-xs font-medium text-blue-700 hover:bg-blue-100 transition-colors"
+                                  className="inline-flex items-center justify-center rounded-md border border-blue-200 bg-card px-3 py-1.5 text-xs font-medium text-blue-700 hover:bg-blue-100 transition-colors"
                                   onClick={() => openEditModal(place)}
                                 >
                                   Edit
                                 </button>
                                 <button
-                                  className="inline-flex items-center justify-center rounded-md border border-red-200 bg-red-50 px-3 py-1.5 text-xs font-medium text-red-600 hover:bg-red-100 transition-colors"
+                                  className="inline-flex items-center justify-center rounded-md border border-red-200 bg-card px-3 py-1.5 text-xs font-medium text-[#A855F7] hover:bg-red-100 transition-colors"
                                   onClick={() => openDeleteModal(place)}
                                 >
                                   Delete
@@ -368,7 +368,7 @@ const Index = () => {
                       })
                     ) : (
                       <tr>
-                        <td colSpan={7} className="px-6 py-4 text-center text-gray-500">
+                        <td colSpan={7} className="px-6 py-4 text-center text-secondary">
                           No places found
                         </td>
                       </tr>
@@ -392,13 +392,13 @@ const Index = () => {
 
       {editModalOpen && editData && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-4">
-          <div className="w-full max-w-lg rounded-xl border border-gray-200 bg-white p-6 shadow-xl">
+          <div className="w-full max-w-lg rounded-xl border border-theme bg-card p-6 shadow-xl">
             <div className="mb-4 flex items-center justify-between border-b pb-3">
-              <h2 className="text-lg font-semibold text-gray-900">Edit Place</h2>
+              <h2 className="text-lg font-semibold text-primary">Edit Place</h2>
               <button
                 onClick={closeEditModal}
                 disabled={editLoading}
-                className="text-gray-400 transition-colors hover:text-gray-600 disabled:cursor-not-allowed disabled:opacity-60"
+                className="text-secondary transition-colors hover:text-secondary disabled:cursor-not-allowed disabled:opacity-60"
               >
                 ✕
               </button>
@@ -406,7 +406,7 @@ const Index = () => {
 
             <div className="space-y-4 max-h-[60vh] overflow-y-auto pr-2">
               <div>
-                <label className="block text-sm font-medium text-gray-700">Name *</label>
+                <label className="block text-sm font-medium text-primary">Name *</label>
                 <input
                   type="text"
                   value={editData.name || ""}
@@ -416,7 +416,7 @@ const Index = () => {
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700">Street 1</label>
+                <label className="block text-sm font-medium text-primary">Street 1</label>
                 <input
                   type="text"
                   value={editData.street1 || ""}
@@ -425,7 +425,7 @@ const Index = () => {
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700">Street 2</label>
+                <label className="block text-sm font-medium text-primary">Street 2</label>
                 <input
                   type="text"
                   value={editData.street2 || ""}
@@ -435,7 +435,7 @@ const Index = () => {
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700">Neighbourhood</label>
+                  <label className="block text-sm font-medium text-primary">Neighbourhood</label>
                   <input
                     type="text"
                     value={editData.neighbourHood || ""}
@@ -444,7 +444,7 @@ const Index = () => {
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700">Building</label>
+                  <label className="block text-sm font-medium text-primary">Building</label>
                   <input
                     type="text"
                     value={editData.building || ""}
@@ -455,7 +455,7 @@ const Index = () => {
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700">City</label>
+                  <label className="block text-sm font-medium text-primary">City</label>
                   <input
                     type="text"
                     value={editData.city || ""}
@@ -464,7 +464,7 @@ const Index = () => {
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700">State</label>
+                  <label className="block text-sm font-medium text-primary">State</label>
                   <input
                     type="text"
                     value={editData.state || ""}
@@ -475,7 +475,7 @@ const Index = () => {
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700">Postal Code / Security Access Code</label>
+                  <label className="block text-sm font-medium text-primary">Postal Code / Security Access Code</label>
                   <input
                     type="text"
                     value={editData.postalCode || editData.securityAccessCodepostalCode || ""}
@@ -488,7 +488,7 @@ const Index = () => {
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700">Country</label>
+                  <label className="block text-sm font-medium text-primary">Country</label>
                   <input
                     type="text"
                     value={editData.country || ""}
@@ -498,7 +498,7 @@ const Index = () => {
                 </div>
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700">Phone</label>
+                <label className="block text-sm font-medium text-primary">Phone</label>
                 <input
                   type="text"
                   value={editData.phone || ""}
@@ -512,7 +512,7 @@ const Index = () => {
               <button
                 onClick={closeEditModal}
                 disabled={editLoading}
-                className="rounded-md border border-gray-200 px-4 py-2 text-sm text-gray-700 transition hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-60"
+                className="rounded-md border border-theme px-4 py-2 text-sm text-primary transition hover:bg-[rgba(255,255,255,0.03)] disabled:cursor-not-allowed disabled:opacity-60"
               >
                 Cancel
               </button>
@@ -533,26 +533,26 @@ const Index = () => {
 
       {deleteModalOpen && deleteTarget && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-4">
-          <div className="w-full max-w-md rounded-xl border border-gray-200 bg-white p-6 shadow-xl">
+          <div className="w-full max-w-md rounded-xl border border-theme bg-card p-6 shadow-xl">
             <div className="mb-4 flex items-center justify-between border-b pb-3">
-              <h2 className="text-lg font-semibold text-red-600">Delete Place</h2>
+              <h2 className="text-lg font-semibold text-[#A855F7]">Delete Place</h2>
               <button
                 onClick={closeDeleteModal}
                 disabled={deleteLoading}
-                className="text-gray-400 transition-colors hover:text-gray-600 disabled:cursor-not-allowed disabled:opacity-60"
+                className="text-secondary transition-colors hover:text-secondary disabled:cursor-not-allowed disabled:opacity-60"
               >
                 ✕
               </button>
             </div>
-            <p className="text-sm text-gray-600">
+            <p className="text-sm text-secondary">
               Are you sure you want to delete{" "}
-              <span className="font-semibold text-gray-900">{deleteTarget.name}</span>? This action cannot be undone.
+              <span className="font-semibold text-primary">{deleteTarget.name}</span>? This action cannot be undone.
             </p>
             <div className="mt-6 flex justify-end gap-3">
               <button
                 onClick={closeDeleteModal}
                 disabled={deleteLoading}
-                className="rounded-md border border-gray-200 px-4 py-2 text-sm text-gray-700 transition hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-60"
+                className="rounded-md border border-theme px-4 py-2 text-sm text-primary transition hover:bg-[rgba(255,255,255,0.03)] disabled:cursor-not-allowed disabled:opacity-60"
               >
                 Cancel
               </button>

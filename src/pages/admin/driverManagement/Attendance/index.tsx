@@ -487,7 +487,7 @@ const AttendanceTracking = () => {
 
   return (
     <div
-      className="min-h-screen bg-[#EDF8FF] p-6 overflow-x-hidden">
+      className="min-h-screen bg-main p-6 overflow-x-hidden">
 
       {/* Toast Notifications Container */}
       <div className="fixed top-4 right-4 z-[10002] space-y-2">
@@ -497,8 +497,8 @@ const AttendanceTracking = () => {
             className={`flex items-start gap-3 p-4 rounded-lg border-2 shadow-lg min-w-[300px] max-w-md animate-slide-in ${notification.type === 'success'
               ? 'bg-green-50 border-green-200'
               : notification.type === 'error'
-                ? 'bg-red-50 border-red-200'
-                : 'bg-blue-50 border-blue-200'
+                ? 'bg-card border-red-200'
+                : 'bg-card border-blue-200'
               }`}
           >
             <div className="flex-shrink-0 mt-0.5">
@@ -510,10 +510,10 @@ const AttendanceTracking = () => {
                 <FaExclamationCircle className="text-blue-500" size={24} />
               )}
             </div>
-            <p className="flex-1 text-sm font-medium text-gray-900">{notification.message}</p>
+            <p className="flex-1 text-sm font-medium text-primary">{notification.message}</p>
             <button
               onClick={() => removeNotification(notification.id)}
-              className="flex-shrink-0 text-gray-400 hover:text-gray-600 transition-colors"
+              className="flex-shrink-0 text-secondary hover:text-secondary transition-colors"
             >
               <FaTimes size={16} />
             </button>
@@ -523,11 +523,11 @@ const AttendanceTracking = () => {
 
       <div className="w-full mx-auto space-y-6">
         {/* Header */}
-        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+        <div className="bg-card rounded-xl shadow-sm border border-theme p-6">
           <div className="flex items-center justify-between">
             <div>
-              <h1 className="text-3xl font-bold text-gray-900 mb-2">Attendance Management</h1>
-              <p className="text-gray-600">Track and manage employee attendance records</p>
+              <h1 className="text-3xl font-bold text-primary mb-2">Attendance Management</h1>
+              <p className="text-secondary">Track and manage employee attendance records</p>
             </div>
             <button
               onClick={() => setShowAddModal(true)}
@@ -545,7 +545,7 @@ const AttendanceTracking = () => {
           {/* Total Employees */}
           <div
             onClick={() => navigate(`${getBasePath()}/employee-profiles`)}
-            className="rounded-lg p-4 bg-purple-50 border border-purple-200 cursor-pointer hover:shadow-sm transition-shadow"
+            className="rounded-lg p-4 bg-card border border-purple-200 cursor-pointer hover:shadow-sm transition-shadow"
           >
             <div className="flex items-center justify-between">
               <div>
@@ -576,16 +576,16 @@ const AttendanceTracking = () => {
           </div>
 
           {/* Absent Today */}
-          <div className="rounded-lg p-4 bg-red-50 border border-red-200 hover:shadow-sm transition-shadow">
+          <div className="rounded-lg p-4 bg-card border border-red-200 hover:shadow-sm transition-shadow">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-xs text-red-600 mb-0.5">Absent Today</p>
+                <p className="text-xs text-[#A855F7] mb-0.5">Absent Today</p>
                 <p className="text-2xl font-semibold text-red-700">
                   {absentToday}
                 </p>
               </div>
               <div className="p-2 bg-red-100 rounded-full">
-                <XCircle className="text-red-600" size={18} />
+                <XCircle className="text-[#A855F7]" size={18} />
               </div>
             </div>
           </div>
@@ -594,14 +594,14 @@ const AttendanceTracking = () => {
 
 
         {/* Attendance Records */}
-        <div className="bg-white rounded-xl shadow-sm border border-gray-200">
-          <div className="p-6 border-b border-gray-200">
+        <div className="bg-card rounded-xl shadow-sm border border-theme">
+          <div className="p-6 border-b border-theme">
             <div className="flex flex-col sm:flex-row gap-4 items-center justify-between">
-              <h2 className="text-xl font-bold text-gray-900">Attendance Records</h2>
+              <h2 className="text-xl font-bold text-primary">Attendance Records</h2>
 
               <div className="flex gap-3 flex-wrap">
                 <div className="relative">
-                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={20} />
+                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-secondary" size={20} />
                   <input
                     type="text"
                     placeholder="Search employee..."
@@ -753,16 +753,16 @@ const AttendanceTracking = () => {
             className="overflow-x-auto overflow-y-visible table-container-hidden-scrollbar"
           >
             <table className="w-full" style={{ minWidth: '1000px' }}>
-              <thead className="bg-gray-50 border-b border-gray-200">
+              <thead className="bg-card border-b border-theme">
                 <tr>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Employee</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Date</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Check In</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Check Out</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Hours</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Status</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Notes</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Actions</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-secondary uppercase">Employee</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-secondary uppercase">Date</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-secondary uppercase">Check In</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-secondary uppercase">Check Out</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-secondary uppercase">Hours</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-secondary uppercase">Status</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-secondary uppercase">Notes</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-secondary uppercase">Actions</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-200">
@@ -770,7 +770,7 @@ const AttendanceTracking = () => {
                   filteredRecords.map((record, idx) => (
                     <tr 
                       key={record._id || idx} 
-                      className="hover:bg-gray-50 transition-colors cursor-pointer"
+                      className="hover:bg-[rgba(255,255,255,0.03)] transition-colors cursor-pointer"
                       onClick={() => {
                         setSelectedRecord(record);
                         setShowDetailsSidebar(true);
@@ -781,23 +781,23 @@ const AttendanceTracking = () => {
                           <div className="w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center text-white text-sm font-semibold">
                             {((typeof record.employee === 'string' ? employees.find(e => e._id === record.employee)?.name : (record.employee as any)?.name) || '').split(' ').map((n: string) => n[0]).join('').substring(0, 2)}
                           </div>
-                          <span className="font-medium text-gray-900">{typeof record.employee === 'string' ? (employees.find(e => e._id === record.employee)?.name || '') : (record.employee as any)?.name}</span>
+                          <span className="font-medium text-primary">{typeof record.employee === 'string' ? (employees.find(e => e._id === record.employee)?.name || '') : (record.employee as any)?.name}</span>
                         </div>
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-secondary">
                         {new Date(record.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-primary">
                         <div className="flex items-center gap-2">
                           {record.checkIn || '--'}
                           {record.isAutoTracked && (
-                            <span className="text-xs text-blue-600 bg-blue-50 px-1.5 py-0.5 rounded" title="Auto-tracked from login/logout">
+                            <span className="text-xs text-[#00D1FF] bg-card px-1.5 py-0.5 rounded" title="Auto-tracked from login/logout">
                               Auto
                             </span>
                           )}
                         </div>
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-primary">
                         <div className="flex items-center gap-2">
                           {record.checkOut || '--'}
                           {record.isActiveSession && (
@@ -807,7 +807,7 @@ const AttendanceTracking = () => {
                           )}
                         </div>
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                      <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-primary">
                         {(() => {
                           // Calculate hours from checkIn/checkOut times if available, otherwise use totalHours
                           let hours = 0;
@@ -830,7 +830,7 @@ const AttendanceTracking = () => {
                           {record.status === 'late' ? 'Present' : (record.status.charAt(0).toUpperCase() + record.status.slice(1))}
                         </span>
                       </td>
-                      <td className="px-6 py-4 text-sm text-gray-600 max-w-xs">
+                      <td className="px-6 py-4 text-sm text-secondary max-w-xs">
                         <div className="truncate" title={record.notes || '--'}>
                           {record.notes || '--'}
                         </div>
@@ -840,26 +840,26 @@ const AttendanceTracking = () => {
                           <div className="flex gap-2">
                             <button
                               onClick={() => handleEdit(record)}
-                              className="text-blue-600 hover:text-blue-800 p-1 rounded hover:bg-blue-50"
+                              className="text-[#00D1FF] hover:text-blue-800 p-1 rounded hover:bg-blue-50"
                             >
                               <Edit size={16} />
                             </button>
                             <button
                               onClick={() => handleDelete(record._id)}
-                              className="text-red-600 hover:text-red-800 p-1 rounded hover:bg-red-50"
+                              className="text-[#A855F7] hover:text-red-800 p-1 rounded hover:bg-red-50"
                             >
                               <Trash2 size={16} />
                             </button>
                           </div>
                         ) : (
-                          <span className="text-xs text-gray-400">In progress</span>
+                          <span className="text-xs text-secondary">In progress</span>
                         )}
                       </td>
                     </tr>
                   ))
                 ) : (
                   <tr>
-                    <td colSpan={8} className="px-6 py-12 text-center text-gray-500">
+                    <td colSpan={8} className="px-6 py-12 text-center text-secondary">
                       No attendance records found
                     </td>
                   </tr>
@@ -868,8 +868,8 @@ const AttendanceTracking = () => {
             </table>
           </div>
           {filteredRecords.length > 0 && (
-            <div className="p-4 border-t border-gray-200">
-              <p className="text-sm text-gray-600">Showing {filteredRecords.length} records</p>
+            <div className="p-4 border-t border-theme">
+              <p className="text-sm text-secondary">Showing {filteredRecords.length} records</p>
             </div>
           )}
         </div>
@@ -879,11 +879,11 @@ const AttendanceTracking = () => {
       {showAddModal && (
         <div className="fixed inset-0 bg-black/60 backdrop-blur-md z-[9999] flex items-center justify-center p-4">
 
-          <div className="bg-white rounded-xl shadow-2xl max-w-2xl w-full max-h-[90vh] flex flex-col">
+          <div className="bg-card rounded-xl shadow-2xl max-w-2xl w-full max-h-[90vh] flex flex-col">
             {/* Fixed Header */}
-            <div className="p-6 border-b border-gray-200 flex-shrink-0">
+            <div className="p-6 border-b border-theme flex-shrink-0">
               <div className="flex items-center justify-between">
-                <h2 className="text-2xl font-bold text-gray-900">
+                <h2 className="text-2xl font-bold text-primary">
                   {editingRecord ? 'Edit Attendance' : 'Add Attendance Record'}
                 </h2>
                 <button
@@ -899,7 +899,7 @@ const AttendanceTracking = () => {
                       notes: ''
                     });
                   }}
-                  className="text-gray-400 hover:text-gray-600"
+                  className="text-secondary hover:text-secondary"
                 >
                   <XCircle size={24} />
                 </button>
@@ -909,7 +909,7 @@ const AttendanceTracking = () => {
             {/* Scrollable Content Area */}
             <div className="flex-1 overflow-y-auto px-6 py-6 space-y-6 custom-scrollbar">
               <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-2">Employee Name</label>
+                <label className="block text-sm font-semibold text-primary mb-2">Employee Name</label>
                 <select
                   value={attendanceForm.employeeId}
                   onChange={(e) => setAttendanceForm({ ...attendanceForm, employeeId: e.target.value })}
@@ -923,7 +923,7 @@ const AttendanceTracking = () => {
               </div>
 
               <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-2">Date</label>
+                <label className="block text-sm font-semibold text-primary mb-2">Date</label>
                 <input
                   type="date"
                   value={attendanceForm.date}
@@ -933,7 +933,7 @@ const AttendanceTracking = () => {
               </div>
 
               <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-2">Status</label>
+                <label className="block text-sm font-semibold text-primary mb-2">Status</label>
                 <select
                   value={attendanceForm.status}
                   onChange={(e) => setAttendanceForm({ ...attendanceForm, status: e.target.value as any })}
@@ -949,7 +949,7 @@ const AttendanceTracking = () => {
                 <>
                   <div className="grid grid-cols-2 gap-4">
                     <div>
-                      <label className="block text-sm font-semibold text-gray-700 mb-2">Check In Time</label>
+                      <label className="block text-sm font-semibold text-primary mb-2">Check In Time</label>
                       <input
                         type="time"
                         value={attendanceForm.checkIn}
@@ -958,7 +958,7 @@ const AttendanceTracking = () => {
                       />
                     </div>
                     <div>
-                      <label className="block text-sm font-semibold text-gray-700 mb-2">Check Out Time</label>
+                      <label className="block text-sm font-semibold text-primary mb-2">Check Out Time</label>
                       <input
                         type="time"
                         value={attendanceForm.checkOut}
@@ -969,7 +969,7 @@ const AttendanceTracking = () => {
                   </div>
 
                   {attendanceForm.checkIn && attendanceForm.checkOut && (
-                    <div className="p-3 bg-blue-50 border border-blue-200 rounded-lg">
+                    <div className="p-3 bg-card border border-blue-200 rounded-lg">
                       <p className="text-sm text-blue-800">
                         Total hours: <span className="font-bold">{calculateHours(attendanceForm.checkIn, attendanceForm.checkOut).toFixed(1)}h</span>
                       </p>
@@ -977,14 +977,14 @@ const AttendanceTracking = () => {
                   )}
                 </>
               ) : (
-                <div className="p-4 bg-gray-50 border border-gray-200 rounded-lg">
-                  <p className="text-sm text-gray-600">Check in/out times are not required for absent or leave status.</p>
+                <div className="p-4 bg-card border border-theme rounded-lg">
+                  <p className="text-sm text-secondary">Check in/out times are not required for absent or leave status.</p>
                 </div>
               )}
 
               {/* Notes/Remarks Field - Always visible, but especially important for absent/leave */}
               <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-2">
+                <label className="block text-sm font-semibold text-primary mb-2">
                   Notes/Remarks
                   {(attendanceForm.status === 'absent' || attendanceForm.status === 'leave') && (
                     <span className="text-red-500 ml-1">*</span>
@@ -1008,7 +1008,7 @@ const AttendanceTracking = () => {
             </div>
 
             {/* Fixed Footer */}
-            <div className="p-6 border-t border-gray-200 flex-shrink-0">
+            <div className="p-6 border-t border-theme flex-shrink-0">
               <div className="flex gap-3">
                 <button
                   onClick={() => {
@@ -1023,7 +1023,7 @@ const AttendanceTracking = () => {
                       notes: ''
                     });
                   }}
-                  className="flex-1 px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors font-medium"
+                  className="flex-1 px-4 py-2 border border-gray-300 rounded-lg hover:bg-[rgba(255,255,255,0.03)] transition-colors font-medium"
                 >
                   Cancel
                 </button>
@@ -1054,23 +1054,23 @@ const AttendanceTracking = () => {
       {/* Duplicate Attendance Warning Modal */}
       {showDuplicateModal && duplicateRecord && (
         <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4">
-          <div className="w-full max-w-lg max-h-[90vh] rounded-2xl bg-white shadow-2xl flex flex-col">
+          <div className="w-full max-w-lg max-h-[90vh] rounded-2xl bg-card shadow-2xl flex flex-col">
             {/* Header - Fixed */}
-            <div className="border-b border-gray-200 px-6 py-4 flex-shrink-0">
+            <div className="border-b border-theme px-6 py-4 flex-shrink-0">
               <div className="flex items-center gap-3">
                 <div className="flex h-10 w-10 items-center justify-center rounded-full bg-yellow-100">
-                  <XCircle className="h-6 w-6 text-yellow-600" />
+                  <XCircle className="h-6 w-6 text-[#00FFA3]" />
                 </div>
                 <div className="flex-1">
-                  <h3 className="text-lg font-semibold text-gray-900">Attendance Record Already Exists</h3>
-                  <p className="text-sm text-gray-500">An attendance record already exists for this employee and date</p>
+                  <h3 className="text-lg font-semibold text-primary">Attendance Record Already Exists</h3>
+                  <p className="text-sm text-secondary">An attendance record already exists for this employee and date</p>
                 </div>
                 <button
                   onClick={() => {
                     setShowDuplicateModal(false);
                     setDuplicateRecord(null);
                   }}
-                  className="p-1 rounded-lg text-gray-400 hover:text-gray-600 hover:bg-gray-100 transition-colors"
+                  className="p-1 rounded-lg text-secondary hover:text-secondary hover:bg-gray-100 transition-colors"
                 >
                   <X className="h-5 w-5" />
                 </button>
@@ -1078,16 +1078,16 @@ const AttendanceTracking = () => {
             </div>
             {/* Content - Scrollable */}
             <div className="px-6 py-5 overflow-y-auto custom-scrollbar flex-1">
-              <div className="mb-4 rounded-lg bg-gray-50 p-4">
+              <div className="mb-4 rounded-lg bg-card p-4">
                 <div className="mb-3">
-                  <p className="text-sm font-medium text-gray-700 mb-2">Employee:</p>
-                  <p className="text-base text-gray-900">
+                  <p className="text-sm font-medium text-primary mb-2">Employee:</p>
+                  <p className="text-base text-primary">
                     {employees.find(e => e._id === attendanceForm.employeeId)?.name || 'Unknown'}
                   </p>
                 </div>
                 <div className="mb-3">
-                  <p className="text-sm font-medium text-gray-700 mb-2">Date:</p>
-                  <p className="text-base text-gray-900">
+                  <p className="text-sm font-medium text-primary mb-2">Date:</p>
+                  <p className="text-base text-primary">
                     {new Date(attendanceForm.date).toLocaleDateString('en-US', { 
                       weekday: 'long', 
                       year: 'numeric', 
@@ -1096,20 +1096,20 @@ const AttendanceTracking = () => {
                     })}
                   </p>
                 </div>
-                <div className="border-t border-gray-200 pt-3 mt-3">
-                  <p className="text-sm font-medium text-gray-700 mb-3">Existing Record Details:</p>
+                <div className="border-t border-theme pt-3 mt-3">
+                  <p className="text-sm font-medium text-primary mb-3">Existing Record Details:</p>
                   <div className="grid grid-cols-2 gap-4">
                     <div>
-                      <p className="text-xs text-gray-500">Check In</p>
-                      <p className="text-sm font-medium text-gray-900">{duplicateRecord.checkIn || '--'}</p>
+                      <p className="text-xs text-secondary">Check In</p>
+                      <p className="text-sm font-medium text-primary">{duplicateRecord.checkIn || '--'}</p>
                     </div>
                     <div>
-                      <p className="text-xs text-gray-500">Check Out</p>
-                      <p className="text-sm font-medium text-gray-900">{duplicateRecord.checkOut || '--'}</p>
+                      <p className="text-xs text-secondary">Check Out</p>
+                      <p className="text-sm font-medium text-primary">{duplicateRecord.checkOut || '--'}</p>
                     </div>
                     <div>
-                      <p className="text-xs text-gray-500">Hours</p>
-                      <p className="text-sm font-medium text-gray-900">
+                      <p className="text-xs text-secondary">Hours</p>
+                      <p className="text-sm font-medium text-primary">
                         {(() => {
                           const hours = duplicateRecord.totalHours || 0;
                           if (hours < 1 && hours > 0) {
@@ -1121,34 +1121,34 @@ const AttendanceTracking = () => {
                       </p>
                     </div>
                     <div>
-                      <p className="text-xs text-gray-500">Status</p>
+                      <p className="text-xs text-secondary">Status</p>
                       <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-semibold border ${getStatusBadge(duplicateRecord.status === 'late' ? 'present' : duplicateRecord.status)}`}>
                         {duplicateRecord.status === 'late' ? 'Present' : (duplicateRecord.status.charAt(0).toUpperCase() + duplicateRecord.status.slice(1))}
                       </span>
                     </div>
                   </div>
                   {duplicateRecord.notes && (
-                    <div className="mt-3 pt-3 border-t border-gray-200">
-                      <p className="text-xs text-gray-500 mb-1">Notes</p>
-                      <p className="text-sm text-gray-900">{duplicateRecord.notes}</p>
+                    <div className="mt-3 pt-3 border-t border-theme">
+                      <p className="text-xs text-secondary mb-1">Notes</p>
+                      <p className="text-sm text-primary">{duplicateRecord.notes}</p>
                     </div>
                   )}
                 </div>
               </div>
-              <div className="rounded-lg bg-blue-50 border border-blue-200 p-3">
+              <div className="rounded-lg bg-card border border-blue-200 p-3">
                 <p className="text-sm text-blue-800">
                   <strong>Would you like to update the existing record</strong> with the new information you've entered?
                 </p>
               </div>
             </div>
             {/* Footer - Fixed */}
-            <div className="flex gap-3 border-t border-gray-200 px-6 py-4 flex-shrink-0">
+            <div className="flex gap-3 border-t border-theme px-6 py-4 flex-shrink-0">
               <button
                 onClick={() => {
                   setShowDuplicateModal(false);
                   setDuplicateRecord(null);
                 }}
-                className="flex-1 rounded-lg border border-gray-300 px-4 py-2 font-medium text-gray-700 transition-colors hover:bg-gray-50"
+                className="flex-1 rounded-lg border border-gray-300 px-4 py-2 font-medium text-primary transition-colors hover:bg-[rgba(255,255,255,0.03)]"
               >
                 Cancel
               </button>
@@ -1213,18 +1213,18 @@ const AttendanceTracking = () => {
 
           {/* Sidebar Panel */}
           <div
-            className="fixed right-0 top-0 h-full w-full md:w-2/3 lg:w-1/2 bg-white shadow-2xl z-50 overflow-y-auto transform transition-transform duration-300 translate-x-0"
+            className="fixed right-0 top-0 h-full w-full md:w-2/3 lg:w-1/2 bg-card shadow-2xl z-50 overflow-y-auto transform transition-transform duration-300 translate-x-0"
           >
             <div className="p-6">
               {/* Header */}
-              <div className="flex justify-between items-center mb-6 pb-4 border-b-2 border-gray-200">
-                <h2 className="text-2xl font-bold text-gray-900">Attendance Details</h2>
+              <div className="flex justify-between items-center mb-6 pb-4 border-b-2 border-theme">
+                <h2 className="text-2xl font-bold text-primary">Attendance Details</h2>
                 <button
                   onClick={() => {
                     setShowDetailsSidebar(false);
                     setTimeout(() => setSelectedRecord(null), 300);
                   }}
-                  className="p-2 rounded-lg text-gray-400 hover:text-gray-600 hover:bg-gray-100 transition-all"
+                  className="p-2 rounded-lg text-secondary hover:text-secondary hover:bg-gray-100 transition-all"
                 >
                   <X size={24} />
                 </button>
@@ -1258,21 +1258,21 @@ const AttendanceTracking = () => {
 
                 {/* Attendance Information */}
                 {selectedRecord && (
-                  <div className="bg-gray-50 p-6 rounded-lg border border-gray-200">
-                    <h4 className="font-semibold text-gray-900 mb-4 text-lg flex items-center gap-2">
-                      <Briefcase size={20} className="text-blue-600" />
+                  <div className="bg-card p-6 rounded-lg border border-theme">
+                    <h4 className="font-semibold text-primary mb-4 text-lg flex items-center gap-2">
+                      <Briefcase size={20} className="text-[#00D1FF]" />
                       Attendance Information
                     </h4>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       <div>
-                        <p className="text-sm text-gray-500 mb-1">Employee Name</p>
-                        <p className="font-medium text-gray-900">
+                        <p className="text-sm text-secondary mb-1">Employee Name</p>
+                        <p className="font-medium text-primary">
                           {typeof selectedRecord.employee === 'string' ? (employees.find((e: { _id: string; name: string }) => e._id === selectedRecord.employee)?.name || 'N/A') : (selectedRecord.employee as any)?.name || 'N/A'}
                         </p>
                       </div>
                       <div>
-                        <p className="text-sm text-gray-500 mb-1">Date</p>
-                        <p className="font-medium text-gray-900">
+                        <p className="text-sm text-secondary mb-1">Date</p>
+                        <p className="font-medium text-primary">
                           {new Date(selectedRecord.date).toLocaleDateString('en-US', {
                             year: 'numeric',
                             month: 'long',
@@ -1281,25 +1281,25 @@ const AttendanceTracking = () => {
                         </p>
                       </div>
                       <div>
-                        <p className="text-sm text-gray-500 mb-1">Check In</p>
-                        <p className="font-medium text-gray-900">{selectedRecord.checkIn || '—'}</p>
+                        <p className="text-sm text-secondary mb-1">Check In</p>
+                        <p className="font-medium text-primary">{selectedRecord.checkIn || '—'}</p>
                       </div>
                       <div>
-                        <p className="text-sm text-gray-500 mb-1">Check Out</p>
-                        <p className="font-medium text-gray-900">{selectedRecord.checkOut || '—'}</p>
+                        <p className="text-sm text-secondary mb-1">Check Out</p>
+                        <p className="font-medium text-primary">{selectedRecord.checkOut || '—'}</p>
                       </div>
                       <div>
-                        <p className="text-sm text-gray-500 mb-1">Total Hours</p>
-                        <p className="font-medium text-gray-900">{(selectedRecord.totalHours || 0).toFixed(1)} hours</p>
+                        <p className="text-sm text-secondary mb-1">Total Hours</p>
+                        <p className="font-medium text-primary">{(selectedRecord.totalHours || 0).toFixed(1)} hours</p>
                       </div>
                       <div className="md:col-span-2">
-                        <p className="text-sm text-gray-500 mb-1">Notes/Remarks</p>
-                        <p className="font-medium text-gray-900 whitespace-pre-wrap">
+                        <p className="text-sm text-secondary mb-1">Notes/Remarks</p>
+                        <p className="font-medium text-primary whitespace-pre-wrap">
                           {selectedRecord.notes || '—'}
                         </p>
                       </div>
                       <div>
-                        <p className="text-sm text-gray-500 mb-1">Status</p>
+                        <p className="text-sm text-secondary mb-1">Status</p>
                         <span className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-semibold border ${getStatusBadge(selectedRecord.status === 'late' ? 'present' : selectedRecord.status)}`}>
                           {selectedRecord.status === 'late' ? 'Present' : (selectedRecord.status.charAt(0).toUpperCase() + selectedRecord.status.slice(1))}
                         </span>
@@ -1310,13 +1310,13 @@ const AttendanceTracking = () => {
 
                 {/* Action Buttons */}
                 {selectedRecord && (
-                  <div className="flex justify-end gap-3 pt-4 border-t-2 border-gray-200">
+                  <div className="flex justify-end gap-3 pt-4 border-t-2 border-theme">
                     <button
                       onClick={() => {
                         setShowDetailsSidebar(false);
                         setTimeout(() => setSelectedRecord(null), 300);
                       }}
-                      className="px-6 py-2.5 bg-gray-200 text-gray-700 font-medium rounded-lg hover:bg-gray-300 transition-all"
+                      className="px-6 py-2.5 bg-gray-200 text-primary font-medium rounded-lg hover:bg-gray-300 transition-all"
                     >
                       Close
                     </button>
@@ -1372,17 +1372,17 @@ const ConfirmationModal = ({
 
   return (
     <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/60 backdrop-blur-md p-4">
-      <div className="w-full max-w-md rounded-2xl bg-white shadow-2xl">
-        <div className="border-b border-gray-200 px-6 py-4">
-          <h3 className="text-lg font-semibold text-gray-900">{title}</h3>
+      <div className="w-full max-w-md rounded-2xl bg-card shadow-2xl">
+        <div className="border-b border-theme px-6 py-4">
+          <h3 className="text-lg font-semibold text-primary">{title}</h3>
         </div>
         <div className="px-6 py-5">
-          <p className="text-sm text-gray-600">{message}</p>
+          <p className="text-sm text-secondary">{message}</p>
         </div>
-        <div className="flex gap-3 border-t border-gray-200 px-6 py-4">
+        <div className="flex gap-3 border-t border-theme px-6 py-4">
           <button
             onClick={onClose}
-            className="flex-1 rounded-lg border border-gray-300 px-4 py-2 font-medium text-gray-700 transition-colors hover:bg-gray-50"
+            className="flex-1 rounded-lg border border-gray-300 px-4 py-2 font-medium text-primary transition-colors hover:bg-[rgba(255,255,255,0.03)]"
           >
             {cancelText}
           </button>

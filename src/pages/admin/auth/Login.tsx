@@ -234,10 +234,10 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100 flex items-center justify-center px-4 py-6" style={{ fontFamily: 'var(--font-poppins)' }}>
+    <div className="min-h-screen bg-main flex items-center justify-center px-4 py-6" style={{ fontFamily: 'var(--font-poppins)' }}>
       {/* Floating Background Elements */}
       <div className="fixed inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute top-1/4 left-1/4 w-48 h-48 bg-gradient-to-r from-blue-400/10 to-indigo-400/10 rounded-full blur-3xl animate-pulse"></div>
+        <div className="absolute top-1/4 left-1/4 w-48 h-48 bg-gradient-to-r from-[var(--bg-card)] to-[var(--bg-card-light)] rounded-full blur-3xl animate-pulse"></div>
         <div className="absolute bottom-1/4 right-1/4 w-72 h-72 bg-gradient-to-r from-blue-400/10 to-blue-500/10 rounded-full blur-3xl animate-pulse delay-1000"></div>
       </div>
 
@@ -249,67 +249,67 @@ export default function LoginPage() {
               <div className="flex items-center justify-center lg:justify-start gap-2 mb-2">
                 <img src={Logo} alt="Logo" className="w-28 h-auto" />
               </div>
-              <p className="text-sm text-gray-600 max-w-md mx-auto lg:mx-0">
+              <p className="text-sm text-secondary max-w-md mx-auto lg:mx-0">
                 Sign in to access your logistics dashboard and manage your operations efficiently.
               </p>
             </div>
 
             {/* Feature Cards */}
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-              <div className="bg-white/60 backdrop-blur-sm rounded-xl p-4 border border-gray-200/50 hover:shadow-lg transition-all duration-300">
-                <div className="w-10 h-10 bg-gradient-to-r from-blue-500 to-blue-600 rounded-lg flex items-center justify-center mx-auto mb-2">
+              <div className="bg-card/60 backdrop-blur-sm rounded-xl p-4 border border-theme/50 hover:shadow-lg transition-all duration-300">
+                <div className="w-10 h-10 bg-gradient-to-r bg-[var(--accent-blue)] rounded-lg flex items-center justify-center mx-auto mb-2">
                   <Truck className="w-5 h-5 text-white" />
                 </div>
-                <h4 className="font-semibold text-xs text-gray-800 mb-1">Fleet Tracking</h4>
-                <p className="text-xs text-gray-600">Real-time vehicle monitoring</p>
+                <h4 className="font-semibold text-xs text-primary mb-1">Fleet Tracking</h4>
+                <p className="text-xs text-secondary">Real-time vehicle monitoring</p>
               </div>
 
-              <div className="bg-white/60 backdrop-blur-sm rounded-xl p-4 border border-gray-200/50 hover:shadow-lg transition-all duration-300">
-                <div className="w-10 h-10 bg-gradient-to-r from-emerald-500 to-emerald-600 rounded-lg flex items-center justify-center mx-auto mb-2">
+              <div className="bg-card/60 backdrop-blur-sm rounded-xl p-4 border border-theme/50 hover:shadow-lg transition-all duration-300">
+                <div className="w-10 h-10 bg-gradient-to-r bg-[var(--accent-green)] rounded-lg flex items-center justify-center mx-auto mb-2">
                   <MapPin className="w-5 h-5 text-white" />
                 </div>
-                <h4 className="font-semibold text-xs text-gray-800 mb-1">Route Planning</h4>
-                <p className="text-xs text-gray-600">Optimized delivery routes</p>
+                <h4 className="font-semibold text-xs text-primary mb-1">Route Planning</h4>
+                <p className="text-xs text-secondary">Optimized delivery routes</p>
               </div>
 
-              <div className="bg-white/60 backdrop-blur-sm rounded-xl p-4 border border-gray-200/50 hover:shadow-lg transition-all duration-300">
+              <div className="bg-card/60 backdrop-blur-sm rounded-xl p-4 border border-theme/50 hover:shadow-lg transition-all duration-300">
                 <div className="w-10 h-10 bg-gradient-to-r from-blue-500 to-blue-600 rounded-lg flex items-center justify-center mx-auto mb-2">
                   <Users className="w-5 h-5 text-white" />
                 </div>
-                <h4 className="font-semibold text-xs text-gray-800 mb-1">Team Management</h4>
-                <p className="text-xs text-gray-600">Driver & staff coordination</p>
+                <h4 className="font-semibold text-xs text-primary mb-1">Team Management</h4>
+                <p className="text-xs text-secondary">Driver & staff coordination</p>
               </div>
             </div>
           </div>
 
           {/* Right Side - Login Form (Larger) */}
-          <div className="w-full max-w-lg mx-auto">
-            <div className="bg-white/80 backdrop-blur-xl rounded-2xl shadow-2xl ring-1 ring-gray-200/50 overflow-hidden">
+          <div className="w-full max-w-lg mx-auto  ">
+            <div className="bg-card/80 backdrop-blur-xl rounded-2xl shadow-2xl border border-theme overflow-hidden card-premium">
               {/* Form Header */}
-              <div className="pt-8 pb-1 text-center border-b border-gray-100">
-                <div className="w-14 h-14 mb-1 rounded-xl flex items-center justify-center mx-auto shadow-lg" style={{ backgroundColor: '#42aeec' }}>
+              <div className="pt-8 pb-1 text-center border-b border-theme">
+                <div className="w-14 h-14 mb-1 rounded-xl flex items-center justify-center mx-auto shadow-lg bg-[var(--accent-blue)]">
                   <Lock className="w-7 h-7 text-white" />
                 </div>
-                <h3 className="text-2xl font-bold text-gray-900 !mb-1" style={{ fontFamily: 'var(--font-futura)' }}>Sign In</h3>
-                <p className="text-sm text-gray-500">Access your logistics dashboard</p>
+                <h3 className="text-2xl font-bold text-primary !mb-1" style={{ fontFamily: 'var(--font-futura)' }}>Sign In</h3>
+                <p className="text-sm text-secondary">Access your logistics dashboard</p>
               </div>
 
               {/* Login Form */}
               <form onSubmit={handleSubmit} className="p-8 space-y-5">
                 {/* Email Field */}
                 <div className="space-y-2">
-                  <label className="block text-sm font-medium text-gray-700">Email Address</label>
+                  <label className="block text-sm font-medium text-primary">Email Address</label>
                   <div className="relative">
-                    <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
+                    <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-secondary" />
                     <input
                       type="email"
                       value={email}
                       onChange={(e) => setEmail(e.target.value)}
                       disabled={loading}
-                      className={`block w-full rounded-lg border pl-11 pr-4 py-3 text-sm transition-all duration-200 focus:outline-none focus:ring-2 focus:border-transparent disabled:opacity-50 disabled:cursor-not-allowed ${errors.email ? "border-red-400 bg-red-50" : "border-gray-200 hover:border-gray-300"
+                      className={`block w-full rounded-lg border pl-11 pr-4 py-3 text-sm transition-all duration-200 focus:outline-none focus:ring-2 focus:border-transparent disabled:opacity-50 disabled:cursor-not-allowed ${errors.email ? "border-red-400 bg-card" : "border-theme hover:border-gray-300"
                         }`}
-                      style={{ '--tw-ring-color': '#42aeec' } as React.CSSProperties & { '--tw-ring-color': string }}
-                      onFocus={(e) => { e.target.style.borderColor = '#42aeec'; e.target.style.boxShadow = '0 0 0 2px rgba(66, 174, 236, 0.2)'; }}
+                      style={{ '--tw-ring-color': 'var(--accent-blue)' } as React.CSSProperties & { '--tw-ring-color': string }}
+                      onFocus={(e) => { e.target.style.borderColor = 'var(--accent-blue)'; e.target.style.boxShadow = '0 0 0 2px rgba(66, 174, 236, 0.2)'; }}
                       onBlur={(e) => { e.target.style.borderColor = ''; e.target.style.boxShadow = ''; }}
                       placeholder="Enter your email"
                       autoComplete="email"
@@ -319,17 +319,17 @@ export default function LoginPage() {
                 </div>
                 <div className="space-y-2">
                   <div className="flex items-center justify-between">
-                    <label className="block text-sm font-medium text-gray-700">Password</label>
+                    <label className="block text-sm font-medium text-primary">Password</label>
 
                   </div>
                   <div className="relative">
-                    <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
+                    <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-secondary" />
                     <input
                       type={showPassword ? "text" : "password"}
                       value={password}
                       onChange={(e) => setPassword(e.target.value)}
                       disabled={loading}
-                      className={`block w-full rounded-lg border pl-11 pr-11 py-3 text-sm transition-all duration-200 focus:outline-none focus:ring-2 focus:border-transparent disabled:opacity-50 disabled:cursor-not-allowed ${errors.password ? "border-red-400 bg-red-50" : "border-gray-200 hover:border-gray-300"
+                      className={`block w-full rounded-lg border pl-11 pr-11 py-3 text-sm transition-all duration-200 focus:outline-none focus:ring-2 focus:border-transparent disabled:opacity-50 disabled:cursor-not-allowed ${errors.password ? "border-red-400 bg-card" : "border-theme hover:border-gray-300"
                         }`}
                       style={{ '--tw-ring-color': '#42aeec' } as React.CSSProperties & { '--tw-ring-color': string }}
                       onFocus={(e) => { e.target.style.borderColor = '#42aeec'; e.target.style.boxShadow = '0 0 0 2px rgba(66, 174, 236, 0.2)'; }}
@@ -341,7 +341,7 @@ export default function LoginPage() {
                       type="button"
                       onClick={() => setShowPassword(!showPassword)}
                       disabled={loading}
-                      className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600 disabled:opacity-50"
+                      className="absolute right-3 top-1/2 transform -translate-y-1/2 text-secondary hover:text-secondary disabled:opacity-50"
                     >
                       {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
                     </button>
@@ -360,9 +360,9 @@ export default function LoginPage() {
                       onChange={(e) => setRememberMe(e.target.checked)}
                       disabled={loading}
                       className="h-4 w-4 rounded border-gray-300 disabled:opacity-50"
-                      style={{ accentColor: '#42aeec' }}
+                      style={{ accentColor: 'var(--accent-blue)' }}
                     />
-                    <label htmlFor="remember" className="text-sm text-gray-600">
+                    <label htmlFor="remember" className="text-sm text-secondary">
                       Remember me
                     </label>
                   </div>
@@ -371,7 +371,7 @@ export default function LoginPage() {
                 {/* Submit Button */}
                 <div className="space-y-4">
                   {errors.submit && (
-                    <div className="text-sm text-red-600 text-center bg-red-50 border border-red-200 p-3 rounded-lg flex items-center gap-2">
+                    <div className="text-sm text-[#A855F7] text-center bg-card border border-red-200 p-3 rounded-lg flex items-center gap-2">
                       <AlertCircle className="w-4 h-4 flex-shrink-0" />
                       {errors.submit}
                     </div>
@@ -384,9 +384,9 @@ export default function LoginPage() {
                       ? "cursor-not-allowed opacity-60"
                       : "hover:shadow-xl transform hover:-translate-y-0.5"
                       }`}
-                    style={loading ? {} : { backgroundColor: '#42aeec' }}
-                    onMouseEnter={(e) => { if (!loading) e.currentTarget.style.backgroundColor = '#2e9cd9'; }}
-                    onMouseLeave={(e) => { if (!loading) e.currentTarget.style.backgroundColor = '#42aeec'; }}
+                    style={loading ? {} : { backgroundColor: 'var(--accent-blue)' }}
+                    onMouseEnter={(e) => { if (!loading) e.currentTarget.style.backgroundColor = 'var(--accent-blue)'; }}
+                    onMouseLeave={(e) => { if (!loading) e.currentTarget.style.backgroundColor = 'var(--accent-blue)'; }}
                   >
                     {loading ? (
                       <>
@@ -405,10 +405,13 @@ export default function LoginPage() {
 
 
                 {/* Sign Up Link */}
-                <div className="text-center pt-3 border-t border-gray-100">
-                  <p className="text-sm text-gray-600">
+                <div className="text-center pt-3 border-t border-theme">
+                  <p className="text-sm text-secondary">
                     Don't have an account?{" "}
-                    <a href="/admin/register" className="font-medium underline" style={{ color: '#42aeec' }} onMouseEnter={(e) => e.currentTarget.style.color = '#2e9cd9'} onMouseLeave={(e) => e.currentTarget.style.color = '#42aeec'}>
+                    <a
+                      href="/admin/register"
+                      className="font-medium underline text-accent hover:opacity-80 transition-all duration-200"
+                    >
                       Create one now
                     </a>
                   </p>
@@ -420,7 +423,7 @@ export default function LoginPage() {
         </div>
 
         {/* Footer */}
-        <div className="mt-7 text-center text-xs text-gray-500">
+        <div className="mt-7 text-center text-xs text-secondary">
           © {new Date().getFullYear()} Logistiq Innovation Platform. All rights reserved.
         </div>
 

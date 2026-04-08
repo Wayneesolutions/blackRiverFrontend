@@ -695,16 +695,16 @@ const VehicleEldMonitor = () => {
   };
 
   return (
-      <div className="min-h-screen bg-[#EDF8FF] font-sans pb-12">
+      <div className="min-h-screen bg-main font-sans pb-12">
           {/* Header */}
-          <div className="top-0 z-30 bg-white shadow-sm">
+          <div className="top-0 z-30 bg-card shadow-sm">
               <div className="px-8 py-5 flex justify-between items-center">
                   <div>
-                      <h1 className="text-2xl font-bold text-gray-900 flex items-center gap-3">
-                          <ShieldCheck size={28} className="text-blue-600" />
+                      <h1 className="text-2xl font-bold text-primary flex items-center gap-3">
+                          <ShieldCheck size={28} className="text-[#00D1FF]" />
                           Compliance Portal
                       </h1>
-                      <p className="text-sm text-gray-500 mt-1 ml-10">ELD Mandate Monitoring & HOS Audit Tracking</p>
+                      <p className="text-sm text-secondary mt-1 ml-10">ELD Mandate Monitoring & HOS Audit Tracking</p>
                   </div>
               </div>
 
@@ -720,8 +720,8 @@ const VehicleEldMonitor = () => {
                           onClick={() => setActiveTab(tab.key as any)}
                           className={`pb-3 px-2 text-sm font-bold border-b-2 transition-colors ${
                               activeTab === tab.key 
-                                  ? 'border-blue-500 text-blue-600' 
-                                  : 'border-transparent text-gray-400 hover:text-gray-600'
+                                  ? 'border-blue-500 text-[#00D1FF]' 
+                                  : 'border-transparent text-secondary hover:text-secondary'
                           }`}
                       >
                           {tab.label}
@@ -736,27 +736,27 @@ const VehicleEldMonitor = () => {
                   <div className="space-y-6">
                       {/* HOS Summary Cards */}
                       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                          <div className="bg-white p-5 rounded-xl border-l-4 border-green-500 shadow-sm">
-                              <p className="text-xs text-gray-500 font-bold uppercase">Fully Compliant</p>
+                          <div className="bg-card p-5 rounded-xl border-l-4 border-green-500 shadow-sm">
+                              <p className="text-xs text-secondary font-bold uppercase">Fully Compliant</p>
                               <h3 className="text-2xl font-bold">{summary.compliantDrivers}%</h3>
-                              <p className="text-xs text-gray-400 mt-1">{summary.totalDrivers} Drivers</p>
+                              <p className="text-xs text-secondary mt-1">{summary.totalDrivers} Drivers</p>
                           </div>
-                          <div className="bg-white p-5 rounded-xl border-l-4 border-red-500 shadow-sm">
-                              <p className="text-xs text-gray-500 font-bold uppercase">Active Violations</p>
-                              <h3 className="text-2xl font-bold text-red-600">{summary.activeViolations}</h3>
-                              <p className="text-xs text-gray-400 mt-1">Requires immediate audit</p>
+                          <div className="bg-card p-5 rounded-xl border-l-4 border-red-500 shadow-sm">
+                              <p className="text-xs text-secondary font-bold uppercase">Active Violations</p>
+                              <h3 className="text-2xl font-bold text-[#A855F7]">{summary.activeViolations}</h3>
+                              <p className="text-xs text-secondary mt-1">Requires immediate audit</p>
                           </div>
-                          <div className="bg-white p-5 rounded-xl border-l-4 border-amber-500 shadow-sm">
-                              <p className="text-xs text-gray-500 font-bold uppercase">Uncertified Logs</p>
+                          <div className="bg-card p-5 rounded-xl border-l-4 border-amber-500 shadow-sm">
+                              <p className="text-xs text-secondary font-bold uppercase">Uncertified Logs</p>
                               <h3 className="text-2xl font-bold text-amber-600">{summary.uncertifiedLogs}</h3>
-                              <p className="text-xs text-gray-400 mt-1">Pending driver signature</p>
+                              <p className="text-xs text-secondary mt-1">Pending driver signature</p>
                           </div>
                       </div>
 
                       {/* Audit Table */}
-                      <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
-                          <div className="px-6 py-4 border-b flex justify-between items-center bg-gray-50">
-                              <h3 className="font-bold text-gray-800">Driver Log Audit (Last 7 Days)</h3>
+                      <div className="bg-card rounded-xl shadow-sm border border-theme overflow-hidden">
+                          <div className="px-6 py-4 border-b flex justify-between items-center bg-card">
+                              <h3 className="font-bold text-primary">Driver Log Audit (Last 7 Days)</h3>
                               <div className="flex gap-2">
                                   <button 
                                       onClick={handleSyncHOS}
@@ -779,7 +779,7 @@ const VehicleEldMonitor = () => {
                           </div>
 
                           <table className="w-full text-sm text-left">
-                              <thead className="bg-gray-100 text-gray-600 uppercase text-[11px] font-bold">
+                              <thead className="bg-gray-100 text-secondary uppercase text-[11px] font-bold">
                                   <tr>
                                       <th className="px-6 py-4">Driver Name</th>
                                       <th className="px-6 py-4">Log Date</th>
@@ -794,7 +794,7 @@ const VehicleEldMonitor = () => {
                                   {loading ? (
                                       <tr>
                                           <td colSpan={7} className="px-6 py-8 text-center">
-                                              <div className="flex items-center justify-center text-gray-500">
+                                              <div className="flex items-center justify-center text-secondary">
                                                   <RefreshCw className="animate-spin h-5 w-5 mr-2" />
                                                   Loading HOS data...
                                               </div>
@@ -803,21 +803,21 @@ const VehicleEldMonitor = () => {
                                   ) : auditLogs.length === 0 ? (
                                       <tr>
                                           <td colSpan={7} className="px-6 py-8 text-center">
-                                              <p className="text-gray-500 mb-2">No HOS logs found.</p>
-                                              <p className="text-sm text-gray-400">
-                                                  Submit an <button type="button" onClick={() => setActiveTab('audit-form')} className="text-blue-600 hover:underline font-medium">HOS Audit Form</button> to add manual logs, or click &quot;Sync from Samsara&quot; if you have ELD integration.
+                                              <p className="text-secondary mb-2">No HOS logs found.</p>
+                                              <p className="text-sm text-secondary">
+                                                  Submit an <button type="button" onClick={() => setActiveTab('audit-form')} className="text-[#00D1FF] hover:underline font-medium">HOS Audit Form</button> to add manual logs, or click &quot;Sync from Samsara&quot; if you have ELD integration.
                                               </p>
                                           </td>
                                       </tr>
                                   ) : (
                                       auditLogs.map((log) => (
                                           <tr key={log.id} className="hover:bg-blue-50/30">
-                                              <td className="px-6 py-4 font-bold text-gray-900">{log.driver}</td>
-                                              <td className="px-6 py-4 text-gray-600">{log.date}</td>
-                                              <td className="px-6 py-4 font-mono text-gray-700">{log.driveUsed}</td>
-                                              <td className="px-6 py-4 font-mono text-gray-700">{log.dutyUsed}</td>
+                                              <td className="px-6 py-4 font-bold text-primary">{log.driver}</td>
+                                              <td className="px-6 py-4 text-secondary">{log.date}</td>
+                                              <td className="px-6 py-4 font-mono text-primary">{log.driveUsed}</td>
+                                              <td className="px-6 py-4 font-mono text-primary">{log.dutyUsed}</td>
                                               <td className="px-6 py-4">
-                                                  <span className={`font-medium ${log.violation !== 'None' ? 'text-red-600' : 'text-gray-400'}`}>
+                                                  <span className={`font-medium ${log.violation !== 'None' ? 'text-[#A855F7]' : 'text-secondary'}`}>
                                                       {log.violation}
                                                   </span>
                                               </td>
@@ -836,7 +836,7 @@ const VehicleEldMonitor = () => {
                                                           setSelectedHosLog(log);
                                                           setViewLogModalOpen(true);
                                                       }}
-                                                      className="text-blue-600 font-bold hover:underline"
+                                                      className="text-[#00D1FF] font-bold hover:underline"
                                                   >
                                                       View Log
                                                   </button>
@@ -852,15 +852,15 @@ const VehicleEldMonitor = () => {
                       {viewLogModalOpen && selectedHosLog && (
                           <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50" onClick={() => setViewLogModalOpen(false)}>
                               <div
-                                  className="bg-white rounded-xl shadow-xl max-w-2xl w-full mx-4 max-h-[90vh] overflow-hidden flex flex-col"
+                                  className="bg-card rounded-xl shadow-xl max-w-2xl w-full mx-4 max-h-[90vh] overflow-hidden flex flex-col"
                                   onClick={(e) => e.stopPropagation()}
                               >
-                                  <div className="px-6 py-4 border-b border-gray-200 flex justify-between items-center bg-gray-50">
-                                      <h3 className="text-lg font-bold text-gray-900">HOS Log Details</h3>
+                                  <div className="px-6 py-4 border-b border-theme flex justify-between items-center bg-card">
+                                      <h3 className="text-lg font-bold text-primary">HOS Log Details</h3>
                                       <button
                                           type="button"
                                           onClick={() => setViewLogModalOpen(false)}
-                                          className="p-2 rounded-lg hover:bg-gray-200 text-gray-600"
+                                          className="p-2 rounded-lg hover:bg-gray-200 text-secondary"
                                       >
                                           <X size={20} />
                                       </button>
@@ -868,19 +868,19 @@ const VehicleEldMonitor = () => {
                                   <div className="p-6 overflow-y-auto flex-1">
                                       <div className="grid grid-cols-2 gap-4 mb-6">
                                           <div>
-                                              <p className="text-xs text-gray-500 font-medium uppercase">Driver</p>
-                                              <p className="font-semibold text-gray-900">{selectedHosLog.driver}</p>
+                                              <p className="text-xs text-secondary font-medium uppercase">Driver</p>
+                                              <p className="font-semibold text-primary">{selectedHosLog.driver}</p>
                                           </div>
                                           <div>
-                                              <p className="text-xs text-gray-500 font-medium uppercase">Log Date</p>
-                                              <p className="font-semibold text-gray-900">{selectedHosLog.date}</p>
+                                              <p className="text-xs text-secondary font-medium uppercase">Log Date</p>
+                                              <p className="font-semibold text-primary">{selectedHosLog.date}</p>
                                           </div>
                                           <div>
-                                              <p className="text-xs text-gray-500 font-medium uppercase">Vehicle</p>
-                                              <p className="font-semibold text-gray-900">{selectedHosLog.vehicle}</p>
+                                              <p className="text-xs text-secondary font-medium uppercase">Vehicle</p>
+                                              <p className="font-semibold text-primary">{selectedHosLog.vehicle}</p>
                                           </div>
                                           <div>
-                                              <p className="text-xs text-gray-500 font-medium uppercase">Status</p>
+                                              <p className="text-xs text-secondary font-medium uppercase">Status</p>
                                               <span className={`inline-block px-3 py-1 rounded-full text-xs font-bold uppercase ${
                                                   selectedHosLog.status === 'compliant' ? 'bg-green-100 text-green-700' :
                                                   selectedHosLog.status === 'violation' ? 'bg-red-100 text-red-700' : 'bg-amber-100 text-amber-700'
@@ -889,31 +889,31 @@ const VehicleEldMonitor = () => {
                                               </span>
                                           </div>
                                           <div>
-                                              <p className="text-xs text-gray-500 font-medium uppercase">Driving Time</p>
-                                              <p className="font-mono font-semibold text-gray-900">{selectedHosLog.driveUsed}</p>
+                                              <p className="text-xs text-secondary font-medium uppercase">Driving Time</p>
+                                              <p className="font-mono font-semibold text-primary">{selectedHosLog.driveUsed}</p>
                                           </div>
                                           <div>
-                                              <p className="text-xs text-gray-500 font-medium uppercase">On-Duty Time</p>
-                                              <p className="font-mono font-semibold text-gray-900">{selectedHosLog.dutyUsed}</p>
+                                              <p className="text-xs text-secondary font-medium uppercase">On-Duty Time</p>
+                                              <p className="font-mono font-semibold text-primary">{selectedHosLog.dutyUsed}</p>
                                           </div>
                                           <div>
-                                              <p className="text-xs text-gray-500 font-medium uppercase">Violation</p>
-                                              <p className={`font-medium ${selectedHosLog.violation !== 'None' ? 'text-red-600' : 'text-gray-600'}`}>
+                                              <p className="text-xs text-secondary font-medium uppercase">Violation</p>
+                                              <p className={`font-medium ${selectedHosLog.violation !== 'None' ? 'text-[#A855F7]' : 'text-secondary'}`}>
                                                   {selectedHosLog.violation}
                                               </p>
                                           </div>
                                       </div>
 
-                                      <h4 className="text-sm font-bold text-gray-700 mb-3">Duty Status Breakdown</h4>
+                                      <h4 className="text-sm font-bold text-primary mb-3">Duty Status Breakdown</h4>
                                       {Array.isArray(selectedHosLog.logs) && selectedHosLog.logs.length > 0 ? (
-                                          <div className="border border-gray-200 rounded-lg overflow-hidden">
+                                          <div className="border border-theme rounded-lg overflow-hidden">
                                               <table className="w-full text-sm">
                                                   <thead className="bg-gray-100">
                                                       <tr>
-                                                          <th className="px-4 py-2 text-left font-semibold text-gray-600">Status</th>
-                                                          <th className="px-4 py-2 text-left font-semibold text-gray-600">Start</th>
-                                                          <th className="px-4 py-2 text-left font-semibold text-gray-600">End</th>
-                                                          <th className="px-4 py-2 text-right font-semibold text-gray-600">Duration</th>
+                                                          <th className="px-4 py-2 text-left font-semibold text-secondary">Status</th>
+                                                          <th className="px-4 py-2 text-left font-semibold text-secondary">Start</th>
+                                                          <th className="px-4 py-2 text-left font-semibold text-secondary">End</th>
+                                                          <th className="px-4 py-2 text-right font-semibold text-secondary">Duration</th>
                                                       </tr>
                                                   </thead>
                                                   <tbody className="divide-y divide-gray-100">
@@ -925,23 +925,23 @@ const VehicleEldMonitor = () => {
                                                           const mins = Math.round((durationMs % (1000 * 60 * 60)) / (1000 * 60));
                                                           const durationStr = `${hours}h ${mins}m`;
                                                           return (
-                                                              <tr key={idx} className="hover:bg-gray-50">
+                                                              <tr key={idx} className="hover:bg-[rgba(255,255,255,0.03)]">
                                                                   <td className="px-4 py-2">
                                                                       <span className={`px-2 py-0.5 rounded text-xs font-medium ${
                                                                           entry.status === 'Driving' ? 'bg-blue-100 text-blue-700' :
                                                                           entry.status === 'OnDuty' ? 'bg-amber-100 text-amber-700' :
-                                                                          'bg-gray-100 text-gray-700'
+                                                                          'bg-gray-100 text-primary'
                                                                       }`}>
                                                                           {entry.status || '—'}
                                                                       </span>
                                                                   </td>
-                                                                  <td className="px-4 py-2 text-gray-700">
+                                                                  <td className="px-4 py-2 text-primary">
                                                                       {start ? start.toLocaleString() : '—'}
                                                                   </td>
-                                                                  <td className="px-4 py-2 text-gray-700">
+                                                                  <td className="px-4 py-2 text-primary">
                                                                       {end ? end.toLocaleString() : '—'}
                                                                   </td>
-                                                                  <td className="px-4 py-2 text-right font-mono text-gray-700">
+                                                                  <td className="px-4 py-2 text-right font-mono text-primary">
                                                                       {durationStr}
                                                                   </td>
                                                               </tr>
@@ -951,14 +951,14 @@ const VehicleEldMonitor = () => {
                                               </table>
                                           </div>
                                       ) : (
-                                          <p className="text-sm text-gray-500 py-4">No duty status entries available for this log.</p>
+                                          <p className="text-sm text-secondary py-4">No duty status entries available for this log.</p>
                                       )}
                                   </div>
-                                  <div className="px-6 py-4 border-t border-gray-200 bg-gray-50 flex justify-end">
+                                  <div className="px-6 py-4 border-t border-theme bg-card flex justify-end">
                                       <button
                                           type="button"
                                           onClick={() => setViewLogModalOpen(false)}
-                                          className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50"
+                                          className="px-4 py-2 text-sm font-medium text-primary bg-card border border-gray-300 rounded-lg hover:bg-[rgba(255,255,255,0.03)]"
                                       >
                                           Close
                                       </button>
@@ -972,16 +972,16 @@ const VehicleEldMonitor = () => {
               {/* HOS Audit Form Tab */}
               {activeTab === 'audit-form' && (
                   <div className="space-y-6">
-                      <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-                          <h2 className="text-xl font-bold text-gray-900 mb-6 flex items-center gap-2">
-                              <FileCheck size={24} className="text-blue-600" />
+                      <div className="bg-card rounded-xl shadow-sm border border-theme p-6">
+                          <h2 className="text-xl font-bold text-primary mb-6 flex items-center gap-2">
+                              <FileCheck size={24} className="text-[#00D1FF]" />
                               HOS Audit Form
                           </h2>
                           
                           <form onSubmit={handleSubmitAudit} className="space-y-6">
                               {/* Driver Selection */}
                               <div>
-                                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                                  <label className="block text-sm font-medium text-primary mb-2">
                                       Driver <span className="text-red-500">*</span>
                                   </label>
                                   <select
@@ -1009,7 +1009,7 @@ const VehicleEldMonitor = () => {
 
                               {/* Driver ID */}
                               <div>
-                                  <label className="block text-sm font-medium text-gray-700 mb-2">Driver ID</label>
+                                  <label className="block text-sm font-medium text-primary mb-2">Driver ID</label>
                                   <input
                                       type="text"
                                       value={auditFormData.driverIdDisplay}
@@ -1021,7 +1021,7 @@ const VehicleEldMonitor = () => {
 
                               {/* Reporting To */}
                               <div>
-                                  <label className="block text-sm font-medium text-gray-700 mb-2">Reporting To</label>
+                                  <label className="block text-sm font-medium text-primary mb-2">Reporting To</label>
                                   <input
                                       type="text"
                                       value={auditFormData.reportingTo}
@@ -1033,7 +1033,7 @@ const VehicleEldMonitor = () => {
 
                               {/* Audit Date */}
                               <div>
-                                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                                  <label className="block text-sm font-medium text-primary mb-2">
                                       Audit Date <span className="text-red-500">*</span>
                                   </label>
                                   <input
@@ -1047,7 +1047,7 @@ const VehicleEldMonitor = () => {
 
                               {/* Incident Date (distinct from Audit Date) */}
                               <div>
-                                  <label className="block text-sm font-medium text-gray-700 mb-2">Incident Date</label>
+                                  <label className="block text-sm font-medium text-primary mb-2">Incident Date</label>
                                   <input
                                       type="date"
                                       value={auditFormData.incidentDate}
@@ -1055,12 +1055,12 @@ const VehicleEldMonitor = () => {
                                       className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                                       placeholder="Date when incident occurred"
                                   />
-                                  <p className="text-xs text-gray-500 mt-1">Date the incident occurred (may differ from audit date)</p>
+                                  <p className="text-xs text-secondary mt-1">Date the incident occurred (may differ from audit date)</p>
                               </div>
 
                               {/* Incident Time */}
                               <div>
-                                  <label className="block text-sm font-medium text-gray-700 mb-2">Incident Time</label>
+                                  <label className="block text-sm font-medium text-primary mb-2">Incident Time</label>
                                   <input
                                       type="time"
                                       value={auditFormData.incidentTime}
@@ -1071,7 +1071,7 @@ const VehicleEldMonitor = () => {
 
                               {/* Incident Location */}
                               <div>
-                                  <label className="block text-sm font-medium text-gray-700 mb-2">Incident Location</label>
+                                  <label className="block text-sm font-medium text-primary mb-2">Incident Location</label>
                                   <input
                                       type="text"
                                       value={auditFormData.incidentLocation}
@@ -1083,7 +1083,7 @@ const VehicleEldMonitor = () => {
 
                               {/* Incident Type (multi-select checkboxes + add option) */}
                               <div>
-                                  <label className="block text-sm font-medium text-gray-700 mb-2">Incident Type</label>
+                                  <label className="block text-sm font-medium text-primary mb-2">Incident Type</label>
                                   <div className="space-y-2 flex flex-wrap gap-x-6 gap-y-2">
                                       {[...defaultIncidentTypeOptions, ...auditFormData.incidentTypeCustomOptions].map((option) => (
                                           <label key={option} className="flex items-center gap-2 cursor-pointer">
@@ -1097,9 +1097,9 @@ const VehicleEldMonitor = () => {
                                                           setAuditFormData({ ...auditFormData, incidentTypes: auditFormData.incidentTypes.filter(t => t !== option) });
                                                       }
                                                   }}
-                                                  className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+                                                  className="w-4 h-4 text-[#00D1FF] border-gray-300 rounded focus:ring-blue-500"
                                               />
-                                              <span className="text-sm text-gray-700">{option}</span>
+                                              <span className="text-sm text-primary">{option}</span>
                                           </label>
                                       ))}
                                   </div>
@@ -1136,7 +1136,7 @@ const VehicleEldMonitor = () => {
                                                   setNewIncidentTypeOption('');
                                               }
                                           }}
-                                          className="flex items-center gap-1 text-sm text-blue-600 hover:text-blue-800 font-medium"
+                                          className="flex items-center gap-1 text-sm text-[#00D1FF] hover:text-blue-800 font-medium"
                                       >
                                           <Plus size={16} /> Add option
                                       </button>
@@ -1145,7 +1145,7 @@ const VehicleEldMonitor = () => {
 
                               {/* Prior Counseling (Yes/No) */}
                               <div>
-                                  <label className="block text-sm font-medium text-gray-700 mb-2">Prior Counseling</label>
+                                  <label className="block text-sm font-medium text-primary mb-2">Prior Counseling</label>
                                   <div className="flex gap-6">
                                       <label className="flex items-center gap-2 cursor-pointer">
                                           <input
@@ -1153,9 +1153,9 @@ const VehicleEldMonitor = () => {
                                               name="priorCounseling"
                                               checked={auditFormData.priorCounseling === 'yes'}
                                               onChange={() => setAuditFormData({ ...auditFormData, priorCounseling: 'yes' })}
-                                              className="w-4 h-4 text-blue-600 border-gray-300 focus:ring-blue-500"
+                                              className="w-4 h-4 text-[#00D1FF] border-gray-300 focus:ring-blue-500"
                                           />
-                                          <span className="text-sm text-gray-700">Yes</span>
+                                          <span className="text-sm text-primary">Yes</span>
                                       </label>
                                       <label className="flex items-center gap-2 cursor-pointer">
                                           <input
@@ -1163,16 +1163,16 @@ const VehicleEldMonitor = () => {
                                               name="priorCounseling"
                                               checked={auditFormData.priorCounseling === 'no'}
                                               onChange={() => setAuditFormData({ ...auditFormData, priorCounseling: 'no' })}
-                                              className="w-4 h-4 text-blue-600 border-gray-300 focus:ring-blue-500"
+                                              className="w-4 h-4 text-[#00D1FF] border-gray-300 focus:ring-blue-500"
                                           />
-                                          <span className="text-sm text-gray-700">No</span>
+                                          <span className="text-sm text-primary">No</span>
                                       </label>
                                   </div>
                               </div>
 
                               {/* Corrective Action Type (dropdown + add option) */}
                               <div>
-                                  <label className="block text-sm font-medium text-gray-700 mb-2">Corrective Action Type</label>
+                                  <label className="block text-sm font-medium text-primary mb-2">Corrective Action Type</label>
                                   <div className="flex gap-2 flex-wrap items-center">
                                       <select
                                           value={auditFormData.correctiveActionType}
@@ -1218,7 +1218,7 @@ const VehicleEldMonitor = () => {
                                                   setNewCorrectiveActionOption('');
                                               }
                                           }}
-                                          className="flex items-center gap-1 text-sm text-blue-600 hover:text-blue-800 font-medium"
+                                          className="flex items-center gap-1 text-sm text-[#00D1FF] hover:text-blue-800 font-medium"
                                       >
                                           <Plus size={16} /> Add
                                       </button>
@@ -1227,7 +1227,7 @@ const VehicleEldMonitor = () => {
 
                               {/* Violations */}
                               <div>
-                                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                                  <label className="block text-sm font-medium text-primary mb-2">
                                       Violations (if any)
                                   </label>
                                   <div className="space-y-2">
@@ -1249,9 +1249,9 @@ const VehicleEldMonitor = () => {
                                                           });
                                                       }
                                                   }}
-                                                  className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+                                                  className="w-4 h-4 text-[#00D1FF] border-gray-300 rounded focus:ring-blue-500"
                                               />
-                                              <span className="text-sm text-gray-700">{violation}</span>
+                                              <span className="text-sm text-primary">{violation}</span>
                                           </label>
                                       ))}
                                   </div>
@@ -1259,7 +1259,7 @@ const VehicleEldMonitor = () => {
 
                               {/* Auditor Name */}
                               <div>
-                                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                                  <label className="block text-sm font-medium text-primary mb-2">
                                       Auditor Name
                                   </label>
                                   <input
@@ -1273,7 +1273,7 @@ const VehicleEldMonitor = () => {
 
                               {/* Notes */}
                               <div>
-                                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                                  <label className="block text-sm font-medium text-primary mb-2">
                                       Notes
                                   </label>
                                   <textarea
@@ -1287,12 +1287,12 @@ const VehicleEldMonitor = () => {
 
                               {/* Document Upload */}
                               <div>
-                                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                                  <label className="block text-sm font-medium text-primary mb-2">
                                       Attach Documents
                                   </label>
                                   <div className="space-y-2">
                                       <label className="flex flex-col gap-2 cursor-pointer">
-                                          <div className="px-4 py-3 border border-gray-300 rounded-lg border-dashed hover:bg-gray-50 text-center">
+                                          <div className="px-4 py-3 border border-gray-300 rounded-lg border-dashed hover:bg-[rgba(255,255,255,0.03)] text-center">
                                               <input
                                                   type="file"
                                                   multiple
@@ -1315,22 +1315,22 @@ const VehicleEldMonitor = () => {
                                                   id="audit-document-upload"
                                               />
                                               <label htmlFor="audit-document-upload" className="cursor-pointer">
-                                                  <Upload size={24} className="mx-auto mb-1 text-gray-500" />
-                                                  <span className="text-sm text-gray-600">Click to upload or drag and drop</span>
-                                                  <p className="text-xs text-gray-400 mt-1">PDF, DOC, XLS, TXT, JPG, PNG (optional)</p>
+                                                  <Upload size={24} className="mx-auto mb-1 text-secondary" />
+                                                  <span className="text-sm text-secondary">Click to upload or drag and drop</span>
+                                                  <p className="text-xs text-secondary mt-1">PDF, DOC, XLS, TXT, JPG, PNG (optional)</p>
                                               </label>
                                           </div>
                                       </label>
                                       {auditFormDocuments.length > 0 && (
                                           <div className="mt-2 space-y-2">
-                                              <p className="text-xs text-gray-500 font-medium">Selected Documents ({auditFormDocuments.length}):</p>
+                                              <p className="text-xs text-secondary font-medium">Selected Documents ({auditFormDocuments.length}):</p>
                                               <ul className="space-y-1">
                                                   {auditFormDocuments.map((file, index) => (
-                                                      <li key={`doc-${index}-${file.name}-${file.size}-${file.lastModified}`} className="flex items-center justify-between px-3 py-2 bg-gray-50 rounded-lg text-sm border border-gray-200">
-                                                          <span className="flex items-center gap-2 text-gray-700 flex-1 min-w-0">
+                                                      <li key={`doc-${index}-${file.name}-${file.size}-${file.lastModified}`} className="flex items-center justify-between px-3 py-2 bg-card rounded-lg text-sm border border-theme">
+                                                          <span className="flex items-center gap-2 text-primary flex-1 min-w-0">
                                                               <FileText size={16} className="text-blue-500 flex-shrink-0" />
                                                               <span className="truncate" title={file.name}>{file.name}</span>
-                                                              <span className="text-gray-400 text-xs flex-shrink-0">({(file.size / 1024).toFixed(1)} KB)</span>
+                                                              <span className="text-secondary text-xs flex-shrink-0">({(file.size / 1024).toFixed(1)} KB)</span>
                                                           </span>
                                                           <button
                                                               type="button"
@@ -1379,7 +1379,7 @@ const VehicleEldMonitor = () => {
                                           });
                                           setAuditFormDocuments([]);
                                       }}
-                                      className="px-6 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50"
+                                      className="px-6 py-2 border border-gray-300 rounded-lg text-primary hover:bg-[rgba(255,255,255,0.03)]"
                                   >
                                       Reset
                                   </button>
@@ -1398,14 +1398,14 @@ const VehicleEldMonitor = () => {
                       </div>
 
                       {/* HOS Audit Table (from API) */}
-                      <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
-                          <div className="px-6 py-4 border-b bg-gray-50 flex justify-between items-center">
-                              <h3 className="font-bold text-gray-800">HOS Audit Records</h3>
+                      <div className="bg-card rounded-xl shadow-sm border border-theme overflow-hidden">
+                          <div className="px-6 py-4 border-b bg-card flex justify-between items-center">
+                              <h3 className="font-bold text-primary">HOS Audit Records</h3>
                               <button
                                   type="button"
                                   onClick={fetchAuditForms}
                                   disabled={auditTableLoading}
-                                  className="text-sm font-medium text-blue-600 hover:text-blue-800 disabled:opacity-50 flex items-center gap-1"
+                                  className="text-sm font-medium text-[#00D1FF] hover:text-blue-800 disabled:opacity-50 flex items-center gap-1"
                               >
                                   <RefreshCw size={16} className={auditTableLoading ? 'animate-spin' : ''} />
                                   Refresh
@@ -1413,7 +1413,7 @@ const VehicleEldMonitor = () => {
                           </div>
                           <div className="overflow-x-auto">
                               <table className="w-full text-sm text-left">
-                                  <thead className="bg-gray-100 text-gray-600 uppercase text-[11px] font-bold">
+                                  <thead className="bg-gray-100 text-secondary uppercase text-[11px] font-bold">
                                       <tr>
                                           <th className="px-6 py-4">Driver</th>
                                           <th className="px-6 py-4">Driver ID</th>
@@ -1430,29 +1430,29 @@ const VehicleEldMonitor = () => {
                                   <tbody className="divide-y divide-gray-100">
                                       {auditTableLoading ? (
                                           <tr>
-                                              <td colSpan={10} className="px-6 py-12 text-center text-gray-500">
+                                              <td colSpan={10} className="px-6 py-12 text-center text-secondary">
                                                   <RefreshCw className="animate-spin h-6 w-6 mx-auto mb-2" />
                                                   Loading audit records...
                                               </td>
                                           </tr>
                                       ) : auditTableData.length === 0 ? (
                                           <tr>
-                                              <td colSpan={10} className="px-6 py-12 text-center text-gray-500">
+                                              <td colSpan={10} className="px-6 py-12 text-center text-secondary">
                                                   No audit records yet. Submit the form above to create one.
                                               </td>
                                           </tr>
                                       ) : (
                                           auditTableData.map((row) => (
                                               <tr key={row.id} className="hover:bg-blue-50/30">
-                                                  <td className="px-6 py-4 font-medium text-gray-900">{row.driverName}</td>
-                                                  <td className="px-6 py-4 text-gray-600">{row.driverId || '—'}</td>
-                                                  <td className="px-6 py-4 text-gray-600">{row.reportingTo || '—'}</td>
-                                                  <td className="px-6 py-4 text-gray-600">{row.auditDate ? new Date(row.auditDate).toLocaleDateString() : '—'}</td>
-                                                  <td className="px-6 py-4 text-gray-600">{row.incidentDate === '—' || !row.incidentDate ? '—' : new Date(row.incidentDate).toLocaleDateString()}</td>
-                                                  <td className="px-6 py-4 text-gray-600">{row.incidentTypes?.length ? row.incidentTypes.join(', ') : '—'}</td>
-                                                  <td className="px-6 py-4 text-gray-600 capitalize">{row.priorCounseling || '—'}</td>
-                                                  <td className="px-6 py-4 text-gray-600">{row.correctiveActionType || '—'}</td>
-                                                  <td className="px-6 py-4 text-gray-600">
+                                                  <td className="px-6 py-4 font-medium text-primary">{row.driverName}</td>
+                                                  <td className="px-6 py-4 text-secondary">{row.driverId || '—'}</td>
+                                                  <td className="px-6 py-4 text-secondary">{row.reportingTo || '—'}</td>
+                                                  <td className="px-6 py-4 text-secondary">{row.auditDate ? new Date(row.auditDate).toLocaleDateString() : '—'}</td>
+                                                  <td className="px-6 py-4 text-secondary">{row.incidentDate === '—' || !row.incidentDate ? '—' : new Date(row.incidentDate).toLocaleDateString()}</td>
+                                                  <td className="px-6 py-4 text-secondary">{row.incidentTypes?.length ? row.incidentTypes.join(', ') : '—'}</td>
+                                                  <td className="px-6 py-4 text-secondary capitalize">{row.priorCounseling || '—'}</td>
+                                                  <td className="px-6 py-4 text-secondary">{row.correctiveActionType || '—'}</td>
+                                                  <td className="px-6 py-4 text-secondary">
                                                       {row.documents?.length ? (
                                                           <button
                                                               type="button"
@@ -1476,7 +1476,7 @@ const VehicleEldMonitor = () => {
                                                                       setDetailSidebarOpen(true);
                                                                   }
                                                               }}
-                                                              className="text-blue-600 hover:text-blue-800 underline cursor-pointer text-sm font-medium"
+                                                              className="text-[#00D1FF] hover:text-blue-800 underline cursor-pointer text-sm font-medium"
                                                               title={row.documents.length === 1 ? `Open ${row.documents[0].name}` : `Click to view ${row.documents.length} files`}
                                                           >
                                                               {row.documents.length} file(s)
@@ -1491,7 +1491,7 @@ const VehicleEldMonitor = () => {
                                                                   e.stopPropagation();
                                                                   openDownloadForm(row);
                                                               }}
-                                                              className="flex items-center gap-1 text-blue-600 hover:text-blue-800 font-medium"
+                                                              className="flex items-center gap-1 text-[#00D1FF] hover:text-blue-800 font-medium"
                                                               title="Download HOS Progressive Disciplinary Action form"
                                                           >
                                                               <Download size={16} /> Download form
@@ -1503,7 +1503,7 @@ const VehicleEldMonitor = () => {
                                                                   setSelectedAuditDetail(row);
                                                                   setDetailSidebarOpen(true);
                                                               }}
-                                                              className="flex items-center gap-1 text-blue-600 hover:text-blue-800 font-medium"
+                                                              className="flex items-center gap-1 text-[#00D1FF] hover:text-blue-800 font-medium"
                                                           >
                                                               <Eye size={16} /> View details
                                                           </button>
@@ -1525,13 +1525,13 @@ const VehicleEldMonitor = () => {
                                   onClick={() => { setDetailSidebarOpen(false); setSelectedAuditDetail(null); }}
                                   aria-hidden="true"
                               />
-                              <div className="fixed top-0 right-0 h-full w-full max-w-md bg-white shadow-xl z-50 flex flex-col !mb-0 !pb-0">
-                                  <div className="flex-shrink-0 border-b border-gray-200 px-6 py-4 flex justify-between items-center bg-gray-50/80">
-                                      <h3 className="text-lg font-bold text-gray-900">Audit Details</h3>
+                              <div className="fixed top-0 right-0 h-full w-full max-w-md bg-card shadow-xl z-50 flex flex-col !mb-0 !pb-0">
+                                  <div className="flex-shrink-0 border-b border-theme px-6 py-4 flex justify-between items-center bg-gray-50/80">
+                                      <h3 className="text-lg font-bold text-primary">Audit Details</h3>
                                       <button
                                           type="button"
                                           onClick={() => { setDetailSidebarOpen(false); setSelectedAuditDetail(null); }}
-                                          className="p-2 text-gray-500 hover:text-gray-700 hover:bg-gray-200 rounded-lg transition-colors"
+                                          className="p-2 text-secondary hover:text-primary hover:bg-gray-200 rounded-lg transition-colors"
                                           aria-label="Close"
                                       >
                                           <X size={20} />
@@ -1541,84 +1541,84 @@ const VehicleEldMonitor = () => {
                                       <div className="space-y-6">
                                           {/* Driver & identification */}
                                           <section>
-                                              <h4 className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-3">Driver & identification</h4>
+                                              <h4 className="text-xs font-bold text-secondary uppercase tracking-wider mb-3">Driver & identification</h4>
                                               <div className="space-y-3">
                                                   <div className="flex flex-col gap-1">
-                                                      <span className="text-xs font-medium text-gray-500">Driver</span>
-                                                      <p className="text-gray-900 font-medium">{selectedAuditDetail.driverName}</p>
+                                                      <span className="text-xs font-medium text-secondary">Driver</span>
+                                                      <p className="text-primary font-medium">{selectedAuditDetail.driverName}</p>
                                                   </div>
                                                   <div className="flex flex-col gap-1">
-                                                      <span className="text-xs font-medium text-gray-500">Driver ID</span>
-                                                      <p className="text-gray-900">{selectedAuditDetail.driverId || '—'}</p>
+                                                      <span className="text-xs font-medium text-secondary">Driver ID</span>
+                                                      <p className="text-primary">{selectedAuditDetail.driverId || '—'}</p>
                                                   </div>
                                                   <div className="flex flex-col gap-1">
-                                                      <span className="text-xs font-medium text-gray-500">Reporting To</span>
-                                                      <p className="text-gray-900">{selectedAuditDetail.reportingTo || '—'}</p>
+                                                      <span className="text-xs font-medium text-secondary">Reporting To</span>
+                                                      <p className="text-primary">{selectedAuditDetail.reportingTo || '—'}</p>
                                                   </div>
                                               </div>
                                           </section>
 
-                                          <div className="border-t border-gray-100" />
+                                          <div className="border-t border-theme" />
 
                                           {/* Dates */}
                                           <section>
-                                              <h4 className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-3">Dates</h4>
+                                              <h4 className="text-xs font-bold text-secondary uppercase tracking-wider mb-3">Dates</h4>
                                               <div className="grid grid-cols-1 gap-3">
                                                   <div className="flex flex-col gap-1">
-                                                      <span className="text-xs font-medium text-gray-500">Audit Date</span>
-                                                      <p className="text-gray-900">{new Date(selectedAuditDetail.auditDate).toLocaleDateString()}</p>
+                                                      <span className="text-xs font-medium text-secondary">Audit Date</span>
+                                                      <p className="text-primary">{new Date(selectedAuditDetail.auditDate).toLocaleDateString()}</p>
                                                   </div>
                                                   <div className="flex flex-col gap-1">
-                                                      <span className="text-xs font-medium text-gray-500">Incident Date</span>
-                                                      <p className="text-gray-900">{selectedAuditDetail.incidentDate === '—' ? '—' : new Date(selectedAuditDetail.incidentDate).toLocaleDateString()}</p>
+                                                      <span className="text-xs font-medium text-secondary">Incident Date</span>
+                                                      <p className="text-primary">{selectedAuditDetail.incidentDate === '—' ? '—' : new Date(selectedAuditDetail.incidentDate).toLocaleDateString()}</p>
                                                   </div>
                                               </div>
                                           </section>
 
-                                          <div className="border-t border-gray-100" />
+                                          <div className="border-t border-theme" />
 
                                           {/* Hours */}
-                                          <div className="border-t border-gray-100" />
+                                          <div className="border-t border-theme" />
 
                                           {/* Incident & action */}
                                           <section>
-                                              <h4 className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-3">Incident & action</h4>
+                                              <h4 className="text-xs font-bold text-secondary uppercase tracking-wider mb-3">Incident & action</h4>
                                               <div className="space-y-3">
                                                   <div className="flex flex-col gap-1">
-                                                      <span className="text-xs font-medium text-gray-500">Incident Type</span>
-                                                      <p className="text-gray-900">{selectedAuditDetail.incidentTypes.length ? selectedAuditDetail.incidentTypes.join(', ') : '—'}</p>
+                                                      <span className="text-xs font-medium text-secondary">Incident Type</span>
+                                                      <p className="text-primary">{selectedAuditDetail.incidentTypes.length ? selectedAuditDetail.incidentTypes.join(', ') : '—'}</p>
                                                   </div>
                                                   <div className="flex flex-col gap-1">
-                                                      <span className="text-xs font-medium text-gray-500">Prior Counseling</span>
-                                                      <p className="text-gray-900 capitalize">{selectedAuditDetail.priorCounseling || '—'}</p>
+                                                      <span className="text-xs font-medium text-secondary">Prior Counseling</span>
+                                                      <p className="text-primary capitalize">{selectedAuditDetail.priorCounseling || '—'}</p>
                                                   </div>
                                                   <div className="flex flex-col gap-1">
-                                                      <span className="text-xs font-medium text-gray-500">Corrective Action Type</span>
-                                                      <p className="text-gray-900">{selectedAuditDetail.correctiveActionType || '—'}</p>
+                                                      <span className="text-xs font-medium text-secondary">Corrective Action Type</span>
+                                                      <p className="text-primary">{selectedAuditDetail.correctiveActionType || '—'}</p>
                                                   </div>
                                               </div>
                                           </section>
 
-                                          <div className="border-t border-gray-100" />
+                                          <div className="border-t border-theme" />
 
                                           {/* Violations */}
                                           <section>
-                                              <h4 className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-3">Violations</h4>
-                                              <p className="text-gray-900">{selectedAuditDetail.violations.length ? selectedAuditDetail.violations.join(', ') : 'None'}</p>
+                                              <h4 className="text-xs font-bold text-secondary uppercase tracking-wider mb-3">Violations</h4>
+                                              <p className="text-primary">{selectedAuditDetail.violations.length ? selectedAuditDetail.violations.join(', ') : 'None'}</p>
                                           </section>
 
-                                          <div className="border-t border-gray-100" />
+                                          <div className="border-t border-theme" />
 
                                           {/* Documents */}
                                           <section>
-                                              <h4 className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-3">Documents</h4>
+                                              <h4 className="text-xs font-bold text-secondary uppercase tracking-wider mb-3">Documents</h4>
                                               {selectedAuditDetail.documents?.length ? (
                                                   <ul className="space-y-2">
                                                       {selectedAuditDetail.documents.map((d, i) => {
                                                           const doc = d as any;
                                                           const hasUrl = doc?.url || doc?.key;
                                                           return (
-                                                              <li key={i} className="flex items-center justify-between gap-2 text-sm text-gray-700 group">
+                                                              <li key={i} className="flex items-center justify-between gap-2 text-sm text-primary group">
                                                                   <button
                                                                       type="button"
                                                                       onClick={async (e) => {
@@ -1639,15 +1639,15 @@ const VehicleEldMonitor = () => {
                                                                       }}
                                                                       className={`flex items-center gap-2 flex-1 text-left transition-colors ${
                                                                           hasUrl 
-                                                                              ? 'text-blue-600 hover:text-blue-800 cursor-pointer hover:underline' 
-                                                                              : 'text-gray-500 cursor-not-allowed'
+                                                                              ? 'text-[#00D1FF] hover:text-blue-800 cursor-pointer hover:underline' 
+                                                                              : 'text-secondary cursor-not-allowed'
                                                                       }`}
                                                                       disabled={!hasUrl}
                                                                       title={hasUrl ? `Click to open ${d.name}` : `File "${d.name}" is not available`}
                                                                   >
-                                                                      <FileText size={16} className={`flex-shrink-0 ${hasUrl ? 'text-blue-500' : 'text-gray-400'}`} />
+                                                                      <FileText size={16} className={`flex-shrink-0 ${hasUrl ? 'text-blue-500' : 'text-secondary'}`} />
                                                                       <span className="truncate">{d.name}</span>
-                                                                      <span className="text-gray-400 text-xs flex-shrink-0">({(d.size / 1024).toFixed(1)} KB)</span>
+                                                                      <span className="text-secondary text-xs flex-shrink-0">({(d.size / 1024).toFixed(1)} KB)</span>
                                                                   </button>
                                                                   {hasUrl && (
                                                                       <Download size={14} className="text-blue-500 flex-shrink-0 opacity-0 group-hover:opacity-100 transition-opacity" />
@@ -1657,23 +1657,23 @@ const VehicleEldMonitor = () => {
                                                       })}
                                                   </ul>
                                               ) : (
-                                                  <p className="text-gray-500 text-sm">None</p>
+                                                  <p className="text-secondary text-sm">None</p>
                                               )}
                                           </section>
 
-                                          <div className="border-t border-gray-100" />
+                                          <div className="border-t border-theme" />
 
                                           {/* Auditor & notes */}
                                           <section>
-                                              <h4 className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-3">Auditor & notes</h4>
+                                              <h4 className="text-xs font-bold text-secondary uppercase tracking-wider mb-3">Auditor & notes</h4>
                                               <div className="space-y-3">
                                                   <div className="flex flex-col gap-1">
-                                                      <span className="text-xs font-medium text-gray-500">Auditor</span>
-                                                      <p className="text-gray-900">{selectedAuditDetail.auditorName || '—'}</p>
+                                                      <span className="text-xs font-medium text-secondary">Auditor</span>
+                                                      <p className="text-primary">{selectedAuditDetail.auditorName || '—'}</p>
                                                   </div>
                                                   <div className="flex flex-col gap-1">
-                                                      <span className="text-xs font-medium text-gray-500">Notes</span>
-                                                      <p className="text-gray-900 text-sm leading-relaxed bg-gray-50 rounded-lg p-3 border border-gray-100">{selectedAuditDetail.notes || '—'}</p>
+                                                      <span className="text-xs font-medium text-secondary">Notes</span>
+                                                      <p className="text-primary text-sm leading-relaxed bg-card rounded-lg p-3 border border-theme">{selectedAuditDetail.notes || '—'}</p>
                                                   </div>
                                               </div>
                                           </section>
@@ -1692,14 +1692,14 @@ const VehicleEldMonitor = () => {
                                   aria-hidden="true"
                               />
                               <div className="fixed inset-0 z-50 flex items-start justify-center overflow-auto p-4 pt-8 pb-16">
-                                  <div className="bg-white rounded-xl shadow-xl border border-gray-200 w-full max-w-3xl my-4">
-                                      <div className="top-0 z-10 flex items-center justify-between border-b border-gray-200 px-6 py-4 bg-white rounded-t-xl">
-                                          <h3 className="text-lg font-bold text-gray-900">HOS Progressive Disciplinary Action Form</h3>
+                                  <div className="bg-card rounded-xl shadow-xl border border-theme w-full max-w-3xl my-4">
+                                      <div className="top-0 z-10 flex items-center justify-between border-b border-theme px-6 py-4 bg-card rounded-t-xl">
+                                          <h3 className="text-lg font-bold text-primary">HOS Progressive Disciplinary Action Form</h3>
                                           <div className="flex items-center gap-2">
                                               <button
                                                   type="button"
                                                   onClick={saveEditableFormState}
-                                                  className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-lg"
+                                                  className="px-4 py-2 text-sm font-medium text-primary bg-gray-100 hover:bg-gray-200 rounded-lg"
                                               >
                                                   Save
                                               </button>
@@ -1714,7 +1714,7 @@ const VehicleEldMonitor = () => {
                                               <button
                                                   type="button"
                                                   onClick={closeDownloadForm}
-                                                  className="p-2 text-gray-500 hover:text-gray-700 hover:bg-gray-200 rounded-lg"
+                                                  className="p-2 text-secondary hover:text-primary hover:bg-gray-200 rounded-lg"
                                                   aria-label="Close"
                                               >
                                                   <X size={20} />
@@ -1723,28 +1723,28 @@ const VehicleEldMonitor = () => {
                                       </div>
                                       <div ref={hosFormPrintRef} className="p-6 space-y-6 text-sm print:block">
                                           {/* Form title */}
-                                          <h2 className="text-center text-lg font-bold text-gray-900 border-b border-gray-300 pb-2">
+                                          <h2 className="text-center text-lg font-bold text-primary border-b border-gray-300 pb-2">
                                               HOS PROGRESSIVE DISCIPLINARY ACTION FORM
                                           </h2>
 
                                           {/* Employee Information (from API) */}
                                           <div className="grid grid-cols-2 gap-x-8 gap-y-2">
-                                              <div><span className="font-semibold text-gray-600">Employee Name:</span> {downloadFormRow.driverName}</div>
-                                              <div><span className="font-semibold text-gray-600">Driver ID:</span> {downloadFormRow.driverId || '—'}</div>
-                                              <div><span className="font-semibold text-gray-600">Reporting to:</span> {downloadFormRow.reportingTo || '—'}</div>
-                                              <div><span className="font-semibold text-gray-600">Date:</span> {downloadFormRow.auditDate ? new Date(downloadFormRow.auditDate).toLocaleDateString() : '—'}</div>
+                                              <div><span className="font-semibold text-secondary">Employee Name:</span> {downloadFormRow.driverName}</div>
+                                              <div><span className="font-semibold text-secondary">Driver ID:</span> {downloadFormRow.driverId || '—'}</div>
+                                              <div><span className="font-semibold text-secondary">Reporting to:</span> {downloadFormRow.reportingTo || '—'}</div>
+                                              <div><span className="font-semibold text-secondary">Date:</span> {downloadFormRow.auditDate ? new Date(downloadFormRow.auditDate).toLocaleDateString() : '—'}</div>
                                           </div>
 
                                           {/* Incident Information (from API) */}
                                           <div>
-                                              <h4 className="font-bold text-gray-800 mb-2">Incident Information</h4>
+                                              <h4 className="font-bold text-primary mb-2">Incident Information</h4>
                                               <div className="grid grid-cols-2 gap-2 mb-2">
-                                                  <div><span className="font-semibold text-gray-600">Date:</span> {downloadFormRow.incidentDate && downloadFormRow.incidentDate !== '—' ? new Date(downloadFormRow.incidentDate).toLocaleDateString() : '—'}</div>
-                                                  <div><span className="font-semibold text-gray-600">Time:</span> {downloadFormRow.incidentTime || '—'}</div>
-                                                  <div><span className="font-semibold text-gray-600">Location:</span> {downloadFormRow.incidentLocation || '—'}</div>
+                                                  <div><span className="font-semibold text-secondary">Date:</span> {downloadFormRow.incidentDate && downloadFormRow.incidentDate !== '—' ? new Date(downloadFormRow.incidentDate).toLocaleDateString() : '—'}</div>
+                                                  <div><span className="font-semibold text-secondary">Time:</span> {downloadFormRow.incidentTime || '—'}</div>
+                                                  <div><span className="font-semibold text-secondary">Location:</span> {downloadFormRow.incidentLocation || '—'}</div>
                                               </div>
                                               <div>
-                                                  <span className="font-semibold text-gray-600">Incident type:</span>
+                                                  <span className="font-semibold text-secondary">Incident type:</span>
                                                   <div className="flex flex-wrap gap-x-4 gap-y-1 mt-1">
                                                       {DISCIPLINARY_INCIDENT_TYPES.map((opt) => {
                                                           const checked = (downloadFormRow.incidentTypes || []).some(t =>
@@ -1763,7 +1763,7 @@ const VehicleEldMonitor = () => {
 
                                           {/* Incident details (from API) */}
                                           <div>
-                                              <h4 className="font-bold text-gray-800 mb-1">Incident details (has the employee been counselled before on this or a similar HOS occurrence?)</h4>
+                                              <h4 className="font-bold text-primary mb-1">Incident details (has the employee been counselled before on this or a similar HOS occurrence?)</h4>
                                               <div className="flex items-center gap-4 mb-2">
                                                   <label className="flex items-center gap-2">
                                                       <input type="checkbox" readOnly checked={(downloadFormRow.priorCounseling || '').toString().toLowerCase() === 'yes'} className="rounded border-gray-400" />
@@ -1774,14 +1774,14 @@ const VehicleEldMonitor = () => {
                                                       <span>No</span>
                                                   </label>
                                               </div>
-                                              <div className="border border-gray-200 rounded p-3 bg-gray-50 text-gray-800 min-h-[80px]">
+                                              <div className="border border-theme rounded p-3 bg-card text-primary min-h-[80px]">
                                                   {downloadFormRow.notes || '—'}
                                               </div>
                                           </div>
 
                                           {/* Corrective action (from API) */}
                                           <div>
-                                              <h4 className="font-bold text-gray-800 mb-2">Corrective action taken</h4>
+                                              <h4 className="font-bold text-primary mb-2">Corrective action taken</h4>
                                               <div className="flex flex-wrap gap-x-4 gap-y-1 mb-2">
                                                   {DISCIPLINARY_CORRECTIVE_ACTIONS.map((opt) => {
                                                       const key = opt.split(' ')[0].toLowerCase();
@@ -1794,12 +1794,12 @@ const VehicleEldMonitor = () => {
                                                       );
                                                   })}
                                               </div>
-                                              <p className="text-gray-600"><span className="font-semibold">Comments:</span> {downloadFormRow.correctiveActionType || '—'}</p>
+                                              <p className="text-secondary"><span className="font-semibold">Comments:</span> {downloadFormRow.correctiveActionType || '—'}</p>
                                           </div>
 
                                           {/* Manager's Signature (editable) */}
-                                          <div className="border-t border-gray-200 pt-4">
-                                              <label className="block font-bold text-gray-800 mb-1">Manager's Signature</label>
+                                          <div className="border-t border-theme pt-4">
+                                              <label className="block font-bold text-primary mb-1">Manager's Signature</label>
                                               <div className="flex flex-wrap items-center gap-4">
                                                   <input
                                                       type="text"
@@ -1809,7 +1809,7 @@ const VehicleEldMonitor = () => {
                                                       className="flex-1 min-w-[200px] px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                                                   />
                                                   <label className="flex items-center gap-2">
-                                                      <span className="font-semibold text-gray-600">Date:</span>
+                                                      <span className="font-semibold text-secondary">Date:</span>
                                                       <input
                                                           type="date"
                                                           value={editableFormState.managerDate}
@@ -1821,30 +1821,30 @@ const VehicleEldMonitor = () => {
                                           </div>
 
                                           {/* Notice to employee (editable) */}
-                                          <div className="border-t border-gray-200 pt-4">
-                                              <label className="block font-bold text-gray-800 mb-1">Notice to employee</label>
+                                          <div className="border-t border-theme pt-4">
+                                              <label className="block font-bold text-primary mb-1">Notice to employee</label>
                                               <textarea
                                                   value={editableFormState.noticeToEmployee}
                                                   onChange={(e) => setEditableFormState(prev => ({ ...prev, noticeToEmployee: e.target.value }))}
                                                   rows={4}
-                                                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-800"
+                                                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-primary"
                                               />
                                           </div>
 
                                           {/* Employee's comments (editable) */}
-                                          <div className="border-t border-gray-200 pt-4">
-                                              <label className="block font-bold text-gray-800 mb-1">Employee's comments</label>
+                                          <div className="border-t border-theme pt-4">
+                                              <label className="block font-bold text-primary mb-1">Employee's comments</label>
                                               <textarea
                                                   value={editableFormState.employeeComments}
                                                   onChange={(e) => setEditableFormState(prev => ({ ...prev, employeeComments: e.target.value }))}
                                                   rows={4}
-                                                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-800"
+                                                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-primary"
                                               />
                                           </div>
 
                                           {/* Employee's Signature (editable) */}
-                                          <div className="border-t border-gray-200 pt-4">
-                                              <label className="block font-bold text-gray-800 mb-1">Employee's Signature</label>
+                                          <div className="border-t border-theme pt-4">
+                                              <label className="block font-bold text-primary mb-1">Employee's Signature</label>
                                               <div className="flex flex-wrap items-center gap-4">
                                                   <input
                                                       type="text"
@@ -1854,7 +1854,7 @@ const VehicleEldMonitor = () => {
                                                       className="flex-1 min-w-[200px] px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                                                   />
                                                   <label className="flex items-center gap-2">
-                                                      <span className="font-semibold text-gray-600">Date:</span>
+                                                      <span className="font-semibold text-secondary">Date:</span>
                                                       <input
                                                           type="date"
                                                           value={editableFormState.employeeDate}
@@ -1876,16 +1876,16 @@ const VehicleEldMonitor = () => {
               {activeTab === 'e-logs' && (
                   <div className="space-y-6">
                       {/* Upload Section */}
-                      <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-                          <h2 className="text-xl font-bold text-gray-900 mb-4 flex items-center gap-2">
-                              <Upload size={24} className="text-blue-600" />
+                      <div className="bg-card rounded-xl shadow-sm border border-theme p-6">
+                          <h2 className="text-xl font-bold text-primary mb-4 flex items-center gap-2">
+                              <Upload size={24} className="text-[#00D1FF]" />
                               Upload E-Log File
                           </h2>
                           
                           <div className="space-y-4">
                               {/* Driver Selection (Optional) */}
                               <div>
-                                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                                  <label className="block text-sm font-medium text-primary mb-2">
                                       Driver (Optional)
                                   </label>
                                   <select
@@ -1904,7 +1904,7 @@ const VehicleEldMonitor = () => {
 
                               {/* File Upload */}
                               <div>
-                                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                                  <label className="block text-sm font-medium text-primary mb-2">
                                       Select E-Log File <span className="text-red-500">*</span>
                                   </label>
                                   <div className="flex items-center gap-4">
@@ -1915,9 +1915,9 @@ const VehicleEldMonitor = () => {
                                               onChange={(e) => setSelectedFile(e.target.files?.[0] || null)}
                                               className="hidden"
                                           />
-                                          <div className="px-4 py-3 border border-gray-300 rounded-lg border-dashed hover:bg-gray-50 text-center">
+                                          <div className="px-4 py-3 border border-gray-300 rounded-lg border-dashed hover:bg-[rgba(255,255,255,0.03)] text-center">
                                               {selectedFile ? (
-                                                  <div className="flex items-center justify-center gap-2 text-blue-600">
+                                                  <div className="flex items-center justify-center gap-2 text-[#00D1FF]">
                                                       <FileText size={20} />
                                                       <span className="font-medium">{selectedFile.name}</span>
                                                       <button
@@ -1931,7 +1931,7 @@ const VehicleEldMonitor = () => {
                                                       </button>
                                                   </div>
                                               ) : (
-                                                  <div className="text-gray-500">
+                                                  <div className="text-secondary">
                                                       <Upload size={24} className="mx-auto mb-2" />
                                                       <span>Click to select file or drag and drop</span>
                                                       <p className="text-xs mt-1">PDF, TXT, CSV, XLSX (Max 20MB)</p>
@@ -1969,26 +1969,26 @@ const VehicleEldMonitor = () => {
                       </div>
 
                       {/* E-Logs List */}
-                      <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
-                          <div className="px-6 py-4 border-b bg-gray-50">
-                              <h3 className="font-bold text-gray-800 flex items-center gap-2">
-                                  <FileText size={20} className="text-blue-600" />
+                      <div className="bg-card rounded-xl shadow-sm border border-theme overflow-hidden">
+                          <div className="px-6 py-4 border-b bg-card">
+                              <h3 className="font-bold text-primary flex items-center gap-2">
+                                  <FileText size={20} className="text-[#00D1FF]" />
                                   Uploaded E-Logs
                               </h3>
                           </div>
 
                           {eLogsLoading ? (
                               <div className="px-6 py-8 text-center">
-                                  <RefreshCw className="animate-spin h-5 w-5 mx-auto text-gray-500" />
+                                  <RefreshCw className="animate-spin h-5 w-5 mx-auto text-secondary" />
                               </div>
                           ) : eLogs.length === 0 ? (
-                              <div className="px-6 py-8 text-center text-gray-500">
+                              <div className="px-6 py-8 text-center text-secondary">
                                   No E-Log files uploaded yet.
                               </div>
                           ) : (
                               <div className="overflow-x-auto">
                                   <table className="w-full text-sm text-left">
-                                      <thead className="bg-gray-100 text-gray-600 uppercase text-[11px] font-bold">
+                                      <thead className="bg-gray-100 text-secondary uppercase text-[11px] font-bold">
                                           <tr>
                                               <th className="px-6 py-4">File Name</th>
                                               <th className="px-6 py-4">Driver</th>
@@ -2000,7 +2000,7 @@ const VehicleEldMonitor = () => {
                                       <tbody className="divide-y divide-gray-100">
                                           {eLogs.map((log) => (
                                               <tr key={log._id} className="hover:bg-blue-50/30">
-                                                  <td className="px-6 py-4 font-medium text-gray-900">
+                                                  <td className="px-6 py-4 font-medium text-primary">
                                                       {editingELogId === log._id ? (
                                                           <div className="flex items-center gap-2">
                                                               <input
@@ -2025,7 +2025,7 @@ const VehicleEldMonitor = () => {
                                                               <button
                                                                   type="button"
                                                                   onClick={cancelRenameELog}
-                                                                  className="p-1.5 text-gray-500 hover:bg-gray-100 rounded"
+                                                                  className="p-1.5 text-secondary hover:bg-gray-100 rounded"
                                                                   title="Cancel"
                                                               >
                                                                   <X size={16} />
@@ -2038,7 +2038,7 @@ const VehicleEldMonitor = () => {
                                                               <button
                                                                   type="button"
                                                                   onClick={() => startRenameELog(log)}
-                                                                  className="p-1 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded flex-shrink-0"
+                                                                  className="p-1 text-secondary hover:text-[#00D1FF] hover:bg-blue-50 rounded flex-shrink-0"
                                                                   title="Rename"
                                                               >
                                                                   <Pencil size={14} />
@@ -2046,28 +2046,28 @@ const VehicleEldMonitor = () => {
                                                           </div>
                                                       )}
                                                   </td>
-                                                  <td className="px-6 py-4 text-gray-600">
+                                                  <td className="px-6 py-4 text-secondary">
                                                       {typeof log.driverId === 'object' && log.driverId?.name 
                                                         ? log.driverId.name 
                                                         : log.driverName || 'N/A'}
                                                   </td>
-                                                  <td className="px-6 py-4 text-gray-600">
+                                                  <td className="px-6 py-4 text-secondary">
                                                       {(log.fileSize / 1024 / 1024).toFixed(2)} MB
                                                   </td>
-                                                  <td className="px-6 py-4 text-gray-600">
+                                                  <td className="px-6 py-4 text-secondary">
                                                       {new Date(log.uploadedAt).toLocaleDateString()}
                                                   </td>
                                                   <td className="px-6 py-4">
                                                       <div className="flex items-center gap-2">
                                                           <button
                                                               onClick={() => handleDownloadELog(log._id, log.fileName)}
-                                                              className="text-blue-600 hover:text-blue-800 font-medium"
+                                                              className="text-[#00D1FF] hover:text-blue-800 font-medium"
                                                           >
                                                               <Download size={16} />
                                                           </button>
                                                           <button
                                                               onClick={() => handleDeleteELog(log._id)}
-                                                              className="text-red-600 hover:text-red-800 font-medium"
+                                                              className="text-[#A855F7] hover:text-red-800 font-medium"
                                                           >
                                                               <X size={16} />
                                                           </button>

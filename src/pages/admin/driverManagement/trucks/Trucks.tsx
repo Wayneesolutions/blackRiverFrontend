@@ -1681,15 +1681,15 @@ const Trucks: React.FC = () => {
         if (sortConfig.key !== key) {
             return (
                 <div className="flex flex-col">
-                    <ChevronUp className="w-3 h-3 text-gray-400" />
-                    <ChevronDown className="w-3 h-3 text-gray-400 -mt-1" />
+                    <ChevronUp className="w-3 h-3 text-secondary" />
+                    <ChevronDown className="w-3 h-3 text-secondary -mt-1" />
                 </div>
             );
         }
         return sortConfig.direction === 'asc' ? (
-            <ChevronUp className="w-3 h-3 text-gray-700" />
+            <ChevronUp className="w-3 h-3 text-primary" />
         ) : (
-            <ChevronDown className="w-3 h-3 text-gray-700" />
+            <ChevronDown className="w-3 h-3 text-primary" />
         );
     };
 
@@ -1776,14 +1776,14 @@ const Trucks: React.FC = () => {
     };
 
     return (
-        <div className="min-h-screen bg-[#EDF8FF] p-6">
+        <div className="min-h-screen bg-main p-6">
             <div className="max-w-full mx-auto">
                 {/* Header Section */}
                 <div className="mb-6">
                     <div className="flex items-center justify-between mb-4">
-                        <h1 className="text-3xl font-bold text-gray-900">Trucks</h1>
+                        <h1 className="text-3xl font-bold text-primary">Trucks</h1>
                         <div className="flex items-center gap-3">
-                            <span className="text-2xl font-bold text-gray-700">({filteredTrucks.length})</span>
+                            <span className="text-2xl font-bold text-primary">({filteredTrucks.length})</span>
                             <button
                                 onClick={handleExportTrucks}
                                 title="Export to Excel"
@@ -1848,8 +1848,8 @@ const Trucks: React.FC = () => {
                 </div>
 
                 {/* Navigation Tabs */}
-                <div className="mb-6 bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
-                    <div className="flex border-b border-gray-200 overflow-x-auto">
+                <div className="mb-6 bg-card rounded-lg shadow-sm border border-theme overflow-hidden">
+                    <div className="flex border-b border-theme overflow-x-auto">
                         {/* All Tab */}
                         <button
                             type="button"
@@ -1860,7 +1860,7 @@ const Trucks: React.FC = () => {
                             }}
                             className={`flex-shrink-0 px-6 py-4 text-center font-medium transition-colors relative ${activeTab === 'All'
                                     ? 'text-[#42aeec] border-b-2 border-[#42aeec]'
-                                    : 'text-gray-600 hover:bg-gray-50'
+                                    : 'text-secondary hover:bg-[rgba(255,255,255,0.03)]'
                                 }`}
                         >
                             <div>
@@ -1882,14 +1882,14 @@ const Trucks: React.FC = () => {
                                 }}
                                 className={`flex-shrink-0 px-6 py-4 text-center font-medium transition-colors relative ${activeTab === yard._id?.toString()
                                         ? 'text-[#42aeec] border-b-2 border-[#42aeec]'
-                                        : 'text-gray-600 hover:bg-gray-50'
+                                        : 'text-secondary hover:bg-[rgba(255,255,255,0.03)]'
                                     }`}
                             >
                                 <div>
                                     <div className="font-semibold">
                                         {yard.yardName} ({getCountByCategory(yard._id?.toString() || '')})
                                     </div>
-                                    <div className="text-xs text-gray-500 mt-1">Home to {yard.yardName}</div>
+                                    <div className="text-xs text-secondary mt-1">Home to {yard.yardName}</div>
                                 </div>
                             </button>
                         ))}
@@ -1904,7 +1904,7 @@ const Trucks: React.FC = () => {
                             }}
                             className={`flex-shrink-0 px-6 py-4 text-center font-medium transition-colors relative ${activeTab === 'External'
                                     ? 'text-[#42aeec] border-b-2 border-[#42aeec]'
-                                    : 'text-gray-600 hover:bg-gray-50'
+                                    : 'text-secondary hover:bg-[rgba(255,255,255,0.03)]'
                                 }`}
                         >
                             <div>
@@ -1924,7 +1924,7 @@ const Trucks: React.FC = () => {
                             }}
                             className={`flex-shrink-0 px-6 py-4 text-center font-medium transition-colors relative ${activeTab === 'Unassigned'
                                     ? 'text-[#42aeec] border-b-2 border-[#42aeec]'
-                                    : 'text-gray-600 hover:bg-gray-50'
+                                    : 'text-secondary hover:bg-[rgba(255,255,255,0.03)]'
                                 }`}
                         >
                             <div>
@@ -1937,28 +1937,28 @@ const Trucks: React.FC = () => {
                 </div>
 
                 {/* Search and Filter Bar */}
-                <div className="mb-6 bg-white rounded-lg shadow-sm border border-gray-200 p-4">
+                <div className="mb-6 bg-card rounded-lg shadow-sm border border-theme p-4">
                     <div className="flex flex-wrap items-center gap-4">
                         {/* Search Input */}
                         <div className="flex items-center gap-2 flex-1 min-w-[300px]">
-                            <label className="text-sm font-medium text-gray-700 whitespace-nowrap">Unit #, Plate #, Make, VIN:</label>
+                            <label className="text-sm font-medium text-primary whitespace-nowrap">Unit #, Plate #, Make, VIN:</label>
                             <input
                                 type="text"
                                 placeholder="Search..."
                                 value={searchTerm}
                                 onChange={(e) => setSearchTerm(e.target.value)}
-                                className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#42aeec] focus:border-transparent bg-white"
+                                className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#42aeec] focus:border-transparent bg-card"
                             />
                            
                         </div>
 
                         {/* Global Filters */}
                         <div className="flex items-center gap-2">
-                            <label className="text-sm font-medium text-gray-700">Category:</label>
+                            <label className="text-sm font-medium text-primary">Category:</label>
                             <select
                                 value={category}
                                 onChange={(e) => setCategory(e.target.value)}
-                                className="px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#42aeec] focus:border-transparent bg-white"
+                                className="px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#42aeec] focus:border-transparent bg-card"
                             >
                                 <option value="In Service Only">In Service Only</option>
                                 <option value="All">All</option>
@@ -1966,11 +1966,11 @@ const Trucks: React.FC = () => {
                         </div>
 
                         <div className="flex items-center gap-2">
-                            <label className="text-sm font-medium text-gray-700">Compliance Status:</label>
+                            <label className="text-sm font-medium text-primary">Compliance Status:</label>
                             <select
                                 value={complianceStatus}
                                 onChange={(e) => setComplianceStatus(e.target.value)}
-                                className="px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#42aeec] focus:border-transparent bg-white"
+                                className="px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#42aeec] focus:border-transparent bg-card"
                             >
                                 <option value="All">All</option>
                                 <option value="Compliant">Compliant</option>
@@ -1980,11 +1980,11 @@ const Trucks: React.FC = () => {
                         </div>
 
                         <div className="flex items-center gap-2">
-                            <label className="text-sm font-medium text-gray-700">Sort By:</label>
+                            <label className="text-sm font-medium text-primary">Sort By:</label>
                             <select
                                 value={sortBy}
                                 onChange={(e) => setSortBy(e.target.value)}
-                                className="px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#42aeec] focus:border-transparent bg-white"
+                                className="px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#42aeec] focus:border-transparent bg-card"
                             >
                                 <option value="">Select</option>
                                 <option value="unitNumber">Unit #</option>
@@ -1997,13 +1997,13 @@ const Trucks: React.FC = () => {
                 </div>
 
                 {/* Data Table */}
-                <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
+                <div className="bg-card rounded-lg shadow-sm border border-theme overflow-hidden">
                     <div className="overflow-x-auto">
                         <table className="w-full">
-                            <thead className="bg-gray-50 border-b border-gray-200">
+                            <thead className="bg-card border-b border-theme">
                                 <tr>
                                     {/* Unit # */}
-                                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase">
+                                    <th className="px-4 py-3 text-left text-xs font-medium text-primary uppercase">
                                         <div className="flex items-center gap-2">
                                             <span>Unit #</span>
                                             <button onClick={() => handleSort('unitNumber')} className="flex flex-col">
@@ -2015,12 +2015,12 @@ const Trucks: React.FC = () => {
                                             placeholder="Filter..."
                                             value={filters.unitNumber}
                                             onChange={(e) => setFilters({ ...filters, unitNumber: e.target.value })}
-                                            className="mt-2 w-full px-2 py-1 text-xs border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-[#42aeec] bg-white"
+                                            className="mt-2 w-full px-2 py-1 text-xs border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-[#42aeec] bg-card"
                                         />
                                     </th>
 
                                     {/* Plate # */}
-                                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase">
+                                    <th className="px-4 py-3 text-left text-xs font-medium text-primary uppercase">
                                         <div className="flex items-center gap-2">
                                             <span>Plate #</span>
                                             <button onClick={() => handleSort('plateNumber')} className="flex flex-col">
@@ -2032,12 +2032,12 @@ const Trucks: React.FC = () => {
                                             placeholder="Filter..."
                                             value={filters.plateNumber}
                                             onChange={(e) => setFilters({ ...filters, plateNumber: e.target.value })}
-                                            className="mt-2 w-full px-2 py-1 text-xs border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-[#42aeec] bg-white"
+                                            className="mt-2 w-full px-2 py-1 text-xs border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-[#42aeec] bg-card"
                                         />
                                     </th>
 
                                     {/* Ownership */}
-                                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase">
+                                    <th className="px-4 py-3 text-left text-xs font-medium text-primary uppercase">
                                         <div className="flex items-center gap-2">
                                             <span>Ownership</span>
                                             <button onClick={() => handleSort('ownership')} className="flex flex-col">
@@ -2047,7 +2047,7 @@ const Trucks: React.FC = () => {
                                         <select
                                             value={filters.ownership}
                                             onChange={(e) => setFilters({ ...filters, ownership: e.target.value })}
-                                            className="mt-2 w-full px-2 py-1 text-xs border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-[#42aeec] bg-white"
+                                            className="mt-2 w-full px-2 py-1 text-xs border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-[#42aeec] bg-card"
                                         >
                                             <option value="All">All</option>
                                             <option value="COMPANY ASSET">Company Asset</option>
@@ -2056,14 +2056,14 @@ const Trucks: React.FC = () => {
                                     </th>
 
                                     {/* Operating Status */}
-                                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase">
+                                    <th className="px-4 py-3 text-left text-xs font-medium text-primary uppercase">
                                         <div className="flex items-center gap-2">
                                             <span>Operating Status</span>
                                         </div>
                                         <select
                                             value={filters.operatingStatus}
                                             onChange={(e) => setFilters({ ...filters, operatingStatus: e.target.value })}
-                                            className="mt-2 w-full px-2 py-1 text-xs border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-[#42aeec] bg-white"
+                                            className="mt-2 w-full px-2 py-1 text-xs border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-[#42aeec] bg-card"
                                         >
                                             <option value="All">All</option>
                                             <option value="IN SERVICE">In Service</option>
@@ -2073,14 +2073,14 @@ const Trucks: React.FC = () => {
                                     </th>
 
                                     {/* Dispatch Status */}
-                                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase">
+                                    <th className="px-4 py-3 text-left text-xs font-medium text-primary uppercase">
                                         <div className="flex items-center gap-2">
                                             <span>Dispatch Status</span>
                                         </div>
                                         <select
                                             value={filters.dispatchStatus}
                                             onChange={(e) => setFilters({ ...filters, dispatchStatus: e.target.value })}
-                                            className="mt-2 w-full px-2 py-1 text-xs border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-[#42aeec] bg-white"
+                                            className="mt-2 w-full px-2 py-1 text-xs border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-[#42aeec] bg-card"
                                         >
                                             <option value="All">All</option>
                                             <option value="LOADED">Loaded</option>
@@ -2092,7 +2092,7 @@ const Trucks: React.FC = () => {
                                     </th>
 
                                     {/* Dispatch Info */}
-                                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase">
+                                    <th className="px-4 py-3 text-left text-xs font-medium text-primary uppercase">
                                         <div className="flex items-center gap-2">
                                             <span>Dispatch Info</span>
                                         </div>
@@ -2101,19 +2101,19 @@ const Trucks: React.FC = () => {
                                             placeholder="Filter..."
                                             value={filters.dispatchInfo}
                                             onChange={(e) => setFilters({ ...filters, dispatchInfo: e.target.value })}
-                                            className="mt-2 w-full px-2 py-1 text-xs border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-[#42aeec] bg-white"
+                                            className="mt-2 w-full px-2 py-1 text-xs border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-[#42aeec] bg-card"
                                         />
                                     </th>
 
                                     {/* Compliance */}
-                                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase">
+                                    <th className="px-4 py-3 text-left text-xs font-medium text-primary uppercase">
                                         <div className="flex items-center gap-2">
                                             <span>Compliance</span>
                                         </div>
                                         <select
                                             value={filters.compliance}
                                             onChange={(e) => setFilters({ ...filters, compliance: e.target.value })}
-                                            className="mt-2 w-full px-2 py-1 text-xs border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-[#42aeec] bg-white"
+                                            className="mt-2 w-full px-2 py-1 text-xs border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-[#42aeec] bg-card"
                                         >
                                             <option value="All">All</option>
                                             <option value="COMPLIANT">Compliant</option>
@@ -2123,15 +2123,15 @@ const Trucks: React.FC = () => {
                                     </th>
 
                                     {/* Actions */}
-                                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase">
+                                    <th className="px-4 py-3 text-left text-xs font-medium text-primary uppercase">
                                         <span>Actions</span>
                                     </th>
                                 </tr>
                             </thead>
-                            <tbody className="bg-white divide-y divide-gray-200">
+                            <tbody className="bg-card divide-y divide-gray-200">
                                 {filteredTrucks.length === 0 ? (
                                     <tr>
-                                        <td colSpan={8} className="px-4 py-8 text-center text-gray-500">
+                                        <td colSpan={8} className="px-4 py-8 text-center text-secondary">
                                             No trucks found
                                         </td>
                                     </tr>
@@ -2139,10 +2139,10 @@ const Trucks: React.FC = () => {
                                     filteredTrucks.map((truck) => (
                                         <tr 
                                         onClick={() => handleEditTruck((truck._id || truck.id) ?? '')}
-                                        key={truck.id} className="hover:bg-gray-50 transition-colors cursor-pointer">
-                                            <td className="px-4 py-3 text-sm text-gray-900">{truck.unitNumber}</td>
-                                            <td className="px-4 py-3 text-sm text-gray-900">{truck.plateNumber}</td>
-                                            <td className="px-4 py-3 text-sm text-gray-900">{truck.ownership}</td>
+                                        key={truck.id} className="hover:bg-[rgba(255,255,255,0.03)] transition-colors cursor-pointer">
+                                            <td className="px-4 py-3 text-sm text-primary">{truck.unitNumber}</td>
+                                            <td className="px-4 py-3 text-sm text-primary">{truck.plateNumber}</td>
+                                            <td className="px-4 py-3 text-sm text-primary">{truck.ownership}</td>
                                             <td className="px-4 py-3">
                                                 <span className={`inline-block px-2.5 py-1.5 text-xs font-semibold rounded text-center min-w-[60px] ${getStatusBadgeColor(truck.operatingStatus, 'operating')}`}>
                                                     {formatStatusText(truck.operatingStatus, 'operating')}
@@ -2154,7 +2154,7 @@ const Trucks: React.FC = () => {
                                                     {truck.dispatchStatus}
                                                 </span>
                                             </td>
-                                            <td className="px-4 py-3 text-sm text-gray-900">{truck.dispatchInfo || ''}</td>
+                                            <td className="px-4 py-3 text-sm text-primary">{truck.dispatchInfo || ''}</td>
                                             <td className="px-4 py-3">
                                                 <span className={`inline-block px-2.5 py-1.5 text-xs font-semibold rounded text-center min-w-[70px] ${getStatusBadgeColor(truck.compliance, 'compliance')}`}>
                                                     {formatStatusText(truck.compliance, 'compliance')}
@@ -2167,7 +2167,7 @@ const Trucks: React.FC = () => {
                                                             e.stopPropagation();
                                                             handleEditTruck((truck._id || truck.id) ?? '');
                                                         }}
-                                                        className="p-1.5 text-blue-600 hover:bg-blue-50 rounded transition-colors"
+                                                        className="p-1.5 text-[#00D1FF] hover:bg-blue-50 rounded transition-colors"
                                                         title="Edit"
                                                     >
                                                         <Edit className="w-4 h-4" />
@@ -2177,7 +2177,7 @@ const Trucks: React.FC = () => {
                                                             e.stopPropagation();
                                                             handleDeleteClick((truck._id || truck.id) ?? '');
                                                         }}
-                                                        className="p-1.5 text-red-600 hover:bg-red-50 rounded transition-colors"
+                                                        className="p-1.5 text-[#A855F7] hover:bg-red-50 rounded transition-colors"
                                                         title="Delete"
                                                     >
                                                         <Trash2 className="w-4 h-4" />
@@ -2206,12 +2206,12 @@ const Trucks: React.FC = () => {
                             }, 300);
                         }}
                     />
-                    <div className="fixed top-0 right-0 h-full w-full sm:w-[75vw] lg:w-[70vw] xl:w-[65vw] bg-white shadow-2xl z-[101] flex overflow-hidden">
+                    <div className="fixed top-0 right-0 h-full w-full sm:w-[75vw] lg:w-[70vw] xl:w-[65vw] bg-card shadow-2xl z-[101] flex overflow-hidden">
                         {/* Left Sidebar - Image Upload & Navigation */}
-                        <div className="w-48 bg-white border-r border-gray-200 flex flex-col">
+                        <div className="w-48 bg-card border-r border-theme flex flex-col">
                             {/* Image Upload Section */}
-                            <div className="p-3 border-b border-gray-200 bg-white">
-                                <div className="border-2 border-dashed border-gray-300 rounded-lg p-4 flex flex-col items-center justify-center cursor-pointer hover:border-gray-400 transition-colors bg-white"
+                            <div className="p-3 border-b border-theme bg-card">
+                                <div className="border-2 border-dashed border-gray-300 rounded-lg p-4 flex flex-col items-center justify-center cursor-pointer hover:border-gray-400 transition-colors bg-card"
                                     onClick={() => {
                                         const input = document.createElement('input');
                                         input.type = 'file';
@@ -2234,8 +2234,8 @@ const Trucks: React.FC = () => {
                                         <img src={selectedImage} alt="Truck" className="w-full h-20 object-cover rounded" />
                                     ) : (
                                         <>
-                                            <ImageIcon className="w-8 h-8 text-gray-400 mb-1" />
-                                            <span className="text-xs text-gray-500">Select Image</span>
+                                            <ImageIcon className="w-8 h-8 text-secondary mb-1" />
+                                            <span className="text-xs text-secondary">Select Image</span>
                                         </>
                                     )}
                                 </div>
@@ -2253,7 +2253,7 @@ const Trucks: React.FC = () => {
                                             onClick={() => setActiveStep(step)}
                                             className={`w-full px-3 py-2 text-left text-xs font-medium rounded-lg transition-colors ${activeStep === step
                                                 ? 'bg-[#42aeec] !text-white shadow-sm'
-                                                : 'bg-white text-gray-700 hover:bg-gray-50 border border-gray-200'
+                                                : 'bg-card text-primary hover:bg-[rgba(255,255,255,0.03)] border border-theme'
                                                 }`}
                                         >
                                             {step}
@@ -2268,7 +2268,7 @@ const Trucks: React.FC = () => {
                                                     onClick={() => setActiveStep(step)}
                                                     className={`w-full px-3 py-2 text-left text-xs font-medium rounded-lg transition-colors ${activeStep === step
                                                         ? 'bg-[#42aeec] !text-white shadow-sm'
-                                                        : 'bg-white text-gray-700 hover:bg-gray-50 border border-gray-200'
+                                                        : 'bg-card text-primary hover:bg-[rgba(255,255,255,0.03)] border border-theme'
                                                         }`}
                                                 >
                                                     {step}
@@ -2283,8 +2283,8 @@ const Trucks: React.FC = () => {
                         {/* Main Content Area */}
                         <div className="flex-1 flex flex-col overflow-hidden">
                             {/* Header */}
-                            <div className="flex items-center justify-between p-4 border-b border-gray-200 bg-white">
-                                <h2 className="text-xl font-bold text-gray-900">{editingId ? 'Edit Truck' : 'New Truck'}</h2>
+                            <div className="flex items-center justify-between p-4 border-b border-theme bg-card">
+                                <h2 className="text-xl font-bold text-primary">{editingId ? 'Edit Truck' : 'New Truck'}</h2>
                                 <div className="flex items-center gap-2">
                                     <button
                                         onClick={handleSaveTruck}
@@ -2301,7 +2301,7 @@ const Trucks: React.FC = () => {
                                 setEditingId(null);
                             }, 300);
                         }}
-                                        className="p-1.5 text-gray-400 hover:text-gray-600 transition-colors"
+                                        className="p-1.5 text-secondary hover:text-secondary transition-colors"
                                     >
                                         <X className="w-5 h-5" />
                                     </button>
@@ -2309,14 +2309,14 @@ const Trucks: React.FC = () => {
                             </div>
 
                             {/* Content Area */}
-                            <div className="flex-1 overflow-y-auto p-4 bg-gray-50">
+                            <div className="flex-1 overflow-y-auto p-4 bg-card">
                                 {/* Details Step */}
                                 {activeStep === 'Details' && (
                                     <div className="space-y-4">
-                                        <h3 className="text-base font-semibold text-gray-900">Basic Information</h3>
+                                        <h3 className="text-base font-semibold text-primary">Basic Information</h3>
                                         <div className="grid grid-cols-2 gap-3">
                                             <div>
-                                                <label className="block text-sm font-medium text-gray-700 mb-1">
+                                                <label className="block text-sm font-medium text-primary mb-1">
                                                     Unit #<span className="text-red-500">*</span>
                                                 </label>
                                                 <input
@@ -2328,7 +2328,7 @@ const Trucks: React.FC = () => {
                                                 />
                                             </div>
                                             <div>
-                                                <label className="block text-sm font-medium text-gray-700 mb-1">
+                                                <label className="block text-sm font-medium text-primary mb-1">
                                                     VIN<span className="text-red-500">*</span>
                                                 </label>
                                                 <input
@@ -2340,7 +2340,7 @@ const Trucks: React.FC = () => {
                                                 />
                                             </div>
                                             <div>
-                                                <label className="block text-sm font-medium text-gray-700 mb-1">
+                                                <label className="block text-sm font-medium text-primary mb-1">
                                                     Plate #<span className="text-red-500">*</span>
                                                 </label>
                                                 <input
@@ -2352,7 +2352,7 @@ const Trucks: React.FC = () => {
                                                 />
                                             </div>
                                             <div>
-                                                <label className="block text-sm font-medium text-gray-700 mb-1">
+                                                <label className="block text-sm font-medium text-primary mb-1">
                                                     Registration Country<span className="text-red-500">*</span>
                                                 </label>
                                                 <select
@@ -2369,7 +2369,7 @@ const Trucks: React.FC = () => {
                                                 </select>
                                             </div>
                                             <div>
-                                                <label className="block text-sm font-medium text-gray-700 mb-1">
+                                                <label className="block text-sm font-medium text-primary mb-1">
                                                     Registration Province/State
                                                 </label>
                                                 <input
@@ -2382,7 +2382,7 @@ const Trucks: React.FC = () => {
                                                 />
                                             </div>
                                             <div>
-                                                <label className="block text-sm font-medium text-gray-700 mb-1">
+                                                <label className="block text-sm font-medium text-primary mb-1">
                                                     Make<span className="text-red-500">*</span>
                                                 </label>
                                                 <input
@@ -2394,7 +2394,7 @@ const Trucks: React.FC = () => {
                                                 />
                                             </div>
                                             <div>
-                                                <label className="block text-sm font-medium text-gray-700 mb-1">
+                                                <label className="block text-sm font-medium text-primary mb-1">
                                                     Model<span className="text-red-500">*</span>
                                                 </label>
                                                 <input
@@ -2406,7 +2406,7 @@ const Trucks: React.FC = () => {
                                                 />
                                             </div>
                                             <div>
-                                                <label className="block text-sm font-medium text-gray-700 mb-1">
+                                                <label className="block text-sm font-medium text-primary mb-1">
                                                     Year<span className="text-red-500">*</span>
                                                 </label>
                                                 <input
@@ -2418,7 +2418,7 @@ const Trucks: React.FC = () => {
                                                 />
                                             </div>
                                             <div>
-                                                <label className="block text-sm font-medium text-gray-700 mb-1">
+                                                <label className="block text-sm font-medium text-primary mb-1">
                                                     Type<span className="text-red-500">*</span>
                                                 </label>
                                                 <input
@@ -2429,7 +2429,7 @@ const Trucks: React.FC = () => {
                                                 />
                                             </div>
                                             <div>
-                                                <label className="block text-sm font-medium text-gray-700 mb-1">
+                                                <label className="block text-sm font-medium text-primary mb-1">
                                                     Weight<span className="text-red-500">*</span>
                                                 </label>
                                                 <input
@@ -2440,7 +2440,7 @@ const Trucks: React.FC = () => {
                                                 />
                                             </div>
                                             <div>
-                                                <label className="block text-sm font-medium text-gray-700 mb-1">
+                                                <label className="block text-sm font-medium text-primary mb-1">
                                                     UoM
                                                 </label>
                                                 <select
@@ -2453,7 +2453,7 @@ const Trucks: React.FC = () => {
                                                 </select>
                                             </div>
                                             <div>
-                                                <label className="block text-sm font-medium text-gray-700 mb-1">
+                                                <label className="block text-sm font-medium text-primary mb-1">
                                                     Asset Value
                                                 </label>
                                                 <input
@@ -2464,7 +2464,7 @@ const Trucks: React.FC = () => {
                                                 />
                                             </div>
                                             <div>
-                                                <label className="block text-sm font-medium text-gray-700 mb-1">
+                                                <label className="block text-sm font-medium text-primary mb-1">
                                                     Status<span className="text-red-500">*</span>
                                                 </label>
                                                 <select
@@ -2478,7 +2478,7 @@ const Trucks: React.FC = () => {
                                                 </select>
                                             </div>
                                             <div>
-                                                <label className="block text-sm font-medium text-gray-700 mb-1">
+                                                <label className="block text-sm font-medium text-primary mb-1">
                                                     Odometer
                                                 </label>
                                                 <input
@@ -2490,7 +2490,7 @@ const Trucks: React.FC = () => {
                                                 />
                                             </div>
                                             <div>
-                                                <label className="block text-sm font-medium text-gray-700 mb-1">
+                                                <label className="block text-sm font-medium text-primary mb-1">
                                                     Tracking Key
                                                 </label>
                                                 <input
@@ -2502,7 +2502,7 @@ const Trucks: React.FC = () => {
                                                 />
                                             </div>
                                             <div>
-                                                <label className="block text-sm font-medium text-gray-700 mb-1">
+                                                <label className="block text-sm font-medium text-primary mb-1">
                                                     Trailer
                                                 </label>
                                                 <select
@@ -2520,7 +2520,7 @@ const Trucks: React.FC = () => {
                                             </div>
                                         </div>
 
-                                        <h3 className="text-base font-semibold text-gray-900 mt-6">Ownership Information</h3>
+                                        <h3 className="text-base font-semibold text-primary mt-6">Ownership Information</h3>
                                         <div className="space-y-3">
                                             <div className="flex gap-2">
                                                 <button
@@ -2533,7 +2533,7 @@ const Trucks: React.FC = () => {
                                                     }}
                                                     className={`px-6 py-2 rounded-sm font-medium transition-colors ${formData.ownership === 'COMPANY ASSET'
                                                         ? 'bg-gray-700 !text-white'
-                                                        : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+                                                        : 'bg-gray-200 text-primary hover:bg-gray-300'
                                                         }`}
                                                 >
                                                     COMPANY ASSET
@@ -2542,7 +2542,7 @@ const Trucks: React.FC = () => {
                                                     onClick={() => setFormData({ ...formData, ownership: 'OWNER OPERATOR' })}
                                                     className={`px-6 py-2 rounded-sm font-medium transition-colors ${formData.ownership === 'OWNER OPERATOR'
                                                         ? 'bg-gray-700 !text-white'
-                                                        : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+                                                        : 'bg-gray-200 text-primary hover:bg-gray-300'
                                                         }`}
                                                 >
                                                     OWNER OPERATOR
@@ -2550,7 +2550,7 @@ const Trucks: React.FC = () => {
                                             </div>
                                             <div className="grid grid-cols-2 gap-3">
                                                 <div>
-                                                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                                                    <label className="block text-sm font-medium text-primary mb-1">
                                                         Operator
                                                     </label>
                                                     <select
@@ -2569,7 +2569,7 @@ const Trucks: React.FC = () => {
                                                     </select>
                                                 </div>
                                                 <div>
-                                                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                                                    <label className="block text-sm font-medium text-primary mb-1">
                                                         Co-Operator
                                                     </label>
                                                     <select
@@ -2588,7 +2588,7 @@ const Trucks: React.FC = () => {
                                                     </select>
                                                 </div>
                                                 <div>
-                                                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                                                    <label className="block text-sm font-medium text-primary mb-1">
                                                         Yard
                                                     </label>
                                                     <select
@@ -2612,7 +2612,7 @@ const Trucks: React.FC = () => {
                                 {/* Inspections Step */}
                                 {activeStep === 'Inspections' && (
                                     <div className="space-y-4">
-                                        <h3 className="text-base font-semibold text-gray-900">Truck Inspections</h3>
+                                        <h3 className="text-base font-semibold text-primary">Truck Inspections</h3>
 
                                         {/* Inspection Type Tabs */}
                                         <div className="flex gap-2">
@@ -2620,8 +2620,8 @@ const Trucks: React.FC = () => {
                                                 type="button"
                                                 onClick={() => setInspectionType('One Time')}
                                                 className={`px-6 py-2 rounded-lg font-medium transition-colors border-2 ${inspectionType === 'One Time'
-                                                    ? 'bg-white border-gray-700 text-gray-900'
-                                                    : 'bg-white border-gray-300 text-gray-700 hover:border-gray-400'
+                                                    ? 'bg-card border-gray-700 text-primary'
+                                                    : 'bg-card border-gray-300 text-primary hover:border-gray-400'
                                                     }`}
                                             >
                                                 One Time
@@ -2630,8 +2630,8 @@ const Trucks: React.FC = () => {
                                                 type="button"
                                                 onClick={() => setInspectionType('Recurring')}
                                                 className={`px-6 py-2 rounded-lg font-medium transition-colors border-2 ${inspectionType === 'Recurring'
-                                                    ? 'bg-white border-gray-700 text-gray-900'
-                                                    : 'bg-white border-gray-300 text-gray-700 hover:border-gray-400'
+                                                    ? 'bg-card border-gray-700 text-primary'
+                                                    : 'bg-card border-gray-300 text-primary hover:border-gray-400'
                                                     }`}
                                             >
                                                 Recurring
@@ -2643,9 +2643,9 @@ const Trucks: React.FC = () => {
                                             <div className="space-y-4">
                                                 <div className="flex gap-2 items-end bg-gray-100 p-4 rounded-lg">
                                                     <div className="flex-1">
-                                                        <label className="block text-sm font-medium text-gray-700 mb-1">Expiry Date</label>
+                                                        <label className="block text-sm font-medium text-primary mb-1">Expiry Date</label>
                                                         <div className="relative">
-                                                            <Calendar className="absolute left-2 top-2.5 w-4 h-4 text-gray-400" />
+                                                            <Calendar className="absolute left-2 top-2.5 w-4 h-4 text-secondary" />
                                                             <input
                                                                 type="date"
                                                                 value={inspectionForm.expiryDate}
@@ -2655,7 +2655,7 @@ const Trucks: React.FC = () => {
                                                         </div>
                                                     </div>
                                                     <div className="flex-1">
-                                                        <label className="block text-sm font-medium text-gray-700 mb-1">Description</label>
+                                                        <label className="block text-sm font-medium text-primary mb-1">Description</label>
                                                         <input
                                                             type="text"
                                                             placeholder="Description"
@@ -2665,7 +2665,7 @@ const Trucks: React.FC = () => {
                                                         />
                                                     </div>
                                                     <div>
-                                                        <label className="block text-sm font-medium text-gray-700 mb-1">File</label>
+                                                        <label className="block text-sm font-medium text-primary mb-1">File</label>
                                                         <button
                                                             type="button"
                                                             onClick={() => {
@@ -2676,7 +2676,7 @@ const Trucks: React.FC = () => {
                                                                 };
                                                                 input.click();
                                                             }}
-                                                            className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 text-sm font-medium bg-white"
+                                                            className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-[rgba(255,255,255,0.03)] text-sm font-medium bg-card"
                                                         >
                                                             {inspectionForm.file ? (
                                                                 <span className="flex items-center gap-1">
@@ -2699,7 +2699,7 @@ const Trucks: React.FC = () => {
                                                             onChange={(e) => setInspectionForm({ ...inspectionForm, ignoreExpiration: e.target.checked })}
                                                             className="w-4 h-4"
                                                         />
-                                                        <label className="text-sm text-gray-700">Ignore Expiration</label>
+                                                        <label className="text-sm text-primary">Ignore Expiration</label>
                                                     </div>
                                                     <button
                                                         onClick={handleSaveInspection}
@@ -2722,63 +2722,63 @@ const Trucks: React.FC = () => {
                                                         </button>
                                                     )}
                                                 </div>
-                                                <p className="text-sm text-gray-500">Click row to edit • Drag to reorder</p>
-                                                <div className="bg-white rounded-lg border border-gray-200 overflow-x-auto">
+                                                <p className="text-sm text-secondary">Click row to edit • Drag to reorder</p>
+                                                <div className="bg-card rounded-lg border border-theme overflow-x-auto">
                                                     <table className="w-full min-w-[800px]">
-                                                        <thead className="bg-gray-50">
+                                                        <thead className="bg-card">
                                                             <tr>
-                                                                <th className="px-4 py-2 text-left text-xs font-medium text-gray-700">Expiry Date</th>
-                                                                <th className="px-4 py-2 text-left text-xs font-medium text-gray-700">Description</th>
-                                                                <th className="px-4 py-2 text-left text-xs font-medium text-gray-700">File</th>
-                                                                <th className="px-4 py-2 text-left text-xs font-medium text-gray-700">Ignore Expiration</th>
-                                                                <th className="px-4 py-2 text-left text-xs font-medium text-gray-700">Actions</th>
+                                                                <th className="px-4 py-2 text-left text-xs font-medium text-primary">Expiry Date</th>
+                                                                <th className="px-4 py-2 text-left text-xs font-medium text-primary">Description</th>
+                                                                <th className="px-4 py-2 text-left text-xs font-medium text-primary">File</th>
+                                                                <th className="px-4 py-2 text-left text-xs font-medium text-primary">Ignore Expiration</th>
+                                                                <th className="px-4 py-2 text-left text-xs font-medium text-primary">Actions</th>
                                                             </tr>
                                                         </thead>
                                                         <tbody>
                                                             {oneTimeInspections.length === 0 ? (
                                                                 <tr>
-                                                                    <td colSpan={5} className="px-4 py-8 text-center text-gray-500">No Data</td>
+                                                                    <td colSpan={5} className="px-4 py-8 text-center text-secondary">No Data</td>
                                                                 </tr>
                                                             ) : (
                                                                 oneTimeInspections.map((inspection) => (
                                                                     <tr 
                                                                         key={inspection.id} 
-                                                                        className={`border-t border-gray-200 hover:bg-gray-50 cursor-pointer ${editingInspectionId === inspection.id ? 'bg-blue-50' : ''}`}
+                                                                        className={`border-t border-theme hover:bg-[rgba(255,255,255,0.03)] cursor-pointer ${editingInspectionId === inspection.id ? 'bg-card' : ''}`}
                                                                         onClick={() => handleEditInspection(inspection, 'oneTime')}
                                                                     >
-                                                                        <td className="px-4 py-2 text-sm text-gray-900">{inspection.expiryDate}</td>
-                                                                        <td className="px-4 py-2 text-sm text-gray-900">{inspection.description}</td>
-                                                                        <td className="px-4 py-2 text-sm text-gray-900">
+                                                                        <td className="px-4 py-2 text-sm text-primary">{inspection.expiryDate}</td>
+                                                                        <td className="px-4 py-2 text-sm text-primary">{inspection.description}</td>
+                                                                        <td className="px-4 py-2 text-sm text-primary">
                                                                             {inspection.fileName || inspection.fileUrl ? (
                                                                                 inspection.fileUrl ? (
                                                                                     <a
                                                                                         href={inspection.fileUrl}
                                                                                         target="_blank"
                                                                                         rel="noopener noreferrer"
-                                                                                        className="flex items-center gap-2 text-blue-600 hover:text-blue-800 hover:underline"
+                                                                                        className="flex items-center gap-2 text-[#00D1FF] hover:text-blue-800 hover:underline"
                                                                                         onClick={(e) => e.stopPropagation()}
                                                                                     >
                                                                                         <FileText className="w-4 h-4" />
                                                                                         <span>{inspection.fileName || 'View File'}</span>
                                                                                     </a>
                                                                                 ) : (
-                                                                                    <div className="flex items-center gap-2 text-blue-600">
+                                                                                    <div className="flex items-center gap-2 text-[#00D1FF]">
                                                                                         <FileText className="w-4 h-4" />
                                                                                         <span>{inspection.fileName || 'File attached'}</span>
                                                                                     </div>
                                                                                 )
                                                                             ) : (
-                                                                                <span className="text-gray-400">No file</span>
+                                                                                <span className="text-secondary">No file</span>
                                                                             )}
                                                                         </td>
-                                                                        <td className="px-4 py-2 text-sm text-gray-900">{inspection.ignoreExpiration ? 'Yes' : 'No'}</td>
-                                                                        <td className="px-4 py-2 text-sm text-gray-900">
+                                                                        <td className="px-4 py-2 text-sm text-primary">{inspection.ignoreExpiration ? 'Yes' : 'No'}</td>
+                                                                        <td className="px-4 py-2 text-sm text-primary">
                                                                             <button
                                                                                 onClick={(e) => {
                                                                                     e.stopPropagation();
                                                                                     handleDeleteInspection(inspection.id, 'oneTime');
                                                                                 }}
-                                                                                className="p-1 text-red-600 hover:bg-red-50 rounded"
+                                                                                className="p-1 text-[#A855F7] hover:bg-red-50 rounded"
                                                                                 title="Delete"
                                                                             >
                                                                                 <Trash2 className="w-4 h-4" />
@@ -2800,9 +2800,9 @@ const Trucks: React.FC = () => {
                                                     {/* Row 1: Scheduled On, After, Unit */}
                                                     <div className="grid grid-cols-3 gap-4">
                                                         <div>
-                                                            <label className="block text-sm font-medium text-gray-700 mb-1">Scheduled On</label>
+                                                            <label className="block text-sm font-medium text-primary mb-1">Scheduled On</label>
                                                             <div className="relative">
-                                                                <Calendar className="absolute left-2 top-2.5 w-4 h-4 text-gray-400" />
+                                                                <Calendar className="absolute left-2 top-2.5 w-4 h-4 text-secondary" />
                                                                 <input
                                                                     type="date"
                                                                     value={inspectionForm.scheduledOn}
@@ -2812,7 +2812,7 @@ const Trucks: React.FC = () => {
                                                             </div>
                                                         </div>
                                                         <div>
-                                                            <label className="block text-sm font-medium text-gray-700 mb-1">After</label>
+                                                            <label className="block text-sm font-medium text-primary mb-1">After</label>
                                                             <input
                                                                 type="text"
                                                                 placeholder="After"
@@ -2822,7 +2822,7 @@ const Trucks: React.FC = () => {
                                                             />
                                                         </div>
                                                         <div>
-                                                            <label className="block text-sm font-medium text-gray-700 mb-1">Unit</label>
+                                                            <label className="block text-sm font-medium text-primary mb-1">Unit</label>
                                                             <select
                                                                 value={inspectionForm.unit}
                                                                 onChange={(e) => setInspectionForm({ ...inspectionForm, unit: e.target.value })}
@@ -2839,7 +2839,7 @@ const Trucks: React.FC = () => {
                                                     {/* Row 2: Description and File */}
                                                     <div className="grid grid-cols-2 gap-4">
                                                         <div>
-                                                            <label className="block text-sm font-medium text-gray-700 mb-1">Description</label>
+                                                            <label className="block text-sm font-medium text-primary mb-1">Description</label>
                                                             <input
                                                                 type="text"
                                                                 placeholder="Description"
@@ -2849,11 +2849,11 @@ const Trucks: React.FC = () => {
                                                             />
                                                         </div>
                                                         <div>
-                                                            <label className="block text-sm font-medium text-gray-700 mb-1">File</label>
+                                                            <label className="block text-sm font-medium text-primary mb-1">File</label>
                                                             {inspectionForm.file ? (
-                                                                <div className="flex items-center gap-2 px-3 py-2 border border-gray-300 rounded-lg bg-white">
-                                                                    <FileText className="w-4 h-4 text-gray-600 flex-shrink-0" />
-                                                                    <span className="text-sm text-gray-700 truncate flex-1">
+                                                                <div className="flex items-center gap-2 px-3 py-2 border border-gray-300 rounded-lg bg-card">
+                                                                    <FileText className="w-4 h-4 text-secondary flex-shrink-0" />
+                                                                    <span className="text-sm text-primary truncate flex-1">
                                                                         {inspectionForm.file.name.length > 20 
                                                                             ? inspectionForm.file.name.substring(0, 20) + '...' 
                                                                             : inspectionForm.file.name}
@@ -2861,7 +2861,7 @@ const Trucks: React.FC = () => {
                                                                     <button
                                                                         type="button"
                                                                         onClick={() => setInspectionForm({ ...inspectionForm, file: null })}
-                                                                        className="text-gray-400 hover:text-red-600 transition-colors flex-shrink-0"
+                                                                        className="text-secondary hover:text-[#A855F7] transition-colors flex-shrink-0"
                                                                         title="Remove file"
                                                                     >
                                                                         <X className="w-4 h-4" />
@@ -2878,7 +2878,7 @@ const Trucks: React.FC = () => {
                                                                         };
                                                                         input.click();
                                                                     }}
-                                                                    className="w-full px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 text-sm font-medium bg-white flex items-center justify-center gap-2"
+                                                                    className="w-full px-4 py-2 border border-gray-300 rounded-lg hover:bg-[rgba(255,255,255,0.03)] text-sm font-medium bg-card flex items-center justify-center gap-2"
                                                                 >
                                                                     <Upload className="w-4 h-4" />
                                                                     <span>Select File</span>
@@ -2896,7 +2896,7 @@ const Trucks: React.FC = () => {
                                                                 onChange={(e) => setInspectionForm({ ...inspectionForm, ignoreExpiration: e.target.checked })}
                                                                 className="w-4 h-4"
                                                             />
-                                                            <label className="text-sm text-gray-700">Ignore Expiration</label>
+                                                            <label className="text-sm text-primary">Ignore Expiration</label>
                                                         </div>
                                                         <div className="flex gap-2">
                                                             <button
@@ -2924,67 +2924,67 @@ const Trucks: React.FC = () => {
                                                         </div>
                                                     </div>
                                                 </div>
-                                                <p className="text-sm text-gray-500">Click row to edit • Drag to reorder</p>
-                                                <div className="bg-white rounded-lg border border-gray-200 overflow-x-auto">
+                                                <p className="text-sm text-secondary">Click row to edit • Drag to reorder</p>
+                                                <div className="bg-card rounded-lg border border-theme overflow-x-auto">
                                                     <table className="w-full min-w-[900px]">
-                                                        <thead className="bg-gray-50">
+                                                        <thead className="bg-card">
                                                             <tr>
-                                                                <th className="px-4 py-2 text-left text-xs font-medium text-gray-700">Scheduled On</th>
-                                                                <th className="px-4 py-2 text-left text-xs font-medium text-gray-700">After</th>
-                                                                <th className="px-4 py-2 text-left text-xs font-medium text-gray-700">Unit</th>
-                                                                <th className="px-4 py-2 text-left text-xs font-medium text-gray-700">Description</th>
-                                                                <th className="px-4 py-2 text-left text-xs font-medium text-gray-700">File</th>
-                                                                <th className="px-4 py-2 text-left text-xs font-medium text-gray-700">Ignore Expiration</th>
-                                                                <th className="px-4 py-2 text-left text-xs font-medium text-gray-700">Actions</th>
+                                                                <th className="px-4 py-2 text-left text-xs font-medium text-primary">Scheduled On</th>
+                                                                <th className="px-4 py-2 text-left text-xs font-medium text-primary">After</th>
+                                                                <th className="px-4 py-2 text-left text-xs font-medium text-primary">Unit</th>
+                                                                <th className="px-4 py-2 text-left text-xs font-medium text-primary">Description</th>
+                                                                <th className="px-4 py-2 text-left text-xs font-medium text-primary">File</th>
+                                                                <th className="px-4 py-2 text-left text-xs font-medium text-primary">Ignore Expiration</th>
+                                                                <th className="px-4 py-2 text-left text-xs font-medium text-primary">Actions</th>
                                                             </tr>
                                                         </thead>
                                                         <tbody>
                                                             {recurringInspections.length === 0 ? (
                                                                 <tr>
-                                                                    <td colSpan={7} className="px-4 py-8 text-center text-gray-500">No Data</td>
+                                                                    <td colSpan={7} className="px-4 py-8 text-center text-secondary">No Data</td>
                                                                 </tr>
                                                             ) : (
                                                                 recurringInspections.map((inspection) => (
                                                                     <tr 
                                                                         key={inspection.id} 
-                                                                        className={`border-t border-gray-200 hover:bg-gray-50 cursor-pointer ${editingInspectionId === inspection.id ? 'bg-blue-50' : ''}`}
+                                                                        className={`border-t border-theme hover:bg-[rgba(255,255,255,0.03)] cursor-pointer ${editingInspectionId === inspection.id ? 'bg-card' : ''}`}
                                                                         onClick={() => handleEditInspection(inspection, 'recurring')}
                                                                     >
-                                                                        <td className="px-4 py-2 text-sm text-gray-900">{inspection.scheduledOn}</td>
-                                                                        <td className="px-4 py-2 text-sm text-gray-900">{inspection.after}</td>
-                                                                        <td className="px-4 py-2 text-sm text-gray-900">{inspection.unit}</td>
-                                                                        <td className="px-4 py-2 text-sm text-gray-900">{inspection.description}</td>
-                                                                        <td className="px-4 py-2 text-sm text-gray-900">
+                                                                        <td className="px-4 py-2 text-sm text-primary">{inspection.scheduledOn}</td>
+                                                                        <td className="px-4 py-2 text-sm text-primary">{inspection.after}</td>
+                                                                        <td className="px-4 py-2 text-sm text-primary">{inspection.unit}</td>
+                                                                        <td className="px-4 py-2 text-sm text-primary">{inspection.description}</td>
+                                                                        <td className="px-4 py-2 text-sm text-primary">
                                                                             {inspection.fileName || inspection.fileUrl ? (
                                                                                 inspection.fileUrl ? (
                                                                                     <a
                                                                                         href={inspection.fileUrl}
                                                                                         target="_blank"
                                                                                         rel="noopener noreferrer"
-                                                                                        className="flex items-center gap-2 text-blue-600 hover:text-blue-800 hover:underline"
+                                                                                        className="flex items-center gap-2 text-[#00D1FF] hover:text-blue-800 hover:underline"
                                                                                         onClick={(e) => e.stopPropagation()}
                                                                                     >
                                                                                         <FileText className="w-4 h-4" />
                                                                                         <span>{inspection.fileName || 'View File'}</span>
                                                                                     </a>
                                                                                 ) : (
-                                                                                    <div className="flex items-center gap-2 text-blue-600">
+                                                                                    <div className="flex items-center gap-2 text-[#00D1FF]">
                                                                                         <FileText className="w-4 h-4" />
                                                                                         <span>{inspection.fileName || 'File attached'}</span>
                                                                                     </div>
                                                                                 )
                                                                             ) : (
-                                                                                <span className="text-gray-400">No file</span>
+                                                                                <span className="text-secondary">No file</span>
                                                                             )}
                                                                         </td>
-                                                                        <td className="px-4 py-2 text-sm text-gray-900">{inspection.ignoreExpiration ? 'Yes' : 'No'}</td>
-                                                                        <td className="px-4 py-2 text-sm text-gray-900">
+                                                                        <td className="px-4 py-2 text-sm text-primary">{inspection.ignoreExpiration ? 'Yes' : 'No'}</td>
+                                                                        <td className="px-4 py-2 text-sm text-primary">
                                                                             <button
                                                                                 onClick={(e) => {
                                                                                     e.stopPropagation();
                                                                                     handleDeleteInspection(inspection.id, 'recurring');
                                                                                 }}
-                                                                                className="p-1 text-red-600 hover:bg-red-50 rounded"
+                                                                                className="p-1 text-[#A855F7] hover:bg-red-50 rounded"
                                                                                 title="Delete"
                                                                             >
                                                                                 <Trash2 className="w-4 h-4" />
@@ -3004,10 +3004,10 @@ const Trucks: React.FC = () => {
                                 {/* Documents Step */}
                                 {activeStep === 'Documents' && (
                                     <div className="space-y-4">
-                                        <h3 className="text-base font-semibold text-gray-900">Documents</h3>
+                                        <h3 className="text-base font-semibold text-primary">Documents</h3>
 
                                         {/* Document Type Tabs */}
-                                        <div className="flex gap-2 border-b border-gray-200">
+                                        <div className="flex gap-2 border-b border-theme">
                                             {(['General', 'Ownership', 'Cab Card', 'Plate', 'Safety', 'Insurance'] as const).map((type) => (
                                                 <button
                                                     key={type}
@@ -3018,8 +3018,8 @@ const Trucks: React.FC = () => {
                                                         setDocumentType(type);
                                                     }}
                                                     className={`px-4 py-2 text-sm font-medium transition-colors border-b-2 ${documentType === type
-                                                        ? 'border-gray-700 text-gray-900'
-                                                        : 'border-transparent text-gray-500 hover:text-gray-700'
+                                                        ? 'border-gray-700 text-primary'
+                                                        : 'border-transparent text-secondary hover:text-primary'
                                                         }`}
                                                 >
                                                     {type}
@@ -3037,9 +3037,9 @@ const Trucks: React.FC = () => {
                                             {/* Row 1: Expiry Date and Description */}
                                             <div className="grid grid-cols-2 gap-4">
                                                 <div>
-                                                    <label className="block text-sm font-medium text-gray-700 mb-1">Expiry Date</label>
+                                                    <label className="block text-sm font-medium text-primary mb-1">Expiry Date</label>
                                                     <div className="relative">
-                                                        <Calendar className="absolute left-2 top-2.5 w-4 h-4 text-gray-400" />
+                                                        <Calendar className="absolute left-2 top-2.5 w-4 h-4 text-secondary" />
                                                         <input
                                                             type="date"
                                                             value={documentForm.expiryDate}
@@ -3049,7 +3049,7 @@ const Trucks: React.FC = () => {
                                                     </div>
                                                 </div>
                                                 <div>
-                                                    <label className="block text-sm font-medium text-gray-700 mb-1">Description</label>
+                                                    <label className="block text-sm font-medium text-primary mb-1">Description</label>
                                                     <input
                                                         type="text"
                                                         placeholder="Description"
@@ -3062,17 +3062,17 @@ const Trucks: React.FC = () => {
 
                                             {/* Row 2: File Upload */}
                                             <div>
-                                                <label className="block text-sm font-medium text-gray-700 mb-1">File</label>
+                                                <label className="block text-sm font-medium text-primary mb-1">File</label>
                                                 {documentForm.file ? (
-                                                    <div className="flex items-center gap-2 px-3 py-2 border border-gray-300 rounded-lg bg-white">
-                                                        <FileText className="w-4 h-4 text-gray-600 flex-shrink-0" />
-                                                        <span className="text-sm text-gray-700 truncate flex-1">
+                                                    <div className="flex items-center gap-2 px-3 py-2 border border-gray-300 rounded-lg bg-card">
+                                                        <FileText className="w-4 h-4 text-secondary flex-shrink-0" />
+                                                        <span className="text-sm text-primary truncate flex-1">
                                                             {documentForm.file.name}
                                                         </span>
                                                         <button
                                                             type="button"
                                                             onClick={() => setDocumentForm({ ...documentForm, file: null })}
-                                                            className="text-gray-400 hover:text-red-600 transition-colors flex-shrink-0"
+                                                            className="text-secondary hover:text-[#A855F7] transition-colors flex-shrink-0"
                                                             title="Remove file"
                                                         >
                                                             <X className="w-4 h-4" />
@@ -3089,7 +3089,7 @@ const Trucks: React.FC = () => {
                                                             };
                                                             input.click();
                                                         }}
-                                                        className="w-full px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 text-sm font-medium bg-white flex items-center justify-center gap-2"
+                                                        className="w-full px-4 py-2 border border-gray-300 rounded-lg hover:bg-[rgba(255,255,255,0.03)] text-sm font-medium bg-card flex items-center justify-center gap-2"
                                                     >
                                                         <Upload className="w-4 h-4" />
                                                         <span>Select File</span>
@@ -3106,7 +3106,7 @@ const Trucks: React.FC = () => {
                                                         onChange={(e) => setDocumentForm({ ...documentForm, ignoreExpiration: e.target.checked })}
                                                         className="w-4 h-4"
                                                     />
-                                                    <label className="text-sm text-gray-700">Ignore Expiration</label>
+                                                    <label className="text-sm text-primary">Ignore Expiration</label>
                                                 </div>
                                                 <button
                                                     onClick={() => {
@@ -3142,42 +3142,42 @@ const Trucks: React.FC = () => {
                                         </div>
 
                                         {/* Documents Table */}
-                                        <div className="bg-white rounded-lg border border-gray-200 overflow-x-auto">
+                                        <div className="bg-card rounded-lg border border-theme overflow-x-auto">
                                             <table className="w-full min-w-[800px]">
-                                                <thead className="bg-gray-50">
+                                                <thead className="bg-card">
                                                     <tr>
-                                                        <th className="px-4 py-2 text-left text-xs font-medium text-gray-700">Expiry Date</th>
-                                                        <th className="px-4 py-2 text-left text-xs font-medium text-gray-700">Description</th>
-                                                        <th className="px-4 py-2 text-left text-xs font-medium text-gray-700">File</th>
-                                                        <th className="px-4 py-2 text-left text-xs font-medium text-gray-700">Ignore Expiration</th>
-                                                        <th className="px-4 py-2 text-left text-xs font-medium text-gray-700">Actions</th>
+                                                        <th className="px-4 py-2 text-left text-xs font-medium text-primary">Expiry Date</th>
+                                                        <th className="px-4 py-2 text-left text-xs font-medium text-primary">Description</th>
+                                                        <th className="px-4 py-2 text-left text-xs font-medium text-primary">File</th>
+                                                        <th className="px-4 py-2 text-left text-xs font-medium text-primary">Ignore Expiration</th>
+                                                        <th className="px-4 py-2 text-left text-xs font-medium text-primary">Actions</th>
                                                     </tr>
                                                 </thead>
                                                 <tbody>
                                                     {(!documents[documentType] || documents[documentType].length === 0) ? (
                                                         <tr>
-                                                            <td colSpan={5} className="px-4 py-8 text-center text-gray-500">No Data</td>
+                                                            <td colSpan={5} className="px-4 py-8 text-center text-secondary">No Data</td>
                                                         </tr>
                                                     ) : (
                                                         documents[documentType].map((doc) => (
-                                                            <tr key={doc.id} className="border-t border-gray-200 hover:bg-gray-50">
-                                                                <td className="px-4 py-2 text-sm text-gray-900">{doc.expiryDate || '-'}</td>
-                                                                <td className="px-4 py-2 text-sm text-gray-900">{doc.description}</td>
-                                                                <td className="px-4 py-2 text-sm text-gray-900">
+                                                            <tr key={doc.id} className="border-t border-theme hover:bg-[rgba(255,255,255,0.03)]">
+                                                                <td className="px-4 py-2 text-sm text-primary">{doc.expiryDate || '-'}</td>
+                                                                <td className="px-4 py-2 text-sm text-primary">{doc.description}</td>
+                                                                <td className="px-4 py-2 text-sm text-primary">
                                                                     {doc.fileName || doc.fileUrl || doc.file ? (
                                                                         doc.fileUrl ? (
                                                                             <a
                                                                                 href={doc.fileUrl}
                                                                                 target="_blank"
                                                                                 rel="noopener noreferrer"
-                                                                                className="flex items-center gap-2 text-blue-600 hover:text-blue-800 hover:underline"
+                                                                                className="flex items-center gap-2 text-[#00D1FF] hover:text-blue-800 hover:underline"
                                                                                 onClick={(e) => e.stopPropagation()}
                                                                             >
                                                                                 <FileText className="w-4 h-4" />
                                                                                 <span>{doc.fileName || 'View File'}</span>
                                                                             </a>
                                                                         ) : (
-                                                                            <div className="flex items-center gap-2 text-blue-600">
+                                                                            <div className="flex items-center gap-2 text-[#00D1FF]">
                                                                                 <FileText className="w-4 h-4" />
                                                                                 <span className="truncate max-w-[200px]">
                                                                                     {doc.fileName || (doc.file instanceof File ? doc.file.name : 'File attached')}
@@ -3185,11 +3185,11 @@ const Trucks: React.FC = () => {
                                                                             </div>
                                                                         )
                                                                     ) : (
-                                                                        <span className="text-gray-400">No file</span>
+                                                                        <span className="text-secondary">No file</span>
                                                                     )}
                                                                 </td>
-                                                                <td className="px-4 py-2 text-sm text-gray-900">{doc.ignoreExpiration ? 'Yes' : 'No'}</td>
-                                                                <td className="px-4 py-2 text-sm text-gray-900">
+                                                                <td className="px-4 py-2 text-sm text-primary">{doc.ignoreExpiration ? 'Yes' : 'No'}</td>
+                                                                <td className="px-4 py-2 text-sm text-primary">
                                                                     <button
                                                                         onClick={() => {
                                                                             console.log('🗑️ Deleting document from type:', documentType, 'id:', doc.id);
@@ -3198,7 +3198,7 @@ const Trucks: React.FC = () => {
                                                                                 [documentType]: (documents[documentType] || []).filter(d => d.id !== doc.id)
                                                                             });
                                                                         }}
-                                                                        className="p-1 text-red-600 hover:bg-red-50 rounded"
+                                                                        className="p-1 text-[#A855F7] hover:bg-red-50 rounded"
                                                                         title="Delete"
                                                                     >
                                                                         <Trash2 className="w-4 h-4" />
@@ -3216,27 +3216,27 @@ const Trucks: React.FC = () => {
                                 {/* Notes Step */}
                                 {activeStep === 'Notes' && (
                                     <div className="space-y-4">
-                                        <h3 className="text-base font-semibold text-gray-900">Notes</h3>
+                                        <h3 className="text-base font-semibold text-primary">Notes</h3>
 
                                         {/* Note Form */}
                                         <div className="flex gap-4 items-end bg-gray-100 p-4 rounded-lg">
                                             <div className="flex-1">
-                                                <label className="block text-sm font-medium text-gray-700 mb-1">Note</label>
+                                                <label className="block text-sm font-medium text-primary mb-1">Note</label>
                                                 <input
                                                     type="text"
                                                     placeholder="Note"
                                                     value={noteForm.note}
                                                     onChange={(e) => setNoteForm({ ...noteForm, note: e.target.value })}
-                                                    className="w-full px-3 py-2 bg-white border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#42aeec] text-sm"
+                                                    className="w-full px-3 py-2 bg-card border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#42aeec] text-sm"
                                                 />
                                             </div>
                                             <div>
-                                                <label className="block text-sm font-medium text-gray-700 mb-1">Category</label>
+                                                <label className="block text-sm font-medium text-primary mb-1">Category</label>
                                                 <div className="relative">
                                                     <select
                                                         value={noteForm.category}
                                                         onChange={(e) => setNoteForm({ ...noteForm, category: e.target.value })}
-                                                        className="px-3 py-2 pr-8 bg-white border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#42aeec] text-sm appearance-none min-w-[150px]"
+                                                        className="px-3 py-2 pr-8 bg-card border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#42aeec] text-sm appearance-none min-w-[150px]"
                                                     >
                                                         <option value="Category">Category</option>
                                                         <option value="Safety">Safety</option>
@@ -3245,7 +3245,7 @@ const Trucks: React.FC = () => {
                                                         <option value="General">General</option>
                                                         <option value="Maintenance">Maintenance</option>
                                                     </select>
-                                                    <ChevronDown className="absolute right-2 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
+                                                    <ChevronDown className="absolute right-2 top-1/2 transform -translate-y-1/2 w-4 h-4 text-secondary pointer-events-none" />
                                                 </div>
                                             </div>
                                             <button
@@ -3266,24 +3266,24 @@ const Trucks: React.FC = () => {
                                         </div>
 
                                         {/* Notes Table */}
-                                        <div className="bg-white rounded-lg border border-gray-200 overflow-hidden">
+                                        <div className="bg-card rounded-lg border border-theme overflow-hidden">
                                             <table className="w-full">
-                                                <thead className="bg-gray-50 border-b border-gray-200">
+                                                <thead className="bg-card border-b border-theme">
                                                     <tr>
-                                                        <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase">Note</th>
-                                                        <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase">Category</th>
+                                                        <th className="px-4 py-3 text-left text-xs font-medium text-primary uppercase">Note</th>
+                                                        <th className="px-4 py-3 text-left text-xs font-medium text-primary uppercase">Category</th>
                                                     </tr>
                                                 </thead>
                                                 <tbody className="divide-y divide-gray-200">
                                                     {notes.length === 0 ? (
                                                         <tr>
-                                                            <td colSpan={2} className="px-4 py-12 text-center text-gray-500 text-sm">No Data</td>
+                                                            <td colSpan={2} className="px-4 py-12 text-center text-secondary text-sm">No Data</td>
                                                         </tr>
                                                     ) : (
                                                         notes.map((note) => (
-                                                            <tr key={note.id} className="hover:bg-gray-50 transition-colors">
-                                                                <td className="px-4 py-3 text-sm text-gray-900">{note.note}</td>
-                                                                <td className="px-4 py-3 text-sm text-gray-900">{note.category}</td>
+                                                            <tr key={note.id} className="hover:bg-[rgba(255,255,255,0.03)] transition-colors">
+                                                                <td className="px-4 py-3 text-sm text-primary">{note.note}</td>
+                                                                <td className="px-4 py-3 text-sm text-primary">{note.category}</td>
                                                             </tr>
                                                         ))
                                                     )}
@@ -3300,13 +3300,13 @@ const Trucks: React.FC = () => {
                                         {activeStep === 'Payroll' && (
                                             <div className="space-y-4">
                                                 <div className="mb-2">
-                                                    <span className="text-sm text-gray-600">Ownership: Owner Operator</span>
+                                                    <span className="text-sm text-secondary">Ownership: Owner Operator</span>
                                                 </div>
-                                                <h3 className="text-base font-semibold text-gray-900">Truck Ownership Information</h3>
+                                                <h3 className="text-base font-semibold text-primary">Truck Ownership Information</h3>
                                                 
                                                 <div className="grid grid-cols-2 gap-4">
                                                     <div>
-                                                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                                                        <label className="block text-sm font-medium text-primary mb-1">
                                                             Corportation Name<span className="text-red-500">*</span>
                                                         </label>
                                                         <input
@@ -3314,37 +3314,37 @@ const Trucks: React.FC = () => {
                                                             placeholder="Corportation Name"
                                                             value={payrollForm.corporationName}
                                                             onChange={(e) => setPayrollForm({ ...payrollForm, corporationName: e.target.value })}
-                                                            className="w-full px-3 py-2 bg-white border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#42aeec] text-sm"
+                                                            className="w-full px-3 py-2 bg-card border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#42aeec] text-sm"
                                                         />
                                                     </div>
                                                     <div>
-                                                        <label className="block text-sm font-medium text-gray-700 mb-1">Full Address</label>
+                                                        <label className="block text-sm font-medium text-primary mb-1">Full Address</label>
                                                         <input
                                                             type="text"
                                                             placeholder="Full Address"
                                                             value={payrollForm.fullAddress}
                                                             onChange={(e) => setPayrollForm({ ...payrollForm, fullAddress: e.target.value })}
-                                                            className="w-full px-3 py-2 bg-white border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#42aeec] text-sm"
+                                                            className="w-full px-3 py-2 bg-card border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#42aeec] text-sm"
                                                         />
                                                     </div>
                                                     <div>
-                                                        <label className="block text-sm font-medium text-gray-700 mb-1">Driver Name</label>
+                                                        <label className="block text-sm font-medium text-primary mb-1">Driver Name</label>
                                                         <input
                                                             type="text"
                                                             placeholder="Driver Name"
                                                             value={payrollForm.driverName}
                                                             onChange={(e) => setPayrollForm({ ...payrollForm, driverName: e.target.value })}
-                                                            className="w-full px-3 py-2 bg-white border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#42aeec] text-sm"
+                                                            className="w-full px-3 py-2 bg-card border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#42aeec] text-sm"
                                                         />
                                                     </div>
                                                     <div>
-                                                        <label className="block text-sm font-medium text-gray-700 mb-1">Email</label>
+                                                        <label className="block text-sm font-medium text-primary mb-1">Email</label>
                                                         <input
                                                             type="email"
                                                             placeholder="Email"
                                                             value={payrollForm.email}
                                                             onChange={(e) => setPayrollForm({ ...payrollForm, email: e.target.value })}
-                                                            className="w-full px-3 py-2 bg-white border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#42aeec] text-sm"
+                                                            className="w-full px-3 py-2 bg-card border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#42aeec] text-sm"
                                                         />
                                                     </div>
                                                 </div>
@@ -3358,7 +3358,7 @@ const Trucks: React.FC = () => {
                                                             className={`px-4 py-2 rounded-sm font-medium transition-colors text-sm ${
                                                                 paymentMethod === method
                                                                     ? 'bg-gray-700 !text-white'
-                                                                    : 'bg-white border border-gray-300 text-gray-700 hover:bg-gray-50'
+                                                                    : 'bg-card border border-gray-300 text-primary hover:bg-[rgba(255,255,255,0.03)]'
                                                             }`}
                                                         >
                                                             {method}
@@ -3369,50 +3369,50 @@ const Trucks: React.FC = () => {
                                                 {/* Conditional Fields based on Payment Method */}
                                                 {paymentMethod === 'PAID PER MILE' && (
                                                     <div className="space-y-4 mt-4">
-                                                        <h4 className="text-sm font-semibold text-gray-900">$/Mile</h4>
+                                                        <h4 className="text-sm font-semibold text-primary">$/Mile</h4>
                                                         <div className="grid grid-cols-2 gap-4">
                                                             <div>
-                                                                <label className="block text-sm font-medium text-gray-700 mb-1">
+                                                                <label className="block text-sm font-medium text-primary mb-1">
                                                                     ALONE<span className="text-red-500">*</span>
                                                                 </label>
                                                                 <input
                                                                     type="text"
                                                                     value={payrollForm.alone}
                                                                     onChange={(e) => setPayrollForm({ ...payrollForm, alone: e.target.value })}
-                                                                    className="w-full px-3 py-2 bg-white border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#42aeec] text-sm"
+                                                                    className="w-full px-3 py-2 bg-card border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#42aeec] text-sm"
                                                                 />
                                                             </div>
                                                             <div>
-                                                                <label className="block text-sm font-medium text-gray-700 mb-1">
+                                                                <label className="block text-sm font-medium text-primary mb-1">
                                                                     TEAM<span className="text-red-500">*</span>
                                                                 </label>
                                                                 <input
                                                                     type="text"
                                                                     value={payrollForm.team}
                                                                     onChange={(e) => setPayrollForm({ ...payrollForm, team: e.target.value })}
-                                                                    className="w-full px-3 py-2 bg-white border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#42aeec] text-sm"
+                                                                    className="w-full px-3 py-2 bg-card border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#42aeec] text-sm"
                                                                 />
                                                             </div>
                                                             <div>
-                                                                <label className="block text-sm font-medium text-gray-700 mb-1">
+                                                                <label className="block text-sm font-medium text-primary mb-1">
                                                                     EMPTY<span className="text-red-500">*</span>
                                                                 </label>
                                                                 <input
                                                                     type="text"
                                                                     value={payrollForm.empty}
                                                                     onChange={(e) => setPayrollForm({ ...payrollForm, empty: e.target.value })}
-                                                                    className="w-full px-3 py-2 bg-white border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#42aeec] text-sm"
+                                                                    className="w-full px-3 py-2 bg-card border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#42aeec] text-sm"
                                                                 />
                                                             </div>
                                                             <div>
-                                                                <label className="block text-sm font-medium text-gray-700 mb-1">
+                                                                <label className="block text-sm font-medium text-primary mb-1">
                                                                     EMPTY-TEAM<span className="text-red-500">*</span>
                                                                 </label>
                                                                 <input
                                                                     type="text"
                                                                     value={payrollForm.emptyTeam}
                                                                     onChange={(e) => setPayrollForm({ ...payrollForm, emptyTeam: e.target.value })}
-                                                                    className="w-full px-3 py-2 bg-white border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#42aeec] text-sm"
+                                                                    className="w-full px-3 py-2 bg-card border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#42aeec] text-sm"
                                                                 />
                                                             </div>
                                                         </div>
@@ -3422,7 +3422,7 @@ const Trucks: React.FC = () => {
                                                 {paymentMethod === 'PAID PERCENT' && (
                                                     <div className="space-y-4 mt-4">
                                                         <div>
-                                                            <label className="block text-sm font-medium text-gray-700 mb-1">
+                                                            <label className="block text-sm font-medium text-primary mb-1">
                                                                 Percent Rate<span className="text-red-500">*</span>
                                                             </label>
                                                             <div className="flex items-center gap-2">
@@ -3430,9 +3430,9 @@ const Trucks: React.FC = () => {
                                                                     type="text"
                                                                     value={payrollForm.percentRate}
                                                                     onChange={(e) => setPayrollForm({ ...payrollForm, percentRate: e.target.value })}
-                                                                    className="w-full px-3 py-2 bg-white border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#42aeec] text-sm"
+                                                                    className="w-full px-3 py-2 bg-card border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#42aeec] text-sm"
                                                                 />
-                                                                <span className="text-sm font-medium text-gray-700">%</span>
+                                                                <span className="text-sm font-medium text-primary">%</span>
                                                             </div>
                                                         </div>
                                                     </div>
@@ -3441,14 +3441,14 @@ const Trucks: React.FC = () => {
                                                 {paymentMethod === 'PAID BY TRIP' && (
                                                     <div className="space-y-4 mt-4">
                                                         <div>
-                                                            <label className="block text-sm font-medium text-gray-700 mb-1">
+                                                            <label className="block text-sm font-medium text-primary mb-1">
                                                                 Per Trip Amount<span className="text-red-500">*</span>
                                                             </label>
                                                             <input
                                                                 type="text"
                                                                 value={payrollForm.perTripAmount}
                                                                 onChange={(e) => setPayrollForm({ ...payrollForm, perTripAmount: e.target.value })}
-                                                                className="w-full px-3 py-2 bg-white border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#42aeec] text-sm"
+                                                                className="w-full px-3 py-2 bg-card border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#42aeec] text-sm"
                                                             />
                                                         </div>
                                                     </div>
@@ -3457,14 +3457,14 @@ const Trucks: React.FC = () => {
                                                 {paymentMethod === 'PAID PER HOUR' && (
                                                     <div className="space-y-4 mt-4">
                                                         <div>
-                                                            <label className="block text-sm font-medium text-gray-700 mb-1">
+                                                            <label className="block text-sm font-medium text-primary mb-1">
                                                                 PER HOUR<span className="text-red-500">*</span>
                                                             </label>
                                                             <input
                                                                 type="text"
                                                                 value={payrollForm.perHour}
                                                                 onChange={(e) => setPayrollForm({ ...payrollForm, perHour: e.target.value })}
-                                                                className="w-full px-3 py-2 bg-white border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#42aeec] text-sm"
+                                                                className="w-full px-3 py-2 bg-card border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#42aeec] text-sm"
                                                             />
                                                         </div>
                                                     </div>
@@ -3479,26 +3479,26 @@ const Trucks: React.FC = () => {
                                                             onChange={(e) => setPayrollForm({ ...payrollForm, companyPaysFuel: e.target.checked })}
                                                             className="w-4 h-4"
                                                         />
-                                                        <label className="text-sm text-gray-700">Company Pays Fuel</label>
+                                                        <label className="text-sm text-primary">Company Pays Fuel</label>
                                                     </div>
                                                     <div>
-                                                        <label className="block text-sm font-medium text-gray-700 mb-1">GST No.</label>
+                                                        <label className="block text-sm font-medium text-primary mb-1">GST No.</label>
                                                         <input
                                                             type="text"
                                                             placeholder="GST No."
                                                             value={payrollForm.gstNo}
                                                             onChange={(e) => setPayrollForm({ ...payrollForm, gstNo: e.target.value })}
-                                                            className="w-full px-3 py-2 bg-white border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#42aeec] text-sm"
+                                                            className="w-full px-3 py-2 bg-card border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#42aeec] text-sm"
                                                         />
                                                     </div>
                                                     <div>
-                                                        <label className="block text-sm font-medium text-gray-700 mb-1">Custom HST %</label>
+                                                        <label className="block text-sm font-medium text-primary mb-1">Custom HST %</label>
                                                         <input
                                                             type="text"
                                                             placeholder="Leave Empty To Use Company"
                                                             value={payrollForm.customHst}
                                                             onChange={(e) => setPayrollForm({ ...payrollForm, customHst: e.target.value })}
-                                                            className="w-full px-3 py-2 bg-white border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#42aeec] text-sm"
+                                                            className="w-full px-3 py-2 bg-card border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#42aeec] text-sm"
                                                         />
                                                     </div>
                                                 </div>
@@ -3508,14 +3508,14 @@ const Trucks: React.FC = () => {
                                         {/* Deductions Step */}
                                         {activeStep === 'Deductions' && (
                                             <div className="space-y-4">
-                                                <h3 className="text-base font-semibold text-gray-900">Payroll Deductions</h3>
+                                                <h3 className="text-base font-semibold text-primary">Payroll Deductions</h3>
 
                                                 {/* Deduction Form */}
                                                 <div className="flex gap-2 items-end bg-gray-100 p-4 rounded-lg">
                                                     <div className="flex-1">
-                                                        <label className="block text-sm font-medium text-gray-700 mb-1">Start Date</label>
+                                                        <label className="block text-sm font-medium text-primary mb-1">Start Date</label>
                                                         <div className="relative">
-                                                            <Calendar className="absolute left-2 top-2.5 w-4 h-4 text-gray-400" />
+                                                            <Calendar className="absolute left-2 top-2.5 w-4 h-4 text-secondary" />
                                                             <input
                                                                 type="date"
                                                                 value={deductionForm.startDate}
@@ -3525,7 +3525,7 @@ const Trucks: React.FC = () => {
                                                         </div>
                                                     </div>
                                                     <div className="flex-1">
-                                                        <label className="block text-sm font-medium text-gray-700 mb-1">Description</label>
+                                                        <label className="block text-sm font-medium text-primary mb-1">Description</label>
                                                         <input
                                                             type="text"
                                                             placeholder="Description"
@@ -3535,7 +3535,7 @@ const Trucks: React.FC = () => {
                                                         />
                                                     </div>
                                                     <div className="flex-1">
-                                                        <label className="block text-sm font-medium text-gray-700 mb-1">Fee</label>
+                                                        <label className="block text-sm font-medium text-primary mb-1">Fee</label>
                                                         <input
                                                             type="text"
                                                             value={deductionForm.fee}
@@ -3544,7 +3544,7 @@ const Trucks: React.FC = () => {
                                                         />
                                                     </div>
                                                     <div className="flex-1">
-                                                        <label className="block text-sm font-medium text-gray-700 mb-1">Interval</label>
+                                                        <label className="block text-sm font-medium text-primary mb-1">Interval</label>
                                                         <div className="relative">
                                                             <select
                                                                 value={deductionForm.interval}
@@ -3559,11 +3559,11 @@ const Trucks: React.FC = () => {
                                                                 <option value="Weekly">Weekly</option>
                                                                 <option value="Biweekly">Biweekly</option>
                                                             </select>
-                                                            <ChevronDown className="absolute right-2 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
+                                                            <ChevronDown className="absolute right-2 top-1/2 transform -translate-y-1/2 w-4 h-4 text-secondary pointer-events-none" />
                                                         </div>
                                                     </div>
                                                     <div className="flex-1">
-                                                        <label className="block text-sm font-medium text-gray-700 mb-1">Currency</label>
+                                                        <label className="block text-sm font-medium text-primary mb-1">Currency</label>
                                                         <div className="relative">
                                                             <select
                                                                 value={deductionForm.currency}
@@ -3573,7 +3573,7 @@ const Trucks: React.FC = () => {
                                                                 <option value="CAD">CAD</option>
                                                                 <option value="USD">USD</option>
                                                             </select>
-                                                            <ChevronDown className="absolute right-2 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
+                                                            <ChevronDown className="absolute right-2 top-1/2 transform -translate-y-1/2 w-4 h-4 text-secondary pointer-events-none" />
                                                         </div>
                                                     </div>
                                                     <button
@@ -3593,30 +3593,30 @@ const Trucks: React.FC = () => {
                                                 </div>
 
                                                 {/* Deductions Table */}
-                                                <div className="bg-white rounded-lg border border-gray-200 overflow-hidden">
+                                                <div className="bg-card rounded-lg border border-theme overflow-hidden">
                                                     <table className="w-full">
-                                                        <thead className="bg-gray-50 border-b border-gray-200">
+                                                        <thead className="bg-card border-b border-theme">
                                                             <tr>
-                                                                <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase">Start Date</th>
-                                                                <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase">Description</th>
-                                                                <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase">Fee</th>
-                                                                <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase">Interval</th>
-                                                                <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase">Currency</th>
+                                                                <th className="px-4 py-3 text-left text-xs font-medium text-primary uppercase">Start Date</th>
+                                                                <th className="px-4 py-3 text-left text-xs font-medium text-primary uppercase">Description</th>
+                                                                <th className="px-4 py-3 text-left text-xs font-medium text-primary uppercase">Fee</th>
+                                                                <th className="px-4 py-3 text-left text-xs font-medium text-primary uppercase">Interval</th>
+                                                                <th className="px-4 py-3 text-left text-xs font-medium text-primary uppercase">Currency</th>
                                                             </tr>
                                                         </thead>
                                                         <tbody className="divide-y divide-gray-200">
                                                             {deductions.length === 0 ? (
                                                                 <tr>
-                                                                    <td colSpan={5} className="px-4 py-12 text-center text-gray-500 text-sm">No Data</td>
+                                                                    <td colSpan={5} className="px-4 py-12 text-center text-secondary text-sm">No Data</td>
                                                                 </tr>
                                                             ) : (
                                                                 deductions.map((deduction) => (
-                                                                    <tr key={deduction.id} className="hover:bg-gray-50 transition-colors">
-                                                                        <td className="px-4 py-3 text-sm text-gray-900">{deduction.startDate}</td>
-                                                                        <td className="px-4 py-3 text-sm text-gray-900">{deduction.description}</td>
-                                                                        <td className="px-4 py-3 text-sm text-gray-900">{deduction.fee}</td>
-                                                                        <td className="px-4 py-3 text-sm text-gray-900">{deduction.interval}</td>
-                                                                        <td className="px-4 py-3 text-sm text-gray-900">{deduction.currency}</td>
+                                                                    <tr key={deduction.id} className="hover:bg-[rgba(255,255,255,0.03)] transition-colors">
+                                                                        <td className="px-4 py-3 text-sm text-primary">{deduction.startDate}</td>
+                                                                        <td className="px-4 py-3 text-sm text-primary">{deduction.description}</td>
+                                                                        <td className="px-4 py-3 text-sm text-primary">{deduction.fee}</td>
+                                                                        <td className="px-4 py-3 text-sm text-primary">{deduction.interval}</td>
+                                                                        <td className="px-4 py-3 text-sm text-primary">{deduction.currency}</td>
                                                                     </tr>
                                                                 ))
                                                             )}
@@ -3629,14 +3629,14 @@ const Trucks: React.FC = () => {
                                         {/* Additions Step */}
                                         {activeStep === 'Additions' && (
                                             <div className="space-y-4">
-                                                <h3 className="text-base font-semibold text-gray-900">Payroll Additions</h3>
+                                                <h3 className="text-base font-semibold text-primary">Payroll Additions</h3>
 
                                                 {/* Addition Form */}
                                                 <div className="flex gap-2 items-end bg-gray-100 p-4 rounded-lg">
                                                     <div className="flex-1">
-                                                        <label className="block text-sm font-medium text-gray-700 mb-1">Start Date</label>
+                                                        <label className="block text-sm font-medium text-primary mb-1">Start Date</label>
                                                         <div className="relative">
-                                                            <Calendar className="absolute left-2 top-2.5 w-4 h-4 text-gray-400" />
+                                                            <Calendar className="absolute left-2 top-2.5 w-4 h-4 text-secondary" />
                                                             <input
                                                                 type="date"
                                                                 value={additionForm.startDate}
@@ -3646,7 +3646,7 @@ const Trucks: React.FC = () => {
                                                         </div>
                                                     </div>
                                                     <div className="flex-1">
-                                                        <label className="block text-sm font-medium text-gray-700 mb-1">Description</label>
+                                                        <label className="block text-sm font-medium text-primary mb-1">Description</label>
                                                         <input
                                                             type="text"
                                                             placeholder="Description"
@@ -3656,7 +3656,7 @@ const Trucks: React.FC = () => {
                                                         />
                                                     </div>
                                                     <div className="flex-1">
-                                                        <label className="block text-sm font-medium text-gray-700 mb-1">Amount</label>
+                                                        <label className="block text-sm font-medium text-primary mb-1">Amount</label>
                                                         <input
                                                             type="text"
                                                             value={additionForm.amount}
@@ -3665,7 +3665,7 @@ const Trucks: React.FC = () => {
                                                         />
                                                     </div>
                                                     <div className="flex-1">
-                                                        <label className="block text-sm font-medium text-gray-700 mb-1">Interval</label>
+                                                        <label className="block text-sm font-medium text-primary mb-1">Interval</label>
                                                         <div className="relative">
                                                             <select
                                                                 value={additionForm.interval}
@@ -3680,11 +3680,11 @@ const Trucks: React.FC = () => {
                                                                 <option value="Weekly">Weekly</option>
                                                                 <option value="Biweekly">Biweekly</option>
                                                             </select>
-                                                            <ChevronDown className="absolute right-2 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
+                                                            <ChevronDown className="absolute right-2 top-1/2 transform -translate-y-1/2 w-4 h-4 text-secondary pointer-events-none" />
                                                         </div>
                                                     </div>
                                                     <div className="flex-1">
-                                                        <label className="block text-sm font-medium text-gray-700 mb-1">Currency</label>
+                                                        <label className="block text-sm font-medium text-primary mb-1">Currency</label>
                                                         <div className="relative">
                                                             <select
                                                                 value={additionForm.currency}
@@ -3694,7 +3694,7 @@ const Trucks: React.FC = () => {
                                                                 <option value="CAD">CAD</option>
                                                                 <option value="USD">USD</option>
                                                             </select>
-                                                            <ChevronDown className="absolute right-2 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
+                                                            <ChevronDown className="absolute right-2 top-1/2 transform -translate-y-1/2 w-4 h-4 text-secondary pointer-events-none" />
                                                         </div>
                                                     </div>
                                                     <button
@@ -3714,30 +3714,30 @@ const Trucks: React.FC = () => {
                                                 </div>
 
                                                 {/* Additions Table */}
-                                                <div className="bg-white rounded-lg border border-gray-200 overflow-hidden">
+                                                <div className="bg-card rounded-lg border border-theme overflow-hidden">
                                                     <table className="w-full">
-                                                        <thead className="bg-gray-50 border-b border-gray-200">
+                                                        <thead className="bg-card border-b border-theme">
                                                             <tr>
-                                                                <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase">Start Date</th>
-                                                                <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase">Description</th>
-                                                                <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase">Amount</th>
-                                                                <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase">Interval</th>
-                                                                <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase">Currency</th>
+                                                                <th className="px-4 py-3 text-left text-xs font-medium text-primary uppercase">Start Date</th>
+                                                                <th className="px-4 py-3 text-left text-xs font-medium text-primary uppercase">Description</th>
+                                                                <th className="px-4 py-3 text-left text-xs font-medium text-primary uppercase">Amount</th>
+                                                                <th className="px-4 py-3 text-left text-xs font-medium text-primary uppercase">Interval</th>
+                                                                <th className="px-4 py-3 text-left text-xs font-medium text-primary uppercase">Currency</th>
                                                             </tr>
                                                         </thead>
                                                         <tbody className="divide-y divide-gray-200">
                                                             {additions.length === 0 ? (
                                                                 <tr>
-                                                                    <td colSpan={5} className="px-4 py-12 text-center text-gray-500 text-sm">No Data</td>
+                                                                    <td colSpan={5} className="px-4 py-12 text-center text-secondary text-sm">No Data</td>
                                                                 </tr>
                                                             ) : (
                                                                 additions.map((addition) => (
-                                                                    <tr key={addition.id} className="hover:bg-gray-50 transition-colors">
-                                                                        <td className="px-4 py-3 text-sm text-gray-900">{addition.startDate}</td>
-                                                                        <td className="px-4 py-3 text-sm text-gray-900">{addition.description}</td>
-                                                                        <td className="px-4 py-3 text-sm text-gray-900">{addition.amount}</td>
-                                                                        <td className="px-4 py-3 text-sm text-gray-900">{addition.interval}</td>
-                                                                        <td className="px-4 py-3 text-sm text-gray-900">{addition.currency}</td>
+                                                                    <tr key={addition.id} className="hover:bg-[rgba(255,255,255,0.03)] transition-colors">
+                                                                        <td className="px-4 py-3 text-sm text-primary">{addition.startDate}</td>
+                                                                        <td className="px-4 py-3 text-sm text-primary">{addition.description}</td>
+                                                                        <td className="px-4 py-3 text-sm text-primary">{addition.amount}</td>
+                                                                        <td className="px-4 py-3 text-sm text-primary">{addition.interval}</td>
+                                                                        <td className="px-4 py-3 text-sm text-primary">{addition.currency}</td>
                                                                     </tr>
                                                                 ))
                                                             )}
@@ -3750,7 +3750,7 @@ const Trucks: React.FC = () => {
                                 )}
 
                                 {/* Navigation Buttons */}
-                                <div className="mt-4 pt-4 border-t border-gray-200">
+                                <div className="mt-4 pt-4 border-t border-theme">
                                     <div className="flex justify-between gap-3">
                                         <button
                                             onClick={handlePrevious}
@@ -3758,7 +3758,7 @@ const Trucks: React.FC = () => {
                                             className={`flex items-center justify-center gap-2 px-4 py-1.5 rounded-lg text-sm font-medium transition-colors ${
                                                 getPreviousStep()
                                                     ? 'bg-gray-700 !text-white hover:bg-gray-800'
-                                                    : 'bg-gray-200 text-gray-400 cursor-not-allowed'
+                                                    : 'bg-gray-200 text-secondary cursor-not-allowed'
                                             }`}
                                         >
                                             <ChevronLeft className="w-3.5 h-3.5" />
@@ -3770,7 +3770,7 @@ const Trucks: React.FC = () => {
                                             className={`flex items-center justify-center gap-2 px-4 py-1.5 rounded-lg text-sm font-medium transition-colors ${
                                                 getNextStep()
                                                     ? 'bg-gray-700 !text-white hover:bg-gray-800'
-                                                    : 'bg-gray-200 text-gray-400 cursor-not-allowed'
+                                                    : 'bg-gray-200 text-secondary cursor-not-allowed'
                                             }`}
                                         >
                                             Next
@@ -3802,24 +3802,24 @@ const Trucks: React.FC = () => {
             {/* Truck Limit Reached Modal */}
             {truckLimitModal.show && (
                 <div className="fixed inset-0 bg-gray-900/50 backdrop-blur-sm z-[10000] flex items-center justify-center p-4">
-                    <div className="bg-white rounded-xl shadow-2xl max-w-md w-full">
-                        <div className="p-6 border-b border-gray-200">
+                    <div className="bg-card rounded-xl shadow-2xl max-w-md w-full">
+                        <div className="p-6 border-b border-theme">
                             <div className="flex items-start gap-4">
                                 <div className="flex-shrink-0 w-12 h-12 bg-orange-100 rounded-full flex items-center justify-center">
-                                    <svg className="w-6 h-6 text-orange-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <svg className="w-6 h-6 text-[#F59E0B]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z" />
                                     </svg>
                                 </div>
                                 <div className="flex-1">
-                                    <h3 className="text-xl font-semibold text-gray-900">Truck Limit Reached</h3>
-                                    <p className="text-sm text-gray-600 mt-1">
-                                        Your plan allows <span className="font-bold text-gray-800">{truckLimitModal.maxTrucks}</span> truck{truckLimitModal.maxTrucks !== 1 ? 's' : ''}.
-                                        You currently have <span className="font-bold text-red-600">{truckLimitModal.usedTrucks}</span> truck{truckLimitModal.usedTrucks !== 1 ? 's' : ''} in use.
+                                    <h3 className="text-xl font-semibold text-primary">Truck Limit Reached</h3>
+                                    <p className="text-sm text-secondary mt-1">
+                                        Your plan allows <span className="font-bold text-primary">{truckLimitModal.maxTrucks}</span> truck{truckLimitModal.maxTrucks !== 1 ? 's' : ''}.
+                                        You currently have <span className="font-bold text-[#A855F7]">{truckLimitModal.usedTrucks}</span> truck{truckLimitModal.usedTrucks !== 1 ? 's' : ''} in use.
                                     </p>
-                                    <p className="text-sm text-gray-500 mt-2">
+                                    <p className="text-sm text-secondary mt-2">
                                         To add more trucks, upgrade your plan or purchase additional truck slots from the Subscription page.
                                     </p>
-                                    <div className="mt-3 bg-orange-50 border border-orange-200 rounded-lg p-3 flex items-center justify-between">
+                                    <div className="mt-3 bg-card border border-orange-200 rounded-lg p-3 flex items-center justify-between">
                                         <span className="text-xs font-medium text-orange-700">Trucks used</span>
                                         <span className="text-sm font-bold text-orange-800">{truckLimitModal.usedTrucks} / {truckLimitModal.maxTrucks}</span>
                                     </div>
@@ -3829,7 +3829,7 @@ const Trucks: React.FC = () => {
                         <div className="p-6 flex items-center justify-end gap-3">
                             <button
                                 onClick={() => setTruckLimitModal({ show: false, maxTrucks: 0, usedTrucks: 0 })}
-                                className="px-5 py-2.5 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 font-medium transition-colors"
+                                className="px-5 py-2.5 border border-gray-300 text-primary rounded-lg hover:bg-[rgba(255,255,255,0.03)] font-medium transition-colors"
                             >
                                 Close
                             </button>
@@ -3846,7 +3846,7 @@ const Trucks: React.FC = () => {
 
             {/* Validation Errors Display */}
             {validationErrors.length > 0 && (
-                <div className="fixed bottom-4 right-4 bg-red-50 border-l-4 border-red-500 p-4 rounded-lg shadow-lg max-w-md z-[10001]">
+                <div className="fixed bottom-4 right-4 bg-card border-l-4 border-red-500 p-4 rounded-lg shadow-lg max-w-md z-[10001]">
                     <div className="flex items-start">
                         <div className="flex-shrink-0">
                             <svg className="h-5 w-5 text-red-400" viewBox="0 0 20 20" fill="currentColor">
@@ -3863,7 +3863,7 @@ const Trucks: React.FC = () => {
                         </div>
                         <button
                             onClick={() => setValidationErrors([])}
-                            className="ml-3 flex-shrink-0 text-red-400 hover:text-red-600"
+                            className="ml-3 flex-shrink-0 text-red-400 hover:text-[#A855F7]"
                         >
                             <X className="w-5 h-5" />
                         </button>

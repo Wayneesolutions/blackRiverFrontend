@@ -188,7 +188,7 @@ const DriverViolationsPage: React.FC = () => {
       case 'major': return 'bg-orange-100 text-orange-800';
       case 'moderate': return 'bg-yellow-100 text-yellow-800';
       case 'minor': return 'bg-blue-100 text-blue-800';
-      default: return 'bg-gray-100 text-gray-800';
+      default: return 'bg-gray-100 text-primary';
     }
   };
 
@@ -198,8 +198,8 @@ const DriverViolationsPage: React.FC = () => {
       case 'acknowledged': return 'bg-blue-100 text-blue-800';
       case 'resolved': return 'bg-green-100 text-green-800';
       case 'disputed': return 'bg-purple-100 text-purple-800';
-      case 'dismissed': return 'bg-gray-100 text-gray-800';
-      default: return 'bg-gray-100 text-gray-800';
+      case 'dismissed': return 'bg-gray-100 text-primary';
+      default: return 'bg-gray-100 text-primary';
     }
   };
 
@@ -208,11 +208,11 @@ const DriverViolationsPage: React.FC = () => {
   };
 
   return (
-    <div className="p-6 bg-gray-50 min-h-screen">
+    <div className="p-6 bg-card min-h-screen">
       {/* Header */}
       <div className="mb-6">
-        <h1 className="text-3xl font-bold text-gray-900 mb-2">Driver Violations</h1>
-        <p className="text-gray-600">Monitor and manage driver violations from Geotab and manual entries</p>
+        <h1 className="text-3xl font-bold text-primary mb-2">Driver Violations</h1>
+        <p className="text-secondary">Monitor and manage driver violations from Geotab and manual entries</p>
       </div>
 
       {/* Stats Cards */}
@@ -263,7 +263,7 @@ const DriverViolationsPage: React.FC = () => {
       )}
 
       {/* Actions Bar */}
-      <div className="bg-white rounded-lg shadow-sm border border-gray-100 p-4 mb-6">
+      <div className="bg-card rounded-lg shadow-sm border border-theme p-4 mb-6">
         <div className="flex flex-wrap gap-3 items-center justify-between">
           <div className="flex gap-3">
             <button
@@ -304,7 +304,7 @@ const DriverViolationsPage: React.FC = () => {
 
             <button
               onClick={handleResetFilters}
-              className="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition"
+              className="px-4 py-2 bg-gray-200 text-primary rounded-lg hover:bg-gray-300 transition"
             >
               Reset
             </button>
@@ -369,71 +369,71 @@ const DriverViolationsPage: React.FC = () => {
       </div>
 
       {/* Violations Table */}
-      <div className="bg-white rounded-lg shadow-sm border border-gray-100 overflow-hidden">
+      <div className="bg-card rounded-lg shadow-sm border border-theme overflow-hidden">
         {loading ? (
           <div className="flex items-center justify-center py-20">
             <Spin size="large" />
           </div>
         ) : violations.length === 0 ? (
           <div className="text-center py-20">
-            <FaExclamationTriangle className="mx-auto text-gray-400 mb-4" size={48} />
-            <p className="text-gray-600 text-lg">No violations found</p>
-            <p className="text-gray-500 text-sm mt-2">Try adjusting your filters or sync from Geotab</p>
+            <FaExclamationTriangle className="mx-auto text-secondary mb-4" size={48} />
+            <p className="text-secondary text-lg">No violations found</p>
+            <p className="text-secondary text-sm mt-2">Try adjusting your filters or sync from Geotab</p>
           </div>
         ) : (
           <>
             <div className="overflow-x-auto">
               <table className="min-w-full divide-y divide-gray-200">
-                <thead className="bg-gray-50">
+                <thead className="bg-card">
                   <tr>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    <th className="px-6 py-3 text-left text-xs font-medium text-secondary uppercase tracking-wider">
                       Violation ID
                     </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    <th className="px-6 py-3 text-left text-xs font-medium text-secondary uppercase tracking-wider">
                       Driver
                     </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    <th className="px-6 py-3 text-left text-xs font-medium text-secondary uppercase tracking-wider">
                       Vehicle
                     </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    <th className="px-6 py-3 text-left text-xs font-medium text-secondary uppercase tracking-wider">
                       Type
                     </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    <th className="px-6 py-3 text-left text-xs font-medium text-secondary uppercase tracking-wider">
                       Severity
                     </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    <th className="px-6 py-3 text-left text-xs font-medium text-secondary uppercase tracking-wider">
                       Date
                     </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    <th className="px-6 py-3 text-left text-xs font-medium text-secondary uppercase tracking-wider">
                       Status
                     </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    <th className="px-6 py-3 text-left text-xs font-medium text-secondary uppercase tracking-wider">
                       Points
                     </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    <th className="px-6 py-3 text-left text-xs font-medium text-secondary uppercase tracking-wider">
                       Actions
                     </th>
                   </tr>
                 </thead>
-                <tbody className="bg-white divide-y divide-gray-200">
+                <tbody className="bg-card divide-y divide-gray-200">
                   {violations.map((violation) => (
-                    <tr key={violation._id} className="hover:bg-gray-50 transition">
-                      <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                    <tr key={violation._id} className="hover:bg-[rgba(255,255,255,0.03)] transition">
+                      <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-primary">
                         {violation.violationId}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm">
                         <div>
-                          <div className="font-medium text-gray-900">{violation.driver?.name || 'N/A'}</div>
-                          <div className="text-gray-500 text-xs">{violation.driver?.internalId || ''}</div>
+                          <div className="font-medium text-primary">{violation.driver?.name || 'N/A'}</div>
+                          <div className="text-secondary text-xs">{violation.driver?.internalId || ''}</div>
                         </div>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm">
                         <div>
-                          <div className="font-medium text-gray-900">{violation.vehicle?.unitNo || 'N/A'}</div>
-                          <div className="text-gray-500 text-xs">{violation.vehicle?.licensePlate || ''}</div>
+                          <div className="font-medium text-primary">{violation.vehicle?.unitNo || 'N/A'}</div>
+                          <div className="text-secondary text-xs">{violation.vehicle?.licensePlate || ''}</div>
                         </div>
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-primary">
                         {formatViolationType(violation.violationType)}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
@@ -441,7 +441,7 @@ const DriverViolationsPage: React.FC = () => {
                           {violation.severity.toUpperCase()}
                         </span>
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-primary">
                         {new Date(violation.date).toLocaleDateString()}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
@@ -449,21 +449,21 @@ const DriverViolationsPage: React.FC = () => {
                           {violation.status.toUpperCase()}
                         </span>
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm font-bold text-gray-900">
+                      <td className="px-6 py-4 whitespace-nowrap text-sm font-bold text-primary">
                         {violation.points}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm">
                         <div className="flex gap-2">
                           <button
                             onClick={() => handleViewDetails(violation)}
-                            className="text-blue-600 hover:text-blue-800 p-1"
+                            className="text-[#00D1FF] hover:text-blue-800 p-1"
                             title="View Details"
                           >
                             <FaEye />
                           </button>
                           <button
                             onClick={() => handleDelete(violation._id)}
-                            className="text-red-600 hover:text-red-800 p-1"
+                            className="text-[#A855F7] hover:text-red-800 p-1"
                             title="Delete"
                           >
                             <FaTrash />
@@ -477,9 +477,9 @@ const DriverViolationsPage: React.FC = () => {
             </div>
 
             {/* Pagination */}
-            <div className="px-6 py-4 bg-gray-50 border-t border-gray-200">
+            <div className="px-6 py-4 bg-card border-t border-theme">
               <div className="flex items-center justify-between">
-                <div className="text-sm text-gray-700">
+                <div className="text-sm text-primary">
                   Showing <span className="font-medium">{(pagination.page - 1) * pagination.limit + 1}</span> to{' '}
                   <span className="font-medium">
                     {Math.min(pagination.page * pagination.limit, pagination.total)}
@@ -490,14 +490,14 @@ const DriverViolationsPage: React.FC = () => {
                   <button
                     onClick={() => fetchViolations(pagination.page - 1)}
                     disabled={pagination.page === 1}
-                    className="px-4 py-2 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 disabled:bg-gray-100 disabled:text-gray-400 disabled:cursor-not-allowed"
+                    className="px-4 py-2 border border-gray-300 rounded-lg text-sm font-medium text-primary bg-card hover:bg-[rgba(255,255,255,0.03)] disabled:bg-gray-100 disabled:text-secondary disabled:cursor-not-allowed"
                   >
                     Previous
                   </button>
                   <button
                     onClick={() => fetchViolations(pagination.page + 1)}
                     disabled={pagination.page === pagination.totalPages}
-                    className="px-4 py-2 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 disabled:bg-gray-100 disabled:text-gray-400 disabled:cursor-not-allowed"
+                    className="px-4 py-2 border border-gray-300 rounded-lg text-sm font-medium text-primary bg-card hover:bg-[rgba(255,255,255,0.03)] disabled:bg-gray-100 disabled:text-secondary disabled:cursor-not-allowed"
                   >
                     Next
                   </button>
@@ -523,33 +523,33 @@ const DriverViolationsPage: React.FC = () => {
           <div className="space-y-4">
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <label className="text-sm font-medium text-gray-600">Violation ID</label>
-                <div className="text-lg font-bold text-gray-900">{selectedViolation.violationId}</div>
+                <label className="text-sm font-medium text-secondary">Violation ID</label>
+                <div className="text-lg font-bold text-primary">{selectedViolation.violationId}</div>
               </div>
               <div>
-                <label className="text-sm font-medium text-gray-600">Date</label>
-                <div className="text-lg text-gray-900">{new Date(selectedViolation.date).toLocaleString()}</div>
+                <label className="text-sm font-medium text-secondary">Date</label>
+                <div className="text-lg text-primary">{new Date(selectedViolation.date).toLocaleString()}</div>
               </div>
             </div>
 
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <label className="text-sm font-medium text-gray-600">Driver</label>
-                <div className="text-lg text-gray-900">{selectedViolation.driver?.name || 'N/A'}</div>
+                <label className="text-sm font-medium text-secondary">Driver</label>
+                <div className="text-lg text-primary">{selectedViolation.driver?.name || 'N/A'}</div>
               </div>
               <div>
-                <label className="text-sm font-medium text-gray-600">Vehicle</label>
-                <div className="text-lg text-gray-900">{selectedViolation.vehicle?.unitNo || 'N/A'}</div>
+                <label className="text-sm font-medium text-secondary">Vehicle</label>
+                <div className="text-lg text-primary">{selectedViolation.vehicle?.unitNo || 'N/A'}</div>
               </div>
             </div>
 
             <div className="grid grid-cols-3 gap-4">
               <div>
-                <label className="text-sm font-medium text-gray-600">Type</label>
-                <div className="text-lg text-gray-900">{formatViolationType(selectedViolation.violationType)}</div>
+                <label className="text-sm font-medium text-secondary">Type</label>
+                <div className="text-lg text-primary">{formatViolationType(selectedViolation.violationType)}</div>
               </div>
               <div>
-                <label className="text-sm font-medium text-gray-600">Severity</label>
+                <label className="text-sm font-medium text-secondary">Severity</label>
                 <div>
                   <span className={`px-3 py-1 rounded-full text-sm font-semibold ${getSeverityColor(selectedViolation.severity)}`}>
                     {selectedViolation.severity.toUpperCase()}
@@ -557,31 +557,31 @@ const DriverViolationsPage: React.FC = () => {
                 </div>
               </div>
               <div>
-                <label className="text-sm font-medium text-gray-600">Points</label>
-                <div className="text-lg font-bold text-red-600">{selectedViolation.points}</div>
+                <label className="text-sm font-medium text-secondary">Points</label>
+                <div className="text-lg font-bold text-[#A855F7]">{selectedViolation.points}</div>
               </div>
             </div>
 
             {selectedViolation.violationDetails && (
               <div>
-                <label className="text-sm font-medium text-gray-600">Violation Details</label>
-                <div className="bg-gray-50 p-4 rounded-lg mt-2">
+                <label className="text-sm font-medium text-secondary">Violation Details</label>
+                <div className="bg-card p-4 rounded-lg mt-2">
                   {selectedViolation.violationDetails.speedLimit && (
-                    <div className="flex justify-between py-2 border-b border-gray-200">
-                      <span className="text-gray-700">Speed Limit:</span>
+                    <div className="flex justify-between py-2 border-b border-theme">
+                      <span className="text-primary">Speed Limit:</span>
                       <span className="font-semibold">{selectedViolation.violationDetails.speedLimit} km/h</span>
                     </div>
                   )}
                   {selectedViolation.violationDetails.actualSpeed && (
-                    <div className="flex justify-between py-2 border-b border-gray-200">
-                      <span className="text-gray-700">Actual Speed:</span>
-                      <span className="font-semibold text-red-600">{selectedViolation.violationDetails.actualSpeed} km/h</span>
+                    <div className="flex justify-between py-2 border-b border-theme">
+                      <span className="text-primary">Actual Speed:</span>
+                      <span className="font-semibold text-[#A855F7]">{selectedViolation.violationDetails.actualSpeed} km/h</span>
                     </div>
                   )}
                   {selectedViolation.violationDetails.speedOver && (
                     <div className="flex justify-between py-2">
-                      <span className="text-gray-700">Speed Over:</span>
-                      <span className="font-semibold text-red-600">+{selectedViolation.violationDetails.speedOver} km/h</span>
+                      <span className="text-primary">Speed Over:</span>
+                      <span className="font-semibold text-[#A855F7]">+{selectedViolation.violationDetails.speedOver} km/h</span>
                     </div>
                   )}
                 </div>
@@ -590,15 +590,15 @@ const DriverViolationsPage: React.FC = () => {
 
             {selectedViolation.description && (
               <div>
-                <label className="text-sm font-medium text-gray-600">Description</label>
-                <div className="text-gray-900 mt-2">{selectedViolation.description}</div>
+                <label className="text-sm font-medium text-secondary">Description</label>
+                <div className="text-primary mt-2">{selectedViolation.description}</div>
               </div>
             )}
 
             {selectedViolation.location && (
               <div>
-                <label className="text-sm font-medium text-gray-600">Location</label>
-                <div className="text-gray-900 mt-2">
+                <label className="text-sm font-medium text-secondary">Location</label>
+                <div className="text-primary mt-2">
                   {selectedViolation.location.address || `${selectedViolation.location.latitude}, ${selectedViolation.location.longitude}`}
                 </div>
               </div>
@@ -606,7 +606,7 @@ const DriverViolationsPage: React.FC = () => {
 
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <label className="text-sm font-medium text-gray-600">Status</label>
+                <label className="text-sm font-medium text-secondary">Status</label>
                 <div className="mt-2">
                   <span className={`px-3 py-1 rounded-full text-sm font-semibold ${getStatusColor(selectedViolation.status)}`}>
                     {selectedViolation.status.toUpperCase()}
@@ -614,8 +614,8 @@ const DriverViolationsPage: React.FC = () => {
                 </div>
               </div>
               <div>
-                <label className="text-sm font-medium text-gray-600">Source</label>
-                <div className="text-lg text-gray-900 mt-2">{selectedViolation.source.toUpperCase()}</div>
+                <label className="text-sm font-medium text-secondary">Source</label>
+                <div className="text-lg text-primary mt-2">{selectedViolation.source.toUpperCase()}</div>
               </div>
             </div>
           </div>

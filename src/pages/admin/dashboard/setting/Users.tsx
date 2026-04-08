@@ -170,7 +170,7 @@ const Notification = ({ notification, onClose }: { notification: Notification; o
 
   const bgColors = {
     success: 'bg-green-50 border-green-200',
-    error: 'bg-red-50 border-red-200',
+    error: 'bg-card border-red-200',
     info: ''
   };
 
@@ -197,10 +197,10 @@ const Notification = ({ notification, onClose }: { notification: Notification; o
       <div className="flex-shrink-0 mt-0.5">
         {icons[notification.type]}
       </div>
-      <p className="flex-1 text-sm font-medium text-gray-800">{notification.message}</p>
+      <p className="flex-1 text-sm font-medium text-primary">{notification.message}</p>
       <button
         onClick={() => onClose(notification.id)}
-        className="flex-shrink-0 text-gray-400 hover:text-gray-600 transition-colors"
+        className="flex-shrink-0 text-secondary hover:text-secondary transition-colors"
       >
         <FaTimes size={16} />
       </button>
@@ -1088,7 +1088,7 @@ const EmployeesPage = () => {
       case 'rejected':
         return 'bg-red-100 text-red-700';
       default:
-        return 'bg-gray-100 text-gray-700';
+        return 'bg-gray-100 text-primary';
     }
   };
 
@@ -1115,7 +1115,7 @@ const EmployeesPage = () => {
   };
 
   return (
-    <div className="flex min-h-screen bg-[#EDF8FF]">
+    <div className="flex min-h-screen bg-main">
       <div className={`flex-1 flex flex-col transition-all duration-300 ${showAddModal ? 'mr-[800px]' : ''}`}>
         <div className="flex-1 flex flex-col p-4" style={ACCENT_VARS}>
           {/* Notifications Container */}
@@ -1129,12 +1129,12 @@ const EmployeesPage = () => {
             ))}
           </div>
 
-          <div className="bg-white rounded-xl shadow-lg p-4 mb-4 border border-gray-200 flex-shrink-0">
+          <div className="bg-card rounded-xl shadow-lg p-4 mb-4 border border-theme flex-shrink-0">
             <div className="flex items-center justify-between mb-4">
               <div>
-                <h2 className="text-2xl font-bold text-gray-900 mb-1">Employee Management</h2>
+                <h2 className="text-2xl font-bold text-primary mb-1">Employee Management</h2>
                 <div className="flex items-center gap-3">
-                  <p className="text-sm text-gray-500">
+                  <p className="text-sm text-secondary">
                     {activeTab === 'employees' && (totalEmployees > 0 
                       ? `Showing ${employees.length} of ${totalEmployees} employees`
                       : 'No employees found')
@@ -1168,13 +1168,13 @@ const EmployeesPage = () => {
             </div>
 
             {/* Tabs */}
-            <div className="flex space-x-1 mb-4 border-b border-gray-200 flex-shrink-0">
+            <div className="flex space-x-1 mb-4 border-b border-theme flex-shrink-0">
               <button
                 onClick={() => setActiveTab('employees')}
                 className={`px-4 py-2 text-sm font-medium transition-colors border-b-2 ${
                   activeTab === 'employees'
-                    ? 'border-blue-600 text-blue-600'
-                    : 'border-transparent text-gray-500 hover:text-gray-700'
+                    ? 'border-blue-600 text-[#00D1FF]'
+                    : 'border-transparent text-secondary hover:text-primary'
                 }`}
                 style={
                   activeTab === 'employees'
@@ -1184,7 +1184,7 @@ const EmployeesPage = () => {
               >
                 Employees
                 {totalEmployees > 0 && (
-                  <span className="ml-2 px-2 py-0.5 text-xs rounded-full bg-gray-100 text-gray-600">
+                  <span className="ml-2 px-2 py-0.5 text-xs rounded-full bg-gray-100 text-secondary">
                     {totalEmployees}
                   </span>
                 )}
@@ -1193,8 +1193,8 @@ const EmployeesPage = () => {
                 onClick={() => setActiveTab('contacts')}
                 className={`px-4 py-2 text-sm font-medium transition-colors border-b-2 ${
                   activeTab === 'contacts'
-                    ? 'border-blue-600 text-blue-600'
-                    : 'border-transparent text-gray-500 hover:text-gray-700'
+                    ? 'border-blue-600 text-[#00D1FF]'
+                    : 'border-transparent text-secondary hover:text-primary'
                 }`}
                 style={
                   activeTab === 'contacts'
@@ -1204,7 +1204,7 @@ const EmployeesPage = () => {
               >
                 Contacts
                 {totalContacts > 0 && (
-                  <span className="ml-2 px-2 py-0.5 text-xs rounded-full bg-gray-100 text-gray-600">
+                  <span className="ml-2 px-2 py-0.5 text-xs rounded-full bg-gray-100 text-secondary">
                     {totalContacts}
                   </span>
                 )}
@@ -1213,8 +1213,8 @@ const EmployeesPage = () => {
                 onClick={() => setActiveTab('customers')}
                 className={`px-4 py-2 text-sm font-medium transition-colors border-b-2 ${
                   activeTab === 'customers'
-                    ? 'border-blue-600 text-blue-600'
-                    : 'border-transparent text-gray-500 hover:text-gray-700'
+                    ? 'border-blue-600 text-[#00D1FF]'
+                    : 'border-transparent text-secondary hover:text-primary'
                 }`}
                 style={
                   activeTab === 'customers'
@@ -1224,7 +1224,7 @@ const EmployeesPage = () => {
               >
                 Customers
                 {totalCustomers > 0 && (
-                  <span className="ml-2 px-2 py-0.5 text-xs rounded-full bg-gray-100 text-gray-600">
+                  <span className="ml-2 px-2 py-0.5 text-xs rounded-full bg-gray-100 text-secondary">
                     {totalCustomers}
                   </span>
                 )}
@@ -1233,20 +1233,20 @@ const EmployeesPage = () => {
 
             <div className="flex items-center space-x-4">
               <div className="flex-1 relative">
-                <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
+                <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-secondary w-5 h-5" />
                 <input
                   type="text"
                   placeholder="Search by name, ID, role, or department..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  className="w-full pl-12 pr-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:border-transparent bg-gray-50 focus:bg-white transition-colors"
+                  className="w-full pl-12 pr-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:border-transparent bg-card focus:bg-card transition-colors"
                   style={focusRingStyle}
                 />
               </div>
               <div className="relative">
                 <button
                   onClick={() => setShowFilterPanel(!showFilterPanel)}
-                  className="px-5 py-3 border border-gray-300 rounded-xl hover:bg-gray-50 flex items-center space-x-2 bg-white transition-all"
+                  className="px-5 py-3 border border-gray-300 rounded-xl hover:bg-[rgba(255,255,255,0.03)] flex items-center space-x-2 bg-card transition-all"
                   style={
                     showFilterPanel
                       ? { backgroundColor: "rgba(66, 174, 236, 0.1)", borderColor: ACCENT_PRIMARY, boxShadow: `0 0 0 3px rgba(66, 174, 236, 0.1)` }
@@ -1271,16 +1271,16 @@ const EmployeesPage = () => {
                       className="fixed inset-0 z-40 bg-gray-900/20 backdrop-blur-sm"
                       onClick={() => setShowFilterPanel(false)}
                     ></div>
-                    <div className="absolute right-0 mt-2 w-64 bg-white rounded-lg shadow-xl border border-gray-200 z-50 p-4">
+                    <div className="absolute right-0 mt-2 w-64 bg-card rounded-lg shadow-xl border border-theme z-50 p-4">
                       <div className="flex items-center justify-between mb-4">
-                        <h3 className="text-sm font-semibold text-gray-800">
+                        <h3 className="text-sm font-semibold text-primary">
                           {activeTab === 'employees' && 'Filter Employees'}
                           {activeTab === 'contacts' && 'Filter Contacts'}
                           {activeTab === 'customers' && 'Filter Customers'}
                         </h3>
                         <button
                           onClick={() => setShowFilterPanel(false)}
-                          className="text-gray-400 hover:text-gray-600"
+                          className="text-secondary hover:text-secondary"
                         >
                           <X className="w-4 h-4" />
                         </button>
@@ -1290,7 +1290,7 @@ const EmployeesPage = () => {
                         {/* Role filter removed - showing all users in employees tab */}
 
                         <div>
-                          <label className="block text-sm font-medium text-gray-700 mb-2">
+                          <label className="block text-sm font-medium text-primary mb-2">
                             Status
                           </label>
                           <select
@@ -1305,14 +1305,14 @@ const EmployeesPage = () => {
                           </select>
                         </div>
 
-                        <div className="flex items-center space-x-2 pt-2 border-t border-gray-200">
+                        <div className="flex items-center space-x-2 pt-2 border-t border-theme">
                           <button
                             onClick={() => {
                               setSelectedStatus('');
                               setShowFilterPanel(false);
                               setCurrentPage(1); // Reset to first page when clearing filters
                             }}
-                            className="flex-1 px-3 py-2 text-sm border border-gray-300 rounded-lg hover:bg-gray-50 text-gray-700"
+                            className="flex-1 px-3 py-2 text-sm border border-gray-300 rounded-lg hover:bg-[rgba(255,255,255,0.03)] text-primary"
                           >
                             Clear Status Filter
                           </button>
@@ -1333,7 +1333,7 @@ const EmployeesPage = () => {
           </div>
 
           {/* Table */}
-          <div className="bg-white rounded-xl shadow-lg border border-gray-200 flex flex-col">
+          <div className="bg-card rounded-xl shadow-lg border border-theme flex flex-col">
             {/* Top Scrollbar - Only visible horizontal scrollbar */}
             <style>{`
               .top-scrollbar-container::-webkit-scrollbar {
@@ -1397,22 +1397,22 @@ const EmployeesPage = () => {
               }}
             >
               <table className="min-w-full divide-y divide-gray-200">
-                <thead className="bg-gradient-to-r from-gray-50 to-gray-100 border-b-2 border-gray-200">
+                <thead className="bg-gradient-to-r from-gray-50 to-gray-100 border-b-2 border-theme">
                   <tr>
-                    <th className="px-4 py-2.5 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">User</th>
-                    <th className="px-4 py-2.5 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">Role</th>
-                    <th className="px-4 py-2.5 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">Contact</th>
-                    <th className="px-4 py-2.5 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">Location</th>
-                    <th className="px-4 py-2.5 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">Status</th>
-                    <th className="px-4 py-2.5 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">Created</th>
-                    <th className="px-4 py-2.5 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">Actions</th>
+                    <th className="px-4 py-2.5 text-left text-xs font-bold text-primary uppercase tracking-wider">User</th>
+                    <th className="px-4 py-2.5 text-left text-xs font-bold text-primary uppercase tracking-wider">Role</th>
+                    <th className="px-4 py-2.5 text-left text-xs font-bold text-primary uppercase tracking-wider">Contact</th>
+                    <th className="px-4 py-2.5 text-left text-xs font-bold text-primary uppercase tracking-wider">Location</th>
+                    <th className="px-4 py-2.5 text-left text-xs font-bold text-primary uppercase tracking-wider">Status</th>
+                    <th className="px-4 py-2.5 text-left text-xs font-bold text-primary uppercase tracking-wider">Created</th>
+                    <th className="px-4 py-2.5 text-left text-xs font-bold text-primary uppercase tracking-wider">Actions</th>
                   </tr>
                 </thead>
-                <tbody className="bg-white divide-y divide-gray-100">
+                <tbody className="bg-card divide-y divide-gray-100">
                   {loading ? (
                     <tr>
                       <td colSpan={7} className="px-4 py-8 text-center">
-                        <div className="flex flex-col items-center justify-center text-gray-500">
+                        <div className="flex flex-col items-center justify-center text-secondary">
                           <RefreshCw className="animate-spin h-6 w-6 mb-2" style={{ color: ACCENT_PRIMARY }} />
                           <p className="text-sm font-medium">Loading employees...</p>
                         </div>
@@ -1428,12 +1428,12 @@ const EmployeesPage = () => {
                           <td colSpan={7} className="px-4 py-8 text-center">
                             <div className="flex flex-col items-center justify-center">
                               <User className="w-12 h-12 text-gray-300 mb-3" />
-                              <p className="text-base font-semibold text-gray-600 mb-1">
+                              <p className="text-base font-semibold text-secondary mb-1">
                                 {activeTab === 'employees' && 'No employees found'}
                                 {activeTab === 'contacts' && 'No contacts found'}
                                 {activeTab === 'customers' && 'No customers found'}
                               </p>
-                              <p className="text-sm text-gray-500">Try adjusting your search or filters</p>
+                              <p className="text-sm text-secondary">Try adjusting your search or filters</p>
                             </div>
                           </td>
                         </tr>
@@ -1447,7 +1447,7 @@ const EmployeesPage = () => {
                       return (
                       <tr
                         key={uniqueKey}
-                        className="hover:bg-blue-50/50 transition-all cursor-pointer border-b border-gray-100"
+                        className="hover:bg-blue-50/50 transition-all cursor-pointer border-b border-theme"
                         onClick={() => handleRowClick(employee)}
                         data-employee-role={employee.role}
                         data-employee-name={employee.name}
@@ -1462,10 +1462,10 @@ const EmployeesPage = () => {
                               {employee.name?.charAt(0) || '?'}
                             </div>
                             <div className="ml-3">
-                              <div className="text-sm font-semibold text-gray-900" title={employee.name}>
+                              <div className="text-sm font-semibold text-primary" title={employee.name}>
                                 {employee.name || 'N/A'}
                               </div>
-                              <div className="text-xs text-gray-500 font-mono">
+                              <div className="text-xs text-secondary font-mono">
                                 {employee.internalId || 'N/A'}
                               </div>
                             </div>
@@ -1480,22 +1480,22 @@ const EmployeesPage = () => {
                         {/* Contact */}
                         <td className="px-4 py-2.5">
                           <div className="space-y-1">
-                            <div className="flex items-center text-sm text-gray-700">
-                              <Mail className="w-3.5 h-3.5 mr-1.5 text-gray-400 flex-shrink-0" />
+                            <div className="flex items-center text-sm text-primary">
+                              <Mail className="w-3.5 h-3.5 mr-1.5 text-secondary flex-shrink-0" />
                               <span className="truncate text-xs" title={employee.email}>{employee.email || 'N/A'}</span>
                             </div>
-                            <div className="text-xs text-gray-600 pl-5">
+                            <div className="text-xs text-secondary pl-5">
                               {employee.phone || 'N/A'}
                             </div>
                           </div>
                         </td>
                         {/* Location */}
-                        <td className="px-4 py-2.5 text-sm text-gray-600">
+                        <td className="px-4 py-2.5 text-sm text-secondary">
                           <div>
-                            <div className="font-medium text-gray-700">
+                            <div className="font-medium text-primary">
                               {employee.country || 'N/A'}
                             </div>
-                            <div className="text-xs text-gray-500 truncate" title={employee.city && employee.state ? `${employee.city}, ${employee.state}` : employee.location?.address || '-'}>
+                            <div className="text-xs text-secondary truncate" title={employee.city && employee.state ? `${employee.city}, ${employee.state}` : employee.location?.address || '-'}>
                               {employee.city && employee.state ? `${employee.city}, ${employee.state}` : employee.location?.address || '-'}
                             </div>
                           </div>
@@ -1517,7 +1517,7 @@ const EmployeesPage = () => {
                           </button>
                         </td>
                         {/* Created */}
-                        <td className="px-4 py-2.5 whitespace-nowrap text-sm text-gray-600 font-medium">
+                        <td className="px-4 py-2.5 whitespace-nowrap text-sm text-secondary font-medium">
                           {employee.joinDate ? new Date(employee.joinDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: '2-digit' }) : 'N/A'}
                         </td>
                         {/* Actions */}
@@ -1539,7 +1539,7 @@ const EmployeesPage = () => {
                                 e.stopPropagation();
                                 handleDelete(employee._id);
                               }}
-                              className="p-1.5 rounded-lg hover:bg-red-50 text-red-600 hover:text-red-700 transition-colors"
+                              className="p-1.5 rounded-lg hover:bg-red-50 text-[#A855F7] hover:text-red-700 transition-colors"
                               title={`Delete ${activeTab === 'contacts' ? 'Contact' : activeTab === 'customers' ? 'Customer' : 'Employee'}`}
                             >
                               <Trash2 size={16} />
@@ -1565,9 +1565,9 @@ const EmployeesPage = () => {
               const endItem = Math.min(currentPage * itemsPerPage, totalCount);
               
               return (
-              <div className="px-4 py-3 border-t border-gray-200 bg-gray-50 flex items-center justify-between">
+              <div className="px-4 py-3 border-t border-theme bg-card flex items-center justify-between">
                 <div className="flex items-center gap-2">
-                  <span className="text-sm text-gray-700">
+                  <span className="text-sm text-primary">
                     Showing <span className="font-semibold">{startItem}</span> to{' '}
                     <span className="font-semibold">{endItem}</span> of{' '}
                     <span className="font-semibold">{totalCount}</span>{' '}
@@ -1580,7 +1580,7 @@ const EmployeesPage = () => {
                   <button
                     onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
                     disabled={currentPage === 1 || loading}
-                    className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center gap-1"
+                    className="px-4 py-2 text-sm font-medium text-primary bg-card border border-gray-300 rounded-lg hover:bg-[rgba(255,255,255,0.03)] disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center gap-1"
                   >
                     <ChevronLeft className="w-4 h-4" />
                     Previous
@@ -1606,7 +1606,7 @@ const EmployeesPage = () => {
                           className={`px-3 py-2 text-sm font-medium rounded-lg transition-colors ${
                             currentPage === pageNum
                               ? 'bg-blue-600 text-white'
-                              : 'bg-white text-gray-700 border border-gray-300 hover:bg-gray-50'
+                              : 'bg-card text-primary border border-gray-300 hover:bg-[rgba(255,255,255,0.03)]'
                           } disabled:opacity-50 disabled:cursor-not-allowed`}
                           style={
                             currentPage === pageNum
@@ -1622,7 +1622,7 @@ const EmployeesPage = () => {
                   <button
                     onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
                     disabled={currentPage === totalPages || loading}
-                    className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center gap-1"
+                    className="px-4 py-2 text-sm font-medium text-primary bg-card border border-gray-300 rounded-lg hover:bg-[rgba(255,255,255,0.03)] disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center gap-1"
                   >
                     Next
                     <ChevronRight className="w-4 h-4" />
@@ -1638,14 +1638,14 @@ const EmployeesPage = () => {
       {/* Sidebar Modal */}
       {showAddModal && (
         <div className="fixed inset-0 bg-black/40 backdrop-blur-sm z-[10001] flex justify-end">
-          <div className="bg-white w-[800px] h-full shadow-2xl flex flex-col border-l border-gray-200">
+          <div className="bg-card w-[800px] h-full shadow-2xl flex flex-col border-l border-theme">
             {/* Sidebar Header */}
             <div
               className="px-6 py-4 flex items-center justify-between shrink-0"
               style={{ backgroundImage: ACCENT_GRADIENT }}
             >
               <div className="flex items-center space-x-3">
-                <div className="w-10 h-10 bg-white rounded-full flex items-center justify-center">
+                <div className="w-10 h-10 bg-card rounded-full flex items-center justify-center">
                   <User className="w-5 h-5" style={{ color: ACCENT_PRIMARY }} />
                 </div>
                 <div>
@@ -1665,7 +1665,7 @@ const EmployeesPage = () => {
                   setShowAddModal(false);
                   resetForm();
                 }}
-                className="text-white hover:bg-white hover:bg-opacity-20 rounded-lg p-2 transition-colors"
+                className="text-white hover:bg-card hover:bg-opacity-20 rounded-lg p-2 transition-colors"
               >
                 <X className="w-5 h-5" />
               </button>
@@ -1673,15 +1673,15 @@ const EmployeesPage = () => {
 
             {/* Step Indicator */}
             {!editingEmployee ? (
-              <div className="px-6 py-4 bg-gray-50 border-b border-gray-200">
+              <div className="px-6 py-4 bg-card border-b border-theme">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2 flex-1">
-                    <div className={`flex items-center gap-2 ${currentStep >= 1 ? 'text-blue-600' : 'text-gray-400'}`}>
+                    <div className={`flex items-center gap-2 ${currentStep >= 1 ? 'text-[#00D1FF]' : 'text-secondary'}`}>
                       <div className={`w-8 h-8 rounded-full flex items-center justify-center border-2 ${currentStep >= 1
-                        ? 'border-blue-600 bg-blue-50'
-                        : 'border-gray-300 bg-white'
+                        ? 'border-blue-600 bg-card'
+                        : 'border-gray-300 bg-card'
                         }`}>
-                        {currentStep > 1 ? <CheckCircle size={16} className="text-blue-600" /> : '1'}
+                        {currentStep > 1 ? <CheckCircle size={16} className="text-[#00D1FF]" /> : '1'}
                       </div>
                       <span className="text-sm font-medium">Information</span>
                     </div>
@@ -1691,10 +1691,10 @@ const EmployeesPage = () => {
                         style={{ width: currentStep >= 2 ? '100%' : '0%' }}
                       />
                     </div>
-                    <div className={`flex items-center gap-2 ${currentStep >= 2 ? 'text-blue-600' : 'text-gray-400'}`}>
+                    <div className={`flex items-center gap-2 ${currentStep >= 2 ? 'text-[#00D1FF]' : 'text-secondary'}`}>
                       <div className={`w-8 h-8 rounded-full flex items-center justify-center border-2 ${currentStep >= 2
-                        ? 'border-blue-600 bg-blue-50'
-                        : 'border-gray-300 bg-white'
+                        ? 'border-blue-600 bg-card'
+                        : 'border-gray-300 bg-card'
                         }`}>
                         2
                       </div>
@@ -1704,7 +1704,7 @@ const EmployeesPage = () => {
                 </div>
               </div>
             ) : (
-              <div className="px-6 py-4 bg-gray-50 border-b border-gray-200">
+              <div className="px-6 py-4 bg-card border-b border-theme">
                 <div className="flex items-center gap-2">
                   <button
                     onClick={() => setCurrentStep(1)}
@@ -1717,7 +1717,7 @@ const EmployeesPage = () => {
                     }
                     className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${currentStep === 1
                       ? '!text-white shadow-sm'
-                      : 'bg-white text-gray-700 border border-gray-300 hover:bg-gray-50'
+                      : 'bg-card text-primary border border-gray-300 hover:bg-[rgba(255,255,255,0.03)]'
                       }`}
                   >
                     Information
@@ -1734,7 +1734,7 @@ const EmployeesPage = () => {
                     }
                     className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${currentStep === 2
                       ? '!text-white shadow-sm'
-                      : 'bg-white text-gray-700 border border-gray-300 hover:bg-gray-50'
+                      : 'bg-card text-primary border border-gray-300 hover:bg-[rgba(255,255,255,0.03)]'
                       }`}
                   >
                     Documents ({employeeDocuments.length})
@@ -1755,7 +1755,7 @@ const EmployeesPage = () => {
                     </div>
                     <button
                       onClick={addDocument}
-                      className="px-3 py-1.5 text-sm bg-blue-50 text-blue-600 rounded-lg hover:bg-blue-100 transition-colors flex items-center gap-2"
+                      className="px-3 py-1.5 text-sm bg-card text-[#00D1FF] rounded-lg hover:bg-blue-100 transition-colors flex items-center gap-2"
                     >
                       <Plus size={16} />
                       Add Document
@@ -1764,9 +1764,9 @@ const EmployeesPage = () => {
 
                   {employeeDocuments.length === 0 ? (
                     <div className="text-center py-8 border-2 border-dashed border-gray-300 rounded-lg">
-                      <FileText className="w-12 h-12 text-gray-400 mx-auto mb-3" />
-                      <p className="text-gray-600 mb-2">No documents added yet</p>
-                      <p className="text-sm text-gray-500 mb-4">Click "Add Document" to upload employee documents</p>
+                      <FileText className="w-12 h-12 text-secondary mx-auto mb-3" />
+                      <p className="text-secondary mb-2">No documents added yet</p>
+                      <p className="text-sm text-secondary mb-4">Click "Add Document" to upload employee documents</p>
                       <button
                         onClick={addDocument}
                         className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors"
@@ -1778,17 +1778,17 @@ const EmployeesPage = () => {
                   ) : (
                     <div className="space-y-4">
                       {employeeDocuments.map((doc, index) => (
-                        <div key={doc._id || index} className="border border-gray-200 rounded-lg p-4 bg-gray-50">
+                        <div key={doc._id || index} className="border border-theme rounded-lg p-4 bg-card">
                           <div className="flex items-center justify-between mb-3">
                             <div className="flex items-center gap-2">
-                              <h4 className="font-semibold text-gray-700">Document {index + 1}</h4>
+                              <h4 className="font-semibold text-primary">Document {index + 1}</h4>
                               {doc._id && (
-                                <span className="text-xs bg-blue-100 text-blue-600 px-2 py-0.5 rounded">Existing</span>
+                                <span className="text-xs bg-blue-100 text-[#00D1FF] px-2 py-0.5 rounded">Existing</span>
                               )}
                             </div>
                             <button
                               onClick={() => removeDocument(index)}
-                              className="text-red-600 hover:text-red-800 transition-colors"
+                              className="text-[#A855F7] hover:text-red-800 transition-colors"
                             >
                               <X size={18} />
                             </button>
@@ -1796,7 +1796,7 @@ const EmployeesPage = () => {
 
                           <div className="space-y-3">
                             <div>
-                              <label className="block text-sm font-medium text-gray-700 mb-1">
+                              <label className="block text-sm font-medium text-primary mb-1">
                                 Document Type <span className="text-red-500">*</span>
                               </label>
                               <select
@@ -1813,7 +1813,7 @@ const EmployeesPage = () => {
 
                             <div className="grid grid-cols-2 gap-3">
                               <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-1">Document Number</label>
+                                <label className="block text-sm font-medium text-primary mb-1">Document Number</label>
                                 <input
                                   type="text"
                                   value={doc.documentNumber}
@@ -1823,7 +1823,7 @@ const EmployeesPage = () => {
                                 />
                               </div>
                               <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-1">Status</label>
+                                <label className="block text-sm font-medium text-primary mb-1">Status</label>
                                 <select
                                   value={doc.status}
                                   onChange={(e) => updateDocument(index, 'status', e.target.value)}
@@ -1839,7 +1839,7 @@ const EmployeesPage = () => {
 
                             <div className="grid grid-cols-2 gap-3">
                               <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-1">Issue Date</label>
+                                <label className="block text-sm font-medium text-primary mb-1">Issue Date</label>
                                 <input
                                   type="date"
                                   value={doc.issueDate}
@@ -1848,7 +1848,7 @@ const EmployeesPage = () => {
                                 />
                               </div>
                               <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-1">Expiry Date</label>
+                                <label className="block text-sm font-medium text-primary mb-1">Expiry Date</label>
                                 <input
                                   type="date"
                                   value={doc.expiryDate}
@@ -1859,7 +1859,7 @@ const EmployeesPage = () => {
                             </div>
 
                             <div>
-                              <label className="block text-sm font-medium text-gray-700 mb-1">Description</label>
+                              <label className="block text-sm font-medium text-primary mb-1">Description</label>
                               <textarea
                                 value={doc.description}
                                 onChange={(e) => updateDocument(index, 'description', e.target.value)}
@@ -1870,7 +1870,7 @@ const EmployeesPage = () => {
                             </div>
 
                             <div>
-                              <label className="block text-sm font-medium text-gray-700 mb-1">
+                              <label className="block text-sm font-medium text-primary mb-1">
                                 Document File {!doc._id && <span className="text-red-500">*</span>}
                               </label>
                               <input
@@ -1887,7 +1887,7 @@ const EmployeesPage = () => {
                                 </p>
                               )}
                               {doc._id && !doc.file && (
-                                <p className="text-xs mt-1 text-gray-500">
+                                <p className="text-xs mt-1 text-secondary">
                                   Leave empty to keep existing file
                                 </p>
                               )}
@@ -1903,13 +1903,13 @@ const EmployeesPage = () => {
                 <>
                   {/* Basic Employee Information */}
                   <div className="mb-6">
-                    <h3 className="text-lg font-semibold text-gray-800 mb-4 flex items-center space-x-2">
+                    <h3 className="text-lg font-semibold text-primary mb-4 flex items-center space-x-2">
                       <User className="w-5 h-5" style={{ color: ACCENT_PRIMARY }} />
                       <span>Basic Information</span>
                     </h3>
                     <div className="grid grid-cols-2 gap-4">
                       <div className="col-span-2">
-                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                        <label className="block text-sm font-medium text-primary mb-2">
                           Full Name <span className="text-red-500">*</span>
                         </label>
                         <input
@@ -1923,7 +1923,7 @@ const EmployeesPage = () => {
                       </div>
 
                       <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                        <label className="block text-sm font-medium text-primary mb-2">
                           Role <span className="text-red-500">*</span>
                         </label>
                         <select
@@ -1946,7 +1946,7 @@ const EmployeesPage = () => {
                       </div>
 
                       <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                        <label className="block text-sm font-medium text-primary mb-2">
                           Internal ID {rolesWithLoginAccess.includes(formData.role) && <span className="text-red-500">*</span>}
                         </label>
                         <input
@@ -1959,12 +1959,12 @@ const EmployeesPage = () => {
                           className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                         />
                         {!rolesWithLoginAccess.includes(formData.role) && (
-                          <p className="text-xs text-gray-500 mt-1">Not required for this role</p>
+                          <p className="text-xs text-secondary mt-1">Not required for this role</p>
                         )}
                       </div>
 
                       <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                        <label className="block text-sm font-medium text-primary mb-2">
                           Country <span className="text-red-500">*</span>
                         </label>
                         <input
@@ -1978,7 +1978,7 @@ const EmployeesPage = () => {
                       </div>
 
                       <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                        <label className="block text-sm font-medium text-primary mb-2">
                           Join Date <span className="text-red-500">*</span>
                         </label>
                         <input
@@ -1992,7 +1992,7 @@ const EmployeesPage = () => {
 
                       {!rolesWithoutLoginAccess.includes(formData.role) && (
                         <div>
-                          <label className="block text-sm font-medium text-gray-700 mb-2">
+                          <label className="block text-sm font-medium text-primary mb-2">
                             Password {!editingEmployee && rolesWithLoginAccess.includes(formData.role) && <span className="text-red-500">*</span>}
                           </label>
                           <div className="relative">
@@ -2008,17 +2008,17 @@ const EmployeesPage = () => {
                             <button
                               type="button"
                               onClick={() => setShowPassword(!showPassword)}
-                              className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors"
+                              className="absolute right-3 top-1/2 transform -translate-y-1/2 text-secondary hover:text-secondary transition-colors"
                               tabIndex={-1}
                             >
                               {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
                             </button>
                           </div>
                           {editingEmployee && (
-                            <p className="text-xs text-gray-500 mt-1">Leave empty to keep the current password unchanged</p>
+                            <p className="text-xs text-secondary mt-1">Leave empty to keep the current password unchanged</p>
                           )}
                           {!rolesWithLoginAccess.includes(formData.role) && (
-                            <p className="text-xs text-gray-500 mt-1">Password not required for this role</p>
+                            <p className="text-xs text-secondary mt-1">Password not required for this role</p>
                           )}
                         </div>
                       )}
@@ -2027,13 +2027,13 @@ const EmployeesPage = () => {
 
                   {/* Contact Information */}
                   <div className="mb-6">
-                    <h3 className="text-lg font-semibold text-gray-800 mb-4 flex items-center space-x-2">
+                    <h3 className="text-lg font-semibold text-primary mb-4 flex items-center space-x-2">
                       <Mail className="w-5 h-5 text-blue-500" />
                       <span>Contact Information</span>
                     </h3>
                     <div className="grid grid-cols-2 gap-4">
                       <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                        <label className="block text-sm font-medium text-primary mb-2">
                           Email Address <span className="text-red-500">*</span>
                         </label>
                         <input
@@ -2047,7 +2047,7 @@ const EmployeesPage = () => {
                       </div>
 
                       <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                        <label className="block text-sm font-medium text-primary mb-2">
                           Phone Number <span className="text-red-500">*</span>
                         </label>
                         <input
@@ -2061,7 +2061,7 @@ const EmployeesPage = () => {
                       </div>
 
                       <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                        <label className="block text-sm font-medium text-primary mb-2">
                           State <span className="text-red-500">*</span>
                         </label>
                         <input
@@ -2075,7 +2075,7 @@ const EmployeesPage = () => {
                       </div>
 
                       <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                        <label className="block text-sm font-medium text-primary mb-2">
                           City <span className="text-red-500">*</span>
                         </label>
                         <input
@@ -2089,7 +2089,7 @@ const EmployeesPage = () => {
                       </div>
 
                       <div className="col-span-2">
-                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                        <label className="block text-sm font-medium text-primary mb-2">
                           Address <span className="text-red-500">*</span>
                         </label>
                         <textarea
@@ -2105,13 +2105,13 @@ const EmployeesPage = () => {
                   </div>
 
                   <div className="mb-6">
-                    <h3 className="text-lg font-semibold text-gray-800 mb-4 flex items-center space-x-2">
+                    <h3 className="text-lg font-semibold text-primary mb-4 flex items-center space-x-2">
                       <AlertCircle className="w-5 h-5 text-blue-500" />
                       <span>Additional Information</span>
                     </h3>
                     <div className="grid grid-cols-1 gap-4">
                       <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                        <label className="block text-sm font-medium text-primary mb-2">
                           Policies
                         </label>
                         <textarea
@@ -2130,12 +2130,12 @@ const EmployeesPage = () => {
             </div>
 
             {/* Sidebar Footer */}
-            <div className="bg-gray-50 px-6 py-4 flex items-center justify-end space-x-3 border-t border-gray-200 shrink-0">
+            <div className="bg-card px-6 py-4 flex items-center justify-end space-x-3 border-t border-theme shrink-0">
               {!editingEmployee && currentStep === 2 ? (
                 <>
                   <button
                     onClick={() => setCurrentStep(1)}
-                    className="flex-1 bg-white border border-gray-300 hover:bg-gray-50 text-gray-700 px-4 py-2 rounded-lg transition-colors font-medium flex items-center justify-center gap-2"
+                    className="flex-1 bg-card border border-gray-300 hover:bg-[rgba(255,255,255,0.03)] text-primary px-4 py-2 rounded-lg transition-colors font-medium flex items-center justify-center gap-2"
                   >
                     <ChevronLeft size={18} />
                     Back
@@ -2157,7 +2157,7 @@ const EmployeesPage = () => {
                       setShowAddModal(false);
                       resetForm();
                     }}
-                    className="px-6 py-2.5 border border-gray-300 !mr-2 text-gray-700 rounded-lg hover:bg-gray-100 transition-colors font-medium"
+                    className="px-6 py-2.5 border border-gray-300 !mr-2 text-primary rounded-lg hover:bg-gray-100 transition-colors font-medium"
                   >
                     Cancel
                   </button>
@@ -2186,7 +2186,7 @@ const EmployeesPage = () => {
                         <>
                           <button
                             onClick={() => setCurrentStep(1)}
-                            className="px-6 py-2.5 border border-gray-300 !mr-2 text-gray-700 rounded-lg hover:bg-gray-100 transition-colors font-medium flex items-center gap-2"
+                            className="px-6 py-2.5 border border-gray-300 !mr-2 text-primary rounded-lg hover:bg-gray-100 transition-colors font-medium flex items-center gap-2"
                           >
                             <ChevronLeft size={18} />
                             Back
@@ -2214,8 +2214,8 @@ const EmployeesPage = () => {
       {/* Employee Details Modal */}
       {showEmployeeDetails && selectedEmployeeDetails && (
         <div className="fixed inset-0 bg-gray-900/50 backdrop-blur-sm z-[10001] flex items-center justify-center p-4">
-          <div className="bg-white rounded-xl max-w-5xl w-full max-h-[90vh] overflow-y-auto shadow-2xl">
-            <div className="sticky top-0 bg-white border-b border-gray-200 px-6 py-4 flex items-center justify-between z-10">
+          <div className="bg-card rounded-xl max-w-5xl w-full max-h-[90vh] overflow-y-auto shadow-2xl">
+            <div className="sticky top-0 bg-card border-b border-theme px-6 py-4 flex items-center justify-between z-10">
               <div className="flex items-center space-x-3">
                 <div
                   className="w-12 h-12 rounded-full flex items-center justify-center text-white font-bold text-lg"
@@ -2224,8 +2224,8 @@ const EmployeesPage = () => {
                   {selectedEmployeeDetails.name?.charAt(0) || '?'}
                 </div>
                 <div>
-                  <h2 className="text-2xl font-bold text-gray-900">{selectedEmployeeDetails.name}</h2>
-                  <p className="text-sm text-gray-500">{selectedEmployeeDetails.internalId}</p>
+                  <h2 className="text-2xl font-bold text-primary">{selectedEmployeeDetails.name}</h2>
+                  <p className="text-sm text-secondary">{selectedEmployeeDetails.internalId}</p>
                 </div>
               </div>
               <button
@@ -2233,7 +2233,7 @@ const EmployeesPage = () => {
                   setShowEmployeeDetails(false);
                   setSelectedEmployeeDetails(null);
                 }}
-                className="text-gray-400 hover:text-gray-600 transition-colors"
+                className="text-secondary hover:text-secondary transition-colors"
               >
                 <X className="w-6 h-6" />
               </button>
@@ -2242,17 +2242,17 @@ const EmployeesPage = () => {
             <div className="p-6 space-y-6">
               {/* Employee Information */}
               <div>
-                <h3 className="text-lg font-semibold text-gray-800 mb-4 flex items-center gap-2">
+                <h3 className="text-lg font-semibold text-primary mb-4 flex items-center gap-2">
                   <User className="w-5 h-5" style={{ color: ACCENT_PRIMARY }} />
                   <span>Employee Information</span>
                 </h3>
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <p className="text-sm text-gray-500 mb-1">Role</p>
-                    <p className="text-sm font-medium text-gray-900">{getRoleDisplayName(selectedEmployeeDetails.role)}</p>
+                    <p className="text-sm text-secondary mb-1">Role</p>
+                    <p className="text-sm font-medium text-primary">{getRoleDisplayName(selectedEmployeeDetails.role)}</p>
                   </div>
                   <div>
-                    <p className="text-sm text-gray-500 mb-1">Status</p>
+                    <p className="text-sm text-secondary mb-1">Status</p>
                     <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${selectedEmployeeDetails.status === 'active'
                       ? 'bg-green-100 text-green-800'
                       : 'bg-red-100 text-red-800'
@@ -2261,35 +2261,35 @@ const EmployeesPage = () => {
                     </span>
                   </div>
                   <div>
-                    <p className="text-sm text-gray-500 mb-1">Email</p>
-                    <p className="text-sm font-medium text-gray-900">{selectedEmployeeDetails.email}</p>
+                    <p className="text-sm text-secondary mb-1">Email</p>
+                    <p className="text-sm font-medium text-primary">{selectedEmployeeDetails.email}</p>
                   </div>
                   <div>
-                    <p className="text-sm text-gray-500 mb-1">Phone</p>
-                    <p className="text-sm font-medium text-gray-900">{selectedEmployeeDetails.phone}</p>
+                    <p className="text-sm text-secondary mb-1">Phone</p>
+                    <p className="text-sm font-medium text-primary">{selectedEmployeeDetails.phone}</p>
                   </div>
                   <div>
-                    <p className="text-sm text-gray-500 mb-1">Country</p>
-                    <p className="text-sm font-medium text-gray-900">{selectedEmployeeDetails.country}</p>
+                    <p className="text-sm text-secondary mb-1">Country</p>
+                    <p className="text-sm font-medium text-primary">{selectedEmployeeDetails.country}</p>
                   </div>
                   <div>
-                    <p className="text-sm text-gray-500 mb-1">Location</p>
-                    <p className="text-sm font-medium text-gray-900">
+                    <p className="text-sm text-secondary mb-1">Location</p>
+                    <p className="text-sm font-medium text-primary">
                       {selectedEmployeeDetails.city && selectedEmployeeDetails.state
                         ? `${selectedEmployeeDetails.city}, ${selectedEmployeeDetails.state}`
                         : selectedEmployeeDetails.location?.address || '-'}
                     </p>
                   </div>
                   <div>
-                    <p className="text-sm text-gray-500 mb-1">Join Date</p>
-                    <p className="text-sm font-medium text-gray-900">
+                    <p className="text-sm text-secondary mb-1">Join Date</p>
+                    <p className="text-sm font-medium text-primary">
                       {new Date(selectedEmployeeDetails.joinDate).toLocaleDateString()}
                     </p>
                   </div>
                   {selectedEmployeeDetails.location?.address && (
                     <div className="col-span-2">
-                      <p className="text-sm text-gray-500 mb-1">Address</p>
-                      <p className="text-sm font-medium text-gray-900">{selectedEmployeeDetails.location.address}</p>
+                      <p className="text-sm text-secondary mb-1">Address</p>
+                      <p className="text-sm font-medium text-primary">{selectedEmployeeDetails.location.address}</p>
                     </div>
                   )}
                 </div>
@@ -2297,36 +2297,36 @@ const EmployeesPage = () => {
 
               {/* Documents Section */}
               <div>
-                <h3 className="text-lg font-semibold text-gray-800 mb-4 flex items-center gap-2">
+                <h3 className="text-lg font-semibold text-primary mb-4 flex items-center gap-2">
                   <FileText className="w-5 h-5" style={{ color: ACCENT_PRIMARY }} />
                   <span>Documents ({selectedEmployeeDetails.documents?.length || 0})</span>
                 </h3>
                 {!selectedEmployeeDetails.documents || selectedEmployeeDetails.documents.length === 0 ? (
                   <div className="text-center py-8 border-2 border-dashed border-gray-300 rounded-lg">
-                    <FileText className="w-12 h-12 text-gray-400 mx-auto mb-3" />
-                    <p className="text-gray-600">No documents uploaded for this employee</p>
+                    <FileText className="w-12 h-12 text-secondary mx-auto mb-3" />
+                    <p className="text-secondary">No documents uploaded for this employee</p>
                   </div>
                 ) : (
                   <div className="overflow-x-auto">
                     <table className="w-full">
-                      <thead className="bg-gray-50 border-b border-gray-200">
+                      <thead className="bg-card border-b border-theme">
                         <tr>
-                          <th className="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase">Document Type</th>
-                          <th className="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase">Status</th>
-                          <th className="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase">Document Number</th>
-                          <th className="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase">Issue Date</th>
-                          <th className="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase">Expiry Date</th>
-                          <th className="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase">File Size</th>
-                          <th className="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase">Actions</th>
+                          <th className="px-6 py-3 text-left text-xs font-semibold text-secondary uppercase">Document Type</th>
+                          <th className="px-6 py-3 text-left text-xs font-semibold text-secondary uppercase">Status</th>
+                          <th className="px-6 py-3 text-left text-xs font-semibold text-secondary uppercase">Document Number</th>
+                          <th className="px-6 py-3 text-left text-xs font-semibold text-secondary uppercase">Issue Date</th>
+                          <th className="px-6 py-3 text-left text-xs font-semibold text-secondary uppercase">Expiry Date</th>
+                          <th className="px-6 py-3 text-left text-xs font-semibold text-secondary uppercase">File Size</th>
+                          <th className="px-6 py-3 text-left text-xs font-semibold text-secondary uppercase">Actions</th>
                         </tr>
                       </thead>
                       <tbody className="divide-y divide-gray-200">
                         {selectedEmployeeDetails.documents.map((doc: EmployeeDocument, index: number) => (
-                          <tr key={doc._id || index} className="hover:bg-gray-50">
+                          <tr key={doc._id || index} className="hover:bg-[rgba(255,255,255,0.03)]">
                             <td className="px-4 py-2.5">
                               <div className="flex items-center space-x-2">
-                                <FileText className="w-4 h-4 text-gray-400" />
-                                <span className="text-sm font-medium text-gray-800">{doc.documentType}</span>
+                                <FileText className="w-4 h-4 text-secondary" />
+                                <span className="text-sm font-medium text-primary">{doc.documentType}</span>
                               </div>
                             </td>
                             <td className="px-4 py-2.5">
@@ -2336,20 +2336,20 @@ const EmployeesPage = () => {
                               </span>
                             </td>
                             <td className="px-4 py-2.5">
-                              <span className="text-sm text-gray-600">{doc.documentNumber || '-'}</span>
+                              <span className="text-sm text-secondary">{doc.documentNumber || '-'}</span>
                             </td>
                             <td className="px-4 py-2.5">
-                              <span className="text-sm text-gray-600">
+                              <span className="text-sm text-secondary">
                                 {doc.issueDate ? new Date(doc.issueDate).toLocaleDateString() : '-'}
                               </span>
                             </td>
                             <td className="px-4 py-2.5">
-                              <span className={`text-sm ${!doc.expiryDate ? 'text-gray-400' : 'text-gray-600'}`}>
+                              <span className={`text-sm ${!doc.expiryDate ? 'text-secondary' : 'text-secondary'}`}>
                                 {doc.expiryDate ? new Date(doc.expiryDate).toLocaleDateString() : '-'}
                               </span>
                             </td>
                             <td className="px-4 py-2.5">
-                              <span className="text-sm text-gray-600">
+                              <span className="text-sm text-secondary">
                                 {doc.fileSize ? formatFileSize(doc.fileSize) : '-'}
                               </span>
                             </td>
@@ -2424,7 +2424,7 @@ const EmployeesPage = () => {
                                       }
                                     }
                                   }}
-                                  className="p-2 hover:bg-blue-50 rounded-lg text-blue-600 transition-colors"
+                                  className="p-2 hover:bg-blue-50 rounded-lg text-[#00D1FF] transition-colors"
                                   title="View Document"
                                 >
                                   <Eye className="w-4 h-4" />
@@ -2440,7 +2440,7 @@ const EmployeesPage = () => {
               </div>
             </div>
 
-            <div className="sticky bottom-0 bg-gray-50 border-t border-gray-200 px-6 py-4 flex items-center justify-end gap-3">
+            <div className="sticky bottom-0 bg-card border-t border-theme px-6 py-4 flex items-center justify-end gap-3">
               <button
                 onClick={() => {
                   setShowEmployeeDetails(false);
@@ -2458,14 +2458,14 @@ const EmployeesPage = () => {
       {/* Delete Confirmation Modal */}
       {deleteConfirm.show && (
         <div className="fixed inset-0 bg-gray-900/50 backdrop-blur-sm z-[10001] flex items-center justify-center p-4">
-          <div className="bg-white rounded-xl max-w-md w-full shadow-2xl">
+          <div className="bg-card rounded-xl max-w-md w-full shadow-2xl">
             <div className="p-6">
-              <h2 className="text-2xl font-bold text-gray-900 mb-4">Confirm Delete</h2>
-              <p className="text-gray-600 mb-6">Are you sure you want to delete this employee? This action cannot be undone.</p>
+              <h2 className="text-2xl font-bold text-primary mb-4">Confirm Delete</h2>
+              <p className="text-secondary mb-6">Are you sure you want to delete this employee? This action cannot be undone.</p>
               <div className="flex justify-end space-x-4">
                 <button
                   onClick={() => setDeleteConfirm({ show: false, employeeId: null })}
-                  className="px-6 py-3 !mr-3 text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors font-medium"
+                  className="px-6 py-3 !mr-3 text-primary bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors font-medium"
                 >
                   Cancel
                 </button>

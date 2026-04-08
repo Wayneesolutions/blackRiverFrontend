@@ -9,7 +9,7 @@ export const Section: React.FC<{ title: string; children: React.ReactNode }> = (
             {/* Section Header */}
             <button
                 onClick={() => setOpen(!open)}
-                className="w-full flex justify-between items-center px-4 py-2 text-gray-700 font-medium hover:bg-gray-200 transition-colors"
+                className="w-full flex justify-between items-center px-4 py-2 text-primary font-medium hover:bg-gray-200 transition-colors"
                 style={{ backgroundColor: '#f3f4f6' }}
             >
                 {title}
@@ -43,11 +43,11 @@ export const Toggle = ({
                     }`}
             >
                 <span
-                    className={`bg-white w-4 h-4 rounded-full shadow transform transition-transform ${checked ? "translate-x-4" : "translate-x-0"
+                    className={`bg-card w-4 h-4 rounded-full shadow transform transition-transform ${checked ? "translate-x-4" : "translate-x-0"
                         }`}
                 />
             </span>
-            <span className="text-gray-700">{label}</span>
+            <span className="text-primary">{label}</span>
         </label>
     );
 };

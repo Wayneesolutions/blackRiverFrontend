@@ -26,15 +26,15 @@ const StatCard = ({
 }) => (
   <div
     onClick={onClick}
-    className={`bg-white rounded-xl p-5 shadow-sm border border-gray-100 flex items-start gap-4 ${onClick ? "cursor-pointer hover:shadow-md hover:border-[#42aeec]/20 transition-all group" : ""}`}
+    className={`bg-card rounded-xl p-5 shadow-sm border border-theme flex items-start gap-4 ${onClick ? "cursor-pointer hover:shadow-md hover:border-[#42aeec]/20 transition-all group" : ""}`}
   >
     <div className={`${bgColor} rounded-xl p-3 flex-shrink-0`}>
       <span className={color}>{icon}</span>
     </div>
     <div className="flex-1 min-w-0">
-      <p className="text-xs text-gray-500 font-medium uppercase tracking-wider mb-1">{label}</p>
-      <p className="text-2xl font-bold text-gray-900">{value}</p>
-      {sub && <p className="text-xs text-gray-400 mt-0.5">{sub}</p>}
+      <p className="text-xs text-secondary font-medium uppercase tracking-wider mb-1">{label}</p>
+      <p className="text-2xl font-bold text-primary">{value}</p>
+      {sub && <p className="text-xs text-secondary mt-0.5">{sub}</p>}
     </div>
     {onClick && <ArrowRight size={16} className="text-gray-300 group-hover:text-[#42aeec] transition-colors mt-1 flex-shrink-0" />}
   </div>
@@ -76,7 +76,7 @@ const Dashboard = () => {
 
   if (loading) {
     return (
-      <div className="p-6 min-h-screen bg-[#EDF8FF]">
+      <div className="p-6 min-h-screen bg-main">
         <div className="flex items-center justify-center py-20">
           <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-[#42aeec]" />
         </div>
@@ -85,23 +85,23 @@ const Dashboard = () => {
   }
 
   return (
-    <div className="p-6 min-h-screen bg-[#EDF8FF]">
+    <div className="p-6 min-h-screen bg-main">
       {/* Page header */}
       <div className="flex items-center justify-between mb-6">
         <div>
-          <h1 className="text-xl font-bold text-gray-900">Dashboard</h1>
-          <p className="text-sm text-gray-500 mt-0.5">Manifest portal overview</p>
+          <h1 className="text-xl font-bold text-primary">Dashboard</h1>
+          <p className="text-sm text-secondary mt-0.5">Manifest portal overview</p>
         </div>
         <button
           onClick={load}
-          className="flex items-center gap-2 px-4 py-2 bg-white rounded-lg shadow-sm border border-gray-200 text-sm text-gray-600 hover:border-[#42aeec] hover:text-[#42aeec] transition-colors"
+          className="flex items-center gap-2 px-4 py-2 bg-card rounded-lg shadow-sm border border-theme text-sm text-secondary hover:border-[#42aeec] hover:text-[#42aeec] transition-colors"
         >
           <RefreshCw size={14} /> Refresh
         </button>
       </div>
 
       {error && (
-        <div className="flex items-center gap-2 p-4 bg-red-50 border border-red-100 rounded-xl text-red-700 text-sm mb-5">
+        <div className="flex items-center gap-2 p-4 bg-card border border-red-100 rounded-xl text-red-700 text-sm mb-5">
           <AlertCircle size={16} />{error}
         </div>
       )}
@@ -132,7 +132,7 @@ const Dashboard = () => {
           value={stats.totalDrivers}
           sub="Active staff"
           color="text-purple-600"
-          bgColor="bg-purple-50"
+          bgColor="bg-card"
           onClick={() => navigate("/admin/manifest/drivers")}
         />
       </div>

@@ -11,13 +11,13 @@ const ExpiringDocumentsPopupTest: React.FC = () => {
 
   return (
     <div className="p-6 bg-gray-100 min-h-screen">
-      <div className="max-w-2xl mx-auto bg-white rounded-lg shadow-lg p-6">
-        <h1 className="text-2xl font-bold text-gray-800 mb-4">
+      <div className="max-w-2xl mx-auto bg-card rounded-lg shadow-lg p-6">
+        <h1 className="text-2xl font-bold text-primary mb-4">
           Expiring Documents Popup Test
         </h1>
         
         <div className="space-y-4">
-          <p className="text-gray-600">
+          <p className="text-secondary">
             This component demonstrates the expiring documents popup functionality.
             Click the button below to test the popup with different scenarios.
           </p>
@@ -42,7 +42,7 @@ const ExpiringDocumentsPopupTest: React.FC = () => {
             </Button>
           </div>
           
-          <div className="mt-6 p-4 bg-blue-50 rounded-lg">
+          <div className="mt-6 p-4 bg-card rounded-lg">
             <h3 className="font-semibold text-blue-800 mb-2">Test Scenarios:</h3>
             <ul className="text-sm text-blue-700 space-y-1">
               <li>• Popup shows when there are expiring documents</li>

@@ -329,7 +329,7 @@ const Dashboard = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen p-4 bg-[#EDF8FF] px-6 flex items-center justify-center">
+      <div className="min-h-screen p-4 bg-main px-6 flex items-center justify-center">
         <div className="animate-spin rounded-full h-12 w-12 border-b-4 border-blue-500"></div>
       </div>
     );
@@ -337,7 +337,7 @@ const Dashboard = () => {
 
   return (
     <>
-    <div className="min-h-screen" style={{ backgroundColor: '#EDF8FF' }}>
+    <div className="min-h-screen" >
       <div className="relative w-full mx-auto p-2">
         {/* Gradient band */}
         <div
@@ -382,15 +382,15 @@ const Dashboard = () => {
                     <div className="flex items-start justify-between mb-2">
                       {/* Left side content */}
                       <div className="flex-1">
-                        <h3 className="text-sm font-bold text-gray-900 mb-1">
+                        <h3 className="text-sm font-bold text-primary mb-1">
                           {feature.title}
                         </h3>
 
                         <div className="flex items-baseline gap-2 mb-0.5">
-                          <span className="text-xl font-bold text-gray-900">{feature.value}</span>
+                          <span className="text-xl font-bold text-primary">{feature.value}</span>
                         </div>
 
-                        <p className="text-xs text-gray-400">{feature.subtitle}</p>
+                        <p className="text-xs text-secondary">{feature.subtitle}</p>
                       </div>
 
                       {/* Right side icon */}
@@ -422,15 +422,15 @@ const Dashboard = () => {
                     <div className="flex items-start justify-between mb-2">
                       {/* Left side content */}
                       <div className="flex-1">
-                        <h3 className="text-sm font-bold text-gray-900 mb-1">
+                        <h3 className="text-sm font-bold text-primary mb-1">
                           {feature.title}
                         </h3>
 
                         <div className="flex items-baseline gap-2 mb-0.5">
-                          <span className="text-xl font-bold text-gray-900">{feature.value}</span>
+                          <span className="text-xl font-bold text-primary">{feature.value}</span>
                         </div>
 
-                        <p className="text-xs text-gray-400">{feature.subtitle}</p>
+                        <p className="text-xs text-secondary">{feature.subtitle}</p>
                       </div>
 
                       {/* Right side icon */}
@@ -459,7 +459,7 @@ const Dashboard = () => {
                     <div className="flex items-start justify-between mb-2">
                       {/* Left side content */}
                       <div className="flex-1">
-                        <h3 className="text-sm font-bold text-gray-900 mb-2">
+                        <h3 className="text-sm font-bold text-primary mb-2">
                           {feature.title}
                         </h3>
 
@@ -467,20 +467,20 @@ const Dashboard = () => {
                           <div className="flex items-center gap-2">
                             <UserCheck className="text-emerald-600" size={18} />
                             <div>
-                              <span className="text-lg font-bold text-gray-900">{feature.paidCount}</span>
-                              <p className="text-xs text-gray-500">Paid</p>
+                              <span className="text-lg font-bold text-primary">{feature.paidCount}</span>
+                              <p className="text-xs text-secondary">Paid</p>
                             </div>
                           </div>
                           <div className="flex items-center gap-2">
                             <UserX className="text-amber-600" size={18} />
                             <div>
-                              <span className="text-lg font-bold text-gray-900">{feature.unpaidCount}</span>
-                              <p className="text-xs text-gray-500">Unpaid</p>
+                              <span className="text-lg font-bold text-primary">{feature.unpaidCount}</span>
+                              <p className="text-xs text-secondary">Unpaid</p>
                             </div>
                           </div>
                         </div>
 
-                        <p className="text-xs text-gray-400">Total: {feature.totalCount} employees</p>
+                        <p className="text-xs text-secondary">Total: {feature.totalCount} employees</p>
                       </div>
 
                       {/* Right side icon */}
@@ -506,7 +506,7 @@ const Dashboard = () => {
                     <div className="flex items-start justify-between mb-2">
                       {/* Left side content */}
                       <div className="flex-1">
-                        <h3 className="text-sm font-bold text-gray-900 mb-2">
+                        <h3 className="text-sm font-bold text-primary mb-2">
                           {feature.title}
                         </h3>
 
@@ -514,20 +514,20 @@ const Dashboard = () => {
                           <div className="flex items-center gap-2">
                             <CheckCircle className="text-emerald-600" size={18} />
                             <div>
-                              <span className="text-lg font-bold text-gray-900">{feature.paidCount}</span>
-                              <p className="text-xs text-gray-500">Paid</p>
+                              <span className="text-lg font-bold text-primary">{feature.paidCount}</span>
+                              <p className="text-xs text-secondary">Paid</p>
                             </div>
                           </div>
                           <div className="flex items-center gap-2">
                             <Clock className="text-amber-600" size={18} />
                             <div>
-                              <span className="text-lg font-bold text-gray-900">{feature.unpaidCount}</span>
-                              <p className="text-xs text-gray-500">Unpaid</p>
+                              <span className="text-lg font-bold text-primary">{feature.unpaidCount}</span>
+                              <p className="text-xs text-secondary">Unpaid</p>
                             </div>
                           </div>
                         </div>
 
-                        <p className="text-xs text-gray-400">Total: {feature.totalCount} drivers</p>
+                        <p className="text-xs text-secondary">Total: {feature.totalCount} drivers</p>
                       </div>
 
                       {/* Right side icon */}
@@ -542,8 +542,8 @@ const Dashboard = () => {
           </div>
 
           {/* Quick Actions Section */}
-          <div className="bg-white rounded-lg shadow-sm border border-gray-100 overflow-hidden p-6 mb-4">
-            <h2 className="text-lg font-bold text-gray-900 mb-4">Quick Actions & Modules</h2>
+          <div className="bg-card rounded-lg shadow-sm border border-theme overflow-hidden p-6 mb-4">
+            <h2 className="text-lg font-bold text-primary mb-4">Quick Actions & Modules</h2>
 
             <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-3 gap-4">
               {quickActions.map((action) => {
@@ -552,18 +552,18 @@ const Dashboard = () => {
                   <div
                     key={action.id}
                     onClick={() => navigate(action.path)}
-                    className="group p-4 rounded-xl border border-gray-200 hover:border-blue-300 hover:bg-blue-50 transition-all cursor-pointer"
+                    className="group p-4 rounded-xl border border-theme hover:border-blue-300 hover:bg-blue-50 transition-all cursor-pointer"
                   >
                     <div className="flex items-center justify-between mb-3">
-                      <div className={`${action.bgColor} group-hover:bg-white p-2 rounded-lg transition-colors`}>
+                      <div className={`${action.bgColor} group-hover:bg-card p-2 rounded-lg transition-colors`}>
                         <Icon className={`h-5 w-5 ${action.iconColor}`} />
                       </div>
-                      <span className="text-lg font-bold text-gray-900 group-hover:text-blue-700">
+                      <span className="text-lg font-bold text-primary group-hover:text-blue-700">
                         {action.value}
                       </span>
                     </div>
-                    <p className="text-sm font-medium text-gray-700 group-hover:text-blue-800">{action.title}</p>
-                    <p className="text-xs text-gray-500 mt-1 group-hover:text-blue-600">{action.subtitle}</p>
+                    <p className="text-sm font-medium text-primary group-hover:text-blue-800">{action.title}</p>
+                    <p className="text-xs text-secondary mt-1 group-hover:text-[#00D1FF]">{action.subtitle}</p>
                   </div>
                 );
               })}
@@ -573,12 +573,12 @@ const Dashboard = () => {
           {/* Module Highlights */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-4">
             {/* Settlement Module */}
-            <div className="bg-white rounded-lg shadow-sm border border-gray-100 overflow-hidden">
-              <div className="p-4 border-b border-gray-100" style={{ background: 'linear-gradient(90deg, #42aeec 0%, #1db5f5 40%, #0ea3d8 100%)' }}>
+            <div className="bg-card rounded-lg shadow-sm border border-theme overflow-hidden">
+              <div className="p-4 border-b border-theme" style={{ background: 'linear-gradient(90deg, #42aeec 0%, #1db5f5 40%, #0ea3d8 100%)' }}>
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-3">
-                    <div className="p-2 bg-white bg-opacity-20 rounded-lg">
-                      <Calculator className="text-blue-600" size={20} />
+                    <div className="p-2 bg-card bg-opacity-20 rounded-lg">
+                      <Calculator className="text-[#00D1FF]" size={20} />
                     </div>
                     <div>
                       <h3 className="text-base font-semibold text-white">Settlement Module</h3>
@@ -587,7 +587,7 @@ const Dashboard = () => {
                   </div>
                   <button
                     onClick={() => navigate(`${routePrefix}/settlements`)}
-                    className="px-3 py-1.5 bg-white bg-opacity-20 hover:bg-opacity-30 text-white rounded-lg text-xs font-medium transition-all"
+                    className="px-3 py-1.5 bg-card bg-opacity-20 hover:bg-opacity-30 text-white rounded-lg text-xs font-medium transition-all"
                   >
                     View →
                   </button>
@@ -595,18 +595,18 @@ const Dashboard = () => {
               </div>
               <div className="p-4">
                 <div className="space-y-2">
-                  <div className="flex items-start gap-2 p-2 bg-gray-50 rounded-lg">
+                  <div className="flex items-start gap-2 p-2 bg-card rounded-lg">
                     <CheckCircle2 className="text-green-600 mt-0.5" size={16} />
                     <div>
-                      <p className="text-xs font-semibold text-gray-900">Trip-wise Calculations</p>
-                      <p className="text-xs text-gray-600">Miles, Rate, FSC, Accessorials</p>
+                      <p className="text-xs font-semibold text-primary">Trip-wise Calculations</p>
+                      <p className="text-xs text-secondary">Miles, Rate, FSC, Accessorials</p>
                     </div>
                   </div>
-                  <div className="flex items-start gap-2 p-2 bg-gray-50 rounded-lg">
+                  <div className="flex items-start gap-2 p-2 bg-card rounded-lg">
                     <CheckCircle2 className="text-green-600 mt-0.5" size={16} />
                     <div>
-                      <p className="text-xs font-semibold text-gray-900">Auto-Generated</p>
-                      <p className="text-xs text-gray-600">Ready-to-approve settlement sheets</p>
+                      <p className="text-xs font-semibold text-primary">Auto-Generated</p>
+                      <p className="text-xs text-secondary">Ready-to-approve settlement sheets</p>
                     </div>
                   </div>
                 </div>
@@ -614,12 +614,12 @@ const Dashboard = () => {
             </div>
 
             {/* Expense Management */}
-            <div className="bg-white rounded-lg shadow-sm border border-gray-100 overflow-hidden">
-              <div className="p-4 border-b border-gray-100" style={{ background: 'linear-gradient(90deg, #42aeec 0%, #1db5f5 40%, #0ea3d8 100%)' }}>
+            <div className="bg-card rounded-lg shadow-sm border border-theme overflow-hidden">
+              <div className="p-4 border-b border-theme" style={{ background: 'linear-gradient(90deg, #42aeec 0%, #1db5f5 40%, #0ea3d8 100%)' }}>
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-3">
-                    <div className="p-2 bg-white bg-opacity-20 rounded-lg">
-                      <Receipt className="text-blue-600" size={20} />
+                    <div className="p-2 bg-card bg-opacity-20 rounded-lg">
+                      <Receipt className="text-[#00D1FF]" size={20} />
                     </div>
                     <div>
                       <h3 className="text-base font-semibold text-white">Expense Management</h3>
@@ -628,7 +628,7 @@ const Dashboard = () => {
                   </div>
                   <button
                     onClick={() => navigate(`${routePrefix}/expenses`)}
-                    className="px-3 py-1.5 bg-white bg-opacity-20 hover:bg-opacity-30 text-white rounded-lg text-xs font-medium transition-all"
+                    className="px-3 py-1.5 bg-card bg-opacity-20 hover:bg-opacity-30 text-white rounded-lg text-xs font-medium transition-all"
                   >
                     View →
                   </button>
@@ -636,21 +636,21 @@ const Dashboard = () => {
               </div>
               <div className="p-4">
                 <div className="grid grid-cols-2 gap-2 mb-3">
-                  <div className="p-2 bg-orange-50 rounded-lg border border-orange-100">
-                    <CreditCard className="text-orange-600 mb-1" size={16} />
-                    <p className="text-xs font-semibold text-gray-700">Fuel Receipts</p>
+                  <div className="p-2 bg-card rounded-lg border border-orange-100">
+                    <CreditCard className="text-[#F59E0B] mb-1" size={16} />
+                    <p className="text-xs font-semibold text-primary">Fuel Receipts</p>
                   </div>
-                  <div className="p-2 bg-blue-50 rounded-lg border border-blue-100">
-                    <FileText className="text-blue-600 mb-1" size={16} />
-                    <p className="text-xs font-semibold text-gray-700">Repairs</p>
+                  <div className="p-2 bg-card rounded-lg border border-blue-100">
+                    <FileText className="text-[#00D1FF] mb-1" size={16} />
+                    <p className="text-xs font-semibold text-primary">Repairs</p>
                   </div>
                 </div>
                 <div className="space-y-1">
-                  <div className="flex items-center gap-2 text-xs text-gray-700">
+                  <div className="flex items-center gap-2 text-xs text-primary">
                     <CheckCircle2 className="text-green-600" size={14} />
                     <span>Upload receipts with images</span>
                   </div>
-                  <div className="flex items-center gap-2 text-xs text-gray-700">
+                  <div className="flex items-center gap-2 text-xs text-primary">
                     <CheckCircle2 className="text-green-600" size={14} />
                     <span>Auto-reflect in P&L & settlements</span>
                   </div>
@@ -661,16 +661,16 @@ const Dashboard = () => {
 
           {/* Alerts */}
           {pendingRevenue > 0 && (
-            <div className="bg-white rounded-lg shadow-sm border border-gray-100 p-4">
-              <h3 className="text-base font-semibold text-gray-900 mb-3">Alerts & Notifications</h3>
+            <div className="bg-card rounded-lg shadow-sm border border-theme p-4">
+              <h3 className="text-base font-semibold text-primary mb-3">Alerts & Notifications</h3>
               <div
                 onClick={() => navigate(`${routePrefix}/invoice`)}
-                className="flex items-center p-3 bg-yellow-50 border border-yellow-200 rounded-lg cursor-pointer hover:bg-yellow-100 transition-colors"
+                className="flex items-center p-3 bg-card border border-yellow-200 rounded-lg cursor-pointer hover:bg-yellow-100 transition-colors"
               >
-                <AlertCircle className="text-yellow-600 mr-3" size={20} />
+                <AlertCircle className="text-[#00FFA3] mr-3" size={20} />
                 <div className="flex-1">
                   <p className="text-sm font-medium text-yellow-800">Pending Invoices</p>
-                  <p className="text-xs text-yellow-600">${pendingRevenue.toLocaleString()} in pending payments</p>
+                  <p className="text-xs text-[#00FFA3]">${pendingRevenue.toLocaleString()} in pending payments</p>
                 </div>
               </div>
             </div>

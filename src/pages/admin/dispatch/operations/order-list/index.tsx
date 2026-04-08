@@ -82,7 +82,7 @@ const ToastNotification = ({ notification, onClose, onChatClick, onDocumentClick
     return (
       <div
         onClick={handleClick}
-        className="fixed top-4 right-4 w-[400px] bg-white rounded-2xl shadow-2xl z-[10000] animate-slide-in cursor-pointer hover:shadow-3xl transition-all duration-300 hover:scale-[1.02] border border-gray-100 overflow-hidden"
+        className="fixed top-4 right-4 w-[400px] bg-card rounded-2xl shadow-2xl z-[10000] animate-slide-in cursor-pointer hover:shadow-3xl transition-all duration-300 hover:scale-[1.02] border border-theme overflow-hidden"
       >
         <div className="h-1 bg-gradient-to-r from-green-500 to-emerald-500 transition-all duration-100" style={{ width: `${progress}%` }}></div>
         <div className="p-5">
@@ -95,11 +95,11 @@ const ToastNotification = ({ notification, onClose, onChatClick, onDocumentClick
             </div>
             <div className="flex-1 min-w-0">
               <div className="flex items-center gap-2 mb-1">
-                <h4 className="font-bold text-gray-900 text-base">
+                <h4 className="font-bold text-primary text-base">
                   📄 Documents Uploaded
                 </h4>
               </div>
-              <p className="text-gray-700 text-sm leading-relaxed mb-2">
+              <p className="text-primary text-sm leading-relaxed mb-2">
                 <strong>{notification.driverName || 'Driver'}</strong> has uploaded POD and Manifest documents
               </p>
               <div className="flex items-center gap-2 mb-3">
@@ -114,7 +114,7 @@ const ToastNotification = ({ notification, onClose, onChatClick, onDocumentClick
                   <span>Click to view documents</span>
                 </div>
                 <div className="flex-1"></div>
-                <span className="text-gray-400 text-xs">Just now</span>
+                <span className="text-secondary text-xs">Just now</span>
               </div>
             </div>
             <button
@@ -122,7 +122,7 @@ const ToastNotification = ({ notification, onClose, onChatClick, onDocumentClick
                 e.stopPropagation();
                 onClose(notification.id);
               }}
-              className="flex-shrink-0 w-8 h-8 rounded-full hover:bg-gray-100 flex items-center justify-center text-gray-400 hover:text-gray-600 transition-all"
+              className="flex-shrink-0 w-8 h-8 rounded-full hover:bg-gray-100 flex items-center justify-center text-secondary hover:text-secondary transition-all"
             >
               <X size={18} />
             </button>
@@ -137,7 +137,7 @@ const ToastNotification = ({ notification, onClose, onChatClick, onDocumentClick
     return (
       <div
         onClick={handleClick}
-        className="fixed top-4 right-4 w-[400px] bg-white rounded-2xl shadow-2xl z-[10000] animate-slide-in cursor-pointer hover:shadow-3xl transition-all duration-300 hover:scale-[1.02] border border-gray-100 overflow-hidden"
+        className="fixed top-4 right-4 w-[400px] bg-card rounded-2xl shadow-2xl z-[10000] animate-slide-in cursor-pointer hover:shadow-3xl transition-all duration-300 hover:scale-[1.02] border border-theme overflow-hidden"
       >
         <div className="h-1 bg-gradient-to-r from-blue-500 to-purple-500 transition-all duration-100" style={{ width: `${progress}%` }}></div>
         <div className="p-5">
@@ -150,7 +150,7 @@ const ToastNotification = ({ notification, onClose, onChatClick, onDocumentClick
             </div>
             <div className="flex-1 min-w-0">
               <div className="flex items-center gap-2 mb-1">
-                <h4 className="font-bold text-gray-900 text-base">
+                <h4 className="font-bold text-primary text-base">
                   {notification.driverName || 'Driver'}
                 </h4>
                 <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-blue-100 text-blue-700 text-xs font-semibold rounded-full">
@@ -158,16 +158,16 @@ const ToastNotification = ({ notification, onClose, onChatClick, onDocumentClick
                   {notification.orderNumber}
                 </span>
               </div>
-              <p className="text-gray-700 text-sm leading-relaxed line-clamp-2 mb-3">
+              <p className="text-primary text-sm leading-relaxed line-clamp-2 mb-3">
                 {notification.message}
               </p>
               <div className="flex items-center gap-3">
-                <div className="flex items-center gap-2 text-blue-600 text-xs font-semibold">
+                <div className="flex items-center gap-2 text-[#00D1FF] text-xs font-semibold">
                   <MessageCircle className="w-4 h-4" />
                   <span>Click to reply</span>
                 </div>
                 <div className="flex-1"></div>
-                <span className="text-gray-400 text-xs">Just now</span>
+                <span className="text-secondary text-xs">Just now</span>
               </div>
             </div>
             <button
@@ -175,7 +175,7 @@ const ToastNotification = ({ notification, onClose, onChatClick, onDocumentClick
                 e.stopPropagation();
                 onClose(notification.id);
               }}
-              className="flex-shrink-0 w-8 h-8 rounded-full hover:bg-gray-100 flex items-center justify-center text-gray-400 hover:text-gray-600 transition-all"
+              className="flex-shrink-0 w-8 h-8 rounded-full hover:bg-gray-100 flex items-center justify-center text-secondary hover:text-secondary transition-all"
             >
               <X size={18} />
             </button>
@@ -196,9 +196,9 @@ const ToastNotification = ({ notification, onClose, onChatClick, onDocumentClick
 
   const bgColors = {
     success: 'bg-green-50 border-green-200',
-    error: 'bg-red-50 border-red-200',
-    warning: 'bg-yellow-50 border-yellow-200',
-    chat: 'bg-blue-50 border-blue-200',
+    error: 'bg-card border-red-200',
+    warning: 'bg-card border-yellow-200',
+    chat: 'bg-card border-blue-200',
     document_upload: 'bg-green-50 border-green-200',
   };
 
@@ -207,10 +207,10 @@ const ToastNotification = ({ notification, onClose, onChatClick, onDocumentClick
       <div className="flex-shrink-0 mt-0.5">
         {icons[notification.type]}
       </div>
-      <p className="flex-1 text-sm font-medium text-gray-800">{notification.message}</p>
+      <p className="flex-1 text-sm font-medium text-primary">{notification.message}</p>
       <button
         onClick={() => onClose(notification.id)}
-        className="flex-shrink-0 text-gray-400 hover:text-gray-600 transition-colors"
+        className="flex-shrink-0 text-secondary hover:text-secondary transition-colors"
       >
         <FaTimes size={16} />
       </button>
@@ -1019,9 +1019,9 @@ const OrderList = () => {
       case "verification_pending":
         return "bg-amber-100 text-amber-800";
       case "completed":
-        return "bg-gray-100 text-gray-800";
+        return "bg-gray-100 text-primary";
       default:
-        return "bg-gray-100 text-gray-800";
+        return "bg-gray-100 text-primary";
     }
   };
 
@@ -1116,9 +1116,9 @@ const OrderList = () => {
 
 
   return (
-    <div className="p-6 bg-[#EDF8FF] min-h-screen">
+    <div className="p-6 bg-main min-h-screen">
       <div className="mb-6 flex items-center justify-between">
-        <h1 className="text-2xl font-bold text-gray-800">Order List</h1>
+        <h1 className="text-2xl font-bold text-primary">Order List</h1>
         <button
           onClick={handleCreateOrder}
           style={{ background: PRIMARY_GRADIENT }}
@@ -1134,7 +1134,7 @@ const OrderList = () => {
         <select
           value={loadBoard}
           onChange={(e) => setLoadBoard(e.target.value)}
-          className="px-4 py-2 border border-gray-300 rounded text-sm bg-white font-medium text-gray-800"
+          className="px-4 py-2 border border-gray-300 rounded text-sm bg-card font-medium text-primary"
         >
           <option value="LOAD BOARD">LOAD BOARD</option>
           <option value="CITY LOAD BOARD">CITY LOAD BOARD</option>
@@ -1146,7 +1146,7 @@ const OrderList = () => {
         <select
           value={dispatcher}
           onChange={(e) => setDispatcher(e.target.value)}
-          className="px-4 py-2 border border-gray-300 rounded text-sm bg-white font-medium text-gray-800"
+          className="px-4 py-2 border border-gray-300 rounded text-sm bg-card font-medium text-primary"
         >
           <option value="">DISPATCHER</option>
           <option value="all">All Dispatchers</option>
@@ -1160,7 +1160,7 @@ const OrderList = () => {
         <select
           value={createdDate}
           onChange={(e) => setCreatedDate(e.target.value)}
-          className="px-3 py-1.5 border border-gray-300 rounded text-sm bg-white"
+          className="px-3 py-1.5 border border-gray-300 rounded text-sm bg-card"
         >
           <option value="">Created Date</option>
           <option value="today">Today</option>
@@ -1170,7 +1170,7 @@ const OrderList = () => {
         <select
           value={byDays}
           onChange={(e) => setByDays(e.target.value)}
-          className="px-3 py-1.5 border border-gray-300 rounded text-sm bg-white"
+          className="px-3 py-1.5 border border-gray-300 rounded text-sm bg-card"
         >
           <option value="">By Days</option>
           <option value="7">Last 7 Days</option>
@@ -1180,7 +1180,7 @@ const OrderList = () => {
         <select
           value={orderStatus}
           onChange={(e) => setOrderStatus(e.target.value)}
-          className="px-3 py-1.5 border border-gray-300 rounded text-sm bg-white"
+          className="px-3 py-1.5 border border-gray-300 rounded text-sm bg-card"
         >
           <option value="">By Order Status</option>
           <option value="QUOTED">Quoted</option>
@@ -1192,7 +1192,7 @@ const OrderList = () => {
         <select
           value={sortBy}
           onChange={(e) => setSortBy(e.target.value)}
-          className="px-3 py-1.5 border border-gray-300 rounded text-sm bg-white"
+          className="px-3 py-1.5 border border-gray-300 rounded text-sm bg-card"
         >
           <option value="">By Sort</option>
           <option value="date-asc">Date (Ascending)</option>
@@ -1205,7 +1205,7 @@ const OrderList = () => {
 
 
       {/* Orders Table */}
-      <div className="bg-white rounded-lg shadow-md overflow-hidden">
+      <div className="bg-card rounded-lg shadow-md overflow-hidden">
         {/* Top Scrollbar - Only visible horizontal scrollbar */}
         <style>{`
           .top-scrollbar-container::-webkit-scrollbar {
@@ -1247,103 +1247,103 @@ const OrderList = () => {
           className="overflow-x-auto table-container-hidden-scrollbar"
         >
           <table className="w-full">
-            <thead className="bg-gray-50 border-b border-gray-200">
+            <thead className="bg-card border-b border-theme">
               <tr>
 
-                <th className="px-4 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                <th className="px-4 py-3 text-left text-xs font-semibold text-primary uppercase tracking-wider">
                   Load #
                 </th>
-                <th className="px-4 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                <th className="px-4 py-3 text-left text-xs font-semibold text-primary uppercase tracking-wider">
                   Order #
                 </th>
-                <th className="px-4 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                <th className="px-4 py-3 text-left text-xs font-semibold text-primary uppercase tracking-wider">
                   Rate
                 </th>
-                <th className="px-4 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                <th className="px-4 py-3 text-left text-xs font-semibold text-primary uppercase tracking-wider">
                   Status
                 </th>
-                <th className="px-4 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                <th className="px-4 py-3 text-left text-xs font-semibold text-primary uppercase tracking-wider">
                   Payment
                 </th>
-                <th className="px-4 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                <th className="px-4 py-3 text-left text-xs font-semibold text-primary uppercase tracking-wider">
                   Customer
                 </th>
-                <th className="px-4 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                <th className="px-4 py-3 text-left text-xs font-semibold text-primary uppercase tracking-wider">
                   Shipper City
                 </th>
-                <th className="px-4 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                <th className="px-4 py-3 text-left text-xs font-semibold text-primary uppercase tracking-wider">
                   Shipper State
                 </th>
-                <th className="px-4 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                <th className="px-4 py-3 text-left text-xs font-semibold text-primary uppercase tracking-wider">
                   Ship Date
                 </th>
-                <th className="px-4 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                <th className="px-4 py-3 text-left text-xs font-semibold text-primary uppercase tracking-wider">
                   Time
                 </th>
-                <th className="px-4 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                <th className="px-4 py-3 text-left text-xs font-semibold text-primary uppercase tracking-wider">
                   Receiver City
                 </th>
-                <th className="px-4 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                <th className="px-4 py-3 text-left text-xs font-semibold text-primary uppercase tracking-wider">
                   Receiver State
                 </th>
-                <th className="px-4 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                <th className="px-4 py-3 text-left text-xs font-semibold text-primary uppercase tracking-wider">
                   Receive Date
                 </th>
-                <th className="px-4 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                <th className="px-4 py-3 text-left text-xs font-semibold text-primary uppercase tracking-wider">
                   Time
                 </th>
-                <th className="px-4 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                <th className="px-4 py-3 text-left text-xs font-semibold text-primary uppercase tracking-wider">
                   Truck
                 </th>
-                <th className="px-4 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                <th className="px-4 py-3 text-left text-xs font-semibold text-primary uppercase tracking-wider">
                   Trailer
                 </th>
-                <th className="px-4 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                <th className="px-4 py-3 text-left text-xs font-semibold text-primary uppercase tracking-wider">
                   Driver/Carrier
                 </th>
-                <th className="px-4 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                <th className="px-4 py-3 text-left text-xs font-semibold text-primary uppercase tracking-wider">
                   Co-Driver
                 </th>
-                <th className="px-4 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                <th className="px-4 py-3 text-left text-xs font-semibold text-primary uppercase tracking-wider">
                   Booked
                 </th>
-                <th className="px-4 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                <th className="px-4 py-3 text-left text-xs font-semibold text-primary uppercase tracking-wider">
                   Entry
                 </th>
-                <th className="px-4 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                <th className="px-4 py-3 text-left text-xs font-semibold text-primary uppercase tracking-wider">
                   Temp.
                 </th>
-                <th className="px-4 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                <th className="px-4 py-3 text-left text-xs font-semibold text-primary uppercase tracking-wider">
                   Hazmat
                 </th>
-                <th className="px-4 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                <th className="px-4 py-3 text-left text-xs font-semibold text-primary uppercase tracking-wider">
                   Dispatcher
                 </th>
-                <th className="px-4 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                <th className="px-4 py-3 text-left text-xs font-semibold text-primary uppercase tracking-wider">
                   Driver
                 </th>
                 <th className="px-4 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
                   Driver Response
                 </th>
-                <th className="px-4 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                <th className="px-4 py-3 text-left text-xs font-semibold text-primary uppercase tracking-wider">
                   Carrier
                 </th>
-                <th className="px-4 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                <th className="px-4 py-3 text-left text-xs font-semibold text-primary uppercase tracking-wider">
                   Documents
                 </th>
               </tr>
             </thead>
-            <tbody className="bg-white divide-y divide-gray-200">
+            <tbody className="bg-card divide-y divide-gray-200">
               {loading ? (
                 <tr>
-                  <td colSpan={26} className="px-6 py-12 text-center text-gray-500">
+                  <td colSpan={25} className="px-6 py-12 text-center text-secondary">
                     <div className="animate-spin rounded-full h-8 w-8 border-b-2 mx-auto" style={{ borderBottomColor: PRIMARY_COLOR }}></div>
                     <p className="mt-2">Loading orders...</p>
                   </td>
                 </tr>
               ) : paginatedOrders.length === 0 ? (
                 <tr>
-                  <td colSpan={26} className="px-6 py-12 text-center text-gray-500">
+                  <td colSpan={25} className="px-6 py-12 text-center text-secondary">
                     <p className="text-lg font-medium">No orders found</p>
                     <p className="text-sm">Create a new order to get started</p>
                   </td>
@@ -1423,7 +1423,7 @@ const OrderList = () => {
                   return (
                     <tr
                       key={order.id}
-                      className="hover:bg-gray-50 cursor-pointer transition-colors"
+                      className="hover:bg-[rgba(255,255,255,0.03)] cursor-pointer transition-colors"
                       onClick={async () => {
                         // Open sidebar in edit mode
                         try {
@@ -1440,13 +1440,13 @@ const OrderList = () => {
                         }
                       }}
                     >
-                      <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-900">
+                      <td className="px-4 py-4 whitespace-nowrap text-sm text-primary">
                         {loadNumber}
                       </td>
-                      <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-900">
+                      <td className="px-4 py-4 whitespace-nowrap text-sm text-primary">
                         {orderNumber}
                       </td>
-                      <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-900">
+                      <td className="px-4 py-4 whitespace-nowrap text-sm text-primary">
                         {rate}
                       </td>
                       <td className="px-4 py-4 whitespace-nowrap">
@@ -1477,12 +1477,12 @@ const OrderList = () => {
                           onClick={(e) => e.stopPropagation()}
                           className={`text-xs font-medium rounded-full px-2 py-1 border-0 ring-1 ring-inset focus:ring-2 focus:ring-inset sm:text-sm sm:leading-6 cursor-pointer outline-none ${order.status?.toLowerCase() === 'quoted' ? 'bg-orange-100 text-orange-800 ring-orange-600/20' :
                             order.status?.toLowerCase() === 'planned' ? 'bg-blue-100 text-blue-800 ring-blue-600/20' :
-                              order.status?.toLowerCase() === 'completed' ? 'bg-gray-100 text-gray-800 ring-gray-600/20' :
+                              order.status?.toLowerCase() === 'completed' ? 'bg-gray-100 text-primary ring-gray-600/20' :
                                 order.status?.toLowerCase() === 'delivered' ? 'bg-purple-100 text-purple-800 ring-purple-600/20' :
                                   order.status?.toLowerCase() === 'in-delivery' ? 'bg-yellow-100 text-yellow-800 ring-yellow-600/20' :
                                     order.status?.toLowerCase() === 'pending_review' || order.status?.toLowerCase() === 'verification_pending' ? 'bg-amber-100 text-amber-800 ring-amber-600/20' :
                                       order.status?.toLowerCase() === 'canceled' ? 'bg-red-100 text-red-800 ring-red-600/20' :
-                                        'bg-gray-100 text-gray-800 ring-gray-500/10'
+                                        'bg-gray-100 text-primary ring-gray-500/10'
                             }`}
                         >
                           <option value="planned">Planned</option>
@@ -1525,61 +1525,61 @@ const OrderList = () => {
                           <option value="unpaid">Unpaid</option>
                         </select>
                       </td>
-                      <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-900">
+                      <td className="px-4 py-4 whitespace-nowrap text-sm text-primary">
                         {truncateText(order.customerName || '-', 15)}
                       </td>
-                      <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-900">
+                      <td className="px-4 py-4 whitespace-nowrap text-sm text-primary">
                         {shipperCity || '-'}
                       </td>
-                      <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-900">
+                      <td className="px-4 py-4 whitespace-nowrap text-sm text-primary">
                         {shipperState || '-'}
                       </td>
-                      <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-900">
+                      <td className="px-4 py-4 whitespace-nowrap text-sm text-primary">
                         {shipDateTime.date || '-'}
                       </td>
-                      <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-900">
+                      <td className="px-4 py-4 whitespace-nowrap text-sm text-primary">
                         {shipDateTime.time || '-'}
                       </td>
-                      <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-900">
+                      <td className="px-4 py-4 whitespace-nowrap text-sm text-primary">
                         {receiverCity || '-'}
                       </td>
-                      <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-900">
+                      <td className="px-4 py-4 whitespace-nowrap text-sm text-primary">
                         {receiverState || '-'}
                       </td>
-                      <td className={`px-4 py-4 whitespace-nowrap text-sm ${receiveDateTime.isFuture ? 'text-green-600' : 'text-gray-900'}`}>
+                      <td className={`px-4 py-4 whitespace-nowrap text-sm ${receiveDateTime.isFuture ? 'text-green-600' : 'text-primary'}`}>
                         {receiveDateTime.date || '-'}
                       </td>
-                      <td className={`px-4 py-4 whitespace-nowrap text-sm ${receiveDateTime.isFuture ? 'text-green-600' : 'text-gray-900'}`}>
+                      <td className={`px-4 py-4 whitespace-nowrap text-sm ${receiveDateTime.isFuture ? 'text-green-600' : 'text-primary'}`}>
                         {receiveDateTime.time || '-'}
                       </td>
-                      <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-900">
+                      <td className="px-4 py-4 whitespace-nowrap text-sm text-primary">
                         {truckDisplay}
                       </td>
-                      <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-900">
+                      <td className="px-4 py-4 whitespace-nowrap text-sm text-primary">
                         {trailerDisplay}
                       </td>
-                      <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-900">
+                      <td className="px-4 py-4 whitespace-nowrap text-sm text-primary">
                         {driverDisplay}
                       </td>
-                      <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-900">
+                      <td className="px-4 py-4 whitespace-nowrap text-sm text-primary">
                         {coDriverDisplay}
                       </td>
-                      <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-900">
+                      <td className="px-4 py-4 whitespace-nowrap text-sm text-primary">
                         {displayBooked}
                       </td>
-                      <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-900">
+                      <td className="px-4 py-4 whitespace-nowrap text-sm text-primary">
                         {displayEntry}
                       </td>
-                      <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-900">
+                      <td className="px-4 py-4 whitespace-nowrap text-sm text-primary">
                         {displayTemp}
                       </td>
-                      <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-900">
+                      <td className="px-4 py-4 whitespace-nowrap text-sm text-primary">
                         {displayHazmat}
                       </td>
-                      <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-900">
+                      <td className="px-4 py-4 whitespace-nowrap text-sm text-primary">
                         {dispatcherName}
                       </td>
-                      <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-900">
+                      <td className="px-4 py-4 whitespace-nowrap text-sm text-primary">
                         {driverDisplay}
                       </td>
                       <td className="px-4 py-4 whitespace-nowrap" onClick={(e) => e.stopPropagation()}>
@@ -1602,7 +1602,7 @@ const OrderList = () => {
                           <span className="text-gray-400 text-xs">—</span>
                         )}
                       </td>
-                      <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-900">
+                      <td className="px-4 py-4 whitespace-nowrap text-sm text-primary">
                         {carrierName}
                       </td>
                       <td className="px-4 py-4 whitespace-nowrap">
@@ -1634,11 +1634,11 @@ const OrderList = () => {
                                   addNotification('error', 'Error loading documents');
                                 }
                               }}
-                              className="flex items-center justify-center gap-2 px-3 py-2 bg-white hover:bg-blue-50 border border-gray-300 rounded transition-colors cursor-pointer"
+                              className="flex items-center justify-center gap-2 px-3 py-2 bg-card hover:bg-blue-50 border border-gray-300 rounded transition-colors cursor-pointer"
                               title={`Click to view ${attachmentCount} document${attachmentCount !== 1 ? 's' : ''}`}
                             >
-                              <File className={attachmentCount > 0 ? "text-blue-600" : "text-gray-400"} size={16} />
-                              <span className={`text-sm font-semibold ${attachmentCount > 0 ? 'text-blue-800' : 'text-gray-400'}`}>
+                              <File className={attachmentCount > 0 ? "text-[#00D1FF]" : "text-secondary"} size={16} />
+                              <span className={`text-sm font-semibold ${attachmentCount > 0 ? 'text-blue-800' : 'text-secondary'}`}>
                                 {attachmentCount}
                               </span>
                             </button>
@@ -1654,15 +1654,15 @@ const OrderList = () => {
         </div>
 
         {/* Pagination */}
-        <div className="px-6 py-4 border-t border-gray-200 flex items-center justify-between">
-          <div className="text-sm text-gray-700">
+        <div className="px-6 py-4 border-t border-theme flex items-center justify-between">
+          <div className="text-sm text-primary">
             Showing {(currentPage - 1) * itemsPerPage + 1} to {Math.min(currentPage * itemsPerPage, filteredOrders.length)} of {filteredOrders.length} entries
           </div>
           <div className="flex items-center gap-2">
             <button
               onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
               disabled={currentPage === 1}
-              className="px-3 py-1 border border-gray-300 rounded text-sm disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50"
+              className="px-3 py-1 border border-gray-300 rounded text-sm disabled:opacity-50 disabled:cursor-not-allowed hover:bg-[rgba(255,255,255,0.03)]"
             >
               Previous
             </button>
@@ -1670,7 +1670,7 @@ const OrderList = () => {
             <button
               onClick={() => setCurrentPage(Math.min(totalPages, currentPage + 1))}
               disabled={currentPage === totalPages}
-              className="px-3 py-1 border border-gray-300 rounded text-sm disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50"
+              className="px-3 py-1 border border-gray-300 rounded text-sm disabled:opacity-50 disabled:cursor-not-allowed hover:bg-[rgba(255,255,255,0.03)]"
             >
               Next
             </button>
@@ -1694,11 +1694,11 @@ const OrderList = () => {
       {/* Documents Modal */}
       {showDocumentsModal && selectedOrderForDocuments && (
         <div className="fixed inset-0 z-[10002] bg-gray-900/50 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="bg-white rounded-xl shadow-2xl w-full max-w-2xl max-h-[85vh] overflow-hidden flex flex-col">
-            <div className="flex-shrink-0 bg-white border-b px-6 py-4 flex items-center justify-between rounded-t-xl">
+          <div className="bg-card rounded-xl shadow-2xl w-full max-w-2xl max-h-[85vh] overflow-hidden flex flex-col">
+            <div className="flex-shrink-0 bg-card border-b px-6 py-4 flex items-center justify-between rounded-t-xl">
               <div>
-                <h3 className="text-xl font-bold text-gray-800">Order Documents</h3>
-                <p className="text-sm text-gray-600 mt-1">Order: {selectedOrderForDocuments.orderNo || selectedOrderForDocuments.custOrderNo || 'N/A'}</p>
+                <h3 className="text-xl font-bold text-primary">Order Documents</h3>
+                <p className="text-sm text-secondary mt-1">Order: {selectedOrderForDocuments.orderNo || selectedOrderForDocuments.custOrderNo || 'N/A'}</p>
               </div>
               <button
                 onClick={() => {
@@ -1707,13 +1707,13 @@ const OrderList = () => {
                 }}
                 className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
               >
-                <X className="w-5 h-5 text-gray-500" />
+                <X className="w-5 h-5 text-secondary" />
               </button>
             </div>
             <div className="flex-1 overflow-y-auto p-6">
               {/* Document Requirements Status */}
-              <div className="mb-4 p-3 bg-gray-50 rounded-lg border border-gray-200">
-                <div className="text-xs font-semibold text-gray-700 mb-2">Required Documents:</div>
+              <div className="mb-4 p-3 bg-card rounded-lg border border-theme">
+                <div className="text-xs font-semibold text-primary mb-2">Required Documents:</div>
                 {(() => {
                   const orderData = selectedOrderForDocuments as any;
                   const attachments = orderData?.attachments || [];
@@ -1746,7 +1746,7 @@ const OrderList = () => {
                         {hasPOD ? (
                           <FaCheckCircle className="text-green-600" size={14} />
                         ) : (
-                          <FaTimes className="text-red-600" size={14} />
+                          <FaTimes className="text-[#A855F7]" size={14} />
                         )}
                         <span className={hasPOD ? 'text-green-800' : 'text-red-800'}>
                           POD (Proof of Delivery) - {hasPOD ? 'Uploaded' : 'Missing'}
@@ -1756,7 +1756,7 @@ const OrderList = () => {
                         {hasManifest ? (
                           <FaCheckCircle className="text-green-600" size={14} />
                         ) : (
-                          <FaTimes className="text-red-600" size={14} />
+                          <FaTimes className="text-[#A855F7]" size={14} />
                         )}
                         <span className={hasManifest ? 'text-green-800' : 'text-red-800'}>
                           Border Manifest - {hasManifest ? 'Uploaded' : 'Missing'}
@@ -1769,7 +1769,7 @@ const OrderList = () => {
 
               {/* Documents List */}
               <div>
-                <div className="text-sm font-semibold text-gray-700 mb-3">Uploaded Documents:</div>
+                <div className="text-sm font-semibold text-primary mb-3">Uploaded Documents:</div>
                 {(() => {
                   const orderData = selectedOrderForDocuments as any;
                   const attachments = orderData?.attachments || [];
@@ -1799,18 +1799,18 @@ const OrderList = () => {
                           }
                           
                           return (
-                            <div key={attachment.id || index} className="p-3 bg-white border border-gray-200 rounded-lg">
+                            <div key={attachment.id || index} className="p-3 bg-card border border-theme rounded-lg">
                               <div className="flex items-start justify-between gap-3">
                                 <div className="flex items-start gap-3 flex-1 min-w-0">
-                                  <File className="w-4 h-4 text-gray-400 mt-0.5 flex-shrink-0" />
+                                  <File className="w-4 h-4 text-secondary mt-0.5 flex-shrink-0" />
                                   <div className="flex-1 min-w-0">
                                     <div className="flex items-center gap-2 mb-1">
-                                      <span className="font-medium text-sm text-gray-900">{displayName}</span>
-                                      <span className="px-2 py-0.5 bg-gray-100 text-gray-700 rounded text-xs font-medium">{typeLabel}</span>
+                                      <span className="font-medium text-sm text-primary">{displayName}</span>
+                                      <span className="px-2 py-0.5 bg-gray-100 text-primary rounded text-xs font-medium">{typeLabel}</span>
                                     </div>
-                                    <div className="text-xs text-gray-500 mt-1">{docName}</div>
+                                    <div className="text-xs text-secondary mt-1">{docName}</div>
                                     {attachment.uploadedAt && (
-                                      <div className="text-xs text-gray-400 mt-1">
+                                      <div className="text-xs text-secondary mt-1">
                                         Uploaded: {new Date(attachment.uploadedAt).toLocaleString()}
                                       </div>
                                     )}
@@ -1826,7 +1826,7 @@ const OrderList = () => {
                                       alert('Document URL not available');
                                     }
                                   }}
-                                  className="px-3 py-1.5 text-xs font-medium text-blue-600 hover:text-blue-700 hover:bg-blue-50 rounded border border-blue-200 transition-colors flex items-center gap-1 flex-shrink-0"
+                                  className="px-3 py-1.5 text-xs font-medium text-[#00D1FF] hover:text-blue-700 hover:bg-blue-50 rounded border border-blue-200 transition-colors flex items-center gap-1 flex-shrink-0"
                                   title="View Document in New Tab"
                                 >
                                   <Download className="w-3 h-3" />
@@ -1840,8 +1840,8 @@ const OrderList = () => {
                     );
                   }
                   return (
-                    <div className="p-4 bg-gray-50 border border-gray-200 rounded-lg text-center text-gray-500">
-                      <File className="w-6 h-6 mx-auto mb-2 text-gray-400" />
+                    <div className="p-4 bg-card border border-theme rounded-lg text-center text-secondary">
+                      <File className="w-6 h-6 mx-auto mb-2 text-secondary" />
                       <p className="text-sm">No documents uploaded</p>
                     </div>
                   );
@@ -1884,8 +1884,8 @@ const OrderList = () => {
                 const hasDocuments = attachments.length > 0;
                 
                 return (
-                  <div className="mt-4 p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
-                    <div className="text-sm font-semibold text-gray-700 mb-3">Document Approval</div>
+                  <div className="mt-4 p-4 bg-card border border-yellow-200 rounded-lg">
+                    <div className="text-sm font-semibold text-primary mb-3">Document Approval</div>
                     <button
                       onClick={async () => {
                         if (!orderData?._id) return;
@@ -1912,7 +1912,7 @@ const OrderList = () => {
                       className={`px-4 py-2 rounded-lg font-medium transition-all text-sm ${
                         hasDocuments
                           ? 'bg-green-600 !text-white hover:bg-green-700 hover:shadow-md cursor-pointer'
-                          : 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                          : 'bg-gray-300 text-secondary cursor-not-allowed'
                       }`}
                       title={!hasDocuments ? 'No documents to approve' : 'Approve Documents'}
                     >
@@ -1922,7 +1922,7 @@ const OrderList = () => {
                 );
               })()}
             </div>
-            <div className="flex-shrink-0 bg-gray-50 px-6 py-4 flex justify-end border-t rounded-b-xl">
+            <div className="flex-shrink-0 bg-card px-6 py-4 flex justify-end border-t rounded-b-xl">
               <button
                 onClick={() => {
                   setShowDocumentsModal(false);
@@ -1976,18 +1976,18 @@ const OrderList = () => {
 
           {/* Sidebar Panel */}
           <div
-            className={`fixed right-0 top-0 h-full w-full md:w-2/3 lg:w-1/2 bg-white shadow-2xl z-50 overflow-y-auto transform transition-transform duration-300 translate-x-0`}
+            className={`fixed right-0 top-0 h-full w-full md:w-2/3 lg:w-1/2 bg-card shadow-2xl z-50 overflow-y-auto transform transition-transform duration-300 translate-x-0`}
           >
             <div className="p-6">
               {/* Header */}
-              <div className="flex justify-between items-center mb-6 pb-4 border-b-2 border-gray-200">
-                <h2 className="text-2xl font-bold text-gray-900">Order Details</h2>
+              <div className="flex justify-between items-center mb-6 pb-4 border-b-2 border-theme">
+                <h2 className="text-2xl font-bold text-primary">Order Details</h2>
                 <button
                   onClick={() => {
                     setShowOrderDetails(false);
                     setTimeout(() => setSelectedOrder(null), 300);
                   }}
-                  className="p-2 rounded-lg text-gray-400 hover:text-gray-600 hover:bg-gray-100 transition-all"
+                  className="p-2 rounded-lg text-secondary hover:text-secondary hover:bg-gray-100 transition-all"
                 >
                   <X size={24} />
                 </button>
@@ -2022,50 +2022,50 @@ const OrderList = () => {
                 </div>
 
                 {/* Order Information */}
-                <div className="bg-gray-50 p-6 rounded-lg border border-gray-200">
-                  <h4 className="font-semibold text-gray-900 mb-4 text-lg flex items-center gap-2">
-                    <Package size={20} className="text-blue-600" />
+                <div className="bg-card p-6 rounded-lg border border-theme">
+                  <h4 className="font-semibold text-primary mb-4 text-lg flex items-center gap-2">
+                    <Package size={20} className="text-[#00D1FF]" />
                     Order Information
                   </h4>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
-                      <p className="text-sm text-gray-500 mb-1">Order Number</p>
-                      <p className="font-medium text-gray-900">{selectedOrder.orderNo}</p>
+                      <p className="text-sm text-secondary mb-1">Order Number</p>
+                      <p className="font-medium text-primary">{selectedOrder.orderNo}</p>
                     </div>
                     {selectedOrder.custOrderNo && (
                       <div>
-                        <p className="text-sm text-gray-500 mb-1">Customer Order Number</p>
-                        <p className="font-medium text-gray-900">{selectedOrder.custOrderNo}</p>
+                        <p className="text-sm text-secondary mb-1">Customer Order Number</p>
+                        <p className="font-medium text-primary">{selectedOrder.custOrderNo}</p>
                       </div>
                     )}
                     {selectedOrder.orderDate && (
                       <div>
-                        <p className="text-sm text-gray-500 mb-1">Order Date</p>
-                        <p className="font-medium text-gray-900">{selectedOrder.orderDate}</p>
+                        <p className="text-sm text-secondary mb-1">Order Date</p>
+                        <p className="font-medium text-primary">{selectedOrder.orderDate}</p>
                       </div>
                     )}
                     {selectedOrder.orderType && (
                       <div>
-                        <p className="text-sm text-gray-500 mb-1">Order Type</p>
-                        <p className="font-medium text-gray-900">{selectedOrder.orderType}</p>
+                        <p className="text-sm text-secondary mb-1">Order Type</p>
+                        <p className="font-medium text-primary">{selectedOrder.orderType}</p>
                       </div>
                     )}
                     {selectedOrder.totalItems !== undefined && (
                       <div>
-                        <p className="text-sm text-gray-500 mb-1">Total Items</p>
-                        <p className="font-medium text-gray-900">{selectedOrder.totalItems}</p>
+                        <p className="text-sm text-secondary mb-1">Total Items</p>
+                        <p className="font-medium text-primary">{selectedOrder.totalItems}</p>
                       </div>
                     )}
                     {selectedOrder.companyName && (
                       <div>
-                        <p className="text-sm text-gray-500 mb-1">Company Name</p>
-                        <p className="font-medium text-gray-900">{selectedOrder.companyName}</p>
+                        <p className="text-sm text-secondary mb-1">Company Name</p>
+                        <p className="font-medium text-primary">{selectedOrder.companyName}</p>
                       </div>
                     )}
                     {selectedOrder.customerName && (
                       <div>
-                        <p className="text-sm text-gray-500 mb-1">Customer Name</p>
-                        <p className="font-medium text-gray-900">{selectedOrder.customerName}</p>
+                        <p className="text-sm text-secondary mb-1">Customer Name</p>
+                        <p className="font-medium text-primary">{selectedOrder.customerName}</p>
                       </div>
                     )}
                   </div>
@@ -2074,13 +2074,13 @@ const OrderList = () => {
                 {/* Financial Details */}
                 {selectedOrder.totalAmount && (
                   <div className="bg-gradient-to-br from-blue-50 to-indigo-50 p-6 rounded-lg border border-blue-200">
-                    <h4 className="font-semibold text-gray-900 mb-4 text-lg flex items-center gap-2">
-                      <DollarSign size={20} className="text-blue-600" />
+                    <h4 className="font-semibold text-primary mb-4 text-lg flex items-center gap-2">
+                      <DollarSign size={20} className="text-[#00D1FF]" />
                       Financial Details
                     </h4>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       <div>
-                        <p className="text-sm text-gray-600 mb-1">Total Amount</p>
+                        <p className="text-sm text-secondary mb-1">Total Amount</p>
                         <p className="font-bold text-2xl text-blue-700">
                           {selectedOrder.currency || 'CAD'} {selectedOrder.totalAmount}
                         </p>
@@ -2091,31 +2091,31 @@ const OrderList = () => {
 
                 {/* Pickup Information */}
                 {(selectedOrder.pickupDate || selectedOrder.pickupLocation || selectedOrder.pickupRefNo) && (
-                  <div className="bg-gray-50 p-6 rounded-lg border border-gray-200">
-                    <h4 className="font-semibold text-gray-900 mb-4 text-lg flex items-center gap-2">
-                      <Route size={20} className="text-blue-600" />
+                  <div className="bg-card p-6 rounded-lg border border-theme">
+                    <h4 className="font-semibold text-primary mb-4 text-lg flex items-center gap-2">
+                      <Route size={20} className="text-[#00D1FF]" />
                       Pickup Information
                     </h4>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       {selectedOrder.pickupDate && (
                         <div>
-                          <p className="text-sm text-gray-500 mb-1">Pickup Date</p>
-                          <p className="font-medium text-gray-900">{selectedOrder.pickupDate}</p>
+                          <p className="text-sm text-secondary mb-1">Pickup Date</p>
+                          <p className="font-medium text-primary">{selectedOrder.pickupDate}</p>
                         </div>
                       )}
                       {selectedOrder.pickupLocation && (
                         <div className="md:col-span-2">
-                          <p className="text-sm text-gray-500 mb-1 flex items-center gap-1">
-                            <Route size={14} className="text-blue-600" />
+                          <p className="text-sm text-secondary mb-1 flex items-center gap-1">
+                            <Route size={14} className="text-[#00D1FF]" />
                             Pickup Location
                           </p>
-                          <p className="font-medium text-gray-900">{selectedOrder.pickupLocation}</p>
+                          <p className="font-medium text-primary">{selectedOrder.pickupLocation}</p>
                         </div>
                       )}
                       {selectedOrder.pickupRefNo && (
                         <div>
-                          <p className="text-sm text-gray-500 mb-1">Reference Number</p>
-                          <p className="font-medium text-gray-900">{selectedOrder.pickupRefNo}</p>
+                          <p className="text-sm text-secondary mb-1">Reference Number</p>
+                          <p className="font-medium text-primary">{selectedOrder.pickupRefNo}</p>
                         </div>
                       )}
                     </div>
@@ -2124,31 +2124,31 @@ const OrderList = () => {
 
                 {/* Delivery Information */}
                 {(selectedOrder.deliveryDate || selectedOrder.deliveryLocation || selectedOrder.deliveryRefNo) && (
-                  <div className="bg-gray-50 p-6 rounded-lg border border-gray-200">
-                    <h4 className="font-semibold text-gray-900 mb-4 text-lg flex items-center gap-2">
+                  <div className="bg-card p-6 rounded-lg border border-theme">
+                    <h4 className="font-semibold text-primary mb-4 text-lg flex items-center gap-2">
                       <Route size={20} className="text-green-600" />
                       Delivery Information
                     </h4>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       {selectedOrder.deliveryDate && (
                         <div>
-                          <p className="text-sm text-gray-500 mb-1">Delivery Date</p>
-                          <p className="font-medium text-gray-900">{selectedOrder.deliveryDate}</p>
+                          <p className="text-sm text-secondary mb-1">Delivery Date</p>
+                          <p className="font-medium text-primary">{selectedOrder.deliveryDate}</p>
                         </div>
                       )}
                       {selectedOrder.deliveryLocation && (
                         <div className="md:col-span-2">
-                          <p className="text-sm text-gray-500 mb-1 flex items-center gap-1">
+                          <p className="text-sm text-secondary mb-1 flex items-center gap-1">
                             <Route size={14} className="text-green-600" />
                             Delivery Location
                           </p>
-                          <p className="font-medium text-gray-900">{selectedOrder.deliveryLocation}</p>
+                          <p className="font-medium text-primary">{selectedOrder.deliveryLocation}</p>
                         </div>
                       )}
                       {selectedOrder.deliveryRefNo && (
                         <div>
-                          <p className="text-sm text-gray-500 mb-1">Reference Number</p>
-                          <p className="font-medium text-gray-900">{selectedOrder.deliveryRefNo}</p>
+                          <p className="text-sm text-secondary mb-1">Reference Number</p>
+                          <p className="font-medium text-primary">{selectedOrder.deliveryRefNo}</p>
                         </div>
                       )}
                     </div>
@@ -2157,28 +2157,28 @@ const OrderList = () => {
 
                 {/* Driver & Vehicle Information */}
                 {(selectedOrder.driver || selectedOrder.truckNo || selectedOrder.trailerNo) && (
-                  <div className="bg-gray-50 p-6 rounded-lg border border-gray-200">
-                    <h4 className="font-semibold text-gray-900 mb-4 text-lg flex items-center gap-2">
-                      <Truck size={20} className="text-blue-600" />
+                  <div className="bg-card p-6 rounded-lg border border-theme">
+                    <h4 className="font-semibold text-primary mb-4 text-lg flex items-center gap-2">
+                      <Truck size={20} className="text-[#00D1FF]" />
                       Driver & Vehicle Information
                     </h4>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       {selectedOrder.driver && (
                         <div>
-                          <p className="text-sm text-gray-500 mb-1">Driver</p>
-                          <p className="font-medium text-gray-900">{selectedOrder.driver}</p>
+                          <p className="text-sm text-secondary mb-1">Driver</p>
+                          <p className="font-medium text-primary">{selectedOrder.driver}</p>
                         </div>
                       )}
                       {selectedOrder.truckNo && (
                         <div>
-                          <p className="text-sm text-gray-500 mb-1">Truck Number</p>
-                          <p className="font-medium text-gray-900">{selectedOrder.truckNo}</p>
+                          <p className="text-sm text-secondary mb-1">Truck Number</p>
+                          <p className="font-medium text-primary">{selectedOrder.truckNo}</p>
                         </div>
                       )}
                       {selectedOrder.trailerNo && (
                         <div>
-                          <p className="text-sm text-gray-500 mb-1">Trailer Number</p>
-                          <p className="font-medium text-gray-900">{selectedOrder.trailerNo}</p>
+                          <p className="text-sm text-secondary mb-1">Trailer Number</p>
+                          <p className="font-medium text-primary">{selectedOrder.trailerNo}</p>
                         </div>
                       )}
                     </div>
@@ -2186,13 +2186,13 @@ const OrderList = () => {
                 )}
 
                 {/* Action Buttons */}
-                <div className="flex justify-end gap-3 pt-4 border-t-2 border-gray-200">
+                <div className="flex justify-end gap-3 pt-4 border-t-2 border-theme">
                   <button
                     onClick={() => {
                       setShowOrderDetails(false);
                       setTimeout(() => setSelectedOrder(null), 300);
                     }}
-                    className="px-6 py-2.5 bg-gray-200 text-gray-700 font-medium rounded-lg hover:bg-gray-300 transition-all"
+                    className="px-6 py-2.5 bg-gray-200 text-primary font-medium rounded-lg hover:bg-gray-300 transition-all"
                   >
                     Close
                   </button>
@@ -2223,7 +2223,7 @@ const OrderList = () => {
               onClick={() => setSidebarOpen(false)}
             />
             <div
-              className="fixed top-0 right-0 h-screen w-full max-w-5xl bg-white"
+              className="fixed top-0 right-0 h-screen w-full max-w-5xl bg-card"
               style={{ zIndex: 100000 }}
             >
               <NewOrderSidebar
@@ -2256,7 +2256,7 @@ const OrderList = () => {
               }}
             />
             <div
-              className="fixed top-0 right-0 h-screen w-full max-w-3xl bg-white shadow-2xl"
+              className="fixed top-0 right-0 h-screen w-full max-w-3xl bg-card shadow-2xl"
               style={{ zIndex: 100000 }}
             >
               <OrderChat

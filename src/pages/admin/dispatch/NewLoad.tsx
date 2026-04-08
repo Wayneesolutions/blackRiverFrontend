@@ -310,36 +310,36 @@ const NewLoad = ({ onClose }: NewLoadProps) => {
     };
 
     return (
-        <div className="h-full flex flex-col bg-white overflow-hidden">
+        <div className="h-full flex flex-col bg-card overflow-hidden">
             {/* Fixed Header */}
-            <div className="flex items-center justify-between p-4 border-b border-gray-200 bg-white flex-shrink-0">
-                <h2 className="text-lg font-semibold text-gray-800">New Load</h2>
+            <div className="flex items-center justify-between p-4 border-b border-theme bg-card flex-shrink-0">
+                <h2 className="text-lg font-semibold text-primary">New Load</h2>
                 <button
                     onClick={onClose}
                     className="p-2 hover:bg-gray-100 rounded-full transition-colors"
                 >
-                    <X className="w-5 h-5 text-gray-500" />
+                    <X className="w-5 h-5 text-secondary" />
                 </button>
             </div>
 
             {/* Scrollable Content */}
             <div className="flex-1 overflow-y-auto overflow-x-hidden">
                 {/* Details Section */}
-                <div className="border-b border-gray-200">
-                    <div className="p-4 bg-gray-50 border-b border-gray-200">
-                        <h3 className="text-sm font-semibold text-gray-700">Details</h3>
+                <div className="border-b border-theme">
+                    <div className="p-4 bg-card border-b border-theme">
+                        <h3 className="text-sm font-semibold text-primary">Details</h3>
                     </div>
                     <div className="p-4">
                         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-3 mb-4">
                             {/* Customer Field */}
                             <div className="relative" ref={customerDropdownRef}>
-                                <label className="block text-xs font-medium text-gray-700 mb-1">Customer *</label>
+                                <label className="block text-xs font-medium text-primary mb-1">Customer *</label>
                                 <div className="relative">
                                     <div
                                         onClick={() => setCustomerDropdownOpen(!customerDropdownOpen)}
-                                        className="flex items-center gap-1 p-2 border border-gray-300 rounded bg-white cursor-pointer hover:border-blue-500 focus-within:border-blue-500 focus-within:ring-1 focus-within:ring-blue-500"
+                                        className="flex items-center gap-1 p-2 border border-gray-300 rounded bg-card cursor-pointer hover:border-blue-500 focus-within:border-blue-500 focus-within:ring-1 focus-within:ring-blue-500"
                                     >
-                                        <ChevronDown className={`w-4 h-4 text-gray-400 transition-transform flex-shrink-0 ${customerDropdownOpen ? 'rotate-180' : ''}`} />
+                                        <ChevronDown className={`w-4 h-4 text-secondary transition-transform flex-shrink-0 ${customerDropdownOpen ? 'rotate-180' : ''}`} />
                                         <input
                                             type="text"
                                             value={selectedCustomer ? `${selectedCustomer.name} | ${selectedCustomer.address}` : customerSearch}
@@ -362,7 +362,7 @@ const NewLoad = ({ onClose }: NewLoadProps) => {
                                                     }}
                                                     className="p-1 hover:bg-gray-100 rounded flex-shrink-0"
                                                 >
-                                                    <X className="w-4 h-4 text-gray-400" />
+                                                    <X className="w-4 h-4 text-secondary" />
                                                 </button>
                                                 <button
                                                     onClick={(e) => {
@@ -371,18 +371,18 @@ const NewLoad = ({ onClose }: NewLoadProps) => {
                                                     }}
                                                     className="p-1 hover:bg-gray-100 rounded flex-shrink-0"
                                                 >
-                                                    <Pencil className="w-4 h-4 text-gray-400" />
+                                                    <Pencil className="w-4 h-4 text-secondary" />
                                                 </button>
                                             </>
                                         )}
-                                        <ChevronUp className={`w-4 h-4 text-gray-400 transition-transform flex-shrink-0 ${customerDropdownOpen ? '' : 'rotate-180 opacity-0'}`} />
+                                        <ChevronUp className={`w-4 h-4 text-secondary transition-transform flex-shrink-0 ${customerDropdownOpen ? '' : 'rotate-180 opacity-0'}`} />
                                     </div>
                                     
                                     {customerDropdownOpen && (
-                                        <div className="absolute z-50 w-full mt-1 bg-white border border-gray-300 rounded-lg shadow-lg max-h-64 overflow-hidden">
-                                            <div className="p-2 border-b border-gray-200">
+                                        <div className="absolute z-50 w-full mt-1 bg-card border border-gray-300 rounded-lg shadow-lg max-h-64 overflow-hidden">
+                                            <div className="p-2 border-b border-theme">
                                                 <div className="relative">
-                                                    <Search className="absolute left-2 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
+                                                    <Search className="absolute left-2 top-1/2 transform -translate-y-1/2 w-4 h-4 text-secondary" />
                                                     <input
                                                         type="text"
                                                         value={customerSearch}
@@ -394,7 +394,7 @@ const NewLoad = ({ onClose }: NewLoadProps) => {
                                                 </div>
                                             </div>
                                             <div className="overflow-y-auto max-h-48">
-                                                <div className="px-2 py-1 text-xs font-semibold text-gray-500 bg-gray-50">United States</div>
+                                                <div className="px-2 py-1 text-xs font-semibold text-secondary bg-card">United States</div>
                                                 {filteredCustomers.length > 0 ? (
                                                     filteredCustomers.map((customer) => (
                                                         <div
@@ -405,15 +405,15 @@ const NewLoad = ({ onClose }: NewLoadProps) => {
                                                                 setCustomerDropdownOpen(false);
                                                             }}
                                                             className={`px-3 py-2 cursor-pointer hover:bg-blue-50 text-sm ${
-                                                                selectedCustomer?.id === customer.id ? 'bg-blue-50' : ''
+                                                                selectedCustomer?.id === customer.id ? 'bg-card' : ''
                                                             }`}
                                                         >
-                                                            <div className="font-medium text-blue-600">{customer.name}</div>
-                                                            <div className="text-xs text-gray-600">{customer.address}</div>
+                                                            <div className="font-medium text-[#00D1FF]">{customer.name}</div>
+                                                            <div className="text-xs text-secondary">{customer.address}</div>
                                                         </div>
                                                     ))
                                                 ) : (
-                                                    <div className="px-3 py-2 text-sm text-gray-500">No customers found</div>
+                                                    <div className="px-3 py-2 text-sm text-secondary">No customers found</div>
                                                 )}
                                             </div>
                                         </div>
@@ -423,7 +423,7 @@ const NewLoad = ({ onClose }: NewLoadProps) => {
 
                             {/* Customer Order # */}
                             <div>
-                                <label className="block text-xs font-medium text-gray-700 mb-1">Customer Order # *</label>
+                                <label className="block text-xs font-medium text-primary mb-1">Customer Order # *</label>
                                 <input
                                     type="text"
                                     value={customerOrderNo}
@@ -434,14 +434,14 @@ const NewLoad = ({ onClose }: NewLoadProps) => {
 
                             {/* Load Type Toggle */}
                             <div>
-                                <label className="block text-xs font-medium text-gray-700 mb-1">Load Type</label>
+                                <label className="block text-xs font-medium text-primary mb-1">Load Type</label>
                                 <div className="flex border border-gray-300 rounded overflow-hidden">
                                     <button
                                         onClick={() => setLoadType("FTL")}
                                         className={`flex-1 px-3 py-2 text-sm font-medium transition-colors ${
                                             loadType === "FTL"
                                                 ? "bg-blue-600 !text-white"
-                                                : "bg-white text-gray-700 hover:bg-gray-50"
+                                                : "bg-card text-primary hover:bg-[rgba(255,255,255,0.03)]"
                                         }`}
                                     >
                                         FTL
@@ -451,7 +451,7 @@ const NewLoad = ({ onClose }: NewLoadProps) => {
                                         className={`flex-1 px-3 py-2 text-sm font-medium transition-colors ${
                                             loadType === "LTL"
                                                 ? "bg-blue-600 !text-white"
-                                                : "bg-white text-gray-700 hover:bg-gray-50"
+                                                : "bg-card text-primary hover:bg-[rgba(255,255,255,0.03)]"
                                         }`}
                                     >
                                         LTL
@@ -461,14 +461,14 @@ const NewLoad = ({ onClose }: NewLoadProps) => {
 
                             {/* Freight on Toggle */}
                             <div>
-                                <label className="block text-xs font-medium text-gray-700 mb-1">Freight on</label>
+                                <label className="block text-xs font-medium text-primary mb-1">Freight on</label>
                                 <div className="flex border border-gray-300 rounded overflow-hidden">
                                     <button
                                         onClick={() => setFreightOn("Order")}
                                         className={`flex-1 px-3 py-2 text-sm font-medium transition-colors ${
                                             freightOn === "Order"
                                                 ? "bg-blue-600 !text-white"
-                                                : "bg-white text-gray-700 hover:bg-gray-50"
+                                                : "bg-card text-primary hover:bg-[rgba(255,255,255,0.03)]"
                                         }`}
                                     >
                                         Order
@@ -478,7 +478,7 @@ const NewLoad = ({ onClose }: NewLoadProps) => {
                                         className={`flex-1 px-3 py-2 text-sm font-medium transition-colors ${
                                             freightOn === "Item"
                                                 ? "bg-blue-600 !text-white"
-                                                : "bg-white text-gray-700 hover:bg-gray-50"
+                                                : "bg-card text-primary hover:bg-[rgba(255,255,255,0.03)]"
                                         }`}
                                     >
                                         Item
@@ -488,7 +488,7 @@ const NewLoad = ({ onClose }: NewLoadProps) => {
 
                             {/* Salesman */}
                             <div>
-                                <label className="block text-xs font-medium text-gray-700 mb-1">Salesman</label>
+                                <label className="block text-xs font-medium text-primary mb-1">Salesman</label>
                                 <div className="flex gap-1">
                                     <select
                                         value={selectedSalesman}
@@ -505,7 +505,7 @@ const NewLoad = ({ onClose }: NewLoadProps) => {
                         </div>
                         
                         <div className="mb-3">
-                            <label className="block text-xs font-medium text-gray-700 mb-1">Order Notes</label>
+                            <label className="block text-xs font-medium text-primary mb-1">Order Notes</label>
                             <textarea
                                 rows={2}
                                 value={orderNotes}
@@ -514,24 +514,24 @@ const NewLoad = ({ onClose }: NewLoadProps) => {
                             />
                         </div>
                         
-                        <button className="text-blue-600 hover:text-blue-700 text-sm font-medium flex items-center gap-1">
+                        <button className="text-[#00D1FF] hover:text-blue-700 text-sm font-medium flex items-center gap-1">
                             Additional Info<Plus className="w-3 h-3" />
                         </button>
                     </div>
                 </div>
 
                 {/* Shipment Section */}
-                <div className="border-b border-gray-200">
-                    <div className="p-4 bg-gray-50 border-b border-gray-200 flex items-center justify-between">
-                        <h3 className="text-sm font-semibold text-gray-700">Shipment</h3>
-                        <button className="text-blue-600 hover:text-blue-700 text-xl leading-none">+</button>
+                <div className="border-b border-theme">
+                    <div className="p-4 bg-card border-b border-theme flex items-center justify-between">
+                        <h3 className="text-sm font-semibold text-primary">Shipment</h3>
+                        <button className="text-[#00D1FF] hover:text-blue-700 text-xl leading-none">+</button>
                     </div>
                     <div className="p-4">
                         {/* Top Fields */}
                         <div className="space-y-4">
                             {/* Commodity */}
                             <div className="flex items-center">
-                                <label className="w-40 text-sm font-medium text-gray-700 flex-shrink-0">
+                                <label className="w-40 text-sm font-medium text-primary flex-shrink-0">
                                     Commodity <span className="text-red-500">*</span>
                                 </label>
                                 <input
@@ -545,7 +545,7 @@ const NewLoad = ({ onClose }: NewLoadProps) => {
 
                             {/* Value of goods - Input on left, Dropdown on right (like Weight) */}
                             <div className="flex items-center">
-                                <label className="w-40 text-sm font-medium text-gray-700 flex-shrink-0">
+                                <label className="w-40 text-sm font-medium text-primary flex-shrink-0">
                                     Value of goods
                                 </label>
                                 <div className="flex-1 flex gap-2">
@@ -559,7 +559,7 @@ const NewLoad = ({ onClose }: NewLoadProps) => {
                                     <select
                                         value={valueOfGoodsCurrency}
                                         onChange={(e) => setValueOfGoodsCurrency(e.target.value)}
-                                        className="w-48 p-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm bg-white"
+                                        className="w-48 p-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm bg-card"
                                     >
                                         <option value="">Select</option>
                                         {currencyOptions.map(currency => (
@@ -571,22 +571,22 @@ const NewLoad = ({ onClose }: NewLoadProps) => {
 
                             {/* Equipment */}
                             <div className="flex items-start">
-                                <label className="w-40 text-sm font-medium text-gray-700 flex-shrink-0 pt-2">
+                                <label className="w-40 text-sm font-medium text-primary flex-shrink-0 pt-2">
                                     Equipment
                                 </label>
                                 <div className="flex-1 relative" ref={equipmentDropdownRef}>
                                     <div className="flex gap-2">
                                         <div
                                             onClick={() => setEquipmentDropdownOpen(!equipmentDropdownOpen)}
-                                            className="flex-1 p-2 border border-gray-300 rounded bg-white cursor-pointer hover:border-blue-500 focus-within:ring-2 focus-within:ring-blue-500 flex items-center justify-between"
+                                            className="flex-1 p-2 border border-gray-300 rounded bg-card cursor-pointer hover:border-blue-500 focus-within:ring-2 focus-within:ring-blue-500 flex items-center justify-between"
                                         >
-                                            <span className="text-sm text-gray-600">
+                                            <span className="text-sm text-secondary">
                                                 {selectedEquipment.length > 0 
                                                     ? `${selectedEquipment.length} selected`
                                                     : "Select equipment"
                                                 }
                                             </span>
-                                            <ChevronDown className={`w-4 h-4 text-gray-400 transition-transform ${equipmentDropdownOpen ? 'rotate-180' : ''}`} />
+                                            <ChevronDown className={`w-4 h-4 text-secondary transition-transform ${equipmentDropdownOpen ? 'rotate-180' : ''}`} />
                                         </div>
                                         <button 
                                             className="px-3 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 text-sm font-medium flex-shrink-0"
@@ -597,7 +597,7 @@ const NewLoad = ({ onClose }: NewLoadProps) => {
                                     </div>
                                     
                                     {equipmentDropdownOpen && (
-                                        <div className="absolute z-50 w-full mt-1 bg-white border border-gray-300 rounded-lg shadow-lg max-h-64 overflow-y-auto">
+                                        <div className="absolute z-50 w-full mt-1 bg-card border border-gray-300 rounded-lg shadow-lg max-h-64 overflow-y-auto">
                                             {equipmentTypes.map((equipment) => (
                                                 <label
                                                     key={equipment}
@@ -607,9 +607,9 @@ const NewLoad = ({ onClose }: NewLoadProps) => {
                                                         type="checkbox"
                                                         checked={selectedEquipment.includes(equipment)}
                                                         onChange={() => handleEquipmentToggle(equipment)}
-                                                        className="w-4 h-4 text-blue-600 rounded focus:ring-blue-500"
+                                                        className="w-4 h-4 text-[#00D1FF] rounded focus:ring-blue-500"
                                                     />
-                                                    <span className="text-sm text-gray-700">{equipment}</span>
+                                                    <span className="text-sm text-primary">{equipment}</span>
                                                 </label>
                                             ))}
                                         </div>
@@ -619,7 +619,7 @@ const NewLoad = ({ onClose }: NewLoadProps) => {
 
                             {/* No of Packages - Input on left, Dropdown on right (like Weight) */}
                             <div className="flex items-center">
-                                <label className="w-40 text-sm font-medium text-gray-700 flex-shrink-0">
+                                <label className="w-40 text-sm font-medium text-primary flex-shrink-0">
                                     No of Packages
                                 </label>
                                 <div className="flex-1 flex gap-2 relative" ref={packagesDropdownRef}>
@@ -633,9 +633,9 @@ const NewLoad = ({ onClose }: NewLoadProps) => {
                                     <div className="relative w-48">
                                         <div
                                             onClick={() => setNoOfPackagesDropdownOpen(!noOfPackagesDropdownOpen)}
-                                            className="flex items-center justify-between p-2 border border-gray-300 rounded bg-white cursor-pointer hover:border-blue-500 focus-within:ring-2 focus-within:ring-blue-500"
+                                            className="flex items-center justify-between p-2 border border-gray-300 rounded bg-card cursor-pointer hover:border-blue-500 focus-within:ring-2 focus-within:ring-blue-500"
                                         >
-                                            <span className="text-sm text-gray-600 truncate">
+                                            <span className="text-sm text-secondary truncate">
                                                 {noOfPackagesType || "Select"}
                                             </span>
                                             {noOfPackagesType && (
@@ -646,17 +646,17 @@ const NewLoad = ({ onClose }: NewLoadProps) => {
                                                     }}
                                                     className="p-0.5 hover:bg-gray-100 rounded mr-1 flex-shrink-0"
                                                 >
-                                                    <X className="w-3 h-3 text-gray-400" />
+                                                    <X className="w-3 h-3 text-secondary" />
                                                 </button>
                                             )}
-                                            <ChevronDown className={`w-4 h-4 text-gray-400 transition-transform flex-shrink-0 ${noOfPackagesDropdownOpen ? 'rotate-180' : ''}`} />
+                                            <ChevronDown className={`w-4 h-4 text-secondary transition-transform flex-shrink-0 ${noOfPackagesDropdownOpen ? 'rotate-180' : ''}`} />
                                         </div>
                                         
                                         {noOfPackagesDropdownOpen && (
-                                            <div className="absolute z-50 w-full mt-1 bg-white border border-gray-300 rounded-lg shadow-lg max-h-64 overflow-hidden">
-                                                <div className="p-2 border-b border-gray-200">
+                                            <div className="absolute z-50 w-full mt-1 bg-card border border-gray-300 rounded-lg shadow-lg max-h-64 overflow-hidden">
+                                                <div className="p-2 border-b border-theme">
                                                     <div className="relative">
-                                                        <Search className="absolute left-2 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
+                                                        <Search className="absolute left-2 top-1/2 transform -translate-y-1/2 w-4 h-4 text-secondary" />
                                                         <input
                                                             type="text"
                                                             value={noOfPackagesSearch}
@@ -690,7 +690,7 @@ const NewLoad = ({ onClose }: NewLoadProps) => {
 
                             {/* Weight */}
                             <div className="flex items-center">
-                                <label className="w-40 text-sm font-medium text-gray-700 flex-shrink-0">
+                                <label className="w-40 text-sm font-medium text-primary flex-shrink-0">
                                     Weight
                                 </label>
                                 <div className="flex-1 flex gap-2">
@@ -704,7 +704,7 @@ const NewLoad = ({ onClose }: NewLoadProps) => {
                                     <select
                                         value={weightUnit}
                                         onChange={(e) => setWeightUnit(e.target.value)}
-                                        className="w-24 p-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm bg-white"
+                                        className="w-24 p-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm bg-card"
                                     >
                                         <option value="">Unit</option>
                                         {weightUnits.map(unit => (
@@ -716,7 +716,7 @@ const NewLoad = ({ onClose }: NewLoadProps) => {
 
                             {/* Temperature */}
                             <div className="flex items-center">
-                                <label className="w-40 text-sm font-medium text-gray-700 flex-shrink-0">
+                                <label className="w-40 text-sm font-medium text-primary flex-shrink-0">
                                     Temperature
                                 </label>
                                 <div className="flex-1 flex gap-2">
@@ -730,7 +730,7 @@ const NewLoad = ({ onClose }: NewLoadProps) => {
                                     <select
                                         value={temperatureUnit}
                                         onChange={(e) => setTemperatureUnit(e.target.value)}
-                                        className="w-32 p-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm bg-white"
+                                        className="w-32 p-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm bg-card"
                                     >
                                         <option value="Celsius">Celsius</option>
                                         <option value="Fahrenheit">Fahrenheit</option>
@@ -741,7 +741,7 @@ const NewLoad = ({ onClose }: NewLoadProps) => {
                         
                         {/* Dimensions */}
                         <div className="mb-4 mt-4">
-                            <label className="block text-xs font-medium text-gray-700 mb-1">Dimension (LxBxH)</label>
+                            <label className="block text-xs font-medium text-primary mb-1">Dimension (LxBxH)</label>
                             <div className="flex gap-2 items-center flex-wrap">
                                 <input
                                     type="text"
@@ -750,7 +750,7 @@ const NewLoad = ({ onClose }: NewLoadProps) => {
                                     placeholder="L"
                                     className="w-20 p-2 border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-blue-500 text-sm"
                                 />
-                                <span className="text-gray-400 text-sm">×</span>
+                                <span className="text-secondary text-sm">×</span>
                                 <input
                                     type="text"
                                     value={dimensionB}
@@ -758,7 +758,7 @@ const NewLoad = ({ onClose }: NewLoadProps) => {
                                     placeholder="B"
                                     className="w-20 p-2 border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-blue-500 text-sm"
                                 />
-                                <span className="text-gray-400 text-sm">×</span>
+                                <span className="text-secondary text-sm">×</span>
                                 <input
                                     type="text"
                                     value={dimensionH}
@@ -782,27 +782,27 @@ const NewLoad = ({ onClose }: NewLoadProps) => {
                         {/* PICKUP and DELIVERY Side by Side */}
                         <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-4">
                             {/* PICKUP Section */}
-                            <div className="border border-gray-200 rounded-lg p-4 bg-gray-50">
+                            <div className="border border-theme rounded-lg p-4 bg-card">
                                 <div className="flex items-center gap-4 mb-3">
                                     <div className="flex items-center gap-2">
                                         <input type="checkbox" id="pickup-checkbox" className="w-4 h-4" defaultChecked />
-                                        <label htmlFor="pickup-checkbox" className="font-medium text-gray-800 text-sm">PICKUP</label>
+                                        <label htmlFor="pickup-checkbox" className="font-medium text-primary text-sm">PICKUP</label>
                                     </div>
                                     <div className="flex items-center gap-2">
                                         <input type="checkbox" id="same-pickup" className="w-4 h-4" />
-                                        <label htmlFor="same-pickup" className="text-xs text-gray-600">Same pickup for next shipment</label>
+                                        <label htmlFor="same-pickup" className="text-xs text-secondary">Same pickup for next shipment</label>
                                     </div>
                                 </div>
                                 
                                 <div className="space-y-3">
                                     <div className="relative" ref={pickupDropdownRef}>
-                                        <label className="block text-xs font-medium text-gray-700 mb-1">Location *</label>
+                                        <label className="block text-xs font-medium text-primary mb-1">Location *</label>
                                         <div className="relative">
                                             <div
                                                 onClick={() => setPickupDropdownOpen(!pickupDropdownOpen)}
-                                                className="flex items-center gap-1 p-2 border border-gray-300 rounded bg-white cursor-pointer hover:border-blue-500 focus-within:border-blue-500 focus-within:ring-1 focus-within:ring-blue-500"
+                                                className="flex items-center gap-1 p-2 border border-gray-300 rounded bg-card cursor-pointer hover:border-blue-500 focus-within:border-blue-500 focus-within:ring-1 focus-within:ring-blue-500"
                                             >
-                                                <ChevronDown className={`w-4 h-4 text-gray-400 transition-transform flex-shrink-0 ${pickupDropdownOpen ? 'rotate-180' : ''}`} />
+                                                <ChevronDown className={`w-4 h-4 text-secondary transition-transform flex-shrink-0 ${pickupDropdownOpen ? 'rotate-180' : ''}`} />
                                                 <input
                                                     type="text"
                                                     value={selectedPickupPlace ? `${selectedPickupPlace.name || ''} | ${selectedPickupPlace.currentLocation?.address || ''}` : pickupSearch}
@@ -825,17 +825,17 @@ const NewLoad = ({ onClose }: NewLoadProps) => {
                                                             }}
                                                             className="p-1 hover:bg-gray-100 rounded flex-shrink-0"
                                                         >
-                                                            <X className="w-4 h-4 text-gray-400" />
+                                                            <X className="w-4 h-4 text-secondary" />
                                                         </button>
                                                     </>
                                                 )}
                                             </div>
                                             
                                             {pickupDropdownOpen && (
-                                                <div className="absolute z-50 w-full mt-1 bg-white border border-gray-300 rounded-lg shadow-lg max-h-64 overflow-hidden">
-                                                    <div className="p-2 border-b border-gray-200">
+                                                <div className="absolute z-50 w-full mt-1 bg-card border border-gray-300 rounded-lg shadow-lg max-h-64 overflow-hidden">
+                                                    <div className="p-2 border-b border-theme">
                                                         <div className="relative">
-                                                            <Search className="absolute left-2 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
+                                                            <Search className="absolute left-2 top-1/2 transform -translate-y-1/2 w-4 h-4 text-secondary" />
                                                             <input
                                                                 type="text"
                                                                 value={pickupSearch}
@@ -857,15 +857,15 @@ const NewLoad = ({ onClose }: NewLoadProps) => {
                                                                         setPickupDropdownOpen(false);
                                                                     }}
                                                                     className={`px-3 py-2 cursor-pointer hover:bg-blue-50 text-sm ${
-                                                                        selectedPickupPlace?._id === place._id ? 'bg-blue-50' : ''
+                                                                        selectedPickupPlace?._id === place._id ? 'bg-card' : ''
                                                                     }`}
                                                                 >
-                                                                    <div className="font-medium text-blue-600">{place.name || 'Unnamed Place'}</div>
-                                                                    <div className="text-xs text-gray-600">{place.currentLocation?.address || `${place.city || ''}, ${place.state || ''}`}</div>
+                                                                    <div className="font-medium text-[#00D1FF]">{place.name || 'Unnamed Place'}</div>
+                                                                    <div className="text-xs text-secondary">{place.currentLocation?.address || `${place.city || ''}, ${place.state || ''}`}</div>
                                                                 </div>
                                                             ))
                                                         ) : (
-                                                            <div className="px-3 py-2 text-sm text-gray-500">No places found</div>
+                                                            <div className="px-3 py-2 text-sm text-secondary">No places found</div>
                                                         )}
                                                     </div>
                                                 </div>
@@ -873,37 +873,37 @@ const NewLoad = ({ onClose }: NewLoadProps) => {
                                         </div>
                                     </div>
                                     <div>
-                                        <label className="block text-xs font-medium text-gray-700 mb-1">Reference No.</label>
+                                        <label className="block text-xs font-medium text-primary mb-1">Reference No.</label>
                                         <input
                                             type="text"
                                             placeholder="Ref No"
                                             value={pickupRefNo}
                                             onChange={(e) => setPickupRefNo(e.target.value)}
-                                            className="w-full p-2 border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-blue-500 text-sm bg-white"
+                                            className="w-full p-2 border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-blue-500 text-sm bg-card"
                                         />
                                     </div>
                                     <div className="grid grid-cols-2 gap-2">
                                         <div>
-                                            <label className="block text-xs font-medium text-gray-700 mb-1">Pickup Date *</label>
+                                            <label className="block text-xs font-medium text-primary mb-1">Pickup Date *</label>
                                             <input
                                                 type="date"
                                                 value={pickupDate}
                                                 onChange={(e) => setPickupDate(e.target.value)}
-                                                className="w-full p-2 border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-blue-500 text-sm bg-white"
+                                                className="w-full p-2 border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-blue-500 text-sm bg-card"
                                             />
                                         </div>
                                         <div>
-                                            <label className="block text-xs font-medium text-gray-700 mb-1">Time *</label>
+                                            <label className="block text-xs font-medium text-primary mb-1">Time *</label>
                                             <input
                                                 type="time"
                                                 value={pickupTime}
                                                 onChange={(e) => setPickupTime(e.target.value)}
-                                                className="w-full p-2 border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-blue-500 text-sm bg-white"
+                                                className="w-full p-2 border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-blue-500 text-sm bg-card"
                                             />
                                         </div>
                                     </div>
                                     <div>
-                                        <label className="block text-xs font-medium text-gray-700 mb-1">Appointment</label>
+                                        <label className="block text-xs font-medium text-primary mb-1">Appointment</label>
                                         <div className="flex items-center gap-4 mb-2">
                                             <label className="flex items-center gap-2 cursor-pointer">
                                                 <input
@@ -930,35 +930,35 @@ const NewLoad = ({ onClose }: NewLoadProps) => {
                                         </div>
                                     </div>
                                     <div>
-                                        <label className="block text-xs font-medium text-gray-700 mb-1">Note</label>
+                                        <label className="block text-xs font-medium text-primary mb-1">Note</label>
                                         <textarea
                                             rows={3}
                                             value={pickupNote}
                                             onChange={(e) => setPickupNote(e.target.value)}
-                                            className="w-full p-2 border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-blue-500 text-sm bg-white"
+                                            className="w-full p-2 border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-blue-500 text-sm bg-card"
                                         />
                                     </div>
                                 </div>
                             </div>
 
                             {/* DELIVERY Section */}
-                            <div className="border border-gray-200 rounded-lg p-4 bg-gray-50">
+                            <div className="border border-theme rounded-lg p-4 bg-card">
                                 <div className="flex items-center gap-4 mb-3">
                                     <div className="flex items-center gap-2">
                                         <input type="checkbox" id="delivery-checkbox" className="w-4 h-4" defaultChecked />
-                                        <label htmlFor="delivery-checkbox" className="font-medium text-gray-800 text-sm">DELIVERY</label>
+                                        <label htmlFor="delivery-checkbox" className="font-medium text-primary text-sm">DELIVERY</label>
                                     </div>
                                 </div>
                                 
                                 <div className="space-y-3">
                                     <div className="relative" ref={deliveryDropdownRef}>
-                                        <label className="block text-xs font-medium text-gray-700 mb-1">Location *</label>
+                                        <label className="block text-xs font-medium text-primary mb-1">Location *</label>
                                         <div className="relative">
                                             <div
                                                 onClick={() => setDeliveryDropdownOpen(!deliveryDropdownOpen)}
-                                                className="flex items-center gap-1 p-2 border border-gray-300 rounded bg-white cursor-pointer hover:border-blue-500 focus-within:border-blue-500 focus-within:ring-1 focus-within:ring-blue-500"
+                                                className="flex items-center gap-1 p-2 border border-gray-300 rounded bg-card cursor-pointer hover:border-blue-500 focus-within:border-blue-500 focus-within:ring-1 focus-within:ring-blue-500"
                                             >
-                                                <ChevronDown className={`w-4 h-4 text-gray-400 transition-transform flex-shrink-0 ${deliveryDropdownOpen ? 'rotate-180' : ''}`} />
+                                                <ChevronDown className={`w-4 h-4 text-secondary transition-transform flex-shrink-0 ${deliveryDropdownOpen ? 'rotate-180' : ''}`} />
                                                 <input
                                                     type="text"
                                                     value={selectedDeliveryPlace ? `${selectedDeliveryPlace.name || ''} | ${selectedDeliveryPlace.currentLocation?.address || ''}` : deliverySearch}
@@ -981,17 +981,17 @@ const NewLoad = ({ onClose }: NewLoadProps) => {
                                                             }}
                                                             className="p-1 hover:bg-gray-100 rounded flex-shrink-0"
                                                         >
-                                                            <X className="w-4 h-4 text-gray-400" />
+                                                            <X className="w-4 h-4 text-secondary" />
                                                         </button>
                                                     </>
                                                 )}
                                             </div>
                                             
                                             {deliveryDropdownOpen && (
-                                                <div className="absolute z-50 w-full mt-1 bg-white border border-gray-300 rounded-lg shadow-lg max-h-64 overflow-hidden">
-                                                    <div className="p-2 border-b border-gray-200">
+                                                <div className="absolute z-50 w-full mt-1 bg-card border border-gray-300 rounded-lg shadow-lg max-h-64 overflow-hidden">
+                                                    <div className="p-2 border-b border-theme">
                                                         <div className="relative">
-                                                            <Search className="absolute left-2 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
+                                                            <Search className="absolute left-2 top-1/2 transform -translate-y-1/2 w-4 h-4 text-secondary" />
                                                             <input
                                                                 type="text"
                                                                 value={deliverySearch}
@@ -1013,15 +1013,15 @@ const NewLoad = ({ onClose }: NewLoadProps) => {
                                                                         setDeliveryDropdownOpen(false);
                                                                     }}
                                                                     className={`px-3 py-2 cursor-pointer hover:bg-blue-50 text-sm ${
-                                                                        selectedDeliveryPlace?._id === place._id ? 'bg-blue-50' : ''
+                                                                        selectedDeliveryPlace?._id === place._id ? 'bg-card' : ''
                                                                     }`}
                                                                 >
-                                                                    <div className="font-medium text-blue-600">{place.name || 'Unnamed Place'}</div>
-                                                                    <div className="text-xs text-gray-600">{place.currentLocation?.address || `${place.city || ''}, ${place.state || ''}`}</div>
+                                                                    <div className="font-medium text-[#00D1FF]">{place.name || 'Unnamed Place'}</div>
+                                                                    <div className="text-xs text-secondary">{place.currentLocation?.address || `${place.city || ''}, ${place.state || ''}`}</div>
                                                                 </div>
                                                             ))
                                                         ) : (
-                                                            <div className="px-3 py-2 text-sm text-gray-500">No places found</div>
+                                                            <div className="px-3 py-2 text-sm text-secondary">No places found</div>
                                                         )}
                                                     </div>
                                                 </div>
@@ -1029,37 +1029,37 @@ const NewLoad = ({ onClose }: NewLoadProps) => {
                                         </div>
                                     </div>
                                     <div>
-                                        <label className="block text-xs font-medium text-gray-700 mb-1">Reference No.</label>
+                                        <label className="block text-xs font-medium text-primary mb-1">Reference No.</label>
                                         <input
                                             type="text"
                                             placeholder="Ref No"
                                             value={deliveryRefNo}
                                             onChange={(e) => setDeliveryRefNo(e.target.value)}
-                                            className="w-full p-2 border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-blue-500 text-sm bg-white"
+                                            className="w-full p-2 border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-blue-500 text-sm bg-card"
                                         />
                                     </div>
                                     <div className="grid grid-cols-2 gap-2">
                                         <div>
-                                            <label className="block text-xs font-medium text-gray-700 mb-1">Delivery Date *</label>
+                                            <label className="block text-xs font-medium text-primary mb-1">Delivery Date *</label>
                                             <input
                                                 type="date"
                                                 value={deliveryDate}
                                                 onChange={(e) => setDeliveryDate(e.target.value)}
-                                                className="w-full p-2 border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-blue-500 text-sm bg-white"
+                                                className="w-full p-2 border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-blue-500 text-sm bg-card"
                                             />
                                         </div>
                                         <div>
-                                            <label className="block text-xs font-medium text-gray-700 mb-1">Time *</label>
+                                            <label className="block text-xs font-medium text-primary mb-1">Time *</label>
                                             <input
                                                 type="time"
                                                 value={deliveryTime}
                                                 onChange={(e) => setDeliveryTime(e.target.value)}
-                                                className="w-full p-2 border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-blue-500 text-sm bg-white"
+                                                className="w-full p-2 border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-blue-500 text-sm bg-card"
                                             />
                                         </div>
                                     </div>
                                     <div>
-                                        <label className="block text-xs font-medium text-gray-700 mb-1">Appointment</label>
+                                        <label className="block text-xs font-medium text-primary mb-1">Appointment</label>
                                         <div className="flex items-center gap-4 mb-2">
                                             <label className="flex items-center gap-2 cursor-pointer">
                                                 <input
@@ -1086,12 +1086,12 @@ const NewLoad = ({ onClose }: NewLoadProps) => {
                                         </div>
                                     </div>
                                     <div>
-                                        <label className="block text-xs font-medium text-gray-700 mb-1">Note</label>
+                                        <label className="block text-xs font-medium text-primary mb-1">Note</label>
                                         <textarea
                                             rows={3}
                                             value={deliveryNote}
                                             onChange={(e) => setDeliveryNote(e.target.value)}
-                                            className="w-full p-2 border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-blue-500 text-sm bg-white"
+                                            className="w-full p-2 border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-blue-500 text-sm bg-card"
                                         />
                                     </div>
                                 </div>
@@ -1101,7 +1101,7 @@ const NewLoad = ({ onClose }: NewLoadProps) => {
                         {/* Distance and Additional Info */}
                         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                             <div>
-                                <label className="block text-xs font-medium text-gray-700 mb-1">Distance</label>
+                                <label className="block text-xs font-medium text-primary mb-1">Distance</label>
                                 <div className="flex gap-2">
                                     <input
                                         type="text"
@@ -1116,7 +1116,7 @@ const NewLoad = ({ onClose }: NewLoadProps) => {
                                 </div>
                             </div>
                             <div>
-                                <label className="block text-xs font-medium text-gray-700 mb-1">Additional Info</label>
+                                <label className="block text-xs font-medium text-primary mb-1">Additional Info</label>
                                 <div className="flex flex-wrap gap-3">
                                     {(Object.keys(additionalInfo) as Array<keyof typeof additionalInfo>).map((key) => (
                                         <label key={key} className="flex items-center gap-1 cursor-pointer">
@@ -1124,7 +1124,7 @@ const NewLoad = ({ onClose }: NewLoadProps) => {
                                                 type="checkbox"
                                                 checked={additionalInfo[key]}
                                                 onChange={() => handleAdditionalInfoToggle(key)}
-                                                className="w-4 h-4 text-blue-600 rounded focus:ring-blue-500"
+                                                className="w-4 h-4 text-[#00D1FF] rounded focus:ring-blue-500"
                                             />
                                             <span className="text-xs">{key === "OverDimension" ? "Over Dimension" : key}</span>
                                         </label>
@@ -1137,11 +1137,11 @@ const NewLoad = ({ onClose }: NewLoadProps) => {
             </div>
 
             {/* Fixed Footer */}
-            <div className="border-t border-gray-200 p-4 bg-white flex-shrink-0">
+            <div className="border-t border-theme p-4 bg-card flex-shrink-0">
                 <div className="flex gap-3 justify-end">
                     <button
                         onClick={onClose}
-                        className="px-6 py-2 bg-gray-300 hover:bg-gray-400 text-gray-700 font-medium rounded transition-colors"
+                        className="px-6 py-2 bg-gray-300 hover:bg-gray-400 text-primary font-medium rounded transition-colors"
                     >
                         Cancel
                     </button>

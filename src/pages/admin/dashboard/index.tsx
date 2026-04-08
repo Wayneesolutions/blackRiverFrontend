@@ -18,6 +18,7 @@ import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import { getAdminDashboard, type Trip, type Truck, type DashboardStats } from '../../../axios/api/main.dashboard';
 import { getActiveOrdersWithTracking } from '../../../axios/api/distapcher';
+import Card from '../../../components/admin/Card';
 
 // Fix for default marker icons in Leaflet
 delete (L.Icon.Default.prototype as any)._getIconUrl;
@@ -384,10 +385,10 @@ const Index = () => {
 
     if (loading) {
         return (
-            <div className="min-h-screen flex items-center justify-center" style={{ backgroundColor: '#EDF8FF' }}>
+            <div className="min-h-screen flex items-center justify-center" >
                 <div className="text-center">
                     <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-[#42aeec] mb-4"></div>
-                    <p className="text-gray-600">Loading dashboard...</p>
+                    <p className="text-secondary">Loading dashboard...</p>
                 </div>
             </div>
         );
@@ -395,9 +396,9 @@ const Index = () => {
 
     if (error) {
         return (
-            <div className="min-h-screen flex items-center justify-center" style={{ backgroundColor: '#EDF8FF' }}>
+            <div className="min-h-screen flex items-center justify-center" >
                 <div className="text-center">
-                    <p className="text-red-600 mb-4">Error: {error}</p>
+                    <p className="text-[#A855F7] mb-4">Error: {error}</p>
                     <button
                         onClick={fetchDashboardData}
                         className="px-4 py-2 bg-[#42aeec] text-white rounded-lg hover:bg-[#1db5f5]"
@@ -435,27 +436,18 @@ const Index = () => {
 
     return (
         <>
-            <div className="min-h-screen border-2 border-green-700 bg-[var(--bg-main)]">
+            <div className="min-h-screen -2  bg-[var(--bg-main)]">
                 <div className="relative w-full mx-auto">
                     {/* Gradient band */}
                     <div
                         className="absolute inset-x-0 top-0 border-2 border-green-700"
-                        style={{
-                            background: `linear-gradient(
-                          90deg,
-                          #42aeec 0%,
-                          #1db5f5 40%,
-                          #0ea3d8 100%
-                        )`,
-                            height: '101px'
-                        }}
-                        aria-hidden="true"
+
                     />
 
                     {/* Main content */}
-                    <div className="relative z-10 px-4.5 pt-3.5 pb-1 border-2 border-red-700">
+                    <div className="relative z-10 px-4.5 pt-3.5 pb-1 ">
                         {/* Header Section */}
-                        <div className="mb-4.5 relative z-10 border-2 border-red-700">
+                        <div className="mb-4.5 relative z-10 ">
                             <div className="flex items-center justify-between">
                                 <h1 className="text-xl font-bold text-white" style={{ fontSize: '1.25rem' }}>Overview</h1>
                                 <div className="flex items-center gap-2 text-white/90">
@@ -472,10 +464,10 @@ const Index = () => {
                                 const Icon = feature.icon;
 
                                 return (
-                                    <div
+                                    <Card
                                         key={feature.id}
                                         onClick={() => handleCardClick(feature.route)}
-                                        className="card-premium cursor-pointer hover:scale-[1.02] active:scale-[0.98] transition-all"
+                                        className="cursor-pointer hover:scale-[1.02] active:scale-[0.98] card-premium"
                                     >
                                         <div className="flex items-start gap-4">
 
@@ -514,7 +506,7 @@ const Index = () => {
                                                 style={{ width: `${feature.percentage}%` }}
                                             />
                                         </div>
-                                    </div>
+                                    </Card>
                                 );
                             })}
 
