@@ -82,7 +82,7 @@ const AdminHRTrainingView: React.FC = () => {
   const [newTestTypeName, setNewTestTypeName] = useState('');
   const [newTestTypeDisplayName, setNewTestTypeDisplayName] = useState('');
   const [creatingTestType, setCreatingTestType] = useState(false);
-  
+
   // Fetch all data on mount
   useEffect(() => {
     fetchAllData();
@@ -94,7 +94,7 @@ const AdminHRTrainingView: React.FC = () => {
       // Fetch training content for HR role only
       const contentResponse = await getTrainingContent({ role: HR_ROLE });
       if (contentResponse?.success && Array.isArray(contentResponse.data)) {
-        const hrContent = contentResponse.data.filter((item: TrainingContent) => 
+        const hrContent = contentResponse.data.filter((item: TrainingContent) =>
           !item.assignedRoles || item.assignedRoles.length === 0 || item.assignedRoles.includes(HR_ROLE)
         );
         setTrainingContent(hrContent);
@@ -105,7 +105,7 @@ const AdminHRTrainingView: React.FC = () => {
       let hrQA: QAItem[] = [];
       let hrQuestionBankIds: string[] = [];
       if (qaResponse?.success && Array.isArray(qaResponse.data)) {
-        hrQA = qaResponse.data.filter((item: QAItem) => 
+        hrQA = qaResponse.data.filter((item: QAItem) =>
           !item.assignedRoles || item.assignedRoles.length === 0 || item.assignedRoles.includes(HR_ROLE)
         );
         hrQuestionBankIds = hrQA.map(qa => qa._id);
@@ -115,10 +115,10 @@ const AdminHRTrainingView: React.FC = () => {
       // Fetch test results first - we'll extract HR users from results
       const resultsResponse = await getTestResults();
       console.log('Test results response:', resultsResponse);
-      
+
       let hrUsersList: HRUser[] = [];
       let hrResults: TestResult[] = [];
-      
+
       if (resultsResponse?.success && Array.isArray(resultsResponse.data)) {
         // First, filter results for HR-assigned question banks
         const hrResultsFiltered = resultsResponse.data.filter((result: TestResult) => {
@@ -129,16 +129,16 @@ const AdminHRTrainingView: React.FC = () => {
           } else if (result.questionBankId && typeof result.questionBankId === 'object') {
             questionBankId = (result.questionBankId as any)._id || (result.questionBankId as any).toString();
           }
-          
+
           // Check if question bank is assigned to HR
           const isHRQuestionBank = questionBankId && hrQuestionBankIds.includes(questionBankId);
           return isHRQuestionBank;
         });
-        
+
         console.log('HR Question Bank IDs:', hrQuestionBankIds);
         console.log('All Test Results:', resultsResponse.data.length);
         console.log('HR Test Results (filtered by question bank):', hrResultsFiltered.length);
-        
+
         // Extract unique user IDs from HR test results
         const uniqueUserIds = new Set<string>();
         hrResultsFiltered.forEach((result: TestResult) => {
@@ -152,17 +152,17 @@ const AdminHRTrainingView: React.FC = () => {
             uniqueUserIds.add(driverId);
           }
         });
-        
+
         console.log('Unique User IDs from test results:', Array.from(uniqueUserIds));
-        
+
         // Build HR users list from test results (with populated user data if available)
         const hrUsersMap = new Map<string, HRUser>();
-        
+
         hrResultsFiltered.forEach((result: TestResult) => {
           let driverId: string | undefined;
           let userName: string | undefined;
           let userEmail: string | undefined;
-          
+
           if (typeof result.driverId === 'string') {
             driverId = result.driverId;
           } else if (result.driverId && typeof result.driverId === 'object') {
@@ -170,7 +170,7 @@ const AdminHRTrainingView: React.FC = () => {
             userName = result.driverId.name;
             userEmail = result.driverId.email;
           }
-          
+
           if (driverId && !hrUsersMap.has(driverId)) {
             hrUsersMap.set(driverId, {
               _id: driverId,
@@ -179,13 +179,13 @@ const AdminHRTrainingView: React.FC = () => {
             });
           }
         });
-        
+
         hrUsersList = Array.from(hrUsersMap.values());
         hrResults = hrResultsFiltered;
-        
+
         console.log('HR Users extracted from test results:', hrUsersList.length);
         console.log('HR Test Results:', hrResults.length);
-        
+
         setHrUsers(hrUsersList);
         setTestResults(hrResults);
       } else {
@@ -213,10 +213,10 @@ const AdminHRTrainingView: React.FC = () => {
       return qbId === qaId;
     });
     if (quizResults.length === 0) return null;
-    
+
     const totalUsers = quizResults.length;
     const avgScore = quizResults.reduce((sum, r) => sum + (r.score / 100), 0) / totalUsers;
-    
+
     return {
       totalUsers,
       avgScore,
@@ -238,29 +238,29 @@ const AdminHRTrainingView: React.FC = () => {
         }
         return driverId === user._id;
       });
-      
+
       let status: 'passed' | 'failed' | 'not-attempted' = 'not-attempted';
       let score: number | undefined;
       let total: number | undefined;
-      
+
       if (userResults.length > 0) {
         // Get the most recent result across all question banks
-        const sortedResults = [...userResults].sort((a, b) => 
+        const sortedResults = [...userResults].sort((a, b) =>
           new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
         );
         const latestResult = sortedResults[0];
-        
+
         // Determine status based on latest result
         if (latestResult.passed) {
           status = 'passed';
         } else {
           status = 'failed';
         }
-        
+
         score = latestResult.score;
         total = 100; // Score is already a percentage
       }
-      
+
       return {
         id: user._id,
         name: user.name,
@@ -270,7 +270,7 @@ const AdminHRTrainingView: React.FC = () => {
       };
     });
   };
-  
+
   const [showUploadModal, setShowUploadModal] = useState(false);
   const [showQAModal, setShowQAModal] = useState(false);
   const [uploadType, setUploadType] = useState<'VIDEO' | 'PDF' | 'IMAGE'>('VIDEO');
@@ -279,7 +279,7 @@ const AdminHRTrainingView: React.FC = () => {
   const [uploadDescription, setUploadDescription] = useState('');
   const [uploadFile, setUploadFile] = useState<File | null>(null);
   const [uploading, setUploading] = useState(false);
-  
+
   // Q&A Modal states
   const [qaTitle, setQATitle] = useState('');
   const [qaTestType, setQATestType] = useState<string>('');
@@ -339,7 +339,7 @@ const AdminHRTrainingView: React.FC = () => {
       alert('Please fill in the question and at least 2 options');
       return;
     }
-    
+
     setQAQuestions((prev) => [
       ...prev,
       {
@@ -348,7 +348,7 @@ const AdminHRTrainingView: React.FC = () => {
         correctAnswer: currentQCorrectAnswer,
       }
     ]);
-    
+
     setCurrentQQuestion('');
     setCurrentQOptions(['', '', '', '']);
     setCurrentQCorrectAnswer(0);
@@ -370,7 +370,7 @@ const AdminHRTrainingView: React.FC = () => {
         name: newTestTypeName.trim(),
         displayName: newTestTypeDisplayName.trim()
       });
-      
+
       if (response?.success) {
         await fetchAllData();
         setNewTestTypeName('');
@@ -504,10 +504,10 @@ const AdminHRTrainingView: React.FC = () => {
     try {
       const response = await getTrainingContentSignedUrl(contentId, 'inline');
       console.log('Signed URL response:', response);
-      
+
       // Backend returns: { success: true, url: signedUrl } or { success: true, data: { url: signedUrl } }
       const signedUrl = response?.url || response?.data?.url;
-      
+
       if (response?.success && signedUrl) {
         window.open(signedUrl, '_blank');
       } else {
@@ -555,22 +555,22 @@ const AdminHRTrainingView: React.FC = () => {
                   // Calculate aggregate stats from actual test results
                   const roleUsers = getHRUsersWithStatus();
                   const isDropdownOpen = openDropdown === 'hr';
-                  
+
                   // Count users by status from actual test results
                   const passedCount = roleUsers.filter(u => u.status === 'passed').length;
                   const failedCount = roleUsers.filter(u => u.status === 'failed').length;
                   const notAttemptedCount = roleUsers.filter(u => u.status === 'not-attempted').length;
-                  
+
                   // Calculate total completions (total number of test results submitted)
                   const totalCompletions = testResults.length;
-                  
+
                   // Calculate average score from all test results
                   let avgScore = 0;
                   if (testResults.length > 0) {
                     const totalScore = testResults.reduce((sum, r) => sum + r.score, 0);
                     avgScore = totalScore / testResults.length / 100; // Convert percentage to decimal
                   }
-                  
+
                   // Count unique users who have completed at least one test
                   const uniqueUsersCompleted = new Set(
                     testResults.map(r => {
@@ -589,11 +589,10 @@ const AdminHRTrainingView: React.FC = () => {
                         <div className="flex items-center justify-between mb-2">
                           <span className="text-sm font-semibold text-primary">HR</span>
                           {avgScore > 0 && (
-                            <div className={`px-2 py-0.5 rounded-full text-xs font-bold ${
-                              avgScore >= 0.9 ? 'bg-green-100 text-green-700' : 
-                              avgScore >= 0.7 ? 'bg-yellow-100 text-yellow-700' : 
-                              'bg-red-100 text-red-700'
-                            }`}>
+                            <div className={`px-2 py-0.5 rounded-full text-xs font-bold ${avgScore >= 0.9 ? 'bg-[#00FFA3]/10 text-[#00FFA3]' :
+                                avgScore >= 0.7 ? 'bg-[#F59E0B]/10 text-[#F59E0B]' :
+                                  'bg-rose-500/10 text-rose-400'
+                              }`}>
                               {Math.round(avgScore * 100)}%
                             </div>
                           )}
@@ -614,27 +613,26 @@ const AdminHRTrainingView: React.FC = () => {
                             </div>
                           )}
                           {avgScore > 0 && (
-                            <div className="w-full bg-gray-200 rounded-full h-1.5 mt-2">
+                            <div className="w-full bg-[rgba(255,255,255,0.08)] rounded-full h-1.5 mt-2">
                               <div
-                                className={`h-1.5 rounded-full ${
-                                  avgScore >= 0.9 ? 'bg-green-500' : avgScore >= 0.7 ? 'bg-yellow-500' : 'bg-red-500'
-                                }`}
+                                className={`h-1.5 rounded-full transition-all ${avgScore >= 0.9 ? 'bg-[#00FFA3]' : avgScore >= 0.7 ? 'bg-[#F59E0B]' : 'bg-rose-400'
+                                  }`}
                                 style={{ width: `${avgScore * 100}%` }}
                               />
                             </div>
                           )}
                         </div>
-                        
+
                         {/* Dropdown Toggle Button */}
                         <button
                           onClick={() => setOpenDropdown(isDropdownOpen ? null : 'hr')}
-                          className="w-full mt-3 flex items-center justify-between px-2 py-1.5 text-xs font-medium text-primary bg-card rounded border border-theme hover:bg-[rgba(255,255,255,0.03)] transition-colors"
+                          className="w-full mt-3 flex items-center justify-between px-2 py-1.5 text-xs font-medium text-[#8B9BB4] bg-[rgba(0,209,255,0.05)] rounded-lg border border-[rgba(0,209,255,0.2)] hover:bg-[rgba(0,209,255,0.1)] hover:text-[#00D1FF] transition-colors"
                         >
                           <span>View Users ({roleUsers.length})</span>
                           <ChevronDown className={`w-3.5 h-3.5 transition-transform ${isDropdownOpen ? 'rotate-180' : ''}`} />
                         </button>
                       </div>
-                      
+
                       {/* Dropdown Content */}
                       {isDropdownOpen && (
                         <div className="border-t border-theme bg-card rounded-b-lg">
@@ -643,7 +641,7 @@ const AdminHRTrainingView: React.FC = () => {
                               const getStatusBadge = () => {
                                 if (user.status === 'passed') {
                                   return (
-                                    <div className="flex items-center gap-1.5 px-2 py-0.5 bg-green-50 text-green-700 rounded text-xs font-medium">
+                                    <div className="flex items-center gap-1.5 px-2 py-0.5 bg-[#00FFA3]/10 text-[#00FFA3] border border-[#00FFA3]/20 rounded-full text-xs font-medium">
                                       <CheckCircle className="w-3 h-3" />
                                       <span>Passed</span>
                                       {user.score !== undefined && (
@@ -653,7 +651,7 @@ const AdminHRTrainingView: React.FC = () => {
                                   );
                                 } else if (user.status === 'failed') {
                                   return (
-                                    <div className="flex items-center gap-1.5 px-2 py-0.5 bg-card text-red-700 rounded text-xs font-medium">
+                                    <div className="flex items-center gap-1.5 px-2 py-0.5 bg-rose-500/10 text-rose-400 border border-rose-500/20 rounded-full text-xs font-medium">
                                       <XCircle className="w-3 h-3" />
                                       <span>Failed</span>
                                       {user.score !== undefined && (
@@ -663,7 +661,7 @@ const AdminHRTrainingView: React.FC = () => {
                                   );
                                 } else {
                                   return (
-                                    <div className="flex items-center gap-1.5 px-2 py-0.5 bg-gray-100 text-secondary rounded text-xs font-medium">
+                                    <div className="flex items-center gap-1.5 px-2 py-0.5 bg-[rgba(255,255,255,0.06)] text-[#8B9BB4] border border-[rgba(255,255,255,0.08)] rounded-full text-xs font-medium">
                                       <Clock className="w-3 h-3" />
                                       <span>Not Attempted</span>
                                     </div>
@@ -689,16 +687,16 @@ const AdminHRTrainingView: React.FC = () => {
                               );
                             })}
                           </div>
-                          
+
                           {/* Summary Footer */}
                           <div className="border-t border-theme p-2 bg-card rounded-b-lg">
                             <div className="grid grid-cols-3 gap-2 text-xs">
                               <div className="text-center">
-                                <div className="font-semibold text-green-700">{passedCount}</div>
+                                <div className="font-semibold text-[#00FFA3]">{passedCount}</div>
                                 <div className="text-secondary">Passed</div>
                               </div>
                               <div className="text-center">
-                                <div className="font-semibold text-red-700">{failedCount}</div>
+                                <div className="font-semibold text-rose-400">{failedCount}</div>
                                 <div className="text-secondary">Failed</div>
                               </div>
                               <div className="text-center">
@@ -719,297 +717,296 @@ const AdminHRTrainingView: React.FC = () => {
           {/* Main Content */}
           <div className="flex-1">
 
-        {/* Training Materials Section */}
-        <div className="bg-card rounded-lg shadow-sm mb-6">
-          <div className="p-6 border-b border-theme">
-            <div className="flex items-center justify-between">
-              <div>
-                <h2 className="text-xl font-semibold text-primary">Training Materials</h2>
-                <p className="text-sm text-secondary mt-1">
-                  Training materials for HR role
-                </p>
-              </div>
-              <button
-                onClick={() => {
-                  setShowUploadModal(true);
-                  setUploadType('VIDEO');
-                  setUploadTestType(testTypes.length > 0 ? testTypes[0].name : '');
-                  setUploadTitle('');
-                  setUploadDescription('');
-                  setUploadFile(null);
-                }}
-                className="flex items-center gap-2 px-4 py-2 bg-[rgba(0,209,255,0.15)] !text-white rounded-lg hover:bg-[#0d8fc4] transition-colors"
-              >
-                <Plus className="w-4 h-4" />
-                Upload Content
-              </button>
-            </div>
-          </div>
-          <div className="p-6">
-            {trainingContent.length === 0 ? (
-              <div className="text-center py-12 text-secondary">
-                <Upload className="w-12 h-12 mx-auto mb-4 text-secondary" />
-                <p>No training materials uploaded yet</p>
-                <p className="text-sm mt-2">Admin can upload training materials for HR role</p>
-              </div>
-            ) : (
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                {trainingContent.map((item) => (
-                  <div key={item._id} className="bg-card rounded-lg p-4 border border-theme">
-                    <div className="flex items-start justify-between mb-2">
-                      <div className="flex items-center gap-2 flex-1">
-                        <div className="text-[rgba(0,209,255,0.15)]">{getIcon(item.type)}</div>
-                        <h3 className="font-semibold text-primary">{item.name}</h3>
-                      </div>
-                      <div className="flex items-center gap-1">
-                        <button
-                          onClick={() => handleViewContent(item._id, item.type)}
-                          className="text-[rgba(0,209,255,0.15)] hover:text-[#0d8fc4] p-1"
-                          title="View content"
-                        >
-                          <Eye className="w-4 h-4" />
-                        </button>
-                        <button
-                          onClick={() => handleDeleteContent(item._id)}
-                          className="text-[#A855F7] hover:text-red-700 p-1"
-                          title="Delete content"
-                        >
-                          <Trash2 className="w-4 h-4" />
-                        </button>
-                      </div>
-                    </div>
-                    {item.description && (
-                      <p className="text-sm text-secondary mt-2 mb-3">{item.description}</p>
-                    )}
-                    <div className="flex items-center justify-between text-sm text-secondary mt-3">
-                      <div className="flex items-center gap-2">
-                        <span className="capitalize bg-gray-200 px-2 py-1 rounded">{getTypeLabel(item.type)}</span>
-                        <span className="bg-blue-100 text-blue-700 px-2 py-1 rounded text-xs">{getTestTypeDisplayName(item.testType)}</span>
-                      </div>
-                      <span>
-                        {item.createdAt ? new Date(item.createdAt).toLocaleDateString() : 'N/A'}
-                      </span>
-                    </div>
+            {/* Training Materials Section */}
+            <div className="bg-card rounded-lg shadow-sm mb-6">
+              <div className="p-6 border-b border-theme">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <h2 className="text-xl font-semibold text-primary">Training Materials</h2>
+                    <p className="text-sm text-secondary mt-1">
+                      Training materials for HR role
+                    </p>
                   </div>
-                ))}
+                  <button
+                    onClick={() => {
+                      setShowUploadModal(true);
+                      setUploadType('VIDEO');
+                      setUploadTestType(testTypes.length > 0 ? testTypes[0].name : '');
+                      setUploadTitle('');
+                      setUploadDescription('');
+                      setUploadFile(null);
+                    }}
+                    className="flex items-center gap-2 px-4 py-2 bg-[#00D1FF]/10 border border-[#00D1FF]/30 text-[#00D1FF] rounded-lg hover:bg-[#00D1FF]/20 hover:border-[#00D1FF]/60 hover:shadow-[0_0_16px_rgba(0,209,255,0.2)] transition-all"
+                  >
+                    <Plus className="w-4 h-4" />
+                    Upload Content
+                  </button>
+                </div>
               </div>
-            )}
-          </div>
-        </div>
-
-        {/* Q&A Section */}
-        <div className="bg-card rounded-lg shadow-sm">
-          <div className="p-6 border-b border-theme">
-            <div className="flex items-center justify-between">
-              <div>
-                <h2 className="text-xl font-semibold text-primary">Q&A Content</h2>
-                <p className="text-sm text-secondary mt-1">
-                  Questions and answers for HR role
-                </p>
-              </div>
-              <button
-                onClick={() => {
-                  setShowQAModal(true);
-                  setQATitle('');
-                  setQATestType(testTypes.length > 0 ? testTypes[0].name : '');
-                  setQADescription('');
-                  setQAQuestions([]);
-                  setCurrentQQuestion('');
-                  setCurrentQOptions(['', '', '', '']);
-                  setCurrentQCorrectAnswer(0);
-                }}
-                className="flex items-center gap-2 px-4 py-2 bg-[rgba(0,209,255,0.15)] !text-white rounded-lg hover:bg-[#0d8fc4] transition-colors"
-              >
-                <Plus className="w-4 h-4" />
-                Add Q&A
-              </button>
-            </div>
-          </div>
-          <div className="p-6">
-            {qaContent.length === 0 ? (
-              <div className="text-center py-12 text-secondary">
-                <MessageSquare className="w-12 h-12 mx-auto mb-4 text-secondary" />
-                <p>No Q&A content added yet</p>
-                <p className="text-sm mt-2">Admin can add Q&A content for HR role</p>
-              </div>
-            ) : (
-              <div className="space-y-4">
-                {qaContent.map((item) => {
-                  const stats = getQuizStats(item._id);
-                  const qbIdForItem = item._id;
-                  const allUserResults = testResults
-                    .filter(r => {
-                      const qbId = typeof r.questionBankId === 'object' && r.questionBankId && '_id' in r.questionBankId ? r.questionBankId._id : (typeof r.questionBankId === 'string' ? r.questionBankId : undefined);
-                      return qbId === qbIdForItem;
-                    })
-                    .map(result => {
-                      const driverIdObj = typeof result.driverId === 'object' && result.driverId && '_id' in result.driverId ? result.driverId : null;
-                      const userId = driverIdObj && '_id' in driverIdObj ? driverIdObj._id : (typeof result.driverId === 'string' ? result.driverId : '');
-                      const userName = driverIdObj && 'name' in driverIdObj ? driverIdObj.name : 'Unknown User';
-                      return {
-                        userId: userId || '',
-                        result: {
-                          score: { correct: result.score, total: 100 },
-                          completedAt: result.createdAt
-                        },
-                        userName: userName || 'Unknown User',
-                        passed: result.passed
-                      };
-                    });
-                          
-                  return (
-                    <div key={item._id} className="bg-card rounded-lg p-4 border border-theme relative">
-                      <div className="flex items-start justify-between mb-3">
-                        <div className="flex-1">
-                          <div className="flex items-center justify-between mb-2">
-                            <div className="flex items-center gap-3">
-                              <h3 className="font-semibold text-primary">{item.testName}</h3>
-                              <span className="bg-blue-100 text-blue-700 px-2 py-1 rounded text-xs">{getTestTypeDisplayName(item.testType)}</span>
-                              <span className="text-sm text-secondary">Passing: {item.passingPercentage}%</span>
-                              <span className="text-sm text-secondary">Questions: {item.questions.length}</span>
-                              {item.mandatory && <span className="text-xs text-[#A855F7] font-medium">Mandatory</span>}
-                            </div>
-                            {stats && (
-                              <div className="flex items-center gap-3">
-                                <div className="flex items-center gap-2 px-3 py-1 bg-card rounded-lg border border-theme">
-                                  <span className="text-xs font-medium text-secondary">Avg Score:</span>
-                                  <span className={`text-sm font-bold ${stats.avgScore >= 0.9 ? 'text-green-600' : stats.avgScore >= 0.7 ? 'text-[#00FFA3]' : 'text-[#A855F7]'}`}>
-                                    {Math.round(stats.avgScore * 100)}%
-                                  </span>
-                                </div>
-                                <div className="flex items-center gap-2 px-3 py-1 bg-card rounded-lg border border-theme">
-                                  <span className="text-xs font-medium text-secondary">Completed:</span>
-                                  <span className="text-sm font-bold text-primary">{stats.totalUsers} user{stats.totalUsers !== 1 ? 's' : ''}</span>
-                                </div>
-                              </div>
-                            )}
+              <div className="p-6">
+                {trainingContent.length === 0 ? (
+                  <div className="text-center py-12 text-secondary">
+                    <Upload className="w-12 h-12 mx-auto mb-4 text-secondary" />
+                    <p>No training materials uploaded yet</p>
+                    <p className="text-sm mt-2">Admin can upload training materials for HR role</p>
+                  </div>
+                ) : (
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                    {trainingContent.map((item) => (
+                      <div key={item._id} className="bg-card rounded-lg p-4 border border-theme">
+                        <div className="flex items-start justify-between mb-2">
+                          <div className="flex items-center gap-2 flex-1">
+                            <div className="text-[#00D1FF]">{getIcon(item.type)}</div>
+                            <h3 className="font-semibold text-primary">{item.name}</h3>
                           </div>
-                                  
-                                  {/* User Results Cards */}
-                                  {allUserResults.length > 0 && (
-                                    <div className="mt-4 mb-4">
-                                      <div className="flex items-center gap-2 mb-3">
-                                        <TrendingUp className="w-4 h-4 text-[rgba(0,209,255,0.15)]" />
-                                        <h4 className="text-sm font-semibold text-primary">User Results</h4>
-                                        <span className="text-xs text-secondary">({allUserResults.length} {allUserResults.length === 1 ? 'user' : 'users'})</span>
-                                      </div>
-                                      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
-                                        {allUserResults.map(({ userId, result, userName, passed }) => {
-                                          const percentage = result.score.correct; // Score is already a percentage
-                                          const getScoreColor = () => {
-                                            if (percentage >= 90 || passed) return { bg: 'bg-green-50', border: 'border-green-200', text: 'text-green-700', badge: 'bg-green-100 text-green-700' };
-                                            if (percentage >= 70) return { bg: 'bg-card', border: 'border-yellow-200', text: 'text-yellow-700', badge: 'bg-yellow-100 text-yellow-700' };
-                                            return { bg: 'bg-card', border: 'border-red-200', text: 'text-red-700', badge: 'bg-red-100 text-red-700' };
-                                          };
-                                          const colors = getScoreColor();
-                                          const initials = userName.split(' ').map((n: string) => n[0]).join('').toUpperCase().slice(0, 2);
-                                          
-                                          return (
-                                            <div key={userId} className={`bg-card rounded-lg border-2 ${colors.border} p-4 hover:shadow-md transition-shadow`}>
-                                              <div className="flex items-start justify-between mb-3">
-                                                <div className="flex items-center gap-3">
-                                                  <div className={`w-12 h-12 rounded-full flex items-center justify-center text-white font-bold text-sm shadow-sm`}
-                                                    style={{ background: 'linear-gradient(135deg, rgba(0,209,255,0.15) 0%, #0d8fc4 100%)' }}
-                                                  >
-                                                    {initials}
-                                                  </div>
-                                                  <div>
-                                                    <h5 className="font-semibold text-primary text-sm">{userName}</h5>
-                                                    <p className="text-xs text-secondary mt-0.5">HR</p>
-                                                  </div>
-                                                </div>
-                                                <div className={`px-2.5 py-1 rounded-full ${colors.badge} text-xs font-semibold`}>
-                                                  {Math.round(percentage)}%
-                                                </div>
-                                              </div>
-                                              
-                                              <div className="space-y-2">
-                                                <div className="flex items-center justify-between">
-                                                  <span className="text-xs text-secondary flex items-center gap-1">
-                                                    <Award className="w-3.5 h-3.5" />
-                                                    Score
-                                                  </span>
-                                                  <span className={`text-sm font-bold ${colors.text}`}>
-                                                    {result.score.correct}/{result.score.total}
-                                                  </span>
-                                                </div>
-                                                
-                                                {/* Progress Bar */}
-                                                <div className="w-full bg-gray-200 rounded-full h-2">
-                                                  <div
-                                                    className={`h-2 rounded-full transition-all ${
-                                                      percentage >= 90 ? 'bg-green-500' : percentage >= 70 ? 'bg-yellow-500' : 'bg-red-500'
-                                                    }`}
-                                                    style={{ width: `${percentage}%` }}
-                                                  />
-                                                </div>
-                                                
-                                                <div className="flex items-center justify-between text-xs text-secondary pt-1">
-                                                  <span className="flex items-center gap-1">
-                                                    <Clock className="w-3.5 h-3.5" />
-                                                    {new Date(result.completedAt).toLocaleDateString('en-US', { 
-                                                      month: 'short', 
-                                                      day: 'numeric',
-                                                      year: 'numeric'
-                                                    })}
-                                                  </span>
-                                                  <span className="text-secondary">
-                                                    {new Date(result.completedAt).toLocaleTimeString('en-US', { 
-                                                      hour: '2-digit', 
-                                                      minute: '2-digit' 
-                                                    })}
-                                                  </span>
-                                                </div>
-                                              </div>
-                                            </div>
-                                          );
-                                        })}
-                                      </div>
-                                    </div>
-                                  )}
-                                  
-                          {/* Questions Display (showing correct answers) */}
-                          <div className="space-y-3 mt-3">
-                            {item.questions.map((q, idx) => (
-                              <div key={idx} className="bg-card rounded p-3 border border-theme">
-                                <p className="font-medium text-primary mb-2">Q{idx + 1}: {q.question}</p>
-                                <div className="space-y-1">
-                                  {q.options.map((option, optIdx) => {
-                                    const isCorrectOption = q.correctAnswer === optIdx;
-                                    return (
-                                      <div key={optIdx} className="flex items-center gap-2">
-                                        <input
-                                          type="radio"
-                                          checked={isCorrectOption}
-                                          readOnly
-                                          className="w-4 h-4"
-                                        />
-                                        <span className={`text-sm ${isCorrectOption ? 'text-green-600 font-medium' : 'text-secondary'} flex items-center gap-2`}>
-                                          {String.fromCharCode(65 + optIdx)}. {option}
-                                          {isCorrectOption && ' ✓ (Correct Answer)'}
-                                        </span>
-                                      </div>
-                                    );
-                                  })}
-                                </div>
-                              </div>
-                            ))}
+                          <div className="flex items-center gap-1">
+                            <button
+                              onClick={() => handleViewContent(item._id, item.type)}
+                              className="text-[#00D1FF] hover:text-[#00FFA3] p-1 transition-colors"
+                              title="View content"
+                            >
+                              <Eye className="w-4 h-4" />
+                            </button>
+                            <button
+                              onClick={() => handleDeleteContent(item._id)}
+                              className="text-[#A855F7] hover:text-red-700 p-1"
+                              title="Delete content"
+                            >
+                              <Trash2 className="w-4 h-4" />
+                            </button>
                           </div>
                         </div>
-                        <button
-                          onClick={() => handleDeleteQA(item._id)}
-                          className="text-[#A855F7] hover:text-red-700 p-1 ml-4"
-                        >
-                          <Trash2 className="w-4 h-4" />
-                        </button>
+                        {item.description && (
+                          <p className="text-sm text-secondary mt-2 mb-3">{item.description}</p>
+                        )}
+                        <div className="flex items-center justify-between text-sm text-secondary mt-3">
+                          <div className="flex items-center gap-2">
+                            <span className="capitalize bg-[rgba(255,255,255,0.08)] text-[#8B9BB4] px-2 py-1 rounded-md text-xs">{getTypeLabel(item.type)}</span>
+                            <span className="bg-[#00D1FF]/10 text-[#00D1FF] border border-[#00D1FF]/20 px-2 py-1 rounded-md text-xs">{getTestTypeDisplayName(item.testType)}</span>
+                          </div>
+                          <span>
+                            {item.createdAt ? new Date(item.createdAt).toLocaleDateString() : 'N/A'}
+                          </span>
+                        </div>
                       </div>
-                    </div>
-                  );
-                })}
+                    ))}
+                  </div>
+                )}
               </div>
-            )}
-          </div>
-        </div>
+            </div>
+
+            {/* Q&A Section */}
+            <div className="bg-card rounded-lg shadow-sm">
+              <div className="p-6 border-b border-theme">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <h2 className="text-xl font-semibold text-primary">Q&A Content</h2>
+                    <p className="text-sm text-secondary mt-1">
+                      Questions and answers for HR role
+                    </p>
+                  </div>
+                  <button
+                    onClick={() => {
+                      setShowQAModal(true);
+                      setQATitle('');
+                      setQATestType(testTypes.length > 0 ? testTypes[0].name : '');
+                      setQADescription('');
+                      setQAQuestions([]);
+                      setCurrentQQuestion('');
+                      setCurrentQOptions(['', '', '', '']);
+                      setCurrentQCorrectAnswer(0);
+                    }}
+                    className="flex items-center gap-2 px-4 py-2 bg-[#00D1FF]/10 border border-[#00D1FF]/30 text-[#00D1FF] rounded-lg hover:bg-[#00D1FF]/20 hover:border-[#00D1FF]/60 hover:shadow-[0_0_16px_rgba(0,209,255,0.2)] transition-all"
+                  >
+                    <Plus className="w-4 h-4" />
+                    Add Q&A
+                  </button>
+                </div>
+              </div>
+              <div className="p-6">
+                {qaContent.length === 0 ? (
+                  <div className="text-center py-12 text-secondary">
+                    <MessageSquare className="w-12 h-12 mx-auto mb-4 text-secondary" />
+                    <p>No Q&A content added yet</p>
+                    <p className="text-sm mt-2">Admin can add Q&A content for HR role</p>
+                  </div>
+                ) : (
+                  <div className="space-y-4">
+                    {qaContent.map((item) => {
+                      const stats = getQuizStats(item._id);
+                      const qbIdForItem = item._id;
+                      const allUserResults = testResults
+                        .filter(r => {
+                          const qbId = typeof r.questionBankId === 'object' && r.questionBankId && '_id' in r.questionBankId ? r.questionBankId._id : (typeof r.questionBankId === 'string' ? r.questionBankId : undefined);
+                          return qbId === qbIdForItem;
+                        })
+                        .map(result => {
+                          const driverIdObj = typeof result.driverId === 'object' && result.driverId && '_id' in result.driverId ? result.driverId : null;
+                          const userId = driverIdObj && '_id' in driverIdObj ? driverIdObj._id : (typeof result.driverId === 'string' ? result.driverId : '');
+                          const userName = driverIdObj && 'name' in driverIdObj ? driverIdObj.name : 'Unknown User';
+                          return {
+                            userId: userId || '',
+                            result: {
+                              score: { correct: result.score, total: 100 },
+                              completedAt: result.createdAt
+                            },
+                            userName: userName || 'Unknown User',
+                            passed: result.passed
+                          };
+                        });
+
+                      return (
+                        <div key={item._id} className="bg-card rounded-lg p-4 border border-theme relative">
+                          <div className="flex items-start justify-between mb-3">
+                            <div className="flex-1">
+                              <div className="flex items-center justify-between mb-2">
+                                <div className="flex items-center gap-3">
+                                  <h3 className="font-semibold text-primary">{item.testName}</h3>
+                                  <span className="bg-blue-100 text-blue-700 px-2 py-1 rounded text-xs">{getTestTypeDisplayName(item.testType)}</span>
+                                  <span className="text-sm text-secondary">Passing: {item.passingPercentage}%</span>
+                                  <span className="text-sm text-secondary">Questions: {item.questions.length}</span>
+                                  {item.mandatory && <span className="text-xs text-[#A855F7] font-medium">Mandatory</span>}
+                                </div>
+                                {stats && (
+                                  <div className="flex items-center gap-3">
+                                    <div className="flex items-center gap-2 px-3 py-1 bg-card rounded-lg border border-theme">
+                                      <span className="text-xs font-medium text-secondary">Avg Score:</span>
+                                      <span className={`text-sm font-bold ${stats.avgScore >= 0.9 ? 'text-green-600' : stats.avgScore >= 0.7 ? 'text-[#00FFA3]' : 'text-[#A855F7]'}`}>
+                                        {Math.round(stats.avgScore * 100)}%
+                                      </span>
+                                    </div>
+                                    <div className="flex items-center gap-2 px-3 py-1 bg-card rounded-lg border border-theme">
+                                      <span className="text-xs font-medium text-secondary">Completed:</span>
+                                      <span className="text-sm font-bold text-primary">{stats.totalUsers} user{stats.totalUsers !== 1 ? 's' : ''}</span>
+                                    </div>
+                                  </div>
+                                )}
+                              </div>
+
+                              {/* User Results Cards */}
+                              {allUserResults.length > 0 && (
+                                <div className="mt-4 mb-4">
+                                  <div className="flex items-center gap-2 mb-3">
+                                    <TrendingUp className="w-4 h-4 text-[#0ea3d8]" />
+                                    <h4 className="text-sm font-semibold text-primary">User Results</h4>
+                                    <span className="text-xs text-secondary">({allUserResults.length} {allUserResults.length === 1 ? 'user' : 'users'})</span>
+                                  </div>
+                                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+                                    {allUserResults.map(({ userId, result, userName, passed }) => {
+                                      const percentage = result.score.correct; // Score is already a percentage
+                                      const getScoreColor = () => {
+                                        if (percentage >= 90 || passed) return { bg: 'bg-green-50', border: 'border-green-200', text: 'text-green-700', badge: 'bg-green-100 text-green-700' };
+                                        if (percentage >= 70) return { bg: 'bg-card', border: 'border-yellow-200', text: 'text-yellow-700', badge: 'bg-yellow-100 text-yellow-700' };
+                                        return { bg: 'bg-card', border: 'border-red-200', text: 'text-red-700', badge: 'bg-red-100 text-red-700' };
+                                      };
+                                      const colors = getScoreColor();
+                                      const initials = userName.split(' ').map((n: string) => n[0]).join('').toUpperCase().slice(0, 2);
+
+                                      return (
+                                        <div key={userId} className={`bg-card rounded-lg border-2 ${colors.border} p-4 hover:shadow-md transition-shadow`}>
+                                          <div className="flex items-start justify-between mb-3">
+                                            <div className="flex items-center gap-3">
+                                              <div className={`w-12 h-12 rounded-full flex items-center justify-center text-white font-bold text-sm shadow-sm`}
+                                                style={{ background: 'linear-gradient(135deg, #0ea3d8 0%, #0d8fc4 100%)' }}
+                                              >
+                                                {initials}
+                                              </div>
+                                              <div>
+                                                <h5 className="font-semibold text-primary text-sm">{userName}</h5>
+                                                <p className="text-xs text-secondary mt-0.5">HR</p>
+                                              </div>
+                                            </div>
+                                            <div className={`px-2.5 py-1 rounded-full ${colors.badge} text-xs font-semibold`}>
+                                              {Math.round(percentage)}%
+                                            </div>
+                                          </div>
+
+                                          <div className="space-y-2">
+                                            <div className="flex items-center justify-between">
+                                              <span className="text-xs text-secondary flex items-center gap-1">
+                                                <Award className="w-3.5 h-3.5" />
+                                                Score
+                                              </span>
+                                              <span className={`text-sm font-bold ${colors.text}`}>
+                                                {result.score.correct}/{result.score.total}
+                                              </span>
+                                            </div>
+
+                                            {/* Progress Bar */}
+                                            <div className="w-full bg-gray-200 rounded-full h-2">
+                                              <div
+                                                className={`h-2 rounded-full transition-all ${percentage >= 90 ? 'bg-green-500' : percentage >= 70 ? 'bg-yellow-500' : 'bg-red-500'
+                                                  }`}
+                                                style={{ width: `${percentage}%` }}
+                                              />
+                                            </div>
+
+                                            <div className="flex items-center justify-between text-xs text-secondary pt-1">
+                                              <span className="flex items-center gap-1">
+                                                <Clock className="w-3.5 h-3.5" />
+                                                {new Date(result.completedAt).toLocaleDateString('en-US', {
+                                                  month: 'short',
+                                                  day: 'numeric',
+                                                  year: 'numeric'
+                                                })}
+                                              </span>
+                                              <span className="text-secondary">
+                                                {new Date(result.completedAt).toLocaleTimeString('en-US', {
+                                                  hour: '2-digit',
+                                                  minute: '2-digit'
+                                                })}
+                                              </span>
+                                            </div>
+                                          </div>
+                                        </div>
+                                      );
+                                    })}
+                                  </div>
+                                </div>
+                              )}
+
+                              {/* Questions Display (showing correct answers) */}
+                              <div className="space-y-3 mt-3">
+                                {item.questions.map((q, idx) => (
+                                  <div key={idx} className="bg-card rounded p-3 border border-theme">
+                                    <p className="font-medium text-primary mb-2">Q{idx + 1}: {q.question}</p>
+                                    <div className="space-y-1">
+                                      {q.options.map((option, optIdx) => {
+                                        const isCorrectOption = q.correctAnswer === optIdx;
+                                        return (
+                                          <div key={optIdx} className="flex items-center gap-2">
+                                            <input
+                                              type="radio"
+                                              checked={isCorrectOption}
+                                              readOnly
+                                              className="w-4 h-4"
+                                            />
+                                            <span className={`text-sm ${isCorrectOption ? 'text-green-600 font-medium' : 'text-secondary'} flex items-center gap-2`}>
+                                              {String.fromCharCode(65 + optIdx)}. {option}
+                                              {isCorrectOption && ' ✓ (Correct Answer)'}
+                                            </span>
+                                          </div>
+                                        );
+                                      })}
+                                    </div>
+                                  </div>
+                                ))}
+                              </div>
+                            </div>
+                            <button
+                              onClick={() => handleDeleteQA(item._id)}
+                              className="text-[#A855F7] hover:text-red-700 p-1 ml-4"
+                            >
+                              <Trash2 className="w-4 h-4" />
+                            </button>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
+              </div>
+            </div>
           </div>
         </div>
       </div>
@@ -1069,11 +1066,10 @@ const AdminHRTrainingView: React.FC = () => {
                     type="button"
                     onClick={() => setUploadType('VIDEO')}
                     disabled={uploading}
-                    className={`flex-1 px-4 py-2 rounded-lg border transition-colors ${
-                      uploadType === 'VIDEO'
-                        ? 'bg-[rgba(0,209,255,0.15)] !text-white border-[rgba(0,209,255,0.15)]'
-                        : 'bg-card text-primary border-theme hover:bg-[rgba(255,255,255,0.03)]'
-                    } ${uploading ? 'opacity-50 cursor-not-allowed' : ''}`}
+                    className={`flex-1 px-4 py-2 rounded-lg border transition-colors ${uploadType === 'VIDEO'
+                        ? 'bg-[#0ea3d8] !text-white border-[#0ea3d8]'
+                        : 'bg-card text-primary border-gray-300 hover:bg-[rgba(255,255,255,0.03)]'
+                      } ${uploading ? 'opacity-50 cursor-not-allowed' : ''}`}
                   >
                     <Video className="w-4 h-4 inline mr-2" />
                     Video
@@ -1082,11 +1078,10 @@ const AdminHRTrainingView: React.FC = () => {
                     type="button"
                     onClick={() => setUploadType('PDF')}
                     disabled={uploading}
-                    className={`flex-1 px-4 py-2 rounded-lg border transition-colors ${
-                      uploadType === 'PDF'
-                        ? 'bg-[rgba(0,209,255,0.15)] !text-white border-[rgba(0,209,255,0.15)]'
-                        : 'bg-card text-primary border-theme hover:bg-[rgba(255,255,255,0.03)]'
-                    } ${uploading ? 'opacity-50 cursor-not-allowed' : ''}`}
+                    className={`flex-1 px-4 py-2 rounded-lg border transition-colors ${uploadType === 'PDF'
+                        ? 'bg-[#0ea3d8] !text-white border-[#0ea3d8]'
+                        : 'bg-card text-primary border-gray-300 hover:bg-[rgba(255,255,255,0.03)]'
+                      } ${uploading ? 'opacity-50 cursor-not-allowed' : ''}`}
                   >
                     <FileText className="w-4 h-4 inline mr-2" />
                     PDF
@@ -1095,11 +1090,10 @@ const AdminHRTrainingView: React.FC = () => {
                     type="button"
                     onClick={() => setUploadType('IMAGE')}
                     disabled={uploading}
-                    className={`flex-1 px-4 py-2 rounded-lg border transition-colors ${
-                      uploadType === 'IMAGE'
-                        ? 'bg-[rgba(0,209,255,0.15)] !text-white border-[rgba(0,209,255,0.15)]'
-                        : 'bg-card text-primary border-theme hover:bg-[rgba(255,255,255,0.03)]'
-                    } ${uploading ? 'opacity-50 cursor-not-allowed' : ''}`}
+                    className={`flex-1 px-4 py-2 rounded-lg border transition-colors ${uploadType === 'IMAGE'
+                        ? 'bg-[#0ea3d8] !text-white border-[#0ea3d8]'
+                        : 'bg-card text-primary border-gray-300 hover:bg-[rgba(255,255,255,0.03)]'
+                      } ${uploading ? 'opacity-50 cursor-not-allowed' : ''}`}
                   >
                     <Image className="w-4 h-4 inline mr-2" />
                     Image

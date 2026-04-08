@@ -1,13 +1,10 @@
 
 import React, { useState, useRef, useEffect, useMemo, useCallback, memo } from "react";
-import { FaSignOutAlt, FaUser, FaCog, FaBars } from "react-icons/fa";
+import { FaSignOutAlt, FaCog, FaBars } from "react-icons/fa";
 import { Search, X, LogOut, AlertCircle, ArrowRight, ArrowLeft } from "lucide-react";
 import { useLogout } from "../../hooks/useLogout";
-import { useSelector, shallowEqual } from "react-redux";
 import { useNavigate } from "react-router-dom";
-import type { RootState } from "../../redux/store";
 import { useQuickActions } from "../common/QuickAction";
-import { usePageTitle } from "../../hooks/usePageTitle";
 
 interface HeaderProps {
     isSidebarCollapsed?: boolean;
@@ -22,10 +19,8 @@ const Header: React.FC<HeaderProps> = ({ isSidebarCollapsed = false, onToggleSid
     const searchRef = useRef<HTMLDivElement>(null);
     const inputRef = useRef<HTMLInputElement>(null);
     const { logout } = useLogout();
-    const { userInfo } = useSelector((state: RootState) => state.userAuth, shallowEqual);
     const navigate = useNavigate();
     const { filterActions } = useQuickActions();
-    const pageTitle = usePageTitle();
 
     // Only recompute when searchQuery changes, not on every render
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -49,19 +44,23 @@ const Header: React.FC<HeaderProps> = ({ isSidebarCollapsed = false, onToggleSid
         };
     }, [isSearchOpen]);
 
-    // Handle escape key to close search
+    // Handle Escape to close + Ctrl+K to open search
     useEffect(() => {
-        const handleEscape = (event: KeyboardEvent) => {
+        const handleKeyDown = (event: KeyboardEvent) => {
             if (event.key === 'Escape' && isSearchOpen) {
                 setIsSearchOpen(false);
                 setSearchQuery("");
                 setSelectedIndex(0);
             }
+            if ((event.ctrlKey || event.metaKey) && event.key === 'k') {
+                event.preventDefault();
+                setIsSearchOpen(prev => !prev);
+            }
         };
 
-        document.addEventListener('keydown', handleEscape);
+        document.addEventListener('keydown', handleKeyDown);
         return () => {
-            document.removeEventListener('keydown', handleEscape);
+            document.removeEventListener('keydown', handleKeyDown);
         };
     }, [isSearchOpen]);
 
@@ -82,10 +81,6 @@ const Header: React.FC<HeaderProps> = ({ isSidebarCollapsed = false, onToggleSid
     const cancelLogout = useCallback(() => {
         setShowLogoutModal(false);
     }, []);
-
-    const handleProfileClick = useCallback(() => {
-        navigate('/admin/profile');
-    }, [navigate]);
 
     const handleSettingsClick = useCallback(() => {
         navigate('/admin/company');
@@ -170,32 +165,19 @@ const Header: React.FC<HeaderProps> = ({ isSidebarCollapsed = false, onToggleSid
 
                 </div>
 
-                {pageTitle && (
-                    <div className="absolute left-1/2 -translate-x-1/2 pointer-events-none">
-                        <span className="text-white font-semibold text-lg tracking-wide">{pageTitle}</span>
-                    </div>
-                )}
-
-                <div className="flex items-center gap-4">
-
+                {/* Search bar in center */}
+                <div className="absolute left-1/2 -translate-x-1/2">
                     <button
                         onClick={handleSearchClick}
-                        className="p-2 rounded-lg hover-accent text-primary transition"
-                        title="Search"
+                        className="flex items-center gap-3 px-4 py-2 rounded-lg bg-[var(--bg-card)] border border-[rgba(255,255,255,0.08)] hover:border-[#42aeec]/40 text-secondary hover:text-primary transition-all w-64"
                     >
-                        <Search size={20} />
+                        <Search size={16} className="flex-shrink-0" />
+                        <span className="text-sm flex-1 text-left">Search anything...</span>
+                        <kbd className="text-xs bg-[rgba(255,255,255,0.06)] px-2 py-0.5 rounded text-secondary font-mono">Ctrl K</kbd>
                     </button>
+                </div>
 
-                    <button
-                        onClick={handleProfileClick}
-                        className="flex items-center gap-2 px-3 py-2 rounded-lg hover-accent text-primary transition"
-                        title="Profile"
-                    >
-                        <FaUser size={16} />
-                        <span className="text-sm font-medium hidden sm:inline">
-                            {userInfo?.userData?.name?.split(' ')[0] || 'Profile'}
-                        </span>
-                    </button>
+                <div className="flex items-center gap-4">
 
                     <button
                         onClick={handleSettingsClick}
@@ -354,6 +336,35 @@ const Header: React.FC<HeaderProps> = ({ isSidebarCollapsed = false, onToggleSid
                             </div>
                         )}
 
+                    </div>
+                </div>
+            )}
+
+            {/* Logout Confirmation Modal */}
+            {showLogoutModal && (
+                <div className="fixed inset-0 z-[200] flex items-center justify-center bg-black/60 backdrop-blur-sm">
+                    <div className="bg-[var(--bg-card)] border border-[rgba(255,255,255,0.08)] rounded-xl shadow-2xl w-full max-w-sm mx-4 p-6">
+                        <div className="flex items-center gap-3 mb-4">
+                            <div className="p-2 rounded-lg bg-red-500/10">
+                                <LogOut size={20} className="text-red-400" />
+                            </div>
+                            <h3 className="text-base font-semibold text-primary">Confirm Logout</h3>
+                        </div>
+                        <p className="text-sm text-secondary mb-6">Are you sure you want to log out?</p>
+                        <div className="flex gap-3 justify-end">
+                            <button
+                                onClick={cancelLogout}
+                                className="px-4 py-2 text-sm rounded-lg border border-[rgba(255,255,255,0.08)] text-secondary hover:text-primary hover:border-[rgba(255,255,255,0.2)] transition-all"
+                            >
+                                Cancel
+                            </button>
+                            <button
+                                onClick={confirmLogout}
+                                className="px-4 py-2 text-sm rounded-lg bg-red-500 hover:bg-red-600 text-white font-medium transition-all"
+                            >
+                                Logout
+                            </button>
+                        </div>
                     </div>
                 </div>
             )}

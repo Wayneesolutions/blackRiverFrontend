@@ -52,9 +52,9 @@ const ToastNotificationComponent = ({ notification, onClose }: { notification: T
   };
 
   const bgColors = {
-    success: 'bg-green-50 border-green-200',
-    error: 'bg-card border-red-200',
-    warning: 'bg-card border-yellow-200'
+    success: 'bg-[#00FFA3]/10 border-[#00FFA3]/30',
+    error: 'bg-rose-500/10 border-rose-500/30',
+    warning: 'bg-[#F59E0B]/10 border-[#F59E0B]/30'
   };
 
   useEffect(() => {
@@ -565,7 +565,7 @@ const DocumentManagement: React.FC = () => {
                   setShowCreateCategory(false);
                   setNewCategoryName('');
                 }}
-                className="p-2 hover:bg-[rgba(255,255,255,0.03)] rounded-lg transition-colors"
+                className="p-2 hover:bg-[rgba(255,255,255,0.05)] rounded-lg transition-colors"
               >
                 <X className="w-5 h-5 text-secondary" />
               </button>
@@ -576,7 +576,7 @@ const DocumentManagement: React.FC = () => {
                 value={newCategoryName}
                 onChange={(e) => setNewCategoryName(e.target.value)}
                 placeholder="e.g. Insurance, Maintenance, Training"
-                className="w-full px-4 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full px-4 py-2 bg-[#0B1220] border border-[rgba(0,209,255,0.15)] text-[#E6EDF3] placeholder-[#8B9BB4] rounded-lg focus:outline-none focus:border-[#00D1FF] focus:ring-1 focus:ring-[rgba(0,209,255,0.3)] transition-colors"
               />
               <div className="flex gap-3 pt-2">
                 <button
@@ -585,7 +585,7 @@ const DocumentManagement: React.FC = () => {
                     setShowCreateCategory(false);
                     setNewCategoryName('');
                   }}
-                  className="flex-1 px-4 py-2 border border-theme rounded-lg hover:bg-[rgba(255,255,255,0.03)] transition-colors font-medium"
+                  className="flex-1 px-4 py-2 border border-[rgba(255,255,255,0.08)] text-[#8B9BB4] rounded-lg hover:bg-[rgba(255,255,255,0.05)] transition-colors font-medium"
                 >
                   Cancel
                 </button>
@@ -616,7 +616,7 @@ const DocumentManagement: React.FC = () => {
                   setEditCategory(null);
                   setEditCategoryName('');
                 }}
-                className="p-2 hover:bg-[rgba(255,255,255,0.03)] rounded-lg transition-colors"
+                className="p-2 hover:bg-[rgba(255,255,255,0.05)] rounded-lg transition-colors"
               >
                 <X className="w-5 h-5 text-secondary" />
               </button>
@@ -626,7 +626,7 @@ const DocumentManagement: React.FC = () => {
               <input
                 value={editCategoryName}
                 onChange={(e) => setEditCategoryName(e.target.value)}
-                className="w-full px-4 py-2 border border-theme rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full px-4 py-2 bg-[#0B1220] border border-[rgba(0,209,255,0.15)] text-[#E6EDF3] rounded-lg focus:outline-none focus:border-[#00D1FF] focus:ring-1 focus:ring-[rgba(0,209,255,0.3)] transition-colors"
               />
               <div className="flex gap-3 pt-2">
                 <button
@@ -635,7 +635,7 @@ const DocumentManagement: React.FC = () => {
                     setEditCategory(null);
                     setEditCategoryName('');
                   }}
-                  className="flex-1 px-4 py-2 border border-theme rounded-lg hover:bg-[rgba(255,255,255,0.03)] transition-colors font-medium"
+                  className="flex-1 px-4 py-2 border border-[rgba(255,255,255,0.08)] text-[#8B9BB4] rounded-lg hover:bg-[rgba(255,255,255,0.05)] transition-colors font-medium"
                 >
                   Cancel
                 </button>
@@ -663,7 +663,7 @@ const DocumentManagement: React.FC = () => {
               <button
                 type="button"
                 onClick={() => setConfirmDeleteCategory(null)}
-                className="p-2 hover:bg-[rgba(255,255,255,0.03)] rounded-lg transition-colors"
+                className="p-2 hover:bg-[rgba(255,255,255,0.05)] rounded-lg transition-colors"
               >
                 <X className="w-5 h-5 text-secondary" />
               </button>
@@ -679,7 +679,7 @@ const DocumentManagement: React.FC = () => {
                 <button
                   type="button"
                   onClick={() => setConfirmDeleteCategory(null)}
-                  className="flex-1 px-4 py-2 border border-theme rounded-lg hover:bg-[rgba(255,255,255,0.03)] transition-colors font-medium"
+                  className="flex-1 px-4 py-2 border border-[rgba(255,255,255,0.08)] text-[#8B9BB4] rounded-lg hover:bg-[rgba(255,255,255,0.05)] transition-colors font-medium"
                 >
                   Cancel
                 </button>
@@ -687,7 +687,7 @@ const DocumentManagement: React.FC = () => {
                   type="button"
                   onClick={handleDeleteCategory}
                   disabled={deletingCategory}
-                  className="flex-1 px-4 py-2 rounded-lg transition-all font-medium flex items-center justify-center gap-2 disabled:opacity-50 bg-red-600 hover:bg-red-700 !text-white rounded-lg"
+                  className="flex-1 px-4 py-2 rounded-lg transition-all font-medium flex items-center justify-center gap-2 disabled:opacity-50 bg-rose-500/80 border border-rose-500/30 hover:bg-rose-500 !text-white"
                 >
                   {deletingCategory ? 'Deleting...' : 'Delete'}
                 </button>
@@ -786,42 +786,29 @@ const DocumentManagement: React.FC = () => {
                       key={category.key}
                       onClick={() => setSelectedCategory(category.key)}
                       className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg transition-all duration-200 text-xs font-medium ${isActive
-                        ? 'bg-card border border-blue-200'
-                        : 'hover:bg-[rgba(255,255,255,0.03)]'
+                        ? 'bg-[#182235] border border-[rgba(0,209,255,0.25)] text-[#00D1FF]'
+                        : 'text-[#8B9BB4] hover:bg-[rgba(255,255,255,0.04)] hover:text-[#E6EDF3]'
                         }`}
-                      style={{ color: FLEET_COLORS.dark }}
                     >
                       <Icon size={17} />
                       <span className="flex-1 text-left">{category.name}</span>
-                      <span
-                        className="px-2 py-0.5 rounded-full text-xs"
-                        style={{
-                          background: isActive ? "rgba(59, 130, 246, 0.2)" : "rgba(6,63,111,0.1)",
-                          color: FLEET_COLORS.primary,
-                        }}
-                      >
+                      <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${isActive ? 'bg-[#00D1FF]/20 text-[#00D1FF]' : 'bg-[rgba(255,255,255,0.08)] text-[#8B9BB4]'}`}>
                         {category.count}
                       </span>
                       {category.key !== "all" && category.id && (
                         <span className="flex items-center gap-1">
                           <button
                             type="button"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              openEditCategory(category);
-                            }}
-                            className="p-1 rounded hover:bg-[rgba(255,255,255,0.03)]"
+                            onClick={(e) => { e.stopPropagation(); openEditCategory(category); }}
+                            className="p-1 rounded hover:bg-[rgba(0,209,255,0.1)] hover:text-[#00D1FF] transition-colors"
                             title="Edit category"
                           >
                             <Edit size={14} />
                           </button>
                           <button
                             type="button"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              setConfirmDeleteCategory({ id: category.id!, name: category.name });
-                            }}
-                            className="p-1 rounded hover:bg-red-50 text-[#A855F7]"
+                            onClick={(e) => { e.stopPropagation(); setConfirmDeleteCategory({ id: category.id!, name: category.name }); }}
+                            className="p-1 rounded hover:bg-rose-500/10 hover:text-rose-400 transition-colors"
                             title="Delete category"
                           >
                             <Trash2 size={14} />
@@ -850,8 +837,7 @@ const DocumentManagement: React.FC = () => {
                     placeholder="Search documents by name or description..."
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
-                    className="w-full pl-10 pr-4 py-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-200 text-sm transition-all"
-                    style={{ border: `1px solid ${FLEET_COLORS.focusRing}` }}
+                    className="w-full pl-10 pr-4 py-2 rounded-lg focus:outline-none bg-[#0B1220] border border-[rgba(0,209,255,0.15)] text-[#E6EDF3] placeholder-[#8B9BB4] focus:border-[#00D1FF] focus:ring-1 focus:ring-[rgba(0,209,255,0.3)] text-sm transition-all"
                     {...focusHandlers}
                   />
                 </div>

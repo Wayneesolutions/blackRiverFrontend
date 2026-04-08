@@ -210,6 +210,13 @@ export function useNotifications(options: UseNotificationsOptions) {
     }
   }, [location.pathname, fetch]);
 
+  // Refetch when a test approval/rejection is performed on the same page
+  useEffect(() => {
+    const handler = () => { if (mountedRef.current) fetch(); };
+    window.addEventListener('notification:refetch', handler);
+    return () => window.removeEventListener('notification:refetch', handler);
+  }, [fetch]);
+
   const totalCount    = notifications.length;
   const criticalCount = notifications.filter(n => n.urgency === 'critical').length;
 

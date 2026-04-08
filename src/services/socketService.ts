@@ -432,6 +432,44 @@ class SocketService {
     }
   }
 
+  // Listen to driver order acceptance updates
+  onOrderAcceptanceUpdated(callback: (data: {
+    orderId: string;
+    orderNumber: string;
+    driverAcceptanceStatus: 'accepted' | 'rejected';
+    driverRejectionReason?: string;
+    driverId: string;
+    driverRespondedAt: string;
+  }) => void) {
+    if (this.socket) {
+      this.socket.off('orderAcceptanceUpdated');
+      this.socket.on('orderAcceptanceUpdated', callback);
+    }
+  }
+
+  offOrderAcceptanceUpdated() {
+    this.socket?.off('orderAcceptanceUpdated');
+  }
+
+  // Listen to driver trip acceptance updates
+  onTripAcceptanceUpdated(callback: (data: {
+    tripId: string;
+    tripNumber: string;
+    driverAcceptanceStatus: 'accepted' | 'rejected';
+    driverRejectionReason?: string;
+    driverId: string;
+    driverRespondedAt: string;
+  }) => void) {
+    if (this.socket) {
+      this.socket.off('tripAcceptanceUpdated');
+      this.socket.on('tripAcceptanceUpdated', callback);
+    }
+  }
+
+  offTripAcceptanceUpdated() {
+    this.socket?.off('tripAcceptanceUpdated');
+  }
+
   // Remove document upload notification listener
   offDocumentUploadNotification(callback?: (notification: any) => void) {
     if (this.socket) {

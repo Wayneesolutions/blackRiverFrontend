@@ -28,6 +28,37 @@ L.Icon.Default.mergeOptions({
     shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-shadow.png',
 });
 
+// Status → color mapping
+const STATUS_COLORS: Record<string, { bg: string; border: string; glow: string }> = {
+    active:       { bg: '#16A34A', border: '#22C55E', glow: '#00FFA380' },
+    'in progress':{ bg: '#0891B2', border: '#22D3EE', glow: '#00D1FF80' },
+    scheduled:    { bg: '#D97706', border: '#F59E0B', glow: '#FCD34D80' },
+    idle:         { bg: '#D97706', border: '#F59E0B', glow: '#FCD34D80' },
+    pending:      { bg: '#EA580C', border: '#F97316', glow: '#FB923C80' },
+    maintenance:  { bg: '#C2410C', border: '#EA580C', glow: '#FB923C80' },
+    offline:      { bg: '#4B5563', border: '#6B7280', glow: '#9CA3AF40' },
+    completed:    { bg: '#4B5563', border: '#6B7280', glow: '#9CA3AF40' },
+};
+
+const getStatusColor = (status: string) => {
+    return STATUS_COLORS[status?.toLowerCase()]?.border || '#6B7280';
+};
+
+const createVehicleIcon = (status: string) => {
+    const s = STATUS_COLORS[status?.toLowerCase()] || STATUS_COLORS.offline;
+    const truckSvg = `<svg width="18" height="18" viewBox="0 0 24 24" fill="white" xmlns="http://www.w3.org/2000/svg"><path d="M1 3h15v13H1z"/><path d="M16 8h4l3 3v5h-7V8z"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/></svg>`;
+    const html = `<div style="
+        width:38px;height:38px;
+        background:${s.bg};
+        border:2.5px solid ${s.border};
+        border-radius:50%;
+        display:flex;align-items:center;justify-content:center;
+        box-shadow:0 0 14px ${s.glow}, 0 2px 6px rgba(0,0,0,0.5);
+        cursor:pointer;
+    ">${truckSvg}</div>`;
+    return L.divIcon({ html, className: '', iconSize: [38, 38], iconAnchor: [19, 19] });
+};
+
 // Component to handle map center updates
 const MapController: React.FC<{ center: [number, number]; zoom: number }> = ({ center, zoom }) => {
     const map = useMap();
@@ -39,28 +70,6 @@ const MapController: React.FC<{ center: [number, number]; zoom: number }> = ({ c
     return null;
 };
 
-// Create custom truck icon for Leaflet
-const createTruckIcon = (color: string = '#ef4444') => {
-    const svg = `
-        <svg width="32" height="32" viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg">
-            <circle cx="16" cy="16" r="14" fill="white" stroke="${color}" stroke-width="2"/>
-            <g transform="translate(6, 8)">
-                <rect x="2" y="5" width="12" height="6" fill="${color}" rx="1"/>
-                <rect x="2" y="3" width="6" height="5" fill="${color}" rx="1"/>
-                <rect x="3" y="4" width="4" height="2" fill="white" opacity="0.8"/>
-                <circle cx="5" cy="13" r="2" fill="#333"/>
-                <circle cx="11" cy="13" r="2" fill="#333"/>
-            </g>
-        </svg>
-    `;
-
-    return L.divIcon({
-        html: svg,
-        className: 'custom-truck-icon',
-        iconSize: [32, 32],
-        iconAnchor: [16, 16],
-    });
-};
 
 interface ActiveOrderGroup {
     _id: string;
@@ -108,7 +117,7 @@ interface FeatureCard {
     percentage: number;
     route: string;
 
-    color: "blue" | "green" | "purple" | "orange";
+    color: "blue" | "green" | "purple" | "orange" | "cyan" | "emerald" | "rose" | "indigo" | "amber";
 }
 
 const Index = () => {
@@ -278,7 +287,7 @@ const Index = () => {
                 icon: TruckIcon,
                 percentage: Math.min(100, (stats.activeLoads / 50) * 100),
                 route: "/admin/dispatch",
-                color: "blue" // ✅
+                color: "blue"
             },
             {
                 id: "gps",
@@ -290,7 +299,7 @@ const Index = () => {
                 icon: MapPin,
                 percentage: stats.vehiclesOnline > 0 ? Math.min(100, (stats.vehiclesOnline / 20) * 100) : 0,
                 route: "/admin/gpsvehicle",
-                color: "green" // ✅
+                color: "emerald"
             },
             {
                 id: "driver",
@@ -302,7 +311,7 @@ const Index = () => {
                 icon: Users,
                 percentage: stats.activeDrivers > 0 ? Math.min(100, (stats.activeDrivers / 30) * 100) : 0,
                 route: "/admin/Management",
-                color: "purple" // ✅
+                color: "purple"
             },
             {
                 id: "maintenance",
@@ -314,7 +323,7 @@ const Index = () => {
                 icon: Wrench,
                 percentage: stats.pendingTasks > 0 ? Math.min(100, (stats.pendingTasks / 30) * 100) : 0,
                 route: "/admin/fleetmaintenance",
-                color: "orange" // ✅
+                color: "amber"
             },
             {
                 id: "mechanics",
@@ -326,7 +335,7 @@ const Index = () => {
                 icon: Settings,
                 percentage: (stats.maintenanceOrdersCount ?? 0) > 0 ? Math.min(100, ((stats.maintenanceOrdersCount ?? 0) / 50) * 100) : 0,
                 route: "/admin/mechanics/dashboard",
-                color: "blue" // 🔁 reuse
+                color: "cyan"
             },
             {
                 id: "compliance",
@@ -338,7 +347,7 @@ const Index = () => {
                 icon: ShieldCheck,
                 percentage: stats.complianceRate,
                 route: "/admin/compliance",
-                color: "green" // 🔁 reuse
+                color: "green"
             },
             {
                 id: "billing",
@@ -350,7 +359,7 @@ const Index = () => {
                 icon: DollarSign,
                 percentage: stats.monthlyRevenue > 0 ? Math.min(100, (stats.monthlyRevenue / 100000) * 100) : 0,
                 route: "/admin/accounts",
-                color: "orange" // 🔁
+                color: "orange"
             },
             {
                 id: "health",
@@ -362,7 +371,7 @@ const Index = () => {
                 icon: Heart,
                 percentage: stats.openIncidents > 0 ? Math.min(100, (stats.openIncidents / 20) * 100) : 0,
                 route: "/admin/healthandsafety",
-                color: "purple" // 🔁
+                color: "rose"
             },
             {
                 id: "manifest",
@@ -374,7 +383,7 @@ const Index = () => {
                 icon: FileText,
                 percentage: stats.activeLoads > 0 ? Math.min(100, (stats.activeLoads / 50) * 100) : 0,
                 route: "/admin/manifest",
-                color: "blue" // 🔁
+                color: "indigo"
             }
         ];
     }, [dashboardData]);
@@ -412,37 +421,21 @@ const Index = () => {
 
     // ✅ OUTSIDE JSX (top of component)
     const colorStyles = {
-        blue: {
-            bg: "bg-gradient-to-br from-[#0B3B5C] to-[#0F6EA8]",
-            text: "text-[var(--accent-blue)]",
-            glow: "shadow-[0_0_25px_rgba(0,209,255,0.2)]"
-        },
-        green: {
-            bg: "bg-gradient-to-br from-[#0B3B2A] to-[#0FA86E]",
-            text: "text-[var(--accent-green)]",
-            glow: "shadow-[0_0_25px_rgba(0,255,163,0.2)]"
-        },
-        purple: {
-            bg: "bg-gradient-to-br from-[#2A0B3B] to-[#7C3AED]",
-            text: "text-[var(--accent-purple)]",
-            glow: "shadow-[0_0_25px_rgba(168,85,247,0.2)]"
-        },
-        orange: {
-            bg: "bg-gradient-to-br from-[#3B2A0B] to-[#F59E0B]",
-            text: "text-[var(--accent-orange)]",
-            glow: "shadow-[0_0_25px_rgba(245,158,11,0.2)]"
-        }
+        blue:    { bg: "bg-gradient-to-br from-[#0B3B5C] to-[#0F6EA8]",  text: "text-[#00D1FF]",  bar: "bg-[#00D1FF]",  glow: "shadow-[0_0_20px_rgba(0,209,255,0.25)]" },
+        emerald: { bg: "bg-gradient-to-br from-[#064E3B] to-[#059669]",  text: "text-[#34D399]",  bar: "bg-[#34D399]",  glow: "shadow-[0_0_20px_rgba(52,211,153,0.25)]" },
+        purple:  { bg: "bg-gradient-to-br from-[#2E1065] to-[#7C3AED]",  text: "text-[#A78BFA]",  bar: "bg-[#A78BFA]",  glow: "shadow-[0_0_20px_rgba(167,139,250,0.25)]" },
+        amber:   { bg: "bg-gradient-to-br from-[#451A03] to-[#D97706]",  text: "text-[#FCD34D]",  bar: "bg-[#FCD34D]",  glow: "shadow-[0_0_20px_rgba(252,211,77,0.25)]" },
+        cyan:    { bg: "bg-gradient-to-br from-[#083344] to-[#0891B2]",  text: "text-[#22D3EE]",  bar: "bg-[#22D3EE]",  glow: "shadow-[0_0_20px_rgba(34,211,238,0.25)]" },
+        green:   { bg: "bg-gradient-to-br from-[#052E16] to-[#16A34A]",  text: "text-[#4ADE80]",  bar: "bg-[#4ADE80]",  glow: "shadow-[0_0_20px_rgba(74,222,128,0.25)]" },
+        orange:  { bg: "bg-gradient-to-br from-[#431407] to-[#EA580C]",  text: "text-[#FB923C]",  bar: "bg-[#FB923C]",  glow: "shadow-[0_0_20px_rgba(251,146,60,0.25)]" },
+        rose:    { bg: "bg-gradient-to-br from-[#4C0519] to-[#E11D48]",  text: "text-[#FB7185]",  bar: "bg-[#FB7185]",  glow: "shadow-[0_0_20px_rgba(251,113,133,0.25)]" },
+        indigo:  { bg: "bg-gradient-to-br from-[#1E1B4B] to-[#4F46E5]",  text: "text-[#818CF8]",  bar: "bg-[#818CF8]",  glow: "shadow-[0_0_20px_rgba(129,140,248,0.25)]" },
     };
 
     return (
         <>
-            <div className="min-h-screen -2  bg-[var(--bg-main)]">
+            <div className="min-h-screen bg-[var(--bg-main)]">
                 <div className="relative w-full mx-auto">
-                    {/* Gradient band */}
-                    <div
-                        className="absolute inset-x-0 top-0 border-2 border-green-700"
-
-                    />
 
                     {/* Main content */}
                     <div className="relative z-10 px-4.5 pt-3.5 pb-1 ">
@@ -456,13 +449,11 @@ const Index = () => {
                             </div>
                         </div>
 
-                        {/* Features Cards */}
-                        <div className="grid grid-cols-4 gap-4 -mt-2 mb-4.5">
-
-                            {features.map((feature) => {
+                        {/* Features Cards — Row 1: 4 cards */}
+                        <div className="grid grid-cols-4 gap-4 -mt-2 mb-3">
+                            {features.slice(0, 4).map((feature) => {
                                 const styles = colorStyles[feature.color] || colorStyles.blue;
                                 const Icon = feature.icon;
-
                                 return (
                                     <Card
                                         key={feature.id}
@@ -470,46 +461,54 @@ const Index = () => {
                                         className="cursor-pointer hover:scale-[1.02] active:scale-[0.98] card-premium"
                                     >
                                         <div className="flex items-start gap-4">
-
-                                            {/* ICON */}
                                             <div className={`flex-shrink-0 rounded-xl p-3 ${styles.bg} ${styles.glow}`}>
                                                 <Icon className={styles.text} size={20} strokeWidth={2} />
                                             </div>
-
-                                            {/* CONTENT */}
                                             <div className="flex-1">
-                                                <h3 className="text-sm font-semibold text-primary">
-                                                    {feature.title}
-                                                </h3>
-
-                                                <div className="text-2xl font-bold text-primary mt-1">
-                                                    {feature.value}
-                                                </div>
-
-                                                <p className="text-xs text-secondary mt-1">
-                                                    {feature.subtitle}
-                                                </p>
+                                                <h3 className="text-sm font-semibold text-primary">{feature.title}</h3>
+                                                <div className="text-2xl font-bold text-primary mt-1">{feature.value}</div>
+                                                <p className="text-xs text-secondary mt-1">{feature.subtitle}</p>
                                             </div>
-
-                                            {/* % */}
                                             <div className="text-xs font-semibold text-secondary flex items-center gap-1 mt-1">
                                                 <span className="text-[var(--accent-green)]">↗</span>
                                                 {Math.round(feature.percentage)}%
                                             </div>
-
                                         </div>
-
-                                        {/* PROGRESS */}
                                         <div className="mt-4 h-[3px] bg-[rgba(255,255,255,0.05)] rounded-full overflow-hidden">
-                                            <div
-                                                className={`h-full rounded-full progress-glow ${styles.text}`}
-                                                style={{ width: `${feature.percentage}%` }}
-                                            />
+                                            <div className={`h-full rounded-full ${styles.bar}`} style={{ width: `${Math.max(feature.percentage, 4)}%`, opacity: feature.percentage === 0 ? 0.35 : 1 }} />
                                         </div>
                                     </Card>
                                 );
                             })}
+                        </div>
 
+                        {/* Features Cards — Row 2: 5 cards */}
+                        <div className="grid grid-cols-5 gap-4 mb-4">
+                            {features.slice(4).map((feature) => {
+                                const styles = colorStyles[feature.color] || colorStyles.blue;
+                                const Icon = feature.icon;
+                                return (
+                                    <Card
+                                        key={feature.id}
+                                        onClick={() => handleCardClick(feature.route)}
+                                        className="cursor-pointer hover:scale-[1.02] active:scale-[0.98] card-premium"
+                                    >
+                                        <div className="flex items-start gap-3">
+                                            <div className={`flex-shrink-0 rounded-xl p-3 ${styles.bg} ${styles.glow}`}>
+                                                <Icon className={styles.text} size={18} strokeWidth={2} />
+                                            </div>
+                                            <div className="flex-1 min-w-0">
+                                                <h3 className="text-xs font-semibold text-primary truncate">{feature.title}</h3>
+                                                <div className="text-xl font-bold text-primary mt-1">{feature.value}</div>
+                                                <p className="text-xs text-secondary mt-0.5 truncate">{feature.subtitle}</p>
+                                            </div>
+                                        </div>
+                                        <div className="mt-3 h-[3px] bg-[rgba(255,255,255,0.05)] rounded-full overflow-hidden">
+                                            <div className={`h-full rounded-full ${styles.bar}`} style={{ width: `${Math.max(feature.percentage, 4)}%`, opacity: feature.percentage === 0 ? 0.35 : 1 }} />
+                                        </div>
+                                    </Card>
+                                );
+                            })}
                         </div>
 
                         {/* Active Trips Section */}
@@ -520,75 +519,112 @@ const Index = () => {
                             <div className="col-span-7 bg-card border border-theme rounded-2xl shadow-[0_0_40px_rgba(0,209,255,0.08)] overflow-hidden">
 
                                 {/* HEADER */}
-                                <div className="flex items-center justify-between px-5 py-4 border-b border-theme
-    bg-gradient-to-r from-[rgba(0,209,255,0.1)] to-transparent">
-
+                                <div className="flex items-center justify-between px-5 py-4 border-b border-theme bg-gradient-to-r from-[rgba(0,209,255,0.06)] to-transparent">
                                     <h2 className="text-sm font-semibold text-primary">Live Fleet Map</h2>
-
-                                    <button className="px-3 py-1 text-xs rounded-md 
-      bg-[rgba(0,209,255,0.1)] text-[var(--accent-blue)] hover:bg-[rgba(0,209,255,0.2)]">
+                                    <button
+                                        onClick={() => navigate('/admin/gpsvehicle/livetracking/truck')}
+                                        className="px-3 py-1 text-xs rounded-md bg-[rgba(0,209,255,0.1)] text-[var(--accent-blue)] hover:bg-[rgba(0,209,255,0.2)] transition"
+                                    >
                                         View Full Map
                                     </button>
                                 </div>
 
                                 {/* MAP */}
-                                <div className="relative h-[300px] m-4 rounded-xl overflow-hidden border border-theme">
-
+                                <div className="relative h-[310px] m-4 rounded-xl overflow-hidden border border-theme">
                                     <MapContainer
-                                        center={[54.5, -110]}
-                                        zoom={4}
+                                        center={mapCenter}
+                                        zoom={mapZoom}
                                         style={{ height: "100%", width: "100%" }}
+                                        zoomControl={false}
                                     >
-                                        <TileLayer
-                                            url="https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png"
-                                        />
+                                        <MapController center={mapCenter} zoom={mapZoom} />
+                                        <TileLayer url="https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png" />
 
-                                        {/* MARKERS */}
-                                        {[
-                                            { lat: 49.2, lng: -123.1, color: "#00D1FF" },
-                                            { lat: 53.5, lng: -113.5, color: "#00FFA3" },
-                                            { lat: 45.5, lng: -73.5, color: "#00FFA3" },
-                                            { lat: 43.6, lng: -79.3, color: "#F59E0B" },
-                                            { lat: 29.7, lng: -95.3, color: "#FF4D4F" }
-                                        ].map((m, i) => (
-                                            <Marker
-                                                key={i}
-                                                position={[m.lat, m.lng]}
-                                                icon={L.divIcon({
-                                                    html: `<div class="pulse-marker" style="background:${m.color}"></div>`
-                                                })}
-                                            />
-                                        ))}
+                                        {/* Active orders with real GPS */}
+                                        {activeOrders.map((order, i) => {
+                                            if (!order.currentLocation?.lat || !order.currentLocation?.lng) return null;
+                                            return (
+                                                <Marker
+                                                    key={`order-${i}`}
+                                                    position={[order.currentLocation.lat, order.currentLocation.lng]}
+                                                    icon={createVehicleIcon('active')}
+                                                >
+                                                    <Popup className="map-popup">
+                                                        <div style={{ background: '#121A2B', color: '#E6EDF3', padding: '8px', borderRadius: '8px', minWidth: '160px' }}>
+                                                            <p style={{ fontWeight: 700, marginBottom: 4 }}>{order.truck?.unitNumber || order.truck?.plateNumber || 'Truck'}</p>
+                                                            <p style={{ fontSize: 11, color: '#8B9BB4' }}>{order.driver?.name}</p>
+                                                            <p style={{ fontSize: 11, color: '#00FFA3', marginTop: 4 }}>● Active — {order.orderCount} order(s)</p>
+                                                            <p style={{ fontSize: 10, color: '#8B9BB4', marginTop: 2 }}>{order.currentLocation.address}</p>
+                                                        </div>
+                                                    </Popup>
+                                                </Marker>
+                                            );
+                                        })}
+
+                                        {/* Standalone trucks from dashboard */}
+                                        {dashboardData?.trucks.map((truck, i) => {
+                                            if (!truck.latitude || !truck.longitude) return null;
+                                            const alreadyCovered = activeOrders.some(o =>
+                                                o.truck?.unitNumber === truck.unitNo || o.truck?.plateNumber === truck.licensePlate
+                                            );
+                                            if (alreadyCovered) return null;
+                                            return (
+                                                <Marker
+                                                    key={`truck-${i}`}
+                                                    position={[truck.latitude, truck.longitude]}
+                                                    icon={createVehicleIcon(truck.operationStatus)}
+                                                >
+                                                    <Popup>
+                                                        <div style={{ background: '#121A2B', color: '#E6EDF3', padding: '8px', borderRadius: '8px', minWidth: '160px' }}>
+                                                            <p style={{ fontWeight: 700, marginBottom: 4 }}>{truck.unitNo} — {truck.licensePlate}</p>
+                                                            <p style={{ fontSize: 11, color: '#8B9BB4' }}>{truck.makeModel}</p>
+                                                            <p style={{ fontSize: 11, marginTop: 4, color: getStatusColor(truck.operationStatus) }}>
+                                                                ● {truck.operationStatus}
+                                                            </p>
+                                                            <p style={{ fontSize: 10, color: '#8B9BB4', marginTop: 2 }}>{truck.address}</p>
+                                                        </div>
+                                                    </Popup>
+                                                </Marker>
+                                            );
+                                        })}
+
+                                        {/* Trips with current location */}
+                                        {dashboardData?.trips.map((trip, i) => {
+                                            const lat = trip.currentLat;
+                                            const lng = trip.currentLng;
+                                            if (!lat || !lng) return null;
+                                            return (
+                                                <Marker
+                                                    key={`trip-${i}`}
+                                                    position={[lat, lng]}
+                                                    icon={createVehicleIcon(trip.status)}
+                                                >
+                                                    <Popup>
+                                                        <div style={{ background: '#121A2B', color: '#E6EDF3', padding: '8px', borderRadius: '8px', minWidth: '160px' }}>
+                                                            <p style={{ fontWeight: 700, marginBottom: 4 }}>{trip.tripNumber}</p>
+                                                            <p style={{ fontSize: 11, color: '#8B9BB4' }}>{trip.origin} → {trip.destination}</p>
+                                                            <p style={{ fontSize: 11, marginTop: 4, color: getStatusColor(trip.status) }}>● {trip.status}</p>
+                                                        </div>
+                                                    </Popup>
+                                                </Marker>
+                                            );
+                                        })}
                                     </MapContainer>
 
-                                    {/* OVERLAY */}
-                                    <div className="absolute inset-0 bg-[rgba(0,0,0,0.3)] pointer-events-none" />
-
                                     {/* LEGEND */}
-                                    <div className="absolute bottom-3 left-4 flex gap-4 text-xs 
-      bg-[rgba(10,20,40,0.8)] px-4 py-2 rounded-lg border border-theme backdrop-blur-md">
-
-                                        <span className="flex items-center gap-2 text-secondary">
-                                            <span className="w-2 h-2 bg-green-400 rounded-full shadow-[0_0_6px_#00FFA3]" />
-                                            Active (2)
-                                        </span>
-
-                                        <span className="flex items-center gap-2 text-secondary">
-                                            <span className="w-2 h-2 bg-yellow-400 rounded-full shadow-[0_0_6px_#F59E0B]" />
-                                            Idle (0)
-                                        </span>
-
-                                        <span className="flex items-center gap-2 text-secondary">
-                                            <span className="w-2 h-2 bg-red-400 rounded-full shadow-[0_0_6px_red]" />
-                                            Maintenance (0)
-                                        </span>
-
-                                        <span className="flex items-center gap-2 text-secondary">
-                                            <span className="w-2 h-2 bg-gray-500 rounded-full" />
-                                            Offline (3)
-                                        </span>
-                                    </div>
-
+                                    {/* <div className="absolute bottom-3 left-3 z-[1000] flex gap-3 text-xs bg-[rgba(10,18,32,0.85)] px-3 py-2 rounded-lg border border-[rgba(255,255,255,0.08)] backdrop-blur-md">
+                                        {[
+                                            { label: 'Active', color: '#22C55E', glow: '#00FFA3', count: (dashboardData?.trucks.filter(t => t.operationStatus?.toLowerCase() === 'active').length ?? 0) + activeOrders.length },
+                                            { label: 'Idle',   color: '#F59E0B', glow: '#FCD34D', count: dashboardData?.trucks.filter(t => t.operationStatus?.toLowerCase() === 'idle').length ?? 0 },
+                                            { label: 'Maintenance', color: '#EA580C', glow: '#FB923C', count: dashboardData?.trucks.filter(t => t.operationStatus?.toLowerCase() === 'maintenance').length ?? 0 },
+                                            { label: 'Offline', color: '#6B7280', glow: '#9CA3AF', count: dashboardData?.trucks.filter(t => t.operationStatus?.toLowerCase() === 'offline').length ?? 0 },
+                                        ].map(item => (
+                                            <span key={item.label} className="flex items-center gap-1.5 text-secondary">
+                                                <span className="w-2 h-2 rounded-full flex-shrink-0" style={{ background: item.color, boxShadow: `0 0 5px ${item.glow}` }} />
+                                                {item.label} ({item.count})
+                                            </span>
+                                        ))}
+                                    </div> */}
                                 </div>
                             </div>
 
@@ -597,7 +633,7 @@ const Index = () => {
 
                                 <div className="flex justify-between mb-4">
                                     <h2 className="text-sm font-semibold text-primary">Dispatch Center</h2>
-                                    <button className="text-xs text-accent">View All</button>
+                                    <button className="text-xs !text-[var(--accent-navyblue)]">View All</button>
                                 </div>
 
                                 {[{
@@ -625,7 +661,7 @@ const Index = () => {
                                     <div key={i} className="mb-3 p-3 rounded-xl bg-[rgba(255,255,255,0.02)] border border-theme">
 
                                         <div className="flex justify-between text-xs mb-1">
-                                            <span className="text-[var(--accent-blue)] font-semibold">{trip.id}</span>
+                                            <span className="text-[var(--accent-navyblue)] font-semibold">{trip.id}</span>
                                             <span className={`
   px-2 py-0.5 rounded-full text-xs
   ${trip.color === "blue" && "bg-[rgba(0,209,255,0.1)] text-[var(--accent-blue)]"}
@@ -648,7 +684,7 @@ const Index = () => {
 
                                 <div className="flex justify-between mb-4">
                                     <h2 className="text-sm font-semibold text-primary">Alerts</h2>
-                                    <button className="text-xs text-accent">View All</button>
+                                    <button className="text-xs !text-[var(--accent-navyblue)]">View All</button>
                                 </div>
 
                                 {[

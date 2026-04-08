@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import {
   BarChart,
@@ -7,13 +7,30 @@ import {
   YAxis,
   Tooltip,
   ResponsiveContainer,
-  LineChart,
-  Line,
+  AreaChart,
+  Area,
   CartesianGrid,
 } from "recharts";
-import { Truck, Users, Package, Wrench, FileText, AlertTriangle, Calendar, Clock, RefreshCw } from "lucide-react";
-import { quickStats, loadsPerMonth, revenueTrend, fuelEfficiency, recentAlerts } from "../../../../axios/api/main.dashboard";
-import ExpiringDocumentsPopup from "../../../../components/common/ExpiringDocumentsPopup";
+import {
+  Truck,
+  Users,
+  Package,
+  Wrench,
+  FileText,
+  AlertTriangle,
+  Calendar,
+  Clock,
+  RefreshCw,
+  TrendingUp,
+  TrendingDown,
+} from "lucide-react";
+import {
+  quickStats,
+  loadsPerMonth,
+  revenueTrend,
+  fuelEfficiency,
+  recentAlerts,
+} from "../../../../axios/api/main.dashboard";
 import Card from "../../../../components/admin/Card";
 
 interface Stats {
@@ -42,9 +59,10 @@ interface MaintenanceDue {
 
 interface ExpiringDoc {
   name: string;
-  license?: {
-    expiryDate: string;
-  };
+  type?: "driver" | "vehicle";
+  documentType?: string;
+  expiryDate?: string;
+  license?: { expiryDate: string };
 }
 
 interface DelayedLoad {
@@ -59,6 +77,30 @@ interface Alerts {
   expiringDocs: ExpiringDoc[];
   delayedLoads: DelayedLoad[];
 }
+
+// ── Dark-theme chart tooltip ───────────────────────────────────────────────
+const DarkTooltip = ({
+  active,
+  payload,
+  label,
+  formatter,
+}: {
+  active?: boolean;
+  payload?: any[];
+  label?: string;
+  formatter?: (v: number) => string;
+}) => {
+  if (!active || !payload?.length) return null;
+  const val = payload[0].value as number;
+  return (
+    <div className="bg-[#0B1220] border border-[rgba(6,55,122,0.5)] rounded-lg px-3 py-2 shadow-xl text-xs">
+      <p className="text-[#8B9BB4] mb-0.5">{label}</p>
+      <p className="text-[#42aeec] font-semibold">
+        {formatter ? formatter(val) : val}
+      </p>
+    </div>
+  );
+};
 
 export default function QuickStatsUI() {
   const navigate = useNavigate();
@@ -79,21 +121,11 @@ export default function QuickStatsUI() {
   });
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [showExpiringPopup, setShowExpiringPopup] = useState(false);
   const [alertError, setAlertError] = useState<string | null>(null);
 
   useEffect(() => {
     fetchDashboardData();
   }, []);
-
-  useEffect(() => {
-    if (alerts.expiringDocs && alerts.expiringDocs.length > 0) {
-      const timer = setTimeout(() => {
-        setShowExpiringPopup(true);
-      }, 4000);
-      return () => clearTimeout(timer);
-    }
-  }, [alerts.expiringDocs]);
 
   const fetchDashboardData = async () => {
     try {
@@ -101,7 +133,6 @@ export default function QuickStatsUI() {
       setError(null);
       setAlertError(null);
 
-      // Fetch all data in parallel
       const results = await Promise.allSettled([
         quickStats(),
         loadsPerMonth(),
@@ -110,106 +141,96 @@ export default function QuickStatsUI() {
         recentAlerts(),
       ]);
 
-      // Process Quick Stats
-      if (results[0].status === 'fulfilled' && results[0].value?.success) {
-        const statsData = results[0].value.data;
+      // Quick Stats
+      if (results[0].status === "fulfilled" && results[0].value?.success) {
+        const d = results[0].value.data;
         setStats({
-          totalVehicles: statsData.totalVehicles || 0,
-          driversOnDuty: statsData.driversOnDuty || 0,
-          activeTrips: statsData.activeTrips || statsData.activeLoads || 0,
-          activeLoads: statsData.activeTrips || statsData.activeLoads || 0,
-          pendingWorkOrders: statsData.pendingWorkOrders || 0,
-          pendingInvoices: statsData.pendingInvoices || 0,
+          totalVehicles: d.totalVehicles || 0,
+          driversOnDuty: d.driversOnDuty || 0,
+          activeTrips: d.activeTrips || d.activeLoads || 0,
+          activeLoads: d.activeTrips || d.activeLoads || 0,
+          pendingWorkOrders: d.pendingWorkOrders || 0,
+          pendingInvoices: d.pendingInvoices || 0,
         });
-
         if (results[0].value.requiresCompanySetup && results[0].value.message) {
           setError(results[0].value.message);
         }
       } else {
-        console.error("Failed to fetch quick stats:", results[0]);
-        const errorMsg = results[0].status === 'rejected'
-          ? 'Failed to fetch statistics'
-          : (results[0].value?.message || 'Failed to fetch statistics');
-        setError(errorMsg);
+        const msg =
+          results[0].status === "rejected"
+            ? "Failed to fetch statistics"
+            : results[0].value?.message || "Failed to fetch statistics";
+        setError(msg);
       }
 
-      // Process Loads Per Month
-      if (results[1].status === 'fulfilled' && results[1].value?.success) {
-        const loadsArray = results[1].value.data;
-        if (loadsArray && loadsArray.length > 0) {
-          const formattedLoads = loadsArray.map((item: { month: string; total: number }) => ({
-            name: item.month ? item.month.substring(0, 3) : 'N/A',
-            value: item.total || 0,
-          }));
-          setLoadsData(formattedLoads);
-        } else {
-          setLoadsData([]);
-        }
+      // Loads per Month
+      if (results[1].status === "fulfilled" && results[1].value?.success) {
+        const arr = results[1].value.data;
+        setLoadsData(
+          arr?.length
+            ? arr.map((item: { month: string; total: number }) => ({
+              name: item.month ? item.month.substring(0, 3) : "N/A",
+              value: item.total || 0,
+            }))
+            : []
+        );
       } else {
-        console.error("Failed to fetch loads per month:", results[1]);
         setLoadsData([]);
       }
 
-      // Process Revenue Trend
-      if (results[2].status === 'fulfilled' && results[2].value?.success) {
-        const revenueArray = results[2].value.data;
-        if (revenueArray && revenueArray.length > 0) {
-          const formattedRevenue = revenueArray.map((item: { month: string; totalRevenue: number }) => ({
-            name: item.month ? item.month.substring(0, 3) : 'N/A',
-            value: item.totalRevenue || 0,
-          }));
-          setRevenueData(formattedRevenue);
-        } else {
-          setRevenueData([]);
-        }
+      // Revenue Trend
+      if (results[2].status === "fulfilled" && results[2].value?.success) {
+        const arr = results[2].value.data;
+        setRevenueData(
+          arr?.length
+            ? arr.map((item: { month: string; totalRevenue: number }) => ({
+              name: item.month ? item.month.substring(0, 3) : "N/A",
+              value: item.totalRevenue || 0,
+            }))
+            : []
+        );
       } else {
-        console.error("Failed to fetch revenue trend:", results[2]);
         setRevenueData([]);
       }
 
-      // Process Fuel Efficiency
-      if (results[3].status === 'fulfilled' && results[3].value?.success) {
-        // Fuel efficiency data is fetched but not currently displayed
-      } else {
-        console.error("Failed to fetch fuel efficiency:", results[3]);
-      }
-
-      // Process Alerts
-      if (results[4].status === 'fulfilled') {
+      // Alerts
+      if (results[4].status === "fulfilled") {
         if (results[4].value?.success && results[4].value.alerts) {
-          setAlerts(results[4].value.alerts);
+          const a = results[4].value.alerts;
+          setAlerts({
+            maintenanceDue: a.maintenanceDue || [],
+            expiringDocs: a.expiringDocs || [],
+            delayedLoads: a.delayedLoads || [],
+          });
           setAlertError(null);
         } else if (results[4].value?.error) {
           setAlertError(results[4].value.error);
-          setAlerts({
-            maintenanceDue: [],
-            expiringDocs: [],
-            delayedLoads: [],
-          });
+          setAlerts({ maintenanceDue: [], expiringDocs: [], delayedLoads: [] });
         }
-      } else if (results[4].status === 'rejected') {
-        console.error("Failed to fetch alerts:", results[4]);
+      } else {
         setAlertError("Unable to load alerts");
-        setAlerts({
-          maintenanceDue: [],
-          expiringDocs: [],
-          delayedLoads: [],
-        });
+        setAlerts({ maintenanceDue: [], expiringDocs: [], delayedLoads: [] });
       }
-
     } catch (err) {
-      console.error("Error fetching dashboard data:", err);
       setError("Failed to load dashboard data");
     } finally {
       setLoading(false);
     }
   };
 
-  const formatDate = (dateString: string): string => {
-    if (!dateString) return "N/A";
+  // Calculate revenue change % between last two non-zero months
+  const revenueChange = useMemo(() => {
+    const nonZero = revenueData.filter((d) => d.value > 0);
+    if (nonZero.length < 2) return null;
+    const prev = nonZero[nonZero.length - 2].value;
+    const curr = nonZero[nonZero.length - 1].value;
+    return (((curr - prev) / prev) * 100).toFixed(1);
+  }, [revenueData]);
+
+  const formatDate = (ds: string): string => {
+    if (!ds) return "N/A";
     try {
-      const date = new Date(dateString);
-      return date.toLocaleDateString('en-GB');
+      return new Date(ds).toLocaleDateString("en-GB");
     } catch {
       return "Invalid Date";
     }
@@ -219,7 +240,7 @@ export default function QuickStatsUI() {
     return (
       <div className="p-6 flex items-center justify-center min-h-screen bg-main">
         <div className="text-center">
-          <RefreshCw className="animate-spin h-10 w-10 text-[#00D1FF] mx-auto mb-3" />
+          <RefreshCw className="animate-spin h-10 w-10 text-[#42aeec] mx-auto mb-3" />
           <p className="text-secondary">Loading dashboard...</p>
         </div>
       </div>
@@ -228,13 +249,13 @@ export default function QuickStatsUI() {
 
   if (error) {
     return (
-      <div className="p-6 flex items-center justify-center min-h-screen bg-main border-2 border-red-700">
-        <div className="text-center bg-main p-6 rounded-lg shadow-lg">
-          <AlertTriangle className="h-12 w-12 text-red-500 mx-auto mb-3" />
+      <div className="p-6 flex items-center justify-center min-h-screen bg-main">
+        <div className="text-center bg-[#121A2B] p-6 rounded-xl border border-[rgba(6,55,122,0.4)] shadow-lg">
+          <AlertTriangle className="h-12 w-12 text-rose-500 mx-auto mb-3" />
           <div className="text-[#A855F7] text-lg font-semibold mb-2">{error}</div>
           <button
             onClick={fetchDashboardData}
-            className="mt-3 px-5 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium inline-flex items-center gap-2"
+            className="mt-3 px-5 py-2 bg-[#06377a] text-white rounded-lg hover:bg-[#1a6db8] transition font-medium inline-flex items-center gap-2"
           >
             <RefreshCw className="h-4 w-4" />
             Retry
@@ -246,384 +267,252 @@ export default function QuickStatsUI() {
 
   return (
     <div className="p-5 space-y-5 bg-main min-h-screen relative overflow-hidden">
-      {/* Animated Background Elements */}
-      <div className="absolute top-0 left-0 w-96 h-96 bg-blue-400/5 rounded-full blur-3xl animate-pulse"></div>
-      <div className="absolute bottom-0 right-0 w-96 h-96 bg-violet-400/5 rounded-full blur-3xl animate-pulse" style={{ animationDelay: '1s' }}></div>
-      <div className="absolute top-1/2 left-1/3 w-64 h-64 bg-emerald-400/5 rounded-full blur-3xl animate-pulse" style={{ animationDelay: '2s' }}></div>
+      {/* Ambient glow orbs */}
+      <div className="absolute top-0 left-0 w-96 h-96 bg-[#06377a]/8 rounded-full blur-3xl pointer-events-none" />
+      <div className="absolute bottom-0 right-0 w-96 h-96 bg-[#A855F7]/5 rounded-full blur-3xl pointer-events-none" />
+      <div className="absolute top-1/2 left-1/3 w-64 h-64 bg-[#1a6db8]/6 rounded-full blur-3xl pointer-events-none" />
 
-      {/* Top Cards - Smaller & More Elegant */}
+      {/* ── Stat Cards ───────────────────────────────────────────────────── */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3 relative z-10">
-
-        <StatCard
-          title="Total Vehicles"
-          value={stats.totalVehicles}
-          icon={<Truck className="h-5 w-5" />}
-          color="blue"
-          onClick={() => navigate("/admin/fleetmaintenance/fleet-units")}
-        />
-
-        <StatCard
-          title="Drivers on Duty"
-          value={stats.driversOnDuty}
-          icon={<Users className="h-5 w-5" />}
-          color="green"
-          onClick={() => navigate("/admin/dispatch/drivers")}
-        />
-
-        <StatCard
-          title="Active Trips"
-          value={stats.activeTrips || stats.activeLoads || 0}
-          icon={<Package className="h-5 w-5" />}
-          color="purple"
-          onClick={() => navigate("/admin/dispatch/trips")}
-        />
-
-        <StatCard
-          title="Pending Work Orders"
-          value={stats.pendingWorkOrders}
-          icon={<Wrench className="h-5 w-5" />}
-          color="orange"
-          onClick={() => navigate("/admin/fleetmaintenance/maintenance-orders-log")}
-        />
-
-        <StatCard
-          title="Pending Invoices"
-          value={stats.pendingInvoices}
-          icon={<FileText className="h-5 w-5" />}
-          color="red"
-          onClick={() => navigate("/admin/accounts/invoice")}
-        />
-
+        <StatCard title="Total Vehicles" value={stats.totalVehicles} icon={<Truck className="h-5 w-5" />} color="blue" onClick={() => navigate("/admin/fleetmaintenance/fleet-units")} />
+        <StatCard title="Drivers on Duty" value={stats.driversOnDuty} icon={<Users className="h-5 w-5" />} color="green" onClick={() => navigate("/admin/dispatch/drivers")} />
+        <StatCard title="Active Trips" value={stats.activeTrips || stats.activeLoads || 0} icon={<Package className="h-5 w-5" />} color="purple" onClick={() => navigate("/admin/dispatch/trips")} />
+        <StatCard title="Pending Work Orders" value={stats.pendingWorkOrders} icon={<Wrench className="h-5 w-5" />} color="orange" onClick={() => navigate("/admin/fleetmaintenance/maintenance-orders-log")} />
+        <StatCard title="Pending Invoices" value={stats.pendingInvoices} icon={<FileText className="h-5 w-5" />} color="red" onClick={() => navigate("/admin/accounts/invoice")} />
       </div>
 
-      {/* Charts - Compact & Elegant */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 relative z-10 border-2 border-green-700">
-        <InternalCard className="lg:col-span-2 cursor-pointer hover:shadow-xl transition-all duration-300 hover:-translate-y-0.5" onClick={() => navigate("/admin/dispatch/trips")}>
-          <div className="flex items-center justify-between mb-3">
-            <h3 className="text-base font-semibold text-primary flex items-center gap-2">
-              <div className="p-1.5 bg-blue-100 rounded-lg">
-                <Package className="h-4 w-4 text-[#00D1FF]" />
-              </div>
+      {/* ── Charts ───────────────────────────────────────────────────────── */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 relative z-10">
+
+        {/* Trips per Month — Bar Chart */}
+        <DashCard className="lg:col-span-2 cursor-pointer" onClick={() => navigate("/admin/dispatch/trips")}>
+          <div className="flex items-center justify-between mb-4">
+            <h3 className="text-sm font-semibold text-primary flex items-center gap-2">
+              <span className="p-1.5 rounded-lg bg-[#06377a]/25">
+                <Package className="h-4 w-4 text-[#42aeec]" />
+              </span>
               Trips per Month
             </h3>
-            <div className="flex items-center gap-1 text-xs text-secondary">
-              <div className="w-2 h-2 bg-blue-500 rounded-full animate-pulse border-2 border-red-700"></div>
+            <span className="flex items-center gap-1.5 text-xs text-[#8B9BB4]">
+              <span className="w-2 h-2 rounded-full bg-[#00FFA3] animate-pulse shadow-[0_0_6px_#00FFA3]" />
               Live
-            </div>
+            </span>
           </div>
+
           {loadsData.length > 0 ? (
-            <div style={{ width: "100%", height: 240 }}>
+            <div style={{ width: "100%", height: 220 }}>
               <ResponsiveContainer>
-                <BarChart data={loadsData} barCategoryGap="15%">
-                  <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
-                  <XAxis
-                    dataKey="name"
-                    stroke="#9ca3af"
-                    style={{ fontSize: '11px', fontWeight: 500 }}
-                  />
-                  <YAxis
-                    stroke="#9ca3af"
-                    style={{ fontSize: '11px' }}
-                    allowDecimals={false}
-                  />
-                  <Tooltip
-                    contentStyle={{
-                      backgroundColor: '#fff',
-                      border: 'none',
-                      borderRadius: '8px',
-                      boxShadow: '0 4px 12px rgba(0,0,0,0.1)',
-                      fontSize: '12px'
-                    }}
-                    cursor={{ fill: 'rgba(59, 130, 246, 0.08)' }}
-                  />
-                  <Bar
-                    dataKey="value"
-                    fill="url(#blueGradient)"
-                    name="Trips"
-                    radius={[8, 8, 0, 0]}
-                    maxBarSize={60}
-                  />
+                <BarChart data={loadsData} barCategoryGap="20%">
                   <defs>
-                    <linearGradient id="blueGradient" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="0%" stopColor="#3b82f6" stopOpacity={1} />
-                      <stop offset="100%" stopColor="#60a5fa" stopOpacity={0.7} />
+                    <linearGradient id="tripBarGrad" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="0%" stopColor="#42aeec" stopOpacity={0.9} />
+                      <stop offset="100%" stopColor="#06377a" stopOpacity={0.6} />
                     </linearGradient>
                   </defs>
+                  <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" vertical={false} />
+                  <XAxis dataKey="name" stroke="#8B9BB4" tick={{ fontSize: 11 }} axisLine={false} tickLine={false} />
+                  <YAxis stroke="#8B9BB4" tick={{ fontSize: 11 }} axisLine={false} tickLine={false} allowDecimals={false} width={28} />
+                  <Tooltip content={<DarkTooltip />} cursor={{ fill: "rgba(6,55,122,0.15)" }} />
+                  <Bar dataKey="value" fill="url(#tripBarGrad)" name="Trips" radius={[6, 6, 0, 0]} maxBarSize={48} />
                 </BarChart>
               </ResponsiveContainer>
             </div>
           ) : (
-            <div className="h-60 flex flex-col items-center justify-center text-secondary">
-              <Package className="h-12 w-12 mb-2 opacity-30" />
-              <p className="text-sm">No trip data available</p>
-            </div>
+            <EmptyState icon={<Package className="h-10 w-10" />} label="No trip data available" />
           )}
-        </InternalCard>
+        </DashCard>
 
-        <InternalCard className="cursor-pointer hover:shadow-xl transition-all duration-300 hover:-translate-y-0.5" onClick={() => navigate("/admin/accounts/invoice")}>
-          <div className="flex items-center justify-between mb-3">
-            <h3 className="text-base font-semibold text-primary flex items-center gap-2">
-              <div className="p-1.5 bg-emerald-100 rounded-lg">
-                <FileText className="h-4 w-4 text-emerald-600" />
-              </div>
+        {/* Revenue Trend — Area Chart */}
+        <DashCard className="cursor-pointer" onClick={() => navigate("/admin/accounts/invoice")}>
+          <div className="flex items-center justify-between mb-4">
+            <h3 className="text-sm font-semibold text-primary flex items-center gap-2">
+              <span className="p-1.5 rounded-lg bg-[#00FFA3]/10">
+                <FileText className="h-4 w-4 text-[#00FFA3]" />
+              </span>
               Revenue Trend
             </h3>
-            <div className="flex items-center gap-1 text-xs text-emerald-600 font-medium">
-              <span>↗</span>
-              +12%
-            </div>
+            {revenueChange !== null && (
+              <span className={`flex items-center gap-1 text-xs font-semibold ${parseFloat(revenueChange) >= 0 ? "text-[#00FFA3]" : "text-rose-400"}`}>
+                {parseFloat(revenueChange) >= 0
+                  ? <TrendingUp className="h-3.5 w-3.5" />
+                  : <TrendingDown className="h-3.5 w-3.5" />}
+                {parseFloat(revenueChange) >= 0 ? "+" : ""}{revenueChange}%
+              </span>
+            )}
           </div>
+
           {revenueData.length > 0 ? (
-            <div style={{ width: "100%", height: 200 }}>
+            <div style={{ width: "100%", height: 190 }}>
               <ResponsiveContainer>
-                <LineChart data={revenueData}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
-                  <XAxis dataKey="name" stroke="#9ca3af" style={{ fontSize: '11px' }} />
-                  <YAxis stroke="#9ca3af" style={{ fontSize: '11px' }} />
-                  <Tooltip
-                    contentStyle={{
-                      backgroundColor: '#fff',
-                      border: 'none',
-                      borderRadius: '8px',
-                      boxShadow: '0 4px 12px rgba(0,0,0,0.1)',
-                      fontSize: '12px'
-                    }}
-                    formatter={(value) => `$${(value as number).toLocaleString()}`}
-                  />
-                  <Line
-                    type="monotone"
-                    dataKey="value"
-                    stroke="url(#emeraldGradient)"
-                    strokeWidth={3}
-                    dot={{ r: 4, fill: '#10b981', strokeWidth: 2, stroke: '#fff' }}
-                    activeDot={{ r: 6, fill: '#10b981', strokeWidth: 2 }}
-                  />
+                <AreaChart data={revenueData}>
                   <defs>
-                    <linearGradient id="emeraldGradient" x1="0" y1="0" x2="1" y2="0">
-                      <stop offset="0%" stopColor="#10b981" />
-                      <stop offset="100%" stopColor="#34d399" />
+                    <linearGradient id="revenueAreaGrad" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="0%" stopColor="#00FFA3" stopOpacity={0.3} />
+                      <stop offset="100%" stopColor="#00FFA3" stopOpacity={0} />
                     </linearGradient>
                   </defs>
-                </LineChart>
+                  <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" vertical={false} />
+                  <XAxis dataKey="name" stroke="#8B9BB4" tick={{ fontSize: 10 }} axisLine={false} tickLine={false} />
+                  <YAxis stroke="#8B9BB4" tick={{ fontSize: 10 }} axisLine={false} tickLine={false} width={36} tickFormatter={(v) => `$${v >= 1000 ? `${(v / 1000).toFixed(0)}k` : v}`} />
+                  <Tooltip content={<DarkTooltip formatter={(v) => `$${v.toLocaleString()}`} />} cursor={{ stroke: "rgba(0,255,163,0.2)", strokeWidth: 1 }} />
+                  <Area
+                    type="monotone"
+                    dataKey="value"
+                    stroke="#00FFA3"
+                    strokeWidth={2.5}
+                    fill="url(#revenueAreaGrad)"
+                    dot={{ r: 3, fill: "#00FFA3", strokeWidth: 0 }}
+                    activeDot={{ r: 5, fill: "#00FFA3", stroke: "#0B1220", strokeWidth: 2 }}
+                  />
+                </AreaChart>
               </ResponsiveContainer>
             </div>
           ) : (
-            <div className="h-52 flex flex-col items-center justify-center text-secondary">
-              <FileText className="h-12 w-12 mb-2 opacity-30" />
-              <p className="text-sm">No revenue data available</p>
-            </div>
+            <EmptyState icon={<FileText className="h-10 w-10" />} label="No revenue data available" />
           )}
-        </InternalCard>
+        </DashCard>
       </div>
 
-      {/* Recent Alerts - Compact */}
+      {/* ── Alerts + Summary ─────────────────────────────────────────────── */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 relative z-10">
-        <InternalCard className="lg:col-span-2 relative overflow-hidden">
-          {/* Decorative gradient orb */}
-          <div className="absolute -right-8 -top-8 w-32 h-32 bg-gradient-to-br from-rose-300/20 to-amber-300/20 rounded-full blur-2xl"></div>
 
-          <h3 className="text-base font-semibold mb-3 text-primary flex items-center gap-2 relative z-10">
-            <div className="p-1.5 bg-rose-100 rounded-lg">
-              <AlertTriangle className="h-4 w-4 text-rose-600" />
-            </div>
+        {/* Recent Alerts */}
+        <DashCard className="lg:col-span-2">
+          <h3 className="text-sm font-semibold mb-4 text-primary flex items-center gap-2">
+            <span className="p-1.5 rounded-lg bg-rose-500/10">
+              <AlertTriangle className="h-4 w-4 text-rose-400" />
+            </span>
             Recent Alerts
           </h3>
 
           {alertError ? (
-            <div className="p-3 bg-card border border-yellow-200 rounded-lg flex items-start gap-2">
-              <AlertTriangle className="h-4 w-4 text-[#00FFA3] flex-shrink-0 mt-0.5" />
+            <div className="p-3 rounded-lg bg-amber-500/10 border border-amber-500/20 flex items-start gap-2">
+              <AlertTriangle className="h-4 w-4 text-amber-400 flex-shrink-0 mt-0.5" />
               <div>
-                <p className="text-xs font-medium text-yellow-800">Alert System Unavailable</p>
-                <p className="text-xs text-yellow-700 mt-0.5">{alertError}</p>
+                <p className="text-xs font-medium text-amber-300">Alert System Unavailable</p>
+                <p className="text-xs text-[#8B9BB4] mt-0.5">{alertError}</p>
               </div>
             </div>
           ) : (
-            <div className="space-y-3">
+            <div className="space-y-4">
+
+              {/* Maintenance Due */}
               <AlertSection
                 title="Maintenance Due"
                 count={alerts.maintenanceDue?.length || 0}
-                icon={<Wrench className="h-3.5 w-3.5" />}
+                icon={<Wrench className="h-3.5 w-3.5 text-rose-400" />}
+                accentColor="rose"
                 onClick={() => navigate("/admin/fleetmaintenance/scheduled-services-log")}
               >
-                {alerts.maintenanceDue && alerts.maintenanceDue.length > 0 ? (
-                  alerts.maintenanceDue.map((vehicle, idx) => (
-                    <div
-                      key={idx}
-                      className="flex justify-between items-center p-2.5 bg-gradient-to-r from-rose-50 to-red-50 rounded-lg border border-rose-200 hover:border-rose-300 transition-all cursor-pointer"
+                {alerts.maintenanceDue?.length > 0 ? (
+                  alerts.maintenanceDue.map((v, i) => (
+                    <AlertItem
+                      key={i}
+                      color="rose"
+                      leftIcon={<Truck className="h-4 w-4 text-rose-400" />}
+                      title={v.plateNumber}
+                      subtitle={formatDate(v.nextServiceDate)}
+                      badge="Overdue"
                       onClick={() => navigate("/admin/fleetmaintenance/scheduled-services-log")}
-                    >
-                      <div className="flex items-center gap-2">
-                        <Truck className="h-4 w-4 text-rose-600" />
-                        <div>
-                          <div className="font-medium text-sm text-primary">{vehicle.plateNumber}</div>
-                          <div className="text-xs text-secondary flex items-center gap-1 mt-0.5">
-                            <Calendar className="h-3 w-3" />
-                            {formatDate(vehicle.nextServiceDate)}
-                          </div>
-                        </div>
-                      </div>
-                      <span className="text-xs px-2 py-0.5 bg-rose-600 text-white rounded-full font-medium">Overdue</span>
-                    </div>
+                    />
                   ))
                 ) : (
-                  <div className="text-xs text-secondary p-2.5 bg-gradient-to-r from-emerald-50 to-green-50 rounded-lg border border-emerald-200 flex items-center gap-2">
-                    <div className="h-1.5 w-1.5 bg-emerald-500 rounded-full"></div>
-                    No maintenance overdue
-                  </div>
+                  <OkRow label="No maintenance overdue" />
                 )}
               </AlertSection>
 
+              {/* Document Expiry */}
               <AlertSection
                 title="Document Expiry"
                 count={alerts.expiringDocs?.length || 0}
-                icon={<FileText className="h-3.5 w-3.5" />}
+                icon={<FileText className="h-3.5 w-3.5 text-amber-400" />}
+                accentColor="amber"
                 onClick={() => navigate("/admin/Management/documents")}
               >
-                {alerts.expiringDocs && alerts.expiringDocs.length > 0 ? (
-                  alerts.expiringDocs.map((doc, idx) => (
-                    <div
-                      key={idx}
-                      className="flex justify-between items-center p-2.5 bg-gradient-to-r from-amber-50 to-yellow-50 rounded-lg border border-amber-200 hover:border-amber-300 transition-all cursor-pointer"
+                {alerts.expiringDocs?.length > 0 ? (
+                  alerts.expiringDocs.map((doc, i) => (
+                    <AlertItem
+                      key={i}
+                      color="amber"
+                      leftIcon={
+                        doc.type === "vehicle"
+                          ? <Truck className="h-4 w-4 text-amber-400" />
+                          : <Users className="h-4 w-4 text-amber-400" />
+                      }
+                      title={`${doc.documentType || "Document"} — ${doc.name}`}
+                      subtitle={formatDate(doc.license?.expiryDate || doc.expiryDate || "")}
+                      badge="Expiring"
                       onClick={() => navigate("/admin/Management/documents")}
-                    >
-                      <div className="flex items-center gap-2">
-                        <Users className="h-4 w-4 text-amber-600" />
-                        <div>
-                          <div className="font-medium text-sm text-primary">Driver License - {doc.name}</div>
-                          <div className="text-xs text-secondary flex items-center gap-1 mt-0.5">
-                            <Calendar className="h-3 w-3" />
-                            {formatDate(doc.license?.expiryDate || '')}
-                          </div>
-                        </div>
-                      </div>
-                      <span className="text-xs px-2 py-0.5 bg-amber-600 text-white rounded-full font-medium">Soon</span>
-                    </div>
+                    />
                   ))
                 ) : (
-                  <div className="text-xs text-secondary p-2.5 bg-gradient-to-r from-emerald-50 to-green-50 rounded-lg border border-emerald-200 flex items-center gap-2">
-                    <div className="h-1.5 w-1.5 bg-emerald-500 rounded-full"></div>
-                    All documents valid
-                  </div>
+                  <OkRow label="All documents valid" />
                 )}
               </AlertSection>
 
+              {/* Delayed Trips */}
               <AlertSection
                 title="Delayed Trips"
                 count={alerts.delayedLoads?.length || 0}
-                icon={<Clock className="h-3.5 w-3.5" />}
+                icon={<Clock className="h-3.5 w-3.5 text-orange-400" />}
+                accentColor="orange"
                 onClick={() => navigate("/admin/dispatch/trips")}
               >
-                {alerts.delayedLoads && alerts.delayedLoads.length > 0 ? (
-                  alerts.delayedLoads.map((trip, idx) => (
-                    <div
-                      key={idx}
-                      className="flex justify-between items-center p-2.5 bg-gradient-to-r from-orange-50 to-amber-50 rounded-lg border border-orange-200 hover:border-orange-300 transition-all cursor-pointer"
+                {alerts.delayedLoads?.length > 0 ? (
+                  alerts.delayedLoads.map((trip, i) => (
+                    <AlertItem
+                      key={i}
+                      color="orange"
+                      leftIcon={<Package className="h-4 w-4 text-[#F59E0B]" />}
+                      title={`Trip #${trip.loadId || trip._id}`}
+                      subtitle={`${formatDate(trip.deliveryDate)} • ${trip.status}`}
+                      badge="Delayed"
                       onClick={() => navigate("/admin/dispatch/trips")}
-                    >
-                      <div className="flex items-center gap-2">
-                        <Package className="h-4 w-4 text-[#F59E0B]" />
-                        <div>
-                          <div className="font-medium text-sm text-primary">Trip #{trip.loadId || trip._id}</div>
-                          <div className="text-xs text-secondary flex items-center gap-1 mt-0.5">
-                            <Calendar className="h-3 w-3" />
-                            {formatDate(trip.deliveryDate)} • {trip.status}
-                          </div>
-                        </div>
-                      </div>
-                      <span className="text-xs px-2 py-0.5 bg-orange-600 text-white rounded-full font-medium">Delayed</span>
-                    </div>
+                    />
                   ))
                 ) : (
-                  <div className="text-xs text-secondary p-2.5 bg-gradient-to-r from-emerald-50 to-green-50 rounded-lg border border-emerald-200 flex items-center gap-2">
-                    <div className="h-1.5 w-1.5 bg-emerald-500 rounded-full"></div>
-                    All trips on track
-                  </div>
+                  <OkRow label="All trips on track" />
                 )}
               </AlertSection>
+
             </div>
           )}
-        </InternalCard>
+        </DashCard>
 
-        {/* Summary Card - Compact */}
-        <InternalCard className="relative overflow-hidden">
-          {/* Decorative gradient orb */}
-          <div className="absolute -left-8 -bottom-8 w-32 h-32 bg-gradient-to-tr from-blue-300/20 to-violet-300/20 rounded-full blur-2xl"></div>
-
-          <h3 className="text-base font-semibold mb-3 text-primary relative z-10">Summary</h3>
-          <div className="space-y-2 relative z-10">
-            <SummaryItem label="Total Vehicles" value={stats.totalVehicles} icon={<Truck className="h-3.5 w-3.5 text-[#00D1FF]" />} />
-            <SummaryItem label="Active Trips" value={stats.activeTrips || stats.activeLoads || 0} icon={<Package className="h-3.5 w-3.5 text-violet-600" />} />
-            <SummaryItem label="Drivers on Duty" value={stats.driversOnDuty} icon={<Users className="h-3.5 w-3.5 text-emerald-600" />} />
-            <SummaryItem label="Pending Work Orders" value={stats.pendingWorkOrders} icon={<Wrench className="h-3.5 w-3.5 text-amber-600" />} />
-            <SummaryItem label="Pending Invoices" value={stats.pendingInvoices} icon={<FileText className="h-3.5 w-3.5 text-rose-600" />} />
+        {/* Summary */}
+        <DashCard>
+          <h3 className="text-sm font-semibold mb-4 text-primary">Summary</h3>
+          <div className="space-y-1">
+            <SummaryItem label="Total Vehicles" value={stats.totalVehicles} icon={<Truck className="h-3.5 w-3.5 text-[#42aeec]" />} />
+            <SummaryItem label="Active Trips" value={stats.activeTrips || stats.activeLoads || 0} icon={<Package className="h-3.5 w-3.5 text-[#A855F7]" />} />
+            <SummaryItem label="Drivers on Duty" value={stats.driversOnDuty} icon={<Users className="h-3.5 w-3.5 text-[#00FFA3]" />} />
+            <SummaryItem label="Pending Work Orders" value={stats.pendingWorkOrders} icon={<Wrench className="h-3.5 w-3.5 text-[#F59E0B]" />} />
+            <SummaryItem label="Pending Invoices" value={stats.pendingInvoices} icon={<FileText className="h-3.5 w-3.5 text-rose-400" />} />
           </div>
 
           <button
             onClick={fetchDashboardData}
-            className="mt-4 w-full px-3 py-2 bg-gradient-to-r from-blue-600 via-blue-600 to-blue-700 !text-white rounded-lg hover:from-blue-700 hover:via-blue-700 hover:to-blue-800 transition-all text-sm font-medium flex items-center justify-center gap-2 shadow-md hover:shadow-lg relative z-10 group overflow-hidden"
+            className="mt-5 w-full px-3 py-2.5 rounded-lg text-sm font-medium flex items-center justify-center gap-2 transition-all duration-300 relative overflow-hidden group
+              bg-[#06377a]/30 border border-[#42aeec]/30 text-[#42aeec]
+              hover:bg-[#06377a]/50 hover:border-[#42aeec]/60 hover:shadow-[0_0_20px_rgba(6,55,122,0.35)]"
           >
-            {/* Shimmer effect */}
-            <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-700"></div>
+            <span className="absolute inset-0 bg-gradient-to-r from-transparent via-[#1a6db8]/15 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-700" />
             <RefreshCw className="h-3.5 w-3.5 relative z-10" />
             <span className="relative z-10">Refresh Data</span>
           </button>
-        </InternalCard>
+        </DashCard>
       </div>
 
-      {/* Expiring Documents Popup */}
-      <ExpiringDocumentsPopup
-        isOpen={showExpiringPopup}
-        onClose={() => setShowExpiringPopup(false)}
-        onViewDocuments={() => {
-          window.location.href = '/admin/employee/documents';
-        }}
-        daysThreshold={30}
-        showOnlyOnce={true}
-      />
     </div>
   );
 }
 
-// function StatCard({ title, value, icon, color, onClick }: { title: string; value: number; icon: React.ReactNode; color: string; onClick?: () => void }) {
-//   const colorClasses: Record<string, string> = {
-//     blue: 'bg-gradient-to-br from-blue-400/20 via-blue-300/10 to-blue-100/30 border-blue-300/40 hover:border-blue-400/60 hover:shadow-blue-200/50',
-//     green: 'bg-gradient-to-br from-emerald-400/20 via-emerald-300/10 to-emerald-100/30 border-emerald-300/40 hover:border-emerald-400/60 hover:shadow-emerald-200/50',
-//     purple: 'bg-gradient-to-br from-violet-400/20 via-violet-300/10 to-violet-100/30 border-violet-300/40 hover:border-violet-400/60 hover:shadow-violet-200/50',
-//     orange: 'bg-gradient-to-br from-amber-400/20 via-amber-300/10 to-amber-100/30 border-amber-300/40 hover:border-amber-400/60 hover:shadow-amber-200/50',
-//     red: 'bg-gradient-to-br from-rose-400/20 via-rose-300/10 to-rose-100/30 border-rose-300/40 hover:border-rose-400/60 hover:shadow-rose-200/50',
-//   };
+// ── Sub-components ────────────────────────────────────────────────────────────
 
-//   const iconBgClasses: Record<string, string> = {
-//     blue: 'bg-blue-100/80 group-hover:bg-blue-200/80',
-//     green: 'bg-emerald-100/80 group-hover:bg-emerald-200/80',
-//     purple: 'bg-violet-100/80 group-hover:bg-violet-200/80',
-//     orange: 'bg-amber-100/80 group-hover:bg-amber-200/80',
-//     red: 'bg-rose-100/80 group-hover:bg-rose-200/80',
-//   };
-
-//   return (
-//     <div
-//       className={`group ${colorClasses[color]} rounded-xl p-4 shadow-md border hover:shadow-lg transition-all duration-300 ${onClick ? 'cursor-pointer transform hover:-translate-y-1' : ''} backdrop-blur-sm relative overflow-hidden`}
-//       onClick={onClick}
-//     >
-//       {/* Animated shimmer effect */}
-//       <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000"></div>
-
-//       <div className="flex items-center justify-between mb-2 relative z-10">
-//         <div className="text-xs font-semibold text-primary">{title}</div>
-//         <div className={`p-2 rounded-lg ${iconBgClasses[color]} transition-all duration-300`}>
-//           {icon}
-//         </div>
-//       </div>
-//       <div className="text-2xl font-bold text-primary relative z-10">{value}</div>
-//     </div>
-//   );
-// }
-
-function InternalCard({ children, className = "", onClick }: { children: React.ReactNode; className?: string; onClick?: () => void }) {
+function DashCard({ children, className = "", onClick }: { children: React.ReactNode; className?: string; onClick?: () => void }) {
   return (
     <div
-      className={`bg-card/90 backdrop-blur-md rounded-xl p-4 shadow-md border border-theme/50 hover:border-theme/50 ${className} border-2 border-green-700`}
+      className={`bg-[#121A2B] backdrop-blur-md rounded-xl p-4 border border-[rgba(6,55,122,0.35)] hover:border-[rgba(6,55,122,0.6)] shadow-md transition-all duration-300 ${onClick ? "cursor-pointer hover:-translate-y-0.5 hover:shadow-[0_0_24px_rgba(6,55,122,0.25)]" : ""} ${className}`}
       onClick={onClick}
     >
       {children}
@@ -631,11 +520,21 @@ function InternalCard({ children, className = "", onClick }: { children: React.R
   );
 }
 
-function AlertSection({ title, children, count, icon, onClick }: { title: string; children: React.ReactNode; count: number; icon: React.ReactNode; onClick?: () => void }) {
+function AlertSection({
+  title, children, count, icon, accentColor, onClick,
+}: {
+  title: string; children: React.ReactNode; count: number;
+  icon: React.ReactNode; accentColor: string; onClick?: () => void;
+}) {
+  const badgeBg: Record<string, string> = {
+    rose: "bg-rose-500/20 text-rose-300",
+    amber: "bg-amber-500/20 text-amber-300",
+    orange: "bg-orange-500/20 text-orange-300",
+  };
   return (
     <div>
       <div
-        className={`flex items-center justify-between mb-2 ${onClick ? 'cursor-pointer hover:text-primary transition-colors' : ''}`}
+        className={`flex items-center justify-between mb-2 ${onClick ? "cursor-pointer" : ""}`}
         onClick={onClick}
       >
         <div className="flex items-center gap-1.5 text-xs font-semibold text-primary">
@@ -643,7 +542,7 @@ function AlertSection({ title, children, count, icon, onClick }: { title: string
           {title}
         </div>
         {count > 0 && (
-          <span className="text-xs px-2 py-0.5 bg-rose-100 text-rose-700 rounded-full font-medium">
+          <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${badgeBg[accentColor] || badgeBg.rose}`}>
             {count}
           </span>
         )}
@@ -653,92 +552,105 @@ function AlertSection({ title, children, count, icon, onClick }: { title: string
   );
 }
 
-function SummaryItem({ label, value, icon }: { label: string; value: number; icon: React.ReactNode }) {
+function AlertItem({
+  color, leftIcon, title, subtitle, badge, onClick,
+}: {
+  color: "rose" | "amber" | "orange";
+  leftIcon: React.ReactNode;
+  title: string;
+  subtitle: string;
+  badge: string;
+  onClick?: () => void;
+}) {
+  const styles: Record<string, string> = {
+    rose: "bg-rose-500/10 border-rose-500/20 hover:border-rose-500/40",
+    amber: "bg-amber-500/10 border-amber-500/20 hover:border-amber-500/40",
+    orange: "bg-orange-500/10 border-orange-500/20 hover:border-orange-500/40",
+  };
+  const badgeStyles: Record<string, string> = {
+    rose: "bg-rose-500/20 text-rose-300 border border-rose-500/30",
+    amber: "bg-amber-500/20 text-amber-300 border border-amber-500/30",
+    orange: "bg-orange-500/20 text-orange-300 border border-orange-500/30",
+  };
   return (
-    <div className="flex justify-between items-center py-2 border-b border-theme last:border-0">
-      <div className="flex items-center gap-1.5">
-        {icon}
-        <span className="text-xs text-primary">{label}</span>
+    <div
+      className={`flex justify-between items-center p-2.5 rounded-lg border transition-all ${styles[color]} ${onClick ? "cursor-pointer" : ""}`}
+      onClick={onClick}
+    >
+      <div className="flex items-center gap-2">
+        {leftIcon}
+        <div>
+          <div className="font-medium text-xs text-primary">{title}</div>
+          <div className="text-[10px] text-[#8B9BB4] flex items-center gap-1 mt-0.5">
+            <Calendar className="h-3 w-3" />
+            {subtitle}
+          </div>
+        </div>
       </div>
-      <span className="text-base font-semibold text-primary">{value}</span>
+      <span className={`text-[10px] px-2 py-0.5 rounded-full font-medium ${badgeStyles[color]}`}>
+        {badge}
+      </span>
     </div>
   );
 }
 
+function OkRow({ label }: { label: string }) {
+  return (
+    <div className="text-xs text-[#8B9BB4] px-2.5 py-2 bg-[#00FFA3]/5 border border-[#00FFA3]/10 rounded-lg flex items-center gap-2">
+      <span className="h-1.5 w-1.5 rounded-full bg-[#00FFA3] shadow-[0_0_6px_#00FFA3]" />
+      {label}
+    </div>
+  );
+}
+
+function SummaryItem({ label, value, icon }: { label: string; value: number; icon: React.ReactNode }) {
+  return (
+    <div className="flex justify-between items-center py-2.5 border-b border-[rgba(6,55,122,0.25)] last:border-0">
+      <div className="flex items-center gap-2">
+        {icon}
+        <span className="text-xs text-[#8B9BB4]">{label}</span>
+      </div>
+      <span className="text-sm font-bold text-primary">{value}</span>
+    </div>
+  );
+}
+
+function EmptyState({ icon, label }: { icon: React.ReactNode; label: string }) {
+  return (
+    <div className="h-52 flex flex-col items-center justify-center text-[#8B9BB4]">
+      <div className="opacity-20 mb-2">{icon}</div>
+      <p className="text-xs">{label}</p>
+    </div>
+  );
+}
 
 function StatCard({
-  title,
-  value,
-  icon,
-  color,
-  onClick,
+  title, value, icon, color, onClick,
 }: {
-  title: string;
-  value: number;
-  icon: React.ReactNode;
-  color: string;
-  onClick?: () => void;
+  title: string; value: number; icon: React.ReactNode; color: string; onClick?: () => void;
 }) {
-  const styles: Record<string, any> = {
-    blue: {
-      bg: "bg-blue-500/10",
-      text: "text-blue-400",
-      glow: "shadow-[0_0_20px_rgba(59,130,246,0.3)]",
-    },
-    green: {
-      bg: "bg-emerald-500/10",
-      text: "text-emerald-400",
-      glow: "shadow-[0_0_20px_rgba(16,185,129,0.3)]",
-    },
-    purple: {
-      bg: "bg-violet-500/10",
-      text: "text-violet-400",
-      glow: "shadow-[0_0_20px_rgba(139,92,246,0.3)]",
-    },
-    orange: {
-      bg: "bg-amber-500/10",
-      text: "text-amber-400",
-      glow: "shadow-[0_0_20px_rgba(245,158,11,0.3)]",
-    },
-    red: {
-      bg: "bg-rose-500/10",
-      text: "text-rose-400",
-      glow: "shadow-[0_0_20px_rgba(244,63,94,0.3)]",
-    },
+  const styles: Record<string, { bg: string; text: string; glow: string }> = {
+    blue: { bg: "bg-[#06377a]/25", text: "text-[#42aeec]", glow: "shadow-[0_0_18px_rgba(6,55,122,0.4)]" },
+    green: { bg: "bg-[#00FFA3]/10", text: "text-[#00FFA3]", glow: "shadow-[0_0_18px_rgba(0,255,163,0.25)]" },
+    purple: { bg: "bg-[#A855F7]/10", text: "text-[#A855F7]", glow: "shadow-[0_0_18px_rgba(168,85,247,0.25)]" },
+    orange: { bg: "bg-[#F59E0B]/10", text: "text-[#F59E0B]", glow: "shadow-[0_0_18px_rgba(245,158,11,0.25)]" },
+    red: { bg: "bg-rose-500/10", text: "text-rose-400", glow: "shadow-[0_0_18px_rgba(244,63,94,0.25)]" },
   };
-
-  const style = styles[color] || styles.blue;
+  const s = styles[color] || styles.blue;
 
   return (
-    <Card
-      onClick={onClick}
-      className="cursor-pointer hover:scale-[1.02] active:scale-[0.98] card-premium"
-    >
-      <div className="flex items-start gap-4">
-
-        {/* ICON */}
-        <div className={`rounded-xl p-3 ${style.bg} ${style.glow}`}>
-          <div className={style.text}>
-            {icon}
-          </div>
+    <Card onClick={onClick} className="cursor-pointer hover:scale-[1.02] active:scale-[0.98] card-premium">
+      <div className="flex items-start gap-3">
+        <div className={`rounded-xl p-2.5 ${s.bg} ${s.glow}`}>
+          <div className={s.text}>{icon}</div>
         </div>
-
-        {/* CONTENT */}
-        <div className="flex-1">
-          <h3 className="text-sm font-semibold text-primary">
-            {title}
-          </h3>
-
-          <div className="text-2xl font-bold text-primary mt-1">
-            {value}
-          </div>
+        <div className="flex-1 min-w-0">
+          <p className="text-xs font-medium text-[#8B9BB4] truncate">{title}</p>
+          <p className="text-2xl font-bold text-primary mt-0.5">{value}</p>
         </div>
-
       </div>
-
-      {/* PROGRESS */}
-      <div className="mt-4 h-[3px] bg-card/10 rounded-full overflow-hidden">
-        <div className={`h-full ${style.bg}`} style={{ width: "60%" }} />
+      <div className="mt-3 h-[2px] rounded-full overflow-hidden bg-white/5">
+        <div className={`h-full ${s.bg} w-3/5`} />
       </div>
     </Card>
   );
